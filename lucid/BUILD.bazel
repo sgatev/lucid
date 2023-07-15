@@ -1,0 +1,15 @@
+cc_library(
+    name = "arena",
+    hdrs = ["arena.h"],
+)
+
+cc_test(
+    name = "arena_test",
+    srcs = ["arena_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":arena",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
