@@ -13,3 +13,29 @@ cc_test(
         "@gtest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "ast",
+    hdrs = ["ast.h"],
+)
+
+cc_library(
+    name = "cpp_gen",
+    srcs = ["cpp_gen.cc"],
+    hdrs = ["cpp_gen.h"],
+    deps = [
+        ":ast",
+    ],
+)
+
+cc_test(
+    name = "cpp_gen_test",
+    srcs = ["cpp_gen_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":ast",
+        ":cpp_gen",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
