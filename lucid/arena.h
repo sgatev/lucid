@@ -1,19 +1,14 @@
 #pragma once
 
 #include <cstddef>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace lucid {
 
-// Stores POD [1] values and provides access to them via references.
-//
-// [1] https://en.cppreference.com/w/cpp/named_req/PODType
+// Stores values and provides access to them via references.
 template <typename T>
 class Arena {
-  static_assert(std::is_pod_v<T>);
-
  public:
   using Ref = std::size_t;
 

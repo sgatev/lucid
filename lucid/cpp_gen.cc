@@ -1,8 +1,10 @@
 #include "lucid/cpp_gen.h"
 
+#include <cstddef>
 #include <string>
 #include <variant>
 
+#include "lucid/arena.h"
 #include "lucid/ast.h"
 
 namespace lucid {
@@ -11,9 +13,13 @@ namespace {
 // Generates C++ source code.
 class CppSourceGenerator {
  public:
+  explicit CppSourceGenerator(const Arena<Stmt>& arena) : arena_(arena) {}
+
   // Adds source code for `stmt` to the generated source.
   void Process(const Stmt& stmt) {
+    AppendIndent();
     std::visit([this](auto&& stmt) { Process(stmt); }, stmt);
+    source_.append("\n");
   }
 
   // Extracts and returns the source code produced by this generator.
@@ -24,16 +30,35 @@ class CppSourceGenerator {
     source_.append("void");
     source_.append(" ");
     source_.append(stmt.name);
-    source_.append("() {}");
+    source_.append("() ");
+    Process(stmt.body);
   }
 
+  void Process(const CompoundStmt& stmt) {
+    source_.append("{\n");
+    Indent();
+    for (const auto& stmt_ref : stmt.statements) {
+      Process(arena_.get(stmt_ref));
+    }
+    UnIndent();
+    source_.append("}");
+  }
+
+  void Process(const ReturnStmt& stmt) { source_.append("return;"); }
+
+  void Indent() { indent_ += 2; }
+  void UnIndent() { indent_ -= 2; }
+  void AppendIndent() { source_.append(std::string(indent_, ' ')); }
+
+  const Arena<Stmt>& arena_;
   std::string source_;
+  std::size_t indent_ = 0;
 };
 
 }  // namespace
 
-std::string GenerateCppSource(const Stmt& stmt) {
-  CppSourceGenerator gen;
+std::string GenerateCppSource(const Arena<Stmt>& arena, const Stmt& stmt) {
+  CppSourceGenerator gen(arena);
   gen.Process(stmt);
   return std::move(gen).ConsumeGeneratedSource();
 }
