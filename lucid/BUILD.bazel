@@ -22,6 +22,16 @@ cc_library(
     ],
 )
 
+cc_binary(
+    name = "compiler",
+    srcs = ["compiler.cc"],
+    deps = [
+        ":arena",
+        ":ast",
+        ":cpp_gen",
+    ],
+)
+
 cc_library(
     name = "cpp_gen",
     srcs = ["cpp_gen.cc"],
