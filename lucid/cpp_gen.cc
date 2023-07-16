@@ -38,17 +38,31 @@ class CppSourceGenerator {
     source_.append("{\n");
     Indent();
     for (const auto& stmt_ref : stmt.statements) {
-      Process(arena_.get(stmt_ref));
+      Process(DerefStmt(stmt_ref));
     }
     UnIndent();
     source_.append("}");
   }
 
-  void Process(const ReturnStmt& stmt) { source_.append("return;"); }
+  void Process(const ReturnStmt& stmt) {
+    source_.append("return");
+    source_.append(" ");
+    Process(DerefExpr(stmt.value));
+    source_.append(";");
+  }
+
+  void Process(const Expr& expr) {
+    std::visit([this](auto&& expr) { Process(expr); }, expr);
+  }
+
+  void Process(const IntLit& lit) { source_.append(std::to_string(lit.value)); }
 
   void Indent() { indent_ += 2; }
   void UnIndent() { indent_ -= 2; }
   void AppendIndent() { source_.append(std::string(indent_, ' ')); }
+
+  const Stmt& DerefStmt(StmtRef ref) { return arena_.get(ref); }
+  const Expr& DerefExpr(ExprRef ref) { return std::get<Expr>(DerefStmt(ref)); }
 
   const Arena<Stmt>& arena_;
   std::string source_;

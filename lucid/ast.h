@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <variant>
 
@@ -10,13 +11,21 @@ namespace lucid {
 struct CompoundStmt;
 struct FuncDefStmt;
 struct ReturnStmt;
+struct IntLit;
+
+// An expression in the Lucid language.
+using Expr = std::variant<IntLit>;
 
 // A statement in the Lucid language.
-using Stmt = std::variant<FuncDefStmt, ReturnStmt>;
+using Stmt = std::variant<Expr, FuncDefStmt, ReturnStmt>;
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
 using StmtRef = ArenaRef<Stmt>;
+
+// A reference to an expression that can be dereferenced using an `Arena<Stmt>`
+// object.
+using ExprRef = StmtRef;
 
 // A collection of zero or more statements.
 struct CompoundStmt {
@@ -33,6 +42,15 @@ struct FuncDefStmt {
 };
 
 // A statement that represents a return point in a function.
-struct ReturnStmt {};
+struct ReturnStmt {
+  // Value that is returned by the function.
+  ExprRef value;
+};
+
+// An integer literal.
+struct IntLit {
+  // Value of the integer.
+  int32_t value;
+};
 
 }  // namespace lucid

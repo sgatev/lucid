@@ -19,7 +19,8 @@ TEST(GenerateCppSourceTest, SimpleFunctionDefinition) {
 
 TEST(GenerateCppSourceTest, FunctionWithOneStatement) {
   Arena<Stmt> arena;
-  auto return_stmt_ref = arena.add(ReturnStmt());
+  auto int_lit_ref = arena.add(IntLit{.value = 21});
+  auto return_stmt_ref = arena.add(ReturnStmt{.value = int_lit_ref});
   auto func_stmt_ref = arena.add(FuncDefStmt{
       .name = "foo",
       .body =
@@ -29,7 +30,7 @@ TEST(GenerateCppSourceTest, FunctionWithOneStatement) {
   });
   EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
             R"(void foo() {
-  return;
+  return 21;
 }
 )");
 }
