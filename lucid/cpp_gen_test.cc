@@ -16,7 +16,7 @@ TEST(GenerateCppSourceTest, SimpleFunctionDefinition) {
   });
   EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
             R"(void foo() {
-}
+};
 )");
 }
 
@@ -35,7 +35,7 @@ TEST(GenerateCppSourceTest, FunctionWithOneStatement) {
   EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
             R"(int foo() {
   return 21;
-}
+};
 )");
 }
 
@@ -54,7 +54,7 @@ TEST(GenerateCppSourceTest, ReturnFunctionCall) {
   EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
             R"(int foo() {
   return bar();
-}
+};
 )");
 }
 

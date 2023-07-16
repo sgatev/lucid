@@ -19,7 +19,7 @@ class CppSourceGenerator {
   void Process(const Stmt& stmt) {
     AppendIndent();
     std::visit([this](auto&& stmt) { Process(stmt); }, stmt);
-    source_.append("\n");
+    source_.append(";\n");
   }
 
   // Extracts and returns the source code produced by this generator.
@@ -48,7 +48,6 @@ class CppSourceGenerator {
     source_.append("return");
     source_.append(" ");
     Process(DerefExpr(stmt.value));
-    source_.append(";");
   }
 
   void Process(const Expr& expr) {
