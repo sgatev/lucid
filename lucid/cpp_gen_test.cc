@@ -39,5 +39,24 @@ TEST(GenerateCppSourceTest, FunctionWithOneStatement) {
 )");
 }
 
+TEST(GenerateCppSourceTest, ReturnFunctionCall) {
+  Arena<Stmt> arena;
+  auto func_call_stmt_ref = arena.add(FuncCallExpr{.func_name = "bar"});
+  auto return_stmt_ref = arena.add(ReturnStmt{.value = func_call_stmt_ref});
+  auto func_stmt_ref = arena.add(FuncDefStmt{
+      .name = "foo",
+      .body =
+          {
+              .statements = {return_stmt_ref},
+          },
+      .result_type = "int",
+  });
+  EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
+            R"(int foo() {
+  return bar();
+}
+)");
+}
+
 }  // namespace
 }  // namespace lucid

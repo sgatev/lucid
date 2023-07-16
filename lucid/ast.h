@@ -12,9 +12,10 @@ struct CompoundStmt;
 struct FuncDefStmt;
 struct ReturnStmt;
 struct IntLit;
+struct FuncCallExpr;
 
 // An expression in the Lucid language.
-using Expr = std::variant<IntLit>;
+using Expr = std::variant<FuncCallExpr, IntLit>;
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, FuncDefStmt, ReturnStmt>;
@@ -54,6 +55,12 @@ struct ReturnStmt {
 struct IntLit {
   // Value of the integer.
   int32_t value;
+};
+
+// An expression that represents a function call.
+struct FuncCallExpr {
+  // Name of the function.
+  std::string func_name;
 };
 
 }  // namespace lucid

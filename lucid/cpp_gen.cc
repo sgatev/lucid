@@ -57,6 +57,11 @@ class CppSourceGenerator {
 
   void Process(const IntLit& lit) { source_.append(std::to_string(lit.value)); }
 
+  void Process(const FuncCallExpr& expr) {
+    source_.append(expr.func_name);
+    source_.append("()");
+  }
+
   void Indent() { indent_ += 2; }
   void UnIndent() { indent_ -= 2; }
   void AppendIndent() { source_.append(std::string(indent_, ' ')); }
