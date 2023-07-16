@@ -10,7 +10,10 @@ namespace {
 
 TEST(GenerateCppSourceTest, SimpleFunctionDefinition) {
   Arena<Stmt> arena;
-  auto func_stmt_ref = arena.add(FuncDefStmt{.name = "foo"});
+  auto func_stmt_ref = arena.add(FuncDefStmt{
+      .name = "foo",
+      .result_type = "void",
+  });
   EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
             R"(void foo() {
 }
@@ -27,9 +30,10 @@ TEST(GenerateCppSourceTest, FunctionWithOneStatement) {
           {
               .statements = {return_stmt_ref},
           },
+      .result_type = "int",
   });
   EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
-            R"(void foo() {
+            R"(int foo() {
   return 21;
 }
 )");

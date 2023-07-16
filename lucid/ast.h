@@ -39,6 +39,9 @@ struct FuncDefStmt {
 
   // Body of the function.
   CompoundStmt body;
+
+  // Type of the result of the function.
+  std::string result_type;
 };
 
 // A statement that represents a return point in a function.

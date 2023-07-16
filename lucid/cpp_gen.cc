@@ -27,7 +27,7 @@ class CppSourceGenerator {
 
  private:
   void Process(const FuncDefStmt& stmt) {
-    source_.append("void");
+    source_.append(stmt.result_type);
     source_.append(" ");
     source_.append(stmt.name);
     source_.append("() ");
