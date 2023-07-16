@@ -58,5 +58,28 @@ TEST(GenerateCppSourceTest, ReturnFunctionCall) {
 )");
 }
 
+TEST(GenerateCppSourceTest, VariableDeclaration) {
+  Arena<Stmt> arena;
+  auto func_call_stmt_ref = arena.add(FuncCallExpr{.func_name = "bar"});
+  auto x_var_decl_ref = arena.add(VarDeclStmt{
+      .type = "int",
+      .name = "x",
+      .init = func_call_stmt_ref,
+  });
+  auto func_stmt_ref = arena.add(FuncDefStmt{
+      .name = "foo",
+      .body =
+          {
+              .statements = {x_var_decl_ref},
+          },
+      .result_type = "void",
+  });
+  EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
+            R"(void foo() {
+  int x = bar();
+};
+)");
+}
+
 }  // namespace
 }  // namespace lucid

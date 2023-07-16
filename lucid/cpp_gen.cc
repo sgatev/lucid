@@ -61,6 +61,14 @@ class CppSourceGenerator {
     source_.append("()");
   }
 
+  void Process(const VarDeclStmt& stmt) {
+    source_.append(stmt.type);
+    source_.append(" ");
+    source_.append(stmt.name);
+    source_.append(" = ");
+    Process(DerefExpr(stmt.init));
+  }
+
   void Indent() { indent_ += 2; }
   void UnIndent() { indent_ -= 2; }
   void AppendIndent() { source_.append(std::string(indent_, ' ')); }

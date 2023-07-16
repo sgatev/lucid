@@ -13,12 +13,13 @@ struct FuncDefStmt;
 struct ReturnStmt;
 struct IntLit;
 struct FuncCallExpr;
+struct VarDeclStmt;
 
 // An expression in the Lucid language.
 using Expr = std::variant<FuncCallExpr, IntLit>;
 
 // A statement in the Lucid language.
-using Stmt = std::variant<Expr, FuncDefStmt, ReturnStmt>;
+using Stmt = std::variant<Expr, VarDeclStmt, FuncDefStmt, ReturnStmt>;
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
@@ -61,6 +62,18 @@ struct IntLit {
 struct FuncCallExpr {
   // Name of the function.
   std::string func_name;
+};
+
+// A statement that represents a variable declaration.
+struct VarDeclStmt {
+  // Type of the variable.
+  std::string type;
+
+  // Name of the variable.
+  std::string name;
+
+  // Initializer expression.
+  ExprRef init;
 };
 
 }  // namespace lucid
