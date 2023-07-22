@@ -81,5 +81,28 @@ TEST(GenerateCppSourceTest, VariableDeclaration) {
 )");
 }
 
+TEST(GenerateCppSourceTest, FunctionWithParameters) {
+  Arena<Stmt> arena;
+  auto func_stmt_ref = arena.add(FuncDefStmt{
+      .name = "foo",
+      .result_type = "void",
+      .parameters =
+          {
+              FuncParam{
+                  .type = "int",
+                  .name = "x",
+              },
+              FuncParam{
+                  .type = "int",
+                  .name = "y",
+              },
+          },
+  });
+  EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
+            R"(void foo(int x, int y) {
+};
+)");
+}
+
 }  // namespace
 }  // namespace lucid

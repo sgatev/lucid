@@ -34,6 +34,15 @@ struct CompoundStmt {
   std::vector<StmtRef> statements;
 };
 
+// A function parameter.
+struct FuncParam {
+  // Type of the parameter.
+  std::string type;
+
+  // Name of the parameter.
+  std::string name;
+};
+
 // A statement that represents a function definition.
 struct FuncDefStmt {
   // Name of the function.
@@ -44,6 +53,9 @@ struct FuncDefStmt {
 
   // Type of the result of the function.
   std::string result_type;
+
+  // Parameters of the function.
+  std::vector<FuncParam> parameters;
 };
 
 // A statement that represents a return point in a function.

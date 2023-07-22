@@ -30,7 +30,18 @@ class CppSourceGenerator {
     source_.append(stmt.result_type);
     source_.append(" ");
     source_.append(stmt.name);
-    source_.append("() ");
+    source_.append("(");
+    bool notFirst = false;
+    for (const auto& param : stmt.parameters) {
+      if (notFirst) source_.append(", ");
+
+      source_.append(param.type);
+      source_.append(" ");
+      source_.append(param.name);
+
+      notFirst = true;
+    }
+    source_.append(") ");
     Process(stmt.body);
   }
 
