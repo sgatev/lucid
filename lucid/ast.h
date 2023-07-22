@@ -75,6 +75,9 @@ struct IntLit {
 struct FuncCallExpr {
   // Name of the function.
   std::string func_name;
+
+  // Arguments to the function call.
+  std::vector<ExprRef> arguments;
 };
 
 // A statement that represents a variable declaration.

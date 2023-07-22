@@ -41,7 +41,12 @@ TEST(GenerateCppSourceTest, FunctionWithOneStatement) {
 
 TEST(GenerateCppSourceTest, ReturnFunctionCall) {
   Arena<Stmt> arena;
-  auto func_call_stmt_ref = arena.add(FuncCallExpr{.func_name = "bar"});
+  auto func_call_stmt_ref =
+      arena.add(FuncCallExpr{.func_name = "bar",
+                             .arguments = {
+                                 arena.add(IntLit{.value = 3}),
+                                 arena.add(IntLit{.value = 7}),
+                             }});
   auto return_stmt_ref = arena.add(ReturnStmt{.value = func_call_stmt_ref});
   auto func_stmt_ref = arena.add(FuncDefStmt{
       .name = "foo",
@@ -53,7 +58,7 @@ TEST(GenerateCppSourceTest, ReturnFunctionCall) {
   });
   EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
             R"(int foo() {
-  return bar();
+  return bar(3, 7);
 };
 )");
 }

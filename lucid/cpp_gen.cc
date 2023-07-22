@@ -69,7 +69,16 @@ class CppSourceGenerator {
 
   void Process(const FuncCallExpr& expr) {
     source_.append(expr.func_name);
-    source_.append("()");
+    source_.append("(");
+    bool notFirst = false;
+    for (const auto& arg : expr.arguments) {
+      if (notFirst) source_.append(", ");
+
+      Process(DerefExpr(arg));
+
+      notFirst = true;
+    }
+    source_.append(")");
   }
 
   void Process(const VarDeclStmt& stmt) {
