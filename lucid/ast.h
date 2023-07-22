@@ -14,9 +14,10 @@ struct ReturnStmt;
 struct IntLit;
 struct FuncCallExpr;
 struct VarDeclStmt;
+struct IdentExpr;
 
 // An expression in the Lucid language.
-using Expr = std::variant<FuncCallExpr, IntLit>;
+using Expr = std::variant<FuncCallExpr, IntLit, IdentExpr>;
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, VarDeclStmt, FuncDefStmt, ReturnStmt>;
@@ -86,6 +87,12 @@ struct VarDeclStmt {
 
   // Initializer expression.
   ExprRef init;
+};
+
+// An expression that represents an identifier.
+struct IdentExpr {
+  // Name of the identifier.
+  std::string name;
 };
 
 }  // namespace lucid

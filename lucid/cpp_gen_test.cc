@@ -104,5 +104,36 @@ TEST(GenerateCppSourceTest, FunctionWithParameters) {
 )");
 }
 
+TEST(GenerateCppSourceTest, ReturnIdentifier) {
+  Arena<Stmt> arena;
+  auto ident_expr_ref = arena.add(IdentExpr{
+      .name = "x",
+  });
+  auto return_stmt_ref = arena.add(ReturnStmt{.value = ident_expr_ref});
+  auto func_stmt_ref = arena.add(FuncDefStmt{
+      .name = "id",
+      .result_type = "void",
+      .parameters =
+          {
+              FuncParam{
+                  .type = "int",
+                  .name = "x",
+              },
+          },
+      .body =
+          {
+              .statements =
+                  {
+                      return_stmt_ref,
+                  },
+          },
+  });
+  EXPECT_EQ(GenerateCppSource(arena, arena.get(func_stmt_ref)),
+            R"(void id(int x) {
+  return x;
+};
+)");
+}
+
 }  // namespace
 }  // namespace lucid

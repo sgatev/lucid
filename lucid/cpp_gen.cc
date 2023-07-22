@@ -80,6 +80,8 @@ class CppSourceGenerator {
     Process(DerefExpr(stmt.init));
   }
 
+  void Process(const IdentExpr& expr) { source_.append(expr.name); }
+
   void Indent() { indent_ += 2; }
   void UnIndent() { indent_ -= 2; }
   void AppendIndent() { source_.append(std::string(indent_, ' ')); }
