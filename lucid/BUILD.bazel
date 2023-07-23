@@ -32,6 +32,19 @@ cc_binary(
     ],
 )
 
+cc_test(
+    name = "compiler_test",
+    srcs = ["compiler_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    data = [
+        ":compiler",
+    ],
+    deps = [
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "cpp_gen",
     srcs = ["cpp_gen.cc"],
