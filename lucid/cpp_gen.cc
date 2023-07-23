@@ -65,7 +65,9 @@ class CppSourceGenerator {
     std::visit([this](auto&& expr) { Process(expr); }, expr);
   }
 
-  void Process(const IntLit& lit) { source_.append(std::to_string(lit.value)); }
+  void Process(const IntLitExpr& expr) {
+    source_.append(std::to_string(expr.value));
+  }
 
   void Process(const FuncCallExpr& expr) {
     source_.append(expr.func_name);

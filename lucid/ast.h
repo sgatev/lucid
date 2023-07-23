@@ -11,13 +11,13 @@ namespace lucid {
 struct CompoundStmt;
 struct FuncDefStmt;
 struct ReturnStmt;
-struct IntLit;
+struct IntLitExpr;
 struct FuncCallExpr;
 struct VarDeclStmt;
 struct IdentExpr;
 
 // An expression in the Lucid language.
-using Expr = std::variant<FuncCallExpr, IntLit, IdentExpr>;
+using Expr = std::variant<FuncCallExpr, IntLitExpr, IdentExpr>;
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, VarDeclStmt, FuncDefStmt, ReturnStmt>;
@@ -65,8 +65,8 @@ struct ReturnStmt {
   ExprRef value;
 };
 
-// An integer literal.
-struct IntLit {
+// An expression that represents an integer literal.
+struct IntLitExpr {
   // Value of the integer.
   int32_t value;
 };
