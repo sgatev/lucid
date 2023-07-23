@@ -36,7 +36,7 @@ TEST_F(GenerateCppSourceTest, SimpleFunctionDefinition) {
 }
 
 TEST_F(GenerateCppSourceTest, FunctionWithOneStatement) {
-  auto int_lit_ref = Allocate(IntLitExpr{.value = 21});
+  auto int_lit_ref = Allocate(IntLitExpr{.value = "21"});
   auto return_stmt_ref = Allocate(ReturnStmt{.value = int_lit_ref});
   auto func_stmt_ref = Allocate(FuncDefStmt{
       .name = "foo",
@@ -56,8 +56,8 @@ TEST_F(GenerateCppSourceTest, ReturnFunctionCall) {
   auto func_call_stmt_ref =
       Allocate(FuncCallExpr{.func_name = "bar",
                             .arguments = {
-                                Allocate(IntLitExpr{.value = 3}),
-                                Allocate(IntLitExpr{.value = 7}),
+                                Allocate(IntLitExpr{.value = "3"}),
+                                Allocate(IntLitExpr{.value = "7"}),
                             }});
   auto return_stmt_ref = Allocate(ReturnStmt{.value = func_call_stmt_ref});
   auto func_stmt_ref = Allocate(FuncDefStmt{

@@ -47,7 +47,7 @@ int Main() {
                               .func_name = "id",
                               .arguments =
                                   {
-                                      allocate(IntLitExpr{.value = 21}),
+                                      allocate(IntLitExpr{.value = "21"}),
                                   },
                           }),
                       }),

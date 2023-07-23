@@ -68,7 +68,7 @@ struct ReturnStmt {
 // An expression that represents an integer literal.
 struct IntLitExpr {
   // Value of the integer.
-  int32_t value;
+  std::string_view value;
 };
 
 // An expression that represents a function call.
