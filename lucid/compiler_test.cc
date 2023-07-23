@@ -1,6 +1,9 @@
 #include <sys/wait.h>
 
+#include <cstdlib>
 #include <filesystem>
+#include <string>
+#include <string_view>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -8,16 +11,35 @@
 namespace lucid {
 namespace {
 
-TEST(CompilerTest, Works) {
-  const std::filesystem::path runtime_path = testing::SrcDir() + "__main__";
+class CompilerTest : public testing::Test {
+ protected:
+  int Compile(std::string_view input) {
+    const std::string compiler_path = runtime_path_ / "lucid" / "compiler";
+    return ExecCommand(compiler_path + " " + std::string(input));
+  }
 
-  const auto compiler_path = runtime_path / "lucid" / "compiler";
-  const int compiler_result = std::system(compiler_path.c_str());
-  EXPECT_EQ(WEXITSTATUS(compiler_result), 0);
+  int Run(std::string_view input) {
+    const std::string binary_path = runtime_path_ / input;
+    return ExecCommand(binary_path);
+  }
 
-  const auto binary_path = runtime_path / "main";
-  const int binary_result = std::system(binary_path.c_str());
-  EXPECT_EQ(WEXITSTATUS(binary_result), 21);
+ private:
+  int ExecCommand(std::string_view command) {
+    const int result = std::system(command.data());
+    return WEXITSTATUS(result);
+  }
+
+  const std::filesystem::path runtime_path_ = testing::SrcDir() + "__main__";
+};
+
+TEST_F(CompilerTest, EmptyMain) {
+  EXPECT_EQ(Compile("empty_main"), 0);
+  EXPECT_EQ(Run("empty_main"), 0);
+}
+
+TEST_F(CompilerTest, FunctionCall) {
+  EXPECT_EQ(Compile("func_call"), 0);
+  EXPECT_EQ(Run("func_call"), 21);
 }
 
 }  // namespace
