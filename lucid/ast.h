@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
+#include <string_view>
 #include <variant>
 
 #include "lucid/arena.h"
@@ -38,22 +38,22 @@ struct CompoundStmt {
 // A function parameter.
 struct FuncParam {
   // Type of the parameter.
-  std::string type;
+  std::string_view type;
 
   // Name of the parameter.
-  std::string name;
+  std::string_view name;
 };
 
 // A statement that represents a function definition.
 struct FuncDefStmt {
   // Name of the function.
-  std::string name;
+  std::string_view name;
 
   // Body of the function.
   CompoundStmt body;
 
   // Type of the result of the function.
-  std::string result_type;
+  std::string_view result_type;
 
   // Parameters of the function.
   std::vector<FuncParam> parameters;
@@ -74,7 +74,7 @@ struct IntLitExpr {
 // An expression that represents a function call.
 struct FuncCallExpr {
   // Name of the function.
-  std::string func_name;
+  std::string_view func_name;
 
   // Arguments to the function call.
   std::vector<ExprRef> arguments;
@@ -83,10 +83,10 @@ struct FuncCallExpr {
 // A statement that represents a variable declaration.
 struct VarDeclStmt {
   // Type of the variable.
-  std::string type;
+  std::string_view type;
 
   // Name of the variable.
-  std::string name;
+  std::string_view name;
 
   // Initializer expression.
   ExprRef init;
@@ -95,7 +95,7 @@ struct VarDeclStmt {
 // An expression that represents an identifier.
 struct IdentExpr {
   // Name of the identifier.
-  std::string name;
+  std::string_view name;
 };
 
 }  // namespace lucid

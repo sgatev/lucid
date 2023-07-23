@@ -2,10 +2,12 @@
 
 #include <cstddef>
 #include <string>
+#include <string_view>
 #include <variant>
 
 #include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/string_builder.h"
 
 namespace lucid {
 namespace {
@@ -19,45 +21,47 @@ class CppSourceGenerator {
   void Process(const Stmt& stmt) {
     AppendIndent();
     std::visit([this](auto&& stmt) { Process(stmt); }, stmt);
-    source_.append(";\n");
+    Append(";\n");
   }
 
   // Extracts and returns the source code produced by this generator.
-  std::string ConsumeGeneratedSource() && { return std::move(source_); }
+  std::string ConsumeGeneratedSource() && {
+    return std::move(output_builder_).Build();
+  }
 
  private:
   void Process(const FuncDefStmt& stmt) {
-    source_.append(stmt.result_type);
-    source_.append(" ");
-    source_.append(stmt.name);
-    source_.append("(");
+    Append(stmt.result_type);
+    Append(" ");
+    Append(stmt.name);
+    Append("(");
     bool notFirst = false;
     for (const auto& param : stmt.parameters) {
-      if (notFirst) source_.append(", ");
+      if (notFirst) Append(", ");
 
-      source_.append(param.type);
-      source_.append(" ");
-      source_.append(param.name);
+      Append(param.type);
+      Append(" ");
+      Append(param.name);
 
       notFirst = true;
     }
-    source_.append(") ");
+    Append(") ");
     Process(stmt.body);
   }
 
   void Process(const CompoundStmt& stmt) {
-    source_.append("{\n");
+    Append("{\n");
     Indent();
     for (const auto& stmt_ref : stmt.statements) {
       Process(DerefStmt(stmt_ref));
     }
     UnIndent();
-    source_.append("}");
+    Append("}");
   }
 
   void Process(const ReturnStmt& stmt) {
-    source_.append("return");
-    source_.append(" ");
+    Append("return");
+    Append(" ");
     Process(DerefExpr(stmt.value));
   }
 
@@ -65,43 +69,47 @@ class CppSourceGenerator {
     std::visit([this](auto&& expr) { Process(expr); }, expr);
   }
 
-  void Process(const IntLitExpr& expr) {
-    source_.append(std::to_string(expr.value));
-  }
+  void Process(const IntLitExpr& expr) { Append(std::to_string(expr.value)); }
 
   void Process(const FuncCallExpr& expr) {
-    source_.append(expr.func_name);
-    source_.append("(");
+    Append(expr.func_name);
+    Append("(");
     bool notFirst = false;
     for (const auto& arg : expr.arguments) {
-      if (notFirst) source_.append(", ");
+      if (notFirst) Append(", ");
 
       Process(DerefExpr(arg));
 
       notFirst = true;
     }
-    source_.append(")");
+    Append(")");
   }
 
   void Process(const VarDeclStmt& stmt) {
-    source_.append(stmt.type);
-    source_.append(" ");
-    source_.append(stmt.name);
-    source_.append(" = ");
+    Append(stmt.type);
+    Append(" ");
+    Append(stmt.name);
+    Append(" = ");
     Process(DerefExpr(stmt.init));
   }
 
-  void Process(const IdentExpr& expr) { source_.append(expr.name); }
+  void Process(const IdentExpr& expr) { Append(expr.name); }
 
   void Indent() { indent_ += 2; }
+
   void UnIndent() { indent_ -= 2; }
-  void AppendIndent() { source_.append(std::string(indent_, ' ')); }
+
+  void AppendIndent() {
+    for (int i = 0; i < indent_; ++i) Append(" ");
+  }
 
   const Stmt& DerefStmt(StmtRef ref) { return arena_.get(ref); }
   const Expr& DerefExpr(ExprRef ref) { return std::get<Expr>(DerefStmt(ref)); }
 
+  void Append(std::string_view s) { output_builder_.Append(s); }
+
   const Arena<Stmt>& arena_;
-  std::string source_;
+  StringBuilder output_builder_;
   std::size_t indent_ = 0;
 };
 
