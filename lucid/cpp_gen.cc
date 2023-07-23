@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <variant>
 
 #include "lucid/arena.h"
@@ -69,7 +70,7 @@ class CppSourceGenerator {
     std::visit([this](auto&& expr) { Process(expr); }, expr);
   }
 
-  void Process(const IntLitExpr& expr) { Append(std::to_string(expr.value)); }
+  void Process(const IntLitExpr& expr) { Append(ToString(expr.value)); }
 
   void Process(const FuncCallExpr& expr) {
     Append(expr.func_name);
@@ -108,9 +109,18 @@ class CppSourceGenerator {
 
   void Append(std::string_view s) { output_builder_.Append(s); }
 
+  std::string_view ToString(int i) {
+    if (auto it = int_to_string_.find(i); it != int_to_string_.end()) {
+      return it->second;
+    }
+    auto [it, _] = int_to_string_.insert({i, std::to_string(i)});
+    return it->second;
+  }
+
   const Arena<Stmt>& arena_;
   StringBuilder output_builder_;
   std::size_t indent_ = 0;
+  std::unordered_map<int, const std::string> int_to_string_;
 };
 
 }  // namespace

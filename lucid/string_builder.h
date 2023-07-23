@@ -1,8 +1,9 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <string_view>
-#include <utility>
+#include <vector>
 
 namespace lucid {
 
@@ -10,13 +11,22 @@ namespace lucid {
 class StringBuilder {
  public:
   // Appends `piece` to the end of the resulting string.
-  void Append(std::string_view piece) { result_.append(piece); }
+  void Append(std::string_view piece) {
+    pieces_.push_back(piece);
+    size_ += piece.size();
+  }
 
   // Returns the string assembled through calls to `Append`.
-  std::string Build() && { return std::move(result_); }
+  std::string Build() && {
+    std::string result;
+    result.reserve(size_);
+    for (auto piece : pieces_) result.append(piece);
+    return result;
+  }
 
  private:
-  std::string result_;
+  std::vector<std::string_view> pieces_;
+  std::size_t size_ = 0;
 };
 
 }  // namespace lucid
