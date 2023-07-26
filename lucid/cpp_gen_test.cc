@@ -74,6 +74,32 @@ TEST_F(GenerateCppSourceTest, ReturnFunctionCall) {
 )");
 }
 
+TEST_F(GenerateCppSourceTest, ReturnNestedFunctionCall) {
+  auto baz_func_call_stmt_ref =
+      Allocate(FuncCallExpr{.func_name = "baz",
+                            .arguments = {
+                                Allocate(IntLitExpr{.value = "3"}),
+                            }});
+  auto bar_func_call_stmt_ref =
+      Allocate(FuncCallExpr{.func_name = "bar",
+                            .arguments = {
+                                baz_func_call_stmt_ref,
+                            }});
+  auto return_stmt_ref = Allocate(ReturnStmt{.value = bar_func_call_stmt_ref});
+  auto func_stmt_ref = Allocate(FuncDefStmt{
+      .name = "foo",
+      .body =
+          {
+              .statements = {return_stmt_ref},
+          },
+      .result_type = "int",
+  });
+  EXPECT_EQ(Generate(func_stmt_ref), R"(int foo() {
+  return bar(baz(3));
+};
+)");
+}
+
 TEST_F(GenerateCppSourceTest, VariableDeclaration) {
   auto func_call_stmt_ref = Allocate(FuncCallExpr{.func_name = "bar"});
   auto x_var_decl_ref = Allocate(VarDeclStmt{
