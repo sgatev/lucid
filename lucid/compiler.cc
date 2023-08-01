@@ -7,16 +7,16 @@
 #include <string_view>
 
 #include "lucid/arena.h"
+#include "lucid/arm_assembly_gen.h"
 #include "lucid/ast.h"
-#include "lucid/cpp_gen.h"
 
 namespace lucid {
 
-void GenerateEmptyMain(std::FILE* cpp_source_file) {
+void GenerateEmptyMain(std::FILE* out) {
   Arena<Stmt> arena;
   auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
 
-  auto main_func_ref = allocate(FuncDefStmt{
+  auto main_func = FuncDefStmt{
       .name = "main",
       .result_type = "int",
       .body =
@@ -28,17 +28,16 @@ void GenerateEmptyMain(std::FILE* cpp_source_file) {
                       }),
                   },
           },
-  });
+  };
 
-  std::fputs(GenerateCppSource(arena, arena.get(main_func_ref)).c_str(),
-             cpp_source_file);
+  std::fputs(GenerateArmAssemblySource(arena, {main_func}).c_str(), out);
 }
 
-void GenerateFuncCall(std::FILE* cpp_source_file) {
+void GenerateFuncCall(std::FILE* out) {
   Arena<Stmt> arena;
   auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
 
-  auto id_func_ref = allocate(FuncDefStmt{
+  auto id_func = FuncDefStmt{
       .name = "id",
       .parameters =
           {
@@ -57,9 +56,9 @@ void GenerateFuncCall(std::FILE* cpp_source_file) {
                   },
           },
       .result_type = "int",
-  });
+  };
 
-  auto main_func_ref = allocate(FuncDefStmt{
+  auto main_func = FuncDefStmt{
       .name = "main",
       .body =
           {
@@ -77,27 +76,31 @@ void GenerateFuncCall(std::FILE* cpp_source_file) {
                   },
           },
       .result_type = "int",
-  });
+  };
 
-  std::fputs(GenerateCppSource(arena, arena.get(id_func_ref)).c_str(),
-             cpp_source_file);
-  std::fputs(GenerateCppSource(arena, arena.get(main_func_ref)).c_str(),
-             cpp_source_file);
+  std::fputs(GenerateArmAssemblySource(arena, {id_func, main_func}).c_str(),
+             out);
 }
 
 int Main(std::string_view input) {
-  std::FILE* cpp_source_file = std::tmpfile();
+  std::FILE* out = std::tmpfile();
   if (input == "empty_main") {
-    GenerateEmptyMain(cpp_source_file);
+    GenerateEmptyMain(out);
   } else if (input == "func_call") {
-    GenerateFuncCall(cpp_source_file);
+    GenerateFuncCall(out);
   }
-  std::fseek(cpp_source_file, 0, SEEK_SET);
+  std::fseek(out, 0, SEEK_SET);
 
-  dup2(fileno(cpp_source_file), 0);
-  const std::string command =
-      std::string("cc -o ") + std::string(input) + " -x c++ -";
-  std::system(command.data());
+  dup2(fileno(out), 0);
+  const std::string as_cmd =
+      std::string("as -arch arm64 -o ") + std::string(input) + ".o -- ";
+  std::system(as_cmd.data());
+
+  const std::string ld_cmd = std::string("ld -o ") + std::string(input) + " " +
+                             std::string(input) +
+                             ".o -lSystem -syslibroot `xcrun -sdk macosx "
+                             "--show-sdk-path` -e _start -arch arm64";
+  std::system(ld_cmd.data());
 
   return 0;
 }

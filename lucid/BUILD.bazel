@@ -75,8 +75,8 @@ cc_binary(
     srcs = ["compiler.cc"],
     deps = [
         ":arena",
+        ":arm_assembly_gen",
         ":ast",
-        ":cpp_gen",
     ],
 )
 
