@@ -15,6 +15,31 @@ cc_test(
 )
 
 cc_library(
+    name = "arm_assembly_gen",
+    srcs = ["arm_assembly_gen.cc"],
+    hdrs = ["arm_assembly_gen.h"],
+    deps = [
+        ":arena",
+        ":ast",
+        ":cfg",
+        ":string_builder",
+    ],
+)
+
+cc_test(
+    name = "arm_assembly_gen_test",
+    srcs = ["arm_assembly_gen_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":arena",
+        ":arm_assembly_gen",
+        ":ast",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "ast",
     hdrs = ["ast.h"],
     deps = [

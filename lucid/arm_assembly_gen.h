@@ -1,0 +1,16 @@
+#pragma once
+
+#include <string>
+
+#include "lucid/arena.h"
+#include "lucid/ast.h"
+
+namespace lucid {
+
+// Generates 64-bit ARM assembly source code for `funcs`.
+//
+// All statements that are reachable from `funcs` must be allocated on `arena`.
+std::string GenerateArmAssemblySource(const Arena<Stmt>& arena,
+                                      const FuncDefStmt& func);
+
+}  // namespace lucid
