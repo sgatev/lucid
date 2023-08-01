@@ -3,6 +3,8 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <memory>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
@@ -11,6 +13,23 @@
 #include "lucid/ast.h"
 
 namespace lucid {
+namespace {
+
+// Format `args` according to the format string `fmt`.
+//
+// From https://stackoverflow.com/a/26221725.
+template <typename... Args>
+std::string string_format(const std::string& fmt, Args... args) {
+  int size = std::snprintf(nullptr, 0, fmt.c_str(), args...) + 1;
+  if (size < 0) throw std::runtime_error("Error during formatting.");
+
+  std::string result;
+  result.resize(size);
+  std::snprintf(result.data(), size, fmt.c_str(), args...);
+  return result;
+}
+
+}  // namespace
 
 void GenerateEmptyMain(std::FILE* out) {
   Arena<Stmt> arena;
@@ -93,13 +112,13 @@ int Main(std::string_view input) {
 
   dup2(fileno(out), 0);
   const std::string as_cmd =
-      std::string("as -arch arm64 -o ") + std::string(input) + ".o -- ";
+      string_format("as -arch arm64 -o %s.o -- ", input.data());
   std::system(as_cmd.data());
 
-  const std::string ld_cmd = std::string("ld -o ") + std::string(input) + " " +
-                             std::string(input) +
-                             ".o -lSystem -syslibroot `xcrun -sdk macosx "
-                             "--show-sdk-path` -e _start -arch arm64";
+  const std::string ld_cmd = string_format(
+      "ld -o %s %s.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` "
+      "-e _start -arch arm64",
+      input.data(), input.data());
   std::system(ld_cmd.data());
 
   return 0;
