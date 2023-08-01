@@ -35,6 +35,8 @@ TEST_F(ControlFlowGraphTest, EmptyFunction) {
   });
 
   auto block_ref = cfg.first;
+  ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
+
   const auto& block = cfg.get(block_ref);
   EXPECT_EQ(block.next, cfg.last);
   EXPECT_THAT(block.statements, IsEmpty());
@@ -57,6 +59,8 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   });
 
   auto block_ref = cfg.first;
+  ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
+
   const auto& block = cfg.get(block_ref);
   EXPECT_EQ(block.next, cfg.last);
   EXPECT_THAT(block.statements, ElementsAreArray({
@@ -99,6 +103,8 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   });
 
   auto block_ref = cfg.first;
+  ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
+
   const auto& block = cfg.get(block_ref);
   EXPECT_EQ(block.next, cfg.last);
   EXPECT_THAT(block.statements, ElementsAreArray({
@@ -136,6 +142,8 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   });
 
   auto block_ref = cfg.first;
+  ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
+
   const auto& block = cfg.get(block_ref);
   EXPECT_EQ(block.next, cfg.last);
   EXPECT_THAT(block.statements, ElementsAreArray({
@@ -162,6 +170,8 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
   });
 
   auto block_ref = cfg.first;
+  ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
+
   const auto& block = cfg.get(block_ref);
   EXPECT_EQ(block.next, cfg.last);
   EXPECT_THAT(block.statements, ElementsAreArray({
