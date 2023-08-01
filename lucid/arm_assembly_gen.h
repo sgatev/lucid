@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "lucid/arena.h"
 #include "lucid/ast.h"
@@ -11,6 +12,6 @@ namespace lucid {
 //
 // All statements that are reachable from `funcs` must be allocated on `arena`.
 std::string GenerateArmAssemblySource(const Arena<Stmt>& arena,
-                                      const FuncDefStmt& func);
+                                      const std::vector<FuncDefStmt>& funcs);
 
 }  // namespace lucid
