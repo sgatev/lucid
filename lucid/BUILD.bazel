@@ -22,6 +22,29 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "cfg",
+    srcs = ["cfg.cc"],
+    hdrs = ["cfg.h"],
+    deps = [
+        ":arena",
+        ":ast",
+    ],
+)
+
+cc_test(
+    name = "cfg_test",
+    srcs = ["cfg_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":arena",
+        ":ast",
+        ":cfg",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
 cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
