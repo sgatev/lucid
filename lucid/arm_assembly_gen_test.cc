@@ -7,6 +7,7 @@
 #include "gtest/gtest.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/cfg.h"
 
 namespace lucid {
 namespace {
@@ -19,7 +20,8 @@ class GenerateArmAssemblySourceTest : public testing::Test {
   }
 
   std::string Generate(const FuncDefStmt& func) {
-    return GenerateArmAssemblySource(arena_, func);
+    auto graph = BuildControlFlowGraph(arena_, func);
+    return GenerateArmAssemblySource(arena_, graph);
   }
 
  private:

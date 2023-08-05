@@ -28,6 +28,15 @@ class ControlFlowGraphTest : public testing::Test {
   Arena<Stmt> arena_;
 };
 
+TEST_F(ControlFlowGraphTest, FunctionName) {
+  auto cfg = BuildControlFlowGraph(FuncDefStmt{
+      .name = "foo",
+      .result_type = "void",
+  });
+
+  EXPECT_EQ(cfg.func_name, "foo");
+}
+
 TEST_F(ControlFlowGraphTest, EmptyFunction) {
   auto cfg = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",

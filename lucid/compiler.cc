@@ -12,6 +12,7 @@
 #include "lucid/arena.h"
 #include "lucid/arm_assembly_gen.h"
 #include "lucid/ast.h"
+#include "lucid/cfg.h"
 
 namespace lucid {
 namespace {
@@ -113,7 +114,8 @@ int Main(std::string_view input) {
   std::FILE* out = std::tmpfile();
   std::fputs(GenerateArmStartSource().c_str(), out);
   for (const auto& func : funcs) {
-    std::fputs(GenerateArmAssemblySource(arena, func).c_str(), out);
+    auto graph = BuildControlFlowGraph(arena, func);
+    std::fputs(GenerateArmAssemblySource(arena, graph).c_str(), out);
   }
   std::fseek(out, 0, SEEK_SET);
 

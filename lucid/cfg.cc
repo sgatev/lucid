@@ -17,6 +17,7 @@ class ControlFlowGraphBuilder {
  public:
   ControlFlowGraphBuilder(const Arena<Stmt>& arena, const FuncDefStmt& func_def)
       : arena_(arena) {
+    graph_.func_name = func_def.name;
     graph_.first = graph_.add(ControlFlowGraph::Block());
     graph_.last = graph_.add(ControlFlowGraph::Block());
     BuildBlock(func_def.body, graph_.get(graph_.first));

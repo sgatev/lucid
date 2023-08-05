@@ -20,19 +20,18 @@ namespace {
 class ArmAssemblySourceGenerator {
  public:
   explicit ArmAssemblySourceGenerator(const Arena<Stmt>& arena,
-                                      const FuncDefStmt& func)
-      : arena_(arena), func_(func) {
+                                      const ControlFlowGraph& graph)
+      : arena_(arena), graph_(graph) {
     out_reg_[0] = "X0";
     out_reg_[1] = "X1";
   }
 
   std::string Generate() && {
-    Append(func_.name);
+    Append(graph_.func_name);
     Append(":\n");
     Indent();
 
-    auto graph = BuildControlFlowGraph(arena_, func_);
-    auto instructions = GenerateAbstractMachineInstructions(arena_, graph);
+    auto instructions = GenerateAbstractMachineInstructions(arena_, graph_);
     for (const auto& inst : instructions) Process(inst);
     UnIndent();
 
@@ -89,7 +88,7 @@ class ArmAssemblySourceGenerator {
   void Append(std::string_view s) { output_builder_.Append(s); }
 
   const Arena<Stmt>& arena_;
-  const FuncDefStmt& func_;
+  const ControlFlowGraph& graph_;
   StringBuilder output_builder_;
   std::size_t indent_ = 0;
   std::map<RegId, std::string> out_reg_;
@@ -110,8 +109,8 @@ _start:
 }
 
 std::string GenerateArmAssemblySource(const Arena<Stmt>& arena,
-                                      const FuncDefStmt& func) {
-  return ArmAssemblySourceGenerator(arena, func).Generate();
+                                      const ControlFlowGraph& graph) {
+  return ArmAssemblySourceGenerator(arena, graph).Generate();
 }
 
 }  // namespace lucid

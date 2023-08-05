@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string_view>
 #include <vector>
 
 #include "lucid/arena.h"
@@ -36,6 +37,9 @@ struct ControlFlowGraph {
   //
   // `ref` must not be `kNullBlockRef`.
   const Block& get(BlockRef ref) const { return blocks_.get(ref); }
+
+  // Name of the function.
+  std::string_view func_name;
 
   // The first block in the control flow graph.
   BlockRef first = kNullBlockRef;

@@ -67,6 +67,7 @@ cc_test(
         ":arena",
         ":arm_assembly_gen",
         ":ast",
+        ":cfg",
         "@gtest",
         "@gtest//:gtest_main",
     ],
@@ -110,6 +111,7 @@ cc_binary(
         ":arena",
         ":arm_assembly_gen",
         ":ast",
+        ":cfg",
     ],
 )
 
