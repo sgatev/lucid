@@ -24,22 +24,6 @@ class ArmAssemblySourceGenerator {
       : arena_(arena) {
     out_reg_[0] = "X0";
     out_reg_[1] = "X1";
-
-    Append(".global _start\n");
-    Append(".align 2\n");
-    Append("_start:\n");
-    Indent();
-    AppendIndent();
-    Append("stp X29, X30, [sp, #-16]!\n");
-    AppendIndent();
-    Append("BL main\n");
-    AppendIndent();
-    Append("ldp X29, X30, [sp], #16\n");
-    AppendIndent();
-    Append("mov X16, #1\n");
-    AppendIndent();
-    Append("svc #0x80\n");
-    UnIndent();
   }
 
   // Adds source code for `func` to the generated source.
@@ -115,6 +99,18 @@ class ArmAssemblySourceGenerator {
 };
 
 }  // namespace
+
+std::string GenerateArmStartSource() {
+  return R"(.global _start
+.align 2
+_start:
+  stp X29, X30, [sp, #-16]!
+  BL main
+  ldp X29, X30, [sp], #16
+  mov X16, #1
+  svc #0x80
+)";
+}
 
 std::string GenerateArmAssemblySource(const Arena<Stmt>& arena,
                                       const std::vector<FuncDefStmt>& funcs) {

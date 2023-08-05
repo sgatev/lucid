@@ -41,15 +41,7 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnIntLit) {
           },
   };
 
-  EXPECT_EQ(Generate({main_func}), R"(.global _start
-.align 2
-_start:
-  stp X29, X30, [sp, #-16]!
-  BL main
-  ldp X29, X30, [sp], #16
-  mov X16, #1
-  svc #0x80
-main:
+  EXPECT_EQ(Generate({main_func}), R"(main:
   mov X1, #21
   mov X0, X1
   RET
@@ -97,15 +89,7 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
           },
   };
 
-  EXPECT_EQ(Generate({id_func, main_func}), R"(.global _start
-.align 2
-_start:
-  stp X29, X30, [sp, #-16]!
-  BL main
-  ldp X29, X30, [sp], #16
-  mov X16, #1
-  svc #0x80
-id:
+  EXPECT_EQ(Generate({id_func, main_func}), R"(id:
   mov X0, X1
   RET
 main:

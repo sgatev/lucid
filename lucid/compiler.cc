@@ -111,6 +111,7 @@ int Main(std::string_view input) {
 
   // Generate 64-bit ARM assembly.
   std::FILE* out = std::tmpfile();
+  std::fputs(GenerateArmStartSource().c_str(), out);
   std::fputs(GenerateArmAssemblySource(arena, funcs).c_str(), out);
   std::fseek(out, 0, SEEK_SET);
 

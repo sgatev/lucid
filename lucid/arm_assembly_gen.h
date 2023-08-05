@@ -8,6 +8,9 @@
 
 namespace lucid {
 
+// Generates the start sequence for 64-bit ARM assembly source code.
+std::string GenerateArmStartSource();
+
 // Generates 64-bit ARM assembly source code for `funcs`.
 //
 // All statements that are reachable from `funcs` must be allocated on `arena`.
