@@ -1,4 +1,35 @@
 cc_library(
+    name = "am",
+    hdrs = ["am.h"],
+)
+
+cc_library(
+    name = "am_gen",
+    srcs = ["am_gen.cc"],
+    hdrs = ["am_gen.h"],
+    deps = [
+        ":am",
+        ":arena",
+        ":ast",
+        ":cfg",
+    ],
+)
+
+cc_test(
+    name = "am_gen_test",
+    srcs = ["am_gen_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":am",
+        ":am_gen",
+        ":arena",
+        ":cfg",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "arena",
     hdrs = ["arena.h"],
 )
@@ -19,6 +50,8 @@ cc_library(
     srcs = ["arm_assembly_gen.cc"],
     hdrs = ["arm_assembly_gen.h"],
     deps = [
+        ":am",
+        ":am_gen",
         ":arena",
         ":ast",
         ":cfg",

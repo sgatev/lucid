@@ -7,6 +7,8 @@
 #include <variant>
 #include <vector>
 
+#include "lucid/am.h"
+#include "lucid/am_gen.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
@@ -20,6 +22,9 @@ class ArmAssemblySourceGenerator {
  public:
   explicit ArmAssemblySourceGenerator(const Arena<Stmt>& arena)
       : arena_(arena) {
+    out_reg_[0] = "X0";
+    out_reg_[1] = "X1";
+
     Append(".global _start\n");
     Append(".align 2\n");
     Append("_start:\n");
@@ -42,8 +47,10 @@ class ArmAssemblySourceGenerator {
     Append(func.name);
     Append(":\n");
     Indent();
-    auto control_flow_graph = BuildControlFlowGraph(arena_, func);
-    Process(control_flow_graph.get(control_flow_graph.first));
+
+    auto graph = BuildControlFlowGraph(arena_, func);
+    auto instructions = GenerateAbstractMachineInstructions(arena_, graph);
+    for (const auto& inst : instructions) Process(inst);
     UnIndent();
   }
 
@@ -53,56 +60,42 @@ class ArmAssemblySourceGenerator {
   }
 
  private:
-  void Process(const ControlFlowGraph::Block& block) {
-    for (const auto& stmt_ref : block.statements)
-      Process(stmt_ref, DerefStmt(stmt_ref));
+  void Process(const Instruction& inst) {
+    std::visit([this](auto&& inst) { Process(inst); }, inst);
   }
 
-  void Process(StmtRef stmt_ref, const Stmt& stmt) {
-    std::visit([this, stmt_ref](auto&& stmt) { Process(stmt_ref, stmt); },
-               stmt);
-  }
-
-  void Process(StmtRef stmt_ref, const ReturnStmt& stmt) {
+  void Process(const MoveReg32& inst) {
     AppendIndent();
-    Append("mov X0, ");
-    Append(out_reg_[stmt.value]);
+    Append("mov ");
+    Append(out_reg_[inst.dst_reg]);
+    Append(", ");
+    Append(out_reg_[inst.src_reg]);
     Append("\n");
+  }
+
+  void Process(const SetReg32& inst) {
+    AppendIndent();
+    Append("mov ");
+    Append(out_reg_[inst.dst_reg]);
+    Append(", #");
+    Append(inst.src_val);
+    Append("\n");
+  }
+
+  void Process(const Return& inst) {
     AppendIndent();
     Append("RET\n");
   }
 
-  void Process(StmtRef stmt_ref, const Expr& expr) {
-    std::visit([this, stmt_ref](auto&& expr) { ProcessExpr(stmt_ref, expr); },
-               expr);
-  }
-
-  void ProcessExpr(ExprRef expr_ref, const IntLitExpr& expr) {
-    AppendIndent();
-    Append("mov X1, #");
-    Append(expr.value);
-    Append("\n");
-
-    out_reg_[expr_ref] = "X1";
-  }
-
-  void ProcessExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
+  void Process(const Jump& inst) {
     AppendIndent();
     Append("stp X29, X30, [sp, #-16]!\n");
     AppendIndent();
     Append("BL ");
-    Append(expr.func_name);
+    Append(inst.label);
     Append("\n");
     AppendIndent();
     Append("ldp X29, X30, [sp], #16\n");
-
-    out_reg_[expr_ref] = "X0";
-  }
-
-  void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {}
-
-  void ProcessExpr(ExprRef expr_ref, const IdentExpr& expr) {
-    out_reg_[expr_ref] = "X1";
   }
 
   void Indent() { indent_ += 2; }
@@ -113,15 +106,12 @@ class ArmAssemblySourceGenerator {
     for (int i = 0; i < indent_; ++i) Append(" ");
   }
 
-  const Stmt& DerefStmt(StmtRef ref) { return arena_.get(ref); }
-  const Expr& DerefExpr(ExprRef ref) { return std::get<Expr>(DerefStmt(ref)); }
-
   void Append(std::string_view s) { output_builder_.Append(s); }
 
   const Arena<Stmt>& arena_;
   StringBuilder output_builder_;
   std::size_t indent_ = 0;
-  std::map<StmtRef, std::string> out_reg_;
+  std::map<RegId, std::string> out_reg_;
 };
 
 }  // namespace
