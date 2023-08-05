@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "lucid/arena.h"
-#include "lucid/arm_assembly_gen.h"
+#include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
 

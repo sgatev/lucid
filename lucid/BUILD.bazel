@@ -46,9 +46,9 @@ cc_test(
 )
 
 cc_library(
-    name = "arm_assembly_gen",
-    srcs = ["arm_assembly_gen.cc"],
-    hdrs = ["arm_assembly_gen.h"],
+    name = "arm64_gen",
+    srcs = ["arm64_gen.cc"],
+    hdrs = ["arm64_gen.h"],
     deps = [
         ":am",
         ":am_gen",
@@ -60,12 +60,12 @@ cc_library(
 )
 
 cc_test(
-    name = "arm_assembly_gen_test",
-    srcs = ["arm_assembly_gen_test.cc"],
+    name = "arm64_gen_test",
+    srcs = ["arm64_gen_test.cc"],
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":arena",
-        ":arm_assembly_gen",
+        ":arm64_gen",
         ":ast",
         ":cfg",
         "@gtest",
@@ -109,7 +109,7 @@ cc_binary(
     srcs = ["compiler.cc"],
     deps = [
         ":arena",
-        ":arm_assembly_gen",
+        ":arm64_gen",
         ":ast",
         ":cfg",
     ],
