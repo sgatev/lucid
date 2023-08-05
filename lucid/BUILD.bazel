@@ -129,30 +129,6 @@ cc_test(
 )
 
 cc_library(
-    name = "cpp_gen",
-    srcs = ["cpp_gen.cc"],
-    hdrs = ["cpp_gen.h"],
-    deps = [
-        ":arena",
-        ":ast",
-        ":string_builder",
-    ],
-)
-
-cc_test(
-    name = "cpp_gen_test",
-    srcs = ["cpp_gen_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
-    deps = [
-        ":arena",
-        ":ast",
-        ":cpp_gen",
-        "@gtest",
-        "@gtest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "string_builder",
     hdrs = ["string_builder.h"],
 )
