@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 #include "lucid/arena.h"
 #include "lucid/ast.h"
@@ -11,10 +10,10 @@ namespace lucid {
 // Generates the start sequence for 64-bit ARM assembly source code.
 std::string GenerateArmStartSource();
 
-// Generates 64-bit ARM assembly source code for `funcs`.
+// Generates 64-bit ARM assembly source code for `func`.
 //
-// All statements that are reachable from `funcs` must be allocated on `arena`.
+// All statements that are reachable from `func` must be allocated on `arena`.
 std::string GenerateArmAssemblySource(const Arena<Stmt>& arena,
-                                      const std::vector<FuncDefStmt>& funcs);
+                                      const FuncDefStmt& func);
 
 }  // namespace lucid

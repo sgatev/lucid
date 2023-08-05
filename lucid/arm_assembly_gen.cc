@@ -5,7 +5,6 @@
 #include <string>
 #include <string_view>
 #include <variant>
-#include <vector>
 
 #include "lucid/am.h"
 #include "lucid/am_gen.h"
@@ -20,26 +19,23 @@ namespace {
 // Generates 64-bit ARM assembly source code.
 class ArmAssemblySourceGenerator {
  public:
-  explicit ArmAssemblySourceGenerator(const Arena<Stmt>& arena)
-      : arena_(arena) {
+  explicit ArmAssemblySourceGenerator(const Arena<Stmt>& arena,
+                                      const FuncDefStmt& func)
+      : arena_(arena), func_(func) {
     out_reg_[0] = "X0";
     out_reg_[1] = "X1";
   }
 
-  // Adds source code for `func` to the generated source.
-  void Process(const FuncDefStmt& func) {
-    Append(func.name);
+  std::string Generate() && {
+    Append(func_.name);
     Append(":\n");
     Indent();
 
-    auto graph = BuildControlFlowGraph(arena_, func);
+    auto graph = BuildControlFlowGraph(arena_, func_);
     auto instructions = GenerateAbstractMachineInstructions(arena_, graph);
     for (const auto& inst : instructions) Process(inst);
     UnIndent();
-  }
 
-  // Extracts and returns the source code produced by this generator.
-  std::string ConsumeGeneratedSource() && {
     return std::move(output_builder_).Build();
   }
 
@@ -93,6 +89,7 @@ class ArmAssemblySourceGenerator {
   void Append(std::string_view s) { output_builder_.Append(s); }
 
   const Arena<Stmt>& arena_;
+  const FuncDefStmt& func_;
   StringBuilder output_builder_;
   std::size_t indent_ = 0;
   std::map<RegId, std::string> out_reg_;
@@ -113,10 +110,8 @@ _start:
 }
 
 std::string GenerateArmAssemblySource(const Arena<Stmt>& arena,
-                                      const std::vector<FuncDefStmt>& funcs) {
-  ArmAssemblySourceGenerator gen(arena);
-  for (const auto& func : funcs) gen.Process(func);
-  return std::move(gen).ConsumeGeneratedSource();
+                                      const FuncDefStmt& func) {
+  return ArmAssemblySourceGenerator(arena, func).Generate();
 }
 
 }  // namespace lucid

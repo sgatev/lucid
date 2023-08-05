@@ -18,8 +18,8 @@ class GenerateArmAssemblySourceTest : public testing::Test {
     return arena_.add(stmt);
   }
 
-  std::string Generate(const std::vector<FuncDefStmt>& funcs) {
-    return GenerateArmAssemblySource(arena_, funcs);
+  std::string Generate(const FuncDefStmt& func) {
+    return GenerateArmAssemblySource(arena_, func);
   }
 
  private:
@@ -41,7 +41,7 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnIntLit) {
           },
   };
 
-  EXPECT_EQ(Generate({main_func}), R"(main:
+  EXPECT_EQ(Generate(main_func), R"(main:
   mov X1, #21
   mov X0, X1
   RET
@@ -49,26 +49,6 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnIntLit) {
 }
 
 TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
-  auto id_func = FuncDefStmt{
-      .name = "id",
-      .result_type = "int",
-      .parameters =
-          {
-              {
-                  .type = "int",
-                  .name = "x",
-              },
-          },
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(IdentExpr{.name = "x"}),
-                      }),
-                  },
-          },
-  };
   auto main_func = FuncDefStmt{
       .name = "main",
       .result_type = "int",
@@ -89,10 +69,7 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
           },
   };
 
-  EXPECT_EQ(Generate({id_func, main_func}), R"(id:
-  mov X0, X1
-  RET
-main:
+  EXPECT_EQ(Generate(main_func), R"(main:
   mov X1, #21
   stp X29, X30, [sp, #-16]!
   BL id
