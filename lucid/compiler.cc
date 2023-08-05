@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "lucid/arena.h"
 #include "lucid/arm_assembly_gen.h"
@@ -31,8 +32,7 @@ std::string string_format(const std::string& fmt, Args... args) {
 
 }  // namespace
 
-void GenerateEmptyMain(std::FILE* out) {
-  Arena<Stmt> arena;
+std::vector<FuncDefStmt> GenerateEmptyMain(Arena<Stmt>& arena) {
   auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
 
   auto main_func = FuncDefStmt{
@@ -49,11 +49,10 @@ void GenerateEmptyMain(std::FILE* out) {
           },
   };
 
-  std::fputs(GenerateArmAssemblySource(arena, {main_func}).c_str(), out);
+  return {main_func};
 }
 
-void GenerateFuncCall(std::FILE* out) {
-  Arena<Stmt> arena;
+std::vector<FuncDefStmt> GenerateFuncCall(Arena<Stmt>& arena) {
   auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
 
   auto id_func = FuncDefStmt{
@@ -97,24 +96,31 @@ void GenerateFuncCall(std::FILE* out) {
       .result_type = "int",
   };
 
-  std::fputs(GenerateArmAssemblySource(arena, {id_func, main_func}).c_str(),
-             out);
+  return {id_func, main_func};
 }
 
 int Main(std::string_view input) {
-  std::FILE* out = std::tmpfile();
+  // Load Lucis sources.
+  Arena<Stmt> arena;
+  std::vector<FuncDefStmt> funcs;
   if (input == "empty_main") {
-    GenerateEmptyMain(out);
+    funcs = GenerateEmptyMain(arena);
   } else if (input == "func_call") {
-    GenerateFuncCall(out);
+    funcs = GenerateFuncCall(arena);
   }
+
+  // Generate 64-bit ARM assembly.
+  std::FILE* out = std::tmpfile();
+  std::fputs(GenerateArmAssemblySource(arena, funcs).c_str(), out);
   std::fseek(out, 0, SEEK_SET);
 
+  // Translate assembly into object code.
   dup2(fileno(out), 0);
   const std::string as_cmd =
       string_format("as -arch arm64 -o %s.o -- ", input.data());
   std::system(as_cmd.data());
 
+  // Link object code and create a binary.
   const std::string ld_cmd = string_format(
       "ld -o %s %s.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` "
       "-e _start -arch arm64",
