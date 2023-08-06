@@ -1,20 +1,19 @@
 #pragma once
 
 #include <string>
+#include <string_view>
+#include <vector>
 
-#include "lucid/arena.h"
-#include "lucid/ast.h"
-#include "lucid/cfg.h"
+#include "lucid/am.h"
 
 namespace lucid {
 
 // Generates the start sequence for 64-bit ARM assembly source code.
 std::string GenerateArmStartSource();
 
-// Generates 64-bit ARM assembly source code for `graph`.
-//
-// All statements that are reachable from `graph` must be allocated on `arena`.
-std::string GenerateArmAssemblySource(const Arena<Stmt>& arena,
-                                      const ControlFlowGraph& graph);
+// Generates 64-bit ARM assembly source code for a function named `func_name`
+// with a set of `instructions`.
+std::string GenerateArmAssemblySource(
+    std::string_view func_name, const std::vector<Instruction>& instructions);
 
 }  // namespace lucid

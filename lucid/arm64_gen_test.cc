@@ -4,6 +4,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "lucid/am_gen.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
@@ -20,7 +21,8 @@ class GenerateArmAssemblySourceTest : public testing::Test {
 
   std::string Generate(const FuncDefStmt& func) {
     auto graph = BuildControlFlowGraph(arena_, func);
-    return GenerateArmAssemblySource(arena_, graph);
+    auto instructions = GenerateAbstractMachineInstructions(arena_, graph);
+    return GenerateArmAssemblySource(func.name, instructions);
   }
 
  private:

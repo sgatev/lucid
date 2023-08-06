@@ -9,6 +9,7 @@
 #include <string_view>
 #include <vector>
 
+#include "lucid/am_gen.h"
 #include "lucid/arena.h"
 #include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
@@ -140,7 +141,8 @@ int Main(std::string_view input) {
   std::fputs(GenerateArmStartSource().c_str(), out);
   for (const auto& func : funcs) {
     auto graph = BuildControlFlowGraph(arena, func);
-    std::fputs(GenerateArmAssemblySource(arena, graph).c_str(), out);
+    auto instructions = GenerateAbstractMachineInstructions(arena, graph);
+    std::fputs(GenerateArmAssemblySource(func.name, instructions).c_str(), out);
   }
   std::fseek(out, 0, SEEK_SET);
 

@@ -8,9 +8,6 @@
 
 #include "lucid/am.h"
 #include "lucid/am_gen.h"
-#include "lucid/arena.h"
-#include "lucid/ast.h"
-#include "lucid/cfg.h"
 #include "lucid/string_builder.h"
 
 namespace lucid {
@@ -19,9 +16,9 @@ namespace {
 // Generates 64-bit ARM assembly source code.
 class ArmAssemblySourceGenerator {
  public:
-  explicit ArmAssemblySourceGenerator(const Arena<Stmt>& arena,
-                                      const ControlFlowGraph& graph)
-      : arena_(arena), graph_(graph) {
+  explicit ArmAssemblySourceGenerator(
+      std::string_view func_name, const std::vector<Instruction>& instructions)
+      : func_name_(func_name), instructions_(instructions) {
     out_reg_[0] = "X0";
     out_reg_[1] = "X1";
     out_reg_[2] = "X2";
@@ -29,12 +26,10 @@ class ArmAssemblySourceGenerator {
   }
 
   std::string Generate() && {
-    Append(graph_.func_name);
+    Append(func_name_);
     Append(":\n");
     Indent();
-
-    auto instructions = GenerateAbstractMachineInstructions(arena_, graph_);
-    for (const auto& inst : instructions) Process(inst);
+    for (const auto& inst : instructions_) Process(inst);
     UnIndent();
 
     return std::move(output_builder_).Build();
@@ -100,8 +95,8 @@ class ArmAssemblySourceGenerator {
 
   void Append(std::string_view s) { output_builder_.Append(s); }
 
-  const Arena<Stmt>& arena_;
-  const ControlFlowGraph& graph_;
+  std::string_view func_name_;
+  const std::vector<Instruction>& instructions_;
   StringBuilder output_builder_;
   std::size_t indent_ = 0;
   std::map<RegId, std::string> out_reg_;
@@ -121,9 +116,9 @@ _start:
 )";
 }
 
-std::string GenerateArmAssemblySource(const Arena<Stmt>& arena,
-                                      const ControlFlowGraph& graph) {
-  return ArmAssemblySourceGenerator(arena, graph).Generate();
+std::string GenerateArmAssemblySource(
+    std::string_view func_name, const std::vector<Instruction>& instructions) {
+  return ArmAssemblySourceGenerator(func_name, instructions).Generate();
 }
 
 }  // namespace lucid
