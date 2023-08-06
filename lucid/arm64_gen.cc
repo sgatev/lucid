@@ -24,6 +24,8 @@ class ArmAssemblySourceGenerator {
       : arena_(arena), graph_(graph) {
     out_reg_[0] = "X0";
     out_reg_[1] = "X1";
+    out_reg_[2] = "X2";
+    out_reg_[3] = "X3";
   }
 
   std::string Generate() && {
@@ -75,6 +77,17 @@ class ArmAssemblySourceGenerator {
     Append("\n");
     AppendIndent();
     Append("ldp X29, X30, [sp], #16\n");
+  }
+
+  void Process(const AddReg32& inst) {
+    AppendIndent();
+    Append("ADD ");
+    Append(out_reg_[inst.res_reg]);
+    Append(", ");
+    Append(out_reg_[inst.lhs_reg]);
+    Append(", ");
+    Append(out_reg_[inst.rhs_reg]);
+    Append("\n");
   }
 
   void Indent() { indent_ += 2; }

@@ -48,7 +48,24 @@ struct Return {
   bool operator==(const Return& other) const { return true; }
 };
 
+// Adds the contents of two int32 registers.
+struct AddReg32 {
+  // Result int32 register.
+  RegId res_reg;
+
+  // First operand int32 register.
+  RegId lhs_reg;
+
+  // Second operand int32 register.
+  RegId rhs_reg;
+
+  bool operator==(const AddReg32& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
 // An instruction for the Lucid abstract machine.
-using Instruction = std::variant<MoveReg32, SetReg32, Jump, Return>;
+using Instruction = std::variant<MoveReg32, SetReg32, Jump, Return, AddReg32>;
 
 }  // namespace lucid

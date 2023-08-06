@@ -42,5 +42,10 @@ TEST_F(CompilerTest, FunctionCall) {
   EXPECT_EQ(Run("func_call"), 21);
 }
 
+TEST_F(CompilerTest, AddInts) {
+  EXPECT_EQ(Compile("add_ints"), 0);
+  EXPECT_EQ(Run("add_ints"), 5);
+}
+
 }  // namespace
 }  // namespace lucid

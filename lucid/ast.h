@@ -15,9 +15,10 @@ struct IntLitExpr;
 struct FuncCallExpr;
 struct VarDeclStmt;
 struct IdentExpr;
+struct AddExpr;
 
 // An expression in the Lucid language.
-using Expr = std::variant<FuncCallExpr, IntLitExpr, IdentExpr>;
+using Expr = std::variant<FuncCallExpr, IntLitExpr, IdentExpr, AddExpr>;
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, VarDeclStmt, FuncDefStmt, ReturnStmt>;
@@ -96,6 +97,16 @@ struct VarDeclStmt {
 struct IdentExpr {
   // Name of the identifier.
   std::string_view name;
+};
+
+// An expression that represents the addition of the values of two
+// sub-expressions.
+struct AddExpr {
+  // Left-hand side sub-expression.
+  ExprRef lhs;
+
+  // Right-hand side sub-expression.
+  ExprRef rhs;
 };
 
 }  // namespace lucid

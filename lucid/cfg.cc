@@ -59,6 +59,11 @@ class ControlFlowGraphBuilder {
     // No sub-expressions to process.
   }
 
+  void ProcessExpr(const AddExpr& expr) {
+    ProcessSubExpr(expr.lhs);
+    ProcessSubExpr(expr.rhs);
+  }
+
   void ProcessStmt(const ReturnStmt& stmt) { ProcessSubExpr(stmt.value); }
 
   void ProcessStmt(const Expr& expr) {

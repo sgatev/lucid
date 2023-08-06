@@ -81,5 +81,32 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
 )");
 }
 
+TEST_F(GenerateArmAssemblySourceTest, AddInts) {
+  auto main_func = FuncDefStmt{
+      .name = "main",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(AddExpr{
+                              .lhs = Allocate(IntLitExpr{.value = "2"}),
+                              .rhs = Allocate(IntLitExpr{.value = "3"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(Generate(main_func), R"(main:
+  mov X1, #2
+  mov X2, #3
+  ADD X3, X1, X2
+  mov X0, X3
+  RET
+)");
+}
+
 }  // namespace
 }  // namespace lucid

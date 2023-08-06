@@ -189,5 +189,30 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
                                 }));
 }
 
+TEST_F(ControlFlowGraphTest, AddExpr) {
+  auto lhs_expr = Allocate(IntLitExpr{.value = "2"});
+  auto rhs_expr = Allocate(IntLitExpr{.value = "3"});
+  auto add_expr = Allocate(AddExpr{.lhs = lhs_expr, .rhs = rhs_expr});
+  auto cfg = BuildControlFlowGraph(FuncDefStmt{
+      .name = "foo",
+      .body =
+          {
+              .statements = {add_expr},
+          },
+      .result_type = "int",
+  });
+
+  auto block_ref = cfg.first;
+  ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
+
+  const auto& block = cfg.get(block_ref);
+  EXPECT_EQ(block.next, cfg.last);
+  EXPECT_THAT(block.statements, ElementsAreArray({
+                                    lhs_expr,
+                                    rhs_expr,
+                                    add_expr,
+                                }));
+}
+
 }  // namespace
 }  // namespace lucid

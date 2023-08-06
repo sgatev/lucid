@@ -50,11 +50,12 @@ class AbstractMachineInstructionGenerator {
   }
 
   void ProcessExpr(ExprRef expr_ref, const IntLitExpr& expr) {
+    RegId reg = next_reg_++;
     instructions_.push_back(SetReg32{
         .src_val = expr.value,
-        .dst_reg = 1,
+        .dst_reg = reg,
     });
-    out_reg_[expr_ref] = 1;
+    out_reg_[expr_ref] = reg;
   }
 
   void ProcessExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
@@ -70,12 +71,22 @@ class AbstractMachineInstructionGenerator {
     out_reg_[expr_ref] = 1;
   }
 
+  void ProcessExpr(ExprRef expr_ref, const AddExpr& expr) {
+    instructions_.push_back(AddReg32{
+        .res_reg = 3,
+        .lhs_reg = out_reg_[expr.lhs],
+        .rhs_reg = out_reg_[expr.rhs],
+    });
+    out_reg_[expr_ref] = 3;
+  }
+
   const Stmt& DerefStmt(StmtRef ref) { return arena_.get(ref); }
 
   const Arena<Stmt>& arena_;
   const ControlFlowGraph& graph_;
   std::map<StmtRef, RegId> out_reg_;
   std::vector<Instruction> instructions_;
+  RegId next_reg_ = 1;
 };
 
 }  // namespace

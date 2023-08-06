@@ -100,6 +100,29 @@ std::vector<FuncDefStmt> GenerateFuncCall(Arena<Stmt>& arena) {
   return {id_func, main_func};
 }
 
+std::vector<FuncDefStmt> GenerateAddInts(Arena<Stmt>& arena) {
+  auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
+
+  auto main_func = FuncDefStmt{
+      .name = "main",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      allocate(ReturnStmt{
+                          .value = allocate(AddExpr{
+                              .lhs = allocate(IntLitExpr{.value = "2"}),
+                              .rhs = allocate(IntLitExpr{.value = "3"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  return {main_func};
+}
+
 int Main(std::string_view input) {
   // Load Lucis sources.
   Arena<Stmt> arena;
@@ -108,6 +131,8 @@ int Main(std::string_view input) {
     funcs = GenerateEmptyMain(arena);
   } else if (input == "func_call") {
     funcs = GenerateFuncCall(arena);
+  } else if (input == "add_ints") {
+    funcs = GenerateAddInts(arena);
   }
 
   // Generate 64-bit ARM assembly.
