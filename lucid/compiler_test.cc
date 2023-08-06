@@ -1,6 +1,5 @@
 #include <sys/wait.h>
 
-#include <cstdlib>
 #include <filesystem>
 #include <string>
 #include <string_view>
@@ -33,17 +32,17 @@ class CompilerTest : public testing::Test {
 };
 
 TEST_F(CompilerTest, EmptyMain) {
-  EXPECT_EQ(Compile("empty_main"), 0);
+  ASSERT_EQ(Compile("empty_main"), 0);
   EXPECT_EQ(Run("empty_main"), 0);
 }
 
 TEST_F(CompilerTest, FunctionCall) {
-  EXPECT_EQ(Compile("func_call"), 0);
+  ASSERT_EQ(Compile("func_call"), 0);
   EXPECT_EQ(Run("func_call"), 21);
 }
 
 TEST_F(CompilerTest, AddInts) {
-  EXPECT_EQ(Compile("add_ints"), 0);
+  ASSERT_EQ(Compile("add_ints"), 0);
   EXPECT_EQ(Run("add_ints"), 5);
 }
 

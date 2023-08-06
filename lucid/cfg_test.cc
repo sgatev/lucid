@@ -1,7 +1,5 @@
 #include "lucid/cfg.h"
 
-#include <utility>
-
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "lucid/arena.h"
@@ -29,25 +27,25 @@ class ControlFlowGraphTest : public testing::Test {
 };
 
 TEST_F(ControlFlowGraphTest, FunctionName) {
-  auto cfg = BuildControlFlowGraph(FuncDefStmt{
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = "void",
   });
 
-  EXPECT_EQ(cfg.func_name, "foo");
+  EXPECT_EQ(graph.func_name, "foo");
 }
 
 TEST_F(ControlFlowGraphTest, EmptyFunction) {
-  auto cfg = BuildControlFlowGraph(FuncDefStmt{
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = "void",
   });
 
-  auto block_ref = cfg.first;
+  auto block_ref = graph.first;
   ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
 
-  const auto& block = cfg.get(block_ref);
-  EXPECT_EQ(block.next, cfg.last);
+  const auto& block = graph.get(block_ref);
+  EXPECT_EQ(block.next, graph.last);
   EXPECT_THAT(block.statements, IsEmpty());
 }
 
@@ -55,7 +53,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   auto func_call_expr = Allocate(FuncCallExpr({
       .func_name = "bar",
   }));
-  auto cfg = BuildControlFlowGraph(FuncDefStmt{
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = "void",
       .body =
@@ -67,11 +65,11 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
           },
   });
 
-  auto block_ref = cfg.first;
+  auto block_ref = graph.first;
   ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
 
-  const auto& block = cfg.get(block_ref);
-  EXPECT_EQ(block.next, cfg.last);
+  const auto& block = graph.get(block_ref);
+  EXPECT_EQ(block.next, graph.last);
   EXPECT_THAT(block.statements, ElementsAreArray({
                                     func_call_expr,
                                 }));
@@ -99,7 +97,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
               baz_func_call_expr,
           },
   }));
-  auto cfg = BuildControlFlowGraph(FuncDefStmt{
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = "void",
       .body =
@@ -111,11 +109,11 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
           },
   });
 
-  auto block_ref = cfg.first;
+  auto block_ref = graph.first;
   ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
 
-  const auto& block = cfg.get(block_ref);
-  EXPECT_EQ(block.next, cfg.last);
+  const auto& block = graph.get(block_ref);
+  EXPECT_EQ(block.next, graph.last);
   EXPECT_THAT(block.statements, ElementsAreArray({
                                     arg1_expr,
                                     arg2_expr,
@@ -138,7 +136,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   auto return_stmt = Allocate(ReturnStmt{
       .value = func_call_expr,
   });
-  auto cfg = BuildControlFlowGraph(FuncDefStmt{
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = "void",
       .body =
@@ -150,11 +148,11 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
           },
   });
 
-  auto block_ref = cfg.first;
+  auto block_ref = graph.first;
   ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
 
-  const auto& block = cfg.get(block_ref);
-  EXPECT_EQ(block.next, cfg.last);
+  const auto& block = graph.get(block_ref);
+  EXPECT_EQ(block.next, graph.last);
   EXPECT_THAT(block.statements, ElementsAreArray({
                                     arg1_expr,
                                     func_call_expr,
@@ -169,7 +167,7 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
       .name = "x",
       .init = func_call_stmt_ref,
   });
-  auto cfg = BuildControlFlowGraph(FuncDefStmt{
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .body =
           {
@@ -178,11 +176,11 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
       .result_type = "void",
   });
 
-  auto block_ref = cfg.first;
+  auto block_ref = graph.first;
   ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
 
-  const auto& block = cfg.get(block_ref);
-  EXPECT_EQ(block.next, cfg.last);
+  const auto& block = graph.get(block_ref);
+  EXPECT_EQ(block.next, graph.last);
   EXPECT_THAT(block.statements, ElementsAreArray({
                                     func_call_stmt_ref,
                                     x_var_decl_ref,
@@ -193,7 +191,7 @@ TEST_F(ControlFlowGraphTest, AddExpr) {
   auto lhs_expr = Allocate(IntLitExpr{.value = "2"});
   auto rhs_expr = Allocate(IntLitExpr{.value = "3"});
   auto add_expr = Allocate(AddExpr{.lhs = lhs_expr, .rhs = rhs_expr});
-  auto cfg = BuildControlFlowGraph(FuncDefStmt{
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .body =
           {
@@ -202,11 +200,11 @@ TEST_F(ControlFlowGraphTest, AddExpr) {
       .result_type = "int",
   });
 
-  auto block_ref = cfg.first;
+  auto block_ref = graph.first;
   ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
 
-  const auto& block = cfg.get(block_ref);
-  EXPECT_EQ(block.next, cfg.last);
+  const auto& block = graph.get(block_ref);
+  EXPECT_EQ(block.next, graph.last);
   EXPECT_THAT(block.statements, ElementsAreArray({
                                     lhs_expr,
                                     rhs_expr,

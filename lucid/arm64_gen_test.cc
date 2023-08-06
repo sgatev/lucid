@@ -1,7 +1,6 @@
 #include "lucid/arm64_gen.h"
 
 #include <string>
-#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -29,8 +28,8 @@ class GenerateArmAssemblySourceTest : public testing::Test {
 };
 
 TEST_F(GenerateArmAssemblySourceTest, ReturnIntLit) {
-  auto main_func = FuncDefStmt{
-      .name = "main",
+  auto func = FuncDefStmt{
+      .name = "foo",
       .result_type = "int",
       .body =
           {
@@ -43,7 +42,7 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnIntLit) {
           },
   };
 
-  EXPECT_EQ(Generate(main_func), R"(main:
+  EXPECT_EQ(Generate(func), R"(foo:
   mov X1, #21
   mov X0, X1
   RET
@@ -51,8 +50,8 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnIntLit) {
 }
 
 TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
-  auto main_func = FuncDefStmt{
-      .name = "main",
+  auto func = FuncDefStmt{
+      .name = "foo",
       .result_type = "int",
       .body =
           {
@@ -71,7 +70,7 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
           },
   };
 
-  EXPECT_EQ(Generate(main_func), R"(main:
+  EXPECT_EQ(Generate(func), R"(foo:
   mov X1, #21
   stp X29, X30, [sp, #-16]!
   BL id
@@ -82,8 +81,8 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
 }
 
 TEST_F(GenerateArmAssemblySourceTest, AddInts) {
-  auto main_func = FuncDefStmt{
-      .name = "main",
+  auto func = FuncDefStmt{
+      .name = "foo",
       .result_type = "int",
       .body =
           {
@@ -99,7 +98,7 @@ TEST_F(GenerateArmAssemblySourceTest, AddInts) {
           },
   };
 
-  EXPECT_EQ(Generate(main_func), R"(main:
+  EXPECT_EQ(Generate(func), R"(foo:
   mov X1, #2
   mov X2, #3
   ADD X3, X1, X2

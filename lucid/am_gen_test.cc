@@ -31,8 +31,8 @@ class GenerateAbstractMachineInstructionsTest : public testing::Test {
 };
 
 TEST_F(GenerateAbstractMachineInstructionsTest, ReturnIntLit) {
-  auto main_func = FuncDefStmt{
-      .name = "main",
+  auto func = FuncDefStmt{
+      .name = "foo",
       .result_type = "int",
       .body =
           {
@@ -45,21 +45,21 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnIntLit) {
           },
   };
 
-  EXPECT_THAT(Generate(main_func), ElementsAre(
-                                       SetReg32{
-                                           .src_val = "21",
-                                           .dst_reg = 1,
-                                       },
-                                       MoveReg32{
-                                           .src_reg = 1,
-                                           .dst_reg = 0,
-                                       },
-                                       Return{}));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg32{
+                                      .src_val = "21",
+                                      .dst_reg = 1,
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 1,
+                                      .dst_reg = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
-  auto main_func = FuncDefStmt{
-      .name = "main",
+  auto func = FuncDefStmt{
+      .name = "foo",
       .result_type = "int",
       .body =
           {
@@ -78,24 +78,24 @@ TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
           },
   };
 
-  EXPECT_THAT(Generate(main_func), ElementsAre(
-                                       SetReg32{
-                                           .src_val = "21",
-                                           .dst_reg = 1,
-                                       },
-                                       Jump{
-                                           .label = "id",
-                                       },
-                                       MoveReg32{
-                                           .src_reg = 0,
-                                           .dst_reg = 0,
-                                       },
-                                       Return{}));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg32{
+                                      .src_val = "21",
+                                      .dst_reg = 1,
+                                  },
+                                  Jump{
+                                      .label = "id",
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 0,
+                                      .dst_reg = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
-  auto main_func = FuncDefStmt{
-      .name = "main",
+  auto func = FuncDefStmt{
+      .name = "foo",
       .result_type = "int",
       .body =
           {
@@ -111,25 +111,25 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
           },
   };
 
-  EXPECT_THAT(Generate(main_func), ElementsAre(
-                                       SetReg32{
-                                           .src_val = "2",
-                                           .dst_reg = 1,
-                                       },
-                                       SetReg32{
-                                           .src_val = "3",
-                                           .dst_reg = 2,
-                                       },
-                                       AddReg32{
-                                           .res_reg = 3,
-                                           .lhs_reg = 1,
-                                           .rhs_reg = 2,
-                                       },
-                                       MoveReg32{
-                                           .src_reg = 3,
-                                           .dst_reg = 0,
-                                       },
-                                       Return{}));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg32{
+                                      .src_val = "2",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg32{
+                                      .src_val = "3",
+                                      .dst_reg = 2,
+                                  },
+                                  AddReg32{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  Return{}));
 }
 
 }  // namespace
