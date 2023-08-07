@@ -1,14 +1,17 @@
 #include "lucid/arm64_gen.h"
 
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <variant>
 
 #include "lucid/am.h"
 #include "lucid/am_gen.h"
 #include "lucid/string_builder.h"
+#include "lucid/writer.h"
 
 namespace lucid {
 namespace {
@@ -25,14 +28,14 @@ class ArmAssemblySourceGenerator {
     out_reg_[3] = "X3";
   }
 
-  std::string Generate() && {
+  void Generate(Writer output) && {
     Append(func_name_);
     Append(":\n");
     Indent();
     for (const auto& inst : instructions_) Process(inst);
     UnIndent();
 
-    return std::move(output_builder_).Build();
+    std::move(output_builder_).Write(std::move(output));
   }
 
  private:
@@ -104,8 +107,8 @@ class ArmAssemblySourceGenerator {
 
 }  // namespace
 
-std::string GenerateArmStartSource() {
-  return R"(.global _start
+void GenerateArmStartSource(Writer output) {
+  output(R"(.global _start
 .align 2
 _start:
   stp X29, X30, [sp, #-16]!
@@ -113,12 +116,14 @@ _start:
   ldp X29, X30, [sp], #16
   mov X16, #1
   svc #0x80
-)";
+)");
 }
 
-std::string GenerateArmAssemblySource(
-    std::string_view func_name, const std::vector<Instruction>& instructions) {
-  return ArmAssemblySourceGenerator(func_name, instructions).Generate();
+void GenerateArmAssemblySource(std::string_view func_name,
+                               const std::vector<Instruction>& instructions,
+                               Writer output) {
+  ArmAssemblySourceGenerator(func_name, instructions)
+      .Generate(std::move(output));
 }
 
 }  // namespace lucid

@@ -1,6 +1,7 @@
 #include "lucid/arm64_gen.h"
 
 #include <string>
+#include <string_view>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -8,6 +9,7 @@
 #include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/writer.h"
 
 namespace lucid {
 namespace {
@@ -22,7 +24,9 @@ class GenerateArmAssemblySourceTest : public testing::Test {
   std::string Generate(const FuncDefStmt& func) {
     auto graph = BuildControlFlowGraph(arena_, func);
     auto instructions = GenerateAbstractMachineInstructions(arena_, graph);
-    return GenerateArmAssemblySource(func.name, instructions);
+    std::string result;
+    GenerateArmAssemblySource(func.name, instructions, StringWriter(result));
+    return result;
   }
 
  private:

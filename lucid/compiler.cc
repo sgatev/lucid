@@ -14,6 +14,7 @@
 #include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/writer.h"
 
 namespace lucid {
 namespace {
@@ -138,11 +139,12 @@ int Main(std::string_view input) {
 
   // Generate 64-bit ARM assembly.
   std::FILE* out = std::tmpfile();
-  std::fputs(GenerateArmStartSource().c_str(), out);
+  auto writer = FileWriter(out);
+  GenerateArmStartSource(writer);
   for (const auto& func : funcs) {
     auto graph = BuildControlFlowGraph(arena, func);
     auto instructions = GenerateAbstractMachineInstructions(arena, graph);
-    std::fputs(GenerateArmAssemblySource(func.name, instructions).c_str(), out);
+    GenerateArmAssemblySource(func.name, instructions, writer);
   }
   std::fseek(out, 0, SEEK_SET);
 

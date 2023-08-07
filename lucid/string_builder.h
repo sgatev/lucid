@@ -5,6 +5,8 @@
 #include <string_view>
 #include <vector>
 
+#include "lucid/writer.h"
+
 namespace lucid {
 
 // Builds a string piece by piece.
@@ -22,6 +24,11 @@ class StringBuilder {
     result.reserve(size_);
     for (auto piece : pieces_) result.append(piece);
     return result;
+  }
+
+  // Writes the string assembled through calls to `Append` using `output`.
+  void Write(Writer output) && {
+    for (auto piece : pieces_) output(piece);
   }
 
  private:

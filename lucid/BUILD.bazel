@@ -12,6 +12,7 @@ cc_library(
         ":arena",
         ":ast",
         ":cfg",
+        ":writer",
     ],
 )
 
@@ -66,6 +67,7 @@ cc_test(
         ":arm64_gen",
         ":ast",
         ":cfg",
+        ":writer",
         "@gtest",
         "@gtest//:gtest_main",
     ],
@@ -111,6 +113,7 @@ cc_binary(
         ":arm64_gen",
         ":ast",
         ":cfg",
+        ":writer",
     ],
 )
 
@@ -130,6 +133,9 @@ cc_test(
 cc_library(
     name = "string_builder",
     hdrs = ["string_builder.h"],
+    deps = [
+        ":writer",
+    ],
 )
 
 cc_test(
@@ -138,7 +144,14 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":string_builder",
+        ":writer",
         "@gtest",
         "@gtest//:gtest_main",
     ],
+)
+
+cc_library(
+    name = "writer",
+    srcs = ["writer.cc"],
+    hdrs = ["writer.h"],
 )
