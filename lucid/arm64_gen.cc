@@ -88,6 +88,17 @@ class ArmAssemblySourceGenerator {
     Append("\n");
   }
 
+  void Process(const MulReg32& inst) {
+    AppendIndent();
+    Append("MUL ");
+    Append(out_reg_[inst.res_reg]);
+    Append(", ");
+    Append(out_reg_[inst.lhs_reg]);
+    Append(", ");
+    Append(out_reg_[inst.rhs_reg]);
+    Append("\n");
+  }
+
   void Indent() { indent_ += 2; }
 
   void UnIndent() { indent_ -= 2; }

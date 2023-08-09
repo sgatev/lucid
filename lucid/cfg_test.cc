@@ -187,10 +187,14 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
                                 }));
 }
 
-TEST_F(ControlFlowGraphTest, AddExpr) {
+TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
   auto lhs_expr = Allocate(IntLitExpr{.value = "2"});
   auto rhs_expr = Allocate(IntLitExpr{.value = "3"});
-  auto add_expr = Allocate(AddExpr{.lhs = lhs_expr, .rhs = rhs_expr});
+  auto add_expr = Allocate(BinaryOpExpr{
+      .op = BinaryOp::Add,
+      .lhs = lhs_expr,
+      .rhs = rhs_expr,
+  });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .body =

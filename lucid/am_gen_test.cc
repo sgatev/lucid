@@ -102,7 +102,8 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
               .statements =
                   {
                       Allocate(ReturnStmt{
-                          .value = Allocate(AddExpr{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Add,
                               .lhs = Allocate(IntLitExpr{.value = "2"}),
                               .rhs = Allocate(IntLitExpr{.value = "3"}),
                           }),
@@ -121,6 +122,46 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
                                       .dst_reg = 2,
                                   },
                                   AddReg32{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  Return{}));
+}
+
+TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInts) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Mul,
+                              .lhs = Allocate(IntLitExpr{.value = "2"}),
+                              .rhs = Allocate(IntLitExpr{.value = "3"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg32{
+                                      .src_val = "2",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg32{
+                                      .src_val = "3",
+                                      .dst_reg = 2,
+                                  },
+                                  MulReg32{
                                       .res_reg = 3,
                                       .lhs_reg = 1,
                                       .rhs_reg = 2,

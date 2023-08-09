@@ -15,10 +15,10 @@ struct IntLitExpr;
 struct FuncCallExpr;
 struct VarDeclStmt;
 struct IdentExpr;
-struct AddExpr;
+struct BinaryOpExpr;
 
 // An expression in the Lucid language.
-using Expr = std::variant<FuncCallExpr, IntLitExpr, IdentExpr, AddExpr>;
+using Expr = std::variant<FuncCallExpr, IntLitExpr, IdentExpr, BinaryOpExpr>;
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, VarDeclStmt, FuncDefStmt, ReturnStmt>;
@@ -99,9 +99,21 @@ struct IdentExpr {
   std::string_view name;
 };
 
-// An expression that represents the addition of the values of two
+// A binary operation kind.
+enum class BinaryOp {
+  // Binary addition operation.
+  Add,
+
+  // Binary multiplication operation.
+  Mul,
+};
+
+// An expression that represents a binary operation over the values of two
 // sub-expressions.
-struct AddExpr {
+struct BinaryOpExpr {
+  // Binary operation kind.
+  BinaryOp op;
+
   // Left-hand side sub-expression.
   ExprRef lhs;
 

@@ -71,12 +71,23 @@ class AbstractMachineInstructionGenerator {
     out_reg_[expr_ref] = 1;
   }
 
-  void ProcessExpr(ExprRef expr_ref, const AddExpr& expr) {
-    instructions_.push_back(AddReg32{
-        .res_reg = 3,
-        .lhs_reg = out_reg_[expr.lhs],
-        .rhs_reg = out_reg_[expr.rhs],
-    });
+  void ProcessExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {
+    switch (expr.op) {
+      case BinaryOp::Add:
+        instructions_.push_back(AddReg32{
+            .res_reg = 3,
+            .lhs_reg = out_reg_[expr.lhs],
+            .rhs_reg = out_reg_[expr.rhs],
+        });
+        break;
+      case BinaryOp::Mul:
+        instructions_.push_back(MulReg32{
+            .res_reg = 3,
+            .lhs_reg = out_reg_[expr.lhs],
+            .rhs_reg = out_reg_[expr.rhs],
+        });
+        break;
+    }
     out_reg_[expr_ref] = 3;
   }
 

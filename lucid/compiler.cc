@@ -113,9 +113,34 @@ std::vector<FuncDefStmt> GenerateAddInts(Arena<Stmt>& arena) {
               .statements =
                   {
                       allocate(ReturnStmt{
-                          .value = allocate(AddExpr{
+                          .value = allocate(BinaryOpExpr{
+                              .op = BinaryOp::Add,
                               .lhs = allocate(IntLitExpr{.value = "2"}),
                               .rhs = allocate(IntLitExpr{.value = "3"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  return {main_func};
+}
+
+std::vector<FuncDefStmt> GenerateMulInts(Arena<Stmt>& arena) {
+  auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
+
+  auto main_func = FuncDefStmt{
+      .name = "main",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      allocate(ReturnStmt{
+                          .value = allocate(BinaryOpExpr{
+                              .op = BinaryOp::Mul,
+                              .lhs = allocate(IntLitExpr{.value = "3"}),
+                              .rhs = allocate(IntLitExpr{.value = "7"}),
                           }),
                       }),
                   },
@@ -135,6 +160,8 @@ int Main(std::string_view input) {
     funcs = GenerateFuncCall(arena);
   } else if (input == "add_ints") {
     funcs = GenerateAddInts(arena);
+  } else if (input == "mul_ints") {
+    funcs = GenerateMulInts(arena);
   }
 
   // Generate 64-bit ARM assembly.

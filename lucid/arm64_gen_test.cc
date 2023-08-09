@@ -95,7 +95,8 @@ TEST_F(GenerateArmAssemblySourceTest, AddInts) {
               .statements =
                   {
                       Allocate(ReturnStmt{
-                          .value = Allocate(AddExpr{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Add,
                               .lhs = Allocate(IntLitExpr{.value = "2"}),
                               .rhs = Allocate(IntLitExpr{.value = "3"}),
                           }),
@@ -108,6 +109,34 @@ TEST_F(GenerateArmAssemblySourceTest, AddInts) {
   mov X1, #2
   mov X2, #3
   ADD X3, X1, X2
+  mov X0, X3
+  RET
+)");
+}
+
+TEST_F(GenerateArmAssemblySourceTest, MultiplyInts) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Mul,
+                              .lhs = Allocate(IntLitExpr{.value = "2"}),
+                              .rhs = Allocate(IntLitExpr{.value = "3"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+  mov X1, #2
+  mov X2, #3
+  MUL X3, X1, X2
   mov X0, X3
   RET
 )");

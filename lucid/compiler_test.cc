@@ -46,5 +46,10 @@ TEST_F(CompilerTest, AddInts) {
   EXPECT_EQ(Run("add_ints"), 5);
 }
 
+TEST_F(CompilerTest, MulInts) {
+  ASSERT_EQ(Compile("mul_ints"), 0);
+  EXPECT_EQ(Run("mul_ints"), 21);
+}
+
 }  // namespace
 }  // namespace lucid
