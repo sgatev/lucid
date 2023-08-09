@@ -126,6 +126,30 @@ std::vector<FuncDefStmt> GenerateAddInts(Arena<Stmt>& arena) {
   return {main_func};
 }
 
+std::vector<FuncDefStmt> GenerateSubInts(Arena<Stmt>& arena) {
+  auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
+
+  auto main_func = FuncDefStmt{
+      .name = "main",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      allocate(ReturnStmt{
+                          .value = allocate(BinaryOpExpr{
+                              .op = BinaryOp::Sub,
+                              .lhs = allocate(IntLitExpr{.value = "7"}),
+                              .rhs = allocate(IntLitExpr{.value = "5"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  return {main_func};
+}
+
 std::vector<FuncDefStmt> GenerateMulInts(Arena<Stmt>& arena) {
   auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
 
@@ -160,6 +184,8 @@ int Main(std::string_view input) {
     funcs = GenerateFuncCall(arena);
   } else if (input == "add_ints") {
     funcs = GenerateAddInts(arena);
+  } else if (input == "sub_ints") {
+    funcs = GenerateSubInts(arena);
   } else if (input == "mul_ints") {
     funcs = GenerateMulInts(arena);
   }

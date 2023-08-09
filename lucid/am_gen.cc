@@ -80,6 +80,13 @@ class AbstractMachineInstructionGenerator {
             .rhs_reg = out_reg_[expr.rhs],
         });
         break;
+      case BinaryOp::Sub:
+        instructions_.push_back(SubReg32{
+            .res_reg = 3,
+            .lhs_reg = out_reg_[expr.lhs],
+            .rhs_reg = out_reg_[expr.rhs],
+        });
+        break;
       case BinaryOp::Mul:
         instructions_.push_back(MulReg32{
             .res_reg = 3,

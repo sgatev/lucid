@@ -133,6 +133,46 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
                                   Return{}));
 }
 
+TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInts) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Sub,
+                              .lhs = Allocate(IntLitExpr{.value = "7"}),
+                              .rhs = Allocate(IntLitExpr{.value = "5"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg32{
+                                      .src_val = "7",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg32{
+                                      .src_val = "5",
+                                      .dst_reg = 2,
+                                  },
+                                  SubReg32{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  Return{}));
+}
+
 TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInts) {
   auto func = FuncDefStmt{
       .name = "foo",

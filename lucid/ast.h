@@ -104,6 +104,9 @@ enum class BinaryOp {
   // Binary addition operation.
   Add,
 
+  // Binary subtraction operation.
+  Sub,
+
   // Binary multiplication operation.
   Mul,
 };

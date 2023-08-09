@@ -76,6 +76,16 @@ class Arm64Generator {
     Append("\n");
   }
 
+  void Process(const SubReg32& inst) {
+    Append("SUB ");
+    Append(out_reg_[inst.res_reg]);
+    Append(", ");
+    Append(out_reg_[inst.lhs_reg]);
+    Append(", ");
+    Append(out_reg_[inst.rhs_reg]);
+    Append("\n");
+  }
+
   void Process(const MulReg32& inst) {
     Append("MUL ");
     Append(out_reg_[inst.res_reg]);
