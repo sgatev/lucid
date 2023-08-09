@@ -53,7 +53,6 @@ cc_library(
     deps = [
         ":am",
         ":am_gen",
-        ":string_builder",
     ],
 )
 
@@ -125,26 +124,6 @@ cc_test(
         ":compiler",
     ],
     deps = [
-        "@gtest",
-        "@gtest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "string_builder",
-    hdrs = ["string_builder.h"],
-    deps = [
-        ":writer",
-    ],
-)
-
-cc_test(
-    name = "string_builder_test",
-    srcs = ["string_builder_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
-    deps = [
-        ":string_builder",
-        ":writer",
         "@gtest",
         "@gtest//:gtest_main",
     ],

@@ -9,29 +9,30 @@
 
 #include "lucid/am.h"
 #include "lucid/am_gen.h"
-#include "lucid/string_builder.h"
 #include "lucid/writer.h"
 
 namespace lucid {
 namespace {
 
 // Generates 64-bit ARM assembly source code.
-class ArmAssemblySourceGenerator {
+class Arm64Generator {
  public:
-  explicit ArmAssemblySourceGenerator(
-      std::string_view func_name, const std::vector<Instruction>& instructions)
-      : func_name_(func_name), instructions_(instructions) {
+  explicit Arm64Generator(std::string_view func_name,
+                          const std::vector<Instruction>& instructions,
+                          Writer output)
+      : func_name_(func_name),
+        instructions_(instructions),
+        output_(std::move(output)) {
     out_reg_[0] = "X0";
     out_reg_[1] = "X1";
     out_reg_[2] = "X2";
     out_reg_[3] = "X3";
   }
 
-  void Generate(Writer output) && {
+  void Generate() && {
     Append(func_name_);
     Append(":\n");
     for (const auto& inst : instructions_) Process(inst);
-    std::move(output_builder_).Write(std::move(output));
   }
 
  private:
@@ -85,11 +86,11 @@ class ArmAssemblySourceGenerator {
     Append("\n");
   }
 
-  void Append(std::string_view s) { output_builder_.Append(s); }
+  void Append(std::string_view s) { output_(s); }
 
   std::string_view func_name_;
   const std::vector<Instruction>& instructions_;
-  StringBuilder output_builder_;
+  Writer output_;
   std::map<RegId, std::string> out_reg_;
 };
 
@@ -110,8 +111,7 @@ _start:
 void GenerateArmAssemblySource(std::string_view func_name,
                                const std::vector<Instruction>& instructions,
                                Writer output) {
-  ArmAssemblySourceGenerator(func_name, instructions)
-      .Generate(std::move(output));
+  Arm64Generator(func_name, instructions, std::move(output)).Generate();
 }
 
 }  // namespace lucid
