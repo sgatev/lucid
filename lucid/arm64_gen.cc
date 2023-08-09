@@ -1,6 +1,5 @@
 #include "lucid/arm64_gen.h"
 
-#include <cstddef>
 #include <functional>
 #include <map>
 #include <string>
@@ -31,10 +30,7 @@ class ArmAssemblySourceGenerator {
   void Generate(Writer output) && {
     Append(func_name_);
     Append(":\n");
-    Indent();
     for (const auto& inst : instructions_) Process(inst);
-    UnIndent();
-
     std::move(output_builder_).Write(std::move(output));
   }
 
@@ -44,7 +40,6 @@ class ArmAssemblySourceGenerator {
   }
 
   void Process(const MoveReg32& inst) {
-    AppendIndent();
     Append("mov ");
     Append(out_reg_[inst.dst_reg]);
     Append(", ");
@@ -53,7 +48,6 @@ class ArmAssemblySourceGenerator {
   }
 
   void Process(const SetReg32& inst) {
-    AppendIndent();
     Append("mov ");
     Append(out_reg_[inst.dst_reg]);
     Append(", #");
@@ -61,24 +55,17 @@ class ArmAssemblySourceGenerator {
     Append("\n");
   }
 
-  void Process(const Return& inst) {
-    AppendIndent();
-    Append("RET\n");
-  }
+  void Process(const Return& inst) { Append("RET\n"); }
 
   void Process(const Jump& inst) {
-    AppendIndent();
     Append("stp X29, X30, [sp, #-16]!\n");
-    AppendIndent();
     Append("BL ");
     Append(inst.label);
     Append("\n");
-    AppendIndent();
     Append("ldp X29, X30, [sp], #16\n");
   }
 
   void Process(const AddReg32& inst) {
-    AppendIndent();
     Append("ADD ");
     Append(out_reg_[inst.res_reg]);
     Append(", ");
@@ -89,7 +76,6 @@ class ArmAssemblySourceGenerator {
   }
 
   void Process(const MulReg32& inst) {
-    AppendIndent();
     Append("MUL ");
     Append(out_reg_[inst.res_reg]);
     Append(", ");
@@ -99,20 +85,11 @@ class ArmAssemblySourceGenerator {
     Append("\n");
   }
 
-  void Indent() { indent_ += 2; }
-
-  void UnIndent() { indent_ -= 2; }
-
-  void AppendIndent() {
-    for (int i = 0; i < indent_; ++i) Append(" ");
-  }
-
   void Append(std::string_view s) { output_builder_.Append(s); }
 
   std::string_view func_name_;
   const std::vector<Instruction>& instructions_;
   StringBuilder output_builder_;
-  std::size_t indent_ = 0;
   std::map<RegId, std::string> out_reg_;
 };
 
