@@ -9,6 +9,11 @@ namespace lucid {
 // A register in the Lucid abstract machine.
 using RegId = int;
 
+// A no op instruction.
+struct Nop {
+  bool operator==(const Nop&) const { return true; }
+};
+
 // Moves the value of an int32 register into another one.
 struct MoveReg32 {
   // Source int32 register.
@@ -45,7 +50,7 @@ struct Jump {
 
 // Returns to the location before the last jump.
 struct Return {
-  bool operator==(const Return& other) const { return true; }
+  bool operator==(const Return&) const { return true; }
 };
 
 // Adds the contents of two int32 registers.
@@ -100,7 +105,7 @@ struct MulReg32 {
 };
 
 // An instruction for the Lucid abstract machine.
-using Instruction = std::variant<MoveReg32, SetReg32, Jump, Return, AddReg32,
-                                 SubReg32, MulReg32>;
+using Instruction = std::variant<Nop, MoveReg32, SetReg32, Jump, Return,
+                                 AddReg32, SubReg32, MulReg32>;
 
 }  // namespace lucid

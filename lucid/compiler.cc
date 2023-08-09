@@ -14,6 +14,7 @@
 #include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/opt.h"
 #include "lucid/writer.h"
 
 namespace lucid {
@@ -197,6 +198,7 @@ int Main(std::string_view input) {
   for (const auto& func : funcs) {
     auto graph = BuildControlFlowGraph(arena, func);
     auto instructions = GenerateAbstractMachineInstructions(arena, graph);
+    OptimizeAbstractMachineInstructions(instructions);
     GenerateArmAssemblySource(func.name, instructions, writer);
   }
   std::fseek(out, 0, SEEK_SET);

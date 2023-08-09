@@ -40,6 +40,8 @@ class Arm64Generator {
     std::visit([this](auto&& inst) { Process(inst); }, inst);
   }
 
+  void Process(const Nop&) {}
+
   void Process(const MoveReg32& inst) {
     Append("mov ");
     Append(out_reg_[inst.dst_reg]);
