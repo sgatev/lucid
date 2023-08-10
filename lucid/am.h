@@ -104,8 +104,25 @@ struct MulReg32 {
   }
 };
 
+// Divides the contents of one int32 register by another.
+struct DivReg32 {
+  // Result int32 register.
+  RegId res_reg;
+
+  // First operand int32 register.
+  RegId lhs_reg;
+
+  // Second operand int32 register.
+  RegId rhs_reg;
+
+  bool operator==(const DivReg32& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
 // An instruction for the Lucid abstract machine.
 using Instruction = std::variant<Nop, MoveReg32, SetReg32, Jump, Return,
-                                 AddReg32, SubReg32, MulReg32>;
+                                 AddReg32, SubReg32, MulReg32, DivReg32>;
 
 }  // namespace lucid

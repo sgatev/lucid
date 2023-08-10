@@ -98,6 +98,16 @@ class Arm64Generator {
     Append("\n");
   }
 
+  void Process(const DivReg32& inst) {
+    Append("UDIV ");
+    Append(out_reg_[inst.res_reg]);
+    Append(", ");
+    Append(out_reg_[inst.lhs_reg]);
+    Append(", ");
+    Append(out_reg_[inst.rhs_reg]);
+    Append("\n");
+  }
+
   void Append(std::string_view s) { output_(s); }
 
   std::string_view func_name_;

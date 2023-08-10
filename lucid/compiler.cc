@@ -175,6 +175,30 @@ std::vector<FuncDefStmt> GenerateMulInts(Arena<Stmt>& arena) {
   return {main_func};
 }
 
+std::vector<FuncDefStmt> GenerateDivInts(Arena<Stmt>& arena) {
+  auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
+
+  auto main_func = FuncDefStmt{
+      .name = "main",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      allocate(ReturnStmt{
+                          .value = allocate(BinaryOpExpr{
+                              .op = BinaryOp::Div,
+                              .lhs = allocate(IntLitExpr{.value = "8"}),
+                              .rhs = allocate(IntLitExpr{.value = "2"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  return {main_func};
+}
+
 int Main(std::string_view input) {
   // Load Lucis sources.
   Arena<Stmt> arena;
@@ -189,6 +213,8 @@ int Main(std::string_view input) {
     funcs = GenerateSubInts(arena);
   } else if (input == "mul_ints") {
     funcs = GenerateMulInts(arena);
+  } else if (input == "div_ints") {
+    funcs = GenerateDivInts(arena);
   }
 
   // Generate 64-bit ARM assembly.

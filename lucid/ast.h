@@ -109,6 +109,9 @@ enum class BinaryOp {
 
   // Binary multiplication operation.
   Mul,
+
+  // Binary division operation.
+  Div,
 };
 
 // An expression that represents a binary operation over the values of two

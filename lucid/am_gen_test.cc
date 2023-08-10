@@ -213,5 +213,45 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInts) {
                                   Return{}));
 }
 
+TEST_F(GenerateAbstractMachineInstructionsTest, DivideInts) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Div,
+                              .lhs = Allocate(IntLitExpr{.value = "8"}),
+                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg32{
+                                      .src_val = "8",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg32{
+                                      .src_val = "2",
+                                      .dst_reg = 2,
+                                  },
+                                  DivReg32{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  Return{}));
+}
+
 }  // namespace
 }  // namespace lucid

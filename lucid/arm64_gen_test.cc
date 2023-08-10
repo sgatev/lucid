@@ -170,5 +170,33 @@ RET
 )");
 }
 
+TEST_F(GenerateArmAssemblySourceTest, DivideInts) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Div,
+                              .lhs = Allocate(IntLitExpr{.value = "8"}),
+                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+mov X1, #8
+mov X2, #2
+UDIV X3, X1, X2
+mov X0, X3
+RET
+)");
+}
+
 }  // namespace
 }  // namespace lucid
