@@ -172,6 +172,31 @@ cc_test(
 )
 
 cc_library(
+    name = "parser",
+    hdrs = ["parser.h"],
+    deps = [
+        ":arena",
+        ":ast",
+        ":lexer",
+        ":token",
+    ],
+)
+
+cc_test(
+    name = "parser_test",
+    srcs = ["parser_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":arena",
+        ":ast",
+        ":lexer",
+        ":parser",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "token",
     srcs = ["token.cc"],
     hdrs = ["token.h"],

@@ -9,7 +9,7 @@
 
 namespace lucid {
 
-// Converts a string buffer into a stream of tokens.
+// Converts a string of Lucid code into a stream of tokens.
 class Lexer {
  public:
   // `buffer_` must end in `\n`.
