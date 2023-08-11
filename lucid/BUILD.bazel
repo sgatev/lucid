@@ -131,6 +131,26 @@ cc_test(
 )
 
 cc_library(
+    name = "lexer",
+    hdrs = ["lexer.h"],
+    deps = [
+        ":token",
+    ],
+)
+
+cc_test(
+    name = "lexer_test",
+    srcs = ["lexer_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":lexer",
+        ":token",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "opt",
     srcs = ["opt.cc"],
     hdrs = ["opt.h"],
@@ -146,6 +166,23 @@ cc_test(
     deps = [
         ":am",
         ":opt",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "token",
+    srcs = ["token.cc"],
+    hdrs = ["token.h"],
+)
+
+cc_test(
+    name = "token_test",
+    srcs = ["token_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":token",
         "@gtest",
         "@gtest//:gtest_main",
     ],
