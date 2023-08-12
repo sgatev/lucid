@@ -73,25 +73,25 @@ std::vector<FuncDefStmt> GenerateFromSource(std::string_view src,
 }  // namespace
 
 int Main(std::string_view binary_name, std::string_view src_path) {
-  // Load Lucis sources.
+  // Load Lucid sources.
   const std::string src = ReadFile(src_path);
   Arena<Stmt> arena;
   std::vector<FuncDefStmt> funcs = GenerateFromSource(src, arena);
 
   // Generate 64-bit ARM assembly.
-  std::FILE* out = std::tmpfile();
-  auto writer = FileWriter(out);
-  GenerateArmStartSource(writer);
+  std::FILE* assembly_file = std::tmpfile();
+  auto assembly_writer = FileWriter(assembly_file);
+  GenerateArmStartSource(assembly_writer);
   for (const auto& func : funcs) {
     auto graph = BuildControlFlowGraph(arena, func);
     auto instructions = GenerateAbstractMachineInstructions(arena, graph);
     OptimizeAbstractMachineInstructions(instructions);
-    GenerateArmAssemblySource(func.name, instructions, writer);
+    GenerateArmAssemblySource(func.name, instructions, assembly_writer);
   }
-  std::fseek(out, 0, SEEK_SET);
+  std::rewind(assembly_file);
 
   // Translate assembly into object code.
-  dup2(fileno(out), 0);
+  dup2(fileno(assembly_file), 0);
   const std::string as_cmd =
       StringFormat("as -arch arm64 -o %s.o -- ", binary_name.data());
   std::system(as_cmd.data());
