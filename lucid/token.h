@@ -32,18 +32,18 @@ struct Token {
     Number,
   };
 
-  constexpr Token(Kind kind, std::size_t start_pos,
-                  std::size_t end_pos) noexcept
+  constexpr Token(Kind kind, std::size_t start_pos, std::size_t end_pos)
       : kind(kind), start_pos(start_pos), end_pos(end_pos) {}
 
-  constexpr bool operator==(const Token& other) const noexcept {
+  constexpr bool operator==(const Token& other) const {
     return kind == other.kind && start_pos == other.start_pos &&
            end_pos == other.end_pos;
   }
 
   friend std::ostream& operator<<(std::ostream& os, const Token& token) {
-    os << "Token(" << static_cast<int>(token.kind) << ", " << token.start_pos
-       << ", " << token.end_pos << ")";
+    os << "Token{.kind=" << static_cast<int>(token.kind)
+       << ", .start_pos=" << token.start_pos << ", .end_pos=" << token.end_pos
+       << ")";
     return os;
   }
 
@@ -54,12 +54,12 @@ struct Token {
 
 // Returns the index of the line in `buffer` that contains `token`.
 //
-// The result is undefined if `buffer` does not contain `token`.
+// The behavior is undefined if `buffer` does not contain `token`.
 std::size_t FindLine(std::string_view buffer, const Token& token);
 
 // Returns the index of the column in `buffer` that contains `token`.
 //
-// The result is undefined if `buffer` does not contain `token`.
+// The behavior is undefined if `buffer` does not contain `token`.
 std::size_t FindColumn(std::string_view buffer, const Token& token);
 
 }  // namespace lucid

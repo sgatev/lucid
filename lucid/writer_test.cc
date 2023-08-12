@@ -1,7 +1,6 @@
 #include "lucid/writer.h"
 
 #include <cstdio>
-#include <filesystem>
 #include <string>
 #include <string_view>
 
