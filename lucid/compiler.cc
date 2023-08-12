@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -45,7 +46,13 @@ std::vector<FuncDefStmt> GenerateFromSource(std::string_view src,
   while (true) {
     auto maybe_func_def = parser.ParseFuncDef();
     auto* stmt_ref = std::get_if<StmtRef>(&maybe_func_def);
-    if (stmt_ref == nullptr) break;
+    if (stmt_ref == nullptr) {
+      const auto& error = std::get<ParserError>(maybe_func_def);
+      if (error.GetKind() == ParserError::Kind::End) break;
+
+      std::cerr << error.ToString() << std::endl;
+      exit(1);
+    }
 
     auto* func_def_stmt = std::get_if<FuncDefStmt>(&arena.get(*stmt_ref));
     if (func_def_stmt == nullptr) break;

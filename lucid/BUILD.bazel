@@ -128,6 +128,7 @@ cc_test(
         ":compiler",
     ],
     deps = [
+        ":file",
         ":writer",
         "@gtest",
         "@gtest//:gtest_main",

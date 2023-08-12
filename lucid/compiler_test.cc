@@ -7,10 +7,27 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "lucid/file.h"
 #include "lucid/writer.h"
+
+MATCHER_P(ReturnsCode, code, "") { return arg.return_code == code; }
+MATCHER_P(PrintsError, err, "") { return arg.err == err; }
 
 namespace lucid {
 namespace {
+
+using ::testing::AllOf;
+
+struct CommandResult {
+  int return_code;
+  std::string err;
+};
+
+[[maybe_unused]] std::ostream& operator<<(std::ostream& stream,
+                                          const CommandResult& res) {
+  return stream << "CommandResult{.return_code=" << res.return_code
+                << " .err=\"" << res.err << "\"}";
+}
 
 class CompilerTest : public testing::Test {
  protected:
@@ -24,24 +41,30 @@ class CompilerTest : public testing::Test {
     return std::fclose(src_file);
   }
 
-  int Compile(std::string binary_name) {
+  CommandResult Compile(std::string binary_name) {
     return ExecCommand(compiler_path_ + " " + binary_name + " " + src_path_);
   }
 
-  int Run(std::string_view binary_name) {
+  CommandResult Run(std::string_view binary_name) {
     const std::string binary_path = runtime_path_ / binary_name;
     return ExecCommand(binary_path);
   }
 
  private:
-  int ExecCommand(std::string_view command) {
-    const int result = std::system(command.data());
-    return WEXITSTATUS(result);
+  CommandResult ExecCommand(std::string_view command) {
+    std::string c = std::string(command) + " 2> " + err_path_;
+    const int result = std::system(c.c_str());
+    const int return_code = WEXITSTATUS(result);
+    return {
+        .return_code = return_code,
+        .err = ReadFile(err_path_),
+    };
   }
 
   const std::filesystem::path runtime_path_ = testing::SrcDir() + "__main__";
   const std::string compiler_path_ = runtime_path_ / "lucid" / "compiler";
   const std::string src_path_ = runtime_path_ / "test.lucid";
+  const std::string err_path_ = runtime_path_ / "stderr";
 };
 
 TEST_F(CompilerTest, EmptyMain) {
@@ -51,8 +74,8 @@ TEST_F(CompilerTest, EmptyMain) {
       }
     )"),
             0);
-  ASSERT_EQ(Compile("main"), 0);
-  EXPECT_EQ(Run("main"), 0);
+  ASSERT_THAT(Compile("main"), ReturnsCode(0));
+  EXPECT_THAT(Run("main"), ReturnsCode(0));
 }
 
 TEST_F(CompilerTest, FunctionCall) {
@@ -66,8 +89,8 @@ TEST_F(CompilerTest, FunctionCall) {
       }
     )"),
             0);
-  ASSERT_EQ(Compile("main"), 0);
-  EXPECT_EQ(Run("main"), 21);
+  ASSERT_THAT(Compile("main"), ReturnsCode(0));
+  EXPECT_THAT(Run("main"), ReturnsCode(21));
 }
 
 TEST_F(CompilerTest, AddInts) {
@@ -77,8 +100,8 @@ TEST_F(CompilerTest, AddInts) {
       }
     )"),
             0);
-  ASSERT_EQ(Compile("main"), 0);
-  EXPECT_EQ(Run("main"), 5);
+  ASSERT_THAT(Compile("main"), ReturnsCode(0));
+  EXPECT_THAT(Run("main"), ReturnsCode(5));
 }
 
 TEST_F(CompilerTest, SubInts) {
@@ -88,8 +111,8 @@ TEST_F(CompilerTest, SubInts) {
       }
     )"),
             0);
-  ASSERT_EQ(Compile("main"), 0);
-  EXPECT_EQ(Run("main"), 2);
+  ASSERT_THAT(Compile("main"), ReturnsCode(0));
+  EXPECT_THAT(Run("main"), ReturnsCode(2));
 }
 
 TEST_F(CompilerTest, MulInts) {
@@ -99,8 +122,8 @@ TEST_F(CompilerTest, MulInts) {
       }
     )"),
             0);
-  ASSERT_EQ(Compile("main"), 0);
-  EXPECT_EQ(Run("main"), 21);
+  ASSERT_THAT(Compile("main"), ReturnsCode(0));
+  EXPECT_THAT(Run("main"), ReturnsCode(21));
 }
 
 TEST_F(CompilerTest, DivInts) {
@@ -110,8 +133,21 @@ TEST_F(CompilerTest, DivInts) {
       }
     )"),
             0);
-  ASSERT_EQ(Compile("main"), 0);
-  EXPECT_EQ(Run("main"), 4);
+  ASSERT_THAT(Compile("main"), ReturnsCode(0));
+  EXPECT_THAT(Run("main"), ReturnsCode(4));
+}
+
+TEST_F(CompilerTest, ParseError) {
+  ASSERT_EQ(Write(R"(
+      let main = ( -> Int {
+        return 0
+      }
+    )"),
+            0);
+  ASSERT_THAT(Compile("main"),
+              AllOf(ReturnsCode(1),
+                    PrintsError("parse error: expected closing parenthesis or "
+                                "parameter at line 2, column 20\n")));
 }
 
 }  // namespace
