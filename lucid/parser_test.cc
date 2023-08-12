@@ -26,9 +26,22 @@ MATCHER_P(HoldsError, match_err, "") {
 namespace lucid {
 namespace {
 
+struct CompoundStmtPattern {
+  std::vector<std::function<bool(StmtRef)>> statements;
+};
+
 struct FuncDefStmtPattern {
   std::string_view name;
   std::string_view result_type;
+  CompoundStmtPattern body;
+};
+
+struct ReturnStmtPattern {
+  std::function<bool(StmtRef)> value;
+};
+
+struct IntLitExprPattern {
+  std::string_view value;
 };
 
 class ParserTest : public testing::Test {
@@ -46,7 +59,36 @@ class ParserTest : public testing::Test {
       if (func_def_stmt == nullptr) return false;
       if (func_def_stmt->name != pattern.name) return false;
       if (func_def_stmt->result_type != pattern.result_type) return false;
+      if (func_def_stmt->body.statements.size() !=
+          pattern.body.statements.size()) {
+        return false;
+      }
+      for (int i = 0; i < func_def_stmt->body.statements.size(); ++i) {
+        if (!pattern.body.statements[i](func_def_stmt->body.statements[i]))
+          return false;
+      }
       return true;
+    };
+  }
+
+  std::function<bool(StmtRef)> MatchesReturnStmt(ReturnStmtPattern pattern) {
+    return [this, pattern](StmtRef ref) {
+      const Stmt& stmt = arena_.get(ref);
+      auto* return_stmt = std::get_if<ReturnStmt>(&stmt);
+      if (return_stmt == nullptr) return false;
+      return pattern.value(return_stmt->value);
+    };
+  }
+
+  std::function<bool(StmtRef)> MatchesIntLitExpr(IntLitExprPattern pattern) {
+    return [this, pattern](StmtRef ref) {
+      const Stmt& stmt = arena_.get(ref);
+      auto* expr = std::get_if<Expr>(&stmt);
+      if (expr == nullptr) return false;
+
+      auto* int_lit_expr = std::get_if<IntLitExpr>(expr);
+      if (int_lit_expr == nullptr) return false;
+      return int_lit_expr->value == pattern.value;
     };
   }
 
@@ -56,17 +98,41 @@ class ParserTest : public testing::Test {
 
 TEST_F(ParserTest, EmptyFuncDef) {
   std::string_view src = R"(
-    let main = () {
+    let main = () -> Void {
     }
   )";
   EXPECT_THAT(Parse(src), HoldsStmt(MatchesFuncDefStmt({
                               .name = "main",
+                              .result_type = "Void",
+                          })));
+}
+
+TEST_F(ParserTest, ReturnIntLit) {
+  std::string_view src = R"(
+    let main = () -> Int {
+      return 0
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsStmt(MatchesFuncDefStmt({
+                              .name = "main",
+                              .result_type = "Int",
+                              .body =
+                                  {
+                                      .statements =
+                                          {
+                                              MatchesReturnStmt({
+                                                  .value = MatchesIntLitExpr({
+                                                      .value = "0",
+                                                  }),
+                                              }),
+                                          },
+                                  },
                           })));
 }
 
 TEST_F(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
-    = () {
+    = () -> Void {
     }
   )";
   EXPECT_THAT(
@@ -76,7 +142,7 @@ TEST_F(ParserTest, FuncDefMissingLet) {
 
 TEST_F(ParserTest, FuncDefMissingName) {
   std::string_view src = R"(
-    let = () {
+    let = () -> Void {
     }
   )";
   EXPECT_THAT(
@@ -86,7 +152,7 @@ TEST_F(ParserTest, FuncDefMissingName) {
 
 TEST_F(ParserTest, FuncDefMissingEqual) {
   std::string_view src = R"(
-    let main () {
+    let main () -> Void {
     }
   )";
   EXPECT_THAT(Parse(src),
@@ -95,7 +161,7 @@ TEST_F(ParserTest, FuncDefMissingEqual) {
 
 TEST_F(ParserTest, FuncDefMissingOpeningParen) {
   std::string_view src = R"(
-    let main = ) {
+    let main = ) -> Void {
     }
   )";
   EXPECT_THAT(Parse(src),
@@ -104,16 +170,44 @@ TEST_F(ParserTest, FuncDefMissingOpeningParen) {
 
 TEST_F(ParserTest, FuncDefMissingClosingParen) {
   std::string_view src = R"(
-    let main = ( {
+    let main = ( -> Void {
     }
   )";
   EXPECT_THAT(Parse(src),
               HoldsError("parse error: unexpected token at line 2, column 18"));
 }
 
+TEST_F(ParserTest, FuncDefMissingResultArrowDash) {
+  std::string_view src = R"(
+    let main = () > Void {
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("parse error: unexpected token at line 2, column 19"));
+}
+
+TEST_F(ParserTest, FuncDefMissingResultArrowHead) {
+  std::string_view src = R"(
+    let main = () - Void {
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("parse error: unexpected token at line 2, column 21"));
+}
+
+TEST_F(ParserTest, FuncDefMissingResultType) {
+  std::string_view src = R"(
+    let main = () -> {
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsError("parse error: expected identifier at line 2, column 22"));
+}
+
 TEST_F(ParserTest, FuncDefMissingOpenBrace) {
   std::string_view src = R"(
-    let main = ()
+    let main = () -> Void
     }
   )";
   EXPECT_THAT(Parse(src),
@@ -122,7 +216,7 @@ TEST_F(ParserTest, FuncDefMissingOpenBrace) {
 
 TEST_F(ParserTest, FuncDefMissingClosingBrace) {
   std::string_view src = R"(
-    let main = () {
+    let main = () -> Void {
   )";
   EXPECT_THAT(Parse(src),
               HoldsError("parse error: unexpected token at line 3, column 3"));

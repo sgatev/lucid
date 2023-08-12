@@ -19,6 +19,7 @@ class ParserError {
   enum class Kind : uint8_t {
     End,
     ExpectedIdent,
+    ExpectedNumber,
     UnexpectedToken,
     ExpectedLet,
   };
@@ -40,6 +41,8 @@ class ParserError {
         return "end";
       case Kind::ExpectedIdent:
         return "expected identifier";
+      case Kind::ExpectedNumber:
+        return "expected number";
       case Kind::UnexpectedToken:
         return "unexpected token";
       case Kind::ExpectedLet:
@@ -75,11 +78,22 @@ class Parser {
     if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
     if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) return *r;
     if (auto r = ExpectToken(Token::Kind::CloseParen); IsError(r)) return *r;
-    if (auto r = ExpectToken(Token::Kind::OpenBrace); IsError(r)) return *r;
-    if (auto r = ExpectToken(Token::Kind::CloseBrace); IsError(r)) return *r;
+
+    if (auto r = ExpectToken(Token::Kind::Minus); IsError(r)) return *r;
+    if (auto r = ExpectToken(Token::Kind::Greater); IsError(r)) return *r;
+
+    const auto maybe_result_type = ParseName();
+    if (IsError(maybe_result_type)) {
+      return std::get<ParserError>(maybe_result_type);
+    }
+
+    const auto maybe_body = ParseCompoundStmt();
+    if (IsError(maybe_body)) return std::get<ParserError>(maybe_body);
 
     return arena_.add(FuncDefStmt{
         .name = std::get<std::string_view>(maybe_name),
+        .result_type = std::get<std::string_view>(maybe_result_type),
+        .body = std::get<CompoundStmt>(maybe_body),
     });
   }
 
@@ -90,6 +104,38 @@ class Parser {
       return MakeError(ParserError::Kind::ExpectedIdent, token);
     }
     return buffer_.substr(token.start_pos, token.end_pos - token.start_pos);
+  }
+
+  std::variant<std::string_view, ParserError> ParseNumber() {
+    Token token = Read();
+    if (token.kind != Token::Kind::Number) {
+      return MakeError(ParserError::Kind::ExpectedNumber, token);
+    }
+    return buffer_.substr(token.start_pos, token.end_pos - token.start_pos);
+  }
+
+  std::variant<CompoundStmt, ParserError> ParseCompoundStmt() {
+    CompoundStmt stmt;
+
+    if (auto r = ExpectToken(Token::Kind::OpenBrace); IsError(r)) return *r;
+
+    if (Peek().kind != Token::Kind::CloseBrace &&
+        Peek().kind != Token::Kind::End) {
+      if (auto r = ExpectIdent("return"); IsError(r)) return *r;
+
+      const auto maybe_value = ParseNumber();
+      if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
+
+      stmt.statements.push_back(arena_.add(ReturnStmt{
+          .value = arena_.add(IntLitExpr{
+              .value = std::get<std::string_view>(maybe_value),
+          }),
+      }));
+    }
+
+    if (auto r = ExpectToken(Token::Kind::CloseBrace); IsError(r)) return *r;
+
+    return stmt;
   }
 
   std::optional<ParserError> ExpectToken(Token::Kind kind) {
