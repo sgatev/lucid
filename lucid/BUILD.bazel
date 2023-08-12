@@ -221,3 +221,14 @@ cc_library(
     srcs = ["writer.cc"],
     hdrs = ["writer.h"],
 )
+
+cc_test(
+    name = "writer_test",
+    srcs = ["writer_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":writer",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
