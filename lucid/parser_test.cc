@@ -160,7 +160,7 @@ TEST_F(ParserTest, ReturnIntLit) {
                           })));
 }
 
-TEST_F(ParserTest, ReturnBinaryOpExpr) {
+TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
   std::string_view src = R"(
     let main = () -> Int {
       return 3 + 2
@@ -182,6 +182,129 @@ TEST_F(ParserTest, ReturnBinaryOpExpr) {
                                                                       {
                                                                           .op =
                                                                               BinaryOp::Add,
+                                                                          .lhs =
+                                                                              MatchesIntLitExpr(
+                                                                                  {
+                                                                                      .value =
+                                                                                          "3",
+                                                                                  }),
+                                                                          .rhs =
+                                                                              MatchesIntLitExpr(
+                                                                                  {
+                                                                                      .value =
+                                                                                          "2",
+                                                                                  }),
+                                                                      }),
+                                                          }),
+                                                  },
+                                          },
+                                  })));
+}
+
+TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
+  std::string_view src = R"(
+    let main = () -> Int {
+      return 3 - 2
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsStmt(
+                              MatchesFuncDefStmt(
+                                  {
+                                      .name = "main",
+                                      .result_type = "Int",
+                                      .body =
+                                          {
+                                              .statements =
+                                                  {
+                                                      MatchesReturnStmt(
+                                                          {
+                                                              .value =
+                                                                  MatchesBinaryOpExpr(
+                                                                      {
+                                                                          .op =
+                                                                              BinaryOp::Sub,
+                                                                          .lhs =
+                                                                              MatchesIntLitExpr(
+                                                                                  {
+                                                                                      .value =
+                                                                                          "3",
+                                                                                  }),
+                                                                          .rhs =
+                                                                              MatchesIntLitExpr(
+                                                                                  {
+                                                                                      .value =
+                                                                                          "2",
+                                                                                  }),
+                                                                      }),
+                                                          }),
+                                                  },
+                                          },
+                                  })));
+}
+
+TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
+  std::string_view src = R"(
+    let main = () -> Int {
+      return 3 * 2
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsStmt(
+                              MatchesFuncDefStmt(
+                                  {
+                                      .name = "main",
+                                      .result_type = "Int",
+                                      .body =
+                                          {
+                                              .statements =
+                                                  {
+                                                      MatchesReturnStmt(
+                                                          {
+                                                              .value =
+                                                                  MatchesBinaryOpExpr(
+                                                                      {
+                                                                          .op =
+                                                                              BinaryOp::Mul,
+                                                                          .lhs =
+                                                                              MatchesIntLitExpr(
+                                                                                  {
+                                                                                      .value =
+                                                                                          "3",
+                                                                                  }),
+                                                                          .rhs =
+                                                                              MatchesIntLitExpr(
+                                                                                  {
+                                                                                      .value =
+                                                                                          "2",
+                                                                                  }),
+                                                                      }),
+                                                          }),
+                                                  },
+                                          },
+                                  })));
+}
+
+TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
+  std::string_view src = R"(
+    let main = () -> Int {
+      return 3 / 2
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsStmt(
+                              MatchesFuncDefStmt(
+                                  {
+                                      .name = "main",
+                                      .result_type = "Int",
+                                      .body =
+                                          {
+                                              .statements =
+                                                  {
+                                                      MatchesReturnStmt(
+                                                          {
+                                                              .value =
+                                                                  MatchesBinaryOpExpr(
+                                                                      {
+                                                                          .op =
+                                                                              BinaryOp::Div,
                                                                           .lhs =
                                                                               MatchesIntLitExpr(
                                                                                   {

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <cstddef>
 #include <string_view>
 
 #include "lucid/token.h"
@@ -63,6 +64,8 @@ class Lexer {
     singletons[','] = Token::Kind::Comma;
     singletons['+'] = Token::Kind::Plus;
     singletons['-'] = Token::Kind::Minus;
+    singletons['*'] = Token::Kind::Star;
+    singletons['/'] = Token::Kind::Slash;
     singletons['>'] = Token::Kind::Greater;
     singletons['<'] = Token::Kind::Less;
     singletons['.'] = Token::Kind::Dot;
@@ -88,7 +91,7 @@ class Lexer {
   }
 
   std::string_view buffer_;
-  size_t pos_;
+  std::size_t pos_;
 };
 
 }  // namespace lucid

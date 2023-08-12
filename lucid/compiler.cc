@@ -37,14 +37,8 @@ std::string string_format(const std::string& fmt, Args... args) {
   return result;
 }
 
-}  // namespace
-
-std::vector<FuncDefStmt> GenerateEmptyMain(Arena<Stmt>& arena) {
-  std::string_view src = R"(
-  let main = () -> Int {
-    return 0
-  }
-  )";
+std::vector<FuncDefStmt> GenerateFromSource(Arena<Stmt>& arena,
+                                            std::string_view src) {
   Lexer lexer(src);
   Parser parser(arena, src, lexer);
 
@@ -57,6 +51,8 @@ std::vector<FuncDefStmt> GenerateEmptyMain(Arena<Stmt>& arena) {
 
   return {*func_def_stmt};
 }
+
+}  // namespace
 
 std::vector<FuncDefStmt> GenerateFuncCall(Arena<Stmt>& arena) {
   auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
@@ -105,113 +101,42 @@ std::vector<FuncDefStmt> GenerateFuncCall(Arena<Stmt>& arena) {
   return {id_func, main_func};
 }
 
-std::vector<FuncDefStmt> GenerateAddInts(Arena<Stmt>& arena) {
-  std::string_view src = R"(
-  let main = () -> Int {
-    return 2 + 3
-  }
-  )";
-  Lexer lexer(src);
-  Parser parser(arena, src, lexer);
-
-  auto maybe_func_def = parser.ParseFuncDef();
-  auto* stmt_ref = std::get_if<StmtRef>(&maybe_func_def);
-  if (stmt_ref == nullptr) exit(1);
-
-  auto* func_def_stmt = std::get_if<FuncDefStmt>(&arena.get(*stmt_ref));
-  if (func_def_stmt == nullptr) exit(1);
-
-  return {*func_def_stmt};
-}
-
-std::vector<FuncDefStmt> GenerateSubInts(Arena<Stmt>& arena) {
-  auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
-
-  auto main_func = FuncDefStmt{
-      .name = "main",
-      .result_type = "int",
-      .body =
-          {
-              .statements =
-                  {
-                      allocate(ReturnStmt{
-                          .value = allocate(BinaryOpExpr{
-                              .op = BinaryOp::Sub,
-                              .lhs = allocate(IntLitExpr{.value = "7"}),
-                              .rhs = allocate(IntLitExpr{.value = "5"}),
-                          }),
-                      }),
-                  },
-          },
-  };
-
-  return {main_func};
-}
-
-std::vector<FuncDefStmt> GenerateMulInts(Arena<Stmt>& arena) {
-  auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
-
-  auto main_func = FuncDefStmt{
-      .name = "main",
-      .result_type = "int",
-      .body =
-          {
-              .statements =
-                  {
-                      allocate(ReturnStmt{
-                          .value = allocate(BinaryOpExpr{
-                              .op = BinaryOp::Mul,
-                              .lhs = allocate(IntLitExpr{.value = "3"}),
-                              .rhs = allocate(IntLitExpr{.value = "7"}),
-                          }),
-                      }),
-                  },
-          },
-  };
-
-  return {main_func};
-}
-
-std::vector<FuncDefStmt> GenerateDivInts(Arena<Stmt>& arena) {
-  auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
-
-  auto main_func = FuncDefStmt{
-      .name = "main",
-      .result_type = "int",
-      .body =
-          {
-              .statements =
-                  {
-                      allocate(ReturnStmt{
-                          .value = allocate(BinaryOpExpr{
-                              .op = BinaryOp::Div,
-                              .lhs = allocate(IntLitExpr{.value = "8"}),
-                              .rhs = allocate(IntLitExpr{.value = "2"}),
-                          }),
-                      }),
-                  },
-          },
-  };
-
-  return {main_func};
-}
-
 int Main(std::string_view input) {
   // Load Lucis sources.
   Arena<Stmt> arena;
   std::vector<FuncDefStmt> funcs;
   if (input == "empty_main") {
-    funcs = GenerateEmptyMain(arena);
+    funcs = GenerateFromSource(arena, R"(
+      let main = () -> Int {
+        return 0
+      }
+    )");
   } else if (input == "func_call") {
     funcs = GenerateFuncCall(arena);
   } else if (input == "add_ints") {
-    funcs = GenerateAddInts(arena);
+    funcs = GenerateFromSource(arena, R"(
+      let main = () -> Int {
+        return 2 + 3
+      }
+    )");
   } else if (input == "sub_ints") {
-    funcs = GenerateSubInts(arena);
+    funcs = GenerateFromSource(arena, R"(
+      let main = () -> Int {
+        return 7 - 5
+      }
+    )");
   } else if (input == "mul_ints") {
-    funcs = GenerateMulInts(arena);
+    funcs = GenerateFromSource(arena, R"(
+      let main = () -> Int {
+        return 3 * 7
+      }
+    )");
   } else if (input == "div_ints") {
-    funcs = GenerateDivInts(arena);
+    funcs = GenerateFromSource(arena, R"(
+      let main = () -> Int {
+        return 8 / 2
+      }
+    )");
   }
 
   // Generate 64-bit ARM assembly.

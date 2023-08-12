@@ -154,6 +154,39 @@ class Parser {
           .lhs = number_expr,
           .rhs = std::get<ExprRef>(maybe_rhs),
       });
+    } else if (Peek().kind == Token::Kind::Minus) {
+      if (auto r = ExpectToken(Token::Kind::Minus); IsError(r)) return *r;
+
+      const auto maybe_rhs = ParseExpr();
+      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
+
+      return arena_.add(BinaryOpExpr{
+          .op = BinaryOp::Sub,
+          .lhs = number_expr,
+          .rhs = std::get<ExprRef>(maybe_rhs),
+      });
+    } else if (Peek().kind == Token::Kind::Star) {
+      if (auto r = ExpectToken(Token::Kind::Star); IsError(r)) return *r;
+
+      const auto maybe_rhs = ParseExpr();
+      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
+
+      return arena_.add(BinaryOpExpr{
+          .op = BinaryOp::Mul,
+          .lhs = number_expr,
+          .rhs = std::get<ExprRef>(maybe_rhs),
+      });
+    } else if (Peek().kind == Token::Kind::Slash) {
+      if (auto r = ExpectToken(Token::Kind::Slash); IsError(r)) return *r;
+
+      const auto maybe_rhs = ParseExpr();
+      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
+
+      return arena_.add(BinaryOpExpr{
+          .op = BinaryOp::Div,
+          .lhs = number_expr,
+          .rhs = std::get<ExprRef>(maybe_rhs),
+      });
     }
 
     return number_expr;
