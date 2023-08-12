@@ -66,7 +66,13 @@ std::vector<FuncDefStmt> GenerateFromSource(std::string_view src,
 
 int Main(std::string_view binary_name, std::string_view src_path) {
   // Load Lucid sources.
-  const std::string src = ReadFile(src_path);
+  const auto maybe_src = ReadFile(src_path);
+  if (std::holds_alternative<FileError>(maybe_src)) {
+    std::cerr << "file error: could not read file " << src_path << std::endl;
+    exit(1);
+  }
+  const auto& src = std::get<std::string>(maybe_src);
+
   Arena<Stmt> arena;
   std::vector<FuncDefStmt> funcs = GenerateFromSource(src, arena);
 

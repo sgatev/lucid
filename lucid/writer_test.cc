@@ -12,6 +12,8 @@
 namespace lucid {
 namespace {
 
+using ::testing::VariantWith;
+
 TEST(StringWriterTest, MultipleWrites) {
   std::string out;
 
@@ -43,7 +45,7 @@ TEST(FileWriterTest, MultipleWrites) {
   write("baz");
   ASSERT_EQ(std::fclose(file), 0);
 
-  EXPECT_EQ(ReadFile(path), "foobarbaz");
+  EXPECT_THAT(ReadFile(path), VariantWith<std::string>("foobarbaz"));
 }
 
 TEST(FileWriterTest, PartialWrite) {
@@ -55,7 +57,7 @@ TEST(FileWriterTest, PartialWrite) {
   write(s.substr(3, 3));
   ASSERT_EQ(std::fclose(file), 0);
 
-  EXPECT_EQ(ReadFile(path), "bar");
+  EXPECT_THAT(ReadFile(path), VariantWith<std::string>("bar"));
 }
 
 }  // namespace

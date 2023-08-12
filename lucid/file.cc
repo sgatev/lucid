@@ -4,13 +4,15 @@
 #include <iterator>
 #include <string>
 #include <string_view>
+#include <variant>
 
 namespace lucid {
 
-std::string ReadFile(std::string_view path) {
+std::variant<std::string, FileError> ReadFile(std::string_view path) {
   std::ifstream file(path);
-  std::string content;
+  if (!file.good()) return FileError{};
 
+  std::string content;
   file.seekg(0, std::ios::end);
   content.reserve(file.tellg());
 

@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
+#include <variant>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -43,14 +44,16 @@ class CompilerTest : public testing::Test {
   }
 
   CommandResult Compile(std::string binary_name, std::string_view file_name) {
-    const std::string compiler_path = runtime_path_ / "lucid" / "compiler";
-    const std::string path = runtime_path_ / file_name;
-    return ExecCommand(compiler_path + " " + binary_name + " " + path);
+    return ExecCommand(FullPath("lucid/compiler") + " " + binary_name + " " +
+                       FullPath(file_name));
   }
 
   CommandResult Run(std::string_view binary_name) {
-    const std::string binary_path = runtime_path_ / binary_name;
-    return ExecCommand(binary_path);
+    return ExecCommand(FullPath(binary_name));
+  }
+
+  std::string FullPath(std::string_view file_name) {
+    return runtime_path_ / file_name;
   }
 
  private:
@@ -61,7 +64,7 @@ class CompilerTest : public testing::Test {
     const int return_code = WEXITSTATUS(result);
     return {
         .return_code = return_code,
-        .err = ReadFile(err_path),
+        .err = std::get<std::string>(ReadFile(err_path)),
     };
   }
 
@@ -130,6 +133,13 @@ TEST_F(CompilerTest, DivInts) {
     )"));
   ASSERT_THAT(Compile("main", "main.lucid"), ReturnsCode(0));
   EXPECT_THAT(Run("main"), ReturnsCode(4));
+}
+
+TEST_F(CompilerTest, MissingFile) {
+  ASSERT_THAT(
+      Compile("unknown", "unknown.lucid"),
+      AllOf(ReturnsCode(1), PrintsError("file error: could not read file " +
+                                        FullPath("unknown.lucid") + "\n")));
 }
 
 TEST_F(CompilerTest, ParseError) {
