@@ -112,7 +112,9 @@ cc_binary(
         ":arm64_gen",
         ":ast",
         ":cfg",
+        ":lexer",
         ":opt",
+        ":parser",
         ":writer",
     ],
 )

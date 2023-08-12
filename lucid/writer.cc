@@ -11,7 +11,7 @@ Writer StringWriter(std::string& out) {
 }
 
 Writer FileWriter(std::FILE* out) {
-  return [out](std::string_view s) { std::fputs(s.data(), out); };
+  return [out](std::string_view s) { std::fwrite(s.data(), s.size(), 1, out); };
 }
 
 }  // namespace lucid

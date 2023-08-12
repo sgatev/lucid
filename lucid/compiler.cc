@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 #include "lucid/am_gen.h"
@@ -14,7 +15,9 @@
 #include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/lexer.h"
 #include "lucid/opt.h"
+#include "lucid/parser.h"
 #include "lucid/writer.h"
 
 namespace lucid {
@@ -37,23 +40,22 @@ std::string string_format(const std::string& fmt, Args... args) {
 }  // namespace
 
 std::vector<FuncDefStmt> GenerateEmptyMain(Arena<Stmt>& arena) {
-  auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
+  std::string_view src = R"(
+  let main = () -> Int {
+    return 0
+  }
+  )";
+  Lexer lexer(src);
+  Parser parser(arena, src, lexer);
 
-  auto main_func = FuncDefStmt{
-      .name = "main",
-      .result_type = "int",
-      .body =
-          {
-              .statements =
-                  {
-                      allocate(ReturnStmt{
-                          .value = allocate(IntLitExpr{.value = "0"}),
-                      }),
-                  },
-          },
-  };
+  auto maybe_func_def = parser.ParseFuncDef();
+  auto* stmt_ref = std::get_if<StmtRef>(&maybe_func_def);
+  if (stmt_ref == nullptr) exit(1);
 
-  return {main_func};
+  auto* func_def_stmt = std::get_if<FuncDefStmt>(&arena.get(*stmt_ref));
+  if (func_def_stmt == nullptr) exit(1);
+
+  return {*func_def_stmt};
 }
 
 std::vector<FuncDefStmt> GenerateFuncCall(Arena<Stmt>& arena) {
@@ -104,27 +106,22 @@ std::vector<FuncDefStmt> GenerateFuncCall(Arena<Stmt>& arena) {
 }
 
 std::vector<FuncDefStmt> GenerateAddInts(Arena<Stmt>& arena) {
-  auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
+  std::string_view src = R"(
+  let main = () -> Int {
+    return 2 + 3
+  }
+  )";
+  Lexer lexer(src);
+  Parser parser(arena, src, lexer);
 
-  auto main_func = FuncDefStmt{
-      .name = "main",
-      .result_type = "int",
-      .body =
-          {
-              .statements =
-                  {
-                      allocate(ReturnStmt{
-                          .value = allocate(BinaryOpExpr{
-                              .op = BinaryOp::Add,
-                              .lhs = allocate(IntLitExpr{.value = "2"}),
-                              .rhs = allocate(IntLitExpr{.value = "3"}),
-                          }),
-                      }),
-                  },
-          },
-  };
+  auto maybe_func_def = parser.ParseFuncDef();
+  auto* stmt_ref = std::get_if<StmtRef>(&maybe_func_def);
+  if (stmt_ref == nullptr) exit(1);
 
-  return {main_func};
+  auto* func_def_stmt = std::get_if<FuncDefStmt>(&arena.get(*stmt_ref));
+  if (func_def_stmt == nullptr) exit(1);
+
+  return {*func_def_stmt};
 }
 
 std::vector<FuncDefStmt> GenerateSubInts(Arena<Stmt>& arena) {
