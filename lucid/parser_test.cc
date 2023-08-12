@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 #include <variant>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -26,12 +27,18 @@ MATCHER_P(HoldsError, match_err, "") {
 namespace lucid {
 namespace {
 
+struct FuncParamPattern {
+  std::string_view name;
+  std::string_view type;
+};
+
 struct CompoundStmtPattern {
   std::vector<std::function<bool(StmtRef)>> statements;
 };
 
 struct FuncDefStmtPattern {
   std::string_view name;
+  std::vector<FuncParamPattern> parameters;
   std::string_view result_type;
   CompoundStmtPattern body;
 };
@@ -63,8 +70,23 @@ class ParserTest : public testing::Test {
       const Stmt& stmt = arena_.get(ref);
       auto* func_def_stmt = std::get_if<FuncDefStmt>(&stmt);
       if (func_def_stmt == nullptr) return false;
+
       if (func_def_stmt->name != pattern.name) return false;
+
+      if (func_def_stmt->parameters.size() != pattern.parameters.size()) {
+        return false;
+      }
+      for (int i = 0; i < func_def_stmt->parameters.size(); ++i) {
+        if (pattern.parameters[i].name != func_def_stmt->parameters[i].name) {
+          return false;
+        }
+        if (pattern.parameters[i].type != func_def_stmt->parameters[i].type) {
+          return false;
+        }
+      }
+
       if (func_def_stmt->result_type != pattern.result_type) return false;
+
       if (func_def_stmt->body.statements.size() !=
           pattern.body.statements.size()) {
         return false;
@@ -73,6 +95,7 @@ class ParserTest : public testing::Test {
         if (!pattern.body.statements[i](func_def_stmt->body.statements[i]))
           return false;
       }
+
       return true;
     };
   }
@@ -324,6 +347,38 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
                                   })));
 }
 
+TEST_F(ParserTest, SingleParam) {
+  std::string_view src = R"(
+    let id = (x: Int) -> Void {
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsStmt(MatchesFuncDefStmt({
+                              .name = "id",
+                              .parameters =
+                                  {
+                                      {.name = "x", .type = "Int"},
+                                  },
+                              .result_type = "Void",
+                          })));
+}
+
+TEST_F(ParserTest, MultipleParams) {
+  std::string_view src = R"(
+    let foo = (a: Int, b: Double, c: Bool) -> Void {
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsStmt(MatchesFuncDefStmt({
+                              .name = "foo",
+                              .parameters =
+                                  {
+                                      {.name = "a", .type = "Int"},
+                                      {.name = "b", .type = "Double"},
+                                      {.name = "c", .type = "Bool"},
+                                  },
+                              .result_type = "Void",
+                          })));
+}
+
 TEST_F(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
     = () -> Void {
@@ -368,7 +423,8 @@ TEST_F(ParserTest, FuncDefMissingClosingParen) {
     }
   )";
   EXPECT_THAT(Parse(src),
-              HoldsError("parse error: unexpected token at line 2, column 18"));
+              HoldsError("parse error: expected closing parenthesis or "
+                         "parameter at line 2, column 18"));
 }
 
 TEST_F(ParserTest, FuncDefMissingResultArrowDash) {

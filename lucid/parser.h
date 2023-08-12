@@ -22,6 +22,7 @@ class ParserError {
     ExpectedNumber,
     UnexpectedToken,
     ExpectedLet,
+    ExpectedClosingParenOrParam,
   };
 
   explicit ParserError(Kind kind, std::size_t line, std::size_t col)
@@ -47,6 +48,8 @@ class ParserError {
         return "unexpected token";
       case Kind::ExpectedLet:
         return "expected `let` keyword";
+      case Kind::ExpectedClosingParenOrParam:
+        return "expected closing parenthesis or parameter";
     }
   }
 
@@ -66,6 +69,8 @@ class Parser {
         next_(lexer_.Next()) {}
 
   std::variant<StmtRef, ParserError> ParseFuncDef() {
+    FuncDefStmt stmt;
+
     if (Peek().kind == Token::Kind::End) {
       return MakeError(ParserError::Kind::End, Peek());
     }
@@ -74,9 +79,23 @@ class Parser {
 
     const auto maybe_name = ParseName();
     if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
+    stmt.name = std::get<std::string_view>(maybe_name);
 
     if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
+
     if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) return *r;
+    while (Peek().kind != Token::Kind::CloseParen) {
+      Token token = Peek();
+      if (token.kind != Token::Kind::Ident) {
+        return MakeError(ParserError::Kind::ExpectedClosingParenOrParam, token);
+      }
+
+      auto maybe_param = ParseParam();
+      if (IsError(maybe_param)) return std::get<ParserError>(maybe_param);
+      stmt.parameters.push_back(std::move(std::get<FuncParam>(maybe_param)));
+
+      if (Peek().kind == Token::Kind::Comma) Read();
+    }
     if (auto r = ExpectToken(Token::Kind::CloseParen); IsError(r)) return *r;
 
     if (auto r = ExpectToken(Token::Kind::Minus); IsError(r)) return *r;
@@ -86,15 +105,13 @@ class Parser {
     if (IsError(maybe_result_type)) {
       return std::get<ParserError>(maybe_result_type);
     }
+    stmt.result_type = std::get<std::string_view>(maybe_result_type);
 
     const auto maybe_body = ParseCompoundStmt();
     if (IsError(maybe_body)) return std::get<ParserError>(maybe_body);
+    stmt.body = std::get<CompoundStmt>(maybe_body);
 
-    return arena_.add(FuncDefStmt{
-        .name = std::get<std::string_view>(maybe_name),
-        .result_type = std::get<std::string_view>(maybe_result_type),
-        .body = std::get<CompoundStmt>(maybe_body),
-    });
+    return arena_.add(std::move(stmt));
   }
 
  private:
@@ -104,6 +121,21 @@ class Parser {
       return MakeError(ParserError::Kind::ExpectedIdent, token);
     }
     return buffer_.substr(token.start_pos, token.end_pos - token.start_pos);
+  }
+
+  std::variant<FuncParam, ParserError> ParseParam() {
+    const auto maybe_name = ParseName();
+    if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
+
+    if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) return *r;
+
+    const auto maybe_type = ParseName();
+    if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
+
+    return FuncParam{
+        .name = std::get<std::string_view>(maybe_name),
+        .type = std::get<std::string_view>(maybe_type),
+    };
   }
 
   std::variant<std::string_view, ParserError> ParseNumber() {
