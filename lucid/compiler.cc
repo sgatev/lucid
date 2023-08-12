@@ -39,67 +39,23 @@ std::string string_format(const std::string& fmt, Args... args) {
 
 std::vector<FuncDefStmt> GenerateFromSource(Arena<Stmt>& arena,
                                             std::string_view src) {
+  std::vector<FuncDefStmt> func_defs;
   Lexer lexer(src);
   Parser parser(arena, src, lexer);
+  while (true) {
+    auto maybe_func_def = parser.ParseFuncDef();
+    auto* stmt_ref = std::get_if<StmtRef>(&maybe_func_def);
+    if (stmt_ref == nullptr) break;
 
-  auto maybe_func_def = parser.ParseFuncDef();
-  auto* stmt_ref = std::get_if<StmtRef>(&maybe_func_def);
-  if (stmt_ref == nullptr) exit(1);
+    auto* func_def_stmt = std::get_if<FuncDefStmt>(&arena.get(*stmt_ref));
+    if (func_def_stmt == nullptr) break;
 
-  auto* func_def_stmt = std::get_if<FuncDefStmt>(&arena.get(*stmt_ref));
-  if (func_def_stmt == nullptr) exit(1);
-
-  return {*func_def_stmt};
+    func_defs.push_back(*func_def_stmt);
+  }
+  return func_defs;
 }
 
 }  // namespace
-
-std::vector<FuncDefStmt> GenerateFuncCall(Arena<Stmt>& arena) {
-  auto allocate = [&arena](auto&& stmt) { return arena.add(stmt); };
-
-  auto id_func = FuncDefStmt{
-      .name = "id",
-      .parameters =
-          {
-              FuncParam{
-                  .name = "x",
-                  .type = "int",
-              },
-          },
-      .body =
-          {
-              .statements =
-                  {
-                      allocate(ReturnStmt{
-                          .value = allocate(IdentExpr{.name = "x"}),
-                      }),
-                  },
-          },
-      .result_type = "int",
-  };
-
-  auto main_func = FuncDefStmt{
-      .name = "main",
-      .body =
-          {
-              .statements =
-                  {
-                      allocate(ReturnStmt{
-                          .value = allocate(FuncCallExpr{
-                              .func_name = "id",
-                              .arguments =
-                                  {
-                                      allocate(IntLitExpr{.value = "21"}),
-                                  },
-                          }),
-                      }),
-                  },
-          },
-      .result_type = "int",
-  };
-
-  return {id_func, main_func};
-}
 
 int Main(std::string_view input) {
   // Load Lucis sources.
@@ -112,7 +68,15 @@ int Main(std::string_view input) {
       }
     )");
   } else if (input == "func_call") {
-    funcs = GenerateFuncCall(arena);
+    funcs = GenerateFromSource(arena, R"(
+      let id = (x: Int) -> Int {
+        return x
+      }
+
+      let main = () -> Int {
+        return id(21)
+      }
+    )");
   } else if (input == "add_ints") {
     funcs = GenerateFromSource(arena, R"(
       let main = () -> Int {
