@@ -123,19 +123,40 @@ class Parser {
         Peek().kind != Token::Kind::End) {
       if (auto r = ExpectIdent("return"); IsError(r)) return *r;
 
-      const auto maybe_value = ParseNumber();
+      const auto maybe_value = ParseExpr();
       if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
 
       stmt.statements.push_back(arena_.add(ReturnStmt{
-          .value = arena_.add(IntLitExpr{
-              .value = std::get<std::string_view>(maybe_value),
-          }),
+          .value = std::get<ExprRef>(maybe_value),
       }));
     }
 
     if (auto r = ExpectToken(Token::Kind::CloseBrace); IsError(r)) return *r;
 
     return stmt;
+  }
+
+  std::variant<ExprRef, ParserError> ParseExpr() {
+    const auto maybe_number = ParseNumber();
+    if (IsError(maybe_number)) return std::get<ParserError>(maybe_number);
+    auto number_expr = arena_.add(IntLitExpr{
+        .value = std::get<std::string_view>(maybe_number),
+    });
+
+    if (Peek().kind == Token::Kind::Plus) {
+      if (auto r = ExpectToken(Token::Kind::Plus); IsError(r)) return *r;
+
+      const auto maybe_rhs = ParseExpr();
+      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
+
+      return arena_.add(BinaryOpExpr{
+          .op = BinaryOp::Add,
+          .lhs = number_expr,
+          .rhs = std::get<ExprRef>(maybe_rhs),
+      });
+    }
+
+    return number_expr;
   }
 
   std::optional<ParserError> ExpectToken(Token::Kind kind) {

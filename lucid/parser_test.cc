@@ -44,6 +44,12 @@ struct IntLitExprPattern {
   std::string_view value;
 };
 
+struct BinaryOpExprPattern {
+  BinaryOp op;
+  std::function<bool(ExprRef)> lhs;
+  std::function<bool(ExprRef)> rhs;
+};
+
 class ParserTest : public testing::Test {
  protected:
   std::variant<StmtRef, std::string> Parse(std::string_view code) {
@@ -83,6 +89,7 @@ class ParserTest : public testing::Test {
   std::function<bool(StmtRef)> MatchesIntLitExpr(IntLitExprPattern pattern) {
     return [this, pattern](StmtRef ref) {
       const Stmt& stmt = arena_.get(ref);
+
       auto* expr = std::get_if<Expr>(&stmt);
       if (expr == nullptr) return false;
 
@@ -90,6 +97,29 @@ class ParserTest : public testing::Test {
       if (int_lit_expr == nullptr) return false;
       return int_lit_expr->value == pattern.value;
     };
+  }
+
+  std::function<bool(StmtRef)> MatchesBinaryOpExpr(
+      BinaryOpExprPattern pattern) {
+    return [this, pattern](StmtRef ref) {
+      const Stmt& stmt = arena_.get(ref);
+
+      auto* expr = std::get_if<Expr>(&stmt);
+      if (expr == nullptr) return false;
+
+      auto* binary_op_expr = std::get_if<BinaryOpExpr>(expr);
+      if (binary_op_expr == nullptr) return false;
+
+      if (binary_op_expr->op != pattern.op) return false;
+      if (!pattern.lhs(binary_op_expr->lhs)) return false;
+      if (!pattern.rhs(binary_op_expr->rhs)) return false;
+
+      return true;
+    };
+  }
+
+  std::function<bool(StmtRef)> MatchesAnyExpr() {
+    return [](StmtRef) { return true; };
   }
 
  private:
@@ -128,6 +158,47 @@ TEST_F(ParserTest, ReturnIntLit) {
                                           },
                                   },
                           })));
+}
+
+TEST_F(ParserTest, ReturnBinaryOpExpr) {
+  std::string_view src = R"(
+    let main = () -> Int {
+      return 3 + 2
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsStmt(
+                              MatchesFuncDefStmt(
+                                  {
+                                      .name = "main",
+                                      .result_type = "Int",
+                                      .body =
+                                          {
+                                              .statements =
+                                                  {
+                                                      MatchesReturnStmt(
+                                                          {
+                                                              .value =
+                                                                  MatchesBinaryOpExpr(
+                                                                      {
+                                                                          .op =
+                                                                              BinaryOp::Add,
+                                                                          .lhs =
+                                                                              MatchesIntLitExpr(
+                                                                                  {
+                                                                                      .value =
+                                                                                          "3",
+                                                                                  }),
+                                                                          .rhs =
+                                                                              MatchesIntLitExpr(
+                                                                                  {
+                                                                                      .value =
+                                                                                          "2",
+                                                                                  }),
+                                                                      }),
+                                                          }),
+                                                  },
+                                          },
+                                  })));
 }
 
 TEST_F(ParserTest, FuncDefMissingLet) {
