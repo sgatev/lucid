@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -27,7 +28,7 @@ namespace {
 //
 // From https://stackoverflow.com/a/26221725.
 template <typename... Args>
-std::string string_format(const std::string& fmt, Args... args) {
+std::string StringFormat(const std::string& fmt, Args... args) {
   int size = std::snprintf(nullptr, 0, fmt.c_str(), args...) + 1;
   if (size < 0) throw std::runtime_error("Error during formatting.");
 
@@ -37,8 +38,22 @@ std::string string_format(const std::string& fmt, Args... args) {
   return result;
 }
 
-std::vector<FuncDefStmt> GenerateFromSource(Arena<Stmt>& arena,
-                                            std::string_view src) {
+std::string ReadFile(std::string_view path) {
+  std::ifstream file(path);
+  std::string content;
+
+  file.seekg(0, std::ios::end);
+  content.reserve(file.tellg());
+
+  file.seekg(0, std::ios::beg);
+  content.assign((std::istreambuf_iterator<char>(file)),
+                 std::istreambuf_iterator<char>());
+
+  return content;
+}
+
+std::vector<FuncDefStmt> GenerateFromSource(std::string_view src,
+                                            Arena<Stmt>& arena) {
   std::vector<FuncDefStmt> func_defs;
   Lexer lexer(src);
   Parser parser(arena, src, lexer);
@@ -57,51 +72,11 @@ std::vector<FuncDefStmt> GenerateFromSource(Arena<Stmt>& arena,
 
 }  // namespace
 
-int Main(std::string_view input) {
+int Main(std::string_view binary_name, std::string_view src_path) {
   // Load Lucis sources.
+  const std::string src = ReadFile(src_path);
   Arena<Stmt> arena;
-  std::vector<FuncDefStmt> funcs;
-  if (input == "empty_main") {
-    funcs = GenerateFromSource(arena, R"(
-      let main = () -> Int {
-        return 0
-      }
-    )");
-  } else if (input == "func_call") {
-    funcs = GenerateFromSource(arena, R"(
-      let id = (x: Int) -> Int {
-        return x
-      }
-
-      let main = () -> Int {
-        return id(21)
-      }
-    )");
-  } else if (input == "add_ints") {
-    funcs = GenerateFromSource(arena, R"(
-      let main = () -> Int {
-        return 2 + 3
-      }
-    )");
-  } else if (input == "sub_ints") {
-    funcs = GenerateFromSource(arena, R"(
-      let main = () -> Int {
-        return 7 - 5
-      }
-    )");
-  } else if (input == "mul_ints") {
-    funcs = GenerateFromSource(arena, R"(
-      let main = () -> Int {
-        return 3 * 7
-      }
-    )");
-  } else if (input == "div_ints") {
-    funcs = GenerateFromSource(arena, R"(
-      let main = () -> Int {
-        return 8 / 2
-      }
-    )");
-  }
+  std::vector<FuncDefStmt> funcs = GenerateFromSource(src, arena);
 
   // Generate 64-bit ARM assembly.
   std::FILE* out = std::tmpfile();
@@ -118,14 +93,14 @@ int Main(std::string_view input) {
   // Translate assembly into object code.
   dup2(fileno(out), 0);
   const std::string as_cmd =
-      string_format("as -arch arm64 -o %s.o -- ", input.data());
+      StringFormat("as -arch arm64 -o %s.o -- ", binary_name.data());
   std::system(as_cmd.data());
 
   // Link object code and create a binary.
-  const std::string ld_cmd = string_format(
+  const std::string ld_cmd = StringFormat(
       "ld -o %s %s.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` "
       "-e _start -arch arm64",
-      input.data(), input.data());
+      binary_name.data(), binary_name.data());
   std::system(ld_cmd.data());
 
   return 0;
@@ -133,4 +108,4 @@ int Main(std::string_view input) {
 
 }  // namespace lucid
 
-int main(int argc, char* argv[]) { return lucid::Main(argv[1]); }
+int main(int argc, char* argv[]) { return lucid::Main(argv[1], argv[2]); }
