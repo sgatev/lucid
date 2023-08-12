@@ -3,7 +3,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -15,6 +14,7 @@
 #include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/file.h"
 #include "lucid/lexer.h"
 #include "lucid/opt.h"
 #include "lucid/parser.h"
@@ -35,20 +35,6 @@ std::string StringFormat(const std::string& fmt, Args... args) {
   result.resize(size);
   std::snprintf(result.data(), size, fmt.c_str(), args...);
   return result;
-}
-
-std::string ReadFile(std::string_view path) {
-  std::ifstream file(path);
-  std::string content;
-
-  file.seekg(0, std::ios::end);
-  content.reserve(file.tellg());
-
-  file.seekg(0, std::ios::beg);
-  content.assign((std::istreambuf_iterator<char>(file)),
-                 std::istreambuf_iterator<char>());
-
-  return content;
 }
 
 std::vector<FuncDefStmt> GenerateFromSource(std::string_view src,

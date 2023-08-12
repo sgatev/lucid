@@ -112,6 +112,7 @@ cc_binary(
         ":arm64_gen",
         ":ast",
         ":cfg",
+        ":file",
         ":lexer",
         ":opt",
         ":parser",
@@ -128,6 +129,26 @@ cc_test(
     ],
     deps = [
         ":writer",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "file",
+    srcs = ["file.cc"],
+    hdrs = ["file.h"],
+)
+
+cc_test(
+    name = "file_test",
+    srcs = ["file_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    data = [
+        "//lucid/testdata:foobarbaz",
+    ],
+    deps = [
+        ":file",
         "@gtest",
         "@gtest//:gtest_main",
     ],
@@ -227,6 +248,7 @@ cc_test(
     srcs = ["writer_test.cc"],
     copts = ["-Iexternal/gtest/include"],
     deps = [
+        ":file",
         ":writer",
         "@gtest",
         "@gtest//:gtest_main",
