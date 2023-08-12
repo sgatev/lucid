@@ -169,6 +169,14 @@ class Parser {
   }
 
   std::variant<ExprRef, ParserError> ParseExpr() {
+    if (Peek().kind == Token::Kind::Ident) {
+      const auto maybe_ident = ParseName();
+      if (IsError(maybe_ident)) return std::get<ParserError>(maybe_ident);
+      return arena_.add(IdentExpr{
+          .name = std::get<std::string_view>(maybe_ident),
+      });
+    }
+
     const auto maybe_number = ParseNumber();
     if (IsError(maybe_number)) return std::get<ParserError>(maybe_number);
     auto number_expr = arena_.add(IntLitExpr{

@@ -57,6 +57,10 @@ struct BinaryOpExprPattern {
   std::function<bool(ExprRef)> rhs;
 };
 
+struct IdentExprPattern {
+  std::string_view name;
+};
+
 class ParserTest : public testing::Test {
  protected:
   std::variant<StmtRef, std::string> Parse(std::string_view code) {
@@ -138,6 +142,19 @@ class ParserTest : public testing::Test {
       if (!pattern.rhs(binary_op_expr->rhs)) return false;
 
       return true;
+    };
+  }
+
+  std::function<bool(StmtRef)> MatchesIdentExpr(IdentExprPattern pattern) {
+    return [this, pattern](StmtRef ref) {
+      const Stmt& stmt = arena_.get(ref);
+
+      auto* expr = std::get_if<Expr>(&stmt);
+      if (expr == nullptr) return false;
+
+      auto* ident_expr = std::get_if<IdentExpr>(expr);
+      if (ident_expr == nullptr) return false;
+      return ident_expr->name == pattern.name;
     };
   }
 
@@ -349,7 +366,8 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
 
 TEST_F(ParserTest, SingleParam) {
   std::string_view src = R"(
-    let id = (x: Int) -> Void {
+    let id = (x: Int) -> Int {
+      return x
     }
   )";
   EXPECT_THAT(Parse(src), HoldsStmt(MatchesFuncDefStmt({
@@ -358,7 +376,18 @@ TEST_F(ParserTest, SingleParam) {
                                   {
                                       {.name = "x", .type = "Int"},
                                   },
-                              .result_type = "Void",
+                              .result_type = "Int",
+                              .body =
+                                  {
+                                      .statements =
+                                          {
+                                              MatchesReturnStmt({
+                                                  .value = MatchesIdentExpr({
+                                                      .name = "x",
+                                                  }),
+                                              }),
+                                          },
+                                  },
                           })));
 }
 
