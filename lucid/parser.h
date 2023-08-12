@@ -23,6 +23,7 @@ class ParserError {
     UnexpectedToken,
     ExpectedLet,
     ExpectedClosingParenOrParam,
+    ExpectedClosingParenOrExpr,
   };
 
   explicit ParserError(Kind kind, std::size_t line, std::size_t col)
@@ -50,6 +51,8 @@ class ParserError {
         return "expected `let` keyword";
       case Kind::ExpectedClosingParenOrParam:
         return "expected closing parenthesis or parameter";
+      case Kind::ExpectedClosingParenOrExpr:
+        return "expected closing parenthesis or expression";
     }
   }
 
@@ -172,6 +175,25 @@ class Parser {
     if (Peek().kind == Token::Kind::Ident) {
       const auto maybe_ident = ParseName();
       if (IsError(maybe_ident)) return std::get<ParserError>(maybe_ident);
+
+      if (Peek().kind == Token::Kind::OpenParen) {
+        Read();
+
+        FuncCallExpr expr;
+        expr.func_name = std::get<std::string_view>(maybe_ident);
+
+        while (Peek().kind != Token::Kind::CloseParen) {
+          auto maybe_arg = ParseExpr();
+          if (IsError(maybe_arg)) return std::get<ParserError>(maybe_arg);
+          expr.arguments.push_back(std::get<ExprRef>(maybe_arg));
+
+          if (Peek().kind == Token::Kind::Comma) Read();
+        }
+        Read();
+
+        return arena_.add(std::move(expr));
+      }
+
       return arena_.add(IdentExpr{
           .name = std::get<std::string_view>(maybe_ident),
       });

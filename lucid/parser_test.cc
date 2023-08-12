@@ -61,6 +61,11 @@ struct IdentExprPattern {
   std::string_view name;
 };
 
+struct FuncCallExprPattern {
+  std::string_view func_name;
+  std::vector<std::function<bool(ExprRef)>> arguments;
+};
+
 class ParserTest : public testing::Test {
  protected:
   std::variant<StmtRef, std::string> Parse(std::string_view code) {
@@ -155,6 +160,29 @@ class ParserTest : public testing::Test {
       auto* ident_expr = std::get_if<IdentExpr>(expr);
       if (ident_expr == nullptr) return false;
       return ident_expr->name == pattern.name;
+    };
+  }
+
+  std::function<bool(ExprRef)> MatchesFuncCallExpr(
+      FuncCallExprPattern pattern) {
+    return [this, pattern](ExprRef ref) {
+      const Stmt& stmt = arena_.get(ref);
+
+      auto* expr = std::get_if<Expr>(&stmt);
+      if (expr == nullptr) return false;
+
+      auto* func_call_expr = std::get_if<FuncCallExpr>(expr);
+      if (func_call_expr == nullptr) return false;
+
+      if (func_call_expr->func_name != pattern.func_name) return false;
+
+      if (func_call_expr->arguments.size() != pattern.arguments.size()) {
+        return false;
+      }
+      for (int i = 0; i < func_call_expr->arguments.size(); ++i) {
+        if (!pattern.arguments[i](func_call_expr->arguments[i])) return false;
+      }
+      return true;
     };
   }
 
@@ -406,6 +434,35 @@ TEST_F(ParserTest, MultipleParams) {
                                   },
                               .result_type = "Void",
                           })));
+}
+
+TEST_F(ParserTest, FuncCallExpr) {
+  std::string_view src = R"(
+    let main = () -> Int {
+      return id(21)
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsStmt(MatchesFuncDefStmt({
+          .name = "main",
+          .result_type = "Int",
+          .body =
+              {
+                  .statements =
+                      {
+                          MatchesReturnStmt({
+                              .value = MatchesFuncCallExpr({
+                                  .func_name = "id",
+                                  .arguments =
+                                      {
+                                          MatchesIntLitExpr({.value = "21"}),
+                                      },
+                              }),
+                          }),
+                      },
+              },
+      })));
 }
 
 TEST_F(ParserTest, FuncDefMissingLet) {
