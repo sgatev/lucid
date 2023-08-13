@@ -62,6 +62,18 @@ std::vector<FuncDefStmt> GenerateFromSource(std::string_view src,
   return func_defs;
 }
 
+void Compile(std::string_view src, Writer out) {
+  Arena<Stmt> arena;
+  std::vector<FuncDefStmt> funcs = GenerateFromSource(src, arena);
+  GenerateArmStartSource(out);
+  for (const auto& func : funcs) {
+    auto graph = BuildControlFlowGraph(arena, func);
+    auto instructions = GenerateAbstractMachineInstructions(arena, graph);
+    OptimizeAbstractMachineInstructions(instructions);
+    GenerateArmAssemblySource(func.name, instructions, out);
+  }
+}
+
 }  // namespace
 
 int Main(std::string_view binary_name, std::string_view src_path) {
@@ -73,19 +85,9 @@ int Main(std::string_view binary_name, std::string_view src_path) {
   }
   const auto& src = std::get<std::string>(maybe_src);
 
-  Arena<Stmt> arena;
-  std::vector<FuncDefStmt> funcs = GenerateFromSource(src, arena);
-
-  // Generate 64-bit ARM assembly.
+  // Compile sources to assembly.
   std::FILE* assembly_file = std::tmpfile();
-  auto assembly_writer = FileWriter(assembly_file);
-  GenerateArmStartSource(assembly_writer);
-  for (const auto& func : funcs) {
-    auto graph = BuildControlFlowGraph(arena, func);
-    auto instructions = GenerateAbstractMachineInstructions(arena, graph);
-    OptimizeAbstractMachineInstructions(instructions);
-    GenerateArmAssemblySource(func.name, instructions, assembly_writer);
-  }
+  Compile(src, FileWriter(assembly_file));
   std::rewind(assembly_file);
 
   // Translate assembly into object code.
