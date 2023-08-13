@@ -14,8 +14,8 @@
 #include "lucid/ast.h"
 #include "lucid/lexer.h"
 
-MATCHER_P(HoldsStmt, match_stmt, "") {
-  auto* stmt = std::get_if<lucid::StmtRef>(&arg);
+MATCHER_P(HoldsFuncDef, match_stmt, "") {
+  auto* stmt = std::get_if<lucid::FuncDefStmt>(&arg);
   if (stmt == nullptr) return false;
   return match_stmt(*stmt);
 }
@@ -107,14 +107,15 @@ struct FuncCallExprPattern {
 
 class ParserTest : public testing::Test {
  protected:
-  std::variant<StmtRef, std::string> Parse(std::string_view src) {
+  std::variant<FuncDefStmt, std::string> Parse(std::string_view src) {
     auto maybe_func_def_stmt = Parser(arena_, src, Lexer(src)).ParseFuncDef();
-    if (auto* ref = std::get_if<StmtRef>(&maybe_func_def_stmt)) return *ref;
+    if (auto* ref = std::get_if<FuncDefStmt>(&maybe_func_def_stmt)) return *ref;
     return std::get<ParserError>(maybe_func_def_stmt).ToString();
   }
 
-  StmtRefMatcher MatchesFuncDefStmt(FuncDefStmtPattern pattern) {
-    return MatchesStmt<FuncDefStmt>(std::move(pattern));
+  std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(
+      FuncDefStmtPattern pattern) {
+    return [pattern](FuncDefStmt stmt) { return pattern(stmt); };
   }
 
   StmtRefMatcher MatchesReturnStmt(ReturnStmtPattern pattern) {
@@ -163,7 +164,7 @@ TEST_F(ParserTest, EmptyFuncDefStmt) {
     }
   )";
   EXPECT_THAT(Parse(src),  //
-              HoldsStmt(MatchesFuncDefStmt({
+              HoldsFuncDef(MatchesFuncDefStmt({
                   .name = "main",
                   .result_type = "Void",
               })));
@@ -175,20 +176,20 @@ TEST_F(ParserTest, ReturnIntLitExpr) {
       return 0
     }
   )";
-  EXPECT_THAT(
-      Parse(src),  //
-      HoldsStmt(MatchesFuncDefStmt({.name = "main",
-                                    .result_type = "Int",
-                                    .body = {
-                                        .statements =
-                                            {
-                                                MatchesReturnStmt({
-                                                    .value = MatchesIntLitExpr({
-                                                        .value = "0",
-                                                    }),
-                                                }),
-                                            },
-                                    }})));
+  EXPECT_THAT(Parse(src),  //
+              HoldsFuncDef(MatchesFuncDefStmt(
+                  {.name = "main",
+                   .result_type = "Int",
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesIntLitExpr({
+                                       .value = "0",
+                                   }),
+                               }),
+                           },
+                   }})));
 }
 
 TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
@@ -198,7 +199,7 @@ TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
     }
   )";
   EXPECT_THAT(Parse(src),  //
-              HoldsStmt(MatchesFuncDefStmt(
+              HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "main",
                    .result_type = "Int",
                    .body = {
@@ -226,7 +227,7 @@ TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
     }
   )";
   EXPECT_THAT(Parse(src),  //
-              HoldsStmt(MatchesFuncDefStmt(
+              HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "main",
                    .result_type = "Int",
                    .body = {
@@ -254,7 +255,7 @@ TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
     }
   )";
   EXPECT_THAT(Parse(src),  //
-              HoldsStmt(MatchesFuncDefStmt(
+              HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "main",
                    .result_type = "Int",
                    .body = {
@@ -282,7 +283,7 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
     }
   )";
   EXPECT_THAT(Parse(src),  //
-              HoldsStmt(MatchesFuncDefStmt(
+              HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "main",
                    .result_type = "Int",
                    .body = {
@@ -309,24 +310,24 @@ TEST_F(ParserTest, SingleFuncParam) {
       return x
     }
   )";
-  EXPECT_THAT(
-      Parse(src),  //
-      HoldsStmt(MatchesFuncDefStmt({.name = "id",
-                                    .parameters =
-                                        {
-                                            {.name = "x", .type = "Int"},
-                                        },
-                                    .result_type = "Int",
-                                    .body = {
-                                        .statements =
-                                            {
-                                                MatchesReturnStmt({
-                                                    .value = MatchesIdentExpr({
-                                                        .name = "x",
-                                                    }),
-                                                }),
-                                            },
-                                    }})));
+  EXPECT_THAT(Parse(src),  //
+              HoldsFuncDef(MatchesFuncDefStmt(
+                  {.name = "id",
+                   .parameters =
+                       {
+                           {.name = "x", .type = "Int"},
+                       },
+                   .result_type = "Int",
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesIdentExpr({
+                                       .name = "x",
+                                   }),
+                               }),
+                           },
+                   }})));
 }
 
 TEST_F(ParserTest, MultipleFuncParams) {
@@ -335,7 +336,7 @@ TEST_F(ParserTest, MultipleFuncParams) {
     }
   )";
   EXPECT_THAT(Parse(src),  //
-              HoldsStmt(MatchesFuncDefStmt({
+              HoldsFuncDef(MatchesFuncDefStmt({
                   .name = "foo",
                   .parameters =
                       {
@@ -355,7 +356,7 @@ TEST_F(ParserTest, FuncCallExpr) {
   )";
   EXPECT_THAT(
       Parse(src),  //
-      HoldsStmt(MatchesFuncDefStmt(
+      HoldsFuncDef(MatchesFuncDefStmt(
           {.name = "main",
            .result_type = "Int",
            .body = {

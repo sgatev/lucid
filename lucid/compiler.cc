@@ -38,33 +38,26 @@ std::string StringFormat(const std::string& fmt, Args... args) {
   return result;
 }
 
-std::vector<FuncDefStmt> GenerateFromSource(std::string_view src,
-                                            Arena<Stmt>& arena) {
+std::vector<FuncDefStmt> ParseFuncDefs(std::string_view src,
+                                       Arena<Stmt>& arena) {
   std::vector<FuncDefStmt> func_defs;
   Lexer lexer(src);
   Parser parser(arena, src, lexer);
   while (true) {
     auto maybe_func_def = parser.ParseFuncDef();
-    auto* stmt_ref = std::get_if<StmtRef>(&maybe_func_def);
-    if (stmt_ref == nullptr) {
-      const auto& error = std::get<ParserError>(maybe_func_def);
-      if (error.GetKind() == ParserError::Kind::End) break;
-
-      std::cerr << error.ToString() << std::endl;
+    if (auto* err = std::get_if<ParserError>(&maybe_func_def)) {
+      if (err->GetKind() == ParserError::Kind::End) break;
+      std::cerr << err->ToString() << std::endl;
       exit(1);
     }
-
-    auto* func_def_stmt = std::get_if<FuncDefStmt>(&arena.get(*stmt_ref));
-    if (func_def_stmt == nullptr) break;
-
-    func_defs.push_back(*func_def_stmt);
+    func_defs.push_back(std::get<FuncDefStmt>(std::move(maybe_func_def)));
   }
   return func_defs;
 }
 
 void Compile(std::string_view src, Writer out) {
   Arena<Stmt> arena;
-  std::vector<FuncDefStmt> funcs = GenerateFromSource(src, arena);
+  std::vector<FuncDefStmt> funcs = ParseFuncDefs(src, arena);
   GenerateArmStartSource(out);
   for (const auto& func : funcs) {
     auto graph = BuildControlFlowGraph(arena, func);

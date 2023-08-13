@@ -73,7 +73,7 @@ class Parser {
         lexer_(std::move(lexer)),
         next_(lexer_.Next()) {}
 
-  std::variant<StmtRef, ParserError> ParseFuncDef() {
+  std::variant<FuncDefStmt, ParserError> ParseFuncDef() {
     if (Peek().kind == Token::Kind::End) {
       return MakeError(ParserError::Kind::End, Peek());
     }
@@ -123,7 +123,7 @@ class Parser {
     if (IsError(maybe_body)) return std::get<ParserError>(maybe_body);
     stmt.body = std::get<CompoundStmt>(std::move(maybe_body));
 
-    return arena_.add(std::move(stmt));
+    return stmt;
   }
 
  private:
