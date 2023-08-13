@@ -1,8 +1,10 @@
 #include "lucid/parser.h"
 
+#include <cstddef>
 #include <functional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -27,13 +29,30 @@ MATCHER_P(HoldsError, match_err, "") {
 namespace lucid {
 namespace {
 
+template <typename T, typename P>
+bool AllMatch(const std::vector<T>& real, const std::vector<P>& patterns) {
+  if (real.size() != patterns.size()) return false;
+  for (std::size_t i = 0; i < real.size(); ++i) {
+    if (!patterns[i](real[i])) return false;
+  }
+  return true;
+}
+
+using StmtRefMatcher = std::function<bool(StmtRef)>;
+
+using ExprRefMatcher = std::function<bool(ExprRef)>;
+
 struct FuncParamPattern {
   std::string_view name;
   std::string_view type;
+
+  bool operator()(const FuncParam& param) const {
+    return name == param.name && type == param.type;
+  }
 };
 
 struct CompoundStmtPattern {
-  std::vector<std::function<bool(StmtRef)>> statements;
+  std::vector<StmtRefMatcher> statements;
 };
 
 struct FuncDefStmtPattern {
@@ -41,191 +60,135 @@ struct FuncDefStmtPattern {
   std::vector<FuncParamPattern> parameters;
   std::string_view result_type;
   CompoundStmtPattern body;
+
+  bool operator()(const FuncDefStmt& stmt) const {
+    return name == stmt.name && AllMatch(stmt.parameters, parameters) &&
+           result_type == stmt.result_type &&
+           AllMatch(stmt.body.statements, body.statements);
+  }
 };
 
 struct ReturnStmtPattern {
-  std::function<bool(StmtRef)> value;
+  StmtRefMatcher value;
+
+  bool operator()(const ReturnStmt& stmt) const { return value(stmt.value); }
 };
 
 struct IntLitExprPattern {
   std::string_view value;
+
+  bool operator()(const IntLitExpr& expr) const { return value == expr.value; }
 };
 
 struct BinaryOpExprPattern {
   BinaryOp op;
-  std::function<bool(ExprRef)> lhs;
-  std::function<bool(ExprRef)> rhs;
+  ExprRefMatcher lhs;
+  ExprRefMatcher rhs;
+
+  bool operator()(const BinaryOpExpr& expr) const {
+    return op == expr.op && lhs(expr.lhs) && rhs(expr.rhs);
+  }
 };
 
 struct IdentExprPattern {
   std::string_view name;
+
+  bool operator()(const IdentExpr& expr) const { return name == expr.name; }
 };
 
 struct FuncCallExprPattern {
   std::string_view func_name;
-  std::vector<std::function<bool(ExprRef)>> arguments;
+  std::vector<ExprRefMatcher> arguments;
+
+  bool operator()(const FuncCallExpr& expr) const {
+    return func_name == expr.func_name && AllMatch(expr.arguments, arguments);
+  }
 };
 
 class ParserTest : public testing::Test {
  protected:
-  std::variant<StmtRef, std::string> Parse(std::string_view code) {
-    auto res = Parser(arena_, code, Lexer(code)).ParseFuncDef();
-    if (auto* ref = std::get_if<StmtRef>(&res)) return *ref;
-    return std::get<ParserError>(res).ToString();
+  std::variant<StmtRef, std::string> Parse(std::string_view src) {
+    auto maybe_func_def_stmt = Parser(arena_, src, Lexer(src)).ParseFuncDef();
+    if (auto* ref = std::get_if<StmtRef>(&maybe_func_def_stmt)) return *ref;
+    return std::get<ParserError>(maybe_func_def_stmt).ToString();
   }
 
-  std::function<bool(StmtRef)> MatchesFuncDefStmt(FuncDefStmtPattern pattern) {
-    return [this, pattern](StmtRef ref) {
-      const Stmt& stmt = arena_.get(ref);
-      auto* func_def_stmt = std::get_if<FuncDefStmt>(&stmt);
-      if (func_def_stmt == nullptr) return false;
-
-      if (func_def_stmt->name != pattern.name) return false;
-
-      if (func_def_stmt->parameters.size() != pattern.parameters.size()) {
-        return false;
-      }
-      for (int i = 0; i < func_def_stmt->parameters.size(); ++i) {
-        if (pattern.parameters[i].name != func_def_stmt->parameters[i].name) {
-          return false;
-        }
-        if (pattern.parameters[i].type != func_def_stmt->parameters[i].type) {
-          return false;
-        }
-      }
-
-      if (func_def_stmt->result_type != pattern.result_type) return false;
-
-      if (func_def_stmt->body.statements.size() !=
-          pattern.body.statements.size()) {
-        return false;
-      }
-      for (int i = 0; i < func_def_stmt->body.statements.size(); ++i) {
-        if (!pattern.body.statements[i](func_def_stmt->body.statements[i]))
-          return false;
-      }
-
-      return true;
-    };
+  StmtRefMatcher MatchesFuncDefStmt(FuncDefStmtPattern pattern) {
+    return MatchesStmt<FuncDefStmt>(std::move(pattern));
   }
 
-  std::function<bool(StmtRef)> MatchesReturnStmt(ReturnStmtPattern pattern) {
-    return [this, pattern](StmtRef ref) {
-      const Stmt& stmt = arena_.get(ref);
-      auto* return_stmt = std::get_if<ReturnStmt>(&stmt);
-      if (return_stmt == nullptr) return false;
-      return pattern.value(return_stmt->value);
-    };
+  StmtRefMatcher MatchesReturnStmt(ReturnStmtPattern pattern) {
+    return MatchesStmt<ReturnStmt>(std::move(pattern));
   }
 
-  std::function<bool(StmtRef)> MatchesIntLitExpr(IntLitExprPattern pattern) {
-    return [this, pattern](StmtRef ref) {
-      const Stmt& stmt = arena_.get(ref);
-
-      auto* expr = std::get_if<Expr>(&stmt);
-      if (expr == nullptr) return false;
-
-      auto* int_lit_expr = std::get_if<IntLitExpr>(expr);
-      if (int_lit_expr == nullptr) return false;
-      return int_lit_expr->value == pattern.value;
-    };
+  ExprRefMatcher MatchesIntLitExpr(IntLitExprPattern pattern) {
+    return MatchesExpr<IntLitExpr>(std::move(pattern));
   }
 
-  std::function<bool(StmtRef)> MatchesBinaryOpExpr(
-      BinaryOpExprPattern pattern) {
-    return [this, pattern](StmtRef ref) {
-      const Stmt& stmt = arena_.get(ref);
-
-      auto* expr = std::get_if<Expr>(&stmt);
-      if (expr == nullptr) return false;
-
-      auto* binary_op_expr = std::get_if<BinaryOpExpr>(expr);
-      if (binary_op_expr == nullptr) return false;
-
-      if (binary_op_expr->op != pattern.op) return false;
-      if (!pattern.lhs(binary_op_expr->lhs)) return false;
-      if (!pattern.rhs(binary_op_expr->rhs)) return false;
-
-      return true;
-    };
+  ExprRefMatcher MatchesBinaryOpExpr(BinaryOpExprPattern pattern) {
+    return MatchesExpr<BinaryOpExpr>(std::move(pattern));
   }
 
-  std::function<bool(StmtRef)> MatchesIdentExpr(IdentExprPattern pattern) {
-    return [this, pattern](StmtRef ref) {
-      const Stmt& stmt = arena_.get(ref);
-
-      auto* expr = std::get_if<Expr>(&stmt);
-      if (expr == nullptr) return false;
-
-      auto* ident_expr = std::get_if<IdentExpr>(expr);
-      if (ident_expr == nullptr) return false;
-      return ident_expr->name == pattern.name;
-    };
+  ExprRefMatcher MatchesIdentExpr(IdentExprPattern pattern) {
+    return MatchesExpr<IdentExpr>(std::move(pattern));
   }
 
-  std::function<bool(ExprRef)> MatchesFuncCallExpr(
-      FuncCallExprPattern pattern) {
-    return [this, pattern](ExprRef ref) {
-      const Stmt& stmt = arena_.get(ref);
-
-      auto* expr = std::get_if<Expr>(&stmt);
-      if (expr == nullptr) return false;
-
-      auto* func_call_expr = std::get_if<FuncCallExpr>(expr);
-      if (func_call_expr == nullptr) return false;
-
-      if (func_call_expr->func_name != pattern.func_name) return false;
-
-      if (func_call_expr->arguments.size() != pattern.arguments.size()) {
-        return false;
-      }
-      for (int i = 0; i < func_call_expr->arguments.size(); ++i) {
-        if (!pattern.arguments[i](func_call_expr->arguments[i])) return false;
-      }
-      return true;
-    };
-  }
-
-  std::function<bool(StmtRef)> MatchesAnyExpr() {
-    return [](StmtRef) { return true; };
+  ExprRefMatcher MatchesFuncCallExpr(FuncCallExprPattern pattern) {
+    return MatchesExpr<FuncCallExpr>(std::move(pattern));
   }
 
  private:
+  template <typename S, typename P>
+  ExprRefMatcher MatchesStmt(P pattern) {
+    return [this, pattern](ExprRef ref) {
+      if (auto* stmt = std::get_if<S>(&arena_.get(ref))) return pattern(*stmt);
+      return false;
+    };
+  }
+
+  template <typename E, typename P>
+  ExprRefMatcher MatchesExpr(P pattern) {
+    return MatchesStmt<Expr>([pattern](const Expr& stmt) {
+      if (auto* expr = std::get_if<E>(&stmt)) return pattern(*expr);
+      return false;
+    });
+  }
+
   Arena<Stmt> arena_;
 };
 
-TEST_F(ParserTest, EmptyFuncDef) {
+TEST_F(ParserTest, EmptyFuncDefStmt) {
   std::string_view src = R"(
     let main = () -> Void {
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsStmt(MatchesFuncDefStmt({
-                              .name = "main",
-                              .result_type = "Void",
-                          })));
+  EXPECT_THAT(Parse(src),  //
+              HoldsStmt(MatchesFuncDefStmt({
+                  .name = "main",
+                  .result_type = "Void",
+              })));
 }
 
-TEST_F(ParserTest, ReturnIntLit) {
+TEST_F(ParserTest, ReturnIntLitExpr) {
   std::string_view src = R"(
     let main = () -> Int {
       return 0
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsStmt(MatchesFuncDefStmt({
-                              .name = "main",
-                              .result_type = "Int",
-                              .body =
-                                  {
-                                      .statements =
-                                          {
-                                              MatchesReturnStmt({
-                                                  .value = MatchesIntLitExpr({
-                                                      .value = "0",
-                                                  }),
-                                              }),
-                                          },
-                                  },
-                          })));
+  EXPECT_THAT(
+      Parse(src),  //
+      HoldsStmt(MatchesFuncDefStmt({.name = "main",
+                                    .result_type = "Int",
+                                    .body = {
+                                        .statements =
+                                            {
+                                                MatchesReturnStmt({
+                                                    .value = MatchesIntLitExpr({
+                                                        .value = "0",
+                                                    }),
+                                                }),
+                                            },
+                                    }})));
 }
 
 TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
@@ -234,39 +197,26 @@ TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
       return 3 + 2
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsStmt(
-                              MatchesFuncDefStmt(
-                                  {
-                                      .name = "main",
-                                      .result_type = "Int",
-                                      .body =
-                                          {
-                                              .statements =
-                                                  {
-                                                      MatchesReturnStmt(
-                                                          {
-                                                              .value =
-                                                                  MatchesBinaryOpExpr(
-                                                                      {
-                                                                          .op =
-                                                                              BinaryOp::Add,
-                                                                          .lhs =
-                                                                              MatchesIntLitExpr(
-                                                                                  {
-                                                                                      .value =
-                                                                                          "3",
-                                                                                  }),
-                                                                          .rhs =
-                                                                              MatchesIntLitExpr(
-                                                                                  {
-                                                                                      .value =
-                                                                                          "2",
-                                                                                  }),
-                                                                      }),
-                                                          }),
-                                                  },
-                                          },
-                                  })));
+  EXPECT_THAT(Parse(src),  //
+              HoldsStmt(MatchesFuncDefStmt(
+                  {.name = "main",
+                   .result_type = "Int",
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesBinaryOpExpr({
+                                       .op = BinaryOp::Add,
+                                       .lhs = MatchesIntLitExpr({
+                                           .value = "3",
+                                       }),
+                                       .rhs = MatchesIntLitExpr({
+                                           .value = "2",
+                                       }),
+                                   }),
+                               }),
+                           },
+                   }})));
 }
 
 TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
@@ -275,39 +225,26 @@ TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
       return 3 - 2
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsStmt(
-                              MatchesFuncDefStmt(
-                                  {
-                                      .name = "main",
-                                      .result_type = "Int",
-                                      .body =
-                                          {
-                                              .statements =
-                                                  {
-                                                      MatchesReturnStmt(
-                                                          {
-                                                              .value =
-                                                                  MatchesBinaryOpExpr(
-                                                                      {
-                                                                          .op =
-                                                                              BinaryOp::Sub,
-                                                                          .lhs =
-                                                                              MatchesIntLitExpr(
-                                                                                  {
-                                                                                      .value =
-                                                                                          "3",
-                                                                                  }),
-                                                                          .rhs =
-                                                                              MatchesIntLitExpr(
-                                                                                  {
-                                                                                      .value =
-                                                                                          "2",
-                                                                                  }),
-                                                                      }),
-                                                          }),
-                                                  },
-                                          },
-                                  })));
+  EXPECT_THAT(Parse(src),  //
+              HoldsStmt(MatchesFuncDefStmt(
+                  {.name = "main",
+                   .result_type = "Int",
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesBinaryOpExpr({
+                                       .op = BinaryOp::Sub,
+                                       .lhs = MatchesIntLitExpr({
+                                           .value = "3",
+                                       }),
+                                       .rhs = MatchesIntLitExpr({
+                                           .value = "2",
+                                       }),
+                                   }),
+                               }),
+                           },
+                   }})));
 }
 
 TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
@@ -316,39 +253,26 @@ TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
       return 3 * 2
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsStmt(
-                              MatchesFuncDefStmt(
-                                  {
-                                      .name = "main",
-                                      .result_type = "Int",
-                                      .body =
-                                          {
-                                              .statements =
-                                                  {
-                                                      MatchesReturnStmt(
-                                                          {
-                                                              .value =
-                                                                  MatchesBinaryOpExpr(
-                                                                      {
-                                                                          .op =
-                                                                              BinaryOp::Mul,
-                                                                          .lhs =
-                                                                              MatchesIntLitExpr(
-                                                                                  {
-                                                                                      .value =
-                                                                                          "3",
-                                                                                  }),
-                                                                          .rhs =
-                                                                              MatchesIntLitExpr(
-                                                                                  {
-                                                                                      .value =
-                                                                                          "2",
-                                                                                  }),
-                                                                      }),
-                                                          }),
-                                                  },
-                                          },
-                                  })));
+  EXPECT_THAT(Parse(src),  //
+              HoldsStmt(MatchesFuncDefStmt(
+                  {.name = "main",
+                   .result_type = "Int",
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesBinaryOpExpr({
+                                       .op = BinaryOp::Mul,
+                                       .lhs = MatchesIntLitExpr({
+                                           .value = "3",
+                                       }),
+                                       .rhs = MatchesIntLitExpr({
+                                           .value = "2",
+                                       }),
+                                   }),
+                               }),
+                           },
+                   }})));
 }
 
 TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
@@ -357,83 +281,70 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
       return 3 / 2
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsStmt(
-                              MatchesFuncDefStmt(
-                                  {
-                                      .name = "main",
-                                      .result_type = "Int",
-                                      .body =
-                                          {
-                                              .statements =
-                                                  {
-                                                      MatchesReturnStmt(
-                                                          {
-                                                              .value =
-                                                                  MatchesBinaryOpExpr(
-                                                                      {
-                                                                          .op =
-                                                                              BinaryOp::Div,
-                                                                          .lhs =
-                                                                              MatchesIntLitExpr(
-                                                                                  {
-                                                                                      .value =
-                                                                                          "3",
-                                                                                  }),
-                                                                          .rhs =
-                                                                              MatchesIntLitExpr(
-                                                                                  {
-                                                                                      .value =
-                                                                                          "2",
-                                                                                  }),
-                                                                      }),
-                                                          }),
-                                                  },
-                                          },
-                                  })));
+  EXPECT_THAT(Parse(src),  //
+              HoldsStmt(MatchesFuncDefStmt(
+                  {.name = "main",
+                   .result_type = "Int",
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesBinaryOpExpr({
+                                       .op = BinaryOp::Div,
+                                       .lhs = MatchesIntLitExpr({
+                                           .value = "3",
+                                       }),
+                                       .rhs = MatchesIntLitExpr({
+                                           .value = "2",
+                                       }),
+                                   }),
+                               }),
+                           },
+                   }})));
 }
 
-TEST_F(ParserTest, SingleParam) {
+TEST_F(ParserTest, SingleFuncParam) {
   std::string_view src = R"(
     let id = (x: Int) -> Int {
       return x
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsStmt(MatchesFuncDefStmt({
-                              .name = "id",
-                              .parameters =
-                                  {
-                                      {.name = "x", .type = "Int"},
-                                  },
-                              .result_type = "Int",
-                              .body =
-                                  {
-                                      .statements =
-                                          {
-                                              MatchesReturnStmt({
-                                                  .value = MatchesIdentExpr({
-                                                      .name = "x",
-                                                  }),
-                                              }),
-                                          },
-                                  },
-                          })));
+  EXPECT_THAT(
+      Parse(src),  //
+      HoldsStmt(MatchesFuncDefStmt({.name = "id",
+                                    .parameters =
+                                        {
+                                            {.name = "x", .type = "Int"},
+                                        },
+                                    .result_type = "Int",
+                                    .body = {
+                                        .statements =
+                                            {
+                                                MatchesReturnStmt({
+                                                    .value = MatchesIdentExpr({
+                                                        .name = "x",
+                                                    }),
+                                                }),
+                                            },
+                                    }})));
 }
 
-TEST_F(ParserTest, MultipleParams) {
+TEST_F(ParserTest, MultipleFuncParams) {
   std::string_view src = R"(
     let foo = (a: Int, b: Double, c: Bool) -> Void {
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsStmt(MatchesFuncDefStmt({
-                              .name = "foo",
-                              .parameters =
-                                  {
-                                      {.name = "a", .type = "Int"},
-                                      {.name = "b", .type = "Double"},
-                                      {.name = "c", .type = "Bool"},
-                                  },
-                              .result_type = "Void",
-                          })));
+  EXPECT_THAT(Parse(src),  //
+              HoldsStmt(MatchesFuncDefStmt({
+                  .name = "foo",
+                  .parameters =
+                      {
+                          {.name = "a", .type = "Int"},
+                          {.name = "b", .type = "Double"},
+                          {.name = "c", .type = "Bool"},
+                      },
+                  .result_type = "Void",
+              })));
 }
 
 TEST_F(ParserTest, FuncCallExpr) {
@@ -443,26 +354,24 @@ TEST_F(ParserTest, FuncCallExpr) {
     }
   )";
   EXPECT_THAT(
-      Parse(src),
-      HoldsStmt(MatchesFuncDefStmt({
-          .name = "main",
-          .result_type = "Int",
-          .body =
-              {
-                  .statements =
-                      {
-                          MatchesReturnStmt({
-                              .value = MatchesFuncCallExpr({
-                                  .func_name = "id",
-                                  .arguments =
-                                      {
-                                          MatchesIntLitExpr({.value = "21"}),
-                                      },
-                              }),
-                          }),
-                      },
-              },
-      })));
+      Parse(src),  //
+      HoldsStmt(MatchesFuncDefStmt(
+          {.name = "main",
+           .result_type = "Int",
+           .body = {
+               .statements =
+                   {
+                       MatchesReturnStmt({
+                           .value = MatchesFuncCallExpr({
+                               .func_name = "id",
+                               .arguments =
+                                   {
+                                       MatchesIntLitExpr({.value = "21"}),
+                                   },
+                           }),
+                       }),
+                   },
+           }})));
 }
 
 TEST_F(ParserTest, FuncDefMissingLet) {
@@ -472,7 +381,7 @@ TEST_F(ParserTest, FuncDefMissingLet) {
   )";
   EXPECT_THAT(
       Parse(src),
-      HoldsError("parse error: expected `let` keyword at line 2, column 5"));
+      HoldsError("parse error: expected 'let' keyword at line 2, column 5"));
 }
 
 TEST_F(ParserTest, FuncDefMissingName) {
@@ -501,6 +410,59 @@ TEST_F(ParserTest, FuncDefMissingOpeningParen) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsError("parse error: unexpected token at line 2, column 16"));
+}
+
+TEST_F(ParserTest, FuncDefMissingParamName) {
+  std::string_view src = R"(
+    let id = (: Int) -> Int {
+      return x
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("parse error: expected closing parenthesis or "
+                         "parameter at line 2, column 15"));
+}
+
+TEST_F(ParserTest, FuncDefMissingParamColon) {
+  std::string_view src = R"(
+    let id = (x Int) -> Int {
+      return x
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("parse error: unexpected token at line 2, column 17"));
+}
+
+TEST_F(ParserTest, FuncDefMissingParamType) {
+  std::string_view src = R"(
+    let id = (x:) -> Int {
+      return x
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsError("parse error: expected identifier at line 2, column 17"));
+}
+
+TEST_F(ParserTest, FuncDefMissingParamColonAndType) {
+  std::string_view src = R"(
+    let id = (x) -> Int {
+      return x
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("parse error: unexpected token at line 2, column 16"));
+}
+
+TEST_F(ParserTest, FuncDefMissingNextParam) {
+  std::string_view src = R"(
+    let id = (x: Int,) -> Int {
+      return x
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("parse error: expected closing parenthesis or "
+                         "parameter at line 2, column 22"));
 }
 
 TEST_F(ParserTest, FuncDefMissingClosingParen) {
@@ -556,6 +518,16 @@ TEST_F(ParserTest, FuncDefMissingClosingBrace) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsError("parse error: unexpected token at line 3, column 3"));
+}
+
+TEST_F(ParserTest, ReturnMissingValue) {
+  std::string_view src = R"(
+    let id = (x: Int) -> Int {
+      return
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("parse error: unexpected token at line 4, column 5"));
 }
 
 }  // namespace
