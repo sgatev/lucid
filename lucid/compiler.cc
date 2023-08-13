@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <optional>
+#include <span>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -15,6 +17,7 @@
 #include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/cli.h"
 #include "lucid/file.h"
 #include "lucid/lexer.h"
 #include "lucid/opt.h"
@@ -67,9 +70,12 @@ void Compile(std::string_view src, Writer out) {
   }
 }
 
-}  // namespace
+std::optional<std::string> Build(std::span<std::string_view> args) {
+  if (args.size() != 2) return "'build' command requires exactly 2 arguments";
 
-int Main(std::string_view binary_name, std::string_view src_path) {
+  std::string_view binary_name = args[0];
+  std::string_view src_path = args[1];
+
   // Load Lucid sources.
   const auto maybe_src = ReadFile(src_path);
   if (std::holds_alternative<FileError>(maybe_src)) {
@@ -96,9 +102,22 @@ int Main(std::string_view binary_name, std::string_view src_path) {
       binary_name.data(), binary_name.data());
   std::system(ld_cmd.data());
 
+  return std::nullopt;
+}
+
+}  // namespace
+
+int Main(std::vector<std::string_view> args) {
+  auto maybe_error = RunCommand({{"build", Build}}, args);
+  if (maybe_error.has_value()) {
+    std::cerr << *maybe_error << std::endl;
+    return 1;
+  }
   return 0;
 }
 
 }  // namespace lucid
 
-int main(int argc, char* argv[]) { return lucid::Main(argv[1], argv[2]); }
+int main(int argc, char* argv[]) {
+  return lucid::Main(std::vector<std::string_view>(argv + 1, argv + argc));
+}

@@ -103,6 +103,23 @@ cc_test(
     ],
 )
 
+cc_library(
+    name = "cli",
+    srcs = ["cli.cc"],
+    hdrs = ["cli.h"],
+)
+
+cc_test(
+    name = "cli_test",
+    srcs = ["cli_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":cli",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
 cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
@@ -112,6 +129,7 @@ cc_binary(
         ":arm64_gen",
         ":ast",
         ":cfg",
+        ":cli",
         ":file",
         ":lexer",
         ":opt",
