@@ -21,20 +21,45 @@ TEST(RunCommandTest, RunsCommand) {
   };
   auto bar = [](std::span<std::string_view> args) { return "error"; };
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
-  EXPECT_EQ(RunCommand({{"foo", foo}, {"bar", bar}}, args), std::nullopt);
+  EXPECT_EQ(RunCommand("test",
+                       {
+                           {
+                               .name = "foo",
+                               .handler = foo,
+                           },
+                           {
+                               .name = "bar",
+                               .handler = bar,
+                           },
+                       },
+                       args),
+            std::nullopt);
   EXPECT_THAT(foo_args, ElementsAre("bar", "baz"));
 }
 
 TEST(RunCommandTest, UnknownCommand) {
   auto bar = [](std::span<std::string_view> args) { return "error"; };
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
-  EXPECT_EQ(RunCommand({{"bar", bar}}, args), "unknown command: foo");
+  EXPECT_EQ(RunCommand("test",
+                       {
+                           {
+                               .name = "bar",
+                               .handler = bar,
+                           },
+                       },
+                       args),
+            "unknown command: foo");
 }
 
 TEST(RunCommandTest, EmptyArgs) {
   auto foo = [](std::span<std::string_view> args) { return std::nullopt; };
   std::vector<std::string_view> args = {};
-  EXPECT_EQ(RunCommand({{"foo", foo}}, args), "missing arguments");
+  EXPECT_EQ(RunCommand("test",
+                       {
+                           {.name = "foo", .handler = foo},
+                       },
+                       args),
+            std::nullopt);
 }
 
 }  // namespace

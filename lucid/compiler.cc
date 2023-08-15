@@ -114,7 +114,21 @@ std::optional<std::string> Version(std::span<std::string_view> args) {
 }  // namespace
 
 int Main(std::vector<std::string_view> args) {
-  auto maybe_error = RunCommand({{"build", Build}, {"version", Version}}, args);
+  auto maybe_error = RunCommand(
+      "lucid",
+      {
+          {
+              .name = "build",
+              .help = "Compiles the specified target and builds a binary.",
+              .handler = Build,
+          },
+          {
+              .name = "version",
+              .help = "Prints version information for lucid.",
+              .handler = Version,
+          },
+      },
+      args);
   if (maybe_error.has_value()) {
     std::cerr << *maybe_error << std::endl;
     return 1;

@@ -158,7 +158,12 @@ TEST_F(CompilerTest, DivInts) {
 
 TEST_F(CompilerTest, MissingArguments) {
   ASSERT_THAT(RunCompiler({}),
-              AllOf(ReturnsCode(1), PrintsError(Eq("missing arguments\n"))));
+              AllOf(ReturnsCode(0), Prints(Eq(R"(Usage: lucid <command> ...
+
+Available commands:
+  build 	Compiles the specified target and builds a binary.
+  version 	Prints version information for lucid.
+)"))));
 }
 
 TEST_F(CompilerTest, UnknownCommand) {
