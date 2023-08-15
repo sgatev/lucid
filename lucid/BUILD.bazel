@@ -140,11 +140,15 @@ cc_binary(
 )
 
 cc_test(
-    name = "compiler_test",
-    srcs = ["compiler_test.cc"],
+    name = "arm64_compiler_test",
+    srcs = ["arm64_compiler_test.cc"],
     copts = ["-Iexternal/gtest/include"],
     data = [
         ":compiler",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm",
     ],
     deps = [
         ":file",
