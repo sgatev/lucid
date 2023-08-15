@@ -12,16 +12,6 @@
 #include "lucid/file.h"
 #include "lucid/writer.h"
 
-MATCHER_P(ReturnsCode, code, "") { return arg.return_code == code; }
-
-MATCHER_P(Prints, matcher, "") {
-  return ExplainMatchResult(matcher, arg.out, result_listener);
-}
-
-MATCHER_P(PrintsError, matcher, "") {
-  return ExplainMatchResult(matcher, arg.err, result_listener);
-}
-
 namespace lucid {
 namespace {
 
@@ -29,11 +19,32 @@ using ::testing::AllOf;
 using ::testing::Eq;
 using ::testing::StartsWith;
 
+// Represents the result of a command.
 struct CommandResult {
+  // Return code of the command.
   int return_code;
+
+  // String printed on stdout by the command.
   std::string out;
+
+  // String printed on stderr by the command.
   std::string err;
 };
+
+// Matches the return code of a command.
+MATCHER_P(ReturnsCode, matcher, "") {
+  return ExplainMatchResult(matcher, arg.return_code, result_listener);
+}
+
+// Matches the string printed on stdout by a command.
+MATCHER_P(Prints, matcher, "") {
+  return ExplainMatchResult(matcher, arg.out, result_listener);
+}
+
+// Matches the string printed on stderr by a command.
+MATCHER_P(PrintsError, matcher, "") {
+  return ExplainMatchResult(matcher, arg.err, result_listener);
+}
 
 [[maybe_unused]] std::ostream& operator<<(std::ostream& stream,
                                           const CommandResult& res) {
@@ -93,8 +104,8 @@ TEST_F(CompilerTest, EmptyMain) {
       }
     )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lucid")}),
-              ReturnsCode(0));
-  EXPECT_THAT(Run("main"), ReturnsCode(0));
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(0)));
 }
 
 TEST_F(CompilerTest, FunctionCall) {
@@ -108,8 +119,8 @@ TEST_F(CompilerTest, FunctionCall) {
       }
     )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lucid")}),
-              ReturnsCode(0));
-  EXPECT_THAT(Run("main"), ReturnsCode(21));
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(21)));
 }
 
 TEST_F(CompilerTest, AddInts) {
@@ -119,8 +130,8 @@ TEST_F(CompilerTest, AddInts) {
       }
     )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lucid")}),
-              ReturnsCode(0));
-  EXPECT_THAT(Run("main"), ReturnsCode(5));
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(5)));
 }
 
 TEST_F(CompilerTest, SubInts) {
@@ -130,8 +141,8 @@ TEST_F(CompilerTest, SubInts) {
       }
     )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lucid")}),
-              ReturnsCode(0));
-  EXPECT_THAT(Run("main"), ReturnsCode(2));
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
 
 TEST_F(CompilerTest, MulInts) {
@@ -141,8 +152,8 @@ TEST_F(CompilerTest, MulInts) {
       }
     )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lucid")}),
-              ReturnsCode(0));
-  EXPECT_THAT(Run("main"), ReturnsCode(21));
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(21)));
 }
 
 TEST_F(CompilerTest, DivInts) {
@@ -152,13 +163,13 @@ TEST_F(CompilerTest, DivInts) {
       }
     )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lucid")}),
-              ReturnsCode(0));
-  EXPECT_THAT(Run("main"), ReturnsCode(4));
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(4)));
 }
 
 TEST_F(CompilerTest, MissingArguments) {
   ASSERT_THAT(RunCompiler({}),
-              AllOf(ReturnsCode(0), Prints(Eq(R"(Usage: lucid <command> ...
+              AllOf(ReturnsCode(Eq(0)), Prints(Eq(R"(Usage: lucid <command> ...
 
 Available commands:
   build 	Compiles the specified target and builds a binary.
@@ -167,14 +178,15 @@ Available commands:
 }
 
 TEST_F(CompilerTest, UnknownCommand) {
-  ASSERT_THAT(RunCompiler({"foo"}),
-              AllOf(ReturnsCode(1), PrintsError(Eq("unknown command: foo\n"))));
+  ASSERT_THAT(
+      RunCompiler({"foo"}),
+      AllOf(ReturnsCode(Eq(1)), PrintsError(Eq("unknown command: foo\n"))));
 }
 
 TEST_F(CompilerTest, MissingBuildArguments) {
   ASSERT_THAT(
       RunCompiler({"build"}),
-      AllOf(ReturnsCode(1),
+      AllOf(ReturnsCode(Eq(1)),
             PrintsError(Eq("'build' command requires exactly 2 arguments\n"))));
 }
 
@@ -182,7 +194,7 @@ TEST_F(CompilerTest, UnknownFile) {
   ASSERT_THAT(
       RunCompiler({"build", "unknown", "unknown.lucid"}),
       AllOf(
-          ReturnsCode(1),
+          ReturnsCode(Eq(1)),
           PrintsError(Eq("file error: could not read file unknown.lucid\n"))));
 }
 
@@ -194,14 +206,14 @@ TEST_F(CompilerTest, ParseError) {
     )"));
   ASSERT_THAT(
       RunCompiler({"build", "main", FullPath("main.lucid")}),
-      AllOf(ReturnsCode(1),
+      AllOf(ReturnsCode(Eq(1)),
             PrintsError(Eq("parse error: expected closing parenthesis or "
                            "parameter at line 2, column 20\n"))));
 }
 
 TEST_F(CompilerTest, VersionIncludesCommitLine) {
   ASSERT_THAT(RunCompiler({"version"}),
-              AllOf(ReturnsCode(0), Prints(StartsWith("Commit:"))));
+              AllOf(ReturnsCode(Eq(0)), Prints(StartsWith("Commit:"))));
 }
 
 }  // namespace
