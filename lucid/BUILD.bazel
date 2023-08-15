@@ -134,6 +134,7 @@ cc_binary(
         ":lexer",
         ":opt",
         ":parser",
+        ":version",
         ":writer",
     ],
 )
@@ -254,6 +255,23 @@ cc_test(
         "@gtest",
         "@gtest//:gtest_main",
     ],
+)
+
+cc_library(
+    name = "version",
+    hdrs = ["version.h"],
+)
+
+genrule(
+    name = "version_gen",
+    srcs = ["version.h.tmpl"],
+    outs = ["version.h"],
+    cmd_bash = """
+      commit=$$(grep ^STABLE_GIT_COMMIT bazel-out/stable-status.txt | cut -d ' ' -f2 ||
+                echo "unstamped"); \
+      sed -e 's/%GIT_COMMIT%/'$$commit'/' < $< > $@
+    """,
+    stamp = 1,
 )
 
 cc_library(

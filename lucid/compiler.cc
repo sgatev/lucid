@@ -22,6 +22,7 @@
 #include "lucid/lexer.h"
 #include "lucid/opt.h"
 #include "lucid/parser.h"
+#include "lucid/version.h"
 #include "lucid/writer.h"
 
 namespace lucid {
@@ -105,10 +106,15 @@ std::optional<std::string> Build(std::span<std::string_view> args) {
   return std::nullopt;
 }
 
+std::optional<std::string> Version(std::span<std::string_view> args) {
+  std::cout << "Commit: " << kGitCommit << std::endl;
+  return std::nullopt;
+}
+
 }  // namespace
 
 int Main(std::vector<std::string_view> args) {
-  auto maybe_error = RunCommand({{"build", Build}}, args);
+  auto maybe_error = RunCommand({{"build", Build}, {"version", Version}}, args);
   if (maybe_error.has_value()) {
     std::cerr << *maybe_error << std::endl;
     return 1;
