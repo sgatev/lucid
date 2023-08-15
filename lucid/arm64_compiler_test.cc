@@ -9,7 +9,9 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "lucid/cli.h"
 #include "lucid/file.h"
+#include "lucid/test_cli.h"
 #include "lucid/writer.h"
 
 namespace lucid {
@@ -18,33 +20,6 @@ namespace {
 using ::testing::AllOf;
 using ::testing::Eq;
 using ::testing::StartsWith;
-
-// Represents the result of a command.
-struct CommandResult {
-  // Return code of the command.
-  int return_code;
-
-  // String printed on stdout by the command.
-  std::string out;
-
-  // String printed on stderr by the command.
-  std::string err;
-};
-
-// Matches the return code of a command.
-MATCHER_P(ReturnsCode, matcher, "") {
-  return ExplainMatchResult(matcher, arg.return_code, result_listener);
-}
-
-// Matches the string printed on stdout by a command.
-MATCHER_P(Prints, matcher, "") {
-  return ExplainMatchResult(matcher, arg.out, result_listener);
-}
-
-// Matches the string printed on stderr by a command.
-MATCHER_P(PrintsError, matcher, "") {
-  return ExplainMatchResult(matcher, arg.err, result_listener);
-}
 
 [[maybe_unused]] std::ostream& operator<<(std::ostream& stream,
                                           const CommandResult& res) {

@@ -1,30 +1,40 @@
 #include "lucid/cli.h"
 
+#include <algorithm>
 #include <initializer_list>
-#include <iostream>
 #include <span>
 #include <string>
 #include <string_view>
-#include <utility>
 
 namespace lucid {
 
-std::optional<std::string> RunCommand(std::string_view root_name,
-                                      std::initializer_list<Command> commands,
-                                      std::span<std::string_view> args) {
+CommandResult RunCommand(std::string_view root_name,
+                         std::initializer_list<Command> commands,
+                         std::span<std::string_view> args) {
   if (args.empty()) {
-    std::cout << "Usage: lucid <command> ...\n\n";
-    std::cout << "Available commands:\n";
+    CommandResult result;
+    result.return_code = 0;
+    result.out.append("Usage: lucid <command> ...\n\n");
+    result.out.append("Available commands:\n");
     for (const auto& command : commands) {
-      std::cout << "  " << command.name << " \t" << command.help << "\n";
+      result.out.append("  ");
+      result.out.append(command.name);
+      result.out.append(" \t");
+      result.out.append(command.help);
+      result.out.append("\n");
     }
-    return std::nullopt;
+    return result;
   }
 
-  for (const auto& command : commands) {
-    if (command.name == args[0]) return command.handler(args.subspan(1));
-  }
-  return "unknown command: " + std::string(args[0]);
+  auto it = std::find_if(
+      commands.begin(), commands.end(),
+      [&](const auto& command) { return command.name == args[0]; });
+  if (it != commands.end()) return it->handler(args.subspan(1));
+
+  return {
+      .return_code = 1,
+      .err = "unknown command: " + std::string(args[0]),
+  };
 }
 
 }  // namespace lucid

@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <optional>
 #include <span>
 #include <stdexcept>
 #include <string>
@@ -42,8 +41,8 @@ std::string StringFormat(const std::string& fmt, Args... args) {
   return result;
 }
 
-std::vector<FuncDefStmt> ParseFuncDefs(std::string_view src,
-                                       Arena<Stmt>& arena) {
+std::variant<std::vector<FuncDefStmt>, std::string> ParseFuncDefs(
+    std::string_view src, Arena<Stmt>& arena) {
   std::vector<FuncDefStmt> func_defs;
   Lexer lexer(src);
   Parser parser(arena, src, lexer);
@@ -51,28 +50,36 @@ std::vector<FuncDefStmt> ParseFuncDefs(std::string_view src,
     auto maybe_func_def = parser.ParseFuncDef();
     if (auto* err = std::get_if<ParserError>(&maybe_func_def)) {
       if (err->GetKind() == ParserError::Kind::End) break;
-      std::cerr << err->ToString() << std::endl;
-      exit(1);
+      return err->ToString();
     }
     func_defs.push_back(std::get<FuncDefStmt>(std::move(maybe_func_def)));
   }
   return func_defs;
 }
 
-void Compile(std::string_view src, Writer out) {
+std::optional<std::string> Compile(std::string_view src, Writer out) {
   Arena<Stmt> arena;
-  std::vector<FuncDefStmt> funcs = ParseFuncDefs(src, arena);
+  auto maybe_funcs = ParseFuncDefs(src, arena);
+  if (auto* err = std::get_if<std::string>(&maybe_funcs)) {
+    return *std::move(err);
+  }
   GenerateArmStartSource(out);
-  for (const auto& func : funcs) {
+  for (const auto& func : std::get<std::vector<FuncDefStmt>>(maybe_funcs)) {
     auto graph = BuildControlFlowGraph(arena, func);
     auto instructions = GenerateAbstractMachineInstructions(arena, graph);
     OptimizeAbstractMachineInstructions(instructions);
     GenerateArmAssemblySource(func.name, instructions, out);
   }
+  return std::nullopt;
 }
 
-std::optional<std::string> Build(std::span<std::string_view> args) {
-  if (args.size() != 2) return "'build' command requires exactly 2 arguments";
+CommandResult Build(std::span<std::string_view> args) {
+  if (args.size() != 2) {
+    return {
+        .return_code = 1,
+        .err = "'build' command requires exactly 2 arguments",
+    };
+  }
 
   std::string_view binary_name = args[0];
   std::string_view src_path = args[1];
@@ -80,14 +87,18 @@ std::optional<std::string> Build(std::span<std::string_view> args) {
   // Load Lucid sources.
   const auto maybe_src = ReadFile(src_path);
   if (std::holds_alternative<FileError>(maybe_src)) {
-    std::cerr << "file error: could not read file " << src_path << std::endl;
-    exit(1);
+    return {
+        .return_code = 1,
+        .err = "file error: could not read file " + std::string(src_path),
+    };
   }
   const auto& src = std::get<std::string>(maybe_src);
 
   // Compile sources to assembly.
   std::FILE* assembly_file = std::tmpfile();
-  Compile(src, FileWriter(assembly_file));
+  if (auto err = Compile(src, FileWriter(assembly_file)); err.has_value()) {
+    return {.return_code = 1, .err = *err};
+  }
   std::rewind(assembly_file);
 
   // Translate assembly into object code.
@@ -103,18 +114,20 @@ std::optional<std::string> Build(std::span<std::string_view> args) {
       binary_name.data(), binary_name.data());
   std::system(ld_cmd.data());
 
-  return std::nullopt;
+  return {.return_code = 0};
 }
 
-std::optional<std::string> Version(std::span<std::string_view> args) {
-  std::cout << "Commit: " << kGitCommit << std::endl;
-  return std::nullopt;
+CommandResult Version(std::span<std::string_view> args) {
+  return {
+      .return_code = 0,
+      .out = "Commit: " + std::string(kGitCommit),
+  };
 }
 
 }  // namespace
 
 int Main(std::vector<std::string_view> args) {
-  auto maybe_error = RunCommand(
+  auto result = RunCommand(
       "lucid",
       {
           {
@@ -129,11 +142,9 @@ int Main(std::vector<std::string_view> args) {
           },
       },
       args);
-  if (maybe_error.has_value()) {
-    std::cerr << *maybe_error << std::endl;
-    return 1;
-  }
-  return 0;
+  std::cout << result.out;
+  std::cerr << result.err;
+  return result.return_code;
 }
 
 }  // namespace lucid

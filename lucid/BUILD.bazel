@@ -46,6 +46,27 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "arm64_compiler_test",
+    srcs = ["arm64_compiler_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    data = [
+        ":compiler",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm",
+    ],
+    deps = [
+        ":cli",
+        ":file",
+        ":test_cli",
+        ":writer",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "arm64_gen",
     srcs = ["arm64_gen.cc"],
@@ -115,6 +136,7 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":cli",
+        ":test_cli",
         "@gtest",
         "@gtest//:gtest_main",
     ],
@@ -136,25 +158,6 @@ cc_binary(
         ":parser",
         ":version",
         ":writer",
-    ],
-)
-
-cc_test(
-    name = "arm64_compiler_test",
-    srcs = ["arm64_compiler_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
-    data = [
-        ":compiler",
-    ],
-    target_compatible_with = [
-        "@platforms//os:macos",
-        "@platforms//cpu:arm",
-    ],
-    deps = [
-        ":file",
-        ":writer",
-        "@gtest",
-        "@gtest//:gtest_main",
     ],
 )
 
@@ -241,6 +244,15 @@ cc_test(
         ":parser",
         "@gtest",
         "@gtest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "test_cli",
+    testonly = True,
+    hdrs = ["test_cli.h"],
+    deps = [
+        "@gtest",
     ],
 )
 
