@@ -2,27 +2,26 @@
 
 #include <functional>
 #include <initializer_list>
+#include <ostream>
 #include <span>
-#include <string>
 #include <string_view>
 
 namespace lucid {
 
-// Represents the result of a command.
-struct CommandResult {
-  // Return code of the command.
-  int return_code;
+// The execution context of a command.
+struct CommandContext {
+  // Arguments passed to the command.
+  std::span<std::string_view> args;
 
-  // String printed on stdout by the command.
-  std::string out;
+  // Standard output stream of the command.
+  std::ostream& out;
 
-  // String printed on stderr by the command.
-  std::string err;
+  // Standard error output stream of the command.
+  std::ostream& err;
 };
 
-// A command handler that takes a list of arguments and runs a command.
-using CommandHandler =
-    std::function<CommandResult(std::span<std::string_view>)>;
+// A handler that runs a command within a given context.
+using CommandHandler = std::function<int(CommandContext)>;
 
 // A command.
 struct Command {
@@ -38,17 +37,16 @@ struct Command {
 
 // Calls the handler for the given command.
 //
-// The command is identified by the first element in `args`. The remaining
-// elements of `args` are passed in the handler call.
+// The command is identified by the first element in `ctx.args`. The remaining
+// elements of `ctx.args` are passed in the handler call.
 //
-// Returns an error if `args` is empty. Returns an error if `commands` does not
-// include the given command.
+// Returns an error if `ctx.args` is empty. Returns an error if `commands` does
+// not include the given command.
 //
 // Requirements:
 //
 //   * `commands` must not contain more than one command with a given name.
-CommandResult RunCommand(std::string_view root_name,
-                         std::initializer_list<Command> commands,
-                         std::span<std::string_view> args);
+int RunCommand(std::string_view root_name,
+               std::initializer_list<Command> commands, CommandContext ctx);
 
 }  // namespace lucid

@@ -3,73 +3,68 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <strstream>
 #include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lucid/test_cli.h"
 
 namespace lucid {
 namespace {
 
-using ::testing::AllOf;
 using ::testing::ElementsAre;
-using ::testing::Eq;
 
 TEST(RunCommandTest, RunsCommand) {
   std::vector<std::string> foo_args;
-  auto foo = [&foo_args](std::span<std::string_view> args) {
-    foo_args.assign(args.begin(), args.end());
-    return CommandResult{.return_code = 0};
+  auto foo = [&foo_args](CommandContext ctx) {
+    foo_args.assign(ctx.args.begin(), ctx.args.end());
+    return 0;
   };
-  auto bar = [](std::span<std::string_view> args) {
-    return CommandResult{.return_code = 1};
-  };
+  auto bar = [](CommandContext) { return 1; };
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
-  EXPECT_THAT(RunCommand("test",
-                         {
-                             {
-                                 .name = "foo",
-                                 .handler = foo,
-                             },
-                             {
-                                 .name = "bar",
-                                 .handler = bar,
-                             },
-                         },
-                         args),
-              ReturnsCode(Eq(0)));
+  std::strstream out, err;
+  EXPECT_EQ(RunCommand("test",
+                       {
+                           {
+                               .name = "foo",
+                               .handler = foo,
+                           },
+                           {
+                               .name = "bar",
+                               .handler = bar,
+                           },
+                       },
+                       {args, out, err}),
+            0);
   EXPECT_THAT(foo_args, ElementsAre("bar", "baz"));
 }
 
 TEST(RunCommandTest, UnknownCommand) {
-  auto bar = [](std::span<std::string_view> args) {
-    return CommandResult{.return_code = 0};
-  };
+  auto bar = [](CommandContext) { return 0; };
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
-  EXPECT_THAT(
-      RunCommand("test",
-                 {
-                     {
-                         .name = "bar",
-                         .handler = bar,
-                     },
-                 },
-                 args),
-      AllOf(ReturnsCode(Eq(1)), PrintsError(Eq("unknown command: foo"))));
+  std::strstream out, err;
+  EXPECT_EQ(RunCommand("test",
+                       {
+                           {
+                               .name = "bar",
+                               .handler = bar,
+                           },
+                       },
+                       {args, out, err}),
+            1);
+  EXPECT_EQ(std::string(err.str()), "unknown command: foo\n");
 }
 
 TEST(RunCommandTest, EmptyArgs) {
-  auto foo = [](std::span<std::string_view> args) {
-    return CommandResult{.return_code = 1};
-  };
+  auto foo = [](CommandContext) { return 1; };
   std::vector<std::string_view> args = {};
-  EXPECT_THAT(RunCommand("test",
-                         {
-                             {.name = "foo", .handler = foo},
-                         },
-                         args),
-              ReturnsCode(Eq(0)));
+  std::strstream out, err;
+  EXPECT_EQ(RunCommand("test",
+                       {
+                           {.name = "foo", .handler = foo},
+                       },
+                       {args, out, err}),
+            0);
 }
 
 }  // namespace

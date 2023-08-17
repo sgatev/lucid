@@ -70,24 +70,20 @@ std::optional<std::string> Compile(std::string_view src, std::ostream& out) {
   return std::nullopt;
 }
 
-CommandResult Build(std::span<std::string_view> args) {
-  if (args.size() != 2) {
-    return {
-        .return_code = 1,
-        .err = "'build' command requires exactly 2 arguments",
-    };
+int Build(CommandContext ctx) {
+  if (ctx.args.size() != 2) {
+    ctx.err << "'build' command requires exactly 2 arguments\n";
+    return 1;
   }
 
-  std::string_view binary_name = args[0];
-  std::string_view src_path = args[1];
+  std::string_view binary_name = ctx.args[0];
+  std::string_view src_path = ctx.args[1];
 
   // Load Lucid sources.
   const auto maybe_src = ReadFile(src_path);
   if (std::holds_alternative<FileError>(maybe_src)) {
-    return {
-        .return_code = 1,
-        .err = "file error: could not read file " + std::string(src_path),
-    };
+    ctx.err << "file error: could not read file " << src_path << "\n";
+    return 1;
   }
   const auto& src = std::get<std::string>(maybe_src);
 
@@ -96,8 +92,9 @@ CommandResult Build(std::span<std::string_view> args) {
   auto assembly_path = build_dir / (std::string(binary_name) + ".s");
   {
     std::ofstream assembly_stream(assembly_path);
-    if (auto err = Compile(src, assembly_stream); err) {
-      return {.return_code = 1, .err = *err};
+    if (auto err_str = Compile(src, assembly_stream); err_str) {
+      ctx.err << *err_str << "\n";
+      return 1;
     }
   }
 
@@ -113,20 +110,18 @@ CommandResult Build(std::span<std::string_view> args) {
       binary_name.data(), binary_name.data());
   std::system(ld_cmd.data());
 
-  return {.return_code = 0};
+  return 0;
 }
 
-CommandResult Version(std::span<std::string_view> args) {
-  return {
-      .return_code = 0,
-      .out = "Commit: " + std::string(kGitCommit),
-  };
+int Version(CommandContext ctx) {
+  ctx.out << "Commit: " << kGitCommit << "\n";
+  return 0;
 }
 
 }  // namespace
 
 int Main(std::vector<std::string_view> args) {
-  auto result = RunCommand(
+  return RunCommand(
       "lucid",
       {
           {
@@ -140,10 +135,7 @@ int Main(std::vector<std::string_view> args) {
               .handler = Version,
           },
       },
-      args);
-  std::cout << result.out;
-  std::cerr << result.err << std::endl;
-  return result.return_code;
+      {args, std::cout, std::cerr});
 }
 
 }  // namespace lucid
