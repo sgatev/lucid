@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <map>
+#include <ostream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -9,7 +10,6 @@
 
 #include "lucid/am.h"
 #include "lucid/am_gen.h"
-#include "lucid/writer.h"
 
 namespace lucid {
 namespace {
@@ -19,10 +19,8 @@ class Arm64Generator {
  public:
   explicit Arm64Generator(std::string_view func_name,
                           const std::vector<Instruction>& instructions,
-                          Writer output)
-      : func_name_(func_name),
-        instructions_(instructions),
-        output_(std::move(output)) {
+                          std::ostream& out)
+      : func_name_(func_name), instructions_(instructions), out_(out) {
     out_reg_[0] = "X0";
     out_reg_[1] = "X1";
     out_reg_[2] = "X2";
@@ -108,18 +106,18 @@ class Arm64Generator {
     Append("\n");
   }
 
-  void Append(std::string_view s) { output_(s); }
+  void Append(std::string_view s) { out_ << s; }
 
   std::string_view func_name_;
   const std::vector<Instruction>& instructions_;
-  Writer output_;
+  std::ostream& out_;
   std::map<RegId, std::string> out_reg_;
 };
 
 }  // namespace
 
-void GenerateArmStartSource(Writer output) {
-  output(R"(.global _start
+void GenerateArmStartSource(std::ostream& out) {
+  out << R"(.global _start
 .align 2
 _start:
   stp X29, X30, [sp, #-16]!
@@ -127,13 +125,13 @@ _start:
   ldp X29, X30, [sp], #16
   mov X16, #1
   svc #0x80
-)");
+)";
 }
 
 void GenerateArmAssemblySource(std::string_view func_name,
                                const std::vector<Instruction>& instructions,
-                               Writer output) {
-  Arm64Generator(func_name, instructions, std::move(output)).Generate();
+                               std::ostream& out) {
+  Arm64Generator(func_name, instructions, out).Generate();
 }
 
 }  // namespace lucid

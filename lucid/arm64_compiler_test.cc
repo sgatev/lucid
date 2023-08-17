@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <filesystem>
+#include <fstream>
 #include <initializer_list>
 #include <string>
 #include <string_view>
@@ -12,7 +13,6 @@
 #include "lucid/cli.h"
 #include "lucid/file.h"
 #include "lucid/test_cli.h"
-#include "lucid/writer.h"
 
 namespace lucid {
 namespace {
@@ -32,13 +32,9 @@ class CompilerTest : public testing::Test {
  protected:
   bool CreateFile(std::string_view src_file_name, std::string_view src) {
     const std::string src_path = runtime_path_ / src_file_name;
-    std::FILE* src_file = std::fopen(src_path.c_str(), "w+");
-    if (src_file == nullptr) return false;
-
-    Writer src_writer = FileWriter(src_file);
-    src_writer(src);
-
-    return std::fclose(src_file) == 0;
+    std::ofstream src_stream(src_path);
+    src_stream << src;
+    return true;
   }
 
   CommandResult RunCompiler(std::initializer_list<std::string_view> args) {

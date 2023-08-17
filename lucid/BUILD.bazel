@@ -12,7 +12,6 @@ cc_library(
         ":arena",
         ":ast",
         ":cfg",
-        ":writer",
     ],
 )
 
@@ -61,7 +60,6 @@ cc_test(
         ":cli",
         ":file",
         ":test_cli",
-        ":writer",
         "@gtest",
         "@gtest//:gtest_main",
     ],
@@ -87,7 +85,6 @@ cc_test(
         ":arm64_gen",
         ":ast",
         ":cfg",
-        ":writer",
         "@gtest",
         "@gtest//:gtest_main",
     ],
@@ -157,7 +154,6 @@ cc_binary(
         ":opt",
         ":parser",
         ":version",
-        ":writer",
     ],
 )
 
@@ -288,22 +284,4 @@ genrule(
       sed -e 's/%GIT_COMMIT%/'$$commit'/' < $< > $@
     """,
     stamp = 1,
-)
-
-cc_library(
-    name = "writer",
-    srcs = ["writer.cc"],
-    hdrs = ["writer.h"],
-)
-
-cc_test(
-    name = "writer_test",
-    srcs = ["writer_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
-    deps = [
-        ":file",
-        ":writer",
-        "@gtest",
-        "@gtest//:gtest_main",
-    ],
 )

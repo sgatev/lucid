@@ -1,8 +1,6 @@
-#include <stdio.h>
-#include <unistd.h>
-
-#include <cstdio>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <span>
 #include <stdexcept>
@@ -22,7 +20,6 @@
 #include "lucid/opt.h"
 #include "lucid/parser.h"
 #include "lucid/version.h"
-#include "lucid/writer.h"
 
 namespace lucid {
 namespace {
@@ -57,7 +54,7 @@ std::variant<std::vector<FuncDefStmt>, std::string> ParseFuncDefs(
   return func_defs;
 }
 
-std::optional<std::string> Compile(std::string_view src, Writer out) {
+std::optional<std::string> Compile(std::string_view src, std::ostream& out) {
   Arena<Stmt> arena;
   auto maybe_funcs = ParseFuncDefs(src, arena);
   if (auto* err = std::get_if<std::string>(&maybe_funcs)) {
@@ -95,16 +92,18 @@ CommandResult Build(std::span<std::string_view> args) {
   const auto& src = std::get<std::string>(maybe_src);
 
   // Compile sources to assembly.
-  std::FILE* assembly_file = std::tmpfile();
-  if (auto err = Compile(src, FileWriter(assembly_file)); err.has_value()) {
-    return {.return_code = 1, .err = *err};
+  auto build_dir = std::filesystem::temp_directory_path();
+  auto assembly_path = build_dir / (std::string(binary_name) + ".s");
+  {
+    std::ofstream assembly_stream(assembly_path);
+    if (auto err = Compile(src, assembly_stream); err) {
+      return {.return_code = 1, .err = *err};
+    }
   }
-  std::rewind(assembly_file);
 
   // Translate assembly into object code.
-  dup2(fileno(assembly_file), 0);
-  const std::string as_cmd =
-      StringFormat("as -arch arm64 -o %s.o -- ", binary_name.data());
+  const std::string as_cmd = StringFormat(
+      "as -arch arm64 -o %s.o %s", binary_name.data(), assembly_path.c_str());
   std::system(as_cmd.data());
 
   // Link object code and create a binary.
@@ -143,7 +142,7 @@ int Main(std::vector<std::string_view> args) {
       },
       args);
   std::cout << result.out;
-  std::cerr << result.err;
+  std::cerr << result.err << std::endl;
   return result.return_code;
 }
 

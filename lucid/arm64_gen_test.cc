@@ -2,6 +2,7 @@
 
 #include <string>
 #include <string_view>
+#include <strstream>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -9,7 +10,6 @@
 #include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
-#include "lucid/writer.h"
 
 namespace lucid {
 namespace {
@@ -24,9 +24,9 @@ class GenerateArmAssemblySourceTest : public testing::Test {
   std::string Generate(const FuncDefStmt& func) {
     auto graph = BuildControlFlowGraph(arena_, func);
     auto instructions = GenerateAbstractMachineInstructions(arena_, graph);
-    std::string result;
-    GenerateArmAssemblySource(func.name, instructions, StringWriter(result));
-    return result;
+    std::strstream out;
+    GenerateArmAssemblySource(func.name, instructions, out);
+    return out.str();
   }
 
  private:
