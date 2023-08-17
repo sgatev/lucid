@@ -54,7 +54,7 @@ cc_test(
     ],
     target_compatible_with = [
         "@platforms//os:macos",
-        "@platforms//cpu:arm",
+        "@platforms//cpu:arm64",
     ],
     deps = [
         ":cli",
