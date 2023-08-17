@@ -80,19 +80,18 @@ int Build(CommandContext ctx) {
   std::string_view src_path = ctx.args[1];
 
   // Load Lucid sources.
-  const auto maybe_src = ReadFile(src_path);
-  if (std::holds_alternative<FileError>(maybe_src)) {
+  const auto src = ReadFile(src_path);
+  if (!src.has_value()) {
     ctx.err << "file error: could not read file " << src_path << "\n";
     return 1;
   }
-  const auto& src = std::get<std::string>(maybe_src);
 
   // Compile sources to assembly.
   auto build_dir = std::filesystem::temp_directory_path();
   auto assembly_path = build_dir / (std::string(binary_name) + ".s");
   {
     std::ofstream assembly_stream(assembly_path);
-    if (auto err_str = Compile(src, assembly_stream); err_str) {
+    if (auto err_str = Compile(*src, assembly_stream); err_str) {
       ctx.err << *err_str << "\n";
       return 1;
     }

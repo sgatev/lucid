@@ -1,5 +1,6 @@
 #include "lucid/file.h"
 
+#include <optional>
 #include <string>
 
 #include "gmock/gmock.h"
@@ -8,16 +9,16 @@
 namespace lucid {
 namespace {
 
-using ::testing::VariantWith;
+using ::testing::Optional;
 
 TEST(ReadFileTest, Works) {
   const std::string path =
       testing::SrcDir() + "__main__/lucid/testdata/foobarbaz";
-  EXPECT_THAT(ReadFile(path), VariantWith<std::string>("foobarbaz\n"));
+  EXPECT_THAT(ReadFile(path), Optional(std::string("foobarbaz\n")));
 }
 
 TEST(ReadFileTest, MissingFile) {
-  EXPECT_THAT(ReadFile("unknown"), VariantWith<FileError>(FileError{}));
+  EXPECT_EQ(ReadFile("unknown"), std::nullopt);
 }
 
 }  // namespace
