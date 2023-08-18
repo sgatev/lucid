@@ -45,25 +45,6 @@ cc_test(
     ],
 )
 
-cc_test(
-    name = "arm64_compiler_test",
-    srcs = ["arm64_compiler_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
-    data = [
-        ":compiler",
-    ],
-    target_compatible_with = [
-        "@platforms//os:macos",
-        "@platforms//cpu:arm64",
-    ],
-    deps = [
-        ":cli",
-        ":file",
-        "@gtest",
-        "@gtest//:gtest_main",
-    ],
-)
-
 cc_library(
     name = "arm64_gen",
     srcs = ["arm64_gen.cc"],
@@ -190,6 +171,25 @@ cc_test(
     deps = [
         ":lexer",
         ":token",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "macos_arm64_compiler_test",
+    srcs = ["macos_arm64_compiler_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    data = [
+        ":compiler",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+    deps = [
+        ":cli",
+        ":file",
         "@gtest",
         "@gtest//:gtest_main",
     ],
