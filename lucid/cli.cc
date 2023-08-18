@@ -11,7 +11,7 @@ namespace lucid {
 int RunCommand(std::string_view root_name,
                std::initializer_list<Command> commands, CommandContext ctx) {
   if (ctx.args.empty()) {
-    ctx.out << "Usage: lucid <command> ...\n\n"
+    ctx.out << "Usage: " << root_name << " <command> ...\n\n"
             << "Available commands:\n";
     for (const auto& command : commands) {
       ctx.out << "  " << command.name << " \t" << command.help << "\n";
