@@ -55,6 +55,10 @@ class ControlFlowGraphBuilder {
     // No sub-expressions to process.
   }
 
+  void ProcessExpr(const BoolLitExpr& expr) {
+    // No sub-expressions to process.
+  }
+
   void ProcessExpr(const IdentExpr& expr) {
     // No sub-expressions to process.
   }

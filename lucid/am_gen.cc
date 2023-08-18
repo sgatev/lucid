@@ -58,6 +58,15 @@ class AbstractMachineInstructionGenerator {
     out_reg_[expr_ref] = reg;
   }
 
+  void ProcessExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
+    RegId reg = next_reg_++;
+    instructions_.push_back(SetReg32{
+        .src_val = expr.value == "true" ? "1" : "0",
+        .dst_reg = reg,
+    });
+    out_reg_[expr_ref] = reg;
+  }
+
   void ProcessExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
     instructions_.push_back(Jump{
         .label = expr.func_name,

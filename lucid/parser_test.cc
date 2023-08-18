@@ -80,6 +80,12 @@ struct IntLitExprPattern {
   bool operator()(const IntLitExpr& expr) const { return value == expr.value; }
 };
 
+struct BoolLitExprPattern {
+  std::string_view value;
+
+  bool operator()(const BoolLitExpr& expr) const { return value == expr.value; }
+};
+
 struct BinaryOpExprPattern {
   BinaryOp op;
   ExprRefMatcher lhs;
@@ -124,6 +130,10 @@ class ParserTest : public testing::Test {
 
   ExprRefMatcher MatchesIntLitExpr(IntLitExprPattern pattern) {
     return MatchesExpr<IntLitExpr>(std::move(pattern));
+  }
+
+  ExprRefMatcher MatchesBoolLitExpr(BoolLitExprPattern pattern) {
+    return MatchesExpr<BoolLitExpr>(std::move(pattern));
   }
 
   ExprRefMatcher MatchesBinaryOpExpr(BinaryOpExprPattern pattern) {
@@ -373,6 +383,50 @@ TEST_F(ParserTest, FuncCallExpr) {
                        }),
                    },
            }})));
+}
+
+TEST_F(ParserTest, ReturnTrueBoolLit) {
+  std::string_view src = R"(
+    let truth = () -> Bool {
+      return true
+    }
+  )";
+  EXPECT_THAT(Parse(src),  //
+              HoldsFuncDef(MatchesFuncDefStmt(
+                  {.name = "truth",
+                   .result_type = "Bool",
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesBoolLitExpr({
+                                       .value = "true",
+                                   }),
+                               }),
+                           },
+                   }})));
+}
+
+TEST_F(ParserTest, ReturnFalseBoolLit) {
+  std::string_view src = R"(
+    let falsity = () -> Bool {
+      return false
+    }
+  )";
+  EXPECT_THAT(Parse(src),  //
+              HoldsFuncDef(MatchesFuncDefStmt(
+                  {.name = "falsity",
+                   .result_type = "Bool",
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesBoolLitExpr({
+                                       .value = "false",
+                                   }),
+                               }),
+                           },
+                   }})));
 }
 
 TEST_F(ParserTest, FuncDefMissingLet) {

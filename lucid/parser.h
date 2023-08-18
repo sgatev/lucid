@@ -149,12 +149,6 @@ class Parser {
     return MakeError(ParserError::Kind::ExpectedIdent, token);
   }
 
-  std::variant<std::string_view, ParserError> ParseNumber() {
-    Token token = Read();
-    if (token.kind == Token::Kind::Number) return TokenString(token);
-    return MakeError(ParserError::Kind::ExpectedNumber, token);
-  }
-
   std::variant<CompoundStmt, ParserError> ParseCompoundStmt() {
     CompoundStmt stmt;
 
@@ -186,11 +180,51 @@ class Parser {
   }
 
   std::variant<ExprRef, ParserError> ParseExpr() {
-    if (Peek().kind == Token::Kind::Ident)
-      return ParseExprStartingWithIdent();
-    else if (Peek().kind == Token::Kind::Number)
-      return ParseExprStartingWithNumber();
-    return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+    std::variant<ExprRef, ParserError> maybe_expr;
+    if (Peek().kind == Token::Kind::Ident) {
+      maybe_expr = ParseExprStartingWithIdent();
+    } else if (Peek().kind == Token::Kind::Number) {
+      maybe_expr = ParseNumber();
+    } else {
+      maybe_expr = MakeError(ParserError::Kind::UnexpectedToken, Peek());
+    }
+    if (IsError(maybe_expr)) return std::get<ParserError>(maybe_expr);
+
+    if (Peek().kind == Token::Kind::Plus) {
+      Read();
+
+      const auto maybe_rhs = ParseExpr();
+      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
+
+      return MakeBinaryOpExpr(BinaryOp::Add, std::get<ExprRef>(maybe_expr),
+                              std::get<ExprRef>(maybe_rhs));
+    } else if (Peek().kind == Token::Kind::Minus) {
+      Read();
+
+      const auto maybe_rhs = ParseExpr();
+      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
+
+      return MakeBinaryOpExpr(BinaryOp::Sub, std::get<ExprRef>(maybe_expr),
+                              std::get<ExprRef>(maybe_rhs));
+    } else if (Peek().kind == Token::Kind::Star) {
+      Read();
+
+      const auto maybe_rhs = ParseExpr();
+      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
+
+      return MakeBinaryOpExpr(BinaryOp::Mul, std::get<ExprRef>(maybe_expr),
+                              std::get<ExprRef>(maybe_rhs));
+    } else if (Peek().kind == Token::Kind::Slash) {
+      Read();
+
+      const auto maybe_rhs = ParseExpr();
+      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
+
+      return MakeBinaryOpExpr(BinaryOp::Div, std::get<ExprRef>(maybe_expr),
+                              std::get<ExprRef>(maybe_rhs));
+    }
+
+    return maybe_expr;
   }
 
   std::variant<ExprRef, ParserError> ParseExprStartingWithIdent() {
@@ -214,53 +248,25 @@ class Parser {
       return arena_.add(std::move(expr));
     }
 
+    if (ident == "true" || ident == "false") {
+      return arena_.add(BoolLitExpr{
+          .value = ident,
+      });
+    }
+
     return arena_.add(IdentExpr{
         .name = ident,
     });
   }
 
-  std::variant<ExprRef, ParserError> ParseExprStartingWithNumber() {
-    const auto maybe_number = ParseNumber();
-    if (IsError(maybe_number)) return std::get<ParserError>(maybe_number);
-    auto number = arena_.add(IntLitExpr{
-        .value = std::get<std::string_view>(maybe_number),
-    });
-
-    if (Peek().kind == Token::Kind::Plus) {
-      Read();
-
-      const auto maybe_rhs = ParseExpr();
-      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
-
-      return MakeBinaryOpExpr(BinaryOp::Add, number,
-                              std::get<ExprRef>(maybe_rhs));
-    } else if (Peek().kind == Token::Kind::Minus) {
-      Read();
-
-      const auto maybe_rhs = ParseExpr();
-      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
-
-      return MakeBinaryOpExpr(BinaryOp::Sub, number,
-                              std::get<ExprRef>(maybe_rhs));
-    } else if (Peek().kind == Token::Kind::Star) {
-      Read();
-
-      const auto maybe_rhs = ParseExpr();
-      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
-
-      return MakeBinaryOpExpr(BinaryOp::Mul, number,
-                              std::get<ExprRef>(maybe_rhs));
-    } else if (Peek().kind == Token::Kind::Slash) {
-      Read();
-
-      const auto maybe_rhs = ParseExpr();
-      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
-
-      return MakeBinaryOpExpr(BinaryOp::Div, number,
-                              std::get<ExprRef>(maybe_rhs));
+  std::variant<ExprRef, ParserError> ParseNumber() {
+    Token token = Read();
+    if (token.kind != Token::Kind::Number) {
+      return MakeError(ParserError::Kind::ExpectedNumber, token);
     }
-
-    return number;
+    return arena_.add(IntLitExpr{
+        .value = TokenString(token),
+    });
   }
 
   ExprRef MakeBinaryOpExpr(BinaryOp op, ExprRef lhs, ExprRef rhs) {

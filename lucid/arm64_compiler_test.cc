@@ -164,6 +164,17 @@ TEST_F(CompilerTest, DivInts) {
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(4)));
 }
 
+TEST_F(CompilerTest, AddBools) {
+  ASSERT_TRUE(CreateFile("main.lucid", R"(
+      let main = () -> Int {
+        return true + false
+      }
+    )"));
+  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lucid")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(1)));
+}
+
 TEST_F(CompilerTest, MissingArguments) {
   ASSERT_THAT(RunCompiler({}),
               AllOf(ReturnsCode(Eq(0)), Prints(Eq(R"(Usage: lucid <command> ...

@@ -12,13 +12,15 @@ struct CompoundStmt;
 struct FuncDefStmt;
 struct ReturnStmt;
 struct IntLitExpr;
+struct BoolLitExpr;
 struct FuncCallExpr;
 struct VarDeclStmt;
 struct IdentExpr;
 struct BinaryOpExpr;
 
 // An expression in the Lucid language.
-using Expr = std::variant<FuncCallExpr, IntLitExpr, IdentExpr, BinaryOpExpr>;
+using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, IdentExpr,
+                          BinaryOpExpr>;
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, VarDeclStmt, FuncDefStmt, ReturnStmt>;
@@ -69,6 +71,12 @@ struct ReturnStmt {
 // An expression that represents an integer literal.
 struct IntLitExpr {
   // Value of the integer.
+  std::string_view value;
+};
+
+// An expression that represents a boolean literal.
+struct BoolLitExpr {
+  // Value of the boolean.
   std::string_view value;
 };
 
