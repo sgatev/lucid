@@ -136,6 +136,54 @@ cc_binary(
     ],
 )
 
+cc_test(
+    name = "compiler_macos_arm64_test",
+    srcs = ["compiler_macos_arm64_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    data = [
+        ":compiler",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+    deps = [
+        ":cli",
+        ":compiler_test_fixture",
+        ":file",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "compiler_error_test",
+    srcs = ["compiler_error_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    data = [
+        ":compiler",
+    ],
+    deps = [
+        ":cli",
+        ":compiler_test_fixture",
+        ":file",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "compiler_test_fixture",
+    testonly = True,
+    hdrs = ["compiler_test_fixture.h"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":cli",
+        ":file",
+        "@gtest",
+    ],
+)
+
 cc_library(
     name = "file",
     srcs = ["file.cc"],
@@ -171,25 +219,6 @@ cc_test(
     deps = [
         ":lexer",
         ":token",
-        "@gtest",
-        "@gtest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "macos_arm64_compiler_test",
-    srcs = ["macos_arm64_compiler_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
-    data = [
-        ":compiler",
-    ],
-    target_compatible_with = [
-        "@platforms//os:macos",
-        "@platforms//cpu:arm64",
-    ],
-    deps = [
-        ":cli",
-        ":file",
         "@gtest",
         "@gtest//:gtest_main",
     ],
