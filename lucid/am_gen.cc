@@ -1,6 +1,7 @@
 #include "lucid/am_gen.h"
 
 #include <map>
+#include <string>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -28,6 +29,23 @@ class AbstractMachineInstructionGenerator {
   void Process(const ControlFlowGraph::Block& block) {
     for (const auto& stmt_ref : block.statements) {
       Process(stmt_ref, DerefStmt(stmt_ref));
+    }
+    if (block.terminator != ControlFlowGraph::kNullBlockRef) {
+      instructions_.push_back(CondJump{
+          .cond_reg = out_reg_[block.terminator],
+          .then_label = std::string("block") + std::to_string(block.next[0]),
+          .else_label = std::string("block") + std::to_string(block.next[1]),
+      });
+    }
+    for (auto next : block.next) {
+      if (next == graph_.last) continue;
+
+      instructions_.push_back(Label{
+          .label = std::string("block") + std::to_string(next),
+
+      });
+
+      Process(graph_.get(next));
     }
   }
 
@@ -81,37 +99,38 @@ class AbstractMachineInstructionGenerator {
   }
 
   void ProcessExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {
+    auto reg = next_reg_++;
     switch (expr.op) {
       case BinaryOp::Add:
         instructions_.push_back(AddReg32{
-            .res_reg = 3,
+            .res_reg = reg,
             .lhs_reg = out_reg_[expr.lhs],
             .rhs_reg = out_reg_[expr.rhs],
         });
         break;
       case BinaryOp::Sub:
         instructions_.push_back(SubReg32{
-            .res_reg = 3,
+            .res_reg = reg,
             .lhs_reg = out_reg_[expr.lhs],
             .rhs_reg = out_reg_[expr.rhs],
         });
         break;
       case BinaryOp::Mul:
         instructions_.push_back(MulReg32{
-            .res_reg = 3,
+            .res_reg = reg,
             .lhs_reg = out_reg_[expr.lhs],
             .rhs_reg = out_reg_[expr.rhs],
         });
         break;
       case BinaryOp::Div:
         instructions_.push_back(DivReg32{
-            .res_reg = 3,
+            .res_reg = reg,
             .lhs_reg = out_reg_[expr.lhs],
             .rhs_reg = out_reg_[expr.rhs],
         });
         break;
     }
-    out_reg_[expr_ref] = 3;
+    out_reg_[expr_ref] = reg;
   }
 
   const Stmt& DerefStmt(StmtRef ref) { return arena_.get(ref); }

@@ -21,8 +21,14 @@ struct ControlFlowGraph {
     // Statements in the block in evaluation order.
     std::vector<StmtRef> statements;
 
-    // Reference to the subsequent block.
-    BlockRef next = kNullBlockRef;
+    // Reference to the subsequent blocks.
+    //
+    // In the case of an `IfStmt` the first block in `next` will represent the
+    // "then" branch and the second block will represent the "else" branch.
+    std::vector<BlockRef> next;
+
+    // Terminator expression of the block.
+    ExprRef terminator = kNullBlockRef;
   };
 
   // Adds `block` to the control flow graph and returns a reference to it.

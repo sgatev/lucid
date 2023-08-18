@@ -17,13 +17,14 @@ struct FuncCallExpr;
 struct VarDeclStmt;
 struct IdentExpr;
 struct BinaryOpExpr;
+struct IfStmt;
 
 // An expression in the Lucid language.
 using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, IdentExpr,
                           BinaryOpExpr>;
 
 // A statement in the Lucid language.
-using Stmt = std::variant<Expr, VarDeclStmt, FuncDefStmt, ReturnStmt>;
+using Stmt = std::variant<Expr, VarDeclStmt, FuncDefStmt, ReturnStmt, IfStmt>;
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
@@ -133,6 +134,18 @@ struct BinaryOpExpr {
 
   // Right-hand side sub-expression.
   ExprRef rhs;
+};
+
+// A statement that represents a condition.
+struct IfStmt {
+  // Condition.
+  ExprRef condition;
+
+  // Body of the branch where the condition is true.
+  CompoundStmt then_body;
+
+  // Body of the branch where the condition is false.
+  CompoundStmt else_body;
 };
 
 }  // namespace lucid

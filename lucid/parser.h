@@ -176,6 +176,31 @@ class Parser {
           .value = std::get<ExprRef>(maybe_value),
       });
     }
+    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
+      Read();
+
+      if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) return *r;
+      const auto cond = ParseExpr();
+      if (IsError(cond)) return std::get<ParserError>(cond);
+      if (auto r = ExpectToken(Token::Kind::CloseParen); IsError(r)) return *r;
+
+      auto then_body = ParseCompoundStmt();
+      if (IsError(then_body)) return std::get<ParserError>(then_body);
+
+      if (auto r = ExpectIdent("else", ParserError::Kind::ExpectedLetKeyword);
+          IsError(r)) {
+        return *r;
+      }
+
+      auto else_body = ParseCompoundStmt();
+      if (IsError(else_body)) return std::get<ParserError>(else_body);
+
+      return arena_.add(IfStmt{
+          .condition = std::get<ExprRef>(cond),
+          .then_body = std::get<CompoundStmt>(then_body),
+          .else_body = std::get<CompoundStmt>(else_body),
+      });
+    }
     return MakeError(ParserError::Kind::UnexpectedToken, Peek());
   }
 

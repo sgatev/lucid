@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <string_view>
 #include <variant>
 
@@ -46,6 +47,32 @@ struct Jump {
   std::string_view label;
 
   bool operator==(const Jump& other) const { return label == other.label; }
+};
+
+// Jumps to a labeled location based on the value of a register.
+struct CondJump {
+  // Int32 register used as a condition for the jump.
+  RegId cond_reg;
+
+  // Jumps to the location with this label if the value at the register is not
+  // zero.
+  std::string then_label;
+
+  // Jumps to the location with this label if the value at the register is zero.
+  std::string else_label;
+
+  bool operator==(const CondJump& other) const {
+    return cond_reg == other.cond_reg && then_label == other.then_label &&
+           else_label == other.else_label;
+  }
+};
+
+// A label in the list of instructions.
+struct Label {
+  // Value of the label.
+  std::string label;
+
+  bool operator==(const Label& other) const { return label == other.label; }
 };
 
 // Returns to the location before the last jump.
@@ -122,7 +149,8 @@ struct DivReg32 {
 };
 
 // An instruction for the Lucid abstract machine.
-using Instruction = std::variant<Nop, MoveReg32, SetReg32, Jump, Return,
-                                 AddReg32, SubReg32, MulReg32, DivReg32>;
+using Instruction =
+    std::variant<Nop, MoveReg32, SetReg32, Jump, CondJump, Label, Return,
+                 AddReg32, SubReg32, MulReg32, DivReg32>;
 
 }  // namespace lucid

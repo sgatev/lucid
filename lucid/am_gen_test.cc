@@ -293,5 +293,96 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddBools) {
                                   Return{}));
 }
 
+TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
+  auto return_add_expr = Allocate(ReturnStmt{
+      .value = Allocate(BinaryOpExpr{
+          .op = BinaryOp::Add,
+          .lhs = Allocate(IntLitExpr{.value = "2"}),
+          .rhs = Allocate(IntLitExpr{.value = "3"}),
+      }),
+  });
+  auto return_mul_expr = Allocate(ReturnStmt{
+      .value = Allocate(BinaryOpExpr{
+          .op = BinaryOp::Mul,
+          .lhs = Allocate(IntLitExpr{.value = "4"}),
+          .rhs = Allocate(IntLitExpr{.value = "5"}),
+      }),
+  });
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(IfStmt{
+                          .condition = Allocate(BoolLitExpr{.value = "true"}),
+                          .then_body = {.statements =
+                                            {
+                                                return_add_expr,
+                                            }},
+                          .else_body = {.statements =
+                                            {
+                                                return_mul_expr,
+                                            }},
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg32{
+                                      .src_val = "1",
+                                      .dst_reg = 1,
+                                  },
+                                  CondJump{
+                                      .cond_reg = 1,
+                                      .then_label = "block2",
+                                      .else_label = "block3",
+                                  },
+                                  Label{
+                                      .label = "block2",
+                                  },
+                                  SetReg32{
+                                      .src_val = "2",
+                                      .dst_reg = 2,
+                                  },
+                                  SetReg32{
+                                      .src_val = "3",
+                                      .dst_reg = 3,
+                                  },
+                                  AddReg32{
+                                      .res_reg = 4,
+                                      .lhs_reg = 2,
+                                      .rhs_reg = 3,
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 4,
+                                      .dst_reg = 0,
+                                  },
+                                  Return{},
+                                  Label{
+                                      .label = "block3",
+                                  },
+                                  SetReg32{
+                                      .src_val = "4",
+                                      .dst_reg = 5,
+                                  },
+                                  SetReg32{
+                                      .src_val = "5",
+                                      .dst_reg = 6,
+                                  },
+                                  MulReg32{
+                                      .res_reg = 7,
+                                      .lhs_reg = 5,
+                                      .rhs_reg = 6,
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 7,
+                                      .dst_reg = 0,
+                                  },
+                                  Return{}));
+}
+
 }  // namespace
 }  // namespace lucid

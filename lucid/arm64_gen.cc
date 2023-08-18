@@ -25,6 +25,10 @@ class Arm64Generator {
     out_reg_[1] = "X1";
     out_reg_[2] = "X2";
     out_reg_[3] = "X3";
+    out_reg_[4] = "X4";
+    out_reg_[5] = "X5";
+    out_reg_[6] = "X6";
+    out_reg_[7] = "X7";
   }
 
   void Generate() && {
@@ -64,6 +68,23 @@ class Arm64Generator {
     Append(inst.label);
     Append("\n");
     Append("ldp X29, X30, [sp], #16\n");
+  }
+
+  void Process(const CondJump& inst) {
+    Append("CMP ");
+    Append(out_reg_[inst.cond_reg]);
+    Append(", 0\n");
+    Append("B.EQ ");
+    Append(inst.else_label);
+    Append("\n");
+    Append("B.NE ");
+    Append(inst.then_label);
+    Append("\n");
+  }
+
+  void Process(const Label& inst) {
+    Append(inst.label);
+    Append(":\n");
   }
 
   void Process(const AddReg32& inst) {

@@ -74,6 +74,18 @@ struct ReturnStmtPattern {
   bool operator()(const ReturnStmt& stmt) const { return value(stmt.value); }
 };
 
+struct IfStmtPattern {
+  ExprRefMatcher condition;
+  CompoundStmtPattern then_body;
+  CompoundStmtPattern else_body;
+
+  bool operator()(const IfStmt& stmt) const {
+    return condition(stmt.condition) &&
+           AllMatch(stmt.then_body.statements, then_body.statements) &&
+           AllMatch(stmt.else_body.statements, else_body.statements);
+  }
+};
+
 struct IntLitExprPattern {
   std::string_view value;
 
@@ -126,6 +138,10 @@ class ParserTest : public testing::Test {
 
   StmtRefMatcher MatchesReturnStmt(ReturnStmtPattern pattern) {
     return MatchesStmt<ReturnStmt>(std::move(pattern));
+  }
+
+  StmtRefMatcher MatchesIfStmt(IfStmtPattern pattern) {
+    return MatchesStmt<IfStmt>(std::move(pattern));
   }
 
   ExprRefMatcher MatchesIntLitExpr(IntLitExprPattern pattern) {
@@ -427,6 +443,62 @@ TEST_F(ParserTest, ReturnFalseBoolLit) {
                                }),
                            },
                    }})));
+}
+
+TEST_F(ParserTest, IfStmt) {
+  std::string_view src = R"(
+    let foo = () -> Int {
+      if (true) {
+        return 2 + 3
+      } else {
+        return 4 * 5
+      }
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),  //
+      HoldsFuncDef(MatchesFuncDefStmt(
+          {.name = "foo",
+           .result_type = "Int",
+           .body = {
+               .statements =
+                   {
+                       MatchesIfStmt(
+                           {.condition = MatchesBoolLitExpr({
+                                .value = "true",
+                            }),
+                            .then_body =
+                                {
+                                    .statements =
+                                        {
+                                            MatchesReturnStmt({
+                                                .value = MatchesBinaryOpExpr({
+                                                    .op = BinaryOp::Add,
+                                                    .lhs = MatchesIntLitExpr(
+                                                        {.value = "2"}),
+                                                    .rhs = MatchesIntLitExpr(
+                                                        {.value = "3"}),
+                                                }),
+                                            }),
+                                        },
+                                },
+                            .else_body =
+                                {
+                                    .statements =
+                                        {
+                                            MatchesReturnStmt({
+                                                .value = MatchesBinaryOpExpr({
+                                                    .op = BinaryOp::Mul,
+                                                    .lhs = MatchesIntLitExpr(
+                                                        {.value = "4"}),
+                                                    .rhs = MatchesIntLitExpr(
+                                                        {.value = "5"}),
+                                                }),
+                                            }),
+                                        },
+                                }}),
+                   },
+           }})));
 }
 
 TEST_F(ParserTest, FuncDefMissingLet) {

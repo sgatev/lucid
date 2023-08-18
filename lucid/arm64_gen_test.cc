@@ -198,5 +198,62 @@ RET
 )");
 }
 
+TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
+  auto return_add_expr = Allocate(ReturnStmt{
+      .value = Allocate(BinaryOpExpr{
+          .op = BinaryOp::Add,
+          .lhs = Allocate(IntLitExpr{.value = "2"}),
+          .rhs = Allocate(IntLitExpr{.value = "3"}),
+      }),
+  });
+  auto return_mul_expr = Allocate(ReturnStmt{
+      .value = Allocate(BinaryOpExpr{
+          .op = BinaryOp::Mul,
+          .lhs = Allocate(IntLitExpr{.value = "4"}),
+          .rhs = Allocate(IntLitExpr{.value = "5"}),
+      }),
+  });
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(IfStmt{
+                          .condition = Allocate(BoolLitExpr{.value = "true"}),
+                          .then_body = {.statements =
+                                            {
+                                                return_add_expr,
+                                            }},
+                          .else_body = {.statements =
+                                            {
+                                                return_mul_expr,
+                                            }},
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+mov X1, #1
+CMP X1, 0
+B.EQ block3
+B.NE block2
+block2:
+mov X2, #2
+mov X3, #3
+ADD X4, X2, X3
+mov X0, X4
+RET
+block3:
+mov X5, #4
+mov X6, #5
+MUL X7, X5, X6
+mov X0, X7
+RET
+)");
+}
+
 }  // namespace
 }  // namespace lucid
