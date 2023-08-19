@@ -74,7 +74,7 @@ std::optional<std::string> Compile(std::string_view src, std::ostream& out) {
 
 int Build(CommandContext ctx) {
   if (ctx.args.size() != 2) {
-    ctx.err << "'build' command requires exactly 2 arguments\n";
+    PrintError(ctx.err) << "'build' command requires exactly 2 arguments\n";
     return 1;
   }
 
@@ -84,7 +84,7 @@ int Build(CommandContext ctx) {
   auto src_path = std::filesystem::absolute(ctx.args[1]);
   const auto src = ReadFile(src_path.c_str());
   if (!src.has_value()) {
-    ctx.err << "file error: could not read file " << src_path << "\n";
+    PrintError(ctx.err) << "could not read file '" << ctx.args[1] << "'\n";
     return 1;
   }
 
@@ -94,7 +94,7 @@ int Build(CommandContext ctx) {
   {
     std::ofstream assembly_stream(assembly_path);
     if (auto err_str = Compile(*src, assembly_stream); err_str) {
-      ctx.err << *err_str << "\n";
+      PrintError(ctx.err) << *err_str << "\n";
       return 1;
     }
   }

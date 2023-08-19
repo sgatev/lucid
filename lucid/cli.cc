@@ -26,8 +26,14 @@ int RunCommand(std::string_view root_name,
     return it->handler({ctx.args.subspan(1), ctx.out, ctx.err});
   }
 
-  ctx.err << "unknown command: " << ctx.args[0] << "\n";
+  PrintError(ctx.err) << "unknown command '" << ctx.args[0] << "'\n";
   return 1;
+}
+
+std::ostream& PrintError(std::ostream& out) {
+  return out << "\033[31m"
+             << "ERROR:"
+             << "\033[0m ";
 }
 
 }  // namespace lucid

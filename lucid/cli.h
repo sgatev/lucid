@@ -49,4 +49,7 @@ struct Command {
 int RunCommand(std::string_view root_name,
                std::initializer_list<Command> commands, CommandContext ctx);
 
+// Returns a stream that formats an error string and outputs it in `out`.
+std::ostream& PrintError(std::ostream& out);
+
 }  // namespace lucid

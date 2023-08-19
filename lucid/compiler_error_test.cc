@@ -10,6 +10,14 @@ using ::testing::EndsWith;
 using ::testing::Eq;
 using ::testing::StartsWith;
 
+// Matches a formatted error string.
+MATCHER_P(FormattedError, matcher, "") {
+  return ExplainMatchResult(
+      matcher,
+      std::string_view(arg).substr(sizeof("\033[31mERROR:\033[0m ") - 1),
+      result_listener);
+}
+
 TEST_F(CompilerTest, MissingArguments) {
   ASSERT_THAT(RunCompiler({}),
               AllOf(ReturnsCode(Eq(0)), Prints(Eq(R"(Usage: lucid <command> ...
@@ -23,22 +31,23 @@ Available commands:
 TEST_F(CompilerTest, UnknownCommand) {
   ASSERT_THAT(
       RunCompiler({"foo"}),
-      AllOf(ReturnsCode(Eq(1)), PrintsError(Eq("unknown command: foo\n"))));
+      AllOf(ReturnsCode(Eq(1)),
+            PrintsError(FormattedError(Eq("unknown command 'foo'\n")))));
 }
 
 TEST_F(CompilerTest, MissingBuildArguments) {
-  ASSERT_THAT(
-      RunCompiler({"build"}),
-      AllOf(ReturnsCode(Eq(1)),
-            PrintsError(Eq("'build' command requires exactly 2 arguments\n"))));
+  ASSERT_THAT(RunCompiler({"build"}),
+              AllOf(ReturnsCode(Eq(1)),
+                    PrintsError(FormattedError(Eq(
+                        "'build' command requires exactly 2 arguments\n")))));
 }
 
 TEST_F(CompilerTest, UnknownFile) {
   ASSERT_THAT(
       RunCompiler({"build", "unknown", "unknown.lu"}),
       AllOf(ReturnsCode(Eq(1)),
-            PrintsError(AllOf(StartsWith("file error: could not read file"),
-                              EndsWith("unknown.lu\"\n")))));
+            PrintsError(AllOf(FormattedError(StartsWith("could not read file")),
+                              EndsWith("unknown.lu'\n")))));
 }
 
 TEST_F(CompilerTest, ParseError) {
@@ -49,9 +58,9 @@ TEST_F(CompilerTest, ParseError) {
     )"));
   ASSERT_THAT(
       RunCompiler({"build", "main", FullPath("main.lu")}),
-      AllOf(ReturnsCode(Eq(1)),
-            PrintsError(Eq("parse error: expected closing parenthesis or "
-                           "parameter at line 2, column 20\n"))));
+      AllOf(ReturnsCode(Eq(1)), PrintsError(FormattedError(
+                                    Eq("expected closing parenthesis or "
+                                       "parameter at line 2, column 20\n")))));
 }
 
 TEST_F(CompilerTest, VersionIncludesCommitLine) {

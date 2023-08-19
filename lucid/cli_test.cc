@@ -1,9 +1,9 @@
 #include "lucid/cli.h"
 
 #include <span>
+#include <sstream>
 #include <string>
 #include <string_view>
-#include <strstream>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -22,7 +22,7 @@ TEST(RunCommandTest, RunsCommand) {
   };
   auto bar = [](CommandContext) { return 1; };
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
-  std::strstream out, err;
+  std::stringstream out, err;
   EXPECT_EQ(RunCommand("test",
                        {
                            {
@@ -42,7 +42,7 @@ TEST(RunCommandTest, RunsCommand) {
 TEST(RunCommandTest, UnknownCommand) {
   auto bar = [](CommandContext) { return 0; };
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
-  std::strstream out, err;
+  std::stringstream out, err;
   EXPECT_EQ(RunCommand("test",
                        {
                            {
@@ -52,19 +52,26 @@ TEST(RunCommandTest, UnknownCommand) {
                        },
                        {args, out, err}),
             1);
-  EXPECT_EQ(std::string(err.str()), "unknown command: foo\n");
+  EXPECT_EQ(std::string(err.str()),
+            "\033[31mERROR:\033[0m unknown command 'foo'\n");
 }
 
 TEST(RunCommandTest, EmptyArgs) {
   auto foo = [](CommandContext) { return 1; };
   std::vector<std::string_view> args = {};
-  std::strstream out, err;
+  std::stringstream out, err;
   EXPECT_EQ(RunCommand("test",
                        {
                            {.name = "foo", .handler = foo},
                        },
                        {args, out, err}),
             0);
+}
+
+TEST(PrintErrorTest, Works) {
+  std::stringstream out;
+  PrintError(out) << "foo";
+  EXPECT_EQ(std::string(out.str()), "\033[31mERROR:\033[0m foo");
 }
 
 }  // namespace

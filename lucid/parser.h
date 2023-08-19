@@ -34,8 +34,8 @@ class ParserError {
   Kind GetKind() const { return kind_; }
 
   std::string ToString() const {
-    return "parse error: " + KindString() + " at line " +
-           std::to_string(line_) + ", column " + std::to_string(col_);
+    return KindString() + " at line " + std::to_string(line_) + ", column " +
+           std::to_string(col_);
   }
 
  private:

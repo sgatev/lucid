@@ -534,9 +534,8 @@ TEST_F(ParserTest, FuncDefMissingLet) {
     = () -> Void {
     }
   )";
-  EXPECT_THAT(
-      Parse(src),
-      HoldsError("parse error: expected 'let' keyword at line 2, column 5"));
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected 'let' keyword at line 2, column 5"));
 }
 
 TEST_F(ParserTest, FuncDefMissingName) {
@@ -544,9 +543,8 @@ TEST_F(ParserTest, FuncDefMissingName) {
     let = () -> Void {
     }
   )";
-  EXPECT_THAT(
-      Parse(src),
-      HoldsError("parse error: expected identifier at line 2, column 9"));
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected identifier at line 2, column 9"));
 }
 
 TEST_F(ParserTest, FuncDefMissingEqual) {
@@ -554,8 +552,7 @@ TEST_F(ParserTest, FuncDefMissingEqual) {
     let main () -> Void {
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: unexpected token at line 2, column 14"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 14"));
 }
 
 TEST_F(ParserTest, FuncDefMissingOpeningParen) {
@@ -563,8 +560,7 @@ TEST_F(ParserTest, FuncDefMissingOpeningParen) {
     let main = ) -> Void {
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: unexpected token at line 2, column 16"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 16"));
 }
 
 TEST_F(ParserTest, FuncDefMissingParamName) {
@@ -573,9 +569,8 @@ TEST_F(ParserTest, FuncDefMissingParamName) {
       return x
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: expected closing parenthesis or "
-                         "parameter at line 2, column 15"));
+  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
+                                     "parameter at line 2, column 15"));
 }
 
 TEST_F(ParserTest, FuncDefMissingParamColon) {
@@ -584,8 +579,7 @@ TEST_F(ParserTest, FuncDefMissingParamColon) {
       return x
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: unexpected token at line 2, column 17"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 17"));
 }
 
 TEST_F(ParserTest, FuncDefMissingParamType) {
@@ -594,9 +588,8 @@ TEST_F(ParserTest, FuncDefMissingParamType) {
       return x
     }
   )";
-  EXPECT_THAT(
-      Parse(src),
-      HoldsError("parse error: expected identifier at line 2, column 17"));
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected identifier at line 2, column 17"));
 }
 
 TEST_F(ParserTest, FuncDefMissingParamColonAndType) {
@@ -605,8 +598,7 @@ TEST_F(ParserTest, FuncDefMissingParamColonAndType) {
       return x
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: unexpected token at line 2, column 16"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 16"));
 }
 
 TEST_F(ParserTest, FuncDefMissingNextParam) {
@@ -615,9 +607,8 @@ TEST_F(ParserTest, FuncDefMissingNextParam) {
       return x
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: expected closing parenthesis or "
-                         "parameter at line 2, column 22"));
+  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
+                                     "parameter at line 2, column 22"));
 }
 
 TEST_F(ParserTest, FuncDefMissingClosingParen) {
@@ -625,9 +616,8 @@ TEST_F(ParserTest, FuncDefMissingClosingParen) {
     let main = ( -> Void {
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: expected closing parenthesis or "
-                         "parameter at line 2, column 18"));
+  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
+                                     "parameter at line 2, column 18"));
 }
 
 TEST_F(ParserTest, FuncDefMissingResultArrowDash) {
@@ -635,8 +625,7 @@ TEST_F(ParserTest, FuncDefMissingResultArrowDash) {
     let main = () > Void {
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: unexpected token at line 2, column 19"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 19"));
 }
 
 TEST_F(ParserTest, FuncDefMissingResultArrowHead) {
@@ -644,8 +633,7 @@ TEST_F(ParserTest, FuncDefMissingResultArrowHead) {
     let main = () - Void {
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: unexpected token at line 2, column 21"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 21"));
 }
 
 TEST_F(ParserTest, FuncDefMissingResultType) {
@@ -653,9 +641,8 @@ TEST_F(ParserTest, FuncDefMissingResultType) {
     let main = () -> {
     }
   )";
-  EXPECT_THAT(
-      Parse(src),
-      HoldsError("parse error: expected identifier at line 2, column 22"));
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected identifier at line 2, column 22"));
 }
 
 TEST_F(ParserTest, FuncDefMissingOpenBrace) {
@@ -663,16 +650,14 @@ TEST_F(ParserTest, FuncDefMissingOpenBrace) {
     let main = () -> Void
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: unexpected token at line 3, column 5"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 5"));
 }
 
 TEST_F(ParserTest, FuncDefMissingClosingBrace) {
   std::string_view src = R"(
     let main = () -> Void {
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: unexpected token at line 3, column 3"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 3"));
 }
 
 TEST_F(ParserTest, ReturnMissingValue) {
@@ -681,8 +666,7 @@ TEST_F(ParserTest, ReturnMissingValue) {
       return
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("parse error: unexpected token at line 4, column 5"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
 }
 
 }  // namespace
