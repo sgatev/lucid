@@ -122,6 +122,9 @@ enum class BinaryOp {
 
   // Binary division operation.
   Div,
+
+  // Greater than comparison operation.
+  Gt,
 };
 
 // An expression that represents a binary operation over the values of two

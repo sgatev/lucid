@@ -245,6 +245,14 @@ class Parser {
 
       return MakeBinaryOpExpr(BinaryOp::Div, std::get<ExprRef>(maybe_expr),
                               std::get<ExprRef>(maybe_rhs));
+    } else if (Peek().kind == Token::Kind::Greater) {
+      Read();
+
+      const auto maybe_rhs = ParseExpr();
+      if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
+
+      return MakeBinaryOpExpr(BinaryOp::Gt, std::get<ExprRef>(maybe_expr),
+                              std::get<ExprRef>(maybe_rhs));
     }
 
     return maybe_expr;

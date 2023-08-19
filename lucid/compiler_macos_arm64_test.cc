@@ -92,30 +92,45 @@ TEST_F(CompilerTest, IfStmtThenBranch) {
   ASSERT_TRUE(CreateFile("main.lucid", R"(
       let main = () -> Int {
         if true {
-          return 2 + 3
+          return 2 
         } else {
-          return 4 * 5
+          return 3
         }
       }
     )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lucid")}),
               ReturnsCode(Eq(0)));
-  EXPECT_THAT(Run("main"), ReturnsCode(Eq(5)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
 
 TEST_F(CompilerTest, IfStmtElseBranch) {
   ASSERT_TRUE(CreateFile("main.lucid", R"(
       let main = () -> Int {
         if false {
-          return 2 + 3
+          return 2 
         } else {
-          return 4 * 5
+          return 3 
         }
       }
     )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lucid")}),
               ReturnsCode(Eq(0)));
-  EXPECT_THAT(Run("main"), ReturnsCode(Eq(20)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(3)));
+}
+
+TEST_F(CompilerTest, GtInts) {
+  ASSERT_TRUE(CreateFile("main.lucid", R"(
+      let main = () -> Int {
+        if 7 > 1 {
+          return 2
+        } else {
+          return 3
+        }
+      }
+    )"));
+  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lucid")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
 
 }  // namespace

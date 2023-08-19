@@ -330,6 +330,34 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
                    }})));
 }
 
+TEST_F(ParserTest, ReturnGtBinaryOpExpr) {
+  std::string_view src = R"(
+    let foo = () -> Bool {
+      return 3 > 2
+    }
+  )";
+  EXPECT_THAT(Parse(src),  //
+              HoldsFuncDef(MatchesFuncDefStmt(
+                  {.name = "foo",
+                   .result_type = "Bool",
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesBinaryOpExpr({
+                                       .op = BinaryOp::Gt,
+                                       .lhs = MatchesIntLitExpr({
+                                           .value = "3",
+                                       }),
+                                       .rhs = MatchesIntLitExpr({
+                                           .value = "2",
+                                       }),
+                                   }),
+                               }),
+                           },
+                   }})));
+}
+
 TEST_F(ParserTest, SingleFuncParam) {
   std::string_view src = R"(
     let id = (x: Int) -> Int {

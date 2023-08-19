@@ -256,5 +256,34 @@ RET
 )");
 }
 
+TEST_F(GenerateArmAssemblySourceTest, GtInts) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Gt,
+                              .lhs = Allocate(IntLitExpr{.value = "3"}),
+                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+MOV W1, #3
+MOV W2, #2
+CMP W1, W2
+CSET W3, GT
+MOV W0, W3
+RET
+)");
+}
+
 }  // namespace
 }  // namespace lucid
