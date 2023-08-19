@@ -280,6 +280,19 @@ cc_test(
     ],
 )
 
+cc_binary(
+    name = "parser_bench",
+    srcs = ["parser_bench.cc"],
+    deps = [
+        ":arena",
+        ":ast",
+        ":lexer",
+        ":parser",
+        ":token",
+        "@gbench//:benchmark",
+    ],
+)
+
 cc_library(
     name = "token",
     srcs = ["token.cc"],
