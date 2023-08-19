@@ -27,8 +27,9 @@ struct ControlFlowGraph {
     // "then" branch and the second block will represent the "else" branch.
     std::vector<BlockRef> next;
 
-    // Terminator expression of the block.
-    ExprRef terminator = kNullBlockRef;
+    // Condition expression that determines the block in `next` that follows
+    // this block.
+    ExprRef branch_cond = kNullBlockRef;
   };
 
   // Adds `block` to the control flow graph and returns a reference to it.

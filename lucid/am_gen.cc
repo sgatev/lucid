@@ -32,9 +32,9 @@ class AbstractMachineInstructionGenerator {
       Process(stmt_ref, DerefStmt(stmt_ref));
     }
 
-    if (block.terminator != ControlFlowGraph::kNullBlockRef) {
+    if (block.branch_cond != ControlFlowGraph::kNullBlockRef) {
       instructions_.push_back(CondJump{
-          .cond_reg = out_reg_[block.terminator],
+          .cond_reg = out_reg_[block.branch_cond],
           .then_label = next_label_id_,
           .else_label = next_label_id_ + 1,
       });

@@ -262,7 +262,7 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
   EXPECT_THAT(block.statements, ElementsAreArray({
                                     cond_expr,
                                 }));
-  EXPECT_EQ(block.terminator, cond_expr);
+  EXPECT_EQ(block.branch_cond, cond_expr);
 
   const auto& then_block = graph.get(block.next[0]);
   EXPECT_THAT(then_block.next, ElementsAre(graph.last));

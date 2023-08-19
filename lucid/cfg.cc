@@ -105,7 +105,7 @@ class ControlFlowGraphBuilder {
     graph_.get(block).next.push_back(else_block);
 
     pending_sub_exprs_.push(stmt.cond);
-    graph_.get(block).terminator = stmt.cond;
+    graph_.get(block).branch_cond = stmt.cond;
   }
 
   void ProcessSubExpr(ExprRef expr_ref, BlockRef block, BlockRef end) {
