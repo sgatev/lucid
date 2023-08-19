@@ -20,14 +20,14 @@ class Arm64Generator {
                           const std::vector<Instruction>& instructions,
                           std::ostream& out)
       : func_name_(func_name), instructions_(instructions), out_(out) {
-    out_reg_[0] = "X0";
-    out_reg_[1] = "X1";
-    out_reg_[2] = "X2";
-    out_reg_[3] = "X3";
-    out_reg_[4] = "X4";
-    out_reg_[5] = "X5";
-    out_reg_[6] = "X6";
-    out_reg_[7] = "X7";
+    out_reg_[0] = "W0";
+    out_reg_[1] = "W1";
+    out_reg_[2] = "W2";
+    out_reg_[3] = "W3";
+    out_reg_[4] = "W4";
+    out_reg_[5] = "W5";
+    out_reg_[6] = "W6";
+    out_reg_[7] = "W7";
   }
 
   void Generate() && {
