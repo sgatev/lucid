@@ -1,6 +1,6 @@
-# Lucid
+# luc✦d
 
-An experimental programming language.
+Lucid is an experimental programming language.
 
 ## Requires
 
@@ -26,7 +26,7 @@ $ bazel build -c opt //lucid:compiler
 
 ## Run
 
-To compile code and run it execute 
+To compile and run code execute 
 
 ```bash
 $ bazel-bin/lucid/compiler build main examples/main.lu
