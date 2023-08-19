@@ -12,8 +12,7 @@ namespace {
 using ::testing::Optional;
 
 TEST(ReadFileTest, Works) {
-  const std::string path =
-      testing::SrcDir() + "__main__/lucid/testdata/foobarbaz";
+  std::string path = testing::SrcDir() + "__main__/lucid/testdata/foobarbaz";
   EXPECT_THAT(ReadFile(path), Optional(std::string("foobarbaz\n")));
 }
 

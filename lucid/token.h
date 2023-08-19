@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cctype>
 #include <cstddef>
 #include <ostream>
 #include <string_view>
@@ -43,7 +42,7 @@ struct Token {
   friend std::ostream& operator<<(std::ostream& os, const Token& token) {
     os << "Token{.kind=" << static_cast<int>(token.kind)
        << ", .start_pos=" << token.start_pos << ", .end_pos=" << token.end_pos
-       << ")";
+       << "}";
     return os;
   }
 
