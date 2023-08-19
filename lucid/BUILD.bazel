@@ -224,6 +224,16 @@ cc_test(
     ],
 )
 
+cc_binary(
+    name = "lexer_bench",
+    srcs = ["lexer_bench.cc"],
+    deps = [
+        ":lexer",
+        ":token",
+        "@gbench//:benchmark",
+    ],
+)
+
 cc_library(
     name = "opt",
     srcs = ["opt.cc"],
