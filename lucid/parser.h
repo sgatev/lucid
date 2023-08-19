@@ -179,10 +179,8 @@ class Parser {
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
       Read();
 
-      if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) return *r;
       const auto cond = ParseExpr();
       if (IsError(cond)) return std::get<ParserError>(cond);
-      if (auto r = ExpectToken(Token::Kind::CloseParen); IsError(r)) return *r;
 
       auto then_body = ParseCompoundStmt();
       if (IsError(then_body)) return std::get<ParserError>(then_body);

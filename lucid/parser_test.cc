@@ -448,7 +448,7 @@ TEST_F(ParserTest, ReturnFalseBoolLit) {
 TEST_F(ParserTest, IfStmt) {
   std::string_view src = R"(
     let foo = () -> Int {
-      if (true) {
+      if true {
         return 2 + 3
       } else {
         return 4 * 5

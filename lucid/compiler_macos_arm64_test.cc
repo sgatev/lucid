@@ -91,7 +91,7 @@ TEST_F(CompilerTest, AddBools) {
 TEST_F(CompilerTest, IfStmtThenBranch) {
   ASSERT_TRUE(CreateFile("main.lucid", R"(
       let main = () -> Int {
-        if (true) {
+        if true {
           return 2 + 3
         } else {
           return 4 * 5
@@ -106,7 +106,7 @@ TEST_F(CompilerTest, IfStmtThenBranch) {
 TEST_F(CompilerTest, IfStmtElseBranch) {
   ASSERT_TRUE(CreateFile("main.lucid", R"(
       let main = () -> Int {
-        if (false) {
+        if false {
           return 2 + 3
         } else {
           return 4 * 5
