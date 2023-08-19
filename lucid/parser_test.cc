@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -128,7 +129,9 @@ class ParserTest : public testing::Test {
   std::variant<FuncDefStmt, std::string> Parse(std::string_view src) {
     auto maybe_func_def_stmt = Parser(arena_, src, Lexer(src)).ParseFuncDef();
     if (auto* ref = std::get_if<FuncDefStmt>(&maybe_func_def_stmt)) return *ref;
-    return std::get<ParserError>(maybe_func_def_stmt).ToString();
+    std::stringstream out;
+    out << std::get<ParserError>(maybe_func_def_stmt);
+    return out.str();
   }
 
   std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(

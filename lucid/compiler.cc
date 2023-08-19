@@ -40,7 +40,7 @@ std::string StringFormat(const std::string& fmt, Args... args) {
   return result;
 }
 
-std::variant<std::vector<FuncDefStmt>, std::string> ParseFuncDefs(
+std::variant<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
     std::string_view src, Arena<Stmt>& arena) {
   std::vector<FuncDefStmt> func_defs;
   Lexer lexer(src);
@@ -49,18 +49,18 @@ std::variant<std::vector<FuncDefStmt>, std::string> ParseFuncDefs(
     auto maybe_func_def = parser.ParseFuncDef();
     if (auto* err = std::get_if<ParserError>(&maybe_func_def)) {
       if (err->GetKind() == ParserError::Kind::End) break;
-      return err->ToString();
+      return std::move(*err);
     }
     func_defs.push_back(std::get<FuncDefStmt>(std::move(maybe_func_def)));
   }
   return func_defs;
 }
 
-std::optional<std::string> Compile(std::string_view src, std::ostream& out) {
+std::optional<ParserError> Compile(std::string_view src, std::ostream& out) {
   Arena<Stmt> arena;
   auto maybe_funcs = ParseFuncDefs(src, arena);
-  if (auto* err = std::get_if<std::string>(&maybe_funcs)) {
-    return *std::move(err);
+  if (auto* err = std::get_if<ParserError>(&maybe_funcs)) {
+    return std::move(*err);
   }
   GenerateArmStartSource(out);
   for (const auto& func : std::get<std::vector<FuncDefStmt>>(maybe_funcs)) {
@@ -93,8 +93,8 @@ int Build(CommandContext ctx) {
   auto assembly_path = build_dir / (std::string(binary_name) + ".s");
   {
     std::ofstream assembly_stream(assembly_path);
-    if (auto err_str = Compile(*src, assembly_stream); err_str) {
-      PrintError(ctx.err) << *err_str << "\n";
+    if (auto err = Compile(*src, assembly_stream); err) {
+      PrintError(ctx.err) << *err << "\n";
       return 1;
     }
   }

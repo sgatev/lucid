@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
-#include <string>
+#include <ostream>
 #include <string_view>
 #include <utility>
 #include <variant>
@@ -33,13 +33,13 @@ class ParserError {
 
   Kind GetKind() const { return kind_; }
 
-  std::string ToString() const {
-    return KindString() + " at line " + std::to_string(line_) + ", column " +
-           std::to_string(col_);
+  friend std::ostream& operator<<(std::ostream& out, const ParserError error) {
+    return out << error.KindString() << " at line " << error.line_
+               << ", column " << error.col_;
   }
 
  private:
-  std::string KindString() const {
+  std::string_view KindString() const {
     switch (kind_) {
       case Kind::End:
         return "end";
