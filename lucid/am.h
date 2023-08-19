@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <cstddef>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -54,12 +54,11 @@ struct CondJump {
   // Int32 register used as a condition for the jump.
   RegId cond_reg;
 
-  // Jumps to the location with this label if the value at the register is not
-  // zero.
-  std::string then_label;
+  // Label of the location to jump to if the value in the register is not zero.
+  std::size_t then_label;
 
-  // Jumps to the location with this label if the value at the register is zero.
-  std::string else_label;
+  // Label of the location to jump to if the value in the register is zero.
+  std::size_t else_label;
 
   bool operator==(const CondJump& other) const {
     return cond_reg == other.cond_reg && then_label == other.then_label &&
@@ -69,10 +68,10 @@ struct CondJump {
 
 // A label in the list of instructions.
 struct Label {
-  // Value of the label.
-  std::string label;
+  // Identifier of the label.
+  std::size_t id;
 
-  bool operator==(const Label& other) const { return label == other.label; }
+  bool operator==(const Label& other) const { return id == other.id; }
 };
 
 // Returns to the location before the last jump.

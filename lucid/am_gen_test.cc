@@ -308,6 +308,17 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
           .rhs = Allocate(IntLitExpr{.value = "5"}),
       }),
   });
+  auto if_stmt = Allocate(IfStmt{
+      .cond = Allocate(BoolLitExpr{.value = "true"}),
+      .then_body = {.statements =
+                        {
+                            return_add_expr,
+                        }},
+      .else_body = {.statements =
+                        {
+                            return_mul_expr,
+                        }},
+  });
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "int",
@@ -315,17 +326,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
           {
               .statements =
                   {
-                      Allocate(IfStmt{
-                          .condition = Allocate(BoolLitExpr{.value = "true"}),
-                          .then_body = {.statements =
-                                            {
-                                                return_add_expr,
-                                            }},
-                          .else_body = {.statements =
-                                            {
-                                                return_mul_expr,
-                                            }},
-                      }),
+                      if_stmt,
                   },
           },
   };
@@ -337,11 +338,11 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
                                   },
                                   CondJump{
                                       .cond_reg = 1,
-                                      .then_label = "block2",
-                                      .else_label = "block3",
+                                      .then_label = 1,
+                                      .else_label = 2,
                                   },
                                   Label{
-                                      .label = "block2",
+                                      .id = 1,
                                   },
                                   SetReg32{
                                       .src_val = "2",
@@ -362,7 +363,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
                                   },
                                   Return{},
                                   Label{
-                                      .label = "block3",
+                                      .id = 2,
                                   },
                                   SetReg32{
                                       .src_val = "4",

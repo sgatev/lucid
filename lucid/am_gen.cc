@@ -1,5 +1,6 @@
 #include "lucid/am_gen.h"
 
+#include <cstddef>
 #include <map>
 #include <string>
 #include <utility>
@@ -30,31 +31,30 @@ class AbstractMachineInstructionGenerator {
     for (const auto& stmt_ref : block.statements) {
       Process(stmt_ref, DerefStmt(stmt_ref));
     }
+
     if (block.terminator != ControlFlowGraph::kNullBlockRef) {
       instructions_.push_back(CondJump{
           .cond_reg = out_reg_[block.terminator],
-          .then_label = std::string("block") + std::to_string(block.next[0]),
-          .else_label = std::string("block") + std::to_string(block.next[1]),
+          .then_label = next_label_id_,
+          .else_label = next_label_id_ + 1,
       });
     }
-    for (auto next : block.next) {
-      if (next == graph_.last) continue;
+    for (auto next_block : block.next) {
+      if (next_block == graph_.last) continue;
 
       instructions_.push_back(Label{
-          .label = std::string("block") + std::to_string(next),
-
+          .id = next_label_id_++,
       });
 
-      Process(graph_.get(next));
+      Process(graph_.get(next_block));
     }
   }
 
-  void Process(StmtRef stmt_ref, const Stmt& stmt) {
-    std::visit([this, stmt_ref](auto&& stmt) { Process(stmt_ref, stmt); },
-               stmt);
+  void Process(StmtRef ref, const Stmt& stmt) {
+    std::visit([this, ref](auto&& stmt) { Process(ref, stmt); }, stmt);
   }
 
-  void Process(StmtRef stmt_ref, const ReturnStmt& stmt) {
+  void Process(StmtRef ref, const ReturnStmt& stmt) {
     instructions_.push_back(MoveReg32{
         .src_reg = out_reg_[stmt.value],
         .dst_reg = 0,
@@ -62,43 +62,40 @@ class AbstractMachineInstructionGenerator {
     instructions_.push_back(Return{});
   }
 
-  void Process(StmtRef stmt_ref, const Expr& expr) {
-    std::visit([this, stmt_ref](auto&& expr) { ProcessExpr(stmt_ref, expr); },
-               expr);
+  void Process(StmtRef ref, const Expr& expr) {
+    std::visit([this, ref](auto&& expr) { ProcessExpr(ref, expr); }, expr);
   }
 
-  void ProcessExpr(ExprRef expr_ref, const IntLitExpr& expr) {
+  void ProcessExpr(ExprRef ref, const IntLitExpr& expr) {
     RegId reg = next_reg_++;
     instructions_.push_back(SetReg32{
         .src_val = expr.value,
         .dst_reg = reg,
     });
-    out_reg_[expr_ref] = reg;
+    out_reg_[ref] = reg;
   }
 
-  void ProcessExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
+  void ProcessExpr(ExprRef ref, const BoolLitExpr& expr) {
     RegId reg = next_reg_++;
     instructions_.push_back(SetReg32{
         .src_val = expr.value == "true" ? "1" : "0",
         .dst_reg = reg,
     });
-    out_reg_[expr_ref] = reg;
+    out_reg_[ref] = reg;
   }
 
-  void ProcessExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
+  void ProcessExpr(ExprRef ref, const FuncCallExpr& expr) {
     instructions_.push_back(Jump{
         .label = expr.func_name,
     });
-    out_reg_[expr_ref] = 0;
+    out_reg_[ref] = 0;
   }
 
   void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {}
 
-  void ProcessExpr(ExprRef expr_ref, const IdentExpr& expr) {
-    out_reg_[expr_ref] = 1;
-  }
+  void ProcessExpr(ExprRef ref, const IdentExpr& expr) { out_reg_[ref] = 1; }
 
-  void ProcessExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {
+  void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr) {
     auto reg = next_reg_++;
     switch (expr.op) {
       case BinaryOp::Add:
@@ -130,7 +127,7 @@ class AbstractMachineInstructionGenerator {
         });
         break;
     }
-    out_reg_[expr_ref] = reg;
+    out_reg_[ref] = reg;
   }
 
   const Stmt& DerefStmt(StmtRef ref) { return arena_.get(ref); }
@@ -140,6 +137,7 @@ class AbstractMachineInstructionGenerator {
   std::map<StmtRef, RegId> out_reg_;
   std::vector<Instruction> instructions_;
   RegId next_reg_ = 1;
+  std::size_t next_label_id_ = 1;
 };
 
 }  // namespace

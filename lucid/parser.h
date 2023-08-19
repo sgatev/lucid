@@ -196,7 +196,7 @@ class Parser {
       if (IsError(else_body)) return std::get<ParserError>(else_body);
 
       return arena_.add(IfStmt{
-          .condition = std::get<ExprRef>(cond),
+          .cond = std::get<ExprRef>(cond),
           .then_body = std::get<CompoundStmt>(then_body),
           .else_body = std::get<CompoundStmt>(else_body),
       });

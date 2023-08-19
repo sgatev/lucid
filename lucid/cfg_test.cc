@@ -233,9 +233,9 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
       .lhs = mul_lhs_expr,
       .rhs = mul_rhs_expr,
   });
-  auto condition_expr = Allocate(BoolLitExpr{.value = "true"});
+  auto cond_expr = Allocate(BoolLitExpr{.value = "true"});
   auto if_stmt = Allocate(IfStmt{
-      .condition = condition_expr,
+      .cond = cond_expr,
       .then_body =
           {
               .statements{add_expr},
@@ -260,9 +260,9 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
   const auto& block = graph.get(block_ref);
   ASSERT_THAT(block.next, SizeIs(2));
   EXPECT_THAT(block.statements, ElementsAreArray({
-                                    condition_expr,
+                                    cond_expr,
                                 }));
-  EXPECT_EQ(block.terminator, condition_expr);
+  EXPECT_EQ(block.terminator, cond_expr);
 
   const auto& then_block = graph.get(block.next[0]);
   EXPECT_THAT(then_block.next, ElementsAre(graph.last));

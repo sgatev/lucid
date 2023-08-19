@@ -75,12 +75,12 @@ struct ReturnStmtPattern {
 };
 
 struct IfStmtPattern {
-  ExprRefMatcher condition;
+  ExprRefMatcher cond;
   CompoundStmtPattern then_body;
   CompoundStmtPattern else_body;
 
   bool operator()(const IfStmt& stmt) const {
-    return condition(stmt.condition) &&
+    return cond(stmt.cond) &&
            AllMatch(stmt.then_body.statements, then_body.statements) &&
            AllMatch(stmt.else_body.statements, else_body.statements);
   }
@@ -464,7 +464,7 @@ TEST_F(ParserTest, IfStmt) {
                .statements =
                    {
                        MatchesIfStmt(
-                           {.condition = MatchesBoolLitExpr({
+                           {.cond = MatchesBoolLitExpr({
                                 .value = "true",
                             }),
                             .then_body =

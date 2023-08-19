@@ -1,12 +1,11 @@
 #include "lucid/arm64_gen.h"
 
-#include <functional>
 #include <map>
 #include <ostream>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <variant>
+#include <vector>
 
 #include "lucid/am.h"
 #include "lucid/am_gen.h"
@@ -45,7 +44,7 @@ class Arm64Generator {
   void Process(const Nop&) {}
 
   void Process(const MoveReg32& inst) {
-    Append("mov ");
+    Append("MOV ");
     Append(out_reg_[inst.dst_reg]);
     Append(", ");
     Append(out_reg_[inst.src_reg]);
@@ -53,7 +52,7 @@ class Arm64Generator {
   }
 
   void Process(const SetReg32& inst) {
-    Append("mov ");
+    Append("MOV ");
     Append(out_reg_[inst.dst_reg]);
     Append(", #");
     Append(inst.src_val);
@@ -63,11 +62,11 @@ class Arm64Generator {
   void Process(const Return& inst) { Append("RET\n"); }
 
   void Process(const Jump& inst) {
-    Append("stp X29, X30, [sp, #-16]!\n");
+    Append("STP X29, X30, [sp, #-16]!\n");
     Append("BL ");
     Append(inst.label);
     Append("\n");
-    Append("ldp X29, X30, [sp], #16\n");
+    Append("LDP X29, X30, [sp], #16\n");
   }
 
   void Process(const CondJump& inst) {
@@ -75,15 +74,18 @@ class Arm64Generator {
     Append(out_reg_[inst.cond_reg]);
     Append(", 0\n");
     Append("B.EQ ");
-    Append(inst.else_label);
+    Append(func_name_);
+    Append(std::to_string(inst.else_label));
     Append("\n");
     Append("B.NE ");
-    Append(inst.then_label);
+    Append(func_name_);
+    Append(std::to_string(inst.then_label));
     Append("\n");
   }
 
   void Process(const Label& inst) {
-    Append(inst.label);
+    Append(func_name_);
+    Append(std::to_string(inst.id));
     Append(":\n");
   }
 
@@ -132,7 +134,7 @@ class Arm64Generator {
   std::string_view func_name_;
   const std::vector<Instruction>& instructions_;
   std::ostream& out_;
-  std::map<RegId, std::string> out_reg_;
+  std::map<RegId, std::string_view> out_reg_;
 };
 
 }  // namespace
@@ -141,11 +143,11 @@ void GenerateArmStartSource(std::ostream& out) {
   out << R"(.global _start
 .align 2
 _start:
-  stp X29, X30, [sp, #-16]!
+  STP X29, X30, [sp, #-16]!
   BL main
-  ldp X29, X30, [sp], #16
-  mov X16, #1
-  svc #0x80
+  LDP X29, X30, [sp], #16
+  MOV X16, #1
+  SVC #0x80
 )";
 }
 

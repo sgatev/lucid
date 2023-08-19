@@ -49,8 +49,8 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnIntLit) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-mov X1, #21
-mov X0, X1
+MOV X1, #21
+MOV X0, X1
 RET
 )");
 }
@@ -77,11 +77,11 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-mov X1, #21
-stp X29, X30, [sp, #-16]!
+MOV X1, #21
+STP X29, X30, [sp, #-16]!
 BL id
-ldp X29, X30, [sp], #16
-mov X0, X0
+LDP X29, X30, [sp], #16
+MOV X0, X0
 RET
 )");
 }
@@ -106,10 +106,10 @@ TEST_F(GenerateArmAssemblySourceTest, AddInts) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-mov X1, #2
-mov X2, #3
+MOV X1, #2
+MOV X2, #3
 ADD X3, X1, X2
-mov X0, X3
+MOV X0, X3
 RET
 )");
 }
@@ -134,10 +134,10 @@ TEST_F(GenerateArmAssemblySourceTest, SubtractInts) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-mov X1, #7
-mov X2, #5
+MOV X1, #7
+MOV X2, #5
 SUB X3, X1, X2
-mov X0, X3
+MOV X0, X3
 RET
 )");
 }
@@ -162,10 +162,10 @@ TEST_F(GenerateArmAssemblySourceTest, MultiplyInts) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-mov X1, #2
-mov X2, #3
+MOV X1, #2
+MOV X2, #3
 MUL X3, X1, X2
-mov X0, X3
+MOV X0, X3
 RET
 )");
 }
@@ -190,10 +190,10 @@ TEST_F(GenerateArmAssemblySourceTest, DivideInts) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-mov X1, #8
-mov X2, #2
+MOV X1, #8
+MOV X2, #2
 UDIV X3, X1, X2
-mov X0, X3
+MOV X0, X3
 RET
 )");
 }
@@ -213,6 +213,17 @@ TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
           .rhs = Allocate(IntLitExpr{.value = "5"}),
       }),
   });
+  auto if_stmt = Allocate(IfStmt{
+      .cond = Allocate(BoolLitExpr{.value = "true"}),
+      .then_body = {.statements =
+                        {
+                            return_add_expr,
+                        }},
+      .else_body = {.statements =
+                        {
+                            return_mul_expr,
+                        }},
+  });
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "int",
@@ -220,37 +231,27 @@ TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
           {
               .statements =
                   {
-                      Allocate(IfStmt{
-                          .condition = Allocate(BoolLitExpr{.value = "true"}),
-                          .then_body = {.statements =
-                                            {
-                                                return_add_expr,
-                                            }},
-                          .else_body = {.statements =
-                                            {
-                                                return_mul_expr,
-                                            }},
-                      }),
+                      if_stmt,
                   },
           },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-mov X1, #1
+MOV X1, #1
 CMP X1, 0
-B.EQ block3
-B.NE block2
-block2:
-mov X2, #2
-mov X3, #3
+B.EQ foo2
+B.NE foo1
+foo1:
+MOV X2, #2
+MOV X3, #3
 ADD X4, X2, X3
-mov X0, X4
+MOV X0, X4
 RET
-block3:
-mov X5, #4
-mov X6, #5
+foo2:
+MOV X5, #4
+MOV X6, #5
 MUL X7, X5, X6
-mov X0, X7
+MOV X0, X7
 RET
 )");
 }

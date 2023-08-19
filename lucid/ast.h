@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cstdint>
 #include <string_view>
 #include <variant>
+#include <vector>
 
 #include "lucid/arena.h"
 
@@ -34,8 +34,9 @@ using StmtRef = ArenaRef<Stmt>;
 // object.
 using ExprRef = StmtRef;
 
-// A collection of zero or more statements.
+// A list of zero or more statements.
 struct CompoundStmt {
+  // Statements in the list.
   std::vector<StmtRef> statements;
 };
 
@@ -136,10 +137,10 @@ struct BinaryOpExpr {
   ExprRef rhs;
 };
 
-// A statement that represents a condition.
+// A statement that represents conditional execution.
 struct IfStmt {
-  // Condition.
-  ExprRef condition;
+  // Condition that determines which branch of the statement will execute.
+  ExprRef cond;
 
   // Body of the branch where the condition is true.
   CompoundStmt then_body;
