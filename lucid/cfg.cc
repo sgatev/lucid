@@ -33,29 +33,30 @@ class ControlFlowGraphBuilder {
     for (StmtRef stmt_ref : stmt.statements) {
       if (auto* if_stmt = std::get_if<IfStmt>(&DerefStmt(stmt_ref))) {
         ProcessStmt(*if_stmt, block, end);
+        FlushSubExprs(block, end);
+        return;
       } else {
         ProcessSubExpr(stmt_ref, block, end);
-      }
-
-      while (!pending_sub_exprs_.empty()) {
-        auto stmt_ref = pending_sub_exprs_.top();
-        pending_sub_exprs_.pop();
-
-        graph_.get(block).statements.push_back(stmt_ref);
-
-        std::visit([&](auto&& stmt) { ProcessStmt(stmt, block, end); },
-                   DerefStmt(stmt_ref));
-      }
-
-      std::reverse(graph_.get(block).statements.begin(),
-                   graph_.get(block).statements.end());
-
-      if (std::holds_alternative<IfStmt>(DerefStmt(stmt_ref))) {
-        return;
+        FlushSubExprs(block, end);
       }
     }
 
     graph_.get(block).next.push_back(graph_.last);
+  }
+
+  void FlushSubExprs(BlockRef block, BlockRef end) {
+    while (!pending_sub_exprs_.empty()) {
+      auto stmt_ref = pending_sub_exprs_.top();
+      pending_sub_exprs_.pop();
+
+      graph_.get(block).statements.push_back(stmt_ref);
+
+      std::visit([&](auto&& stmt) { ProcessStmt(stmt, block, end); },
+                 DerefStmt(stmt_ref));
+    }
+
+    std::reverse(graph_.get(block).statements.begin(),
+                 graph_.get(block).statements.end());
   }
 
   void ProcessExpr(const FuncCallExpr& expr, BlockRef block, BlockRef end) {
