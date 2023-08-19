@@ -13,5 +13,5 @@ bazel_skylib_workspace()
 git_repository(
     name = "gtest",
     remote = "https://github.com/google/googletest",
-    tag = "v1.13.0",
+    tag = "v1.14.0",
 )
