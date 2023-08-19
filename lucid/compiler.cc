@@ -1,11 +1,13 @@
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <span>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -77,10 +79,10 @@ int Build(CommandContext ctx) {
   }
 
   std::string_view binary_name = ctx.args[0];
-  std::string_view src_path = ctx.args[1];
 
   // Load Lucid sources.
-  const auto src = ReadFile(src_path);
+  auto src_path = std::filesystem::absolute(ctx.args[1]);
+  const auto src = ReadFile(src_path.c_str());
   if (!src.has_value()) {
     ctx.err << "file error: could not read file " << src_path << "\n";
     return 1;

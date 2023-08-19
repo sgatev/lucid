@@ -29,6 +29,6 @@ $ bazel build -c opt //lucid:compiler
 To compile code and run it execute 
 
 ```bash
-$ bazel-bin/lucid/compiler main main.lucid
+$ bazel-bin/lucid/compiler build main examples/main.lu
 $ ./main
 ```
