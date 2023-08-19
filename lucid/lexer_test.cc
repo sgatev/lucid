@@ -1,7 +1,9 @@
 #include "lucid/lexer.h"
 
 #include <ostream>
+#include <string>
 #include <string_view>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -26,6 +28,12 @@ struct TestToken {
   const std::string text;
 };
 
+[[maybe_unused]] std::ostream& operator<<(std::ostream& stream,
+                                          const TestToken& tok) {
+  return stream << "TestToken{.kind=" << static_cast<int>(tok.kind)
+                << ", .text=\"" << tok.text << "\"}";
+}
+
 TestToken Tok(Kind kind, std::string_view text) {
   return TestToken(kind, text);
 }
@@ -49,16 +57,20 @@ TEST(LexerTest, Empty) { EXPECT_THAT(ReadTokens(""), IsEmpty()); }
 TEST(LexerTest, Function) {
   EXPECT_THAT(
       ReadTokens(R"(
-    let main = () {
+    let main = () -> Int {
       print("Hello, world!")
+      return 0
     }
   )"),
       ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "main"),
                   Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
-                  Tok(Kind::CloseParen, ")"), Tok(Kind::OpenBrace, "{"),
-                  Tok(Kind::Ident, "print"), Tok(Kind::OpenParen, "("),
+                  Tok(Kind::CloseParen, ")"), Tok(Kind::Minus, "-"),
+                  Tok(Kind::Greater, ">"), Tok(Kind::Ident, "Int"),
+                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "print"),
+                  Tok(Kind::OpenParen, "("),
                   Tok(Kind::String, "\"Hello, world!\""),
-                  Tok(Kind::CloseParen, ")"), Tok(Kind::CloseBrace, "}")));
+                  Tok(Kind::CloseParen, ")"), Tok(Kind::Ident, "return"),
+                  Tok(Kind::Number, "0"), Tok(Kind::CloseBrace, "}")));
 }
 
 TEST(LexerTest, Tuple) {
