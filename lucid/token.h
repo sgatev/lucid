@@ -39,12 +39,7 @@ struct Token {
            end_pos == other.end_pos;
   }
 
-  friend std::ostream& operator<<(std::ostream& os, const Token& token) {
-    os << "Token{.kind=" << static_cast<int>(token.kind)
-       << ", .start_pos=" << token.start_pos << ", .end_pos=" << token.end_pos
-       << "}";
-    return os;
-  }
+  friend std::ostream& operator<<(std::ostream& os, const Token& token);
 
   Kind kind;
   std::size_t start_pos;
