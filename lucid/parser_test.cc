@@ -532,6 +532,64 @@ TEST_F(ParserTest, IfStmt) {
            }})));
 }
 
+TEST_F(ParserTest, GtInts) {
+  std::string_view src = R"(
+    let gt = (x: Int, y: Int) -> Bool {
+      return x > y
+    }
+  )";
+  EXPECT_THAT(Parse(src),  //
+              HoldsFuncDef(MatchesFuncDefStmt(
+                  {.name = "gt",
+                   .result_type = "Bool",
+                   .parameters =
+                       {
+                           {.name = "x", .type = "Int"},
+                           {.name = "y", .type = "Int"},
+                       },
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesBinaryOpExpr({
+                                       .op = BinaryOp::Gt,
+                                       .lhs = MatchesIdentExpr({.name = "x"}),
+                                       .rhs = MatchesIdentExpr({.name = "y"}),
+                                   }),
+                               }),
+                           },
+                   }})));
+}
+
+TEST_F(ParserTest, LtInts) {
+  std::string_view src = R"(
+    let gt = (x: Int, y: Int) -> Bool {
+      return x < y
+    }
+  )";
+  EXPECT_THAT(Parse(src),  //
+              HoldsFuncDef(MatchesFuncDefStmt(
+                  {.name = "gt",
+                   .result_type = "Bool",
+                   .parameters =
+                       {
+                           {.name = "x", .type = "Int"},
+                           {.name = "y", .type = "Int"},
+                       },
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesBinaryOpExpr({
+                                       .op = BinaryOp::Lt,
+                                       .lhs = MatchesIdentExpr({.name = "x"}),
+                                       .rhs = MatchesIdentExpr({.name = "y"}),
+                                   }),
+                               }),
+                           },
+                   }})));
+}
+
 TEST_F(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
     = () -> Void {

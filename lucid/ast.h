@@ -125,6 +125,9 @@ enum class BinaryOp {
 
   // Greater than comparison operation.
   Gt,
+
+  // Less than comparison operation.
+  Lt,
 };
 
 // An expression that represents a binary operation over the values of two

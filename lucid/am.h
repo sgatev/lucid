@@ -147,7 +147,7 @@ struct DivReg32 {
   }
 };
 
-// Compares the values stored in two int32 registers.
+// Tests the values in two int32 registers for a "greater than" relationship.
 struct GtReg32 {
   // Result int32 register.
   RegId res_reg;
@@ -164,9 +164,26 @@ struct GtReg32 {
   }
 };
 
+// Tests the values in two int32 registers for a "less than" relationship.
+struct LtReg32 {
+  // Result int32 register.
+  RegId res_reg;
+
+  // First operand int32 register.
+  RegId lhs_reg;
+
+  // Second operand int32 register.
+  RegId rhs_reg;
+
+  bool operator==(const LtReg32& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
 // An instruction for the Lucid abstract machine.
 using Instruction =
     std::variant<Nop, MoveReg32, SetReg32, Jump, CondJump, Label, Return,
-                 AddReg32, SubReg32, MulReg32, DivReg32, GtReg32>;
+                 AddReg32, SubReg32, MulReg32, DivReg32, GtReg32, LtReg32>;
 
 }  // namespace lucid

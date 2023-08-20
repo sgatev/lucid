@@ -425,5 +425,45 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInts) {
                                   Return{}));
 }
 
+TEST_F(GenerateAbstractMachineInstructionsTest, LtInts) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Lt,
+                              .lhs = Allocate(IntLitExpr{.value = "3"}),
+                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg32{
+                                      .src_val = "3",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg32{
+                                      .src_val = "2",
+                                      .dst_reg = 2,
+                                  },
+                                  LtReg32{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  Return{}));
+}
+
 }  // namespace
 }  // namespace lucid

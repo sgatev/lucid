@@ -133,6 +133,13 @@ class AbstractMachineInstructionGenerator {
             .rhs_reg = out_reg_[expr.rhs],
         });
         break;
+      case BinaryOp::Lt:
+        instructions_.push_back(LtReg32{
+            .res_reg = reg,
+            .lhs_reg = out_reg_[expr.lhs],
+            .rhs_reg = out_reg_[expr.rhs],
+        });
+        break;
     }
     out_reg_[ref] = reg;
   }

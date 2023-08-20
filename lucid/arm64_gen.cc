@@ -140,6 +140,17 @@ class Arm64Generator {
     Append(", GT\n");
   }
 
+  void Process(const LtReg32& inst) {
+    Append("CMP ");
+    Append(out_reg_[inst.lhs_reg]);
+    Append(", ");
+    Append(out_reg_[inst.rhs_reg]);
+    Append("\n");
+    Append("CSET ");
+    Append(out_reg_[inst.res_reg]);
+    Append(", LT\n");
+  }
+
   void Append(std::string_view s) { out_ << s; }
 
   std::string_view func_name_;
