@@ -1,7 +1,6 @@
 #include "lucid/am_gen.h"
 
 #include <cstddef>
-#include <map>
 #include <string>
 #include <utility>
 #include <variant>
@@ -19,7 +18,7 @@ class AbstractMachineInstructionGenerator {
  public:
   AbstractMachineInstructionGenerator(const Arena<Stmt>& arena,
                                       const ControlFlowGraph& graph)
-      : arena_(arena), graph_(graph) {}
+      : arena_(arena), graph_(graph), out_reg_(arena_.size()) {}
 
   std::vector<Instruction> Generate() && {
     Process(graph_.get(graph_.first));
@@ -144,11 +143,11 @@ class AbstractMachineInstructionGenerator {
     out_reg_[ref] = reg;
   }
 
-  const Stmt& DerefStmt(StmtRef ref) { return arena_.get(ref); }
+  const Stmt& DerefStmt(StmtRef ref) const { return arena_.get(ref); }
 
   const Arena<Stmt>& arena_;
   const ControlFlowGraph& graph_;
-  std::map<StmtRef, RegId> out_reg_;
+  std::vector<RegId> out_reg_;
   std::vector<Instruction> instructions_;
   RegId next_reg_ = 1;
   std::size_t next_label_id_ = 1;

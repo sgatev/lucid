@@ -29,6 +29,19 @@ cc_test(
     ],
 )
 
+cc_binary(
+    name = "am_gen_bench",
+    srcs = ["am_gen_bench.cc"],
+    deps = [
+        ":am_gen",
+        ":arena",
+        ":cfg",
+        ":lexer",
+        ":parser",
+        "@gbench//:benchmark",
+    ],
+)
+
 cc_library(
     name = "arena",
     hdrs = ["arena.h"],

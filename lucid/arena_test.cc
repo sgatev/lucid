@@ -36,5 +36,15 @@ TEST(ArenaTest, MutableAccess) {
   EXPECT_EQ(arena.get(age), 4);
 }
 
+TEST(ArenaTest, Size) {
+  Arena<int> arena;
+
+  arena.add(3);
+  arena.add(5);
+  arena.add(8);
+
+  EXPECT_EQ(arena.size(), 3);
+}
+
 }  // namespace
 }  // namespace lucid

@@ -22,7 +22,9 @@ void Benchmark(benchmark::State &state, std::string_view snippet) {
   std::string code;
   code.reserve(snippet.size() * 10000);
   for (int i = 0; i < 10000; i++) code.append(snippet);
+
   for (auto _ : state) benchmark::DoNotOptimize(CountTokens(code));
+
   state.SetBytesProcessed(std::int64_t(state.iterations()) *
                           std::int64_t(code.size()));
 }

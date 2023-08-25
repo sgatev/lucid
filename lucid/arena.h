@@ -36,6 +36,9 @@ class Arena {
   const T& get(Ref ref) const { return values_[ref]; }
   T& get(Ref ref) { return values_[ref]; }
 
+  // Returns the number of values that were added to the arena.
+  std::size_t size() const { return values_.size(); }
+
  private:
   std::vector<T> values_;
 };
