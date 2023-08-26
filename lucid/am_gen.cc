@@ -17,18 +17,22 @@ namespace {
 class AbstractMachineInstructionGenerator {
  public:
   AbstractMachineInstructionGenerator(const Arena<Stmt>& arena,
-                                      const ControlFlowGraph& graph)
-      : arena_(arena), graph_(graph), out_reg_(arena_.size()) {}
+                                      const ControlFlowGraph& graph,
+                                      AbstractMachineState& state)
+      : arena_(arena), graph_(graph), state_(state) {}
 
-  std::vector<Instruction> Generate() && {
+  void Generate() {
+    state_.out_reg.clear();
+    state_.out_reg.reserve(arena_.size());
+
     std::size_t instructions_count = 0;
     for (const auto& block : graph_.blocks()) {
       instructions_count += block.statements.size();
     }
-    instructions_.reserve(instructions_count * 2);
+    state_.instructions.clear();
+    state_.instructions.reserve(instructions_count * 2);
 
     Process(graph_.get(graph_.first));
-    return std::move(instructions_);
   }
 
  private:
@@ -38,8 +42,8 @@ class AbstractMachineInstructionGenerator {
     }
 
     if (block.branch_cond != ControlFlowGraph::kNullBlockRef) {
-      instructions_.push_back(CondJump{
-          .cond_reg = out_reg_[block.branch_cond],
+      state_.instructions.push_back(CondJump{
+          .cond_reg = state_.out_reg[block.branch_cond],
           .then_label = next_label_id_,
           .else_label = next_label_id_ + 1,
       });
@@ -47,7 +51,7 @@ class AbstractMachineInstructionGenerator {
     for (auto next_block : block.next) {
       if (next_block == graph_.last) continue;
 
-      instructions_.push_back(Label{
+      state_.instructions.push_back(Label{
           .id = next_label_id_++,
       });
 
@@ -60,11 +64,11 @@ class AbstractMachineInstructionGenerator {
   }
 
   void Process(StmtRef ref, const ReturnStmt& stmt) {
-    instructions_.push_back(MoveReg32{
-        .src_reg = out_reg_[stmt.value],
+    state_.instructions.push_back(MoveReg32{
+        .src_reg = state_.out_reg[stmt.value],
         .dst_reg = 0,
     });
-    instructions_.push_back(Return{});
+    state_.instructions.push_back(Return{});
   }
 
   void Process(StmtRef ref, const Expr& expr) {
@@ -73,97 +77,99 @@ class AbstractMachineInstructionGenerator {
 
   void ProcessExpr(ExprRef ref, const IntLitExpr& expr) {
     RegId reg = next_reg_++;
-    instructions_.push_back(SetReg32{
+    state_.instructions.push_back(SetReg32{
         .src_val = expr.value,
         .dst_reg = reg,
     });
-    out_reg_[ref] = reg;
+    state_.out_reg[ref] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const BoolLitExpr& expr) {
     RegId reg = next_reg_++;
-    instructions_.push_back(SetReg32{
+    state_.instructions.push_back(SetReg32{
         .src_val = expr.value == "true" ? "1" : "0",
         .dst_reg = reg,
     });
-    out_reg_[ref] = reg;
+    state_.out_reg[ref] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const FuncCallExpr& expr) {
-    instructions_.push_back(Jump{
+    state_.instructions.push_back(Jump{
         .label = expr.func_name,
     });
-    out_reg_[ref] = 0;
+    state_.out_reg[ref] = 0;
   }
 
   void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {}
 
-  void ProcessExpr(ExprRef ref, const IdentExpr& expr) { out_reg_[ref] = 1; }
+  void ProcessExpr(ExprRef ref, const IdentExpr& expr) {
+    state_.out_reg[ref] = 1;
+  }
 
   void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr) {
     auto reg = next_reg_++;
     switch (expr.op) {
       case BinaryOp::Add:
-        instructions_.push_back(AddReg32{
+        state_.instructions.push_back(AddReg32{
             .res_reg = reg,
-            .lhs_reg = out_reg_[expr.lhs],
-            .rhs_reg = out_reg_[expr.rhs],
+            .lhs_reg = state_.out_reg[expr.lhs],
+            .rhs_reg = state_.out_reg[expr.rhs],
         });
         break;
       case BinaryOp::Sub:
-        instructions_.push_back(SubReg32{
+        state_.instructions.push_back(SubReg32{
             .res_reg = reg,
-            .lhs_reg = out_reg_[expr.lhs],
-            .rhs_reg = out_reg_[expr.rhs],
+            .lhs_reg = state_.out_reg[expr.lhs],
+            .rhs_reg = state_.out_reg[expr.rhs],
         });
         break;
       case BinaryOp::Mul:
-        instructions_.push_back(MulReg32{
+        state_.instructions.push_back(MulReg32{
             .res_reg = reg,
-            .lhs_reg = out_reg_[expr.lhs],
-            .rhs_reg = out_reg_[expr.rhs],
+            .lhs_reg = state_.out_reg[expr.lhs],
+            .rhs_reg = state_.out_reg[expr.rhs],
         });
         break;
       case BinaryOp::Div:
-        instructions_.push_back(DivReg32{
+        state_.instructions.push_back(DivReg32{
             .res_reg = reg,
-            .lhs_reg = out_reg_[expr.lhs],
-            .rhs_reg = out_reg_[expr.rhs],
+            .lhs_reg = state_.out_reg[expr.lhs],
+            .rhs_reg = state_.out_reg[expr.rhs],
         });
         break;
       case BinaryOp::Gt:
-        instructions_.push_back(GtReg32{
+        state_.instructions.push_back(GtReg32{
             .res_reg = reg,
-            .lhs_reg = out_reg_[expr.lhs],
-            .rhs_reg = out_reg_[expr.rhs],
+            .lhs_reg = state_.out_reg[expr.lhs],
+            .rhs_reg = state_.out_reg[expr.rhs],
         });
         break;
       case BinaryOp::Lt:
-        instructions_.push_back(LtReg32{
+        state_.instructions.push_back(LtReg32{
             .res_reg = reg,
-            .lhs_reg = out_reg_[expr.lhs],
-            .rhs_reg = out_reg_[expr.rhs],
+            .lhs_reg = state_.out_reg[expr.lhs],
+            .rhs_reg = state_.out_reg[expr.rhs],
         });
         break;
     }
-    out_reg_[ref] = reg;
+    state_.out_reg[ref] = reg;
   }
 
   const Stmt& DerefStmt(StmtRef ref) const { return arena_.get(ref); }
 
   const Arena<Stmt>& arena_;
   const ControlFlowGraph& graph_;
-  std::vector<RegId> out_reg_;
-  std::vector<Instruction> instructions_;
+  AbstractMachineState& state_;
   RegId next_reg_ = 1;
   std::size_t next_label_id_ = 1;
 };
 
 }  // namespace
 
-std::vector<Instruction> GenerateAbstractMachineInstructions(
-    const Arena<Stmt>& arena, const ControlFlowGraph& graph) {
-  return AbstractMachineInstructionGenerator(arena, graph).Generate();
+void GenerateAbstractMachineInstructions(const Arena<Stmt>& arena,
+                                         const ControlFlowGraph& graph,
+                                         AbstractMachineState& state) {
+  AbstractMachineInstructionGenerator(arena, graph, state).Generate();
 }
 
 }  // namespace lucid

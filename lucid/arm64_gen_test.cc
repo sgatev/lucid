@@ -23,9 +23,10 @@ class GenerateArmAssemblySourceTest : public testing::Test {
 
   std::string Generate(const FuncDefStmt& func) {
     auto graph = BuildControlFlowGraph(arena_, func);
-    auto instructions = GenerateAbstractMachineInstructions(arena_, graph);
+    AbstractMachineState state;
+    GenerateAbstractMachineInstructions(arena_, graph, state);
     std::strstream out;
-    GenerateArmAssemblySource(func.name, instructions, out);
+    GenerateArmAssemblySource(func.name, state.instructions, out);
     return out.str();
   }
 

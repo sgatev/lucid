@@ -62,12 +62,13 @@ std::optional<ParserError> Compile(std::string_view src, std::ostream& out) {
   if (auto* err = std::get_if<ParserError>(&maybe_funcs)) {
     return std::move(*err);
   }
+  AbstractMachineState state;
   GenerateArmStartSource(out);
   for (const auto& func : std::get<std::vector<FuncDefStmt>>(maybe_funcs)) {
     auto graph = BuildControlFlowGraph(arena, func);
-    auto instructions = GenerateAbstractMachineInstructions(arena, graph);
-    OptimizeAbstractMachineInstructions(instructions);
-    GenerateArmAssemblySource(func.name, instructions, out);
+    GenerateAbstractMachineInstructions(arena, graph, state);
+    OptimizeAbstractMachineInstructions(state.instructions);
+    GenerateArmAssemblySource(func.name, state.instructions, out);
   }
   return std::nullopt;
 }

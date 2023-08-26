@@ -13,19 +13,21 @@
 #include "lucid/parser.h"
 
 std::size_t CountInstructions(const lucid::Arena<lucid::Stmt>& arena,
-                              const lucid::ControlFlowGraph& graph) {
-  return lucid::GenerateAbstractMachineInstructions(arena, graph).size();
+                              const lucid::ControlFlowGraph& graph,
+                              lucid::AbstractMachineState& state) {
+  lucid::GenerateAbstractMachineInstructions(arena, graph, state);
+  return state.instructions.size();
 }
 
 void Benchmark(benchmark::State& state, std::string_view code) {
   lucid::Arena<lucid::Stmt> arena;
-  auto maybe_func_def_stmt =
-      lucid::Parser(arena, code, lucid::Lexer(code)).ParseFuncDef();
-  auto func_def = std::get<lucid::FuncDefStmt>(maybe_func_def_stmt);
+  auto func_def = std::get<lucid::FuncDefStmt>(
+      lucid::Parser(arena, code, lucid::Lexer(code)).ParseFuncDef());
   auto graph = BuildControlFlowGraph(arena, func_def);
+  lucid::AbstractMachineState am_state;
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(CountInstructions(arena, graph));
+    benchmark::DoNotOptimize(CountInstructions(arena, graph, am_state));
   }
 
   state.SetBytesProcessed(std::int64_t(state.iterations()) *

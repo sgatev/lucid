@@ -9,10 +9,24 @@
 
 namespace lucid {
 
+// State used in the generation of abstract machine instructions.
+struct AbstractMachineState {
+  // Generated abstract machine instructions after the last call to
+  // `GenerateAbstractMachineInstructions` where this state was used.
+  std::vector<Instruction> instructions;
+
+  // Register allocation data structure that is used to generate abstract
+  // machine instructions.
+  std::vector<RegId> out_reg;
+};
+
 // Generates abstract machine instructions for `graph`.
 //
+// The generated instructions are stored in `state`.
+//
 // All statements that are reachable from `graph` must be allocated on `arena`.
-std::vector<Instruction> GenerateAbstractMachineInstructions(
-    const Arena<Stmt>& arena, const ControlFlowGraph& graph);
+void GenerateAbstractMachineInstructions(const Arena<Stmt>& arena,
+                                         const ControlFlowGraph& graph,
+                                         AbstractMachineState& state);
 
 }  // namespace lucid

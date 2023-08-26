@@ -23,7 +23,9 @@ class GenerateAbstractMachineInstructionsTest : public testing::Test {
 
   std::vector<Instruction> Generate(const FuncDefStmt& func) {
     auto graph = BuildControlFlowGraph(arena_, func);
-    return GenerateAbstractMachineInstructions(arena_, graph);
+    AbstractMachineState state;
+    GenerateAbstractMachineInstructions(arena_, graph, state);
+    return state.instructions;
   }
 
  private:
