@@ -45,6 +45,9 @@ struct ControlFlowGraph {
   // `ref` must not be `kNullBlockRef`.
   const Block& get(BlockRef ref) const { return blocks_.get(ref); }
 
+  // Returns an arena with all blocks that were added to the graph.
+  const Arena<Block>& blocks() const { return blocks_; }
+
   // Name of the function.
   std::string_view func_name;
 

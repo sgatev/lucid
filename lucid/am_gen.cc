@@ -21,6 +21,12 @@ class AbstractMachineInstructionGenerator {
       : arena_(arena), graph_(graph), out_reg_(arena_.size()) {}
 
   std::vector<Instruction> Generate() && {
+    std::size_t instructions_count = 0;
+    for (const auto& block : graph_.blocks()) {
+      instructions_count += block.statements.size();
+    }
+    instructions_.reserve(instructions_count * 2);
+
     Process(graph_.get(graph_.first));
     return std::move(instructions_);
   }

@@ -39,6 +39,9 @@ class Arena {
   // Returns the number of values that were added to the arena.
   std::size_t size() const { return values_.size(); }
 
+  auto begin() const { return values_.begin(); }
+  auto end() const { return values_.end(); }
+
  private:
   std::vector<T> values_;
 };

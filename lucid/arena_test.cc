@@ -1,12 +1,15 @@
 #include "lucid/arena.h"
 
 #include <utility>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 namespace lucid {
 namespace {
+
+using ::testing::ElementsAre;
 
 TEST(ArenaTest, StoresValues) {
   Arena<int> arena;
@@ -44,6 +47,19 @@ TEST(ArenaTest, Size) {
   arena.add(8);
 
   EXPECT_EQ(arena.size(), 3);
+}
+
+TEST(ArenaTest, RangeFor) {
+  Arena<int> arena;
+
+  arena.add(3);
+  arena.add(5);
+  arena.add(8);
+
+  std::vector<int> elements;
+  for (int e : arena) elements.push_back(e);
+
+  EXPECT_THAT(elements, ElementsAre(3, 5, 8));
 }
 
 }  // namespace
