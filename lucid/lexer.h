@@ -17,20 +17,19 @@ class Lexer {
 
   // Returns the next token in the buffer.
   Token next() {
-    if (auto pos = buffer_.find_first_not_of(" \n\t");
-        pos == std::string_view::npos) {
-      return Token(Token::Kind::End, pos_ + buffer_.size(),
-                   pos_ + buffer_.size());
-    } else {
-      advance(pos);
-    }
+  start:
+    if (buffer_.empty()) return Token(Token::Kind::End, pos_, pos_);
 
     const char c = buffer_.front();
     const std::size_t start_pos = pos_;
-    if (alphanumeric[c]) {
+    if (c == ' ' || c == '\n' || c == '\t') {
+      // Whitespace.
+      advance(1);
+      goto start;
+    } else if (alphanumeric[c]) {
       // Identifier or number.
       do advance(1);
-      while (!buffer_.empty() && alphanumeric[buffer_.front()]);
+      while (alphanumeric[buffer_.front()]);
     } else if (c == '"' || c == '#') {
       // String or comment.
       auto pos = std::find(buffer_.begin() + 1, buffer_.end(), finishers[c]);
@@ -39,7 +38,7 @@ class Lexer {
       // Singleton.
       advance(1);
     }
-    return Token(singletons[c], start_pos, pos_);
+    return Token(kind[c], start_pos, pos_);
   }
 
  private:
@@ -51,29 +50,29 @@ class Lexer {
     return alphanumeric;
   }();
 
-  static constexpr std::array<Token::Kind, 256> singletons = []() consteval {
-    std::array<Token::Kind, 256> singletons = {Token::Kind::End};
-    singletons['='] = Token::Kind::Equal;
-    singletons['('] = Token::Kind::OpenParen;
-    singletons[')'] = Token::Kind::CloseParen;
-    singletons['{'] = Token::Kind::OpenBrace;
-    singletons['}'] = Token::Kind::CloseBrace;
-    singletons[':'] = Token::Kind::Colon;
-    singletons[','] = Token::Kind::Comma;
-    singletons['+'] = Token::Kind::Plus;
-    singletons['-'] = Token::Kind::Minus;
-    singletons['*'] = Token::Kind::Star;
-    singletons['/'] = Token::Kind::Slash;
-    singletons['>'] = Token::Kind::Greater;
-    singletons['<'] = Token::Kind::Less;
-    singletons['.'] = Token::Kind::Dot;
-    singletons['|'] = Token::Kind::Bar;
-    singletons['#'] = Token::Kind::Comment;
-    singletons['"'] = Token::Kind::String;
-    for (char c = 'a'; c <= 'z'; ++c) singletons[c] = Token::Kind::Ident;
-    for (char c = 'A'; c <= 'Z'; ++c) singletons[c] = Token::Kind::Ident;
-    for (char c = '0'; c <= '9'; ++c) singletons[c] = Token::Kind::Number;
-    return singletons;
+  static constexpr std::array<Token::Kind, 256> kind = []() consteval {
+    std::array<Token::Kind, 256> kind = {Token::Kind::End};
+    kind['='] = Token::Kind::Equal;
+    kind['('] = Token::Kind::OpenParen;
+    kind[')'] = Token::Kind::CloseParen;
+    kind['{'] = Token::Kind::OpenBrace;
+    kind['}'] = Token::Kind::CloseBrace;
+    kind[':'] = Token::Kind::Colon;
+    kind[','] = Token::Kind::Comma;
+    kind['+'] = Token::Kind::Plus;
+    kind['-'] = Token::Kind::Minus;
+    kind['*'] = Token::Kind::Star;
+    kind['/'] = Token::Kind::Slash;
+    kind['>'] = Token::Kind::Greater;
+    kind['<'] = Token::Kind::Less;
+    kind['.'] = Token::Kind::Dot;
+    kind['|'] = Token::Kind::Bar;
+    kind['#'] = Token::Kind::Comment;
+    kind['"'] = Token::Kind::String;
+    for (char c = 'a'; c <= 'z'; ++c) kind[c] = Token::Kind::Ident;
+    for (char c = 'A'; c <= 'Z'; ++c) kind[c] = Token::Kind::Ident;
+    for (char c = '0'; c <= '9'; ++c) kind[c] = Token::Kind::Number;
+    return kind;
   }();
 
   static constexpr std::array<char, 256> finishers = []() consteval {
@@ -83,7 +82,7 @@ class Lexer {
     return finishers;
   }();
 
-  inline void advance(std::size_t pos) {
+  void advance(std::size_t pos) {
     buffer_.remove_prefix(pos);
     pos_ += pos;
   }

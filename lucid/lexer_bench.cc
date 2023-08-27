@@ -82,7 +82,7 @@ BENCHMARK(BM_Comment);
 
 static void BM_Number(benchmark::State &state) {
   Benchmark(state, R"(
-    let c = sum(2173857, 32290172)
+    let c = sum(21738572173857, 3229017232290172)
   )");
 }
 BENCHMARK(BM_Number);
