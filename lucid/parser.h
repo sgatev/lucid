@@ -71,7 +71,7 @@ class Parser {
       : arena_(arena),
         buffer_(buffer),
         lexer_(std::move(lexer)),
-        next_(lexer_.Next()) {}
+        next_(lexer_.next()) {}
 
   std::variant<FuncDefStmt, ParserError> ParseFuncDef() {
     if (Peek().kind == Token::Kind::End) {
@@ -331,7 +331,7 @@ class Parser {
     return buffer_.substr(token.start_pos, token.end_pos - token.start_pos);
   }
 
-  Token Read() { return std::exchange(next_, lexer_.Next()); }
+  Token Read() { return std::exchange(next_, lexer_.next()); }
 
   const Token& Peek() const { return next_; }
 

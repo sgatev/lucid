@@ -12,7 +12,7 @@ std::size_t CountTokens(std::string_view code) {
   lucid::Lexer lexer(code);
   std::size_t cnt = 0;
   while (true) {
-    lucid::Token token = lexer.Next();
+    lucid::Token token = lexer.next();
     if (token.kind == lucid::Token::Kind::End) return cnt;
     ++cnt;
   }

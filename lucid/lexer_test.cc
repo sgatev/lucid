@@ -42,7 +42,7 @@ std::vector<TestToken> ReadTokens(std::string_view code) {
   std::vector<TestToken> tokens;
   Lexer lexer(code);
   while (true) {
-    Token token = lexer.Next();
+    Token token = lexer.next();
     if (token.kind == Kind::End) break;
 
     tokens.push_back(

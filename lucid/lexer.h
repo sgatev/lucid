@@ -16,35 +16,34 @@ class Lexer {
   explicit Lexer(std::string_view buffer) : buffer_(buffer), pos_(0) {}
 
   // Returns the next token in the buffer.
-  Token Next() {
+  Token next() {
     if (auto pos = buffer_.find_first_not_of(" \n\t");
         pos == std::string_view::npos) {
       return Token(Token::Kind::End, pos_ + buffer_.size(),
                    pos_ + buffer_.size());
     } else {
-      Advance(pos);
+      advance(pos);
     }
 
     const char c = buffer_.front();
-    const size_t start_pos = pos_;
+    const std::size_t start_pos = pos_;
     if (alphanumeric[c]) {
       // Identifier or number.
-      do Advance(1);
+      do advance(1);
       while (!buffer_.empty() && alphanumeric[buffer_.front()]);
     } else if (c == '"' || c == '#') {
       // String or comment.
       auto pos = std::find(buffer_.begin() + 1, buffer_.end(), finishers[c]);
-      size_t diff = pos - buffer_.begin() + 1;
-      Advance(diff);
+      advance(pos - buffer_.begin() + 1);
     } else {
       // Singleton.
-      Advance(1);
+      advance(1);
     }
     return Token(singletons[c], start_pos, pos_);
   }
 
  private:
-  static constexpr std::array<bool, 256> alphanumeric = []() {
+  static constexpr std::array<bool, 256> alphanumeric = []() consteval {
     std::array<bool, 256> alphanumeric = {false};
     for (char c = 'a'; c <= 'z'; ++c) alphanumeric[c] = true;
     for (char c = 'A'; c <= 'Z'; ++c) alphanumeric[c] = true;
@@ -52,7 +51,7 @@ class Lexer {
     return alphanumeric;
   }();
 
-  static constexpr std::array<Token::Kind, 256> singletons = []() {
+  static constexpr std::array<Token::Kind, 256> singletons = []() consteval {
     std::array<Token::Kind, 256> singletons = {Token::Kind::End};
     singletons['='] = Token::Kind::Equal;
     singletons['('] = Token::Kind::OpenParen;
@@ -77,14 +76,14 @@ class Lexer {
     return singletons;
   }();
 
-  static constexpr std::array<char, 256> finishers = []() {
+  static constexpr std::array<char, 256> finishers = []() consteval {
     std::array<char, 256> finishers = {' '};
     finishers['"'] = '"';
     finishers['#'] = '\n';
     return finishers;
   }();
 
-  inline void Advance(size_t pos) {
+  inline void advance(std::size_t pos) {
     buffer_.remove_prefix(pos);
     pos_ += pos;
   }
