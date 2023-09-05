@@ -124,6 +124,16 @@ struct FuncCallExprPattern {
   }
 };
 
+struct VarDeclStmtPattern {
+  std::string_view type;
+  std::string_view name;
+  ExprRefMatcher init;
+
+  bool operator()(const VarDeclStmt& stmt) const {
+    return type == stmt.type && name == stmt.name && init(stmt.init);
+  }
+};
+
 class ParserTest : public testing::Test {
  protected:
   std::variant<FuncDefStmt, std::string> Parse(std::string_view src) {
@@ -165,6 +175,10 @@ class ParserTest : public testing::Test {
 
   ExprRefMatcher MatchesFuncCallExpr(FuncCallExprPattern pattern) {
     return MatchesExpr<FuncCallExpr>(std::move(pattern));
+  }
+
+  StmtRefMatcher MatchesVarDeclStmt(VarDeclStmtPattern pattern) {
+    return MatchesStmt<VarDeclStmt>(std::move(pattern));
   }
 
  private:
@@ -590,6 +604,39 @@ TEST_F(ParserTest, LtInts) {
                    }})));
 }
 
+TEST_F(ParserTest, ConstDecl) {
+  std::string_view src = R"(
+    let inc = (n: Int) -> Int {
+      let m = 1
+      return n + m 
+    }
+  )";
+  EXPECT_THAT(Parse(src),  //
+              HoldsFuncDef(MatchesFuncDefStmt(
+                  {.name = "inc",
+                   .result_type = "Int",
+                   .parameters =
+                       {
+                           {.name = "n", .type = "Int"},
+                       },
+                   .body = {
+                       .statements =
+                           {
+                               MatchesVarDeclStmt({
+                                   .name = "m",
+                                   .init = MatchesIntLitExpr({.value = "1"}),
+                               }),
+                               MatchesReturnStmt({
+                                   .value = MatchesBinaryOpExpr({
+                                       .op = BinaryOp::Add,
+                                       .lhs = MatchesIdentExpr({.name = "n"}),
+                                       .rhs = MatchesIdentExpr({.name = "m"}),
+                                   }),
+                               }),
+                           },
+                   }})));
+}
+
 TEST_F(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
     = () -> Void {
@@ -725,6 +772,43 @@ TEST_F(ParserTest, ReturnMissingValue) {
   std::string_view src = R"(
     let id = (x: Int) -> Int {
       return
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
+}
+
+TEST_F(ParserTest, ConstDeclMissingLet) {
+  std::string_view src = R"(
+    let main = () -> Void {
+      m = 1
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 7"));
+}
+
+TEST_F(ParserTest, ConstDeclMissingName) {
+  std::string_view src = R"(
+    let main = () -> Void {
+      let = 1
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected identifier at line 3, column 11"));
+}
+
+TEST_F(ParserTest, ConstDeclMissingEqual) {
+  std::string_view src = R"(
+    let main = () -> Void {
+      let m 1
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
+}
+
+TEST_F(ParserTest, ConstDeclMissingInit) {
+  std::string_view src = R"(
+    let main = () -> Void {
+      let m =
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));

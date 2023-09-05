@@ -154,13 +154,13 @@ class Parser {
 
     if (auto r = ExpectToken(Token::Kind::OpenBrace); IsError(r)) return *r;
 
-    if (Peek().kind != Token::Kind::CloseBrace) {
+    while (Peek().kind != Token::Kind::CloseBrace) {
       const auto maybe_stmt = ParseStmt();
       if (IsError(maybe_stmt)) return std::get<ParserError>(maybe_stmt);
       stmt.statements.push_back(std::get<StmtRef>(maybe_stmt));
     }
 
-    if (auto r = ExpectToken(Token::Kind::CloseBrace); IsError(r)) return *r;
+    Read();
 
     return stmt;
   }
@@ -197,6 +197,22 @@ class Parser {
           .cond = std::get<ExprRef>(cond),
           .then_body = std::get<CompoundStmt>(then_body),
           .else_body = std::get<CompoundStmt>(else_body),
+      });
+    }
+    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "let") {
+      Read();
+
+      const auto maybe_name = ParseIdent();
+      if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
+
+      if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
+
+      const auto init = ParseExpr();
+      if (IsError(init)) return std::get<ParserError>(init);
+
+      return arena_.add(VarDeclStmt{
+          .name = std::get<std::string_view>(maybe_name),
+          .init = std::get<ExprRef>(init),
       });
     }
     return MakeError(ParserError::Kind::UnexpectedToken, Peek());
