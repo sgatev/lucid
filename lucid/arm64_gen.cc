@@ -2,7 +2,6 @@
 
 #include <map>
 #include <ostream>
-#include <string>
 #include <string_view>
 #include <variant>
 #include <vector>
@@ -19,16 +18,7 @@ class Arm64Generator {
   explicit Arm64Generator(std::string_view func_name,
                           const std::vector<Instruction>& instructions,
                           std::ostream& out)
-      : func_name_(func_name), instructions_(instructions), out_(out) {
-    out_reg_[0] = "W0";
-    out_reg_[1] = "W1";
-    out_reg_[2] = "W2";
-    out_reg_[3] = "W3";
-    out_reg_[4] = "W4";
-    out_reg_[5] = "W5";
-    out_reg_[6] = "W6";
-    out_reg_[7] = "W7";
-  }
+      : func_name_(func_name), instructions_(instructions), out_(out) {}
 
   void Generate() && {
     Append(func_name_);
@@ -44,16 +34,16 @@ class Arm64Generator {
   void Process(const Nop&) {}
 
   void Process(const MoveReg32& inst) {
-    Append("MOV ");
-    Append(out_reg_[inst.dst_reg]);
-    Append(", ");
-    Append(out_reg_[inst.src_reg]);
+    Append("MOV W");
+    Append(inst.dst_reg);
+    Append(", W");
+    Append(inst.src_reg);
     Append("\n");
   }
 
   void Process(const SetReg32& inst) {
-    Append("MOV ");
-    Append(out_reg_[inst.dst_reg]);
+    Append("MOV W");
+    Append(inst.dst_reg);
     Append(", #");
     Append(inst.src_val);
     Append("\n");
@@ -70,84 +60,84 @@ class Arm64Generator {
   }
 
   void Process(const CondJump& inst) {
-    Append("CMP ");
-    Append(out_reg_[inst.cond_reg]);
+    Append("CMP W");
+    Append(inst.cond_reg);
     Append(", 0\n");
     Append("B.EQ ");
     Append(func_name_);
-    Append(std::to_string(inst.else_label));
+    Append(inst.else_label);
     Append("\n");
     Append("B.NE ");
     Append(func_name_);
-    Append(std::to_string(inst.then_label));
+    Append(inst.then_label);
     Append("\n");
   }
 
   void Process(const Label& inst) {
     Append(func_name_);
-    Append(std::to_string(inst.id));
+    Append(inst.id);
     Append(":\n");
   }
 
   void Process(const AddReg32& inst) {
-    Append("ADD ");
-    Append(out_reg_[inst.res_reg]);
-    Append(", ");
-    Append(out_reg_[inst.lhs_reg]);
-    Append(", ");
-    Append(out_reg_[inst.rhs_reg]);
+    Append("ADD W");
+    Append(inst.res_reg);
+    Append(", W");
+    Append(inst.lhs_reg);
+    Append(", W");
+    Append(inst.rhs_reg);
     Append("\n");
   }
 
   void Process(const SubReg32& inst) {
-    Append("SUB ");
-    Append(out_reg_[inst.res_reg]);
-    Append(", ");
-    Append(out_reg_[inst.lhs_reg]);
-    Append(", ");
-    Append(out_reg_[inst.rhs_reg]);
+    Append("SUB W");
+    Append(inst.res_reg);
+    Append(", W");
+    Append(inst.lhs_reg);
+    Append(", W");
+    Append(inst.rhs_reg);
     Append("\n");
   }
 
   void Process(const MulReg32& inst) {
-    Append("MUL ");
-    Append(out_reg_[inst.res_reg]);
-    Append(", ");
-    Append(out_reg_[inst.lhs_reg]);
-    Append(", ");
-    Append(out_reg_[inst.rhs_reg]);
+    Append("MUL W");
+    Append(inst.res_reg);
+    Append(", W");
+    Append(inst.lhs_reg);
+    Append(", W");
+    Append(inst.rhs_reg);
     Append("\n");
   }
 
   void Process(const DivReg32& inst) {
-    Append("UDIV ");
-    Append(out_reg_[inst.res_reg]);
-    Append(", ");
-    Append(out_reg_[inst.lhs_reg]);
-    Append(", ");
-    Append(out_reg_[inst.rhs_reg]);
+    Append("UDIV W");
+    Append(inst.res_reg);
+    Append(", W");
+    Append(inst.lhs_reg);
+    Append(", W");
+    Append(inst.rhs_reg);
     Append("\n");
   }
 
   void Process(const GtReg32& inst) {
-    Append("CMP ");
-    Append(out_reg_[inst.lhs_reg]);
-    Append(", ");
-    Append(out_reg_[inst.rhs_reg]);
+    Append("CMP W");
+    Append(inst.lhs_reg);
+    Append(", W");
+    Append(inst.rhs_reg);
     Append("\n");
-    Append("CSET ");
-    Append(out_reg_[inst.res_reg]);
+    Append("CSET W");
+    Append(inst.res_reg);
     Append(", GT\n");
   }
 
   void Process(const LtReg32& inst) {
-    Append("CMP ");
-    Append(out_reg_[inst.lhs_reg]);
-    Append(", ");
-    Append(out_reg_[inst.rhs_reg]);
+    Append("CMP W");
+    Append(inst.lhs_reg);
+    Append(", W");
+    Append(inst.rhs_reg);
     Append("\n");
-    Append("CSET ");
-    Append(out_reg_[inst.res_reg]);
+    Append("CSET W");
+    Append(inst.res_reg);
     Append(", LT\n");
   }
 
@@ -155,7 +145,7 @@ class Arm64Generator {
     Append("SUB SP, SP, #");
     std::size_t quot = inst.size % 16;
     std::size_t size = quot == 0 ? inst.size : inst.size + 16 - quot;
-    Append(GetNum(size));
+    Append(size);
     Append("\n");
   }
 
@@ -163,40 +153,32 @@ class Arm64Generator {
     Append("ADD SP, SP, #");
     std::size_t quot = inst.size % 16;
     std::size_t size = quot == 0 ? inst.size : inst.size + 16 - quot;
-    Append(GetNum(size));
+    Append(size);
     Append("\n");
   }
 
   void Process(const StoreStack32& inst) {
-    Append("STR ");
-    Append(out_reg_[inst.src_reg]);
+    Append("STR W");
+    Append(inst.src_reg);
     Append(", [SP, #");
-    Append(GetNum(inst.offset));
+    Append(inst.offset);
     Append("]\n");
   }
 
   void Process(const LoadStack32& inst) {
-    Append("LDR ");
-    Append(out_reg_[inst.dst_reg]);
+    Append("LDR W");
+    Append(inst.dst_reg);
     Append(", [SP, #");
-    Append(GetNum(inst.offset));
+    Append(inst.offset);
     Append("]\n");
   }
 
   void Append(std::string_view s) { out_ << s; }
-
-  std::string_view GetNum(std::size_t s) {
-    auto it = nums_.find(s);
-    if (it != nums_.end()) return it->second;
-    nums_[s] = std::to_string(s);
-    return nums_[s];
-  }
+  void Append(std::size_t s) { out_ << s; }
 
   std::string_view func_name_;
   const std::vector<Instruction>& instructions_;
   std::ostream& out_;
-  std::map<RegId, std::string_view> out_reg_;
-  std::map<std::size_t, std::string> nums_;
 };
 
 }  // namespace
