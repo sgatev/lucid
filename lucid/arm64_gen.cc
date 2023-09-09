@@ -41,8 +41,24 @@ class Arm64Generator {
     Append("\n");
   }
 
+  void Process(const MoveReg64& inst) {
+    Append("MOV X");
+    Append(inst.dst_reg);
+    Append(", X");
+    Append(inst.src_reg);
+    Append("\n");
+  }
+
   void Process(const SetReg32& inst) {
     Append("MOV W");
+    Append(inst.dst_reg);
+    Append(", #");
+    Append(inst.src_val);
+    Append("\n");
+  }
+
+  void Process(const SetReg64& inst) {
+    Append("MOV X");
     Append(inst.dst_reg);
     Append(", #");
     Append(inst.src_val);
@@ -89,12 +105,32 @@ class Arm64Generator {
     Append("\n");
   }
 
+  void Process(const AddReg64& inst) {
+    Append("ADD X");
+    Append(inst.res_reg);
+    Append(", X");
+    Append(inst.lhs_reg);
+    Append(", X");
+    Append(inst.rhs_reg);
+    Append("\n");
+  }
+
   void Process(const SubReg32& inst) {
     Append("SUB W");
     Append(inst.res_reg);
     Append(", W");
     Append(inst.lhs_reg);
     Append(", W");
+    Append(inst.rhs_reg);
+    Append("\n");
+  }
+
+  void Process(const SubReg64& inst) {
+    Append("SUB X");
+    Append(inst.res_reg);
+    Append(", X");
+    Append(inst.lhs_reg);
+    Append(", X");
     Append(inst.rhs_reg);
     Append("\n");
   }
@@ -109,12 +145,32 @@ class Arm64Generator {
     Append("\n");
   }
 
+  void Process(const MulReg64& inst) {
+    Append("MUL X");
+    Append(inst.res_reg);
+    Append(", X");
+    Append(inst.lhs_reg);
+    Append(", X");
+    Append(inst.rhs_reg);
+    Append("\n");
+  }
+
   void Process(const DivReg32& inst) {
     Append("UDIV W");
     Append(inst.res_reg);
     Append(", W");
     Append(inst.lhs_reg);
     Append(", W");
+    Append(inst.rhs_reg);
+    Append("\n");
+  }
+
+  void Process(const DivReg64& inst) {
+    Append("UDIV X");
+    Append(inst.res_reg);
+    Append(", X");
+    Append(inst.lhs_reg);
+    Append(", X");
     Append(inst.rhs_reg);
     Append("\n");
   }
@@ -130,6 +186,17 @@ class Arm64Generator {
     Append(", GT\n");
   }
 
+  void Process(const GtReg64& inst) {
+    Append("CMP X");
+    Append(inst.lhs_reg);
+    Append(", X");
+    Append(inst.rhs_reg);
+    Append("\n");
+    Append("CSET X");
+    Append(inst.res_reg);
+    Append(", GT\n");
+  }
+
   void Process(const LtReg32& inst) {
     Append("CMP W");
     Append(inst.lhs_reg);
@@ -137,6 +204,17 @@ class Arm64Generator {
     Append(inst.rhs_reg);
     Append("\n");
     Append("CSET W");
+    Append(inst.res_reg);
+    Append(", LT\n");
+  }
+
+  void Process(const LtReg64& inst) {
+    Append("CMP X");
+    Append(inst.lhs_reg);
+    Append(", X");
+    Append(inst.rhs_reg);
+    Append("\n");
+    Append("CSET X");
     Append(inst.res_reg);
     Append(", LT\n");
   }
@@ -165,8 +243,24 @@ class Arm64Generator {
     Append("]\n");
   }
 
+  void Process(const StoreStack64& inst) {
+    Append("STR X");
+    Append(inst.src_reg);
+    Append(", [SP, #");
+    Append(inst.offset);
+    Append("]\n");
+  }
+
   void Process(const LoadStack32& inst) {
     Append("LDR W");
+    Append(inst.dst_reg);
+    Append(", [SP, #");
+    Append(inst.offset);
+    Append("]\n");
+  }
+
+  void Process(const LoadStack64& inst) {
+    Append("LDR X");
     Append(inst.dst_reg);
     Append(", [SP, #");
     Append(inst.offset);

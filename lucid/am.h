@@ -15,12 +15,12 @@ struct Nop {
   bool operator==(const Nop&) const { return true; }
 };
 
-// Moves the value of an int32 register into another one.
+// Moves the value of an 32-bit register into another one.
 struct MoveReg32 {
-  // Source int32 register.
+  // Source register.
   RegId src_reg;
 
-  // Destination int32 register.
+  // Destination register.
   RegId dst_reg;
 
   bool operator==(const MoveReg32& other) const {
@@ -28,15 +28,41 @@ struct MoveReg32 {
   }
 };
 
-// Sets an int32 value in a register.
+// Moves the value of a 64-bit register into another one.
+struct MoveReg64 {
+  // Source register.
+  RegId src_reg;
+
+  // Destination register.
+  RegId dst_reg;
+
+  bool operator==(const MoveReg64& other) const {
+    return src_reg == other.src_reg && dst_reg == other.dst_reg;
+  }
+};
+
+// Sets a 32-bit value in a register.
 struct SetReg32 {
-  // Source int32 value.
+  // Source value.
   std::string_view src_val;
 
-  // Destination int32 register.
+  // Destination register.
   RegId dst_reg;
 
   bool operator==(const SetReg32& other) const {
+    return src_val == other.src_val && dst_reg == other.dst_reg;
+  }
+};
+
+// Sets 64-bit value in a register.
+struct SetReg64 {
+  // Source value.
+  std::string_view src_val;
+
+  // Destination register.
+  RegId dst_reg;
+
+  bool operator==(const SetReg64& other) const {
     return src_val == other.src_val && dst_reg == other.dst_reg;
   }
 };
@@ -79,15 +105,15 @@ struct Return {
   bool operator==(const Return&) const { return true; }
 };
 
-// Adds the contents of two int32 registers.
+// Adds the contents of two 32-bit registers.
 struct AddReg32 {
-  // Result int32 register.
+  // Result register.
   RegId res_reg;
 
-  // First operand int32 register.
+  // First operand source register.
   RegId lhs_reg;
 
-  // Second operand int32 register.
+  // Second operand source register.
   RegId rhs_reg;
 
   bool operator==(const AddReg32& other) const {
@@ -96,15 +122,32 @@ struct AddReg32 {
   }
 };
 
-// Subtracts the contents of one int32 register from another.
-struct SubReg32 {
-  // Result int32 register.
+// Adds the contents of two 64-bit registers.
+struct AddReg64 {
+  // Result register.
   RegId res_reg;
 
-  // First operand int32 register.
+  // First operand register.
   RegId lhs_reg;
 
-  // Second operand int32 register.
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const AddReg64& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
+// Subtracts the contents of one 32-bit register from another.
+struct SubReg32 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
   RegId rhs_reg;
 
   bool operator==(const SubReg32& other) const {
@@ -113,15 +156,32 @@ struct SubReg32 {
   }
 };
 
-// Multiplies the contents of two int32 registers.
-struct MulReg32 {
-  // Result int32 register.
+// Subtracts the contents of one 64-bit register from another.
+struct SubReg64 {
+  // Result register.
   RegId res_reg;
 
-  // First operand int32 register.
+  // First operand register.
   RegId lhs_reg;
 
-  // Second operand int32 register.
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const SubReg64& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
+// Multiplies the contents of two 32-bit registers.
+struct MulReg32 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
   RegId rhs_reg;
 
   bool operator==(const MulReg32& other) const {
@@ -130,15 +190,32 @@ struct MulReg32 {
   }
 };
 
-// Divides the contents of one int32 register by another.
-struct DivReg32 {
-  // Result int32 register.
+// Multiplies the contents of two 64-bit registers.
+struct MulReg64 {
+  // Result register.
   RegId res_reg;
 
-  // First operand int32 register.
+  // First operand register.
   RegId lhs_reg;
 
-  // Second operand int32 register.
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const MulReg64& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
+// Divides the contents of one 32-bit register by another.
+struct DivReg32 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
   RegId rhs_reg;
 
   bool operator==(const DivReg32& other) const {
@@ -147,18 +224,52 @@ struct DivReg32 {
   }
 };
 
-// Tests the values in two int32 registers for a "greater than" relationship.
-struct GtReg32 {
-  // Result int32 register.
+// Divides the contents of one 64-bit register by another.
+struct DivReg64 {
+  // Result register.
   RegId res_reg;
 
-  // First operand int32 register.
+  // First operand register.
   RegId lhs_reg;
 
-  // Second operand int32 register.
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const DivReg64& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
+// Tests the values in two 32-bit registers for a "greater than" relationship.
+struct GtReg32 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
   RegId rhs_reg;
 
   bool operator==(const GtReg32& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
+// Tests the values in two 64-bit registers for a "greater than" relationship.
+struct GtReg64 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const GtReg64& other) const {
     return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
            rhs_reg == other.rhs_reg;
   }
@@ -176,6 +287,23 @@ struct LtReg32 {
   RegId rhs_reg;
 
   bool operator==(const LtReg32& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
+// Tests the values in two 32-bit registers for a "less than" relationship.
+struct LtReg64 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const LtReg64& other) const {
     return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
            rhs_reg == other.rhs_reg;
   }
@@ -202,10 +330,23 @@ struct StoreStack32 {
   // Offset from the top of the stack where the value will be placed.
   std::size_t offset;
 
-  // Source 32-bit register.
+  // Source register.
   RegId src_reg;
 
   bool operator==(const StoreStack32& other) const {
+    return offset == other.offset && src_reg == other.src_reg;
+  }
+};
+
+// Stores the value of a 64-bit register on the stack.
+struct StoreStack64 {
+  // Offset from the top of the stack where the value will be placed.
+  std::size_t offset;
+
+  // Source register.
+  RegId src_reg;
+
+  bool operator==(const StoreStack64& other) const {
     return offset == other.offset && src_reg == other.src_reg;
   }
 };
@@ -215,7 +356,7 @@ struct LoadStack32 {
   // Offset from the top of the stack where the value is placed.
   std::size_t offset;
 
-  // Destination 32-bit register.
+  // Destination register.
   RegId dst_reg;
 
   bool operator==(const LoadStack32& other) const {
@@ -223,10 +364,25 @@ struct LoadStack32 {
   }
 };
 
+// Loads a value from the stack into a 64-bit register.
+struct LoadStack64 {
+  // Offset from the top of the stack where the value is placed.
+  std::size_t offset;
+
+  // Destination register.
+  RegId dst_reg;
+
+  bool operator==(const LoadStack64& other) const {
+    return offset == other.offset && dst_reg == other.dst_reg;
+  }
+};
+
 // An instruction for the Lucid abstract machine.
 using Instruction =
-    std::variant<Nop, MoveReg32, SetReg32, Jump, CondJump, Label, Return,
-                 AddReg32, SubReg32, MulReg32, DivReg32, GtReg32, LtReg32,
-                 PushStack, PopStack, StoreStack32, LoadStack32>;
+    std::variant<Nop, MoveReg32, MoveReg64, SetReg32, SetReg64, Jump, CondJump,
+                 Label, Return, AddReg32, AddReg64, SubReg32, SubReg64,
+                 MulReg32, MulReg64, DivReg32, DivReg64, GtReg32, GtReg64,
+                 LtReg32, LtReg64, PushStack, PopStack, StoreStack32,
+                 StoreStack64, LoadStack32, LoadStack64>;
 
 }  // namespace lucid
