@@ -50,8 +50,44 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnIntLit) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #0
 MOV W1, #21
 MOV W0, W1
+ADD SP, SP, #0
+RET
+)");
+}
+
+TEST_F(GenerateArmAssemblySourceTest, FuncWithParam) {
+  auto func = FuncDefStmt{
+      .name = "id",
+      .result_type = "Int",
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = "Int",
+              },
+          },
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(IdentExpr{
+                              .name = "x",
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(Generate(func), R"(id:
+SUB SP, SP, #16
+STR W1, [SP, #0]
+LDR W1, [SP, #0]
+MOV W0, W1
+ADD SP, SP, #16
 RET
 )");
 }
@@ -78,11 +114,13 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #0
 MOV W1, #21
 STP X29, X30, [sp, #-16]!
 BL id
 LDP X29, X30, [sp], #16
 MOV W0, W0
+ADD SP, SP, #0
 RET
 )");
 }
@@ -107,10 +145,12 @@ TEST_F(GenerateArmAssemblySourceTest, AddInts) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #0
 MOV W1, #2
 MOV W2, #3
 ADD W3, W1, W2
 MOV W0, W3
+ADD SP, SP, #0
 RET
 )");
 }
@@ -135,10 +175,12 @@ TEST_F(GenerateArmAssemblySourceTest, SubtractInts) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #0
 MOV W1, #7
 MOV W2, #5
 SUB W3, W1, W2
 MOV W0, W3
+ADD SP, SP, #0
 RET
 )");
 }
@@ -163,10 +205,12 @@ TEST_F(GenerateArmAssemblySourceTest, MultiplyInts) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #0
 MOV W1, #2
 MOV W2, #3
 MUL W3, W1, W2
 MOV W0, W3
+ADD SP, SP, #0
 RET
 )");
 }
@@ -191,10 +235,12 @@ TEST_F(GenerateArmAssemblySourceTest, DivideInts) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #0
 MOV W1, #8
 MOV W2, #2
 UDIV W3, W1, W2
 MOV W0, W3
+ADD SP, SP, #0
 RET
 )");
 }
@@ -238,6 +284,7 @@ TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #0
 MOV W1, #1
 CMP W1, 0
 B.EQ foo2
@@ -247,12 +294,14 @@ MOV W2, #2
 MOV W3, #3
 ADD W4, W2, W3
 MOV W0, W4
+ADD SP, SP, #0
 RET
 foo2:
 MOV W5, #4
 MOV W6, #5
 MUL W7, W5, W6
 MOV W0, W7
+ADD SP, SP, #0
 RET
 )");
 }
@@ -277,11 +326,13 @@ TEST_F(GenerateArmAssemblySourceTest, GtInts) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #0
 MOV W1, #3
 MOV W2, #2
 CMP W1, W2
 CSET W3, GT
 MOV W0, W3
+ADD SP, SP, #0
 RET
 )");
 }
@@ -306,11 +357,61 @@ TEST_F(GenerateArmAssemblySourceTest, LtInts) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #0
 MOV W1, #3
 MOV W2, #2
 CMP W1, W2
 CSET W3, LT
 MOV W0, W3
+ADD SP, SP, #0
+RET
+)");
+}
+
+TEST_F(GenerateArmAssemblySourceTest, VarDecl) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(VarDeclStmt{
+                          .name = "x",
+                          .type = "Int",
+                          .init = Allocate(IntLitExpr{.value = "2"}),
+                      }),
+                      Allocate(VarDeclStmt{
+                          .name = "y",
+                          .type = "Int",
+                          .init = Allocate(IntLitExpr{.value = "3"}),
+                      }),
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Add,
+                              .lhs = Allocate(IdentExpr{
+                                  .name = "x",
+                              }),
+                              .rhs = Allocate(IdentExpr{
+                                  .name = "y",
+                              }),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #16
+MOV W1, #2
+STR W1, [SP, #0]
+MOV W2, #3
+STR W2, [SP, #4]
+LDR W3, [SP, #0]
+LDR W4, [SP, #4]
+ADD W5, W3, W4
+MOV W0, W5
+ADD SP, SP, #16
 RET
 )");
 }

@@ -151,12 +151,52 @@ class Arm64Generator {
     Append(", LT\n");
   }
 
+  void Process(const PushStack& inst) {
+    Append("SUB SP, SP, #");
+    std::size_t quot = inst.size % 16;
+    std::size_t size = quot == 0 ? inst.size : inst.size + 16 - quot;
+    Append(GetNum(size));
+    Append("\n");
+  }
+
+  void Process(const PopStack& inst) {
+    Append("ADD SP, SP, #");
+    std::size_t quot = inst.size % 16;
+    std::size_t size = quot == 0 ? inst.size : inst.size + 16 - quot;
+    Append(GetNum(size));
+    Append("\n");
+  }
+
+  void Process(const StoreStack32& inst) {
+    Append("STR ");
+    Append(out_reg_[inst.src_reg]);
+    Append(", [SP, #");
+    Append(GetNum(inst.offset));
+    Append("]\n");
+  }
+
+  void Process(const LoadStack32& inst) {
+    Append("LDR ");
+    Append(out_reg_[inst.dst_reg]);
+    Append(", [SP, #");
+    Append(GetNum(inst.offset));
+    Append("]\n");
+  }
+
   void Append(std::string_view s) { out_ << s; }
+
+  std::string_view GetNum(std::size_t s) {
+    auto it = nums_.find(s);
+    if (it != nums_.end()) return it->second;
+    nums_[s] = std::to_string(s);
+    return nums_[s];
+  }
 
   std::string_view func_name_;
   const std::vector<Instruction>& instructions_;
   std::ostream& out_;
   std::map<RegId, std::string_view> out_reg_;
+  std::map<std::size_t, std::string> nums_;
 };
 
 }  // namespace

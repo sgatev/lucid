@@ -48,6 +48,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnIntLit) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
                                   SetReg32{
                                       .src_val = "21",
                                       .dst_reg = 1,
@@ -55,6 +58,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnIntLit) {
                                   MoveReg32{
                                       .src_reg = 1,
                                       .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
                                   },
                                   Return{}));
 }
@@ -81,6 +87,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
                                   SetReg32{
                                       .src_val = "21",
                                       .dst_reg = 1,
@@ -91,6 +100,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
                                   MoveReg32{
                                       .src_reg = 0,
                                       .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
                                   },
                                   Return{}));
 }
@@ -115,6 +127,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
                                   SetReg32{
                                       .src_val = "2",
                                       .dst_reg = 1,
@@ -131,6 +146,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
                                   MoveReg32{
                                       .src_reg = 3,
                                       .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
                                   },
                                   Return{}));
 }
@@ -155,6 +173,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInts) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
                                   SetReg32{
                                       .src_val = "7",
                                       .dst_reg = 1,
@@ -171,6 +192,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInts) {
                                   MoveReg32{
                                       .src_reg = 3,
                                       .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
                                   },
                                   Return{}));
 }
@@ -195,6 +219,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInts) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
                                   SetReg32{
                                       .src_val = "2",
                                       .dst_reg = 1,
@@ -211,6 +238,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInts) {
                                   MoveReg32{
                                       .src_reg = 3,
                                       .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
                                   },
                                   Return{}));
 }
@@ -235,6 +265,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInts) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
                                   SetReg32{
                                       .src_val = "8",
                                       .dst_reg = 1,
@@ -251,6 +284,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInts) {
                                   MoveReg32{
                                       .src_reg = 3,
                                       .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
                                   },
                                   Return{}));
 }
@@ -275,6 +311,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddBools) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
                                   SetReg32{
                                       .src_val = "1",
                                       .dst_reg = 1,
@@ -291,6 +330,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddBools) {
                                   MoveReg32{
                                       .src_reg = 3,
                                       .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
                                   },
                                   Return{}));
 }
@@ -334,6 +376,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
                                   SetReg32{
                                       .src_val = "1",
                                       .dst_reg = 1,
@@ -363,6 +408,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
                                       .src_reg = 4,
                                       .dst_reg = 0,
                                   },
+                                  PopStack{
+                                      .size = 0,
+                                  },
                                   Return{},
                                   Label{
                                       .id = 2,
@@ -383,6 +431,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
                                   MoveReg32{
                                       .src_reg = 7,
                                       .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
                                   },
                                   Return{}));
 }
@@ -407,6 +458,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInts) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
                                   SetReg32{
                                       .src_val = "3",
                                       .dst_reg = 1,
@@ -423,6 +477,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInts) {
                                   MoveReg32{
                                       .src_reg = 3,
                                       .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
                                   },
                                   Return{}));
 }
@@ -447,6 +504,9 @@ TEST_F(GenerateAbstractMachineInstructionsTest, LtInts) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
                                   SetReg32{
                                       .src_val = "3",
                                       .dst_reg = 1,
@@ -463,6 +523,57 @@ TEST_F(GenerateAbstractMachineInstructionsTest, LtInts) {
                                   MoveReg32{
                                       .src_reg = 3,
                                       .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
+}
+
+TEST_F(GenerateAbstractMachineInstructionsTest, VarDecl) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(VarDeclStmt{
+                          .name = "x",
+                          .type = "Int",
+                          .init = Allocate(IntLitExpr{.value = "2"}),
+                      }),
+                      Allocate(ReturnStmt{
+                          .value = Allocate(IdentExpr{
+                              .name = "x",
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 4,
+                                  },
+                                  SetReg32{
+                                      .src_val = "2",
+                                      .dst_reg = 1,
+                                  },
+                                  StoreStack32{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  LoadStack32{
+                                      .offset = 0,
+                                      .dst_reg = 2,
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 2,
+                                      .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 4,
                                   },
                                   Return{}));
 }

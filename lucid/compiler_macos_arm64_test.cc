@@ -148,5 +148,18 @@ TEST_F(CompilerTest, LtInts) {
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
 
+TEST_F(CompilerTest, VarDecl) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+      let main = () -> Int {
+        let x = 2
+        let y = 3
+        return x + y
+      }
+    )"));
+  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(5)));
+}
+
 }  // namespace
 }  // namespace lucid

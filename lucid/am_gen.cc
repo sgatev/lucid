@@ -1,7 +1,9 @@
 #include "lucid/am_gen.h"
 
 #include <cstddef>
+#include <map>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -14,16 +16,36 @@
 namespace lucid {
 namespace {
 
+std::size_t ComputeMaxStackSize(const Arena<Stmt>& arena,
+                                const ControlFlowGraph& graph) {
+  std::size_t stack_size = 0;
+  stack_size += graph.func_params.size() * 4;
+  for (const auto& block : graph.blocks()) {
+    for (const auto& stmt_ref : block.statements) {
+      const auto& stmt = arena.get(stmt_ref);
+      if (auto* var_decl = std::get_if<VarDeclStmt>(&stmt)) {
+        stack_size += 4;
+      }
+    }
+  }
+  return stack_size;
+}
+
 class AbstractMachineInstructionGenerator {
  public:
   AbstractMachineInstructionGenerator(const Arena<Stmt>& arena,
                                       const ControlFlowGraph& graph,
                                       AbstractMachineState& state)
-      : arena_(arena), graph_(graph), state_(state) {}
+      : arena_(arena),
+        graph_(graph),
+        state_(state),
+        stack_size_(ComputeMaxStackSize(arena_, graph_)) {}
 
   void Generate() {
     state_.out_reg.clear();
     state_.out_reg.reserve(arena_.size());
+
+    // TODO: Find max stack size.
 
     std::size_t instructions_count = 0;
     for (const auto& block : graph_.blocks()) {
@@ -32,6 +54,15 @@ class AbstractMachineInstructionGenerator {
     state_.instructions.clear();
     state_.instructions.reserve(instructions_count * 2);
 
+    state_.instructions.push_back(PushStack{.size = stack_size_});
+    for (int i = 0; i < graph_.func_params.size(); ++i) {
+      state_.instructions.push_back(StoreStack32{
+          .offset = stack_offset_,
+          .src_reg = i + 1,
+      });
+      var_stack_[graph_.func_params[i].name] = stack_offset_;
+      stack_offset_ += 4;
+    }
     Process(graph_.get(graph_.first));
   }
 
@@ -68,6 +99,7 @@ class AbstractMachineInstructionGenerator {
         .src_reg = state_.out_reg[stmt.value],
         .dst_reg = 0,
     });
+    state_.instructions.push_back(PopStack{.size = stack_size_});
     state_.instructions.push_back(Return{});
   }
 
@@ -100,10 +132,22 @@ class AbstractMachineInstructionGenerator {
     state_.out_reg[ref] = 0;
   }
 
-  void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {}
+  void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {
+    state_.instructions.push_back(StoreStack32{
+        .offset = stack_offset_,
+        .src_reg = state_.out_reg[stmt.init],
+    });
+    var_stack_[stmt.name] = stack_offset_;
+    stack_offset_ += 4;
+  }
 
   void ProcessExpr(ExprRef ref, const IdentExpr& expr) {
-    state_.out_reg[ref] = 1;
+    RegId reg = next_reg_++;
+    state_.instructions.push_back(LoadStack32{
+        .offset = var_stack_[expr.name],
+        .dst_reg = reg,
+    });
+    state_.out_reg[ref] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr) {
@@ -160,8 +204,11 @@ class AbstractMachineInstructionGenerator {
   const Arena<Stmt>& arena_;
   const ControlFlowGraph& graph_;
   AbstractMachineState& state_;
+  std::size_t stack_size_;
   RegId next_reg_ = 1;
   std::size_t next_label_id_ = 1;
+  std::size_t stack_offset_ = 0;
+  std::map<std::string_view, std::size_t> var_stack_;
 };
 
 }  // namespace

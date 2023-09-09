@@ -181,9 +181,52 @@ struct LtReg32 {
   }
 };
 
+// Pushes bytes onto the stack.
+struct PushStack {
+  // Number of bytes to push.
+  std::size_t size;
+
+  bool operator==(const PushStack& other) const { return size == other.size; }
+};
+
+// Pops bytes from the stack.
+struct PopStack {
+  // Number of bytes to pop.
+  std::size_t size;
+
+  bool operator==(const PopStack& other) const { return size == other.size; }
+};
+
+// Stores the value of a 32-bit register on the stack.
+struct StoreStack32 {
+  // Offset from the top of the stack where the value will be placed.
+  std::size_t offset;
+
+  // Source 32-bit register.
+  RegId src_reg;
+
+  bool operator==(const StoreStack32& other) const {
+    return offset == other.offset && src_reg == other.src_reg;
+  }
+};
+
+// Loads a value from the stack into a 32-bit register.
+struct LoadStack32 {
+  // Offset from the top of the stack where the value is placed.
+  std::size_t offset;
+
+  // Destination 32-bit register.
+  RegId dst_reg;
+
+  bool operator==(const LoadStack32& other) const {
+    return offset == other.offset && dst_reg == other.dst_reg;
+  }
+};
+
 // An instruction for the Lucid abstract machine.
 using Instruction =
     std::variant<Nop, MoveReg32, SetReg32, Jump, CondJump, Label, Return,
-                 AddReg32, SubReg32, MulReg32, DivReg32, GtReg32, LtReg32>;
+                 AddReg32, SubReg32, MulReg32, DivReg32, GtReg32, LtReg32,
+                 PushStack, PopStack, StoreStack32, LoadStack32>;
 
 }  // namespace lucid

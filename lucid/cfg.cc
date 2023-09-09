@@ -20,6 +20,7 @@ class ControlFlowGraphBuilder {
   ControlFlowGraphBuilder(const Arena<Stmt>& arena, const FuncDefStmt& func_def)
       : arena_(arena) {
     graph_.func_name = func_def.name;
+    graph_.func_params = func_def.parameters;
     graph_.first = graph_.add(ControlFlowGraph::Block());
     graph_.last = graph_.add(ControlFlowGraph::Block());
     BuildBlock(func_def.body, graph_.first, graph_.last);
@@ -45,6 +46,8 @@ class ControlFlowGraphBuilder {
   }
 
   void FlushSubExprs(BlockRef block, BlockRef end) {
+    auto expr_begin = graph_.get(block).statements.size();
+
     while (!pending_sub_exprs_.empty()) {
       auto stmt_ref = pending_sub_exprs_.top();
       pending_sub_exprs_.pop();
@@ -55,7 +58,7 @@ class ControlFlowGraphBuilder {
                  DerefStmt(stmt_ref));
     }
 
-    std::reverse(graph_.get(block).statements.begin(),
+    std::reverse(graph_.get(block).statements.begin() + expr_begin,
                  graph_.get(block).statements.end());
   }
 

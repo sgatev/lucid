@@ -281,5 +281,46 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
                                      }));
 }
 
+TEST_F(ControlFlowGraphTest, VarDecl) {
+  auto int_lit = Allocate(IntLitExpr{
+      .value = "3",
+  });
+  auto const_decl_stmt = Allocate(VarDeclStmt{
+      .name = "x",
+      .type = "Int",
+      .init = int_lit,
+  });
+  auto ident_expr = Allocate(IdentExpr{
+      .name = "x",
+  });
+  auto return_stmt = Allocate(ReturnStmt{
+      .value = ident_expr,
+  });
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int",
+      .body =
+          {
+              .statements =
+                  {
+                      const_decl_stmt,
+                      return_stmt,
+                  },
+          },
+  });
+
+  auto block_ref = graph.first;
+  ASSERT_NE(block_ref, ControlFlowGraph::kNullBlockRef);
+
+  const auto& block = graph.get(block_ref);
+  EXPECT_THAT(block.next, ElementsAre(graph.last));
+  EXPECT_THAT(block.statements, ElementsAreArray({
+                                    int_lit,
+                                    const_decl_stmt,
+                                    ident_expr,
+                                    return_stmt,
+                                }));
+}
+
 }  // namespace
 }  // namespace lucid
