@@ -604,10 +604,10 @@ TEST_F(ParserTest, LtInts) {
                    }})));
 }
 
-TEST_F(ParserTest, ConstDecl) {
+TEST_F(ParserTest, VarDecl) {
   std::string_view src = R"(
     let inc = (n: Int32) -> Int32 {
-      let m = 1
+      let m: Int32 = 1
       return n + m 
     }
   )";
@@ -624,6 +624,7 @@ TEST_F(ParserTest, ConstDecl) {
                            {
                                MatchesVarDeclStmt({
                                    .name = "m",
+                                   .type = "Int32",
                                    .init = MatchesIntLitExpr({.value = "1"}),
                                }),
                                MatchesReturnStmt({
@@ -777,38 +778,66 @@ TEST_F(ParserTest, ReturnMissingValue) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
 }
 
-TEST_F(ParserTest, ConstDeclMissingLet) {
+TEST_F(ParserTest, VarDeclMissingLet) {
   std::string_view src = R"(
     let main = () -> Void {
-      m = 1
+      m: Int32 = 1
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 7"));
 }
 
-TEST_F(ParserTest, ConstDeclMissingName) {
+TEST_F(ParserTest, VarDeclMissingName) {
   std::string_view src = R"(
     let main = () -> Void {
-      let = 1
+      let : Int32 = 1
     }
   )";
   EXPECT_THAT(Parse(src),
               HoldsError("expected identifier at line 3, column 11"));
 }
 
-TEST_F(ParserTest, ConstDeclMissingEqual) {
+TEST_F(ParserTest, VarDeclMissingColon) {
   std::string_view src = R"(
     let main = () -> Void {
-      let m 1
+      let m Int32 = 1
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
 }
 
-TEST_F(ParserTest, ConstDeclMissingInit) {
+TEST_F(ParserTest, VarDeclMissingType) {
   std::string_view src = R"(
     let main = () -> Void {
-      let m =
+      let m: = 1
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected identifier at line 3, column 14"));
+}
+
+TEST_F(ParserTest, VarDeclMissingColonAndType) {
+  std::string_view src = R"(
+    let main = () -> Void {
+      let m = 1
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
+}
+
+TEST_F(ParserTest, VarDeclMissingEqual) {
+  std::string_view src = R"(
+    let main = () -> Void {
+      let m: Int32 1
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 20"));
+}
+
+TEST_F(ParserTest, VarDeclMissingInit) {
+  std::string_view src = R"(
+    let main = () -> Void {
+      let m: Int32 =
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));

@@ -151,8 +151,8 @@ TEST_F(CompilerTest, LtInts) {
 TEST_F(CompilerTest, VarDecl) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
       let main = () -> Int32 {
-        let x = 2
-        let y = 3
+        let x: Int32 = 2
+        let y: Int32 = 3
         return x + y
       }
     )"));

@@ -205,6 +205,11 @@ class Parser {
       const auto maybe_name = ParseIdent();
       if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
 
+      if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) return *r;
+
+      const auto maybe_type = ParseIdent();
+      if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
+
       if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
 
       const auto init = ParseExpr();
@@ -212,6 +217,7 @@ class Parser {
 
       return arena_.add(VarDeclStmt{
           .name = std::get<std::string_view>(maybe_name),
+          .type = std::get<std::string_view>(maybe_type),
           .init = std::get<ExprRef>(init),
       });
     }
