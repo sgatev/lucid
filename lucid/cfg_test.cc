@@ -31,7 +31,7 @@ class ControlFlowGraphTest : public testing::Test {
 TEST_F(ControlFlowGraphTest, FunctionName) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "void",
+      .result_type = "Void",
   });
 
   EXPECT_EQ(graph.func_name, "foo");
@@ -40,7 +40,7 @@ TEST_F(ControlFlowGraphTest, FunctionName) {
 TEST_F(ControlFlowGraphTest, EmptyFunction) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "void",
+      .result_type = "Void",
   });
 
   auto block_ref = graph.first;
@@ -57,7 +57,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   }));
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "void",
+      .result_type = "Void",
       .body =
           {
               .statements =
@@ -101,7 +101,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   }));
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "void",
+      .result_type = "Void",
       .body =
           {
               .statements =
@@ -140,7 +140,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "void",
+      .result_type = "Void",
       .body =
           {
               .statements =
@@ -165,7 +165,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
 TEST_F(ControlFlowGraphTest, VarDeclStmt) {
   auto func_call_stmt_ref = Allocate(FuncCallExpr{.func_name = "bar"});
   auto x_var_decl_ref = Allocate(VarDeclStmt{
-      .type = "int",
+      .type = "Int32",
       .name = "x",
       .init = func_call_stmt_ref,
   });
@@ -175,7 +175,7 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
           {
               .statements = {x_var_decl_ref},
           },
-      .result_type = "void",
+      .result_type = "Void",
   });
 
   auto block_ref = graph.first;
@@ -203,7 +203,7 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
           {
               .statements = {add_expr},
           },
-      .result_type = "int",
+      .result_type = "Int32",
   });
 
   auto block_ref = graph.first;
@@ -251,7 +251,7 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
           {
               .statements = {if_stmt},
           },
-      .result_type = "int",
+      .result_type = "Int32",
   });
 
   auto block_ref = graph.first;
@@ -287,7 +287,7 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   });
   auto const_decl_stmt = Allocate(VarDeclStmt{
       .name = "x",
-      .type = "Int",
+      .type = "Int32",
       .init = int_lit,
   });
   auto ident_expr = Allocate(IdentExpr{
@@ -298,7 +298,7 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "Int",
+      .result_type = "Int32",
       .body =
           {
               .statements =

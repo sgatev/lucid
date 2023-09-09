@@ -9,7 +9,7 @@ using ::testing::Eq;
 
 TEST_F(CompilerTest, EmptyMain) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         return 0
       }
     )"));
@@ -20,11 +20,11 @@ TEST_F(CompilerTest, EmptyMain) {
 
 TEST_F(CompilerTest, FunctionCall) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let id = (x: Int) -> Int {
+      let id = (x: Int32) -> Int32 {
         return x
       }
 
-      let main = () -> Int {
+      let main = () -> Int32 {
         return id(21)
       }
     )"));
@@ -35,7 +35,7 @@ TEST_F(CompilerTest, FunctionCall) {
 
 TEST_F(CompilerTest, AddInts) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         return 2 + 3
       }
     )"));
@@ -46,7 +46,7 @@ TEST_F(CompilerTest, AddInts) {
 
 TEST_F(CompilerTest, SubInts) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         return 7 - 5
       }
     )"));
@@ -57,7 +57,7 @@ TEST_F(CompilerTest, SubInts) {
 
 TEST_F(CompilerTest, MulInts) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         return 3 * 7
       }
     )"));
@@ -68,7 +68,7 @@ TEST_F(CompilerTest, MulInts) {
 
 TEST_F(CompilerTest, DivInts) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         return 8 / 2
       }
     )"));
@@ -79,7 +79,7 @@ TEST_F(CompilerTest, DivInts) {
 
 TEST_F(CompilerTest, AddBools) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         return true + false
       }
     )"));
@@ -90,7 +90,7 @@ TEST_F(CompilerTest, AddBools) {
 
 TEST_F(CompilerTest, IfStmtThenBranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         if true {
           return 2 
         } else {
@@ -105,7 +105,7 @@ TEST_F(CompilerTest, IfStmtThenBranch) {
 
 TEST_F(CompilerTest, IfStmtElseBranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         if false {
           return 2 
         } else {
@@ -120,7 +120,7 @@ TEST_F(CompilerTest, IfStmtElseBranch) {
 
 TEST_F(CompilerTest, GtInts) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         if 7 > 1 {
           return 2
         } else {
@@ -135,7 +135,7 @@ TEST_F(CompilerTest, GtInts) {
 
 TEST_F(CompilerTest, LtInts) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         if 1 < 7 {
           return 2
         } else {
@@ -150,7 +150,7 @@ TEST_F(CompilerTest, LtInts) {
 
 TEST_F(CompilerTest, VarDecl) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int {
+      let main = () -> Int32 {
         let x = 2
         let y = 3
         return x + y

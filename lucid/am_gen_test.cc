@@ -35,7 +35,7 @@ class GenerateAbstractMachineInstructionsTest : public testing::Test {
 TEST_F(GenerateAbstractMachineInstructionsTest, ReturnIntLit) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -68,7 +68,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnIntLit) {
 TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -110,7 +110,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
 TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -156,7 +156,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
 TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -202,7 +202,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInts) {
 TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -248,7 +248,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInts) {
 TEST_F(GenerateAbstractMachineInstructionsTest, DivideInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -294,7 +294,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInts) {
 TEST_F(GenerateAbstractMachineInstructionsTest, AddBools) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -365,7 +365,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
   });
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -441,7 +441,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
 TEST_F(GenerateAbstractMachineInstructionsTest, GtInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -487,7 +487,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInts) {
 TEST_F(GenerateAbstractMachineInstructionsTest, LtInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -533,14 +533,14 @@ TEST_F(GenerateAbstractMachineInstructionsTest, LtInts) {
 TEST_F(GenerateAbstractMachineInstructionsTest, VarDecl) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
                   {
                       Allocate(VarDeclStmt{
                           .name = "x",
-                          .type = "Int",
+                          .type = "Int32",
                           .init = Allocate(IntLitExpr{.value = "2"}),
                       }),
                       Allocate(ReturnStmt{

@@ -57,7 +57,7 @@ TEST(LexerTest, Empty) { EXPECT_THAT(ReadTokens(""), IsEmpty()); }
 TEST(LexerTest, Function) {
   EXPECT_THAT(
       ReadTokens(R"(
-    let main = () -> Int {
+    let main = () -> Int32 {
       print("Hello, world!")
       return 0
     }
@@ -65,7 +65,7 @@ TEST(LexerTest, Function) {
       ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "main"),
                   Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
                   Tok(Kind::CloseParen, ")"), Tok(Kind::Minus, "-"),
-                  Tok(Kind::Greater, ">"), Tok(Kind::Ident, "Int"),
+                  Tok(Kind::Greater, ">"), Tok(Kind::Ident, "Int32"),
                   Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "print"),
                   Tok(Kind::OpenParen, "("),
                   Tok(Kind::String, "\"Hello, world!\""),
@@ -76,16 +76,16 @@ TEST(LexerTest, Function) {
 TEST(LexerTest, Tuple) {
   EXPECT_THAT(ReadTokens(R"(
     let Point = (
-      x: Int,
-      y: Int,
+      x: Int32,
+      y: Int32,
     )
   )"),
               ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "Point"),
                           Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
                           Tok(Kind::Ident, "x"), Tok(Kind::Colon, ":"),
-                          Tok(Kind::Ident, "Int"), Tok(Kind::Comma, ","),
+                          Tok(Kind::Ident, "Int32"), Tok(Kind::Comma, ","),
                           Tok(Kind::Ident, "y"), Tok(Kind::Colon, ":"),
-                          Tok(Kind::Ident, "Int"), Tok(Kind::Comma, ","),
+                          Tok(Kind::Ident, "Int32"), Tok(Kind::Comma, ","),
                           Tok(Kind::CloseParen, ")")));
 }
 
@@ -147,20 +147,21 @@ TEST(LexerTest, Comment) {
   EXPECT_THAT(
       ReadTokens(R"(
     # Returns the sum of two integers.
-    let sum = (a: Int, b: Int) {
+    let sum = (a: Int32, b: Int32) {
       return a + b # can overflow
     }
   )"),
-      ElementsAre(
-          Tok(Kind::Comment, "# Returns the sum of two integers.\n"),
-          Tok(Kind::Ident, "let"), Tok(Kind::Ident, "sum"),
-          Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
-          Tok(Kind::Ident, "a"), Tok(Kind::Colon, ":"), Tok(Kind::Ident, "Int"),
-          Tok(Kind::Comma, ","), Tok(Kind::Ident, "b"), Tok(Kind::Colon, ":"),
-          Tok(Kind::Ident, "Int"), Tok(Kind::CloseParen, ")"),
-          Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "return"),
-          Tok(Kind::Ident, "a"), Tok(Kind::Plus, "+"), Tok(Kind::Ident, "b"),
-          Tok(Kind::Comment, "# can overflow\n"), Tok(Kind::CloseBrace, "}")));
+      ElementsAre(Tok(Kind::Comment, "# Returns the sum of two integers.\n"),
+                  Tok(Kind::Ident, "let"), Tok(Kind::Ident, "sum"),
+                  Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
+                  Tok(Kind::Ident, "a"), Tok(Kind::Colon, ":"),
+                  Tok(Kind::Ident, "Int32"), Tok(Kind::Comma, ","),
+                  Tok(Kind::Ident, "b"), Tok(Kind::Colon, ":"),
+                  Tok(Kind::Ident, "Int32"), Tok(Kind::CloseParen, ")"),
+                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "return"),
+                  Tok(Kind::Ident, "a"), Tok(Kind::Plus, "+"),
+                  Tok(Kind::Ident, "b"), Tok(Kind::Comment, "# can overflow\n"),
+                  Tok(Kind::CloseBrace, "}")));
 }
 
 TEST(LexerTest, Number) {

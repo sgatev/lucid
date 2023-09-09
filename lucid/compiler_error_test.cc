@@ -52,7 +52,7 @@ TEST_F(CompilerTest, UnknownFile) {
 
 TEST_F(CompilerTest, ParseError) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = ( -> Int {
+      let main = ( -> Int32 {
         return 0
       }
     )"));

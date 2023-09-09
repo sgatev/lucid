@@ -41,8 +41,8 @@ BENCHMARK(BM_Function);
 static void BM_Tuple(benchmark::State &state) {
   Benchmark(state, R"(
     let Point = (
-      x: Int,
-      y: Int,
+      x: Int32,
+      y: Int32,
     )
   )");
 }
@@ -73,7 +73,7 @@ BENCHMARK(BM_Union);
 static void BM_Comment(benchmark::State &state) {
   Benchmark(state, R"(
     # Returns the sum of two integers.
-    let sum = (a: Int, b: Int) -> Int {
+    let sum = (a: Int32, b: Int32) -> Int32 {
       return a + b # can overflow
     }
   )");

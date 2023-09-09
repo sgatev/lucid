@@ -37,7 +37,7 @@ class GenerateArmAssemblySourceTest : public testing::Test {
 TEST_F(GenerateArmAssemblySourceTest, ReturnIntLit) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -61,12 +61,12 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, FuncWithParam) {
   auto func = FuncDefStmt{
       .name = "id",
-      .result_type = "Int",
+      .result_type = "Int32",
       .parameters =
           {
               {
                   .name = "x",
-                  .type = "Int",
+                  .type = "Int32",
               },
           },
       .body =
@@ -95,7 +95,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -128,7 +128,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, AddInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -158,7 +158,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, SubtractInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -188,7 +188,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, MultiplyInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -218,7 +218,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, DivideInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -273,7 +273,7 @@ TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
   });
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -309,7 +309,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, GtInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -340,7 +340,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, LtInts) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "int",
+      .result_type = "Int32",
       .body =
           {
               .statements =
@@ -371,7 +371,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, VarDecl) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int",
+      .result_type = "Int32",
       .body =
           {
               .statements =

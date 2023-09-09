@@ -36,7 +36,7 @@ void Benchmark(benchmark::State &state, std::string_view snippet) {
 
 static void BM_Function(benchmark::State &state) {
   Benchmark(state, R"(
-    let main = () -> Int {
+    let main = () -> Int32 {
       return 0
     }
   )");

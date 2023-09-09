@@ -215,14 +215,14 @@ TEST_F(ParserTest, EmptyFuncDefStmt) {
 
 TEST_F(ParserTest, ReturnIntLitExpr) {
   std::string_view src = R"(
-    let main = () -> Int {
+    let main = () -> Int32 {
       return 0
     }
   )";
   EXPECT_THAT(Parse(src),  //
               HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "main",
-                   .result_type = "Int",
+                   .result_type = "Int32",
                    .body = {
                        .statements =
                            {
@@ -237,14 +237,14 @@ TEST_F(ParserTest, ReturnIntLitExpr) {
 
 TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
   std::string_view src = R"(
-    let main = () -> Int {
+    let main = () -> Int32 {
       return 3 + 2
     }
   )";
   EXPECT_THAT(Parse(src),  //
               HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "main",
-                   .result_type = "Int",
+                   .result_type = "Int32",
                    .body = {
                        .statements =
                            {
@@ -265,14 +265,14 @@ TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
 
 TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
   std::string_view src = R"(
-    let main = () -> Int {
+    let main = () -> Int32 {
       return 3 - 2
     }
   )";
   EXPECT_THAT(Parse(src),  //
               HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "main",
-                   .result_type = "Int",
+                   .result_type = "Int32",
                    .body = {
                        .statements =
                            {
@@ -293,14 +293,14 @@ TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
 
 TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
   std::string_view src = R"(
-    let main = () -> Int {
+    let main = () -> Int32 {
       return 3 * 2
     }
   )";
   EXPECT_THAT(Parse(src),  //
               HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "main",
-                   .result_type = "Int",
+                   .result_type = "Int32",
                    .body = {
                        .statements =
                            {
@@ -321,14 +321,14 @@ TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
 
 TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
   std::string_view src = R"(
-    let main = () -> Int {
+    let main = () -> Int32 {
       return 3 / 2
     }
   )";
   EXPECT_THAT(Parse(src),  //
               HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "main",
-                   .result_type = "Int",
+                   .result_type = "Int32",
                    .body = {
                        .statements =
                            {
@@ -377,7 +377,7 @@ TEST_F(ParserTest, ReturnGtBinaryOpExpr) {
 
 TEST_F(ParserTest, SingleFuncParam) {
   std::string_view src = R"(
-    let id = (x: Int) -> Int {
+    let id = (x: Int32) -> Int32 {
       return x
     }
   )";
@@ -386,9 +386,9 @@ TEST_F(ParserTest, SingleFuncParam) {
                   {.name = "id",
                    .parameters =
                        {
-                           {.name = "x", .type = "Int"},
+                           {.name = "x", .type = "Int32"},
                        },
-                   .result_type = "Int",
+                   .result_type = "Int32",
                    .body = {
                        .statements =
                            {
@@ -403,7 +403,7 @@ TEST_F(ParserTest, SingleFuncParam) {
 
 TEST_F(ParserTest, MultipleFuncParams) {
   std::string_view src = R"(
-    let foo = (a: Int, b: Double, c: Bool) -> Void {
+    let foo = (a: Int32, b: Double, c: Bool) -> Void {
     }
   )";
   EXPECT_THAT(Parse(src),  //
@@ -411,7 +411,7 @@ TEST_F(ParserTest, MultipleFuncParams) {
                   .name = "foo",
                   .parameters =
                       {
-                          {.name = "a", .type = "Int"},
+                          {.name = "a", .type = "Int32"},
                           {.name = "b", .type = "Double"},
                           {.name = "c", .type = "Bool"},
                       },
@@ -421,7 +421,7 @@ TEST_F(ParserTest, MultipleFuncParams) {
 
 TEST_F(ParserTest, FuncCallExpr) {
   std::string_view src = R"(
-    let main = () -> Int {
+    let main = () -> Int32 {
       return id(21)
     }
   )";
@@ -429,7 +429,7 @@ TEST_F(ParserTest, FuncCallExpr) {
       Parse(src),  //
       HoldsFuncDef(MatchesFuncDefStmt(
           {.name = "main",
-           .result_type = "Int",
+           .result_type = "Int32",
            .body = {
                .statements =
                    {
@@ -492,7 +492,7 @@ TEST_F(ParserTest, ReturnFalseBoolLit) {
 
 TEST_F(ParserTest, IfStmt) {
   std::string_view src = R"(
-    let foo = () -> Int {
+    let foo = () -> Int32 {
       if true {
         return 2 + 3
       } else {
@@ -504,7 +504,7 @@ TEST_F(ParserTest, IfStmt) {
       Parse(src),  //
       HoldsFuncDef(MatchesFuncDefStmt(
           {.name = "foo",
-           .result_type = "Int",
+           .result_type = "Int32",
            .body = {
                .statements =
                    {
@@ -548,7 +548,7 @@ TEST_F(ParserTest, IfStmt) {
 
 TEST_F(ParserTest, GtInts) {
   std::string_view src = R"(
-    let gt = (x: Int, y: Int) -> Bool {
+    let gt = (x: Int32, y: Int32) -> Bool {
       return x > y
     }
   )";
@@ -558,8 +558,8 @@ TEST_F(ParserTest, GtInts) {
                    .result_type = "Bool",
                    .parameters =
                        {
-                           {.name = "x", .type = "Int"},
-                           {.name = "y", .type = "Int"},
+                           {.name = "x", .type = "Int32"},
+                           {.name = "y", .type = "Int32"},
                        },
                    .body = {
                        .statements =
@@ -577,7 +577,7 @@ TEST_F(ParserTest, GtInts) {
 
 TEST_F(ParserTest, LtInts) {
   std::string_view src = R"(
-    let gt = (x: Int, y: Int) -> Bool {
+    let gt = (x: Int32, y: Int32) -> Bool {
       return x < y
     }
   )";
@@ -587,8 +587,8 @@ TEST_F(ParserTest, LtInts) {
                    .result_type = "Bool",
                    .parameters =
                        {
-                           {.name = "x", .type = "Int"},
-                           {.name = "y", .type = "Int"},
+                           {.name = "x", .type = "Int32"},
+                           {.name = "y", .type = "Int32"},
                        },
                    .body = {
                        .statements =
@@ -606,7 +606,7 @@ TEST_F(ParserTest, LtInts) {
 
 TEST_F(ParserTest, ConstDecl) {
   std::string_view src = R"(
-    let inc = (n: Int) -> Int {
+    let inc = (n: Int32) -> Int32 {
       let m = 1
       return n + m 
     }
@@ -614,10 +614,10 @@ TEST_F(ParserTest, ConstDecl) {
   EXPECT_THAT(Parse(src),  //
               HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "inc",
-                   .result_type = "Int",
+                   .result_type = "Int32",
                    .parameters =
                        {
-                           {.name = "n", .type = "Int"},
+                           {.name = "n", .type = "Int32"},
                        },
                    .body = {
                        .statements =
@@ -673,7 +673,7 @@ TEST_F(ParserTest, FuncDefMissingOpeningParen) {
 
 TEST_F(ParserTest, FuncDefMissingParamName) {
   std::string_view src = R"(
-    let id = (: Int) -> Int {
+    let id = (: Int32) -> Int32 {
       return x
     }
   )";
@@ -683,7 +683,7 @@ TEST_F(ParserTest, FuncDefMissingParamName) {
 
 TEST_F(ParserTest, FuncDefMissingParamColon) {
   std::string_view src = R"(
-    let id = (x Int) -> Int {
+    let id = (x Int32) -> Int32 {
       return x
     }
   )";
@@ -692,7 +692,7 @@ TEST_F(ParserTest, FuncDefMissingParamColon) {
 
 TEST_F(ParserTest, FuncDefMissingParamType) {
   std::string_view src = R"(
-    let id = (x:) -> Int {
+    let id = (x:) -> Int32 {
       return x
     }
   )";
@@ -702,7 +702,7 @@ TEST_F(ParserTest, FuncDefMissingParamType) {
 
 TEST_F(ParserTest, FuncDefMissingParamColonAndType) {
   std::string_view src = R"(
-    let id = (x) -> Int {
+    let id = (x) -> Int32 {
       return x
     }
   )";
@@ -711,12 +711,12 @@ TEST_F(ParserTest, FuncDefMissingParamColonAndType) {
 
 TEST_F(ParserTest, FuncDefMissingNextParam) {
   std::string_view src = R"(
-    let id = (x: Int,) -> Int {
+    let id = (x: Int32,) -> Int32 {
       return x
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 22"));
+                                     "parameter at line 2, column 24"));
 }
 
 TEST_F(ParserTest, FuncDefMissingClosingParen) {
@@ -770,7 +770,7 @@ TEST_F(ParserTest, FuncDefMissingClosingBrace) {
 
 TEST_F(ParserTest, ReturnMissingValue) {
   std::string_view src = R"(
-    let id = (x: Int) -> Int {
+    let id = (x: Int32) -> Int32 {
       return
     }
   )";
