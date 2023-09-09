@@ -331,7 +331,7 @@ class Parser {
   }
 
   ExprRef MakeBinaryOpExpr(BinaryOp op, ExprRef lhs, ExprRef rhs) {
-    return arena_.add(BinaryOpExpr{op, lhs, rhs});
+    return arena_.add(BinaryOpExpr{.op = op, .lhs = lhs, .rhs = rhs});
   }
 
   std::optional<ParserError> ExpectToken(Token::Kind kind) {

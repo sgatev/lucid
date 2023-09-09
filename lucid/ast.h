@@ -72,18 +72,27 @@ struct ReturnStmt {
 
 // An expression that represents an integer literal.
 struct IntLitExpr {
+  // Type of the expression.
+  std::string_view type;
+
   // Value of the integer.
   std::string_view value;
 };
 
 // An expression that represents a boolean literal.
 struct BoolLitExpr {
+  // Type of the expression.
+  std::string_view type;
+
   // Value of the boolean.
   std::string_view value;
 };
 
 // An expression that represents a function call.
 struct FuncCallExpr {
+  // Type of the expression.
+  std::string_view type;
+
   // Name of the function.
   std::string_view func_name;
 
@@ -105,6 +114,9 @@ struct VarDeclStmt {
 
 // An expression that represents an identifier.
 struct IdentExpr {
+  // Type of the expression.
+  std::string_view type;
+
   // Name of the identifier.
   std::string_view name;
 };
@@ -133,6 +145,9 @@ enum class BinaryOp {
 // An expression that represents a binary operation over the values of two
 // sub-expressions.
 struct BinaryOpExpr {
+  // Type of the expression.
+  std::string_view type;
+
   // Binary operation kind.
   BinaryOp op;
 

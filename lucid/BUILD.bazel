@@ -92,6 +92,15 @@ cc_library(
 )
 
 cc_library(
+    name = "ast_matchers",
+    testonly = True,
+    hdrs = ["ast_matchers.h"],
+    deps = [
+        ":ast",
+    ],
+)
+
+cc_library(
     name = "cfg",
     srcs = ["cfg.cc"],
     hdrs = ["cfg.h"],
@@ -145,6 +154,7 @@ cc_binary(
         ":lexer",
         ":opt",
         ":parser",
+        ":type",
         ":version",
     ],
 )
@@ -286,6 +296,7 @@ cc_test(
     deps = [
         ":arena",
         ":ast",
+        ":ast_matchers",
         ":lexer",
         ":parser",
         "@gtest",
@@ -318,6 +329,29 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":token",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "type",
+    srcs = ["type.cc"],
+    hdrs = ["type.h"],
+    deps = [
+        ":ast",
+    ],
+)
+
+cc_test(
+    name = "type_test",
+    srcs = ["type_test.cc"],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":arena",
+        ":ast",
+        ":ast_matchers",
+        ":type",
         "@gtest",
         "@gtest//:gtest_main",
     ],

@@ -21,6 +21,7 @@
 #include "lucid/lexer.h"
 #include "lucid/opt.h"
 #include "lucid/parser.h"
+#include "lucid/type.h"
 #include "lucid/version.h"
 
 namespace lucid {
@@ -64,7 +65,8 @@ std::optional<ParserError> Compile(std::string_view src, std::ostream& out) {
   }
   AbstractMachineState state;
   GenerateArmStartSource(out);
-  for (const auto& func : std::get<std::vector<FuncDefStmt>>(maybe_funcs)) {
+  for (auto& func : std::get<std::vector<FuncDefStmt>>(maybe_funcs)) {
+    DeduceTypes(arena, func);
     auto graph = BuildControlFlowGraph(arena, func);
     GenerateAbstractMachineInstructions(arena, graph, state);
     OptimizeAbstractMachineInstructions(state.instructions);
