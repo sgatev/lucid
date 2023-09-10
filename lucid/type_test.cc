@@ -234,5 +234,35 @@ TEST_F(InferExpressionTypesTest, ErrorBoolLitAsInt64) {
             TypeError("Bool literal is not of type Int64"));
 }
 
+TEST_F(InferExpressionTypesTest, ErrorInt64FromInt32) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Void",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(VarDeclStmt{
+                          .name = "x",
+                          .type = "Int32",
+                          .init = Allocate(IntLitExpr{
+                              .value = "2",
+                          }),
+                      }),
+                      Allocate(VarDeclStmt{
+                          .name = "y",
+                          .type = "Int64",
+                          .init = Allocate(IdentExpr{
+                              .name = "x",
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(InferExpressionTypes(func),
+            TypeError("Identifier 'x' is not of type Int64"));
+}
+
 }  // namespace
 }  // namespace lucid

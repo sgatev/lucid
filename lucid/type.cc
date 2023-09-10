@@ -4,6 +4,7 @@
 #include <ranges>
 #include <string_view>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -15,6 +16,11 @@ namespace lucid {
 
 std::optional<TypeError> InferExpressionTypes(Arena<Stmt>& arena,
                                               FuncDefStmt& func_def) {
+  std::unordered_map<std::string_view, std::string_view> ident_types;
+  for (const auto& param : func_def.parameters) {
+    ident_types[param.name] = param.type;
+  }
+
   std::vector<StmtRef> pending_stmts;
   for (auto stmt : std::ranges::reverse_view(func_def.body.statements)) {
     pending_stmts.push_back(stmt);
@@ -35,6 +41,8 @@ std::optional<TypeError> InferExpressionTypes(Arena<Stmt>& arena,
     } else if (auto* cstmt = std::get_if<ReturnStmt>(&stmt)) {
       pending_exprs.emplace_back(cstmt->value, func_def.result_type);
     } else if (auto* cstmt = std::get_if<VarDeclStmt>(&stmt)) {
+      ident_types[cstmt->name] = cstmt->type;
+
       pending_exprs.emplace_back(cstmt->init, cstmt->type);
     }
 
@@ -54,6 +62,11 @@ std::optional<TypeError> InferExpressionTypes(Arena<Stmt>& arena,
         }
         cexpr->type = type;
       } else if (auto* cexpr = std::get_if<IdentExpr>(&expr)) {
+        if (ident_types[cexpr->name] != type) {
+          return TypeError(
+              std::string("Identifier '") + std::string(cexpr->name) +
+              std::string("' is not of type ") + std::string(type));
+        }
         cexpr->type = type;
       } else if (auto* cexpr = std::get_if<BinaryOpExpr>(&expr)) {
         cexpr->type = type;
