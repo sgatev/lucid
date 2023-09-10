@@ -45,8 +45,6 @@ class AbstractMachineInstructionGenerator {
     state_.out_reg.clear();
     state_.out_reg.reserve(arena_.size());
 
-    // TODO: Find max stack size.
-
     std::size_t instructions_count = 0;
     for (const auto& block : graph_.blocks()) {
       instructions_count += block.statements.size();
@@ -56,12 +54,22 @@ class AbstractMachineInstructionGenerator {
 
     state_.instructions.push_back(PushStack{.size = stack_size_});
     for (int i = 0; i < graph_.func_params.size(); ++i) {
-      state_.instructions.push_back(StoreStack32{
-          .offset = stack_offset_,
-          .src_reg = i + 1,
-      });
-      var_stack_[graph_.func_params[i].name] = stack_offset_;
-      stack_offset_ += 4;
+      const auto& param = graph_.func_params[i];
+      if (param.type == "Int32") {
+        state_.instructions.push_back(StoreStack32{
+            .offset = stack_offset_,
+            .src_reg = i + 1,
+        });
+        var_stack_[graph_.func_params[i].name] = stack_offset_;
+        stack_offset_ += 4;
+      } else if (param.type == "Int64") {
+        state_.instructions.push_back(StoreStack64{
+            .offset = stack_offset_,
+            .src_reg = i + 1,
+        });
+        var_stack_[graph_.func_params[i].name] = stack_offset_;
+        stack_offset_ += 8;
+      }
     }
     Process(graph_.get(graph_.first));
   }
@@ -95,10 +103,21 @@ class AbstractMachineInstructionGenerator {
   }
 
   void Process(StmtRef ref, const ReturnStmt& stmt) {
-    state_.instructions.push_back(MoveReg32{
-        .src_reg = state_.out_reg[stmt.value],
-        .dst_reg = 0,
-    });
+    const auto& value = std::get<Expr>(DerefStmt(stmt.value));
+    auto type = std::visit([](auto& expr) { return expr.type; }, value);
+
+    if (type == "Int32") {
+      state_.instructions.push_back(MoveReg32{
+          .src_reg = state_.out_reg[stmt.value],
+          .dst_reg = 0,
+      });
+    } else if (type == "Int64") {
+      state_.instructions.push_back(MoveReg64{
+          .src_reg = state_.out_reg[stmt.value],
+          .dst_reg = 0,
+      });
+    }
+
     state_.instructions.push_back(PopStack{.size = stack_size_});
     state_.instructions.push_back(Return{});
   }
@@ -109,10 +128,19 @@ class AbstractMachineInstructionGenerator {
 
   void ProcessExpr(ExprRef ref, const IntLitExpr& expr) {
     RegId reg = next_reg_++;
-    state_.instructions.push_back(SetReg32{
-        .src_val = expr.value,
-        .dst_reg = reg,
-    });
+    if (expr.type == "Int64") {
+      state_.instructions.push_back(SetReg64{
+          .src_val = expr.value,
+          .dst_reg = reg,
+      });
+    } else {
+      // TODO: Make this conditional on the type once func param types are
+      // available.
+      state_.instructions.push_back(SetReg32{
+          .src_val = expr.value,
+          .dst_reg = reg,
+      });
+    }
     state_.out_reg[ref] = reg;
   }
 
@@ -133,20 +161,36 @@ class AbstractMachineInstructionGenerator {
   }
 
   void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {
-    state_.instructions.push_back(StoreStack32{
-        .offset = stack_offset_,
-        .src_reg = state_.out_reg[stmt.init],
-    });
-    var_stack_[stmt.name] = stack_offset_;
-    stack_offset_ += 4;
+    if (stmt.type == "Int32") {
+      state_.instructions.push_back(StoreStack32{
+          .offset = stack_offset_,
+          .src_reg = state_.out_reg[stmt.init],
+      });
+      var_stack_[stmt.name] = stack_offset_;
+      stack_offset_ += 4;
+    } else if (stmt.type == "Int64") {
+      state_.instructions.push_back(StoreStack64{
+          .offset = stack_offset_,
+          .src_reg = state_.out_reg[stmt.init],
+      });
+      var_stack_[stmt.name] = stack_offset_;
+      stack_offset_ += 8;
+    }
   }
 
   void ProcessExpr(ExprRef ref, const IdentExpr& expr) {
     RegId reg = next_reg_++;
-    state_.instructions.push_back(LoadStack32{
-        .offset = var_stack_[expr.name],
-        .dst_reg = reg,
-    });
+    if (expr.type == "Int32") {
+      state_.instructions.push_back(LoadStack32{
+          .offset = var_stack_[expr.name],
+          .dst_reg = reg,
+      });
+    } else if (expr.type == "Int64") {
+      state_.instructions.push_back(LoadStack64{
+          .offset = var_stack_[expr.name],
+          .dst_reg = reg,
+      });
+    }
     state_.out_reg[ref] = reg;
   }
 
@@ -154,46 +198,94 @@ class AbstractMachineInstructionGenerator {
     auto reg = next_reg_++;
     switch (expr.op) {
       case BinaryOp::Add:
-        state_.instructions.push_back(AddReg32{
-            .res_reg = reg,
-            .lhs_reg = state_.out_reg[expr.lhs],
-            .rhs_reg = state_.out_reg[expr.rhs],
-        });
+        if (expr.type == "Int32") {
+          state_.instructions.push_back(AddReg32{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        } else if (expr.type == "Int64") {
+          state_.instructions.push_back(AddReg64{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        }
         break;
       case BinaryOp::Sub:
-        state_.instructions.push_back(SubReg32{
-            .res_reg = reg,
-            .lhs_reg = state_.out_reg[expr.lhs],
-            .rhs_reg = state_.out_reg[expr.rhs],
-        });
+        if (expr.type == "Int32") {
+          state_.instructions.push_back(SubReg32{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        } else if (expr.type == "Int64") {
+          state_.instructions.push_back(SubReg64{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        }
         break;
       case BinaryOp::Mul:
-        state_.instructions.push_back(MulReg32{
-            .res_reg = reg,
-            .lhs_reg = state_.out_reg[expr.lhs],
-            .rhs_reg = state_.out_reg[expr.rhs],
-        });
+        if (expr.type == "Int32") {
+          state_.instructions.push_back(MulReg32{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        } else if (expr.type == "Int64") {
+          state_.instructions.push_back(MulReg64{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        }
         break;
       case BinaryOp::Div:
-        state_.instructions.push_back(DivReg32{
-            .res_reg = reg,
-            .lhs_reg = state_.out_reg[expr.lhs],
-            .rhs_reg = state_.out_reg[expr.rhs],
-        });
+        if (expr.type == "Int32") {
+          state_.instructions.push_back(DivReg32{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        } else if (expr.type == "Int64") {
+          state_.instructions.push_back(DivReg64{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        }
         break;
       case BinaryOp::Gt:
-        state_.instructions.push_back(GtReg32{
-            .res_reg = reg,
-            .lhs_reg = state_.out_reg[expr.lhs],
-            .rhs_reg = state_.out_reg[expr.rhs],
-        });
+        if (expr.type == "Int32") {
+          state_.instructions.push_back(GtReg32{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        } else if (expr.type == "Int64") {
+          state_.instructions.push_back(GtReg64{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        }
         break;
       case BinaryOp::Lt:
-        state_.instructions.push_back(LtReg32{
-            .res_reg = reg,
-            .lhs_reg = state_.out_reg[expr.lhs],
-            .rhs_reg = state_.out_reg[expr.rhs],
-        });
+        if (expr.type == "Int32") {
+          state_.instructions.push_back(LtReg32{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        } else if (expr.type == "Int64") {
+          state_.instructions.push_back(LtReg64{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        }
         break;
     }
     state_.out_reg[ref] = reg;

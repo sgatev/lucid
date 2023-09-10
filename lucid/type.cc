@@ -65,7 +65,20 @@ void DeduceStmtTypes(Arena<Stmt>& arena, ReturnStmt& stmt,
 }
 
 void DeduceStmtTypes(Arena<Stmt>& arena, IfStmt& stmt,
-                     std::string_view result_type) {}
+                     std::string_view result_type) {
+  for (auto stmt_ref : stmt.then_body.statements) {
+    auto& stmt = arena.get(stmt_ref);
+    std::visit([&arena, result_type](
+                   auto& stmt) { DeduceStmtTypes(arena, stmt, result_type); },
+               stmt);
+  }
+  for (auto stmt_ref : stmt.else_body.statements) {
+    auto& stmt = arena.get(stmt_ref);
+    std::visit([&arena, result_type](
+                   auto& stmt) { DeduceStmtTypes(arena, stmt, result_type); },
+               stmt);
+  }
+}
 
 }  // namespace
 

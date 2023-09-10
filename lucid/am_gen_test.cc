@@ -8,6 +8,7 @@
 #include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/type.h"
 
 namespace lucid {
 namespace {
@@ -21,7 +22,8 @@ class GenerateAbstractMachineInstructionsTest : public testing::Test {
     return arena_.add(stmt);
   }
 
-  std::vector<Instruction> Generate(const FuncDefStmt& func) {
+  std::vector<Instruction> Generate(FuncDefStmt& func) {
+    DeduceTypes(arena_, func);
     auto graph = BuildControlFlowGraph(arena_, func);
     AbstractMachineState state;
     GenerateAbstractMachineInstructions(arena_, graph, state);
@@ -32,7 +34,7 @@ class GenerateAbstractMachineInstructionsTest : public testing::Test {
   Arena<Stmt> arena_;
 };
 
-TEST_F(GenerateAbstractMachineInstructionsTest, ReturnIntLit) {
+TEST_F(GenerateAbstractMachineInstructionsTest, ReturnInt32Lit) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -56,6 +58,39 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnIntLit) {
                                       .dst_reg = 1,
                                   },
                                   MoveReg32{
+                                      .src_reg = 1,
+                                      .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
+}
+
+TEST_F(GenerateAbstractMachineInstructionsTest, ReturnInt64Lit) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int64",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(IntLitExpr{.value = "21"}),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
+                                  SetReg64{
+                                      .src_val = "21",
+                                      .dst_reg = 1,
+                                  },
+                                  MoveReg64{
                                       .src_reg = 1,
                                       .dst_reg = 0,
                                   },
@@ -107,7 +142,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
                                   Return{}));
 }
 
-TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
+TEST_F(GenerateAbstractMachineInstructionsTest, AddInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -153,7 +188,53 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInts) {
                                   Return{}));
 }
 
-TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInts) {
+TEST_F(GenerateAbstractMachineInstructionsTest, AddInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int64",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Add,
+                              .lhs = Allocate(IntLitExpr{.value = "2"}),
+                              .rhs = Allocate(IntLitExpr{.value = "3"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
+                                  SetReg64{
+                                      .src_val = "2",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg64{
+                                      .src_val = "3",
+                                      .dst_reg = 2,
+                                  },
+                                  AddReg64{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg64{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
+}
+
+TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -199,7 +280,53 @@ TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInts) {
                                   Return{}));
 }
 
-TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInts) {
+TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int64",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Sub,
+                              .lhs = Allocate(IntLitExpr{.value = "7"}),
+                              .rhs = Allocate(IntLitExpr{.value = "5"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
+                                  SetReg64{
+                                      .src_val = "7",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg64{
+                                      .src_val = "5",
+                                      .dst_reg = 2,
+                                  },
+                                  SubReg64{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg64{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
+}
+
+TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -245,7 +372,53 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInts) {
                                   Return{}));
 }
 
-TEST_F(GenerateAbstractMachineInstructionsTest, DivideInts) {
+TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int64",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Mul,
+                              .lhs = Allocate(IntLitExpr{.value = "2"}),
+                              .rhs = Allocate(IntLitExpr{.value = "3"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
+                                  SetReg64{
+                                      .src_val = "2",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg64{
+                                      .src_val = "3",
+                                      .dst_reg = 2,
+                                  },
+                                  MulReg64{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg64{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
+}
+
+TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -291,7 +464,53 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInts) {
                                   Return{}));
 }
 
-TEST_F(GenerateAbstractMachineInstructionsTest, AddBools) {
+TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int64",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Div,
+                              .lhs = Allocate(IntLitExpr{.value = "8"}),
+                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
+                                  SetReg64{
+                                      .src_val = "8",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg64{
+                                      .src_val = "2",
+                                      .dst_reg = 2,
+                                  },
+                                  DivReg64{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg64{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
+}
+
+TEST_F(GenerateAbstractMachineInstructionsTest, AddBool) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -438,7 +657,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
                                   Return{}));
 }
 
-TEST_F(GenerateAbstractMachineInstructionsTest, GtInts) {
+TEST_F(GenerateAbstractMachineInstructionsTest, GtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -484,7 +703,53 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInts) {
                                   Return{}));
 }
 
-TEST_F(GenerateAbstractMachineInstructionsTest, LtInts) {
+TEST_F(GenerateAbstractMachineInstructionsTest, GtInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int64",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Gt,
+                              .lhs = Allocate(IntLitExpr{.value = "3"}),
+                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
+                                  SetReg64{
+                                      .src_val = "3",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg64{
+                                      .src_val = "2",
+                                      .dst_reg = 2,
+                                  },
+                                  GtReg64{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg64{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
+}
+
+TEST_F(GenerateAbstractMachineInstructionsTest, LtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -530,7 +795,53 @@ TEST_F(GenerateAbstractMachineInstructionsTest, LtInts) {
                                   Return{}));
 }
 
-TEST_F(GenerateAbstractMachineInstructionsTest, VarDecl) {
+TEST_F(GenerateAbstractMachineInstructionsTest, LtInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int64",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Lt,
+                              .lhs = Allocate(IntLitExpr{.value = "3"}),
+                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 0,
+                                  },
+                                  SetReg64{
+                                      .src_val = "3",
+                                      .dst_reg = 1,
+                                  },
+                                  SetReg64{
+                                      .src_val = "2",
+                                      .dst_reg = 2,
+                                  },
+                                  LtReg64{
+                                      .res_reg = 3,
+                                      .lhs_reg = 1,
+                                      .rhs_reg = 2,
+                                  },
+                                  MoveReg64{
+                                      .src_reg = 3,
+                                      .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
+}
+
+TEST_F(GenerateAbstractMachineInstructionsTest, VarDeclInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -569,6 +880,54 @@ TEST_F(GenerateAbstractMachineInstructionsTest, VarDecl) {
                                       .dst_reg = 2,
                                   },
                                   MoveReg32{
+                                      .src_reg = 2,
+                                      .dst_reg = 0,
+                                  },
+                                  PopStack{
+                                      .size = 4,
+                                  },
+                                  Return{}));
+}
+
+TEST_F(GenerateAbstractMachineInstructionsTest, VarDeclInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int64",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(VarDeclStmt{
+                          .name = "x",
+                          .type = "Int64",
+                          .init = Allocate(IntLitExpr{.value = "2"}),
+                      }),
+                      Allocate(ReturnStmt{
+                          .value = Allocate(IdentExpr{
+                              .name = "x",
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  PushStack{
+                                      .size = 4,
+                                  },
+                                  SetReg64{
+                                      .src_val = "2",
+                                      .dst_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 2,
+                                  },
+                                  MoveReg64{
                                       .src_reg = 2,
                                       .dst_reg = 0,
                                   },
