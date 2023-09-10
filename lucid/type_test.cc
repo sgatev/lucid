@@ -17,15 +17,15 @@ namespace {
 
 MATCHER_P(HoldsFuncDef, match_stmt, "") { return match_stmt(arg); }
 
-class DeduceTypesTest : public testing::Test {
+class InferExpressionTypesTest : public testing::Test {
  protected:
   template <typename T>
   StmtRef Allocate(T stmt) {
     return arena_.add(stmt);
   }
 
-  std::optional<std::string> DeduceTypes(FuncDefStmt& stmt) {
-    return ::lucid::DeduceTypes(arena_, stmt);
+  std::optional<TypeError> InferExpressionTypes(FuncDefStmt& stmt) {
+    return ::lucid::InferExpressionTypes(arena_, stmt);
   }
 
   std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(
@@ -85,7 +85,7 @@ class DeduceTypesTest : public testing::Test {
   Arena<Stmt> arena_;
 };
 
-TEST_F(DeduceTypesTest, FromResult) {
+TEST_F(InferExpressionTypesTest, FromResult) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -102,7 +102,7 @@ TEST_F(DeduceTypesTest, FromResult) {
           },
   };
 
-  EXPECT_EQ(DeduceTypes(func), std::nullopt);
+  EXPECT_EQ(InferExpressionTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
                         .result_type = "Int32",
@@ -120,7 +120,7 @@ TEST_F(DeduceTypesTest, FromResult) {
                     })));
 }
 
-TEST_F(DeduceTypesTest, FromVarDecl) {
+TEST_F(InferExpressionTypesTest, FromVarDecl) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Void",
@@ -139,7 +139,7 @@ TEST_F(DeduceTypesTest, FromVarDecl) {
           },
   };
 
-  EXPECT_EQ(DeduceTypes(func), std::nullopt);
+  EXPECT_EQ(InferExpressionTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
                         .result_type = "Void",
@@ -159,7 +159,7 @@ TEST_F(DeduceTypesTest, FromVarDecl) {
                     })));
 }
 
-TEST_F(DeduceTypesTest, ThroughBinOpExpr) {
+TEST_F(InferExpressionTypesTest, ThroughBinOpExpr) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Void",
@@ -184,7 +184,7 @@ TEST_F(DeduceTypesTest, ThroughBinOpExpr) {
           },
   };
 
-  EXPECT_EQ(DeduceTypes(func), std::nullopt);
+  EXPECT_EQ(InferExpressionTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
                         .result_type = "Void",
@@ -211,7 +211,7 @@ TEST_F(DeduceTypesTest, ThroughBinOpExpr) {
                     })));
 }
 
-TEST_F(DeduceTypesTest, ErrorBoolLitAsInt64) {
+TEST_F(InferExpressionTypesTest, ErrorBoolLitAsInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Void",
@@ -230,7 +230,8 @@ TEST_F(DeduceTypesTest, ErrorBoolLitAsInt64) {
           },
   };
 
-  EXPECT_EQ(DeduceTypes(func), "Bool literal is not of type Int64");
+  EXPECT_EQ(InferExpressionTypes(func),
+            TypeError("Bool literal is not of type Int64"));
 }
 
 }  // namespace

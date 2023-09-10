@@ -1,3 +1,4 @@
 build --cxxopt=-std=c++20
 build:opt --cxxopt=-Ofast
 build:release --stamp --workspace_status_command="scripts/workspace_status.sh"
+test --cxxopt=-std=c++20

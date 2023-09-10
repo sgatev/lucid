@@ -23,7 +23,7 @@ class GenerateAbstractMachineInstructionsTest : public testing::Test {
   }
 
   std::vector<Instruction> Generate(FuncDefStmt& func) {
-    DeduceTypes(arena_, func);
+    InferExpressionTypes(arena_, func);
     auto graph = BuildControlFlowGraph(arena_, func);
     AbstractMachineState state;
     GenerateAbstractMachineInstructions(arena_, graph, state);

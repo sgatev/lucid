@@ -23,7 +23,7 @@ class GenerateArmAssemblySourceTest : public testing::Test {
   }
 
   std::string Generate(FuncDefStmt& func) {
-    DeduceTypes(arena_, func);
+    InferExpressionTypes(arena_, func);
     auto graph = BuildControlFlowGraph(arena_, func);
     AbstractMachineState state;
     GenerateAbstractMachineInstructions(arena_, graph, state);

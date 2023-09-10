@@ -1,129 +1,68 @@
 #include "lucid/type.h"
 
 #include <optional>
+#include <ranges>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 #include <variant>
+#include <vector>
 
 #include "lucid/arena.h"
 #include "lucid/ast.h"
 
 namespace lucid {
-namespace {
 
-std::optional<std::string> PropagateType(Arena<Stmt>& arena, Expr& expr,
-                                         std::string_view type);
-
-std::optional<std::string> PropagateType(Arena<Stmt>& arena, FuncCallExpr& expr,
-                                         std::string_view type) {
-  expr.type = type;
-  return std::nullopt;
-}
-
-std::optional<std::string> PropagateType(Arena<Stmt>& arena, IntLitExpr& expr,
-                                         std::string_view type) {
-  expr.type = type;
-  return std::nullopt;
-}
-
-std::optional<std::string> PropagateType(Arena<Stmt>& arena, BoolLitExpr& expr,
-                                         std::string_view type) {
-  if (type != "Bool") {
-    return std::string("Bool literal is not of type ") + std::string(type);
-  }
-  expr.type = type;
-  return std::nullopt;
-}
-
-std::optional<std::string> PropagateType(Arena<Stmt>& arena, IdentExpr& expr,
-                                         std::string_view type) {
-  expr.type = type;
-  return std::nullopt;
-}
-
-std::optional<std::string> PropagateType(Arena<Stmt>& arena, BinaryOpExpr& expr,
-                                         std::string_view type) {
-  expr.type = type;
-
-  auto& lhs = std::get<Expr>(arena.get(expr.lhs));
-  if (auto error = PropagateType(arena, lhs, type); error.has_value()) {
-    return error;
+std::optional<TypeError> InferExpressionTypes(Arena<Stmt>& arena,
+                                              FuncDefStmt& func_def) {
+  std::vector<StmtRef> pending_stmts;
+  for (auto stmt : std::ranges::reverse_view(func_def.body.statements)) {
+    pending_stmts.push_back(stmt);
   }
 
-  auto& rhs = std::get<Expr>(arena.get(expr.rhs));
-  if (auto error = PropagateType(arena, rhs, type); error.has_value()) {
-    return error;
+  std::vector<std::pair<ExprRef, std::string_view>> pending_exprs;
+  while (!pending_stmts.empty()) {
+    auto& stmt = arena.get(pending_stmts.back());
+    pending_stmts.pop_back();
+
+    if (auto* cstmt = std::get_if<IfStmt>(&stmt)) {
+      for (auto stmt : std::ranges::reverse_view(cstmt->else_body.statements)) {
+        pending_stmts.push_back(stmt);
+      }
+      for (auto stmt : std::ranges::reverse_view(cstmt->then_body.statements)) {
+        pending_stmts.push_back(stmt);
+      }
+    } else if (auto* cstmt = std::get_if<ReturnStmt>(&stmt)) {
+      pending_exprs.emplace_back(cstmt->value, func_def.result_type);
+    } else if (auto* cstmt = std::get_if<VarDeclStmt>(&stmt)) {
+      pending_exprs.emplace_back(cstmt->init, cstmt->type);
+    }
+
+    while (!pending_exprs.empty()) {
+      auto [expr_ref, type] = pending_exprs.back();
+      auto& expr = std::get<Expr>(arena.get(expr_ref));
+      pending_exprs.pop_back();
+
+      if (auto* cexpr = std::get_if<FuncCallExpr>(&expr)) {
+        cexpr->type = type;
+      } else if (auto* cexpr = std::get_if<IntLitExpr>(&expr)) {
+        cexpr->type = type;
+      } else if (auto* cexpr = std::get_if<BoolLitExpr>(&expr)) {
+        if (type != "Bool") {
+          return TypeError(std::string("Bool literal is not of type ") +
+                           std::string(type));
+        }
+        cexpr->type = type;
+      } else if (auto* cexpr = std::get_if<IdentExpr>(&expr)) {
+        cexpr->type = type;
+      } else if (auto* cexpr = std::get_if<BinaryOpExpr>(&expr)) {
+        cexpr->type = type;
+        pending_exprs.emplace_back(cexpr->rhs, type);
+        pending_exprs.emplace_back(cexpr->lhs, type);
+      }
+    }
   }
 
-  return std::nullopt;
-}
-
-std::optional<std::string> PropagateType(Arena<Stmt>& arena, Expr& expr,
-                                         std::string_view type) {
-  return std::visit(
-      [&arena, type](auto& expr) { return PropagateType(arena, expr, type); },
-      expr);
-}
-
-std::optional<std::string> DeduceStmtTypes(Arena<Stmt>& arena, Expr& stmt,
-                                           std::string_view result_type) {
-  return std::nullopt;
-}
-
-std::optional<std::string> DeduceStmtTypes(Arena<Stmt>& arena,
-                                           VarDeclStmt& stmt,
-                                           std::string_view result_type) {
-  auto& init = std::get<Expr>(arena.get(stmt.init));
-  return PropagateType(arena, init, stmt.type);
-}
-
-std::optional<std::string> DeduceStmtTypes(Arena<Stmt>& arena,
-                                           FuncDefStmt& stmt,
-                                           std::string_view result_type) {
-  return std::nullopt;
-}
-
-std::optional<std::string> DeduceStmtTypes(Arena<Stmt>& arena, ReturnStmt& stmt,
-                                           std::string_view result_type) {
-  auto& value = std::get<Expr>(arena.get(stmt.value));
-  return PropagateType(arena, value, result_type);
-}
-
-std::optional<std::string> DeduceStmtTypes(Arena<Stmt>& arena, IfStmt& stmt,
-                                           std::string_view result_type) {
-  for (auto stmt_ref : stmt.then_body.statements) {
-    auto& stmt = arena.get(stmt_ref);
-    auto error = std::visit(
-        [&arena, result_type](auto& stmt) {
-          return DeduceStmtTypes(arena, stmt, result_type);
-        },
-        stmt);
-    if (error.has_value()) return error;
-  }
-  for (auto stmt_ref : stmt.else_body.statements) {
-    auto& stmt = arena.get(stmt_ref);
-    auto error = std::visit(
-        [&arena, result_type](auto& stmt) {
-          return DeduceStmtTypes(arena, stmt, result_type);
-        },
-        stmt);
-    if (error.has_value()) return error;
-  }
-  return std::nullopt;
-}
-
-}  // namespace
-
-std::optional<std::string> DeduceTypes(Arena<Stmt>& arena,
-                                       FuncDefStmt& func_def) {
-  for (auto stmt_ref : func_def.body.statements) {
-    auto& stmt = arena.get(stmt_ref);
-    auto error = std::visit(
-        [&arena, &func_def](auto& stmt) {
-          return DeduceStmtTypes(arena, stmt, func_def.result_type);
-        },
-        stmt);
-    if (error.has_value()) return error;
-  }
   return std::nullopt;
 }
 
