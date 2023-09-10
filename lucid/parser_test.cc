@@ -1,11 +1,8 @@
 #include "lucid/parser.h"
 
-#include <cstddef>
-#include <functional>
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <variant>
 #include <vector>
 
@@ -31,7 +28,7 @@ MATCHER_P(HoldsError, match_err, "") {
 namespace lucid {
 namespace {
 
-class ParserTest : public testing::Test {
+class ParserTest : public testing::Test, public AstMatchers {
  protected:
   std::variant<FuncDefStmt, std::string> Parse(std::string_view src) {
     auto maybe_func_def_stmt = Parser(arena_, src, Lexer(src)).ParseFuncDef();
@@ -41,42 +38,7 @@ class ParserTest : public testing::Test {
     return out.str();
   }
 
-  std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(
-      FuncDefStmtPattern pattern) {
-    return [pattern](FuncDefStmt stmt) { return pattern(stmt); };
-  }
-
-  StmtRefMatcher MatchesReturnStmt(ReturnStmtPattern pattern) {
-    return MatchesStmt<ReturnStmt>(std::move(pattern));
-  }
-
-  StmtRefMatcher MatchesIfStmt(IfStmtPattern pattern) {
-    return MatchesStmt<IfStmt>(std::move(pattern));
-  }
-
-  ExprRefMatcher MatchesIntLitExpr(IntLitExprPattern pattern) {
-    return MatchesExpr<IntLitExpr>(std::move(pattern));
-  }
-
-  ExprRefMatcher MatchesBoolLitExpr(BoolLitExprPattern pattern) {
-    return MatchesExpr<BoolLitExpr>(std::move(pattern));
-  }
-
-  ExprRefMatcher MatchesBinaryOpExpr(BinaryOpExprPattern pattern) {
-    return MatchesExpr<BinaryOpExpr>(std::move(pattern));
-  }
-
-  ExprRefMatcher MatchesIdentExpr(IdentExprPattern pattern) {
-    return MatchesExpr<IdentExpr>(std::move(pattern));
-  }
-
-  ExprRefMatcher MatchesFuncCallExpr(FuncCallExprPattern pattern) {
-    return MatchesExpr<FuncCallExpr>(std::move(pattern));
-  }
-
-  StmtRefMatcher MatchesVarDeclStmt(VarDeclStmtPattern pattern) {
-    return MatchesStmt<VarDeclStmt>(std::move(pattern));
-  }
+  Arena<Stmt>& arena() override { return arena_; }
 
  private:
   template <typename S, typename P>

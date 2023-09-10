@@ -1,9 +1,6 @@
 #include "lucid/type.h"
 
-#include <functional>
 #include <optional>
-#include <string>
-#include <utility>
 #include <variant>
 
 #include "gmock/gmock.h"
@@ -17,7 +14,7 @@ namespace {
 
 MATCHER_P(HoldsFuncDef, match_stmt, "") { return match_stmt(arg); }
 
-class InferExpressionTypesTest : public testing::Test {
+class InferExpressionTypesTest : public testing::Test, public AstMatchers {
  protected:
   template <typename T>
   StmtRef Allocate(T stmt) {
@@ -28,42 +25,7 @@ class InferExpressionTypesTest : public testing::Test {
     return ::lucid::InferExpressionTypes(arena_, stmt);
   }
 
-  std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(
-      FuncDefStmtPattern pattern) {
-    return [pattern](FuncDefStmt stmt) { return pattern(stmt); };
-  }
-
-  StmtRefMatcher MatchesReturnStmt(ReturnStmtPattern pattern) {
-    return MatchesStmt<ReturnStmt>(std::move(pattern));
-  }
-
-  StmtRefMatcher MatchesIfStmt(IfStmtPattern pattern) {
-    return MatchesStmt<IfStmt>(std::move(pattern));
-  }
-
-  ExprRefMatcher MatchesIntLitExpr(IntLitExprPattern pattern) {
-    return MatchesExpr<IntLitExpr>(std::move(pattern));
-  }
-
-  ExprRefMatcher MatchesBoolLitExpr(BoolLitExprPattern pattern) {
-    return MatchesExpr<BoolLitExpr>(std::move(pattern));
-  }
-
-  ExprRefMatcher MatchesBinaryOpExpr(BinaryOpExprPattern pattern) {
-    return MatchesExpr<BinaryOpExpr>(std::move(pattern));
-  }
-
-  ExprRefMatcher MatchesIdentExpr(IdentExprPattern pattern) {
-    return MatchesExpr<IdentExpr>(std::move(pattern));
-  }
-
-  ExprRefMatcher MatchesFuncCallExpr(FuncCallExprPattern pattern) {
-    return MatchesExpr<FuncCallExpr>(std::move(pattern));
-  }
-
-  StmtRefMatcher MatchesVarDeclStmt(VarDeclStmtPattern pattern) {
-    return MatchesStmt<VarDeclStmt>(std::move(pattern));
-  }
+  Arena<Stmt>& arena() override { return arena_; }
 
  private:
   template <typename S, typename P>

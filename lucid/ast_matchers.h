@@ -3,8 +3,11 @@
 #include <cstddef>
 #include <functional>
 #include <string_view>
+#include <utility>
+#include <variant>
 #include <vector>
 
+#include "lucid/arena.h"
 #include "lucid/ast.h"
 
 namespace lucid {
@@ -114,6 +117,65 @@ struct VarDeclStmtPattern {
 
   bool operator()(const VarDeclStmt& stmt) const {
     return type == stmt.type && name == stmt.name && init(stmt.init);
+  }
+};
+
+class AstMatchers {
+ protected:
+  std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(
+      FuncDefStmtPattern pattern) {
+    return [pattern](FuncDefStmt stmt) { return pattern(stmt); };
+  }
+
+  StmtRefMatcher MatchesReturnStmt(ReturnStmtPattern pattern) {
+    return MatchesStmt<ReturnStmt>(std::move(pattern));
+  }
+
+  StmtRefMatcher MatchesIfStmt(IfStmtPattern pattern) {
+    return MatchesStmt<IfStmt>(std::move(pattern));
+  }
+
+  ExprRefMatcher MatchesIntLitExpr(IntLitExprPattern pattern) {
+    return MatchesExpr<IntLitExpr>(std::move(pattern));
+  }
+
+  ExprRefMatcher MatchesBoolLitExpr(BoolLitExprPattern pattern) {
+    return MatchesExpr<BoolLitExpr>(std::move(pattern));
+  }
+
+  ExprRefMatcher MatchesBinaryOpExpr(BinaryOpExprPattern pattern) {
+    return MatchesExpr<BinaryOpExpr>(std::move(pattern));
+  }
+
+  ExprRefMatcher MatchesIdentExpr(IdentExprPattern pattern) {
+    return MatchesExpr<IdentExpr>(std::move(pattern));
+  }
+
+  ExprRefMatcher MatchesFuncCallExpr(FuncCallExprPattern pattern) {
+    return MatchesExpr<FuncCallExpr>(std::move(pattern));
+  }
+
+  StmtRefMatcher MatchesVarDeclStmt(VarDeclStmtPattern pattern) {
+    return MatchesStmt<VarDeclStmt>(std::move(pattern));
+  }
+
+  virtual Arena<Stmt>& arena() = 0;
+
+ private:
+  template <typename S, typename P>
+  ExprRefMatcher MatchesStmt(P pattern) {
+    return [this, pattern](ExprRef ref) {
+      if (auto* stmt = std::get_if<S>(&arena().get(ref))) return pattern(*stmt);
+      return false;
+    };
+  }
+
+  template <typename E, typename P>
+  ExprRefMatcher MatchesExpr(P pattern) {
+    return MatchesStmt<Expr>([pattern](const Expr& stmt) {
+      if (auto* expr = std::get_if<E>(&stmt)) return pattern(*expr);
+      return false;
+    });
   }
 };
 

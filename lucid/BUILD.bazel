@@ -98,6 +98,7 @@ cc_library(
     testonly = True,
     hdrs = ["ast_matchers.h"],
     deps = [
+        ":arena",
         ":ast",
     ],
 )
