@@ -63,6 +63,18 @@ TEST_F(CompilerTest, ParseError) {
                                        "parameter at line 2, column 20\n")))));
 }
 
+TEST_F(CompilerTest, TypeError) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+      let main = () -> Int32 {
+        return true + false
+      }
+    )"));
+  ASSERT_THAT(
+      RunCompiler({"build", "main", FullPath("main.lu")}),
+      AllOf(ReturnsCode(Eq(1)), PrintsError(FormattedError(
+                                    Eq("Bool literal is not of type Int32\n")))));
+}
+
 TEST_F(CompilerTest, VersionIncludesCommitLine) {
   ASSERT_THAT(RunCompiler({"version"}),
               AllOf(ReturnsCode(Eq(0)), Prints(StartsWith("Commit:"))));

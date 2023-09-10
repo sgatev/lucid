@@ -121,17 +121,6 @@ TEST_F(CompilerTest, DivInt64) {
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(4)));
 }
 
-TEST_F(CompilerTest, AddBools) {
-  ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int32 {
-        return true + false
-      }
-    )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
-              ReturnsCode(Eq(0)));
-  EXPECT_THAT(Run("main"), ReturnsCode(Eq(1)));
-}
-
 TEST_F(CompilerTest, IfStmtThenBranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
       let main = () -> Int32 {

@@ -57,7 +57,9 @@ std::variant<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
   return func_defs;
 }
 
-std::optional<ParserError> Compile(std::string_view src, std::ostream& out) {
+using CompileError = std::variant<ParserError, std::string>;
+
+std::optional<CompileError> Compile(std::string_view src, std::ostream& out) {
   Arena<Stmt> arena;
   auto maybe_funcs = ParseFuncDefs(src, arena);
   if (auto* err = std::get_if<ParserError>(&maybe_funcs)) {
@@ -66,7 +68,7 @@ std::optional<ParserError> Compile(std::string_view src, std::ostream& out) {
   AbstractMachineState state;
   GenerateArmStartSource(out);
   for (auto& func : std::get<std::vector<FuncDefStmt>>(maybe_funcs)) {
-    DeduceTypes(arena, func);
+    if (auto error = DeduceTypes(arena, func); error.has_value()) return *error;
     auto graph = BuildControlFlowGraph(arena, func);
     GenerateAbstractMachineInstructions(arena, graph, state);
     OptimizeAbstractMachineInstructions(state.instructions);
@@ -97,7 +99,8 @@ int Build(CommandContext ctx) {
   {
     std::ofstream assembly_stream(assembly_path);
     if (auto err = Compile(*src, assembly_stream); err) {
-      PrintError(ctx.err) << *err << "\n";
+      std::visit([&ctx](auto& err) { PrintError(ctx.err) << err << "\n"; },
+                 *err);
       return 1;
     }
   }

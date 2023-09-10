@@ -1,6 +1,8 @@
 #include "lucid/type.h"
 
 #include <functional>
+#include <optional>
+#include <string>
 #include <utility>
 #include <variant>
 
@@ -22,7 +24,9 @@ class DeduceTypesTest : public testing::Test {
     return arena_.add(stmt);
   }
 
-  void DeduceTypes(FuncDefStmt& stmt) { ::lucid::DeduceTypes(arena_, stmt); }
+  std::optional<std::string> DeduceTypes(FuncDefStmt& stmt) {
+    return ::lucid::DeduceTypes(arena_, stmt);
+  }
 
   std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(
       FuncDefStmtPattern pattern) {
@@ -98,7 +102,7 @@ TEST_F(DeduceTypesTest, FromResult) {
           },
   };
 
-  DeduceTypes(func);
+  EXPECT_EQ(DeduceTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
                         .result_type = "Int32",
@@ -135,7 +139,7 @@ TEST_F(DeduceTypesTest, FromVarDecl) {
           },
   };
 
-  DeduceTypes(func);
+  EXPECT_EQ(DeduceTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
                         .result_type = "Void",
@@ -180,7 +184,7 @@ TEST_F(DeduceTypesTest, ThroughBinOpExpr) {
           },
   };
 
-  DeduceTypes(func);
+  EXPECT_EQ(DeduceTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
                         .result_type = "Void",
@@ -205,6 +209,28 @@ TEST_F(DeduceTypesTest, ThroughBinOpExpr) {
                                 }},
                             },
                     })));
+}
+
+TEST_F(DeduceTypesTest, ErrorBoolLitAsInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Void",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(VarDeclStmt{
+                          .name = "x",
+                          .type = "Int64",
+                          .init = Allocate(BoolLitExpr{
+                              .value = "true",
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(DeduceTypes(func), "Bool literal is not of type Int64");
 }
 
 }  // namespace
