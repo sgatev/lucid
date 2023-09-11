@@ -34,6 +34,12 @@ class Lexer {
       // String or comment.
       auto pos = std::find(buffer_.begin() + 1, buffer_.end(), finishers[c]);
       advance(pos - buffer_.begin() + 1);
+    } else if (c == '=') {
+      advance(1);
+      if (!buffer_.empty() && buffer_.front() == '=') {
+        advance(1);
+        return Token(Token::Kind::DoubleEqual, start_pos, pos_);
+      }
     } else {
       // Singleton.
       advance(1);

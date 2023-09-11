@@ -140,6 +140,9 @@ enum class BinaryOp {
 
   // Less than comparison operation.
   Lt,
+
+  // Equals comparison operator.
+  Eq,
 };
 
 // An expression that represents a binary operation over the values of two

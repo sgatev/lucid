@@ -287,6 +287,21 @@ class AbstractMachineInstructionGenerator {
           });
         }
         break;
+      case BinaryOp::Eq:
+        if (expr.type == "Int32") {
+          state_.instructions.push_back(EqReg32{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        } else if (expr.type == "Int64") {
+          state_.instructions.push_back(EqReg64{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        }
+        break;
     }
     state_.out_reg[ref] = reg;
   }

@@ -175,5 +175,32 @@ TEST(LexerTest, Number) {
                           Tok(Kind::CloseParen, ")")));
 }
 
+TEST(LexerTest, If) {
+  EXPECT_THAT(
+      ReadTokens(R"(
+    let fact = (n: Int32): Int32 {
+      if n == 1 {
+        return 1
+      }
+      return n * fib(n-1)
+    }
+  )"),
+      ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "fact"),
+                  Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
+                  Tok(Kind::Ident, "n"), Tok(Kind::Colon, ":"),
+                  Tok(Kind::Ident, "Int32"), Tok(Kind::CloseParen, ")"),
+                  Tok(Kind::Colon, ":"), Tok(Kind::Ident, "Int32"),
+                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "if"),
+                  Tok(Kind::Ident, "n"), Tok(Kind::DoubleEqual, "=="),
+                  Tok(Kind::Number, "1"), Tok(Kind::OpenBrace, "{"),
+                  Tok(Kind::Ident, "return"), Tok(Kind::Number, "1"),
+                  Tok(Kind::CloseBrace, "}"), Tok(Kind::Ident, "return"),
+                  Tok(Kind::Ident, "n"), Tok(Kind::Star, "*"),
+                  Tok(Kind::Ident, "fib"), Tok(Kind::OpenParen, "("),
+                  Tok(Kind::Ident, "n"), Tok(Kind::Minus, "-"),
+                  Tok(Kind::Number, "1"), Tok(Kind::CloseParen, ")"),
+                  Tok(Kind::CloseBrace, "}")));
+}
+
 }  // namespace
 }  // namespace lucid

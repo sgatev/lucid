@@ -16,6 +16,7 @@ struct Token {
     OpenBrace,
     CloseBrace,
     Equal,
+    DoubleEqual,
     Ident,
     Colon,
     Comma,

@@ -275,15 +275,15 @@ struct GtReg64 {
   }
 };
 
-// Tests the values in two int32 registers for a "less than" relationship.
+// Tests the values in two 32-bit registers for a "less than" relationship.
 struct LtReg32 {
-  // Result int32 register.
+  // Result register.
   RegId res_reg;
 
-  // First operand int32 register.
+  // First operand register.
   RegId lhs_reg;
 
-  // Second operand int32 register.
+  // Second operand register.
   RegId rhs_reg;
 
   bool operator==(const LtReg32& other) const {
@@ -292,7 +292,7 @@ struct LtReg32 {
   }
 };
 
-// Tests the values in two 32-bit registers for a "less than" relationship.
+// Tests the values in two 64-bit registers for a "less than" relationship.
 struct LtReg64 {
   // Result register.
   RegId res_reg;
@@ -304,6 +304,40 @@ struct LtReg64 {
   RegId rhs_reg;
 
   bool operator==(const LtReg64& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
+// Tests the values in two 32-bit registers for an "equals" relationship.
+struct EqReg32 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const EqReg32& other) const {
+    return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
+           rhs_reg == other.rhs_reg;
+  }
+};
+
+// Tests the values in two 64-bit registers for an "equals" relationship.
+struct EqReg64 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const EqReg64& other) const {
     return res_reg == other.res_reg && lhs_reg == other.lhs_reg &&
            rhs_reg == other.rhs_reg;
   }
@@ -382,7 +416,7 @@ using Instruction =
     std::variant<Nop, MoveReg32, MoveReg64, SetReg32, SetReg64, Jump, CondJump,
                  Label, Return, AddReg32, AddReg64, SubReg32, SubReg64,
                  MulReg32, MulReg64, DivReg32, DivReg64, GtReg32, GtReg64,
-                 LtReg32, LtReg64, PushStack, PopStack, StoreStack32,
-                 StoreStack64, LoadStack32, LoadStack64>;
+                 LtReg32, LtReg64, EqReg32, EqReg64, PushStack, PopStack,
+                 StoreStack32, StoreStack64, LoadStack32, LoadStack64>;
 
 }  // namespace lucid

@@ -21,7 +21,7 @@ TEST(TokenTest, Equality) {
 TEST(TokenTest, OutputStream) {
   std::stringstream out;
   out << Token(Token::Kind::Ident, 0, 3);
-  EXPECT_EQ(std::string(out.str()), "Token{.kind=7, .start_pos=0, .end_pos=3}");
+  EXPECT_EQ(std::string(out.str()), "Token{.kind=8, .start_pos=0, .end_pos=3}");
 }
 
 TEST(FindLineTest, Works) {

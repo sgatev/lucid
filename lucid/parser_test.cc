@@ -436,13 +436,13 @@ TEST_F(ParserTest, GtInts) {
 
 TEST_F(ParserTest, LtInts) {
   std::string_view src = R"(
-    let gt = (x: Int32, y: Int32) -> Bool {
+    let lt = (x: Int32, y: Int32) -> Bool {
       return x < y
     }
   )";
   EXPECT_THAT(Parse(src),  //
               HoldsFuncDef(MatchesFuncDefStmt(
-                  {.name = "gt",
+                  {.name = "lt",
                    .result_type = "Bool",
                    .parameters =
                        {
@@ -455,6 +455,35 @@ TEST_F(ParserTest, LtInts) {
                                MatchesReturnStmt({
                                    .value = MatchesBinaryOpExpr({
                                        .op = BinaryOp::Lt,
+                                       .lhs = MatchesIdentExpr({.name = "x"}),
+                                       .rhs = MatchesIdentExpr({.name = "y"}),
+                                   }),
+                               }),
+                           },
+                   }})));
+}
+
+TEST_F(ParserTest, EqInts) {
+  std::string_view src = R"(
+    let eq = (x: Int32, y: Int32) -> Bool {
+      return x == y
+    }
+  )";
+  EXPECT_THAT(Parse(src),  //
+              HoldsFuncDef(MatchesFuncDefStmt(
+                  {.name = "eq",
+                   .result_type = "Bool",
+                   .parameters =
+                       {
+                           {.name = "x", .type = "Int32"},
+                           {.name = "y", .type = "Int32"},
+                       },
+                   .body = {
+                       .statements =
+                           {
+                               MatchesReturnStmt({
+                                   .value = MatchesBinaryOpExpr({
+                                       .op = BinaryOp::Eq,
                                        .lhs = MatchesIdentExpr({.name = "x"}),
                                        .rhs = MatchesIdentExpr({.name = "y"}),
                                    }),
@@ -700,6 +729,32 @@ TEST_F(ParserTest, VarDeclMissingInit) {
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
+}
+
+TEST_F(ParserTest, MissingEqualSign) {
+  std::string_view src = R"(
+    let main = () -> Int32 {
+      if 1 = 1 {
+        return 2
+      } else {
+        return 3
+      }
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
+}
+
+TEST_F(ParserTest, SpaceBetweenEqualSigns) {
+  std::string_view src = R"(
+    let main = () -> Int32 {
+      if 1 = = 1 {
+        return 2
+      } else {
+        return 3
+      }
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
 }
 
 }  // namespace
