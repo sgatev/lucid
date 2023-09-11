@@ -120,8 +120,13 @@ struct VarDeclStmtPattern {
   }
 };
 
-class AstMatchers {
+class AstFixture {
  protected:
+  template <typename T>
+  StmtRef Allocate(T stmt) {
+    return arena_.add(stmt);
+  }
+
   std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(
       FuncDefStmtPattern pattern) {
     return [pattern](FuncDefStmt stmt) { return pattern(stmt); };
@@ -159,13 +164,13 @@ class AstMatchers {
     return MatchesStmt<VarDeclStmt>(std::move(pattern));
   }
 
-  virtual Arena<Stmt>& arena() = 0;
+  Arena<Stmt> arena_;
 
  private:
   template <typename S, typename P>
   ExprRefMatcher MatchesStmt(P pattern) {
     return [this, pattern](ExprRef ref) {
-      if (auto* stmt = std::get_if<S>(&arena().get(ref))) return pattern(*stmt);
+      if (auto* stmt = std::get_if<S>(&arena_.get(ref))) return pattern(*stmt);
       return false;
     };
   }

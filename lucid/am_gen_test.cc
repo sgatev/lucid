@@ -7,6 +7,7 @@
 #include "lucid/am.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/ast_fixture.h"
 #include "lucid/cfg.h"
 #include "lucid/type.h"
 
@@ -15,13 +16,9 @@ namespace {
 
 using ::testing::ElementsAre;
 
-class GenerateAbstractMachineInstructionsTest : public testing::Test {
+class GenerateAbstractMachineInstructionsTest : public testing::Test,
+                                                public AstFixture {
  protected:
-  template <typename T>
-  StmtRef Allocate(T stmt) {
-    return arena_.add(stmt);
-  }
-
   std::vector<Instruction> Generate(FuncDefStmt& func) {
     InferExpressionTypes(arena_, func);
     auto graph = BuildControlFlowGraph(arena_, func);
@@ -29,9 +26,6 @@ class GenerateAbstractMachineInstructionsTest : public testing::Test {
     GenerateAbstractMachineInstructions(arena_, graph, state);
     return state.instructions;
   }
-
- private:
-  Arena<Stmt> arena_;
 };
 
 TEST_F(GenerateAbstractMachineInstructionsTest, ReturnInt32Lit) {

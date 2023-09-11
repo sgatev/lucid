@@ -1,50 +1,23 @@
 #include "lucid/type.h"
 
 #include <optional>
-#include <variant>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
-#include "lucid/ast_matchers.h"
+#include "lucid/ast_fixture.h"
 
 namespace lucid {
 namespace {
 
 MATCHER_P(HoldsFuncDef, match_stmt, "") { return match_stmt(arg); }
 
-class InferExpressionTypesTest : public testing::Test, public AstMatchers {
+class InferExpressionTypesTest : public testing::Test, public AstFixture {
  protected:
-  template <typename T>
-  StmtRef Allocate(T stmt) {
-    return arena_.add(stmt);
-  }
-
   std::optional<TypeError> InferExpressionTypes(FuncDefStmt& stmt) {
     return ::lucid::InferExpressionTypes(arena_, stmt);
   }
-
-  Arena<Stmt>& arena() override { return arena_; }
-
- private:
-  template <typename S, typename P>
-  ExprRefMatcher MatchesStmt(P pattern) {
-    return [this, pattern](ExprRef ref) {
-      if (auto* stmt = std::get_if<S>(&arena_.get(ref))) return pattern(*stmt);
-      return false;
-    };
-  }
-
-  template <typename E, typename P>
-  ExprRefMatcher MatchesExpr(P pattern) {
-    return MatchesStmt<Expr>([pattern](const Expr& stmt) {
-      if (auto* expr = std::get_if<E>(&stmt)) return pattern(*expr);
-      return false;
-    });
-  }
-
-  Arena<Stmt> arena_;
 };
 
 TEST_F(InferExpressionTypesTest, FromResult) {

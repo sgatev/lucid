@@ -9,19 +9,15 @@
 #include "lucid/am_gen.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/ast_fixture.h"
 #include "lucid/cfg.h"
 #include "lucid/type.h"
 
 namespace lucid {
 namespace {
 
-class GenerateArmAssemblySourceTest : public testing::Test {
+class GenerateArmAssemblySourceTest : public testing::Test, public AstFixture {
  protected:
-  template <typename T>
-  StmtRef Allocate(T stmt) {
-    return arena_.add(stmt);
-  }
-
   std::string Generate(FuncDefStmt& func) {
     InferExpressionTypes(arena_, func);
     auto graph = BuildControlFlowGraph(arena_, func);
@@ -31,9 +27,6 @@ class GenerateArmAssemblySourceTest : public testing::Test {
     GenerateArmAssemblySource(func.name, state.instructions, out);
     return out.str();
   }
-
- private:
-  Arena<Stmt> arena_;
 };
 
 TEST_F(GenerateArmAssemblySourceTest, ReturnInt32Lit) {

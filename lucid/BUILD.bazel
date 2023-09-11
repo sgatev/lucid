@@ -23,6 +23,7 @@ cc_test(
         ":am",
         ":am_gen",
         ":arena",
+        ":ast_fixture",
         ":cfg",
         ":type",
         "@gtest",
@@ -78,6 +79,7 @@ cc_test(
         ":arena",
         ":arm64_gen",
         ":ast",
+        ":ast_fixture",
         ":cfg",
         ":type",
         "@gtest",
@@ -94,9 +96,9 @@ cc_library(
 )
 
 cc_library(
-    name = "ast_matchers",
+    name = "ast_fixture",
     testonly = True,
-    hdrs = ["ast_matchers.h"],
+    hdrs = ["ast_fixture.h"],
     deps = [
         ":arena",
         ":ast",
@@ -299,7 +301,7 @@ cc_test(
     deps = [
         ":arena",
         ":ast",
-        ":ast_matchers",
+        ":ast_fixture",
         ":lexer",
         ":parser",
         "@gtest",
@@ -353,7 +355,7 @@ cc_test(
     deps = [
         ":arena",
         ":ast",
-        ":ast_matchers",
+        ":ast_fixture",
         ":type",
         "@gtest",
         "@gtest//:gtest_main",

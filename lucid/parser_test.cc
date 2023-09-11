@@ -10,7 +10,7 @@
 #include "gtest/gtest.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
-#include "lucid/ast_matchers.h"
+#include "lucid/ast_fixture.h"
 #include "lucid/lexer.h"
 
 MATCHER_P(HoldsFuncDef, match_stmt, "") {
@@ -28,7 +28,7 @@ MATCHER_P(HoldsError, match_err, "") {
 namespace lucid {
 namespace {
 
-class ParserTest : public testing::Test, public AstMatchers {
+class ParserTest : public testing::Test, public AstFixture {
  protected:
   std::variant<FuncDefStmt, std::string> Parse(std::string_view src) {
     auto maybe_func_def_stmt = Parser(arena_, src, Lexer(src)).ParseFuncDef();
@@ -37,27 +37,6 @@ class ParserTest : public testing::Test, public AstMatchers {
     out << std::get<ParserError>(maybe_func_def_stmt);
     return out.str();
   }
-
-  Arena<Stmt>& arena() override { return arena_; }
-
- private:
-  template <typename S, typename P>
-  ExprRefMatcher MatchesStmt(P pattern) {
-    return [this, pattern](ExprRef ref) {
-      if (auto* stmt = std::get_if<S>(&arena_.get(ref))) return pattern(*stmt);
-      return false;
-    };
-  }
-
-  template <typename E, typename P>
-  ExprRefMatcher MatchesExpr(P pattern) {
-    return MatchesStmt<Expr>([pattern](const Expr& stmt) {
-      if (auto* expr = std::get_if<E>(&stmt)) return pattern(*expr);
-      return false;
-    });
-  }
-
-  Arena<Stmt> arena_;
 };
 
 TEST_F(ParserTest, EmptyFuncDefStmt) {
