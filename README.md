@@ -12,7 +12,7 @@ Lucid is an experimental programming language.
 
 To test all targets execute
 
-```bash
+```
 $ bazel test ...
 ```
 
@@ -20,7 +20,7 @@ $ bazel test ...
 
 To build the compiler execute
 
-```bash
+```
 $ bazel build -c opt //lucid:compiler
 ```
 
@@ -28,7 +28,7 @@ $ bazel build -c opt //lucid:compiler
 
 To compile and run code execute 
 
-```bash
+```
 $ bazel-bin/lucid/compiler build main examples/main.lu
 $ ./main
 ```
