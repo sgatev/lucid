@@ -181,6 +181,21 @@ TEST_F(CompilerTest, GtInt64) {
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
 
+TEST_F(CompilerTest, GtFalse) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+      let main = () -> Int32 {
+        if 1 > 7 {
+          return 2
+        } else {
+          return 3
+        }
+      }
+    )"));
+  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(3)));
+}
+
 TEST_F(CompilerTest, LtInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
       let main = () -> Int32 {
@@ -211,6 +226,21 @@ TEST_F(CompilerTest, LtInt64) {
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
 
+TEST_F(CompilerTest, LtFalse) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+      let main = () -> Int32 {
+        if 7 < 1 {
+          return 2
+        } else {
+          return 3
+        }
+      }
+    )"));
+  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(3)));
+}
+
 TEST_F(CompilerTest, EqInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
       let main = () -> Int32 {
@@ -239,6 +269,21 @@ TEST_F(CompilerTest, EqInt64) {
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
+}
+
+TEST_F(CompilerTest, EqFalse) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+      let main = () -> Int32 {
+        if 1 == 2 {
+          return 2
+        } else {
+          return 3
+        }
+      }
+    )"));
+  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(3)));
 }
 
 TEST_F(CompilerTest, VarDecl) {

@@ -87,15 +87,18 @@ class AbstractMachineInstructionGenerator {
           .else_label = next_label_id_ + 1,
       });
     }
+    int i = 0;
     for (auto next_block : block.next) {
       if (next_block == graph_.last) continue;
 
       state_.instructions.push_back(Label{
-          .id = next_label_id_++,
+          .id = next_label_id_ + i,
       });
+      ++i;
 
       Process(graph_.get(next_block));
     }
+    next_label_id_ += i;
   }
 
   void Process(StmtRef ref, const Stmt& stmt) {
@@ -258,14 +261,14 @@ class AbstractMachineInstructionGenerator {
         }
         break;
       case BinaryOp::Gt:
-        if (expr.type == "Int32") {
-          state_.instructions.push_back(GtReg32{
+        if (expr.type == "Int64") {
+          state_.instructions.push_back(GtReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
-        } else if (expr.type == "Int64") {
-          state_.instructions.push_back(GtReg64{
+        } else {
+          state_.instructions.push_back(GtReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
@@ -273,14 +276,14 @@ class AbstractMachineInstructionGenerator {
         }
         break;
       case BinaryOp::Lt:
-        if (expr.type == "Int32") {
-          state_.instructions.push_back(LtReg32{
+        if (expr.type == "Int64") {
+          state_.instructions.push_back(LtReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
-        } else if (expr.type == "Int64") {
-          state_.instructions.push_back(LtReg64{
+        } else {
+          state_.instructions.push_back(LtReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
@@ -288,14 +291,14 @@ class AbstractMachineInstructionGenerator {
         }
         break;
       case BinaryOp::Eq:
-        if (expr.type == "Int32") {
-          state_.instructions.push_back(EqReg32{
+        if (expr.type == "Int64") {
+          state_.instructions.push_back(EqReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
-        } else if (expr.type == "Int64") {
-          state_.instructions.push_back(EqReg64{
+        } else {
+          state_.instructions.push_back(EqReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
