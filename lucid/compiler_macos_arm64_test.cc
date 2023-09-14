@@ -312,5 +312,24 @@ TEST_F(CompilerTest, VarDeclFromVar) {
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
 
+TEST_F(CompilerTest, FactRec) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+      let fact = (n: Int32) -> Int32 {
+        if n == 1 {
+          return 1
+        } else {
+          return fact(n-1) * n
+        }
+      }
+
+      let main = () -> Int32 {
+        return fact(5)
+      }
+    )"));
+  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(120)));
+}
+
 }  // namespace
 }  // namespace lucid

@@ -123,6 +123,10 @@ TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
                                       .src_val = "21",
                                       .dst_reg = 1,
                                   },
+                                  MoveReg32{
+                                      .src_reg = 1,
+                                      .dst_reg = 1,
+                                  },
                                   Jump{
                                       .label = "id",
                                   },

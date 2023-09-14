@@ -169,6 +169,7 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
 MOV W1, #21
+MOV W1, W1
 STP X29, X30, [sp, #-16]!
 BL id
 LDP X29, X30, [sp], #16

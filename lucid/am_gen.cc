@@ -157,6 +157,13 @@ class AbstractMachineInstructionGenerator {
   }
 
   void ProcessExpr(ExprRef ref, const FuncCallExpr& expr) {
+    int i = 1;
+    for (const auto arg : expr.arguments) {
+      state_.instructions.push_back(MoveReg32{
+          .src_reg = state_.out_reg[arg],
+          .dst_reg = i++,
+      });
+    }
     state_.instructions.push_back(Jump{
         .label = expr.func_name,
     });
@@ -216,14 +223,14 @@ class AbstractMachineInstructionGenerator {
         }
         break;
       case BinaryOp::Sub:
-        if (expr.type == "Int32") {
-          state_.instructions.push_back(SubReg32{
+        if (expr.type == "Int64") {
+          state_.instructions.push_back(SubReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
-        } else if (expr.type == "Int64") {
-          state_.instructions.push_back(SubReg64{
+        } else {
+          state_.instructions.push_back(SubReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
