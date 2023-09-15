@@ -19,7 +19,15 @@ namespace {
 std::size_t ComputeMaxStackSize(const Arena<Stmt>& arena,
                                 const ControlFlowGraph& graph) {
   std::size_t stack_size = 0;
-  stack_size += graph.func_params.size() * 4;
+  for (const auto& param : graph.func_params) {
+    if (param.type == "Int32") {
+      stack_size += 4;
+    } else if (param.type == "Int64") {
+      stack_size += 8;
+    } else if (param.type == "Bool") {
+      stack_size += 1;
+    }
+  }
   for (const auto& block : graph.blocks()) {
     for (const auto& stmt_ref : block.statements) {
       const auto& stmt = arena.get(stmt_ref);

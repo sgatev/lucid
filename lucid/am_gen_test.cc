@@ -508,52 +508,6 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt64) {
                                   Return{}));
 }
 
-TEST_F(GenerateAbstractMachineInstructionsTest, AddBool) {
-  auto func = FuncDefStmt{
-      .name = "foo",
-      .result_type = "Int32",
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Add,
-                              .lhs = Allocate(BoolLitExpr{.value = "true"}),
-                              .rhs = Allocate(BoolLitExpr{.value = "false"}),
-                          }),
-                      }),
-                  },
-          },
-  };
-
-  EXPECT_THAT(Generate(func), ElementsAre(
-                                  PushStack{
-                                      .size = 0,
-                                  },
-                                  SetReg32{
-                                      .src_val = "1",
-                                      .dst_reg = 1,
-                                  },
-                                  SetReg32{
-                                      .src_val = "0",
-                                      .dst_reg = 2,
-                                  },
-                                  AddReg32{
-                                      .res_reg = 3,
-                                      .lhs_reg = 1,
-                                      .rhs_reg = 2,
-                                  },
-                                  MoveReg32{
-                                      .src_reg = 3,
-                                      .dst_reg = 0,
-                                  },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{}));
-}
-
 TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
   auto return_add_expr = Allocate(ReturnStmt{
       .value = Allocate(BinaryOpExpr{

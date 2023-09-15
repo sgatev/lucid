@@ -608,6 +608,19 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
+      .parameters =
+          {
+              {
+                  {
+                      .name = "x",
+                      .type = "Int32",
+                  },
+                  {
+                      .name = "y",
+                      .type = "Int32",
+                  },
+              },
+          },
       .body =
           {
               .statements =
@@ -615,8 +628,8 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
                       Allocate(ReturnStmt{
                           .value = Allocate(BinaryOpExpr{
                               .op = BinaryOp::Eq,
-                              .lhs = Allocate(IntLitExpr{.value = "3"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
                           }),
                       }),
                   },
@@ -624,13 +637,15 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
-MOV W1, #3
-MOV W2, #2
+SUB SP, SP, #16
+STR W1, [SP, #0]
+STR W2, [SP, #4]
+LDR W1, [SP, #0]
+LDR W2, [SP, #4]
 CMP W1, W2
 CSET W3, EQ
 MOV W0, W3
-ADD SP, SP, #0
+ADD SP, SP, #16
 RET
 )");
 }
@@ -639,6 +654,19 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int64",
+      .parameters =
+          {
+              {
+                  {
+                      .name = "x",
+                      .type = "Int64",
+                  },
+                  {
+                      .name = "y",
+                      .type = "Int64",
+                  },
+              },
+          },
       .body =
           {
               .statements =
@@ -646,8 +674,8 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
                       Allocate(ReturnStmt{
                           .value = Allocate(BinaryOpExpr{
                               .op = BinaryOp::Eq,
-                              .lhs = Allocate(IntLitExpr{.value = "3"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
                           }),
                       }),
                   },
@@ -655,13 +683,15 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
-MOV X1, #3
-MOV X2, #2
+SUB SP, SP, #16
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
 CMP X1, X2
 CSET X3, EQ
 MOV X0, X3
-ADD SP, SP, #0
+ADD SP, SP, #16
 RET
 )");
 }

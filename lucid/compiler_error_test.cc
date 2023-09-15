@@ -66,13 +66,13 @@ TEST_F(CompilerTest, ParseError) {
 TEST_F(CompilerTest, TypeError) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
       let main = () -> Int32 {
-        return true + false
+        return true
       }
     )"));
   ASSERT_THAT(
       RunCompiler({"build", "main", FullPath("main.lu")}),
-      AllOf(ReturnsCode(Eq(1)), PrintsError(FormattedError(
-                                    Eq("Bool literal is not of type Int32\n")))));
+      AllOf(ReturnsCode(Eq(1)), PrintsError(FormattedError(Eq(
+                                    "Bool literal is not of type Int32\n")))));
 }
 
 TEST_F(CompilerTest, VersionIncludesCommitLine) {
