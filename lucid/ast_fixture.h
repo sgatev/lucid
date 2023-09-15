@@ -96,17 +96,22 @@ struct BinaryOpExprPattern {
 };
 
 struct IdentExprPattern {
+  std::string_view type;
   std::string_view name;
 
-  bool operator()(const IdentExpr& expr) const { return name == expr.name; }
+  bool operator()(const IdentExpr& expr) const {
+    return type == expr.type && name == expr.name;
+  }
 };
 
 struct FuncCallExprPattern {
+  std::string_view type;
   std::string_view func_name;
   std::vector<ExprRefMatcher> arguments;
 
   bool operator()(const FuncCallExpr& expr) const {
-    return func_name == expr.func_name && AllMatch(expr.arguments, arguments);
+    return type == expr.type && func_name == expr.func_name &&
+           AllMatch(expr.arguments, arguments);
   }
 };
 

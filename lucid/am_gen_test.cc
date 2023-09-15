@@ -797,6 +797,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
+      .parameters =
+          {
+              {
+                  {
+                      .name = "x",
+                      .type = "Int32",
+                  },
+                  {
+                      .name = "y",
+                      .type = "Int32",
+                  },
+              },
+          },
       .body =
           {
               .statements =
@@ -804,8 +817,8 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt32) {
                       Allocate(ReturnStmt{
                           .value = Allocate(BinaryOpExpr{
                               .op = BinaryOp::Eq,
-                              .lhs = Allocate(IntLitExpr{.value = "3"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
                           }),
                       }),
                   },
@@ -814,14 +827,22 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 8,
                                   },
-                                  SetReg32{
-                                      .src_val = "3",
+                                  StoreStack32{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack32{
+                                      .offset = 4,
+                                      .src_reg = 2,
+                                  },
+                                  LoadStack32{
+                                      .offset = 0,
                                       .dst_reg = 1,
                                   },
-                                  SetReg32{
-                                      .src_val = "2",
+                                  LoadStack32{
+                                      .offset = 4,
                                       .dst_reg = 2,
                                   },
                                   EqReg32{
@@ -834,7 +855,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt32) {
                                       .dst_reg = 0,
                                   },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 8,
                                   },
                                   Return{}));
 }
@@ -843,6 +864,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int64",
+      .parameters =
+          {
+              {
+                  {
+                      .name = "x",
+                      .type = "Int64",
+                  },
+                  {
+                      .name = "y",
+                      .type = "Int64",
+                  },
+              },
+          },
       .body =
           {
               .statements =
@@ -850,8 +884,8 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt64) {
                       Allocate(ReturnStmt{
                           .value = Allocate(BinaryOpExpr{
                               .op = BinaryOp::Eq,
-                              .lhs = Allocate(IntLitExpr{.value = "3"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
                           }),
                       }),
                   },
@@ -860,14 +894,22 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 16,
                                   },
-                                  SetReg64{
-                                      .src_val = "3",
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 0,
                                       .dst_reg = 1,
                                   },
-                                  SetReg64{
-                                      .src_val = "2",
+                                  LoadStack64{
+                                      .offset = 8,
                                       .dst_reg = 2,
                                   },
                                   EqReg64{
@@ -880,7 +922,7 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt64) {
                                       .dst_reg = 0,
                                   },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 16,
                                   },
                                   Return{}));
 }

@@ -43,6 +43,8 @@ std::optional<TypeError> InferExpressionTypes(Arena<Stmt>& arena,
         pending_stmts.push_back(stmt);
       }
 
+      expr_from_type[cstmt->cond] = "Bool";
+
       pending_exprs.push_back(cstmt->cond);
     } else if (auto* cstmt = std::get_if<ReturnStmt>(&stmt)) {
       expr_from_type[cstmt->value] = func_def.result_type;
@@ -83,9 +85,14 @@ std::optional<TypeError> InferExpressionTypes(Arena<Stmt>& arena,
         }
         expr_from_type[expr_ref] = ident_from_type[cexpr->name];
       } else if (auto* cexpr = std::get_if<BinaryOpExpr>(&expr)) {
-        expr_from_expr[cexpr->rhs] = cexpr->lhs;
-        expr_from_expr[expr_ref] = cexpr->rhs;
-        expr_from_expr[cexpr->lhs] = expr_ref;
+        if (cexpr->op == BinaryOp::Eq) {
+          expr_from_expr[cexpr->rhs] = cexpr->lhs;
+          expr_from_expr[cexpr->lhs] = cexpr->rhs;
+        } else {
+          expr_from_expr[cexpr->rhs] = cexpr->lhs;
+          expr_from_expr[expr_ref] = cexpr->rhs;
+          expr_from_expr[cexpr->lhs] = expr_ref;
+        }
 
         pending_exprs.push_back(cexpr->rhs);
         pending_exprs.push_back(cexpr->lhs);

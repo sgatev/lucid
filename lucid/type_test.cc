@@ -94,6 +94,63 @@ TEST_F(InferExpressionTypesTest, FromVarDecl) {
                     })));
 }
 
+TEST_F(InferExpressionTypesTest, IfStmtCond) {
+  auto func = FuncDefStmt{
+      .name = "fact",
+      .result_type = "Void",
+      .parameters =
+          {
+              {
+                  .name = "n",
+                  .type = "Int32",
+              },
+          },
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(IfStmt{
+                          .cond = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Eq,
+                              .lhs = Allocate(IdentExpr{.name = "n"}),
+                              .rhs = Allocate(IntLitExpr{.value = "1"}),
+                          }),
+
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(InferExpressionTypes(func), std::nullopt);
+  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
+                        .name = "fact",
+                        .result_type = "Void",
+                        .parameters =
+                            {
+                                {
+                                    .name = "n",
+                                    .type = "Int32",
+                                },
+                            },
+                        .body = {{{
+                            MatchesIfStmt({
+                                .cond = MatchesBinaryOpExpr({
+                                    .type = "Bool",
+                                    .op = BinaryOp::Eq,
+                                    .lhs = MatchesIdentExpr({
+                                        .type = "Int32",
+                                        .name = "n",
+                                    }),
+                                    .rhs = MatchesIntLitExpr({
+                                        .type = "Int32",
+                                        .value = "1",
+                                    }),
+                                }),
+                            }),
+                        }}},
+                    })));
+}
+
 TEST_F(InferExpressionTypesTest, ThroughBinOpExpr) {
   auto func = FuncDefStmt{
       .name = "foo",

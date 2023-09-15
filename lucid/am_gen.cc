@@ -306,7 +306,7 @@ class AbstractMachineInstructionGenerator {
         }
         break;
       case BinaryOp::Eq:
-        if (expr.type == "Int64") {
+        if (GetType(DerefExpr(expr.lhs)) == "Int64") {
           state_.instructions.push_back(EqReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
@@ -325,6 +325,10 @@ class AbstractMachineInstructionGenerator {
   }
 
   const Stmt& DerefStmt(StmtRef ref) const { return arena_.get(ref); }
+
+  const Expr& DerefExpr(ExprRef ref) const {
+    return std::get<Expr>(arena_.get(ref));
+  }
 
   const Arena<Stmt>& arena_;
   const ControlFlowGraph& graph_;

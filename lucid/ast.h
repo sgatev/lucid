@@ -173,4 +173,9 @@ struct IfStmt {
   CompoundStmt else_body;
 };
 
+// Returns the type of `expr`.
+inline std::string_view GetType(const Expr& expr) {
+  return std::visit([](const auto& expr) { return expr.type; }, expr);
+}
+
 }  // namespace lucid
