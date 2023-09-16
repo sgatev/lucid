@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <string_view>
 #include <vector>
 
@@ -18,6 +19,9 @@ struct ControlFlowGraph {
 
   // Represents a basic block in the control flow graph of a function.
   struct Block {
+    // Id of the basic block.
+    std::size_t id;
+
     // Statements in the block in evaluation order.
     std::vector<StmtRef> statements;
 

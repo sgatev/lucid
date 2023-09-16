@@ -21,8 +21,8 @@ class ControlFlowGraphBuilder {
       : arena_(arena) {
     graph_.func_name = func_def.name;
     graph_.func_params = func_def.parameters;
-    graph_.first = graph_.add(ControlFlowGraph::Block());
-    graph_.last = graph_.add(ControlFlowGraph::Block());
+    graph_.first = AddBlock();
+    graph_.last = AddBlock();
     BuildBlock(func_def.body, graph_.first, graph_.last);
   }
 
@@ -30,6 +30,12 @@ class ControlFlowGraphBuilder {
   ControlFlowGraph Consume() && { return std::move(graph_); }
 
  private:
+  BlockRef AddBlock() {
+    ControlFlowGraph::Block block;
+    block.id = graph_.blocks().size();
+    return graph_.add(std::move(block));
+  }
+
   void BuildBlock(const CompoundStmt& stmt, BlockRef block, BlockRef end) {
     for (StmtRef stmt_ref : stmt.statements) {
       if (auto* if_stmt = std::get_if<IfStmt>(&DerefStmt(stmt_ref))) {
@@ -100,11 +106,11 @@ class ControlFlowGraphBuilder {
   }
 
   void ProcessStmt(const IfStmt& stmt, BlockRef block, BlockRef end) {
-    auto then_block = graph_.add(ControlFlowGraph::Block());
+    auto then_block = AddBlock();
     BuildBlock(stmt.then_body, then_block, end);
     graph_.get(block).next.push_back(then_block);
 
-    auto else_block = graph_.add(ControlFlowGraph::Block());
+    auto else_block = AddBlock();
     BuildBlock(stmt.else_body, else_block, end);
     graph_.get(block).next.push_back(else_block);
 
