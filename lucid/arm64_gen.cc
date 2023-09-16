@@ -75,6 +75,13 @@ class Arm64Generator {
     Append("LDP X29, X30, [sp], #16\n");
   }
 
+  void Process(const UncondJump& inst) {
+    Append("B ");
+    Append(func_name_);
+    Append(inst.label);
+    Append("\n");
+  }
+
   void Process(const CondJump& inst) {
     Append("CMP W");
     Append(inst.cond_reg);

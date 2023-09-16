@@ -46,10 +46,13 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnInt32Lit) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV W1, #21
 MOV W0, W1
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -70,10 +73,13 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnInt64Lit) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV X1, #21
 MOV X0, X1
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -104,10 +110,13 @@ TEST_F(GenerateArmAssemblySourceTest, FuncWithInt32Param) {
   EXPECT_EQ(Generate(func), R"(id:
 SUB SP, SP, #16
 STR W1, [SP, #0]
+id0:
 LDR W1, [SP, #0]
 MOV W0, W1
 ADD SP, SP, #16
 RET
+B id1
+id1:
 )");
 }
 
@@ -138,10 +147,13 @@ TEST_F(GenerateArmAssemblySourceTest, FuncWithInt64Param) {
   EXPECT_EQ(Generate(func), R"(id:
 SUB SP, SP, #16
 STR X1, [SP, #0]
+id0:
 LDR X1, [SP, #0]
 MOV X0, X1
 ADD SP, SP, #16
 RET
+B id1
+id1:
 )");
 }
 
@@ -168,6 +180,7 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV W1, #21
 MOV W1, W1
 STP X29, X30, [sp, #-16]!
@@ -177,6 +190,8 @@ MOV W2, W0
 MOV W0, W2
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -201,12 +216,15 @@ TEST_F(GenerateArmAssemblySourceTest, AddInt32) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV W1, #2
 MOV W2, #3
 ADD W3, W1, W2
 MOV W0, W3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -231,12 +249,15 @@ TEST_F(GenerateArmAssemblySourceTest, AddInt64) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV X1, #2
 MOV X2, #3
 ADD X3, X1, X2
 MOV X0, X3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -261,12 +282,15 @@ TEST_F(GenerateArmAssemblySourceTest, SubtractInt32) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV W1, #7
 MOV W2, #5
 SUB W3, W1, W2
 MOV W0, W3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -291,12 +315,15 @@ TEST_F(GenerateArmAssemblySourceTest, SubtractInt64) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV X1, #7
 MOV X2, #5
 SUB X3, X1, X2
 MOV X0, X3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -321,12 +348,15 @@ TEST_F(GenerateArmAssemblySourceTest, MultiplyInt32) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV W1, #2
 MOV W2, #3
 MUL W3, W1, W2
 MOV W0, W3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -351,12 +381,15 @@ TEST_F(GenerateArmAssemblySourceTest, MultiplyInt64) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV X1, #2
 MOV X2, #3
 MUL X3, X1, X2
 MOV X0, X3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -381,12 +414,15 @@ TEST_F(GenerateArmAssemblySourceTest, DivideInt32) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV W1, #8
 MOV W2, #2
 UDIV W3, W1, W2
 MOV W0, W3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -411,12 +447,15 @@ TEST_F(GenerateArmAssemblySourceTest, DivideInt64) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV X1, #8
 MOV X2, #2
 UDIV X3, X1, X2
 MOV X0, X3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -460,24 +499,28 @@ TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV W1, #1
 CMP W1, 0
-B.EQ foo2
-B foo1
+B.EQ foo3
+B foo2
 foo1:
+foo2:
 MOV W2, #2
 MOV W3, #3
 ADD W4, W2, W3
 MOV W0, W4
 ADD SP, SP, #0
 RET
-foo2:
+B foo1
+foo3:
 MOV W5, #4
 MOV W6, #5
 MUL W7, W5, W6
 MOV W0, W7
 ADD SP, SP, #0
 RET
+B foo1
 )");
 }
 
@@ -502,6 +545,7 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt32) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV W1, #3
 MOV W2, #2
 CMP W1, W2
@@ -509,6 +553,8 @@ CSET W3, GT
 MOV W0, W3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -533,6 +579,7 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV X1, #3
 MOV X2, #2
 CMP X1, X2
@@ -540,6 +587,8 @@ CSET X3, GT
 MOV X0, X3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -564,6 +613,7 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt32) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV W1, #3
 MOV W2, #2
 CMP W1, W2
@@ -571,6 +621,8 @@ CSET W3, LT
 MOV W0, W3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -595,6 +647,7 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #0
+foo0:
 MOV X1, #3
 MOV X2, #2
 CMP X1, X2
@@ -602,6 +655,8 @@ CSET X3, LT
 MOV X0, X3
 ADD SP, SP, #0
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -641,6 +696,7 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
 SUB SP, SP, #16
 STR W1, [SP, #0]
 STR W2, [SP, #4]
+foo0:
 LDR W1, [SP, #0]
 LDR W2, [SP, #4]
 CMP W1, W2
@@ -648,6 +704,8 @@ CSET W3, EQ
 MOV W0, W3
 ADD SP, SP, #16
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -687,6 +745,7 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
 SUB SP, SP, #16
 STR X1, [SP, #0]
 STR X2, [SP, #8]
+foo0:
 LDR X1, [SP, #0]
 LDR X2, [SP, #8]
 CMP X1, X2
@@ -694,6 +753,8 @@ CSET X3, EQ
 MOV X0, X3
 ADD SP, SP, #16
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -732,6 +793,7 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt32) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #16
+foo0:
 MOV W1, #2
 STR W1, [SP, #0]
 MOV W2, #3
@@ -742,6 +804,8 @@ ADD W5, W3, W4
 MOV W0, W5
 ADD SP, SP, #16
 RET
+B foo1
+foo1:
 )");
 }
 
@@ -780,6 +844,7 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt64) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #16
+foo0:
 MOV X1, #2
 STR X1, [SP, #0]
 MOV X2, #3
@@ -790,6 +855,8 @@ ADD X5, X3, X4
 MOV X0, X5
 ADD SP, SP, #16
 RET
+B foo1
+foo1:
 )");
 }
 

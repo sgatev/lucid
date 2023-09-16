@@ -96,6 +96,18 @@ struct Jump {
   }
 };
 
+// Jumps to a labeled location.
+struct UncondJump {
+  // Label of the location to jump to.
+  std::size_t label;
+
+  bool operator==(const UncondJump&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const UncondJump& inst) {
+    return os << "{.label=\"" << inst.label << "\"}";
+  }
+};
+
 // Jumps to a labeled location based on the value of a register.
 struct CondJump {
   // Int32 register used as a condition for the jump.
@@ -492,11 +504,10 @@ struct LoadStack64 {
 };
 
 // An instruction for the Lucid abstract machine.
-using Instruction =
-    std::variant<Nop, MoveReg32, MoveReg64, SetReg32, SetReg64, Jump, CondJump,
-                 Label, Return, AddReg32, AddReg64, SubReg32, SubReg64,
-                 MulReg32, MulReg64, DivReg32, DivReg64, GtReg32, GtReg64,
-                 LtReg32, LtReg64, EqReg32, EqReg64, PushStack, PopStack,
-                 StoreStack32, StoreStack64, LoadStack32, LoadStack64>;
+using Instruction = std::variant<
+    Nop, MoveReg32, MoveReg64, SetReg32, SetReg64, Jump, UncondJump, CondJump,
+    Label, Return, AddReg32, AddReg64, SubReg32, SubReg64, MulReg32, MulReg64,
+    DivReg32, DivReg64, GtReg32, GtReg64, LtReg32, LtReg64, EqReg32, EqReg64,
+    PushStack, PopStack, StoreStack32, StoreStack64, LoadStack32, LoadStack64>;
 
 }  // namespace lucid

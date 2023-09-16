@@ -79,36 +79,31 @@ class AbstractMachineInstructionGenerator {
         stack_offset_ += 8;
       }
     }
-    Process(graph_.get(graph_.first));
+
+    for (const auto& block : graph_.blocks()) {
+      state_.instructions.push_back(Label{
+          .id = block.id,
+      });
+
+      for (const auto& stmt_ref : block.statements) {
+        Process(stmt_ref, DerefStmt(stmt_ref));
+      }
+
+      if (block.branch_cond != ControlFlowGraph::kNullBlockRef) {
+        state_.instructions.push_back(CondJump{
+            .cond_reg = state_.out_reg[block.branch_cond],
+            .then_label = graph_.get(block.next[0]).id,
+            .else_label = graph_.get(block.next[1]).id,
+        });
+      } else if (block.next.size() == 1) {
+        state_.instructions.push_back(UncondJump{
+            .label = graph_.get(block.next[0]).id,
+        });
+      }
+    }
   }
 
  private:
-  void Process(const ControlFlowGraph::Block& block) {
-    for (const auto& stmt_ref : block.statements) {
-      Process(stmt_ref, DerefStmt(stmt_ref));
-    }
-
-    if (block.branch_cond != ControlFlowGraph::kNullBlockRef) {
-      state_.instructions.push_back(CondJump{
-          .cond_reg = state_.out_reg[block.branch_cond],
-          .then_label = next_label_id_,
-          .else_label = next_label_id_ + 1,
-      });
-    }
-    int i = 0;
-    for (auto next_block : block.next) {
-      if (next_block == graph_.last) continue;
-
-      state_.instructions.push_back(Label{
-          .id = next_label_id_ + i,
-      });
-      ++i;
-
-      Process(graph_.get(next_block));
-    }
-    next_label_id_ += i;
-  }
-
   void Process(StmtRef ref, const Stmt& stmt) {
     std::visit([this, ref](auto&& stmt) { Process(ref, stmt); }, stmt);
   }
@@ -340,7 +335,6 @@ class AbstractMachineInstructionGenerator {
   AbstractMachineState& state_;
   std::size_t stack_size_;
   RegId next_reg_ = 1;
-  std::size_t next_label_id_ = 1;
   std::size_t stack_offset_ = 0;
   std::map<std::string_view, std::size_t> var_stack_;
 };
