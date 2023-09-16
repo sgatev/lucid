@@ -132,6 +132,10 @@ TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
                                   },
                                   MoveReg32{
                                       .src_reg = 0,
+                                      .dst_reg = 2,
+                                  },
+                                  MoveReg32{
+                                      .src_reg = 2,
                                       .dst_reg = 0,
                                   },
                                   PopStack{

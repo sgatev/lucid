@@ -165,6 +165,7 @@ class AbstractMachineInstructionGenerator {
   }
 
   void ProcessExpr(ExprRef ref, const FuncCallExpr& expr) {
+    RegId reg = next_reg_++;
     int i = 1;
     for (const auto arg : expr.arguments) {
       state_.instructions.push_back(MoveReg32{
@@ -175,7 +176,11 @@ class AbstractMachineInstructionGenerator {
     state_.instructions.push_back(Jump{
         .label = expr.func_name,
     });
-    state_.out_reg[ref] = 0;
+    state_.instructions.push_back(MoveReg32{
+        .src_reg = 0,
+        .dst_reg = reg,
+    });
+    state_.out_reg[ref] = reg;
   }
 
   void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {

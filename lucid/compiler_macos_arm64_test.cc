@@ -331,5 +331,24 @@ TEST_F(CompilerTest, FactRec) {
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(120)));
 }
 
+TEST_F(CompilerTest, DISABLED_FibRec) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+      let fib = (n: Int32) -> Int32 {
+        if n < 2 {
+          return 1
+        } else {
+          return fib(n-1) + fib(n-2)
+        }
+      }
+
+      let main = () -> Int32 {
+        return fib(3)
+      }
+    )"));
+  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(120)));
+}
+
 }  // namespace
 }  // namespace lucid

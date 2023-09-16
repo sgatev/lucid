@@ -173,7 +173,8 @@ MOV W1, W1
 STP X29, X30, [sp, #-16]!
 BL id
 LDP X29, X30, [sp], #16
-MOV W0, W0
+MOV W2, W0
+MOV W0, W2
 ADD SP, SP, #0
 RET
 )");
