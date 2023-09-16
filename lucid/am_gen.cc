@@ -85,6 +85,11 @@ class AbstractMachineInstructionGenerator {
           .id = block.id,
       });
 
+      if (block.id == graph_.get(graph_.last).id) {
+        state_.instructions.push_back(PopStack{.size = stack_size_});
+        state_.instructions.push_back(Return{});
+      }
+
       for (const auto& stmt_ref : block.statements) {
         Process(stmt_ref, DerefStmt(stmt_ref));
       }
@@ -123,9 +128,6 @@ class AbstractMachineInstructionGenerator {
           .dst_reg = 0,
       });
     }
-
-    state_.instructions.push_back(PopStack{.size = stack_size_});
-    state_.instructions.push_back(Return{});
   }
 
   void Process(StmtRef ref, const Expr& expr) {

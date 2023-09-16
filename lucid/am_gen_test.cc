@@ -58,16 +58,17 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnInt32Lit) {
                                       .src_reg = 1,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
+
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, ReturnInt64Lit) {
@@ -100,16 +101,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnInt64Lit) {
                                       .src_reg = 1,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
@@ -159,16 +160,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
                                       .src_reg = 2,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, AddInt32) {
@@ -214,16 +215,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInt32) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, AddInt64) {
@@ -269,16 +270,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInt64) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInt32) {
@@ -324,16 +325,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInt32) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInt64) {
@@ -379,16 +380,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInt64) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInt32) {
@@ -434,16 +435,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInt32) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInt64) {
@@ -489,16 +490,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInt64) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt32) {
@@ -544,16 +545,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt32) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt64) {
@@ -599,16 +600,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt64) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
@@ -668,6 +669,10 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
                                   Label{
                                       .id = 1,
                                   },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{},
                                   Label{
                                       .id = 2,
                                   },
@@ -688,10 +693,6 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
                                       .src_reg = 4,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
@@ -715,10 +716,6 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
                                       .src_reg = 7,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   }));
@@ -767,16 +764,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInt32) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, GtInt64) {
@@ -822,16 +819,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInt64) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, LtInt32) {
@@ -877,16 +874,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, LtInt32) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, LtInt64) {
@@ -932,16 +929,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, LtInt64) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 0,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 0,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, EqInt32) {
@@ -1008,16 +1005,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt32) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 8,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 8,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, EqInt64) {
@@ -1084,16 +1081,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt64) {
                                       .src_reg = 3,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 16,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 16,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, VarDeclInt32) {
@@ -1141,16 +1138,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, VarDeclInt32) {
                                       .src_reg = 2,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 4,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 4,
+                                  },
+                                  Return{}));
 }
 
 TEST_F(GenerateAbstractMachineInstructionsTest, VarDeclInt64) {
@@ -1198,16 +1195,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, VarDeclInt64) {
                                       .src_reg = 2,
                                       .dst_reg = 0,
                                   },
-                                  PopStack{
-                                      .size = 4,
-                                  },
-                                  Return{},
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
-                                  }));
+                                  },
+                                  PopStack{
+                                      .size = 4,
+                                  },
+                                  Return{}));
 }
 
 }  // namespace

@@ -49,10 +49,10 @@ SUB SP, SP, #0
 foo0:
 MOV W1, #21
 MOV W0, W1
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -76,10 +76,10 @@ SUB SP, SP, #0
 foo0:
 MOV X1, #21
 MOV X0, X1
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -113,10 +113,10 @@ STR W1, [SP, #0]
 id0:
 LDR W1, [SP, #0]
 MOV W0, W1
-ADD SP, SP, #16
-RET
 B id1
 id1:
+ADD SP, SP, #16
+RET
 )");
 }
 
@@ -150,10 +150,10 @@ STR X1, [SP, #0]
 id0:
 LDR X1, [SP, #0]
 MOV X0, X1
-ADD SP, SP, #16
-RET
 B id1
 id1:
+ADD SP, SP, #16
+RET
 )");
 }
 
@@ -188,10 +188,10 @@ BL id
 LDP X29, X30, [sp], #16
 MOV W2, W0
 MOV W0, W2
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -221,10 +221,10 @@ MOV W1, #2
 MOV W2, #3
 ADD W3, W1, W2
 MOV W0, W3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -254,10 +254,10 @@ MOV X1, #2
 MOV X2, #3
 ADD X3, X1, X2
 MOV X0, X3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -287,10 +287,10 @@ MOV W1, #7
 MOV W2, #5
 SUB W3, W1, W2
 MOV W0, W3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -320,10 +320,10 @@ MOV X1, #7
 MOV X2, #5
 SUB X3, X1, X2
 MOV X0, X3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -353,10 +353,10 @@ MOV W1, #2
 MOV W2, #3
 MUL W3, W1, W2
 MOV W0, W3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -386,10 +386,10 @@ MOV X1, #2
 MOV X2, #3
 MUL X3, X1, X2
 MOV X0, X3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -419,10 +419,10 @@ MOV W1, #8
 MOV W2, #2
 UDIV W3, W1, W2
 MOV W0, W3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -452,10 +452,10 @@ MOV X1, #8
 MOV X2, #2
 UDIV X3, X1, X2
 MOV X0, X3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -505,21 +505,19 @@ CMP W1, 0
 B.EQ foo3
 B foo2
 foo1:
+ADD SP, SP, #0
+RET
 foo2:
 MOV W2, #2
 MOV W3, #3
 ADD W4, W2, W3
 MOV W0, W4
-ADD SP, SP, #0
-RET
 B foo1
 foo3:
 MOV W5, #4
 MOV W6, #5
 MUL W7, W5, W6
 MOV W0, W7
-ADD SP, SP, #0
-RET
 B foo1
 )");
 }
@@ -551,10 +549,10 @@ MOV W2, #2
 CMP W1, W2
 CSET W3, GT
 MOV W0, W3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -585,10 +583,10 @@ MOV X2, #2
 CMP X1, X2
 CSET X3, GT
 MOV X0, X3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -619,10 +617,10 @@ MOV W2, #2
 CMP W1, W2
 CSET W3, LT
 MOV W0, W3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -653,10 +651,10 @@ MOV X2, #2
 CMP X1, X2
 CSET X3, LT
 MOV X0, X3
-ADD SP, SP, #0
-RET
 B foo1
 foo1:
+ADD SP, SP, #0
+RET
 )");
 }
 
@@ -702,10 +700,10 @@ LDR W2, [SP, #4]
 CMP W1, W2
 CSET W3, EQ
 MOV W0, W3
-ADD SP, SP, #16
-RET
 B foo1
 foo1:
+ADD SP, SP, #16
+RET
 )");
 }
 
@@ -751,10 +749,10 @@ LDR X2, [SP, #8]
 CMP X1, X2
 CSET X3, EQ
 MOV X0, X3
-ADD SP, SP, #16
-RET
 B foo1
 foo1:
+ADD SP, SP, #16
+RET
 )");
 }
 
@@ -802,10 +800,10 @@ LDR W3, [SP, #0]
 LDR W4, [SP, #4]
 ADD W5, W3, W4
 MOV W0, W5
-ADD SP, SP, #16
-RET
 B foo1
 foo1:
+ADD SP, SP, #16
+RET
 )");
 }
 
@@ -853,10 +851,10 @@ LDR X3, [SP, #0]
 LDR X4, [SP, #8]
 ADD X5, X3, X4
 MOV X0, X5
-ADD SP, SP, #16
-RET
 B foo1
 foo1:
+ADD SP, SP, #16
+RET
 )");
 }
 
