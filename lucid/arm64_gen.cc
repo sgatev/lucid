@@ -83,7 +83,7 @@ class Arm64Generator {
     Append(func_name_);
     Append(inst.else_label);
     Append("\n");
-    Append("B.NE ");
+    Append("B ");
     Append(func_name_);
     Append(inst.then_label);
     Append("\n");

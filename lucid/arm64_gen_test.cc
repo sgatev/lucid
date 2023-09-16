@@ -462,7 +462,7 @@ SUB SP, SP, #0
 MOV W1, #1
 CMP W1, 0
 B.EQ foo2
-B.NE foo1
+B foo1
 foo1:
 MOV W2, #2
 MOV W3, #3
