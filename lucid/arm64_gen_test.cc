@@ -45,13 +45,15 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnInt32Lit) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #16
+STR X1, [SP, #0]
 foo0:
 MOV W1, #21
 MOV W0, W1
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+ADD SP, SP, #16
 RET
 )");
 }
@@ -72,13 +74,15 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnInt64Lit) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #16
+STR X1, [SP, #0]
 foo0:
 MOV X1, #21
 MOV X0, X1
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+ADD SP, SP, #16
 RET
 )");
 }
@@ -109,12 +113,14 @@ TEST_F(GenerateArmAssemblySourceTest, FuncWithInt32Param) {
 
   EXPECT_EQ(Generate(func), R"(id:
 SUB SP, SP, #16
+STR X1, [SP, #4]
 STR W1, [SP, #0]
 id0:
 LDR W1, [SP, #0]
 MOV W0, W1
 B id1
 id1:
+LDR X1, [SP, #4]
 ADD SP, SP, #16
 RET
 )");
@@ -146,12 +152,14 @@ TEST_F(GenerateArmAssemblySourceTest, FuncWithInt64Param) {
 
   EXPECT_EQ(Generate(func), R"(id:
 SUB SP, SP, #16
+STR X1, [SP, #8]
 STR X1, [SP, #0]
 id0:
 LDR X1, [SP, #0]
 MOV X0, X1
 B id1
 id1:
+LDR X1, [SP, #8]
 ADD SP, SP, #16
 RET
 )");
@@ -179,7 +187,9 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #16
+STR X1, [SP, #0]
+STR X2, [SP, #8]
 foo0:
 MOV W1, #21
 MOV W1, W1
@@ -190,7 +200,9 @@ MOV W2, W0
 MOV W0, W2
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+ADD SP, SP, #16
 RET
 )");
 }
@@ -215,7 +227,10 @@ TEST_F(GenerateArmAssemblySourceTest, AddInt32) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV W1, #2
 MOV W2, #3
@@ -223,7 +238,10 @@ ADD W3, W1, W2
 MOV W0, W3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -248,7 +266,10 @@ TEST_F(GenerateArmAssemblySourceTest, AddInt64) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV X1, #2
 MOV X2, #3
@@ -256,7 +277,10 @@ ADD X3, X1, X2
 MOV X0, X3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -281,7 +305,10 @@ TEST_F(GenerateArmAssemblySourceTest, SubtractInt32) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV W1, #7
 MOV W2, #5
@@ -289,7 +316,10 @@ SUB W3, W1, W2
 MOV W0, W3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -314,7 +344,10 @@ TEST_F(GenerateArmAssemblySourceTest, SubtractInt64) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV X1, #7
 MOV X2, #5
@@ -322,7 +355,10 @@ SUB X3, X1, X2
 MOV X0, X3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -347,7 +383,10 @@ TEST_F(GenerateArmAssemblySourceTest, MultiplyInt32) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV W1, #2
 MOV W2, #3
@@ -355,7 +394,10 @@ MUL W3, W1, W2
 MOV W0, W3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -380,7 +422,10 @@ TEST_F(GenerateArmAssemblySourceTest, MultiplyInt64) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV X1, #2
 MOV X2, #3
@@ -388,7 +433,10 @@ MUL X3, X1, X2
 MOV X0, X3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -413,7 +461,10 @@ TEST_F(GenerateArmAssemblySourceTest, DivideInt32) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV W1, #8
 MOV W2, #2
@@ -421,7 +472,10 @@ UDIV W3, W1, W2
 MOV W0, W3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -446,7 +500,10 @@ TEST_F(GenerateArmAssemblySourceTest, DivideInt64) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV X1, #8
 MOV X2, #2
@@ -454,7 +511,10 @@ UDIV X3, X1, X2
 MOV X0, X3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -498,14 +558,28 @@ TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #64
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
+STR X4, [SP, #24]
+STR X5, [SP, #32]
+STR X6, [SP, #40]
+STR X7, [SP, #48]
 foo0:
 MOV W1, #1
 CMP W1, 0
 B.EQ foo3
 B foo2
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+LDR X4, [SP, #24]
+LDR X5, [SP, #32]
+LDR X6, [SP, #40]
+LDR X7, [SP, #48]
+ADD SP, SP, #64
 RET
 foo2:
 MOV W2, #2
@@ -542,7 +616,10 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt32) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV W1, #3
 MOV W2, #2
@@ -551,7 +628,10 @@ CSET W3, GT
 MOV W0, W3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -576,7 +656,10 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV X1, #3
 MOV X2, #2
@@ -585,7 +668,10 @@ CSET X3, GT
 MOV X0, X3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -610,7 +696,10 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt32) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV W1, #3
 MOV W2, #2
@@ -619,7 +708,10 @@ CSET W3, LT
 MOV W0, W3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -644,7 +736,10 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #0
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
 foo0:
 MOV X1, #3
 MOV X2, #2
@@ -653,7 +748,10 @@ CSET X3, LT
 MOV X0, X3
 B foo1
 foo1:
-ADD SP, SP, #0
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -691,7 +789,10 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #16
+SUB SP, SP, #32
+STR X1, [SP, #8]
+STR X2, [SP, #16]
+STR X3, [SP, #24]
 STR W1, [SP, #0]
 STR W2, [SP, #4]
 foo0:
@@ -702,7 +803,10 @@ CSET W3, EQ
 MOV W0, W3
 B foo1
 foo1:
-ADD SP, SP, #16
+LDR X1, [SP, #8]
+LDR X2, [SP, #16]
+LDR X3, [SP, #24]
+ADD SP, SP, #32
 RET
 )");
 }
@@ -740,7 +844,10 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #16
+SUB SP, SP, #48
+STR X1, [SP, #16]
+STR X2, [SP, #24]
+STR X3, [SP, #32]
 STR X1, [SP, #0]
 STR X2, [SP, #8]
 foo0:
@@ -751,7 +858,10 @@ CSET X3, EQ
 MOV X0, X3
 B foo1
 foo1:
-ADD SP, SP, #16
+LDR X1, [SP, #16]
+LDR X2, [SP, #24]
+LDR X3, [SP, #32]
+ADD SP, SP, #48
 RET
 )");
 }
@@ -790,7 +900,12 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt32) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #16
+SUB SP, SP, #48
+STR X1, [SP, #8]
+STR X2, [SP, #16]
+STR X3, [SP, #24]
+STR X4, [SP, #32]
+STR X5, [SP, #40]
 foo0:
 MOV W1, #2
 STR W1, [SP, #0]
@@ -802,7 +917,12 @@ ADD W5, W3, W4
 MOV W0, W5
 B foo1
 foo1:
-ADD SP, SP, #16
+LDR X1, [SP, #8]
+LDR X2, [SP, #16]
+LDR X3, [SP, #24]
+LDR X4, [SP, #32]
+LDR X5, [SP, #40]
+ADD SP, SP, #48
 RET
 )");
 }
@@ -841,7 +961,12 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt64) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #16
+SUB SP, SP, #48
+STR X1, [SP, #8]
+STR X2, [SP, #16]
+STR X3, [SP, #24]
+STR X4, [SP, #32]
+STR X5, [SP, #40]
 foo0:
 MOV X1, #2
 STR X1, [SP, #0]
@@ -853,7 +978,12 @@ ADD X5, X3, X4
 MOV X0, X5
 B foo1
 foo1:
-ADD SP, SP, #16
+LDR X1, [SP, #8]
+LDR X2, [SP, #16]
+LDR X3, [SP, #24]
+LDR X4, [SP, #32]
+LDR X5, [SP, #40]
+ADD SP, SP, #48
 RET
 )");
 }

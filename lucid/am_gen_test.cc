@@ -45,7 +45,11 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnInt32Lit) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 8,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
                                   },
                                   Label{
                                       .id = 0,
@@ -58,15 +62,18 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnInt32Lit) {
                                       .src_reg = 1,
                                       .dst_reg = 0,
                                   },
-
                                   UncondJump{
                                       .label = 1,
                                   },
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 8,
                                   },
                                   Return{}));
 }
@@ -88,7 +95,11 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnInt64Lit) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 8,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
                                   },
                                   Label{
                                       .id = 0,
@@ -107,8 +118,12 @@ TEST_F(GenerateAbstractMachineInstructionsTest, ReturnInt64Lit) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 8,
                                   },
                                   Return{}));
 }
@@ -136,7 +151,15 @@ TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 16,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
                                   },
                                   Label{
                                       .id = 0,
@@ -166,8 +189,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, FuncCallWithArg) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 16,
                                   },
                                   Return{}));
 }
@@ -193,7 +224,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -221,8 +264,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInt32) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -248,7 +303,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -276,8 +343,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, AddInt64) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -303,7 +382,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -331,8 +422,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInt32) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -358,7 +461,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -386,8 +501,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, SubtractInt64) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -413,7 +540,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -441,8 +580,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInt32) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -468,7 +619,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -496,8 +659,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, MultiplyInt64) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -523,7 +698,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -551,8 +738,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt32) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -578,7 +777,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -606,8 +817,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, DivideInt64) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -652,7 +875,35 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 56,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
+                                  },
+                                  StoreStack64{
+                                      .offset = 24,
+                                      .src_reg = 4,
+                                  },
+                                  StoreStack64{
+                                      .offset = 32,
+                                      .src_reg = 5,
+                                  },
+                                  StoreStack64{
+                                      .offset = 40,
+                                      .src_reg = 6,
+                                  },
+                                  StoreStack64{
+                                      .offset = 48,
+                                      .src_reg = 7,
                                   },
                                   Label{
                                       .id = 0,
@@ -669,8 +920,36 @@ TEST_F(GenerateAbstractMachineInstructionsTest, IfStmt) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
+                                  LoadStack64{
+                                      .offset = 24,
+                                      .dst_reg = 4,
+                                  },
+                                  LoadStack64{
+                                      .offset = 32,
+                                      .dst_reg = 5,
+                                  },
+                                  LoadStack64{
+                                      .offset = 40,
+                                      .dst_reg = 6,
+                                  },
+                                  LoadStack64{
+                                      .offset = 48,
+                                      .dst_reg = 7,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 56,
                                   },
                                   Return{},
                                   Label{
@@ -742,7 +1021,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -770,8 +1061,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInt32) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -797,7 +1100,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -825,8 +1140,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, GtInt64) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -852,7 +1179,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, LtInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -880,8 +1219,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, LtInt32) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -907,7 +1258,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, LtInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 0,
+                                      .size = 24,
+                                  },
+                                  StoreStack64{
+                                      .offset = 0,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 3,
                                   },
                                   Label{
                                       .id = 0,
@@ -935,8 +1298,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, LtInt64) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 0,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 0,
+                                      .size = 24,
                                   },
                                   Return{}));
 }
@@ -975,7 +1350,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 8,
+                                      .size = 32,
+                                  },
+                                  StoreStack64{
+                                      .offset = 8,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 24,
+                                      .src_reg = 3,
                                   },
                                   StoreStack32{
                                       .offset = 0,
@@ -1011,8 +1398,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt32) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 8,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 24,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 8,
+                                      .size = 32,
                                   },
                                   Return{}));
 }
@@ -1051,7 +1450,19 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 16,
+                                      .size = 40,
+                                  },
+                                  StoreStack64{
+                                      .offset = 16,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 24,
+                                      .src_reg = 2,
+                                  },
+                                  StoreStack64{
+                                      .offset = 32,
+                                      .src_reg = 3,
                                   },
                                   StoreStack64{
                                       .offset = 0,
@@ -1087,8 +1498,20 @@ TEST_F(GenerateAbstractMachineInstructionsTest, EqInt64) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 16,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 24,
+                                      .dst_reg = 2,
+                                  },
+                                  LoadStack64{
+                                      .offset = 32,
+                                      .dst_reg = 3,
+                                  },
                                   PopStack{
-                                      .size = 16,
+                                      .size = 40,
                                   },
                                   Return{}));
 }
@@ -1117,7 +1540,15 @@ TEST_F(GenerateAbstractMachineInstructionsTest, VarDeclInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 4,
+                                      .size = 20,
+                                  },
+                                  StoreStack64{
+                                      .offset = 4,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 12,
+                                      .src_reg = 2,
                                   },
                                   Label{
                                       .id = 0,
@@ -1144,8 +1575,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, VarDeclInt32) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 4,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 12,
+                                      .dst_reg = 2,
+                                  },
                                   PopStack{
-                                      .size = 4,
+                                      .size = 20,
                                   },
                                   Return{}));
 }
@@ -1174,7 +1613,15 @@ TEST_F(GenerateAbstractMachineInstructionsTest, VarDeclInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   PushStack{
-                                      .size = 4,
+                                      .size = 20,
+                                  },
+                                  StoreStack64{
+                                      .offset = 4,
+                                      .src_reg = 1,
+                                  },
+                                  StoreStack64{
+                                      .offset = 12,
+                                      .src_reg = 2,
                                   },
                                   Label{
                                       .id = 0,
@@ -1201,8 +1648,16 @@ TEST_F(GenerateAbstractMachineInstructionsTest, VarDeclInt64) {
                                   Label{
                                       .id = 1,
                                   },
+                                  LoadStack64{
+                                      .offset = 4,
+                                      .dst_reg = 1,
+                                  },
+                                  LoadStack64{
+                                      .offset = 12,
+                                      .dst_reg = 2,
+                                  },
                                   PopStack{
-                                      .size = 4,
+                                      .size = 20,
                                   },
                                   Return{}));
 }

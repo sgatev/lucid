@@ -60,7 +60,10 @@ class AbstractMachineInstructionGenerator {
     state_.instructions.clear();
     state_.instructions.reserve(instructions_count * 2);
 
-    state_.instructions.push_back(PushStack{.size = stack_size_});
+    std::size_t push_pos, pop_pos;
+
+    push_pos = state_.instructions.size();
+    // state_.instructions.push_back(PushStack{.size = stack_size_});
     for (int i = 0; i < graph_.func_params.size(); ++i) {
       const auto& param = graph_.func_params[i];
       if (param.type == "Int32") {
@@ -86,7 +89,8 @@ class AbstractMachineInstructionGenerator {
       });
 
       if (block.id == graph_.get(graph_.last).id) {
-        state_.instructions.push_back(PopStack{.size = stack_size_});
+        pop_pos = state_.instructions.size();
+        // state_.instructions.push_back(PopStack{.size = stack_size_});
         state_.instructions.push_back(Return{});
       }
 
@@ -106,6 +110,30 @@ class AbstractMachineInstructionGenerator {
         });
       }
     }
+
+    std::size_t offset = stack_size_;
+
+    stack_size_ += (next_reg_ - 1) * 8;
+
+    state_.instructions.insert(state_.instructions.begin() + pop_pos,
+                               PopStack{.size = stack_size_});
+    for (int i = next_reg_ - 1; i >= 1; --i) {
+      state_.instructions.insert(state_.instructions.begin() + pop_pos,
+                                 LoadStack64{
+                                     .offset = offset + (i - 1) * 8,
+                                     .dst_reg = i,
+                                 });
+    }
+
+    for (int i = next_reg_ - 1; i >= 1; --i) {
+      state_.instructions.insert(state_.instructions.begin() + push_pos,
+                                 StoreStack64{
+                                     .offset = offset + (i - 1) * 8,
+                                     .src_reg = i,
+                                 });
+    }
+    state_.instructions.insert(state_.instructions.begin() + push_pos,
+                               PushStack{.size = stack_size_});
   }
 
  private:
