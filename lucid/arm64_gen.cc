@@ -15,12 +15,11 @@ namespace {
 // Generates 64-bit ARM assembly source code.
 class Arm64Generator {
  public:
-  explicit Arm64Generator(std::string_view func_name, const Function& func,
-                          std::ostream& out)
-      : func_name_(func_name), func_(func), out_(out) {}
+  explicit Arm64Generator(const Function& func, std::ostream& out)
+      : func_(func), out_(out) {}
 
   void Generate() && {
-    Append(func_name_);
+    Append(func_.name);
     Append(":\n");
 
     for (std::size_t size : func_.stack_slots) stack_size_ += size;
@@ -87,7 +86,7 @@ class Arm64Generator {
 
   void Process(const UncondJump& inst) {
     Append("B ");
-    Append(func_name_);
+    Append(func_.name);
     Append(inst.label);
     Append("\n");
   }
@@ -97,17 +96,17 @@ class Arm64Generator {
     Append(inst.cond_reg);
     Append(", 0\n");
     Append("B.EQ ");
-    Append(func_name_);
+    Append(func_.name);
     Append(inst.else_label);
     Append("\n");
     Append("B ");
-    Append(func_name_);
+    Append(func_.name);
     Append(inst.then_label);
     Append("\n");
   }
 
   void Process(const Label& inst) {
-    Append(func_name_);
+    Append(func_.name);
     Append(inst.id);
     Append(":\n");
   }
@@ -305,7 +304,6 @@ class Arm64Generator {
   void Append(std::string_view s) { out_ << s; }
   void Append(std::size_t s) { out_ << s; }
 
-  std::string_view func_name_;
   const Function& func_;
   std::ostream& out_;
   std::size_t stack_size_ = 0;
@@ -326,9 +324,8 @@ _start:
 )";
 }
 
-void GenerateArmAssemblySource(std::string_view func_name, const Function& func,
-                               std::ostream& out) {
-  Arm64Generator(func_name, func, out).Generate();
+void GenerateArmAssemblySource(const Function& func, std::ostream& out) {
+  Arm64Generator(func, out).Generate();
 }
 
 }  // namespace lucid

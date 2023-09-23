@@ -13,7 +13,6 @@ namespace lucid {
 void GenerateArmStartSource(std::ostream& out);
 
 // Generates 64-bit ARM assembly source code for `func` and writes it to `out`.
-void GenerateArmAssemblySource(std::string_view func_name, const Function& func,
-                               std::ostream& out);
+void GenerateArmAssemblySource(const Function& func, std::ostream& out);
 
 }  // namespace lucid

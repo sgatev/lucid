@@ -51,6 +51,8 @@ class AbstractMachineFunctionGenerator {
     state_.out_reg.clear();
     state_.out_reg.reserve(arena_.size());
 
+    state_.func.name = graph_.func_name;
+
     std::size_t instructions_count = 0;
     for (const auto& block : graph_.blocks()) {
       instructions_count += block.statements.size();

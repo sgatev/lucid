@@ -507,6 +507,9 @@ using Instruction = std::variant<
 
 // Abstract machine function definition.
 struct Function {
+  // Name of the function.
+  std::string_view name;
+
   // Abstract machine stack slots.
   std::vector<std::size_t> stack_slots;
 

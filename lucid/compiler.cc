@@ -70,7 +70,7 @@ std::optional<CompileError> Compile(std::string_view src, std::ostream& out) {
     auto graph = BuildControlFlowGraph(arena, func);
     GenerateAbstractMachineFunction(arena, graph, state);
     OptimizeAbstractMachineInstructions(state.func.instructions);
-    GenerateArmAssemblySource(func.name, state.func, out);
+    GenerateArmAssemblySource(state.func, out);
   }
   return std::nullopt;
 }

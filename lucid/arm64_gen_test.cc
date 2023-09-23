@@ -24,7 +24,7 @@ class GenerateArmAssemblySourceTest : public testing::Test, public AstFixture {
     AbstractMachineState state;
     GenerateAbstractMachineFunction(arena_, graph, state);
     std::strstream out;
-    GenerateArmAssemblySource(func.name, state.func, out);
+    GenerateArmAssemblySource(state.func, out);
     return out.str();
   }
 };
