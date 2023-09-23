@@ -15,8 +15,8 @@
 std::size_t CountInstructions(const lucid::Arena<lucid::Stmt>& arena,
                               const lucid::ControlFlowGraph& graph,
                               lucid::AbstractMachineState& state) {
-  lucid::GenerateAbstractMachineInstructions(arena, graph, state);
-  return state.instructions.size();
+  lucid::GenerateAbstractMachineFunction(arena, graph, state);
+  return state.func.instructions.size();
 }
 
 void Benchmark(benchmark::State& state, std::string_view code) {

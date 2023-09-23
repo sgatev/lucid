@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 #include <variant>
+#include <vector>
 
 namespace lucid {
 
@@ -417,25 +418,19 @@ struct EqReg64 {
 
 // Pushes bytes onto the stack.
 struct PushStack {
-  // Number of bytes to push.
-  std::size_t size;
-
   bool operator==(const PushStack&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const PushStack& inst) {
-    return os << "{.size=" << inst.size << "}";
+    return os << "{}";
   }
 };
 
 // Pops bytes from the stack.
 struct PopStack {
-  // Number of bytes to pop.
-  std::size_t size;
-
   bool operator==(const PopStack&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const PopStack& inst) {
-    return os << "{.size=" << inst.size << "}";
+    return os << "{}";
   }
 };
 
@@ -509,5 +504,14 @@ using Instruction = std::variant<
     Label, Return, AddReg32, AddReg64, SubReg32, SubReg64, MulReg32, MulReg64,
     DivReg32, DivReg64, GtReg32, GtReg64, LtReg32, LtReg64, EqReg32, EqReg64,
     PushStack, PopStack, StoreStack32, StoreStack64, LoadStack32, LoadStack64>;
+
+// Abstract machine function definition.
+struct Function {
+  // Abstract machine stack slots.
+  std::vector<std::size_t> stack_slots;
+
+  // Abstract machine instructions of the function.
+  std::vector<Instruction> instructions;
+};
 
 }  // namespace lucid

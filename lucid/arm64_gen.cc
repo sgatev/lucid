@@ -15,15 +15,25 @@ namespace {
 // Generates 64-bit ARM assembly source code.
 class Arm64Generator {
  public:
-  explicit Arm64Generator(std::string_view func_name,
-                          const std::vector<Instruction>& instructions,
+  explicit Arm64Generator(std::string_view func_name, const Function& func,
                           std::ostream& out)
-      : func_name_(func_name), instructions_(instructions), out_(out) {}
+      : func_name_(func_name), func_(func), out_(out) {}
 
   void Generate() && {
     Append(func_name_);
     Append(":\n");
-    for (const auto& inst : instructions_) Process(inst);
+
+    for (std::size_t size : func_.stack_slots) stack_size_ += size;
+    std::size_t quot = stack_size_ % 16;
+    stack_size_ = quot == 0 ? stack_size_ : stack_size_ + 16 - quot;
+
+    stack_offsets_.resize(func_.stack_slots.size() + 1);
+    stack_offsets_[0] = 0;
+    for (int i = 1; i < stack_offsets_.size(); ++i) {
+      stack_offsets_[i] = stack_offsets_[i - 1] + func_.stack_slots[i - 1];
+    }
+
+    for (const auto& inst : func_.instructions) Process(inst);
   }
 
  private:
@@ -250,17 +260,13 @@ class Arm64Generator {
 
   void Process(const PushStack& inst) {
     Append("SUB SP, SP, #");
-    std::size_t quot = inst.size % 16;
-    std::size_t size = quot == 0 ? inst.size : inst.size + 16 - quot;
-    Append(size);
+    Append(stack_size_);
     Append("\n");
   }
 
   void Process(const PopStack& inst) {
     Append("ADD SP, SP, #");
-    std::size_t quot = inst.size % 16;
-    std::size_t size = quot == 0 ? inst.size : inst.size + 16 - quot;
-    Append(size);
+    Append(stack_size_);
     Append("\n");
   }
 
@@ -268,7 +274,7 @@ class Arm64Generator {
     Append("STR W");
     Append(inst.src_reg);
     Append(", [SP, #");
-    Append(inst.offset);
+    Append(stack_offsets_[inst.offset]);
     Append("]\n");
   }
 
@@ -276,7 +282,7 @@ class Arm64Generator {
     Append("STR X");
     Append(inst.src_reg);
     Append(", [SP, #");
-    Append(inst.offset);
+    Append(stack_offsets_[inst.offset]);
     Append("]\n");
   }
 
@@ -284,7 +290,7 @@ class Arm64Generator {
     Append("LDR W");
     Append(inst.dst_reg);
     Append(", [SP, #");
-    Append(inst.offset);
+    Append(stack_offsets_[inst.offset]);
     Append("]\n");
   }
 
@@ -292,7 +298,7 @@ class Arm64Generator {
     Append("LDR X");
     Append(inst.dst_reg);
     Append(", [SP, #");
-    Append(inst.offset);
+    Append(stack_offsets_[inst.offset]);
     Append("]\n");
   }
 
@@ -300,8 +306,10 @@ class Arm64Generator {
   void Append(std::size_t s) { out_ << s; }
 
   std::string_view func_name_;
-  const std::vector<Instruction>& instructions_;
+  const Function& func_;
   std::ostream& out_;
+  std::size_t stack_size_ = 0;
+  std::vector<std::size_t> stack_offsets_;
 };
 
 }  // namespace
@@ -318,10 +326,9 @@ _start:
 )";
 }
 
-void GenerateArmAssemblySource(std::string_view func_name,
-                               const std::vector<Instruction>& instructions,
+void GenerateArmAssemblySource(std::string_view func_name, const Function& func,
                                std::ostream& out) {
-  Arm64Generator(func_name, instructions, out).Generate();
+  Arm64Generator(func_name, func, out).Generate();
 }
 
 }  // namespace lucid

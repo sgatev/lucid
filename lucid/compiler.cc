@@ -68,9 +68,9 @@ std::optional<CompileError> Compile(std::string_view src, std::ostream& out) {
   for (auto& func : std::get<std::vector<FuncDefStmt>>(maybe_funcs)) {
     if (auto err = InferExpressionTypes(arena, func); err) return *err;
     auto graph = BuildControlFlowGraph(arena, func);
-    GenerateAbstractMachineInstructions(arena, graph, state);
-    OptimizeAbstractMachineInstructions(state.instructions);
-    GenerateArmAssemblySource(func.name, state.instructions, out);
+    GenerateAbstractMachineFunction(arena, graph, state);
+    OptimizeAbstractMachineInstructions(state.func.instructions);
+    GenerateArmAssemblySource(func.name, state.func, out);
   }
   return std::nullopt;
 }

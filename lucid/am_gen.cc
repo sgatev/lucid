@@ -16,38 +16,36 @@
 namespace lucid {
 namespace {
 
-std::size_t ComputeMaxStackSize(const Arena<Stmt>& arena,
-                                const ControlFlowGraph& graph) {
-  std::size_t stack_size = 0;
-  for (const auto& param : graph.func_params) {
-    if (param.type == "Int32") {
-      stack_size += 4;
-    } else if (param.type == "Int64") {
-      stack_size += 8;
-    } else if (param.type == "Bool") {
-      stack_size += 1;
+class AbstractMachineFunctionGenerator {
+ public:
+  AbstractMachineFunctionGenerator(const Arena<Stmt>& arena,
+                                   const ControlFlowGraph& graph,
+                                   AbstractMachineState& state)
+      : arena_(arena), graph_(graph), state_(state) {
+    for (const auto& param : graph.func_params) {
+      if (param.type == "Int32") {
+        state_.func.stack_slots.push_back(4);
+      } else if (param.type == "Int64") {
+        state_.func.stack_slots.push_back(8);
+      } else if (param.type == "Bool") {
+        state_.func.stack_slots.push_back(1);
+      }
     }
-  }
-  for (const auto& block : graph.blocks()) {
-    for (const auto& stmt_ref : block.statements) {
-      const auto& stmt = arena.get(stmt_ref);
-      if (auto* var_decl = std::get_if<VarDeclStmt>(&stmt)) {
-        stack_size += 4;
+    for (const auto& block : graph.blocks()) {
+      for (const auto& stmt_ref : block.statements) {
+        const auto& stmt = arena.get(stmt_ref);
+        if (auto* var_decl = std::get_if<VarDeclStmt>(&stmt)) {
+          if (var_decl->type == "Int32") {
+            state_.func.stack_slots.push_back(4);
+          } else if (var_decl->type == "Int64") {
+            state_.func.stack_slots.push_back(8);
+          } else if (var_decl->type == "Bool") {
+            state_.func.stack_slots.push_back(1);
+          }
+        }
       }
     }
   }
-  return stack_size;
-}
-
-class AbstractMachineInstructionGenerator {
- public:
-  AbstractMachineInstructionGenerator(const Arena<Stmt>& arena,
-                                      const ControlFlowGraph& graph,
-                                      AbstractMachineState& state)
-      : arena_(arena),
-        graph_(graph),
-        state_(state),
-        stack_size_(ComputeMaxStackSize(arena_, graph_)) {}
 
   void Generate() {
     state_.out_reg.clear();
@@ -57,41 +55,39 @@ class AbstractMachineInstructionGenerator {
     for (const auto& block : graph_.blocks()) {
       instructions_count += block.statements.size();
     }
-    state_.instructions.clear();
-    state_.instructions.reserve(instructions_count * 2);
+    state_.func.instructions.clear();
+    state_.func.instructions.reserve(instructions_count * 2);
 
     std::size_t push_pos, pop_pos;
 
-    push_pos = state_.instructions.size();
-    // state_.instructions.push_back(PushStack{.size = stack_size_});
+    push_pos = state_.func.instructions.size();
     for (int i = 0; i < graph_.func_params.size(); ++i) {
       const auto& param = graph_.func_params[i];
       if (param.type == "Int32") {
-        state_.instructions.push_back(StoreStack32{
+        state_.func.instructions.push_back(StoreStack32{
             .offset = stack_offset_,
             .src_reg = i + 1,
         });
         var_stack_[graph_.func_params[i].name] = stack_offset_;
-        stack_offset_ += 4;
+        ++stack_offset_;
       } else if (param.type == "Int64") {
-        state_.instructions.push_back(StoreStack64{
+        state_.func.instructions.push_back(StoreStack64{
             .offset = stack_offset_,
             .src_reg = i + 1,
         });
         var_stack_[graph_.func_params[i].name] = stack_offset_;
-        stack_offset_ += 8;
+        ++stack_offset_;
       }
     }
 
     for (const auto& block : graph_.blocks()) {
-      state_.instructions.push_back(Label{
+      state_.func.instructions.push_back(Label{
           .id = block.id,
       });
 
       if (block.id == graph_.get(graph_.last).id) {
-        pop_pos = state_.instructions.size();
-        // state_.instructions.push_back(PopStack{.size = stack_size_});
-        state_.instructions.push_back(Return{});
+        pop_pos = state_.func.instructions.size();
+        state_.func.instructions.push_back(Return{});
       }
 
       for (const auto& stmt_ref : block.statements) {
@@ -99,41 +95,42 @@ class AbstractMachineInstructionGenerator {
       }
 
       if (block.branch_cond != ControlFlowGraph::kNullBlockRef) {
-        state_.instructions.push_back(CondJump{
+        state_.func.instructions.push_back(CondJump{
             .cond_reg = state_.out_reg[block.branch_cond],
             .then_label = graph_.get(block.next[0]).id,
             .else_label = graph_.get(block.next[1]).id,
         });
       } else if (block.next.size() == 1) {
-        state_.instructions.push_back(UncondJump{
+        state_.func.instructions.push_back(UncondJump{
             .label = graph_.get(block.next[0]).id,
         });
       }
     }
 
-    std::size_t offset = stack_size_;
+    std::size_t offset = stack_offset_;
 
-    stack_size_ += (next_reg_ - 1) * 8;
-
-    state_.instructions.insert(state_.instructions.begin() + pop_pos,
-                               PopStack{.size = stack_size_});
+    state_.func.instructions.insert(state_.func.instructions.begin() + pop_pos,
+                                    PopStack{});
     for (int i = next_reg_ - 1; i >= 1; --i) {
-      state_.instructions.insert(state_.instructions.begin() + pop_pos,
-                                 LoadStack64{
-                                     .offset = offset + (i - 1) * 8,
-                                     .dst_reg = i,
-                                 });
+      state_.func.instructions.insert(
+          state_.func.instructions.begin() + pop_pos,
+          LoadStack64{
+              .offset = offset + (i - 1),
+              .dst_reg = i,
+          });
+      state_.func.stack_slots.push_back(8);
     }
 
     for (int i = next_reg_ - 1; i >= 1; --i) {
-      state_.instructions.insert(state_.instructions.begin() + push_pos,
-                                 StoreStack64{
-                                     .offset = offset + (i - 1) * 8,
-                                     .src_reg = i,
-                                 });
+      state_.func.instructions.insert(
+          state_.func.instructions.begin() + push_pos,
+          StoreStack64{
+              .offset = offset + (i - 1),
+              .src_reg = i,
+          });
     }
-    state_.instructions.insert(state_.instructions.begin() + push_pos,
-                               PushStack{.size = stack_size_});
+    state_.func.instructions.insert(state_.func.instructions.begin() + push_pos,
+                                    PushStack{});
   }
 
  private:
@@ -146,12 +143,12 @@ class AbstractMachineInstructionGenerator {
     auto type = std::visit([](auto& expr) { return expr.type; }, value);
 
     if (type == "Int32") {
-      state_.instructions.push_back(MoveReg32{
+      state_.func.instructions.push_back(MoveReg32{
           .src_reg = state_.out_reg[stmt.value],
           .dst_reg = 0,
       });
     } else if (type == "Int64") {
-      state_.instructions.push_back(MoveReg64{
+      state_.func.instructions.push_back(MoveReg64{
           .src_reg = state_.out_reg[stmt.value],
           .dst_reg = 0,
       });
@@ -165,14 +162,14 @@ class AbstractMachineInstructionGenerator {
   void ProcessExpr(ExprRef ref, const IntLitExpr& expr) {
     RegId reg = next_reg_++;
     if (expr.type == "Int64") {
-      state_.instructions.push_back(SetReg64{
+      state_.func.instructions.push_back(SetReg64{
           .src_val = expr.value,
           .dst_reg = reg,
       });
     } else {
       // TODO: Make this conditional on the type once func param types are
       // available.
-      state_.instructions.push_back(SetReg32{
+      state_.func.instructions.push_back(SetReg32{
           .src_val = expr.value,
           .dst_reg = reg,
       });
@@ -182,7 +179,7 @@ class AbstractMachineInstructionGenerator {
 
   void ProcessExpr(ExprRef ref, const BoolLitExpr& expr) {
     RegId reg = next_reg_++;
-    state_.instructions.push_back(SetReg32{
+    state_.func.instructions.push_back(SetReg32{
         .src_val = expr.value == "true" ? "1" : "0",
         .dst_reg = reg,
     });
@@ -193,15 +190,15 @@ class AbstractMachineInstructionGenerator {
     RegId reg = next_reg_++;
     int i = 1;
     for (const auto arg : expr.arguments) {
-      state_.instructions.push_back(MoveReg32{
+      state_.func.instructions.push_back(MoveReg32{
           .src_reg = state_.out_reg[arg],
           .dst_reg = i++,
       });
     }
-    state_.instructions.push_back(Jump{
+    state_.func.instructions.push_back(Jump{
         .label = expr.func_name,
     });
-    state_.instructions.push_back(MoveReg32{
+    state_.func.instructions.push_back(MoveReg32{
         .src_reg = 0,
         .dst_reg = reg,
     });
@@ -210,31 +207,31 @@ class AbstractMachineInstructionGenerator {
 
   void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {
     if (stmt.type == "Int32") {
-      state_.instructions.push_back(StoreStack32{
+      state_.func.instructions.push_back(StoreStack32{
           .offset = stack_offset_,
           .src_reg = state_.out_reg[stmt.init],
       });
       var_stack_[stmt.name] = stack_offset_;
-      stack_offset_ += 4;
+      ++stack_offset_;
     } else if (stmt.type == "Int64") {
-      state_.instructions.push_back(StoreStack64{
+      state_.func.instructions.push_back(StoreStack64{
           .offset = stack_offset_,
           .src_reg = state_.out_reg[stmt.init],
       });
       var_stack_[stmt.name] = stack_offset_;
-      stack_offset_ += 8;
+      ++stack_offset_;
     }
   }
 
   void ProcessExpr(ExprRef ref, const IdentExpr& expr) {
     RegId reg = next_reg_++;
     if (expr.type == "Int32") {
-      state_.instructions.push_back(LoadStack32{
+      state_.func.instructions.push_back(LoadStack32{
           .offset = var_stack_[expr.name],
           .dst_reg = reg,
       });
     } else if (expr.type == "Int64") {
-      state_.instructions.push_back(LoadStack64{
+      state_.func.instructions.push_back(LoadStack64{
           .offset = var_stack_[expr.name],
           .dst_reg = reg,
       });
@@ -247,13 +244,13 @@ class AbstractMachineInstructionGenerator {
     switch (expr.op) {
       case BinaryOp::Add:
         if (expr.type == "Int32") {
-          state_.instructions.push_back(AddReg32{
+          state_.func.instructions.push_back(AddReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
         } else if (expr.type == "Int64") {
-          state_.instructions.push_back(AddReg64{
+          state_.func.instructions.push_back(AddReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
@@ -262,13 +259,13 @@ class AbstractMachineInstructionGenerator {
         break;
       case BinaryOp::Sub:
         if (expr.type == "Int64") {
-          state_.instructions.push_back(SubReg64{
+          state_.func.instructions.push_back(SubReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
         } else {
-          state_.instructions.push_back(SubReg32{
+          state_.func.instructions.push_back(SubReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
@@ -277,13 +274,13 @@ class AbstractMachineInstructionGenerator {
         break;
       case BinaryOp::Mul:
         if (expr.type == "Int32") {
-          state_.instructions.push_back(MulReg32{
+          state_.func.instructions.push_back(MulReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
         } else if (expr.type == "Int64") {
-          state_.instructions.push_back(MulReg64{
+          state_.func.instructions.push_back(MulReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
@@ -292,13 +289,13 @@ class AbstractMachineInstructionGenerator {
         break;
       case BinaryOp::Div:
         if (expr.type == "Int32") {
-          state_.instructions.push_back(DivReg32{
+          state_.func.instructions.push_back(DivReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
         } else if (expr.type == "Int64") {
-          state_.instructions.push_back(DivReg64{
+          state_.func.instructions.push_back(DivReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
@@ -307,13 +304,13 @@ class AbstractMachineInstructionGenerator {
         break;
       case BinaryOp::Gt:
         if (expr.type == "Int64") {
-          state_.instructions.push_back(GtReg64{
+          state_.func.instructions.push_back(GtReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
         } else {
-          state_.instructions.push_back(GtReg32{
+          state_.func.instructions.push_back(GtReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
@@ -322,13 +319,13 @@ class AbstractMachineInstructionGenerator {
         break;
       case BinaryOp::Lt:
         if (expr.type == "Int64") {
-          state_.instructions.push_back(LtReg64{
+          state_.func.instructions.push_back(LtReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
         } else {
-          state_.instructions.push_back(LtReg32{
+          state_.func.instructions.push_back(LtReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
@@ -337,13 +334,13 @@ class AbstractMachineInstructionGenerator {
         break;
       case BinaryOp::Eq:
         if (GetType(DerefExpr(expr.lhs)) == "Int64") {
-          state_.instructions.push_back(EqReg64{
+          state_.func.instructions.push_back(EqReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
           });
         } else {
-          state_.instructions.push_back(EqReg32{
+          state_.func.instructions.push_back(EqReg32{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],
               .rhs_reg = state_.out_reg[expr.rhs],
@@ -363,7 +360,6 @@ class AbstractMachineInstructionGenerator {
   const Arena<Stmt>& arena_;
   const ControlFlowGraph& graph_;
   AbstractMachineState& state_;
-  std::size_t stack_size_;
   RegId next_reg_ = 1;
   std::size_t stack_offset_ = 0;
   std::map<std::string_view, std::size_t> var_stack_;
@@ -371,10 +367,10 @@ class AbstractMachineInstructionGenerator {
 
 }  // namespace
 
-void GenerateAbstractMachineInstructions(const Arena<Stmt>& arena,
-                                         const ControlFlowGraph& graph,
-                                         AbstractMachineState& state) {
-  AbstractMachineInstructionGenerator(arena, graph, state).Generate();
+void GenerateAbstractMachineFunction(const Arena<Stmt>& arena,
+                                     const ControlFlowGraph& graph,
+                                     AbstractMachineState& state) {
+  AbstractMachineFunctionGenerator(arena, graph, state).Generate();
 }
 
 }  // namespace lucid

@@ -22,9 +22,9 @@ class GenerateArmAssemblySourceTest : public testing::Test, public AstFixture {
     InferExpressionTypes(arena_, func);
     auto graph = BuildControlFlowGraph(arena_, func);
     AbstractMachineState state;
-    GenerateAbstractMachineInstructions(arena_, graph, state);
+    GenerateAbstractMachineFunction(arena_, graph, state);
     std::strstream out;
-    GenerateArmAssemblySource(func.name, state.instructions, out);
+    GenerateArmAssemblySource(func.name, state.func, out);
     return out.str();
   }
 };
@@ -961,12 +961,12 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt64) {
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
-SUB SP, SP, #48
-STR X1, [SP, #8]
-STR X2, [SP, #16]
-STR X3, [SP, #24]
-STR X4, [SP, #32]
-STR X5, [SP, #40]
+SUB SP, SP, #64
+STR X1, [SP, #16]
+STR X2, [SP, #24]
+STR X3, [SP, #32]
+STR X4, [SP, #40]
+STR X5, [SP, #48]
 foo0:
 MOV X1, #2
 STR X1, [SP, #0]
@@ -978,12 +978,12 @@ ADD X5, X3, X4
 MOV X0, X5
 B foo1
 foo1:
-LDR X1, [SP, #8]
-LDR X2, [SP, #16]
-LDR X3, [SP, #24]
-LDR X4, [SP, #32]
-LDR X5, [SP, #40]
-ADD SP, SP, #48
+LDR X1, [SP, #16]
+LDR X2, [SP, #24]
+LDR X3, [SP, #32]
+LDR X4, [SP, #40]
+LDR X5, [SP, #48]
+ADD SP, SP, #64
 RET
 )");
 }
