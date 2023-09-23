@@ -13,7 +13,7 @@ TEST_F(CompilerTest, EmptyMain) {
         return 0
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(0)));
 }
@@ -28,7 +28,7 @@ TEST_F(CompilerTest, FunctionCall) {
         return id(21)
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(21)));
 }
@@ -39,7 +39,7 @@ TEST_F(CompilerTest, AddInt32) {
         return 2 + 3
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(5)));
 }
@@ -61,7 +61,7 @@ TEST_F(CompilerTest, SubInt32) {
         return 7 - 5
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
@@ -72,7 +72,7 @@ TEST_F(CompilerTest, SubInt64) {
         return 7 - 5
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
@@ -83,7 +83,7 @@ TEST_F(CompilerTest, MulInt32) {
         return 3 * 7
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(21)));
 }
@@ -94,7 +94,7 @@ TEST_F(CompilerTest, MulInt64) {
         return 3 * 7
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(21)));
 }
@@ -105,7 +105,7 @@ TEST_F(CompilerTest, DivInt32) {
         return 8 / 2
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(4)));
 }
@@ -116,7 +116,7 @@ TEST_F(CompilerTest, DivInt64) {
         return 8 / 2
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(4)));
 }
@@ -125,13 +125,13 @@ TEST_F(CompilerTest, IfStmtThenBranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
       let main = () -> Int32 {
         if true {
-          return 2 
+          return 2
         } else {
           return 3
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
@@ -140,13 +140,13 @@ TEST_F(CompilerTest, IfStmtElseBranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
       let main = () -> Int32 {
         if false {
-          return 2 
+          return 2
         } else {
-          return 3 
+          return 3
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(3)));
 }
@@ -161,7 +161,7 @@ TEST_F(CompilerTest, GtInt32) {
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
@@ -176,7 +176,7 @@ TEST_F(CompilerTest, GtInt64) {
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
@@ -191,7 +191,7 @@ TEST_F(CompilerTest, GtFalse) {
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(3)));
 }
@@ -206,7 +206,7 @@ TEST_F(CompilerTest, LtInt32) {
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
@@ -221,7 +221,7 @@ TEST_F(CompilerTest, LtInt64) {
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
@@ -236,7 +236,7 @@ TEST_F(CompilerTest, LtFalse) {
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(3)));
 }
@@ -251,7 +251,7 @@ TEST_F(CompilerTest, EqInt32) {
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
@@ -266,7 +266,7 @@ TEST_F(CompilerTest, EqInt64) {
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
@@ -281,7 +281,7 @@ TEST_F(CompilerTest, EqFalse) {
         }
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(3)));
 }
@@ -294,7 +294,7 @@ TEST_F(CompilerTest, VarDecl) {
         return x + y
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(5)));
 }
@@ -307,7 +307,7 @@ TEST_F(CompilerTest, VarDeclFromVar) {
         return y
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
@@ -326,7 +326,7 @@ TEST_F(CompilerTest, FactRec) {
         return fact(5)
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(120)));
 }
@@ -345,7 +345,7 @@ TEST_F(CompilerTest, FibRec) {
         return fib(8)
       }
     )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(21)));
 }
