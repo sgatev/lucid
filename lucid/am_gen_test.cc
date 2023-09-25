@@ -19,8 +19,10 @@ using ::testing::ElementsAre;
 class GenerateAbstractMachineFunctionTest : public testing::Test,
                                             public AstFixture {
  protected:
-  std::vector<Instruction> Generate(FuncDefStmt& func) {
-    InferExpressionTypes(arena_, func);
+  std::vector<Instruction> Generate(
+      FuncDefStmt& func,
+      const std::unordered_map<std::string_view, FuncType>& func_types = {}) {
+    InferExprTypes(arena_, func_types, func);
     auto graph = BuildControlFlowGraph(arena_, func);
     AbstractMachineState state;
     GenerateAbstractMachineFunction(arena_, graph, state);
@@ -137,52 +139,61 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithArg) {
           },
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          StoreStack64{
-                                              .offset = 0,
-                                              .src_reg = 1,
-                                          },
-                                          StoreStack64{
-                                              .offset = 1,
-                                              .src_reg = 2,
-                                          },
-                                          Label{
-                                              .id = 0,
-                                          },
-                                          SetReg32{
-                                              .src_val = "21",
-                                              .dst_reg = 1,
-                                          },
-                                          MoveReg32{
-                                              .src_reg = 1,
-                                              .dst_reg = 1,
-                                          },
-                                          Jump{
-                                              .label = "id",
-                                          },
-                                          MoveReg32{
-                                              .src_reg = 0,
-                                              .dst_reg = 2,
-                                          },
-                                          MoveReg32{
-                                              .src_reg = 2,
-                                              .dst_reg = 0,
-                                          },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
-                                          },
-                                          LoadStack64{
-                                              .offset = 0,
-                                              .dst_reg = 1,
-                                          },
-                                          LoadStack64{
-                                              .offset = 1,
-                                              .dst_reg = 2,
-                                          },
-                                          PopStack{}, Return{}));
+  std::vector<FuncParam> id_func_params = {
+      {.type = "Int32"},
+  };
+  auto id_func_type = FuncType{
+      .result_type = "Int32",
+      .parameters = id_func_params,
+  };
+
+  EXPECT_THAT(Generate(func, {{"id", id_func_type}}),
+              ElementsAre(PushStack{},
+                          StoreStack64{
+                              .offset = 0,
+                              .src_reg = 1,
+                          },
+                          StoreStack64{
+                              .offset = 1,
+                              .src_reg = 2,
+                          },
+                          Label{
+                              .id = 0,
+                          },
+                          SetReg32{
+                              .src_val = "21",
+                              .dst_reg = 1,
+                          },
+                          MoveReg32{
+                              .src_reg = 1,
+                              .dst_reg = 1,
+                          },
+                          Jump{
+                              .label = "id",
+                          },
+                          MoveReg32{
+                              .src_reg = 0,
+                              .dst_reg = 2,
+                          },
+                          MoveReg32{
+                              .src_reg = 2,
+                              .dst_reg = 0,
+                          },
+                          UncondJump{
+                              .label = 1,
+                          },
+                          Label{
+                              .id = 1,
+                          },
+                          LoadStack64{
+                              .offset = 0,
+                              .dst_reg = 1,
+                          },
+                          LoadStack64{
+                              .offset = 1,
+                              .dst_reg = 2,
+                          },
+                          PopStack{}, Return{}));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {

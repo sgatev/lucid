@@ -13,14 +13,16 @@ namespace {
 
 MATCHER_P(HoldsFuncDef, match_stmt, "") { return match_stmt(arg); }
 
-class InferExpressionTypesTest : public testing::Test, public AstFixture {
+class InferExprTypesTest : public testing::Test, public AstFixture {
  protected:
-  std::optional<TypeError> InferExpressionTypes(FuncDefStmt& stmt) {
-    return ::lucid::InferExpressionTypes(arena_, stmt);
+  std::optional<TypeError> InferExprTypes(
+      FuncDefStmt& stmt,
+      const std::unordered_map<std::string_view, FuncType>& func_types = {}) {
+    return ::lucid::InferExprTypes(arena_, func_types, stmt);
   }
 };
 
-TEST_F(InferExpressionTypesTest, FromResult) {
+TEST_F(InferExprTypesTest, FromResult) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -37,7 +39,7 @@ TEST_F(InferExpressionTypesTest, FromResult) {
           },
   };
 
-  EXPECT_EQ(InferExpressionTypes(func), std::nullopt);
+  EXPECT_EQ(InferExprTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
                         .result_type = "Int32",
@@ -55,7 +57,7 @@ TEST_F(InferExpressionTypesTest, FromResult) {
                     })));
 }
 
-TEST_F(InferExpressionTypesTest, FromVarDecl) {
+TEST_F(InferExprTypesTest, FromVarDecl) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Void",
@@ -74,7 +76,7 @@ TEST_F(InferExpressionTypesTest, FromVarDecl) {
           },
   };
 
-  EXPECT_EQ(InferExpressionTypes(func), std::nullopt);
+  EXPECT_EQ(InferExprTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
                         .result_type = "Void",
@@ -94,7 +96,7 @@ TEST_F(InferExpressionTypesTest, FromVarDecl) {
                     })));
 }
 
-TEST_F(InferExpressionTypesTest, IfStmtCond) {
+TEST_F(InferExprTypesTest, IfStmtCond) {
   auto func = FuncDefStmt{
       .name = "fact",
       .result_type = "Void",
@@ -121,7 +123,7 @@ TEST_F(InferExpressionTypesTest, IfStmtCond) {
           },
   };
 
-  EXPECT_EQ(InferExpressionTypes(func), std::nullopt);
+  EXPECT_EQ(InferExprTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "fact",
                         .result_type = "Void",
@@ -151,7 +153,7 @@ TEST_F(InferExpressionTypesTest, IfStmtCond) {
                     })));
 }
 
-TEST_F(InferExpressionTypesTest, ThroughBinOpExpr) {
+TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Void",
@@ -176,7 +178,7 @@ TEST_F(InferExpressionTypesTest, ThroughBinOpExpr) {
           },
   };
 
-  EXPECT_EQ(InferExpressionTypes(func), std::nullopt);
+  EXPECT_EQ(InferExprTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
                         .result_type = "Void",
@@ -203,7 +205,67 @@ TEST_F(InferExpressionTypesTest, ThroughBinOpExpr) {
                     })));
 }
 
-TEST_F(InferExpressionTypesTest, ErrorBoolLitAsInt64) {
+TEST_F(InferExprTypesTest, ThroughFuncCall) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Void",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(VarDeclStmt{
+                          .name = "x",
+                          .type = "Int32",
+                          .init = Allocate(FuncCallExpr{
+                              .func_name = "id",
+                              .arguments =
+                                  {
+                                      Allocate(IntLitExpr{
+                                          .value = "21",
+                                      }),
+                                  },
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  std::vector<FuncParam> id_func_params = {
+      {.type = "Int32"},
+  };
+  auto id_func_type = FuncType{
+      .result_type = "Int32",
+      .parameters = id_func_params,
+  };
+
+  EXPECT_EQ(InferExprTypes(func, {{"id", id_func_type}}), std::nullopt);
+  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
+                        .name = "foo",
+                        .result_type = "Void",
+                        .body =
+                            {
+                                {{
+                                    MatchesVarDeclStmt({
+                                        .name = "x",
+                                        .type = "Int32",
+                                        .init = MatchesFuncCallExpr({
+                                            .type = "Int32",
+                                            .func_name = "id",
+                                            .arguments =
+                                                {
+                                                    MatchesIntLitExpr({
+                                                        .type = "Int32",
+                                                        .value = "21",
+                                                    }),
+                                                },
+                                        }),
+                                    }),
+                                }},
+                            },
+                    })));
+}
+
+TEST_F(InferExprTypesTest, ErrorBoolLitAsInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Void",
@@ -222,11 +284,11 @@ TEST_F(InferExpressionTypesTest, ErrorBoolLitAsInt64) {
           },
   };
 
-  EXPECT_EQ(InferExpressionTypes(func),
+  EXPECT_EQ(InferExprTypes(func),
             TypeError("Bool literal is not of type Int64"));
 }
 
-TEST_F(InferExpressionTypesTest, ErrorInt64FromInt32) {
+TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Void",
@@ -252,7 +314,7 @@ TEST_F(InferExpressionTypesTest, ErrorInt64FromInt32) {
           },
   };
 
-  EXPECT_EQ(InferExpressionTypes(func),
+  EXPECT_EQ(InferExprTypes(func),
             TypeError("Identifier 'x' is not of type Int64"));
 }
 

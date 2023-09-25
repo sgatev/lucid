@@ -14,8 +14,22 @@
 
 namespace lucid {
 
-std::optional<TypeError> InferExpressionTypes(Arena<Stmt>& arena,
-                                              FuncDefStmt& func_def) {
+std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
+    const std::vector<FuncDefStmt>& func_defs) {
+  std::unordered_map<std::string_view, FuncType> func_types;
+  for (const auto& func_def : func_defs) {
+    func_types[func_def.name] = {
+        .result_type = func_def.result_type,
+        .parameters = func_def.parameters,
+    };
+  }
+  return func_types;
+}
+
+std::optional<TypeError> InferExprTypes(
+    Arena<Stmt>& arena,
+    const std::unordered_map<std::string_view, FuncType>& func_types,
+    FuncDefStmt& func_def) {
   std::unordered_map<ExprRef, ExprRef> expr_from_expr;
   std::unordered_map<ExprRef, std::string_view> expr_from_type;
   std::unordered_map<std::string_view, std::string_view> ident_from_type;
@@ -65,7 +79,10 @@ std::optional<TypeError> InferExpressionTypes(Arena<Stmt>& arena,
       pending_exprs.pop_back();
 
       if (auto* cexpr = std::get_if<FuncCallExpr>(&expr)) {
-        for (auto arg : cexpr->arguments) {
+        const auto& func_type = func_types.at(cexpr->func_name);
+        for (int i = 0; i < cexpr->arguments.size(); ++i) {
+          const auto& arg = cexpr->arguments[i];
+          expr_from_type[arg] = func_type.parameters[i].type;
           pending_exprs.push_back(arg);
         }
       } else if (auto* cexpr = std::get_if<BoolLitExpr>(&expr)) {

@@ -63,10 +63,12 @@ std::optional<CompileError> Compile(std::string_view src, std::ostream& out) {
   Arena<Stmt> arena;
   auto maybe_funcs = ParseFuncDefs(src, arena);
   if (auto* err = std::get_if<ParserError>(&maybe_funcs)) return *err;
+  auto& func_defs = std::get<std::vector<FuncDefStmt>>(maybe_funcs);
+  auto func_types = ExtractFuncTypes(func_defs);
   AbstractMachineState state;
   GenerateArmStartSource(out);
-  for (auto& func : std::get<std::vector<FuncDefStmt>>(maybe_funcs)) {
-    if (auto err = InferExpressionTypes(arena, func); err) return *err;
+  for (auto& func : func_defs) {
+    if (auto err = InferExprTypes(arena, func_types, func); err) return *err;
     auto graph = BuildControlFlowGraph(arena, func);
     GenerateAbstractMachineFunction(arena, graph, state);
     OptimizeAbstractMachineInstructions(state.func.instructions);

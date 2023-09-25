@@ -18,8 +18,10 @@ namespace {
 
 class GenerateArmAssemblySourceTest : public testing::Test, public AstFixture {
  protected:
-  std::string Generate(FuncDefStmt& func) {
-    InferExpressionTypes(arena_, func);
+  std::string Generate(
+      FuncDefStmt& func,
+      const std::unordered_map<std::string_view, FuncType>& func_types = {}) {
+    InferExprTypes(arena_, func_types, func);
     auto graph = BuildControlFlowGraph(arena_, func);
     AbstractMachineState state;
     GenerateAbstractMachineFunction(arena_, graph, state);
@@ -186,7 +188,15 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
           },
   };
 
-  EXPECT_EQ(Generate(func), R"(foo:
+  std::vector<FuncParam> id_func_params = {
+      {.type = "Int32"},
+  };
+  auto id_func_type = FuncType{
+      .result_type = "Int32",
+      .parameters = id_func_params,
+  };
+
+  EXPECT_EQ(Generate(func, {{"id", id_func_type}}), R"(foo:
 SUB SP, SP, #16
 STR X1, [SP, #0]
 STR X2, [SP, #8]
