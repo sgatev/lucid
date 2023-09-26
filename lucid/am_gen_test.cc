@@ -118,7 +118,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
                                           PopStack{}, Return{}));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithArg) {
+TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -176,6 +176,84 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithArg) {
                               .dst_reg = 2,
                           },
                           MoveReg32{
+                              .src_reg = 2,
+                              .dst_reg = 0,
+                          },
+                          UncondJump{
+                              .label = 1,
+                          },
+                          Label{
+                              .id = 1,
+                          },
+                          LoadStack64{
+                              .offset = 0,
+                              .dst_reg = 1,
+                          },
+                          LoadStack64{
+                              .offset = 1,
+                              .dst_reg = 2,
+                          },
+                          PopStack{}, Return{}));
+}
+
+TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int64",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(FuncCallExpr{
+                              .func_name = "id",
+                              .arguments =
+                                  {
+                                      Allocate(IntLitExpr{.value = "21"}),
+                                  },
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  std::vector<FuncParam> id_func_params = {
+      {.type = "Int64"},
+  };
+  auto id_func_type = FuncType{
+      .result_type = "Int64",
+      .parameters = id_func_params,
+  };
+
+  EXPECT_THAT(Generate(func, {{"id", id_func_type}}),
+              ElementsAre(PushStack{},
+                          StoreStack64{
+                              .offset = 0,
+                              .src_reg = 1,
+                          },
+                          StoreStack64{
+                              .offset = 1,
+                              .src_reg = 2,
+                          },
+                          Label{
+                              .id = 0,
+                          },
+                          SetReg64{
+                              .src_val = "21",
+                              .dst_reg = 1,
+                          },
+                          MoveReg64{
+                              .src_reg = 1,
+                              .dst_reg = 1,
+                          },
+                          Jump{
+                              .label = "id",
+                          },
+                          MoveReg64{
+                              .src_reg = 0,
+                              .dst_reg = 2,
+                          },
+                          MoveReg64{
                               .src_reg = 2,
                               .dst_reg = 0,
                           },

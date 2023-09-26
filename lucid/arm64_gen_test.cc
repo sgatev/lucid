@@ -167,7 +167,7 @@ RET
 )");
 }
 
-TEST_F(GenerateArmAssemblySourceTest, FuncCallWithArg) {
+TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt32Arg) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = "Int32",
@@ -208,6 +208,56 @@ BL id
 LDP X29, X30, [sp], #16
 MOV W2, W0
 MOV W0, W2
+B foo1
+foo1:
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+ADD SP, SP, #16
+RET
+)");
+}
+
+TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt64Arg) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = "Int64",
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(FuncCallExpr{
+                              .func_name = "id",
+                              .arguments =
+                                  {
+                                      Allocate(IntLitExpr{.value = "21"}),
+                                  },
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  std::vector<FuncParam> id_func_params = {
+      {.type = "Int64"},
+  };
+  auto id_func_type = FuncType{
+      .result_type = "Int64",
+      .parameters = id_func_params,
+  };
+
+  EXPECT_EQ(Generate(func, {{"id", id_func_type}}), R"(foo:
+SUB SP, SP, #16
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+foo0:
+MOV X1, #21
+MOV X1, X1
+STP X29, X30, [sp, #-16]!
+BL id
+LDP X29, X30, [sp], #16
+MOV X2, X0
+MOV X0, X2
 B foo1
 foo1:
 LDR X1, [SP, #0]

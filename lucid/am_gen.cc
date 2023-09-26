@@ -192,18 +192,33 @@ class AbstractMachineFunctionGenerator {
     RegId reg = next_reg_++;
     int i = 1;
     for (const auto arg : expr.arguments) {
-      state_.func.instructions.push_back(MoveReg32{
-          .src_reg = state_.out_reg[arg],
-          .dst_reg = i++,
-      });
+      const auto& arg_expr = DerefExpr(arg);
+      if (GetType(arg_expr) == "Int32") {
+        state_.func.instructions.push_back(MoveReg32{
+            .src_reg = state_.out_reg[arg],
+            .dst_reg = i++,
+        });
+      } else if (GetType(arg_expr) == "Int64") {
+        state_.func.instructions.push_back(MoveReg64{
+            .src_reg = state_.out_reg[arg],
+            .dst_reg = i++,
+        });
+      }
     }
     state_.func.instructions.push_back(Jump{
         .label = expr.func_name,
     });
-    state_.func.instructions.push_back(MoveReg32{
-        .src_reg = 0,
-        .dst_reg = reg,
-    });
+    if (expr.type == "Int32") {
+      state_.func.instructions.push_back(MoveReg32{
+          .src_reg = 0,
+          .dst_reg = reg,
+      });
+    } else if (expr.type == "Int64") {
+      state_.func.instructions.push_back(MoveReg64{
+          .src_reg = 0,
+          .dst_reg = reg,
+      });
+    }
     state_.out_reg[ref] = reg;
   }
 
