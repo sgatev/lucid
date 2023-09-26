@@ -18,7 +18,6 @@ cc_library(
 cc_test(
     name = "am_gen_test",
     srcs = ["am_gen_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":am",
         ":am_gen",
@@ -52,7 +51,6 @@ cc_library(
 cc_test(
     name = "arena_test",
     srcs = ["arena_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":arena",
         "@gtest",
@@ -73,7 +71,6 @@ cc_library(
 cc_test(
     name = "arm64_gen_test",
     srcs = ["arm64_gen_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":am_gen",
         ":arena",
@@ -118,7 +115,6 @@ cc_library(
 cc_test(
     name = "cfg_test",
     srcs = ["cfg_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":arena",
         ":ast",
@@ -137,7 +133,6 @@ cc_library(
 cc_test(
     name = "cli_test",
     srcs = ["cli_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":cli",
         "@gtest",
@@ -167,7 +162,6 @@ cc_binary(
 cc_test(
     name = "compiler_macos_arm64_test",
     srcs = ["compiler_macos_arm64_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     data = [
         ":compiler",
     ],
@@ -187,7 +181,6 @@ cc_test(
 cc_test(
     name = "compiler_error_test",
     srcs = ["compiler_error_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     data = [
         ":compiler",
     ],
@@ -204,7 +197,6 @@ cc_library(
     name = "compiler_test_fixture",
     testonly = True,
     hdrs = ["compiler_test_fixture.h"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":cli",
         ":file",
@@ -221,7 +213,6 @@ cc_library(
 cc_test(
     name = "file_test",
     srcs = ["file_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     data = [
         "//lucid/testdata:foobarbaz",
     ],
@@ -243,7 +234,6 @@ cc_library(
 cc_test(
     name = "lexer_test",
     srcs = ["lexer_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":lexer",
         ":token",
@@ -274,7 +264,6 @@ cc_library(
 cc_test(
     name = "opt_test",
     srcs = ["opt_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":am",
         ":opt",
@@ -297,7 +286,6 @@ cc_library(
 cc_test(
     name = "parser_test",
     srcs = ["parser_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":arena",
         ":ast",
@@ -331,7 +319,6 @@ cc_library(
 cc_test(
     name = "token_test",
     srcs = ["token_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":token",
         "@gtest",
@@ -351,7 +338,6 @@ cc_library(
 cc_test(
     name = "type_test",
     srcs = ["type_test.cc"],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         ":arena",
         ":ast",
