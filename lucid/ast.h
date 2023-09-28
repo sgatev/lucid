@@ -47,6 +47,8 @@ struct FuncParam {
 
   // Name of the parameter.
   std::string_view name;
+
+  bool operator==(const FuncParam&) const = default;
 };
 
 // A statement that represents a function definition.
@@ -176,6 +178,11 @@ struct IfStmt {
 // Returns the type of `expr`.
 inline std::string_view GetType(const Expr& expr) {
   return std::visit([](const auto& expr) { return expr.type; }, expr);
+}
+
+// Sets `type` as the type of `expr`.
+inline void SetType(Expr& expr, std::string_view type) {
+  std::visit([type](auto& expr) { expr.type = type; }, expr);
 }
 
 }  // namespace lucid

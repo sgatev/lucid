@@ -3,6 +3,7 @@
 #include <optional>
 #include <ostream>
 #include <span>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <utility>
@@ -34,23 +35,32 @@ struct FuncType {
   // Type of the result of the function.
   std::string_view result_type;
 
-  // Parameters of the function.
+  // Types of parameters of the function.
   std::span<const FuncParam> parameters;
+
+  bool operator==(const FuncType& func_type) const {
+    if (result_type != func_type.result_type) return false;
+    if (parameters.size() != func_type.parameters.size()) return false;
+    for (int i = 0; i < parameters.size(); ++i) {
+      if (parameters[i] != func_type.parameters[i]) return false;
+    }
+    return true;
+  }
 };
 
-// Extracts a map from names of functions to their types.
+// Creates a map from names of functions to their respective types.
 std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
     const std::vector<FuncDefStmt>& func_defs);
 
-// Infers the types of expressions in `stmt`.
+// Enhances expressions reachable from `stmt` with inferred types.
 //
 // Returns an error if types in `stmt` are incompatible.
 //
 // Requirements:
 //  * All statements that are reachable from `stmt` must be allocated on
-//  `arena`.
+//    `arena`.
 //  * All function calls that are reachable from `stmt` must refer to functions
-//  that are included in `func_types`.
+//    in `func_types`.
 std::optional<TypeError> InferExprTypes(
     Arena<Stmt>& arena,
     const std::unordered_map<std::string_view, FuncType>& func_types,

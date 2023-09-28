@@ -13,6 +13,15 @@
 #include "lucid/ast.h"
 
 namespace lucid {
+namespace {
+
+// Pushes all elements of `view` to the back of `out`.
+template <typename T, std::ranges::view V>
+void AppendRange(std::vector<T>& out, V view) {
+  for (auto element : view) out.push_back(element);
+}
+
+}  // namespace
 
 std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
     const std::vector<FuncDefStmt>& func_defs) {
@@ -34,14 +43,13 @@ std::optional<TypeError> InferExprTypes(
   std::unordered_map<ExprRef, std::string_view> expr_from_type;
   std::unordered_map<std::string_view, std::string_view> ident_from_type;
 
-  for (auto param : func_def.parameters) {
+  for (const auto& param : func_def.parameters) {
     ident_from_type[param.name] = param.type;
   }
 
   std::vector<StmtRef> pending_stmts;
-  for (auto stmt : std::ranges::reverse_view(func_def.body.statements)) {
-    pending_stmts.push_back(stmt);
-  }
+  AppendRange(pending_stmts,
+              std::ranges::reverse_view(func_def.body.statements));
 
   std::vector<ExprRef> pending_exprs;
   while (!pending_stmts.empty()) {
@@ -49,27 +57,25 @@ std::optional<TypeError> InferExprTypes(
     auto& stmt = arena.get(stmt_ref);
     pending_stmts.pop_back();
 
-    if (auto* cstmt = std::get_if<IfStmt>(&stmt)) {
-      for (auto stmt : std::ranges::reverse_view(cstmt->else_body.statements)) {
-        pending_stmts.push_back(stmt);
-      }
-      for (auto stmt : std::ranges::reverse_view(cstmt->then_body.statements)) {
-        pending_stmts.push_back(stmt);
-      }
+    if (auto* if_stmt = std::get_if<IfStmt>(&stmt)) {
+      AppendRange(pending_stmts,
+                  std::ranges::reverse_view(if_stmt->else_body.statements));
+      AppendRange(pending_stmts,
+                  std::ranges::reverse_view(if_stmt->then_body.statements));
 
-      expr_from_type[cstmt->cond] = "Bool";
+      expr_from_type[if_stmt->cond] = "Bool";
 
-      pending_exprs.push_back(cstmt->cond);
-    } else if (auto* cstmt = std::get_if<ReturnStmt>(&stmt)) {
-      expr_from_type[cstmt->value] = func_def.result_type;
+      pending_exprs.push_back(if_stmt->cond);
+    } else if (auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
+      expr_from_type[return_stmt->value] = func_def.result_type;
 
-      pending_exprs.push_back(cstmt->value);
-    } else if (auto* cstmt = std::get_if<VarDeclStmt>(&stmt)) {
-      ident_from_type[cstmt->name] = cstmt->type;
-      expr_from_type[cstmt->init] = cstmt->type;
+      pending_exprs.push_back(return_stmt->value);
+    } else if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
+      ident_from_type[var_decl_stmt->name] = var_decl_stmt->type;
+      expr_from_type[var_decl_stmt->init] = var_decl_stmt->type;
 
-      pending_exprs.push_back(cstmt->init);
-    } else if (auto* cstmt = std::get_if<Expr>(&stmt)) {
+      pending_exprs.push_back(var_decl_stmt->init);
+    } else if (std::holds_alternative<Expr>(stmt)) {
       pending_exprs.push_back(stmt_ref);
     }
 
@@ -78,41 +84,41 @@ std::optional<TypeError> InferExprTypes(
       auto& expr = std::get<Expr>(arena.get(expr_ref));
       pending_exprs.pop_back();
 
-      if (auto* cexpr = std::get_if<FuncCallExpr>(&expr)) {
-        const auto& func_type = func_types.at(cexpr->func_name);
-        for (int i = 0; i < cexpr->arguments.size(); ++i) {
-          const auto& arg = cexpr->arguments[i];
+      if (auto* func_call_expr = std::get_if<FuncCallExpr>(&expr)) {
+        const auto& func_type = func_types.at(func_call_expr->func_name);
+        for (int i = 0; i < func_call_expr->arguments.size(); ++i) {
+          const auto& arg = func_call_expr->arguments[i];
           expr_from_type[arg] = func_type.parameters[i].type;
           pending_exprs.push_back(arg);
         }
-      } else if (auto* cexpr = std::get_if<BoolLitExpr>(&expr)) {
+      } else if (std::holds_alternative<BoolLitExpr>(expr)) {
         if (auto it = expr_from_type.find(expr_ref);
             it != expr_from_type.end() && it->second != "Bool") {
           return TypeError(std::string("Bool literal is not of type ") +
                            std::string(it->second));
         }
         expr_from_type[expr_ref] = "Bool";
-      } else if (auto* cexpr = std::get_if<IdentExpr>(&expr)) {
+      } else if (auto* ident_expr = std::get_if<IdentExpr>(&expr)) {
         if (auto it = expr_from_type.find(expr_ref);
             it != expr_from_type.end() &&
-            it->second != ident_from_type[cexpr->name]) {
+            it->second != ident_from_type[ident_expr->name]) {
           return TypeError(
-              std::string("Identifier '") + std::string(cexpr->name) +
+              std::string("Identifier '") + std::string(ident_expr->name) +
               std::string("' is not of type ") + std::string(it->second));
         }
-        expr_from_type[expr_ref] = ident_from_type[cexpr->name];
-      } else if (auto* cexpr = std::get_if<BinaryOpExpr>(&expr)) {
-        if (cexpr->op == BinaryOp::Eq) {
-          expr_from_expr[cexpr->rhs] = cexpr->lhs;
-          expr_from_expr[cexpr->lhs] = cexpr->rhs;
+        expr_from_type[expr_ref] = ident_from_type[ident_expr->name];
+      } else if (auto* binary_op_expr = std::get_if<BinaryOpExpr>(&expr)) {
+        if (binary_op_expr->op == BinaryOp::Eq) {
+          expr_from_expr[binary_op_expr->rhs] = binary_op_expr->lhs;
+          expr_from_expr[binary_op_expr->lhs] = binary_op_expr->rhs;
         } else {
-          expr_from_expr[cexpr->rhs] = cexpr->lhs;
-          expr_from_expr[expr_ref] = cexpr->rhs;
-          expr_from_expr[cexpr->lhs] = expr_ref;
+          expr_from_expr[binary_op_expr->rhs] = binary_op_expr->lhs;
+          expr_from_expr[expr_ref] = binary_op_expr->rhs;
+          expr_from_expr[binary_op_expr->lhs] = expr_ref;
         }
 
-        pending_exprs.push_back(cexpr->rhs);
-        pending_exprs.push_back(cexpr->lhs);
+        pending_exprs.push_back(binary_op_expr->rhs);
+        pending_exprs.push_back(binary_op_expr->lhs);
       }
     }
   }
@@ -131,18 +137,7 @@ std::optional<TypeError> InferExprTypes(
   }
 
   for (auto [expr_ref, type] : expr_from_type) {
-    auto& expr = std::get<Expr>(arena.get(expr_ref));
-    if (auto* cexpr = std::get_if<FuncCallExpr>(&expr)) {
-      cexpr->type = type;
-    } else if (auto* cexpr = std::get_if<BoolLitExpr>(&expr)) {
-      cexpr->type = type;
-    } else if (auto* cexpr = std::get_if<IntLitExpr>(&expr)) {
-      cexpr->type = type;
-    } else if (auto* cexpr = std::get_if<IdentExpr>(&expr)) {
-      cexpr->type = type;
-    } else if (auto* cexpr = std::get_if<BinaryOpExpr>(&expr)) {
-      cexpr->type = type;
-    }
+    SetType(std::get<Expr>(arena.get(expr_ref)), type);
   }
 
   return std::nullopt;

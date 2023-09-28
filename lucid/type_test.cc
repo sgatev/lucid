@@ -11,6 +11,41 @@
 namespace lucid {
 namespace {
 
+using ::testing::IsEmpty;
+using ::testing::Pair;
+using ::testing::UnorderedElementsAre;
+
+TEST(ExtractFuncTypesTest, NoFuncDefs) {
+  EXPECT_THAT(ExtractFuncTypes({}), IsEmpty());
+}
+
+TEST(ExtractFuncTypesTest, MultipleFuncDefs) {
+  const std::vector<FuncDefStmt> func_defs = {
+      {
+          .name = "id",
+          .result_type = "Int32",
+          .parameters =
+              {
+                  {.type = "Int32"},
+              },
+      },
+      {
+          .name = "foo",
+          .result_type = "Int64",
+      },
+  };
+  EXPECT_THAT(
+      ExtractFuncTypes(func_defs),
+      UnorderedElementsAre(Pair("id",
+                                FuncType{
+                                    .result_type = "Int32",
+                                    .parameters = func_defs[0].parameters,
+                                }),
+                           Pair("foo", FuncType{
+                                           .result_type = "Int64",
+                                       })));
+}
+
 MATCHER_P(HoldsFuncDef, match_stmt, "") { return match_stmt(arg); }
 
 class InferExprTypesTest : public testing::Test, public AstFixture {
