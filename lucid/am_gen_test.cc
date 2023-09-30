@@ -33,7 +33,7 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
 TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -77,7 +77,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
 TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -121,7 +121,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
 TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -199,7 +199,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
 TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -277,7 +277,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
 TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -350,7 +350,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -423,7 +423,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -496,7 +496,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -569,7 +569,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -642,7 +642,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -715,7 +715,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -788,7 +788,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -886,7 +886,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
   });
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -1020,7 +1020,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
 TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -1093,7 +1093,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -1166,7 +1166,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -1239,7 +1239,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -1312,7 +1312,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .parameters =
           {
               {
@@ -1406,7 +1406,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .parameters =
           {
               {
@@ -1500,7 +1500,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -1567,7 +1567,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =

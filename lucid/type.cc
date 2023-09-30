@@ -24,11 +24,13 @@ void AppendRange(std::vector<T>& out, V view) {
 }  // namespace
 
 std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
-    const std::vector<FuncDefStmt>& func_defs) {
+    Arena<Stmt>& arena, const std::vector<FuncDefStmt>& func_defs) {
   std::unordered_map<std::string_view, FuncType> func_types;
   for (const auto& func_def : func_defs) {
+    const auto& result_type = std::get<BasicType>(
+        std::get<Type>(std::get<Expr>(arena.get(func_def.result_type))));
     func_types[func_def.name] = {
-        .result_type = func_def.result_type,
+        .result_type = result_type.name,
         .parameters = func_def.parameters,
     };
   }
@@ -69,7 +71,9 @@ std::optional<TypeError> InferExprTypes(
 
       pending_exprs.push_back(if_stmt->cond);
     } else if (auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
-      expr_from_type[return_stmt->value] = func_def.result_type;
+      const auto& result_type = std::get<BasicType>(
+          std::get<Type>(std::get<Expr>(arena.get(func_def.result_type))));
+      expr_from_type[return_stmt->value] = result_type.name;
 
       pending_exprs.push_back(return_stmt->value);
     } else if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {

@@ -15,7 +15,13 @@ using ::testing::IsEmpty;
 using ::testing::Pair;
 using ::testing::UnorderedElementsAre;
 
-class ExtractFuncTypesTest : public testing::Test, public AstFixture {};
+class ExtractFuncTypesTest : public testing::Test, public AstFixture {
+ protected:
+  std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
+      const std::vector<FuncDefStmt>& func_defs) {
+    return ::lucid::ExtractFuncTypes(arena_, func_defs);
+  }
+};
 
 TEST_F(ExtractFuncTypesTest, NoFuncDefs) {
   EXPECT_THAT(ExtractFuncTypes({}), IsEmpty());
@@ -25,7 +31,7 @@ TEST_F(ExtractFuncTypesTest, MultipleFuncDefs) {
   const std::vector<FuncDefStmt> func_defs = {
       {
           .name = "id",
-          .result_type = "Int32",
+          .result_type = Allocate(BasicType{.name = "Int32"}),
           .parameters =
               {
                   {.type = Allocate(BasicType{.name = "Int32"})},
@@ -33,7 +39,7 @@ TEST_F(ExtractFuncTypesTest, MultipleFuncDefs) {
       },
       {
           .name = "foo",
-          .result_type = "Int64",
+          .result_type = Allocate(BasicType{.name = "Int64"}),
       },
   };
   EXPECT_THAT(
@@ -62,7 +68,7 @@ class InferExprTypesTest : public testing::Test, public AstFixture {
 TEST_F(InferExprTypesTest, FromResult) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -79,7 +85,7 @@ TEST_F(InferExprTypesTest, FromResult) {
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
-                        .result_type = "Int32",
+                        .result_type = MatchesBasicType({.name = "Int32"}),
                         .body =
                             {
                                 .statements = {{
@@ -97,7 +103,7 @@ TEST_F(InferExprTypesTest, FromResult) {
 TEST_F(InferExprTypesTest, FromVarDecl) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
       .body =
           {
               .statements =
@@ -116,7 +122,7 @@ TEST_F(InferExprTypesTest, FromVarDecl) {
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
-                        .result_type = "Void",
+                        .result_type = MatchesBasicType({.name = "Void"}),
                         .body =
                             {
                                 .statements = {{
@@ -136,7 +142,7 @@ TEST_F(InferExprTypesTest, FromVarDecl) {
 TEST_F(InferExprTypesTest, IfStmtCond) {
   auto func = FuncDefStmt{
       .name = "fact",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
       .parameters =
           {
               {
@@ -163,7 +169,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "fact",
-                        .result_type = "Void",
+                        .result_type = MatchesBasicType({.name = "Void"}),
                         .parameters =
                             {
                                 {
@@ -193,7 +199,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
 TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
       .body =
           {
               .statements =
@@ -218,7 +224,7 @@ TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
-                        .result_type = "Void",
+                        .result_type = MatchesBasicType({.name="Void"}),
                         .body =
                             {
                                 .statements = {{
@@ -245,7 +251,7 @@ TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
 TEST_F(InferExprTypesTest, ThroughFuncCall) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
       .body =
           {
               .statements =
@@ -278,7 +284,7 @@ TEST_F(InferExprTypesTest, ThroughFuncCall) {
   EXPECT_EQ(InferExprTypes(func, {{"id", id_func_type}}), std::nullopt);
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
-                        .result_type = "Void",
+                        .result_type = MatchesBasicType({.name = "Void"}),
                         .body =
                             {
                                 {{
@@ -305,7 +311,7 @@ TEST_F(InferExprTypesTest, ThroughFuncCall) {
 TEST_F(InferExprTypesTest, ErrorBoolLitAsInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
       .body =
           {
               .statements =
@@ -328,7 +334,7 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt64) {
 TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
       .body =
           {
               .statements =

@@ -113,11 +113,11 @@ class Parser {
     if (auto r = ExpectToken(Token::Kind::Minus); IsError(r)) return *r;
     if (auto r = ExpectToken(Token::Kind::Greater); IsError(r)) return *r;
 
-    const auto maybe_result_type = ParseIdent();
+    const auto maybe_result_type = ParseType();
     if (IsError(maybe_result_type)) {
       return std::get<ParserError>(maybe_result_type);
     }
-    stmt.result_type = std::get<std::string_view>(maybe_result_type);
+    stmt.result_type = std::get<TypeRef>(maybe_result_type);
 
     auto maybe_body = ParseCompoundStmt();
     if (IsError(maybe_body)) return std::get<ParserError>(maybe_body);

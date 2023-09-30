@@ -49,8 +49,12 @@ struct FuncType {
 };
 
 // Creates a map from names of functions to their respective types.
+//
+// Requirements:
+//  * All statements that are reachable from `func_defs` must be allocated on
+//    `arena`.
 std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
-    const std::vector<FuncDefStmt>& func_defs);
+    Arena<Stmt>& arena, const std::vector<FuncDefStmt>& func_defs);
 
 // Enhances expressions reachable from `stmt` with inferred types.
 //

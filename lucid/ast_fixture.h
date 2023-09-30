@@ -43,12 +43,12 @@ struct CompoundStmtPattern {
 struct FuncDefStmtPattern {
   std::string_view name;
   std::vector<FuncParamPattern> parameters;
-  std::string_view result_type;
+  TypeRefMatcher result_type;
   CompoundStmtPattern body;
 
   bool operator()(const FuncDefStmt& stmt) const {
     return name == stmt.name && AllMatch(stmt.parameters, parameters) &&
-           result_type == stmt.result_type &&
+           result_type(stmt.result_type) &&
            AllMatch(stmt.body.statements, body.statements);
   }
 };

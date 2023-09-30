@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/ast_fixture.h"
 
 namespace lucid {
 namespace {
@@ -13,25 +14,17 @@ using ::testing::ElementsAreArray;
 using ::testing::IsEmpty;
 using ::testing::SizeIs;
 
-class ControlFlowGraphTest : public testing::Test {
+class ControlFlowGraphTest : public testing::Test, public AstFixture {
  protected:
-  template <typename T>
-  StmtRef Allocate(T stmt) {
-    return arena_.add(stmt);
-  }
-
   ControlFlowGraph BuildControlFlowGraph(FuncDefStmt func_def) {
     return ::lucid::BuildControlFlowGraph(arena_, func_def);
   }
-
- private:
-  Arena<Stmt> arena_;
 };
 
 TEST_F(ControlFlowGraphTest, FunctionName) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
   });
 
   EXPECT_EQ(graph.func_name, "foo");
@@ -40,7 +33,7 @@ TEST_F(ControlFlowGraphTest, FunctionName) {
 TEST_F(ControlFlowGraphTest, EmptyFunction) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -62,7 +55,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   }));
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
       .body =
           {
               .statements =
@@ -111,7 +104,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   }));
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
       .body =
           {
               .statements =
@@ -155,7 +148,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
       .body =
           {
               .statements =
@@ -195,7 +188,7 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
           {
               .statements = {x_var_decl_ref},
           },
-      .result_type = "Void",
+      .result_type = Allocate(BasicType{.name = "Void"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -228,7 +221,7 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
           {
               .statements = {add_expr},
           },
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -281,7 +274,7 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
           {
               .statements = {if_stmt},
           },
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -337,7 +330,7 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =

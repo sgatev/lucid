@@ -34,7 +34,7 @@ class GenerateArmAssemblySourceTest : public testing::Test, public AstFixture {
 TEST_F(GenerateArmAssemblySourceTest, ReturnInt32Lit) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -63,7 +63,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, ReturnInt64Lit) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -92,7 +92,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, FuncWithInt32Param) {
   auto func = FuncDefStmt{
       .name = "id",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .parameters =
           {
               {
@@ -131,7 +131,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, FuncWithInt64Param) {
   auto func = FuncDefStmt{
       .name = "id",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .parameters =
           {
               {
@@ -170,7 +170,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt32Arg) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -220,7 +220,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt64Arg) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -270,7 +270,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, AddInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -309,7 +309,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, AddInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -348,7 +348,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, SubtractInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -387,7 +387,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, SubtractInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -426,7 +426,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, MultiplyInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -465,7 +465,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, MultiplyInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -504,7 +504,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, DivideInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -543,7 +543,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, DivideInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -607,7 +607,7 @@ TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
   });
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -659,7 +659,7 @@ B foo1
 TEST_F(GenerateArmAssemblySourceTest, GtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -699,7 +699,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -739,7 +739,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, LtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -779,7 +779,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =
@@ -819,7 +819,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .parameters =
           {
               {
@@ -874,7 +874,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .parameters =
           {
               {
@@ -929,7 +929,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, VarDeclInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int32",
+      .result_type = Allocate(BasicType{.name = "Int32"}),
       .body =
           {
               .statements =
@@ -990,7 +990,7 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, VarDeclInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = "Int64",
+      .result_type = Allocate(BasicType{.name = "Int64"}),
       .body =
           {
               .statements =

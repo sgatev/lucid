@@ -64,7 +64,7 @@ std::optional<CompileError> Compile(std::string_view src, std::ostream& out) {
   auto maybe_funcs = ParseFuncDefs(src, arena);
   if (auto* err = std::get_if<ParserError>(&maybe_funcs)) return *err;
   auto& func_defs = std::get<std::vector<FuncDefStmt>>(maybe_funcs);
-  auto func_types = ExtractFuncTypes(func_defs);
+  auto func_types = ExtractFuncTypes(arena, func_defs);
   AbstractMachineState state;
   GenerateArmStartSource(out);
   for (auto& func : func_defs) {

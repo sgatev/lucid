@@ -118,6 +118,7 @@ cc_test(
     deps = [
         ":arena",
         ":ast",
+        ":ast_fixture",
         ":cfg",
         "@gtest",
         "@gtest//:gtest_main",

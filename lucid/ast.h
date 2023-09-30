@@ -68,7 +68,7 @@ struct FuncDefStmt {
   CompoundStmt body;
 
   // Type of the result of the function.
-  std::string_view result_type;
+  TypeRef result_type;
 
   // Parameters of the function.
   std::vector<FuncParam> parameters;
