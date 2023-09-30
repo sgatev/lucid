@@ -936,12 +936,12 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt32) {
                   {
                       Allocate(VarDeclStmt{
                           .name = "x",
-                          .type = "Int32",
+                          .type = Allocate(BasicType{.name = "Int32"}),
                           .init = Allocate(IntLitExpr{.value = "2"}),
                       }),
                       Allocate(VarDeclStmt{
                           .name = "y",
-                          .type = "Int32",
+                          .type = Allocate(BasicType{.name = "Int32"}),
                           .init = Allocate(IntLitExpr{.value = "3"}),
                       }),
                       Allocate(ReturnStmt{
@@ -997,12 +997,12 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt64) {
                   {
                       Allocate(VarDeclStmt{
                           .name = "x",
-                          .type = "Int64",
+                          .type = Allocate(BasicType{.name = "Int64"}),
                           .init = Allocate(IntLitExpr{.value = "2"}),
                       }),
                       Allocate(VarDeclStmt{
                           .name = "y",
-                          .type = "Int64",
+                          .type = Allocate(BasicType{.name = "Int64"}),
                           .init = Allocate(IntLitExpr{.value = "3"}),
                       }),
                       Allocate(ReturnStmt{

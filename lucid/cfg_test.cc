@@ -178,7 +178,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
 TEST_F(ControlFlowGraphTest, VarDeclStmt) {
   auto func_call_stmt_ref = Allocate(FuncCallExpr{.func_name = "bar"});
   auto x_var_decl_ref = Allocate(VarDeclStmt{
-      .type = "Int32",
+      .type = Allocate(BasicType{.name = "Int32"}),
       .name = "x",
       .init = func_call_stmt_ref,
   });
@@ -319,7 +319,7 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   });
   auto const_decl_stmt = Allocate(VarDeclStmt{
       .name = "x",
-      .type = "Int32",
+      .type = Allocate(BasicType{.name = "Int32"}),
       .init = int_lit,
   });
   auto ident_expr = Allocate(IdentExpr{

@@ -83,21 +83,22 @@ TEST_F(InferExprTypesTest, FromResult) {
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
-  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
-                        .name = "foo",
-                        .result_type = MatchesBasicType({.name = "Int32"}),
-                        .body =
-                            {
-                                .statements = {{
-                                    MatchesReturnStmt({
-                                        .value = MatchesIntLitExpr({
-                                            .type = "Int32",
-                                            .value = "21",
-                                        }),
-                                    }),
-                                }},
-                            },
-                    })));
+  EXPECT_THAT(
+      func, HoldsFuncDef(MatchesFuncDefStmt({
+                .name = "foo",
+                .result_type = MatchesBasicType({.name = "Int32"}),
+                .body =
+                    {
+                        .statements = {{
+                            MatchesReturnStmt({
+                                .value = MatchesIntLitExpr({
+                                    .type = MatchesBasicType({.name = "Int32"}),
+                                    .value = "21",
+                                }),
+                            }),
+                        }},
+                    },
+            })));
 }
 
 TEST_F(InferExprTypesTest, FromVarDecl) {
@@ -110,7 +111,7 @@ TEST_F(InferExprTypesTest, FromVarDecl) {
                   {
                       Allocate(VarDeclStmt{
                           .name = "x",
-                          .type = "Int64",
+                          .type = Allocate(BasicType{.name = "Int64"}),
                           .init = Allocate(IntLitExpr{
                               .value = "21",
                           }),
@@ -120,23 +121,24 @@ TEST_F(InferExprTypesTest, FromVarDecl) {
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
-  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
-                        .name = "foo",
-                        .result_type = MatchesBasicType({.name = "Void"}),
-                        .body =
-                            {
-                                .statements = {{
-                                    MatchesVarDeclStmt({
-                                        .name = "x",
-                                        .type = "Int64",
-                                        .init = MatchesIntLitExpr({
-                                            .type = "Int64",
-                                            .value = "21",
-                                        }),
-                                    }),
-                                }},
-                            },
-                    })));
+  EXPECT_THAT(
+      func, HoldsFuncDef(MatchesFuncDefStmt({
+                .name = "foo",
+                .result_type = MatchesBasicType({.name = "Void"}),
+                .body =
+                    {
+                        .statements = {{
+                            MatchesVarDeclStmt({
+                                .name = "x",
+                                .type = MatchesBasicType({.name = "Int64"}),
+                                .init = MatchesIntLitExpr({
+                                    .type = MatchesBasicType({.name = "Int64"}),
+                                    .value = "21",
+                                }),
+                            }),
+                        }},
+                    },
+            })));
 }
 
 TEST_F(InferExprTypesTest, IfStmtCond) {
@@ -167,33 +169,34 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
-  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
-                        .name = "fact",
-                        .result_type = MatchesBasicType({.name = "Void"}),
-                        .parameters =
-                            {
-                                {
-                                    .name = "n",
-                                    .type = MatchesBasicType({.name = "Int32"}),
-                                },
-                            },
-                        .body = {{{
-                            MatchesIfStmt({
-                                .cond = MatchesBinaryOpExpr({
-                                    .type = "Bool",
-                                    .op = BinaryOp::Eq,
-                                    .lhs = MatchesIdentExpr({
-                                        .type = "Int32",
-                                        .name = "n",
-                                    }),
-                                    .rhs = MatchesIntLitExpr({
-                                        .type = "Int32",
-                                        .value = "1",
-                                    }),
-                                }),
-                            }),
-                        }}},
-                    })));
+  EXPECT_THAT(func,
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = "fact",
+                  .result_type = MatchesBasicType({.name = "Void"}),
+                  .parameters =
+                      {
+                          {
+                              .name = "n",
+                              .type = MatchesBasicType({.name = "Int32"}),
+                          },
+                      },
+                  .body = {{{
+                      MatchesIfStmt({
+                          .cond = MatchesBinaryOpExpr({
+                              .type = MatchesBasicType({.name = "Bool"}),
+                              .op = BinaryOp::Eq,
+                              .lhs = MatchesIdentExpr({
+                                  .type = MatchesBasicType({.name = "Int32"}),
+                                  .name = "n",
+                              }),
+                              .rhs = MatchesIntLitExpr({
+                                  .type = MatchesBasicType({.name = "Int32"}),
+                                  .value = "1",
+                              }),
+                          }),
+                      }),
+                  }}},
+              })));
 }
 
 TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
@@ -206,7 +209,7 @@ TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
                   {
                       Allocate(VarDeclStmt{
                           .name = "x",
-                          .type = "Int64",
+                          .type = Allocate(BasicType{.name = "Int64"}),
                           .init = Allocate(BinaryOpExpr{
                               .op = BinaryOp::Add,
                               .lhs = Allocate(IntLitExpr{
@@ -222,30 +225,35 @@ TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
-  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
-                        .name = "foo",
-                        .result_type = MatchesBasicType({.name="Void"}),
-                        .body =
-                            {
-                                .statements = {{
-                                    MatchesVarDeclStmt({
-                                        .name = "x",
-                                        .type = "Int64",
-                                        .init = MatchesBinaryOpExpr({
-                                            .type = "Int64",
-                                            .lhs = MatchesIntLitExpr({
-                                                .type="Int64",
-                                                .value ="2",
-                                            }),
-                                            .rhs= MatchesIntLitExpr({
-                                                .type="Int64",
-                                                .value ="3",
-                                            }),
-                                        }),
-                                    }),
-                                }},
-                            },
-                    })));
+  EXPECT_THAT(
+      func,
+      HoldsFuncDef(MatchesFuncDefStmt(  //
+          {
+              .name = "foo",
+              .result_type = MatchesBasicType({.name = "Void"}),
+              .body =
+                  {
+                      {{
+                          MatchesVarDeclStmt({
+                              .name = "x",
+                              .type = MatchesBasicType({.name = "Int64"}),
+                              .init = MatchesBinaryOpExpr({
+                                  .type = MatchesBasicType({.name = "Int64"}),
+                                  .lhs = MatchesIntLitExpr({
+                                      .type =
+                                          MatchesBasicType({.name = "Int64"}),
+                                      .value = "2",
+                                  }),
+                                  .rhs = MatchesIntLitExpr({
+                                      .type =
+                                          MatchesBasicType({.name = "Int64"}),
+                                      .value = "3",
+                                  }),
+                              }),
+                          }),
+                      }},
+                  },
+          })));
 }
 
 TEST_F(InferExprTypesTest, ThroughFuncCall) {
@@ -258,7 +266,7 @@ TEST_F(InferExprTypesTest, ThroughFuncCall) {
                   {
                       Allocate(VarDeclStmt{
                           .name = "x",
-                          .type = "Int32",
+                          .type = Allocate(BasicType{.name = "Int32"}),
                           .init = Allocate(FuncCallExpr{
                               .func_name = "id",
                               .arguments =
@@ -282,30 +290,34 @@ TEST_F(InferExprTypesTest, ThroughFuncCall) {
   };
 
   EXPECT_EQ(InferExprTypes(func, {{"id", id_func_type}}), std::nullopt);
-  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
-                        .name = "foo",
-                        .result_type = MatchesBasicType({.name = "Void"}),
-                        .body =
-                            {
-                                {{
-                                    MatchesVarDeclStmt({
-                                        .name = "x",
-                                        .type = "Int32",
-                                        .init = MatchesFuncCallExpr({
-                                            .type = "Int32",
-                                            .func_name = "id",
-                                            .arguments =
-                                                {
-                                                    MatchesIntLitExpr({
-                                                        .type = "Int32",
-                                                        .value = "21",
-                                                    }),
-                                                },
-                                        }),
-                                    }),
-                                }},
-                            },
-                    })));
+  EXPECT_THAT(
+      func,
+      HoldsFuncDef(MatchesFuncDefStmt(  //
+          {
+              .name = "foo",
+              .result_type = MatchesBasicType({.name = "Void"}),
+              .body =
+                  {
+                      {{
+                          MatchesVarDeclStmt({
+                              .name = "x",
+                              .type = MatchesBasicType({.name = "Int32"}),
+                              .init = MatchesFuncCallExpr({
+                                  .type = MatchesBasicType({.name = "Int32"}),
+                                  .func_name = "id",
+                                  .arguments =
+                                      {
+                                          MatchesIntLitExpr({
+                                              .type = MatchesBasicType(
+                                                  {.name = "Int32"}),
+                                              .value = "21",
+                                          }),
+                                      },
+                              }),
+                          }),
+                      }},
+                  },
+          })));
 }
 
 TEST_F(InferExprTypesTest, ErrorBoolLitAsInt64) {
@@ -318,7 +330,7 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt64) {
                   {
                       Allocate(VarDeclStmt{
                           .name = "x",
-                          .type = "Int64",
+                          .type = Allocate(BasicType{.name = "Int64"}),
                           .init = Allocate(BoolLitExpr{
                               .value = "true",
                           }),
@@ -341,14 +353,14 @@ TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
                   {
                       Allocate(VarDeclStmt{
                           .name = "x",
-                          .type = "Int32",
+                          .type = Allocate(BasicType{.name = "Int32"}),
                           .init = Allocate(IntLitExpr{
                               .value = "2",
                           }),
                       }),
                       Allocate(VarDeclStmt{
                           .name = "y",
-                          .type = "Int64",
+                          .type = Allocate(BasicType{.name = "Int64"}),
                           .init = Allocate(IdentExpr{
                               .name = "x",
                           }),

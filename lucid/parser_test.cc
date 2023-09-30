@@ -57,6 +57,7 @@ TEST_F(ParserTest, ReturnIntLitExpr) {
       return 0
     }
   )";
+
   EXPECT_THAT(Parse(src),  //
               HoldsFuncDef(MatchesFuncDefStmt(
                   {.name = "main",
@@ -499,7 +500,7 @@ TEST_F(ParserTest, VarDecl) {
                    {
                        MatchesVarDeclStmt({
                            .name = "m",
-                           .type = "Int32",
+                           .type = MatchesBasicType({.name = "Int32"}),
                            .init = MatchesIntLitExpr({.value = "1"}),
                        }),
                        MatchesReturnStmt({

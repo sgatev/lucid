@@ -83,7 +83,7 @@ struct ReturnStmt {
 // An expression that represents an integer literal.
 struct IntLitExpr {
   // Type of the expression.
-  std::string_view type;
+  TypeRef type;
 
   // Value of the integer.
   std::string_view value;
@@ -92,7 +92,7 @@ struct IntLitExpr {
 // An expression that represents a boolean literal.
 struct BoolLitExpr {
   // Type of the expression.
-  std::string_view type;
+  TypeRef type;
 
   // Value of the boolean.
   std::string_view value;
@@ -101,7 +101,7 @@ struct BoolLitExpr {
 // An expression that represents a function call.
 struct FuncCallExpr {
   // Type of the expression.
-  std::string_view type;
+  TypeRef type;
 
   // Name of the function.
   std::string_view func_name;
@@ -113,7 +113,7 @@ struct FuncCallExpr {
 // A statement that represents a variable declaration.
 struct VarDeclStmt {
   // Type of the variable.
-  std::string_view type;
+  TypeRef type;
 
   // Name of the variable.
   std::string_view name;
@@ -125,7 +125,7 @@ struct VarDeclStmt {
 // An expression that represents an identifier.
 struct IdentExpr {
   // Type of the expression.
-  std::string_view type;
+  TypeRef type;
 
   // Name of the identifier.
   std::string_view name;
@@ -159,7 +159,7 @@ enum class BinaryOp {
 // sub-expressions.
 struct BinaryOpExpr {
   // Type of the expression.
-  std::string_view type;
+  TypeRef type;
 
   // Binary operation kind.
   BinaryOp op;
@@ -192,12 +192,13 @@ struct BasicType {
 };
 
 // Returns the type of `expr`.
-inline std::string_view GetType(const Expr& expr) {
+inline TypeRef GetType(const Expr& expr) {
   return std::visit(
-      [](const auto& expr) -> std::string_view {
+      [](const auto& expr) -> TypeRef {
         using T = std::decay_t<decltype(expr)>;
         if constexpr (std::is_same_v<T, Type>) {
-          return "Type";
+          // TODO: Provide a TypeRef for meta type.
+          return 0;
         } else {
           return expr.type;
         }
@@ -206,7 +207,7 @@ inline std::string_view GetType(const Expr& expr) {
 }
 
 // Sets `type` as the type of `expr`.
-inline void SetType(Expr& expr, std::string_view type) {
+inline void SetType(Expr& expr, TypeRef type) {
   std::visit(
       [type](auto& expr) {
         using T = std::decay_t<decltype(expr)>;

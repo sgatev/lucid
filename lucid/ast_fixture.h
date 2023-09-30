@@ -32,7 +32,8 @@ struct FuncParamPattern {
   TypeRefMatcher type;
 
   bool operator()(const FuncParam& param) const {
-    return name == param.name && type(param.type);
+    if (type != nullptr && !type(param.type)) return false;
+    return name == param.name;
   }
 };
 
@@ -47,8 +48,8 @@ struct FuncDefStmtPattern {
   CompoundStmtPattern body;
 
   bool operator()(const FuncDefStmt& stmt) const {
+    if (result_type != nullptr && !result_type(stmt.result_type)) return false;
     return name == stmt.name && AllMatch(stmt.parameters, parameters) &&
-           result_type(stmt.result_type) &&
            AllMatch(stmt.body.statements, body.statements);
   }
 };
@@ -72,11 +73,12 @@ struct IfStmtPattern {
 };
 
 struct IntLitExprPattern {
-  std::string_view type;
+  TypeRefMatcher type;
   std::string_view value;
 
   bool operator()(const IntLitExpr& expr) const {
-    return type == expr.type && value == expr.value;
+    if (type != nullptr && !type(expr.type)) return false;
+    return value == expr.value;
   }
 };
 
@@ -87,43 +89,46 @@ struct BoolLitExprPattern {
 };
 
 struct BinaryOpExprPattern {
-  std::string_view type;
+  TypeRefMatcher type;
   BinaryOp op;
   ExprRefMatcher lhs;
   ExprRefMatcher rhs;
 
   bool operator()(const BinaryOpExpr& expr) const {
-    return type == expr.type && op == expr.op && lhs(expr.lhs) && rhs(expr.rhs);
+    if (type != nullptr && !type(expr.type)) return false;
+    return op == expr.op && lhs(expr.lhs) && rhs(expr.rhs);
   }
 };
 
 struct IdentExprPattern {
-  std::string_view type;
+  TypeRefMatcher type;
   std::string_view name;
 
   bool operator()(const IdentExpr& expr) const {
-    return type == expr.type && name == expr.name;
+    if (type != nullptr && !type(expr.type)) return false;
+    return name == expr.name;
   }
 };
 
 struct FuncCallExprPattern {
-  std::string_view type;
+  TypeRefMatcher type;
   std::string_view func_name;
   std::vector<ExprRefMatcher> arguments;
 
   bool operator()(const FuncCallExpr& expr) const {
-    return type == expr.type && func_name == expr.func_name &&
-           AllMatch(expr.arguments, arguments);
+    if (type != nullptr && !type(expr.type)) return false;
+    return func_name == expr.func_name && AllMatch(expr.arguments, arguments);
   }
 };
 
 struct VarDeclStmtPattern {
-  std::string_view type;
+  TypeRefMatcher type;
   std::string_view name;
   ExprRefMatcher init;
 
   bool operator()(const VarDeclStmt& stmt) const {
-    return type == stmt.type && name == stmt.name && init(stmt.init);
+    if (type != nullptr && !type(stmt.type)) return false;
+    return name == stmt.name && init(stmt.init);
   }
 };
 

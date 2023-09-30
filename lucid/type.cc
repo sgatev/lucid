@@ -41,14 +41,20 @@ std::optional<TypeError> InferExprTypes(
     Arena<Stmt>& arena,
     const std::unordered_map<std::string_view, FuncType>& func_types,
     FuncDefStmt& func_def) {
+  auto types_equal = [&arena](TypeRef lhs_ref, TypeRef rhs_ref) {
+    const auto& lhs =
+        std::get<BasicType>(std::get<Type>(std::get<Expr>(arena.get(lhs_ref))));
+    const auto& rhs =
+        std::get<BasicType>(std::get<Type>(std::get<Expr>(arena.get(rhs_ref))));
+    return lhs.name == rhs.name;
+  };
+
   std::unordered_map<ExprRef, ExprRef> expr_from_expr;
-  std::unordered_map<ExprRef, std::string_view> expr_from_type;
-  std::unordered_map<std::string_view, std::string_view> ident_from_type;
+  std::unordered_map<ExprRef, TypeRef> expr_from_type;
+  std::unordered_map<std::string_view, TypeRef> ident_from_type;
 
   for (const auto& param : func_def.parameters) {
-    const auto& param_type = std::get<BasicType>(
-        std::get<Type>(std::get<Expr>(arena.get(param.type))));
-    ident_from_type[param.name] = param_type.name;
+    ident_from_type[param.name] = param.type;
   }
 
   std::vector<StmtRef> pending_stmts;
@@ -67,13 +73,11 @@ std::optional<TypeError> InferExprTypes(
       AppendRange(pending_stmts,
                   std::ranges::reverse_view(if_stmt->then_body.statements));
 
-      expr_from_type[if_stmt->cond] = "Bool";
+      expr_from_type[if_stmt->cond] = arena.add(BasicType{.name = "Bool"});
 
       pending_exprs.push_back(if_stmt->cond);
     } else if (auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
-      const auto& result_type = std::get<BasicType>(
-          std::get<Type>(std::get<Expr>(arena.get(func_def.result_type))));
-      expr_from_type[return_stmt->value] = result_type.name;
+      expr_from_type[return_stmt->value] = func_def.result_type;
 
       pending_exprs.push_back(return_stmt->value);
     } else if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
@@ -94,25 +98,29 @@ std::optional<TypeError> InferExprTypes(
         const auto& func_type = func_types.at(func_call_expr->func_name);
         for (int i = 0; i < func_call_expr->arguments.size(); ++i) {
           const auto& arg = func_call_expr->arguments[i];
-          const auto& param_type = std::get<BasicType>(std::get<Type>(
-              std::get<Expr>(arena.get(func_type.parameters[i].type))));
-          expr_from_type[arg] = param_type.name;
+          expr_from_type[arg] = func_type.parameters[i].type;
           pending_exprs.push_back(arg);
         }
       } else if (std::holds_alternative<BoolLitExpr>(expr)) {
-        if (auto it = expr_from_type.find(expr_ref);
-            it != expr_from_type.end() && it->second != "Bool") {
-          return TypeError(std::string("Bool literal is not of type ") +
-                           std::string(it->second));
+        auto it = expr_from_type.find(expr_ref);
+        if (it != expr_from_type.end()) {
+          const auto& it_type = std::get<BasicType>(
+              std::get<Type>(std::get<Expr>(arena.get(it->second))));
+          if (it_type.name != "Bool") {
+            return TypeError(std::string("Bool literal is not of type ") +
+                             std::string(it_type.name));
+          }
         }
-        expr_from_type[expr_ref] = "Bool";
+        expr_from_type[expr_ref] = arena.add(BasicType{.name = "Bool"});
       } else if (auto* ident_expr = std::get_if<IdentExpr>(&expr)) {
         if (auto it = expr_from_type.find(expr_ref);
             it != expr_from_type.end() &&
-            it->second != ident_from_type[ident_expr->name]) {
+            !types_equal(it->second, ident_from_type[ident_expr->name])) {
+          const auto& it_type = std::get<BasicType>(
+              std::get<Type>(std::get<Expr>(arena.get(it->second))));
           return TypeError(
               std::string("Identifier '") + std::string(ident_expr->name) +
-              std::string("' is not of type ") + std::string(it->second));
+              std::string("' is not of type ") + std::string(it_type.name));
         }
         expr_from_type[expr_ref] = ident_from_type[ident_expr->name];
       } else if (auto* binary_op_expr = std::get_if<BinaryOpExpr>(&expr)) {
