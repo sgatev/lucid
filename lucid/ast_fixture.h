@@ -25,12 +25,14 @@ using StmtRefMatcher = std::function<bool(StmtRef)>;
 
 using ExprRefMatcher = std::function<bool(ExprRef)>;
 
+using TypeRefMatcher = std::function<bool(TypeRef)>;
+
 struct FuncParamPattern {
   std::string_view name;
-  std::string_view type;
+  TypeRefMatcher type;
 
   bool operator()(const FuncParam& param) const {
-    return name == param.name && type == param.type;
+    return name == param.name && type(param.type);
   }
 };
 
@@ -125,6 +127,12 @@ struct VarDeclStmtPattern {
   }
 };
 
+struct BasicTypePattern {
+  std::string_view name;
+
+  bool operator()(const BasicType& type) const { return name == type.name; }
+};
+
 class AstFixture {
  protected:
   template <typename T>
@@ -169,6 +177,10 @@ class AstFixture {
     return MatchesStmt<VarDeclStmt>(std::move(pattern));
   }
 
+  TypeRefMatcher MatchesBasicType(BasicTypePattern pattern) {
+    return MatchesType<BasicType>(std::move(pattern));
+  }
+
   Arena<Stmt> arena_;
 
  private:
@@ -184,6 +196,14 @@ class AstFixture {
   ExprRefMatcher MatchesExpr(P pattern) {
     return MatchesStmt<Expr>([pattern](const Expr& stmt) {
       if (auto* expr = std::get_if<E>(&stmt)) return pattern(*expr);
+      return false;
+    });
+  }
+
+  template <typename T, typename P>
+  TypeRefMatcher MatchesType(P pattern) {
+    return MatchesExpr<Type>([pattern](const Type& expr) {
+      if (auto* type = std::get_if<T>(&expr)) return pattern(*type);
       return false;
     });
   }

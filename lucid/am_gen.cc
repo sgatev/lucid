@@ -23,11 +23,12 @@ class AbstractMachineFunctionGenerator {
                                    AbstractMachineState& state)
       : arena_(arena), graph_(graph), state_(state) {
     for (const auto& param : graph.func_params) {
-      if (param.type == "Int32") {
+      const auto& param_type = std::get<BasicType>(DerefType(param.type));
+      if (param_type.name == "Int32") {
         state_.func.stack_slots.push_back(4);
-      } else if (param.type == "Int64") {
+      } else if (param_type.name == "Int64") {
         state_.func.stack_slots.push_back(8);
-      } else if (param.type == "Bool") {
+      } else if (param_type.name == "Bool") {
         state_.func.stack_slots.push_back(1);
       }
     }
@@ -65,14 +66,15 @@ class AbstractMachineFunctionGenerator {
     push_pos = state_.func.instructions.size();
     for (int i = 0; i < graph_.func_params.size(); ++i) {
       const auto& param = graph_.func_params[i];
-      if (param.type == "Int32") {
+      const auto& param_type = std::get<BasicType>(DerefType(param.type));
+      if (param_type.name == "Int32") {
         state_.func.instructions.push_back(StoreStack32{
             .offset = stack_offset_,
             .src_reg = i + 1,
         });
         var_stack_[graph_.func_params[i].name] = stack_offset_;
         ++stack_offset_;
-      } else if (param.type == "Int64") {
+      } else if (param_type.name == "Int64") {
         state_.func.instructions.push_back(StoreStack64{
             .offset = stack_offset_,
             .src_reg = i + 1,
@@ -373,7 +375,11 @@ class AbstractMachineFunctionGenerator {
   const Stmt& DerefStmt(StmtRef ref) const { return arena_.get(ref); }
 
   const Expr& DerefExpr(ExprRef ref) const {
-    return std::get<Expr>(arena_.get(ref));
+    return std::get<Expr>(DerefStmt(ref));
+  }
+
+  const Type& DerefType(TypeRef ref) const {
+    return std::get<Type>(DerefExpr(ref));
   }
 
   const Arena<Stmt>& arena_;

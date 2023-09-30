@@ -44,7 +44,9 @@ std::optional<TypeError> InferExprTypes(
   std::unordered_map<std::string_view, std::string_view> ident_from_type;
 
   for (const auto& param : func_def.parameters) {
-    ident_from_type[param.name] = param.type;
+    const auto& param_type = std::get<BasicType>(
+        std::get<Type>(std::get<Expr>(arena.get(param.type))));
+    ident_from_type[param.name] = param_type.name;
   }
 
   std::vector<StmtRef> pending_stmts;
@@ -88,7 +90,9 @@ std::optional<TypeError> InferExprTypes(
         const auto& func_type = func_types.at(func_call_expr->func_name);
         for (int i = 0; i < func_call_expr->arguments.size(); ++i) {
           const auto& arg = func_call_expr->arguments[i];
-          expr_from_type[arg] = func_type.parameters[i].type;
+          const auto& param_type = std::get<BasicType>(std::get<Type>(
+              std::get<Expr>(arena.get(func_type.parameters[i].type))));
+          expr_from_type[arg] = param_type.name;
           pending_exprs.push_back(arg);
         }
       } else if (std::holds_alternative<BoolLitExpr>(expr)) {

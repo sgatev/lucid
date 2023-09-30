@@ -51,7 +51,7 @@ struct CompoundStmt {
 // A function parameter.
 struct FuncParam {
   // Type of the parameter.
-  std::string_view type;
+  TypeRef type;
 
   // Name of the parameter.
   std::string_view name;

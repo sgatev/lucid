@@ -15,18 +15,20 @@ using ::testing::IsEmpty;
 using ::testing::Pair;
 using ::testing::UnorderedElementsAre;
 
-TEST(ExtractFuncTypesTest, NoFuncDefs) {
+class ExtractFuncTypesTest : public testing::Test, public AstFixture {};
+
+TEST_F(ExtractFuncTypesTest, NoFuncDefs) {
   EXPECT_THAT(ExtractFuncTypes({}), IsEmpty());
 }
 
-TEST(ExtractFuncTypesTest, MultipleFuncDefs) {
+TEST_F(ExtractFuncTypesTest, MultipleFuncDefs) {
   const std::vector<FuncDefStmt> func_defs = {
       {
           .name = "id",
           .result_type = "Int32",
           .parameters =
               {
-                  {.type = "Int32"},
+                  {.type = Allocate(BasicType{.name = "Int32"})},
               },
       },
       {
@@ -139,7 +141,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
           {
               {
                   .name = "n",
-                  .type = "Int32",
+                  .type = Allocate(BasicType{.name = "Int32"}),
               },
           },
       .body =
@@ -166,7 +168,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
                             {
                                 {
                                     .name = "n",
-                                    .type = "Int32",
+                                    .type = MatchesBasicType({.name = "Int32"}),
                                 },
                             },
                         .body = {{{
@@ -266,7 +268,7 @@ TEST_F(InferExprTypesTest, ThroughFuncCall) {
   };
 
   std::vector<FuncParam> id_func_params = {
-      {.type = "Int32"},
+      {.type = Allocate(BasicType{.name = "Int32"})},
   };
   auto id_func_type = FuncType{
       .result_type = "Int32",

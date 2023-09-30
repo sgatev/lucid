@@ -140,7 +140,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
   };
 
   std::vector<FuncParam> id_func_params = {
-      {.type = "Int32"},
+      {.type = Allocate(BasicType{.name = "Int32"})},
   };
   auto id_func_type = FuncType{
       .result_type = "Int32",
@@ -218,7 +218,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
   };
 
   std::vector<FuncParam> id_func_params = {
-      {.type = "Int64"},
+      {.type = Allocate(BasicType{.name = "Int64"})},
   };
   auto id_func_type = FuncType{
       .result_type = "Int64",
@@ -1318,11 +1318,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
               {
                   {
                       .name = "x",
-                      .type = "Int32",
+                      .type = Allocate(BasicType{.name = "Int32"}),
                   },
                   {
                       .name = "y",
-                      .type = "Int32",
+                      .type = Allocate(BasicType{.name = "Int32"}),
                   },
               },
           },
@@ -1412,11 +1412,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
               {
                   {
                       .name = "x",
-                      .type = "Int64",
+                      .type = Allocate(BasicType{.name = "Int64"}),
                   },
                   {
                       .name = "y",
-                      .type = "Int64",
+                      .type = Allocate(BasicType{.name = "Int64"}),
                   },
               },
           },

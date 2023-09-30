@@ -136,9 +136,9 @@ class Parser {
 
     if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) return *r;
 
-    const auto maybe_type = ParseIdent();
+    const auto maybe_type = ParseType();
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
-    param.type = std::get<std::string_view>(maybe_type);
+    param.type = std::get<TypeRef>(maybe_type);
 
     return std::move(param);
   }
@@ -335,6 +335,14 @@ class Parser {
     }
     return arena_.add(IntLitExpr{
         .value = TokenString(token),
+    });
+  }
+
+  std::variant<TypeRef, ParserError> ParseType() {
+    const auto maybe_type = ParseIdent();
+    if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
+    return arena_.add(BasicType{
+        .name = std::get<std::string_view>(maybe_type),
     });
   }
 
