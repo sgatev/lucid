@@ -54,7 +54,7 @@ struct FuncType {
 //  * All statements that are reachable from `func_defs` must be allocated on
 //    `arena`.
 std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
-    Arena<Stmt>& arena, const std::vector<FuncDefStmt>& func_defs);
+    const Arena<Stmt>& arena, const std::vector<FuncDefStmt>& func_defs);
 
 // Enhances expressions reachable from `stmt` with inferred types.
 //

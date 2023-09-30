@@ -24,7 +24,7 @@ void AppendRange(std::vector<T>& out, V view) {
 }  // namespace
 
 std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
-    Arena<Stmt>& arena, const std::vector<FuncDefStmt>& func_defs) {
+    const Arena<Stmt>& arena, const std::vector<FuncDefStmt>& func_defs) {
   std::unordered_map<std::string_view, FuncType> func_types;
   for (const auto& func_def : func_defs) {
     const auto& result_type = std::get<BasicType>(
