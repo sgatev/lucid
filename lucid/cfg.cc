@@ -89,6 +89,10 @@ class ControlFlowGraphBuilder {
     ProcessSubExpr(expr.rhs, block, end);
   }
 
+  void ProcessExpr(const Type& expr, BlockRef block, BlockRef end) {
+    // TODO: How to represent types in CFG?
+  }
+
   void ProcessStmt(const ReturnStmt& stmt, BlockRef block, BlockRef end) {
     ProcessSubExpr(stmt.value, block, end);
   }

@@ -141,9 +141,7 @@ class AbstractMachineFunctionGenerator {
   }
 
   void Process(StmtRef ref, const ReturnStmt& stmt) {
-    const auto& value = std::get<Expr>(DerefStmt(stmt.value));
-    auto type = std::visit([](auto& expr) { return expr.type; }, value);
-
+    auto type = GetType(DerefExpr(stmt.value));
     if (type == "Int32") {
       state_.func.instructions.push_back(MoveReg32{
           .src_reg = state_.out_reg[stmt.value],
@@ -366,6 +364,10 @@ class AbstractMachineFunctionGenerator {
         break;
     }
     state_.out_reg[ref] = reg;
+  }
+
+  void ProcessExpr(ExprRef ref, const Type& expr) {
+    // TODO: How to generate code for types?
   }
 
   const Stmt& DerefStmt(StmtRef ref) const { return arena_.get(ref); }

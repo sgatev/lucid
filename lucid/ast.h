@@ -18,10 +18,14 @@ struct VarDeclStmt;
 struct IdentExpr;
 struct BinaryOpExpr;
 struct IfStmt;
+struct BasicType;
+
+// A type expression in the Lucid language.
+using Type = std::variant<BasicType>;
 
 // An expression in the Lucid language.
 using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, IdentExpr,
-                          BinaryOpExpr>;
+                          BinaryOpExpr, Type>;
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, VarDeclStmt, FuncDefStmt, ReturnStmt, IfStmt>;
@@ -33,6 +37,10 @@ using StmtRef = ArenaRef<Stmt>;
 // A reference to an expression that can be dereferenced using an `Arena<Stmt>`
 // object.
 using ExprRef = StmtRef;
+
+// A reference to a type expression that can be dereferenced using an
+// `Arena<Stmt>` object.
+using TypeRef = StmtRef;
 
 // A list of zero or more statements.
 struct CompoundStmt {
@@ -175,14 +183,38 @@ struct IfStmt {
   CompoundStmt else_body;
 };
 
+// Basic type in the Lucid language.
+struct BasicType {
+  // Name of the basic type.
+  std::string_view name;
+
+  bool operator==(const BasicType&) const = default;
+};
+
 // Returns the type of `expr`.
 inline std::string_view GetType(const Expr& expr) {
-  return std::visit([](const auto& expr) { return expr.type; }, expr);
+  return std::visit(
+      [](const auto& expr) -> std::string_view {
+        using T = std::decay_t<decltype(expr)>;
+        if constexpr (std::is_same_v<T, Type>) {
+          return "Type";
+        } else {
+          return expr.type;
+        }
+      },
+      expr);
 }
 
 // Sets `type` as the type of `expr`.
 inline void SetType(Expr& expr, std::string_view type) {
-  std::visit([type](auto& expr) { expr.type = type; }, expr);
+  std::visit(
+      [type](auto& expr) {
+        using T = std::decay_t<decltype(expr)>;
+        if constexpr (!std::is_same_v<T, Type>) {
+          expr.type = type;
+        }
+      },
+      expr);
 }
 
 }  // namespace lucid
