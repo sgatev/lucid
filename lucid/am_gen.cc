@@ -176,9 +176,7 @@ class AbstractMachineFunctionGenerator {
           .src_val = expr.value,
           .dst_reg = reg,
       });
-    } else {
-      // TODO: Make this conditional on the type once func param types are
-      // available.
+    } else if (expr_type.name == "Int32") {
       state_.func.instructions.push_back(SetReg32{
           .src_val = expr.value,
           .dst_reg = reg,
