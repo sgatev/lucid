@@ -339,8 +339,7 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt64) {
           },
   };
 
-  EXPECT_EQ(InferExprTypes(func),
-            TypeError("Bool literal is not of type Int64"));
+  EXPECT_EQ(InferExprTypes(func), TypeError("expected type Int64"));
 }
 
 TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
@@ -369,8 +368,7 @@ TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
           },
   };
 
-  EXPECT_EQ(InferExprTypes(func),
-            TypeError("Identifier 'x' is not of type Int64"));
+  EXPECT_EQ(InferExprTypes(func), TypeError("expected type Int64"));
 }
 
 }  // namespace

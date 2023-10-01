@@ -69,10 +69,9 @@ TEST_F(CompilerTest, TypeError) {
         return true
       }
     )"));
-  ASSERT_THAT(
-      RunCompiler({"build", "main", FullPath("main.lu")}),
-      AllOf(ReturnsCode(Eq(1)), PrintsError(FormattedError(Eq(
-                                    "Bool literal is not of type Int32\n")))));
+  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+              AllOf(ReturnsCode(Eq(1)),
+                    PrintsError(FormattedError(Eq("expected type Int32\n")))));
 }
 
 TEST_F(CompilerTest, VersionIncludesCommitLine) {

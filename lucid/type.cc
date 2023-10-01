@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <ranges>
+#include <string>
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
@@ -15,11 +16,217 @@
 namespace lucid {
 namespace {
 
-// Pushes all elements of `view` to the back of `out`.
-template <typename T, std::ranges::view V>
-void AppendRange(std::vector<T>& out, V view) {
-  for (auto element : view) out.push_back(element);
-}
+class ExprTypeInferenceEngine {
+ public:
+  ExprTypeInferenceEngine(
+      Arena<Stmt>& arena,
+      const std::unordered_map<std::string_view, FuncType>& func_types,
+      FuncDefStmt& func_def)
+      : arena_(arena), func_types_(func_types), func_def_(func_def) {}
+
+  std::optional<TypeError> InferTypes() {
+    for (const auto& param : func_def_.parameters) {
+      SetIdentType(param.name, param.type);
+    }
+
+    AddPendingStmts(std::ranges::reverse_view(func_def_.body.statements));
+
+    while (true) {
+      auto stmt_ref = NextStmt();
+      if (!stmt_ref.has_value()) break;
+      const auto& stmt = DerefStmt(*stmt_ref);
+
+      ProcessPendingStmt(*stmt_ref, stmt);
+
+      while (true) {
+        auto expr_ref = NextExpr();
+        if (!expr_ref.has_value()) break;
+        const auto& expr = DerefExpr(*expr_ref);
+
+        ProcessPendingExpr(*expr_ref, expr);
+      }
+    }
+
+    if (auto error = GetError(); error.has_value()) {
+      return TypeError(std::move(*error));
+    }
+
+    SolveTypeEquations();
+
+    for (auto [expr_ref, type] : expr_from_type_) {
+      SetType(DerefExpr(expr_ref), type);
+    }
+
+    return std::nullopt;
+  }
+
+ private:
+  void ProcessPendingStmt(StmtRef stmt_ref, const Stmt& stmt) {
+    if (auto* if_stmt = std::get_if<IfStmt>(&stmt)) {
+      ProcessPendingStmt(stmt_ref, *if_stmt);
+    } else if (auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
+      ProcessPendingStmt(stmt_ref, *return_stmt);
+    } else if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
+      ProcessPendingStmt(stmt_ref, *var_decl_stmt);
+    } else if (auto* expr = std::get_if<Expr>(&stmt)) {
+      ProcessPendingStmt(stmt_ref, *expr);
+    }
+  }
+
+  void ProcessPendingStmt(StmtRef stmt_ref, const IfStmt& stmt) {
+    AddPendingStmts(std::ranges::reverse_view(stmt.else_body.statements));
+    AddPendingStmts(std::ranges::reverse_view(stmt.then_body.statements));
+    RequireTypeForExpr(stmt.cond, arena_.add(BasicType{.name = "Bool"}));
+    AddPendingExpr(stmt.cond);
+  }
+
+  void ProcessPendingStmt(StmtRef stmt_ref, const ReturnStmt& stmt) {
+    RequireTypeForExpr(stmt.value, func_def_.result_type);
+    AddPendingExpr(stmt.value);
+  }
+
+  void ProcessPendingStmt(StmtRef stmt_ref, const VarDeclStmt& stmt) {
+    SetIdentType(stmt.name, stmt.type);
+    RequireTypeForExpr(stmt.init, stmt.type);
+    AddPendingExpr(stmt.init);
+  }
+
+  void ProcessPendingStmt(StmtRef stmt_ref, const Expr& stmt) {
+    AddPendingExpr(stmt_ref);
+  }
+
+  void ProcessPendingExpr(ExprRef expr_ref, const Expr& expr) {
+    if (auto* func_call_expr = std::get_if<FuncCallExpr>(&expr)) {
+      ProcessPendingExpr(expr_ref, *func_call_expr);
+    } else if (auto* bool_lit_expr = std::get_if<BoolLitExpr>(&expr)) {
+      ProcessPendingExpr(expr_ref, *bool_lit_expr);
+    } else if (auto* ident_expr = std::get_if<IdentExpr>(&expr)) {
+      ProcessPendingExpr(expr_ref, *ident_expr);
+    } else if (auto* binary_op_expr = std::get_if<BinaryOpExpr>(&expr)) {
+      ProcessPendingExpr(expr_ref, *binary_op_expr);
+    }
+  }
+
+  void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
+    const auto& func_type = func_types_.at(expr.func_name);
+    for (int i = 0; i < expr.arguments.size(); ++i) {
+      const auto& arg = expr.arguments[i];
+
+      RequireTypeForExpr(arg, func_type.parameters[i].type);
+      AddPendingExpr(arg);
+    }
+  }
+
+  void ProcessPendingExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
+    RequireTypeForExpr(expr_ref, arena_.add(BasicType{.name = "Bool"}));
+  }
+
+  void ProcessPendingExpr(ExprRef expr_ref, const IdentExpr& expr) {
+    RequireTypeForExpr(expr_ref, GetIdentType(expr.name));
+  }
+
+  void ProcessPendingExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {
+    if (expr.op == BinaryOp::Eq) {
+      RequireSameTypesForExprs(expr.rhs, expr.lhs);
+      RequireSameTypesForExprs(expr.lhs, expr.rhs);
+    } else {
+      RequireSameTypesForExprs(expr.rhs, expr.lhs);
+      RequireSameTypesForExprs(expr_ref, expr.rhs);
+      RequireSameTypesForExprs(expr.lhs, expr_ref);
+    }
+
+    AddPendingExpr(expr.rhs);
+    AddPendingExpr(expr.lhs);
+  }
+
+  void RequireTypeForExpr(ExprRef expr_ref, TypeRef type_ref) {
+    if (auto it = expr_from_type_.find(expr_ref);
+        it != expr_from_type_.end() && !TypesEqual(it->second, type_ref)) {
+      const auto& it_type = std::get<BasicType>(DerefType(it->second));
+      errors_.push_back(std::string("expected type ") +
+                        std::string(it_type.name));
+    }
+    expr_from_type_[expr_ref] = type_ref;
+  }
+
+  void RequireSameTypesForExprs(ExprRef lhs, ExprRef rhs) {
+    expr_from_expr_[lhs] = rhs;
+  }
+
+  void SetIdentType(std::string_view name, TypeRef type_ref) {
+    ident_from_type_[name] = type_ref;
+  }
+
+  TypeRef GetIdentType(std::string_view name) const {
+    return ident_from_type_.at(name);
+  }
+
+  bool TypesEqual(TypeRef lhs_ref, TypeRef rhs_ref) {
+    const auto& lhs = std::get<BasicType>(DerefType(lhs_ref));
+    const auto& rhs = std::get<BasicType>(DerefType(rhs_ref));
+    return lhs.name == rhs.name;
+  }
+
+  std::optional<StmtRef> NextStmt() {
+    if (pending_stmts_.empty()) return std::nullopt;
+    auto stmt_ref = pending_stmts_.back();
+    pending_stmts_.pop_back();
+    return stmt_ref;
+  }
+
+  std::optional<ExprRef> NextExpr() {
+    if (pending_exprs_.empty()) return std::nullopt;
+    auto expr_ref = pending_exprs_.back();
+    pending_exprs_.pop_back();
+    return expr_ref;
+  }
+
+  template <std::ranges::view V>
+  void AddPendingStmts(V stmts) {
+    for (auto stmt : stmts) pending_stmts_.push_back(stmt);
+  }
+
+  void AddPendingExpr(ExprRef expr_ref) { pending_exprs_.push_back(expr_ref); }
+
+  Stmt& DerefStmt(StmtRef ref) { return arena_.get(ref); }
+
+  Expr& DerefExpr(ExprRef ref) { return std::get<Expr>(DerefStmt(ref)); }
+
+  Type& DerefType(TypeRef ref) { return std::get<Type>(DerefExpr(ref)); }
+
+  void SolveTypeEquations() {
+    while (true) {
+      std::unordered_map<ExprRef, ExprRef> next_expr_from_expr;
+      for (auto [lhs, rhs] : expr_from_expr_) {
+        if (auto it = expr_from_type_.find(rhs); it != expr_from_type_.end()) {
+          expr_from_type_[lhs] = it->second;
+        } else {
+          next_expr_from_expr[lhs] = rhs;
+        }
+      }
+      if (next_expr_from_expr.size() == expr_from_expr_.size()) break;
+      expr_from_expr_ = std::move(next_expr_from_expr);
+    }
+  }
+
+  std::optional<std::string> GetError() {
+    if (errors_.empty()) return std::nullopt;
+    return std::move(errors_[0]);
+  }
+
+  Arena<Stmt>& arena_;
+  const std::unordered_map<std::string_view, FuncType>& func_types_;
+  FuncDefStmt& func_def_;
+
+  std::unordered_map<ExprRef, ExprRef> expr_from_expr_;
+  std::unordered_map<ExprRef, TypeRef> expr_from_type_;
+  std::unordered_map<std::string_view, TypeRef> ident_from_type_;
+
+  std::vector<StmtRef> pending_stmts_;
+  std::vector<ExprRef> pending_exprs_;
+
+  std::vector<std::string> errors_;
+};
 
 }  // namespace
 
@@ -41,122 +248,7 @@ std::optional<TypeError> InferExprTypes(
     Arena<Stmt>& arena,
     const std::unordered_map<std::string_view, FuncType>& func_types,
     FuncDefStmt& func_def) {
-  auto types_equal = [&arena](TypeRef lhs_ref, TypeRef rhs_ref) {
-    const auto& lhs =
-        std::get<BasicType>(std::get<Type>(std::get<Expr>(arena.get(lhs_ref))));
-    const auto& rhs =
-        std::get<BasicType>(std::get<Type>(std::get<Expr>(arena.get(rhs_ref))));
-    return lhs.name == rhs.name;
-  };
-
-  std::unordered_map<ExprRef, ExprRef> expr_from_expr;
-  std::unordered_map<ExprRef, TypeRef> expr_from_type;
-  std::unordered_map<std::string_view, TypeRef> ident_from_type;
-
-  for (const auto& param : func_def.parameters) {
-    ident_from_type[param.name] = param.type;
-  }
-
-  std::vector<StmtRef> pending_stmts;
-  AppendRange(pending_stmts,
-              std::ranges::reverse_view(func_def.body.statements));
-
-  std::vector<ExprRef> pending_exprs;
-  while (!pending_stmts.empty()) {
-    auto stmt_ref = pending_stmts.back();
-    auto& stmt = arena.get(stmt_ref);
-    pending_stmts.pop_back();
-
-    if (auto* if_stmt = std::get_if<IfStmt>(&stmt)) {
-      AppendRange(pending_stmts,
-                  std::ranges::reverse_view(if_stmt->else_body.statements));
-      AppendRange(pending_stmts,
-                  std::ranges::reverse_view(if_stmt->then_body.statements));
-
-      expr_from_type[if_stmt->cond] = arena.add(BasicType{.name = "Bool"});
-
-      pending_exprs.push_back(if_stmt->cond);
-    } else if (auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
-      expr_from_type[return_stmt->value] = func_def.result_type;
-
-      pending_exprs.push_back(return_stmt->value);
-    } else if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-      ident_from_type[var_decl_stmt->name] = var_decl_stmt->type;
-      expr_from_type[var_decl_stmt->init] = var_decl_stmt->type;
-
-      pending_exprs.push_back(var_decl_stmt->init);
-    } else if (std::holds_alternative<Expr>(stmt)) {
-      pending_exprs.push_back(stmt_ref);
-    }
-
-    while (!pending_exprs.empty()) {
-      auto expr_ref = pending_exprs.back();
-      auto& expr = std::get<Expr>(arena.get(expr_ref));
-      pending_exprs.pop_back();
-
-      if (auto* func_call_expr = std::get_if<FuncCallExpr>(&expr)) {
-        const auto& func_type = func_types.at(func_call_expr->func_name);
-        for (int i = 0; i < func_call_expr->arguments.size(); ++i) {
-          const auto& arg = func_call_expr->arguments[i];
-          expr_from_type[arg] = func_type.parameters[i].type;
-          pending_exprs.push_back(arg);
-        }
-      } else if (std::holds_alternative<BoolLitExpr>(expr)) {
-        auto it = expr_from_type.find(expr_ref);
-        if (it != expr_from_type.end()) {
-          const auto& it_type = std::get<BasicType>(
-              std::get<Type>(std::get<Expr>(arena.get(it->second))));
-          if (it_type.name != "Bool") {
-            return TypeError(std::string("Bool literal is not of type ") +
-                             std::string(it_type.name));
-          }
-        }
-        expr_from_type[expr_ref] = arena.add(BasicType{.name = "Bool"});
-      } else if (auto* ident_expr = std::get_if<IdentExpr>(&expr)) {
-        if (auto it = expr_from_type.find(expr_ref);
-            it != expr_from_type.end() &&
-            !types_equal(it->second, ident_from_type[ident_expr->name])) {
-          const auto& it_type = std::get<BasicType>(
-              std::get<Type>(std::get<Expr>(arena.get(it->second))));
-          return TypeError(
-              std::string("Identifier '") + std::string(ident_expr->name) +
-              std::string("' is not of type ") + std::string(it_type.name));
-        }
-        expr_from_type[expr_ref] = ident_from_type[ident_expr->name];
-      } else if (auto* binary_op_expr = std::get_if<BinaryOpExpr>(&expr)) {
-        if (binary_op_expr->op == BinaryOp::Eq) {
-          expr_from_expr[binary_op_expr->rhs] = binary_op_expr->lhs;
-          expr_from_expr[binary_op_expr->lhs] = binary_op_expr->rhs;
-        } else {
-          expr_from_expr[binary_op_expr->rhs] = binary_op_expr->lhs;
-          expr_from_expr[expr_ref] = binary_op_expr->rhs;
-          expr_from_expr[binary_op_expr->lhs] = expr_ref;
-        }
-
-        pending_exprs.push_back(binary_op_expr->rhs);
-        pending_exprs.push_back(binary_op_expr->lhs);
-      }
-    }
-  }
-
-  while (true) {
-    std::unordered_map<ExprRef, ExprRef> next_expr_from_expr;
-    for (auto [lhs, rhs] : expr_from_expr) {
-      if (auto it = expr_from_type.find(rhs); it != expr_from_type.end()) {
-        expr_from_type[lhs] = it->second;
-      } else {
-        next_expr_from_expr[lhs] = rhs;
-      }
-    }
-    if (next_expr_from_expr.size() == expr_from_expr.size()) break;
-    expr_from_expr = std::move(next_expr_from_expr);
-  }
-
-  for (auto [expr_ref, type] : expr_from_type) {
-    SetType(std::get<Expr>(arena.get(expr_ref)), type);
-  }
-
-  return std::nullopt;
+  return ExprTypeInferenceEngine(arena, func_types, func_def).InferTypes();
 }
 
 }  // namespace lucid
