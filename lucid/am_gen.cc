@@ -156,6 +156,11 @@ class AbstractMachineFunctionGenerator {
           .src_reg = state_.out_reg[stmt.value],
           .dst_reg = 0,
       });
+    } else if (type.name == "Bool") {
+      state_.func.instructions.push_back(MoveReg32{
+          .src_reg = state_.out_reg[stmt.value],
+          .dst_reg = 0,
+      });
     }
   }
 
@@ -264,7 +269,8 @@ class AbstractMachineFunctionGenerator {
   }
 
   void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr) {
-    auto expr_type = std::get<BasicType>(DerefType(expr.type));
+    auto expr_type =
+        std::get<BasicType>(DerefType(GetType(DerefExpr(expr.lhs))));
     auto reg = next_reg_++;
     switch (expr.op) {
       case BinaryOp::Add:
@@ -358,9 +364,7 @@ class AbstractMachineFunctionGenerator {
         }
         break;
       case BinaryOp::Eq:
-        const auto& lhs_type =
-            std::get<BasicType>(DerefType(GetType(DerefExpr(expr.lhs))));
-        if (lhs_type.name == "Int64") {
+        if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(EqReg64{
               .res_reg = reg,
               .lhs_reg = state_.out_reg[expr.lhs],

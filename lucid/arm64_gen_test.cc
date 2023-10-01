@@ -656,10 +656,10 @@ B foo1
 )");
 }
 
-TEST_F(GenerateArmAssemblySourceTest, GtInt32) {
+TEST_F(GenerateArmAssemblySourceTest, GtInt) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int32"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
       .body =
           {
               .statements =
@@ -696,10 +696,21 @@ RET
 )");
 }
 
-TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
+TEST_F(GenerateArmAssemblySourceTest, GtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int64"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int32"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int32"}),
+              },
+          },
       .body =
           {
               .statements =
@@ -707,8 +718,8 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
                       Allocate(ReturnStmt{
                           .value = Allocate(BinaryOpExpr{
                               .op = BinaryOp::Gt,
-                              .lhs = Allocate(IntLitExpr{.value = "3"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
                           }),
                       }),
                   },
@@ -717,29 +728,84 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #32
-STR X1, [SP, #0]
-STR X2, [SP, #8]
-STR X3, [SP, #16]
+STR X1, [SP, #8]
+STR X2, [SP, #16]
+STR X3, [SP, #24]
+STR W1, [SP, #0]
+STR W2, [SP, #4]
 foo0:
-MOV X1, #3
-MOV X2, #2
-CMP X1, X2
-CSET X3, GT
-MOV X0, X3
+LDR W1, [SP, #0]
+LDR W2, [SP, #4]
+CMP W1, W2
+CSET W3, GT
+MOV W0, W3
 B foo1
 foo1:
-LDR X1, [SP, #0]
-LDR X2, [SP, #8]
-LDR X3, [SP, #16]
+LDR X1, [SP, #8]
+LDR X2, [SP, #16]
+LDR X3, [SP, #24]
 ADD SP, SP, #32
 RET
 )");
 }
 
-TEST_F(GenerateArmAssemblySourceTest, LtInt32) {
+TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int32"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int64"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int64"}),
+              },
+          },
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Gt,
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #48
+STR X1, [SP, #16]
+STR X2, [SP, #24]
+STR X3, [SP, #32]
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+foo0:
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+CMP X1, X2
+CSET X3, GT
+MOV W0, W3
+B foo1
+foo1:
+LDR X1, [SP, #16]
+LDR X2, [SP, #24]
+LDR X3, [SP, #32]
+ADD SP, SP, #48
+RET
+)");
+}
+
+TEST_F(GenerateArmAssemblySourceTest, LtInt) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = Allocate(BasicType{.name = "Bool"}),
       .body =
           {
               .statements =
@@ -776,10 +842,21 @@ RET
 )");
 }
 
-TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
+TEST_F(GenerateArmAssemblySourceTest, LtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int64"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int32"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int32"}),
+              },
+          },
       .body =
           {
               .statements =
@@ -787,8 +864,8 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
                       Allocate(ReturnStmt{
                           .value = Allocate(BinaryOpExpr{
                               .op = BinaryOp::Lt,
-                              .lhs = Allocate(IntLitExpr{.value = "3"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
                           }),
                       }),
                   },
@@ -797,21 +874,76 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
 
   EXPECT_EQ(Generate(func), R"(foo:
 SUB SP, SP, #32
-STR X1, [SP, #0]
-STR X2, [SP, #8]
-STR X3, [SP, #16]
+STR X1, [SP, #8]
+STR X2, [SP, #16]
+STR X3, [SP, #24]
+STR W1, [SP, #0]
+STR W2, [SP, #4]
 foo0:
-MOV X1, #3
-MOV X2, #2
-CMP X1, X2
-CSET X3, LT
-MOV X0, X3
+LDR W1, [SP, #0]
+LDR W2, [SP, #4]
+CMP W1, W2
+CSET W3, LT
+MOV W0, W3
 B foo1
 foo1:
+LDR X1, [SP, #8]
+LDR X2, [SP, #16]
+LDR X3, [SP, #24]
+ADD SP, SP, #32
+RET
+)");
+}
+
+TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = Allocate(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int64"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int64"}),
+              },
+          },
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Lt,
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #48
+STR X1, [SP, #16]
+STR X2, [SP, #24]
+STR X3, [SP, #32]
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+foo0:
 LDR X1, [SP, #0]
 LDR X2, [SP, #8]
-LDR X3, [SP, #16]
-ADD SP, SP, #32
+CMP X1, X2
+CSET X3, LT
+MOV W0, W3
+B foo1
+foo1:
+LDR X1, [SP, #16]
+LDR X2, [SP, #24]
+LDR X3, [SP, #32]
+ADD SP, SP, #48
 RET
 )");
 }
@@ -819,18 +951,16 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int32"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
-                  {
-                      .name = "x",
-                      .type = Allocate(BasicType{.name = "Int32"}),
-                  },
-                  {
-                      .name = "y",
-                      .type = Allocate(BasicType{.name = "Int32"}),
-                  },
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int32"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int32"}),
               },
           },
       .body =
@@ -874,18 +1004,16 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int64"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
-                  {
-                      .name = "x",
-                      .type = Allocate(BasicType{.name = "Int64"}),
-                  },
-                  {
-                      .name = "y",
-                      .type = Allocate(BasicType{.name = "Int64"}),
-                  },
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int64"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int64"}),
               },
           },
       .body =
@@ -915,7 +1043,7 @@ LDR X1, [SP, #0]
 LDR X2, [SP, #8]
 CMP X1, X2
 CSET X3, EQ
-MOV X0, X3
+MOV W0, W3
 B foo1
 foo1:
 LDR X1, [SP, #16]

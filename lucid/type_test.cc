@@ -238,6 +238,7 @@ TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
                               .name = "x",
                               .type = MatchesBasicType({.name = "Int64"}),
                               .init = MatchesBinaryOpExpr({
+                                  .op = BinaryOp::Add,
                                   .type = MatchesBasicType({.name = "Int64"}),
                                   .lhs = MatchesIntLitExpr({
                                       .type =
@@ -313,6 +314,60 @@ TEST_F(InferExprTypesTest, ThroughFuncCall) {
                                               .value = "21",
                                           }),
                                       },
+                              }),
+                          }),
+                      }},
+                  },
+          })));
+}
+
+TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = Allocate(BasicType{.name = "Void"}),
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(IfStmt{
+                          .cond = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Lt,
+                              .lhs = Allocate(IntLitExpr{
+                                  .value = "2",
+                              }),
+                              .rhs = Allocate(IntLitExpr{
+                                  .value = "3",
+                              }),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_EQ(InferExprTypes(func), std::nullopt);
+  EXPECT_THAT(
+      func,
+      HoldsFuncDef(MatchesFuncDefStmt(  //
+          {
+              .name = "foo",
+              .result_type = MatchesBasicType({.name = "Void"}),
+              .body =
+                  {
+                      {{
+                          MatchesIfStmt({
+                              .cond = MatchesBinaryOpExpr({
+                                  .op = BinaryOp::Lt,
+                                  .type = MatchesBasicType({.name = "Bool"}),
+                                  .lhs = MatchesIntLitExpr({
+                                      .type =
+                                          MatchesBasicType({.name = "Int32"}),
+                                      .value = "2",
+                                  }),
+                                  .rhs = MatchesIntLitExpr({
+                                      .type =
+                                          MatchesBasicType({.name = "Int32"}),
+                                      .value = "3",
+                                  }),
                               }),
                           }),
                       }},

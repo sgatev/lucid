@@ -1017,10 +1017,10 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
+TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int32"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
       .body =
           {
               .statements =
@@ -1090,10 +1090,21 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
                                           PopStack{}, Return{}));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
+TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int64"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int32"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int32"}),
+              },
+          },
       .body =
           {
               .statements =
@@ -1101,8 +1112,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
                       Allocate(ReturnStmt{
                           .value = Allocate(BinaryOpExpr{
                               .op = BinaryOp::Gt,
-                              .lhs = Allocate(IntLitExpr{.value = "3"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
                           }),
                       }),
                   },
@@ -1111,34 +1122,42 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
                                           StoreStack64{
-                                              .offset = 0,
+                                              .offset = 2,
                                               .src_reg = 1,
                                           },
                                           StoreStack64{
-                                              .offset = 1,
+                                              .offset = 3,
                                               .src_reg = 2,
                                           },
                                           StoreStack64{
-                                              .offset = 2,
+                                              .offset = 4,
                                               .src_reg = 3,
+                                          },
+                                          StoreStack32{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 1,
+                                              .src_reg = 2,
                                           },
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg64{
-                                              .src_val = "3",
+                                          LoadStack32{
+                                              .offset = 0,
                                               .dst_reg = 1,
                                           },
-                                          SetReg64{
-                                              .src_val = "2",
+                                          LoadStack32{
+                                              .offset = 1,
                                               .dst_reg = 2,
                                           },
-                                          GtReg64{
+                                          GtReg32{
                                               .res_reg = 3,
                                               .lhs_reg = 1,
                                               .rhs_reg = 2,
                                           },
-                                          MoveReg64{
+                                          MoveReg32{
                                               .src_reg = 3,
                                               .dst_reg = 0,
                                           },
@@ -1149,6 +1168,75 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
                                               .id = 1,
                                           },
                                           LoadStack64{
+                                              .offset = 2,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 3,
+                                              .dst_reg = 2,
+                                          },
+                                          LoadStack64{
+                                              .offset = 4,
+                                              .dst_reg = 3,
+                                          },
+                                          PopStack{}, Return{}));
+}
+
+TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = Allocate(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int64"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int64"}),
+              },
+          },
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Gt,
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 2,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 3,
+                                              .src_reg = 2,
+                                          },
+                                          StoreStack64{
+                                              .offset = 4,
+                                              .src_reg = 3,
+                                          },
+                                          StoreStack64{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 2,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          LoadStack64{
                                               .offset = 0,
                                               .dst_reg = 1,
                                           },
@@ -1156,17 +1244,40 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
                                               .offset = 1,
                                               .dst_reg = 2,
                                           },
+                                          GtReg64{
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 3,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
                                           LoadStack64{
                                               .offset = 2,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 3,
+                                              .dst_reg = 2,
+                                          },
+                                          LoadStack64{
+                                              .offset = 4,
                                               .dst_reg = 3,
                                           },
                                           PopStack{}, Return{}));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
+TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int32"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
       .body =
           {
               .statements =
@@ -1236,10 +1347,21 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
                                           PopStack{}, Return{}));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
+TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int64"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int32"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int32"}),
+              },
+          },
       .body =
           {
               .statements =
@@ -1247,8 +1369,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
                       Allocate(ReturnStmt{
                           .value = Allocate(BinaryOpExpr{
                               .op = BinaryOp::Lt,
-                              .lhs = Allocate(IntLitExpr{.value = "3"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
                           }),
                       }),
                   },
@@ -1257,34 +1379,42 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
                                           StoreStack64{
-                                              .offset = 0,
+                                              .offset = 2,
                                               .src_reg = 1,
                                           },
                                           StoreStack64{
-                                              .offset = 1,
+                                              .offset = 3,
                                               .src_reg = 2,
                                           },
                                           StoreStack64{
-                                              .offset = 2,
+                                              .offset = 4,
                                               .src_reg = 3,
+                                          },
+                                          StoreStack32{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 1,
+                                              .src_reg = 2,
                                           },
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg64{
-                                              .src_val = "3",
+                                          LoadStack32{
+                                              .offset = 0,
                                               .dst_reg = 1,
                                           },
-                                          SetReg64{
-                                              .src_val = "2",
+                                          LoadStack32{
+                                              .offset = 1,
                                               .dst_reg = 2,
                                           },
-                                          LtReg64{
+                                          LtReg32{
                                               .res_reg = 3,
                                               .lhs_reg = 1,
                                               .rhs_reg = 2,
                                           },
-                                          MoveReg64{
+                                          MoveReg32{
                                               .src_reg = 3,
                                               .dst_reg = 0,
                                           },
@@ -1295,6 +1425,75 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
                                               .id = 1,
                                           },
                                           LoadStack64{
+                                              .offset = 2,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 3,
+                                              .dst_reg = 2,
+                                          },
+                                          LoadStack64{
+                                              .offset = 4,
+                                              .dst_reg = 3,
+                                          },
+                                          PopStack{}, Return{}));
+}
+
+TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = Allocate(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int64"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int64"}),
+              },
+          },
+      .body =
+          {
+              .statements =
+                  {
+                      Allocate(ReturnStmt{
+                          .value = Allocate(BinaryOpExpr{
+                              .op = BinaryOp::Lt,
+                              .lhs = Allocate(IdentExpr{.name = "x"}),
+                              .rhs = Allocate(IdentExpr{.name = "y"}),
+                          }),
+                      }),
+                  },
+          },
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 2,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 3,
+                                              .src_reg = 2,
+                                          },
+                                          StoreStack64{
+                                              .offset = 4,
+                                              .src_reg = 3,
+                                          },
+                                          StoreStack64{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 2,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          LoadStack64{
                                               .offset = 0,
                                               .dst_reg = 1,
                                           },
@@ -1302,8 +1501,31 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
                                               .offset = 1,
                                               .dst_reg = 2,
                                           },
+                                          LtReg64{
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 3,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
                                           LoadStack64{
                                               .offset = 2,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 3,
+                                              .dst_reg = 2,
+                                          },
+                                          LoadStack64{
+                                              .offset = 4,
                                               .dst_reg = 3,
                                           },
                                           PopStack{}, Return{}));
@@ -1312,18 +1534,16 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int32"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
-                  {
-                      .name = "x",
-                      .type = Allocate(BasicType{.name = "Int32"}),
-                  },
-                  {
-                      .name = "y",
-                      .type = Allocate(BasicType{.name = "Int32"}),
-                  },
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int32"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int32"}),
               },
           },
       .body =
@@ -1406,18 +1626,16 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int64"}),
+      .result_type = Allocate(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
-                  {
-                      .name = "x",
-                      .type = Allocate(BasicType{.name = "Int64"}),
-                  },
-                  {
-                      .name = "y",
-                      .type = Allocate(BasicType{.name = "Int64"}),
-                  },
+                  .name = "x",
+                  .type = Allocate(BasicType{.name = "Int64"}),
+              },
+              {
+                  .name = "y",
+                  .type = Allocate(BasicType{.name = "Int64"}),
               },
           },
       .body =
@@ -1472,7 +1690,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
                                               .lhs_reg = 1,
                                               .rhs_reg = 2,
                                           },
-                                          MoveReg64{
+                                          MoveReg32{
                                               .src_reg = 3,
                                               .dst_reg = 0,
                                           },

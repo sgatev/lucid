@@ -53,6 +53,12 @@ class ExprTypeInferenceEngine {
 
     SolveTypeEquations();
 
+    for (auto int_lit_expr : int_lit_exprs_) {
+      if (expr_from_type_.find(int_lit_expr) == expr_from_type_.end()) {
+        expr_from_type_[int_lit_expr] = arena_.add(BasicType{.name = "Int32"});
+      }
+    }
+
     for (auto [expr_ref, type] : expr_from_type_) {
       SetType(DerefExpr(expr_ref), type);
     }
@@ -100,6 +106,8 @@ class ExprTypeInferenceEngine {
       ProcessPendingExpr(expr_ref, *func_call_expr);
     } else if (auto* bool_lit_expr = std::get_if<BoolLitExpr>(&expr)) {
       ProcessPendingExpr(expr_ref, *bool_lit_expr);
+    } else if (auto* int_lit_expr = std::get_if<IntLitExpr>(&expr)) {
+      ProcessPendingExpr(expr_ref, *int_lit_expr);
     } else if (auto* ident_expr = std::get_if<IdentExpr>(&expr)) {
       ProcessPendingExpr(expr_ref, *ident_expr);
     } else if (auto* binary_op_expr = std::get_if<BinaryOpExpr>(&expr)) {
@@ -121,14 +129,20 @@ class ExprTypeInferenceEngine {
     RequireTypeForExpr(expr_ref, arena_.add(BasicType{.name = "Bool"}));
   }
 
+  void ProcessPendingExpr(ExprRef expr_ref, const IntLitExpr& expr) {
+    int_lit_exprs_.push_back(expr_ref);
+  }
+
   void ProcessPendingExpr(ExprRef expr_ref, const IdentExpr& expr) {
     RequireTypeForExpr(expr_ref, GetIdentType(expr.name));
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {
-    if (expr.op == BinaryOp::Eq) {
+    if (expr.op == BinaryOp::Eq || expr.op == BinaryOp::Lt ||
+        expr.op == BinaryOp::Gt) {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr.lhs, expr.rhs);
+      RequireTypeForExpr(expr_ref, arena_.add(BasicType{.name = "Bool"}));
     } else {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr_ref, expr.rhs);
@@ -224,6 +238,7 @@ class ExprTypeInferenceEngine {
 
   std::vector<StmtRef> pending_stmts_;
   std::vector<ExprRef> pending_exprs_;
+  std::vector<ExprRef> int_lit_exprs_;
 
   std::vector<std::string> errors_;
 };
