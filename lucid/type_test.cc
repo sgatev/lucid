@@ -42,6 +42,7 @@ TEST_F(ExtractFuncTypesTest, MultipleFuncDefs) {
           .result_type = Allocate(BasicType{.name = "Int64"}),
       },
   };
+
   EXPECT_THAT(
       ExtractFuncTypes(func_defs),
       UnorderedElementsAre(Pair("id",
@@ -69,27 +70,20 @@ TEST_F(InferExprTypesTest, FromResult) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(IntLitExpr{
-                              .value = "21",
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(IntLitExpr{
+                  .value = "21",
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
-  EXPECT_THAT(
-      func, HoldsFuncDef(MatchesFuncDefStmt({
-                .name = "foo",
-                .result_type = MatchesBasicType({.name = "Int32"}),
-                .body =
-                    {
-                        .statements = {{
+  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
+                        .name = "foo",
+                        .result_type = MatchesBasicType({.name = "Int32"}),
+                        .body = {{
                             MatchesReturnStmt({
                                 .value = MatchesIntLitExpr({
                                     .type = MatchesBasicType({.name = "Int32"}),
@@ -97,37 +91,29 @@ TEST_F(InferExprTypesTest, FromResult) {
                                 }),
                             }),
                         }},
-                    },
-            })));
+                    })));
 }
 
 TEST_F(InferExprTypesTest, FromVarDecl) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Void"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(VarDeclStmt{
-                          .name = "x",
-                          .type = Allocate(BasicType{.name = "Int64"}),
-                          .init = Allocate(IntLitExpr{
-                              .value = "21",
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(VarDeclStmt{
+              .name = "x",
+              .type = Allocate(BasicType{.name = "Int64"}),
+              .init = Allocate(IntLitExpr{
+                  .value = "21",
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
-  EXPECT_THAT(
-      func, HoldsFuncDef(MatchesFuncDefStmt({
-                .name = "foo",
-                .result_type = MatchesBasicType({.name = "Void"}),
-                .body =
-                    {
-                        .statements = {{
+  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
+                        .name = "foo",
+                        .result_type = MatchesBasicType({.name = "Void"}),
+                        .body = {{
                             MatchesVarDeclStmt({
                                 .name = "x",
                                 .type = MatchesBasicType({.name = "Int64"}),
@@ -137,8 +123,7 @@ TEST_F(InferExprTypesTest, FromVarDecl) {
                                 }),
                             }),
                         }},
-                    },
-            })));
+                    })));
 }
 
 TEST_F(InferExprTypesTest, IfStmtCond) {
@@ -152,20 +137,16 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
                   .type = Allocate(BasicType{.name = "Int32"}),
               },
           },
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(IfStmt{
-                          .cond = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Eq,
-                              .lhs = Allocate(IdentExpr{.name = "n"}),
-                              .rhs = Allocate(IntLitExpr{.value = "1"}),
-                          }),
+      .body = {{
+          Allocate(IfStmt{
+              .cond = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Eq,
+                  .lhs = Allocate(IdentExpr{.name = "n"}),
+                  .rhs = Allocate(IntLitExpr{.value = "1"}),
+              }),
 
-                      }),
-                  },
-          },
+          }),
+      }},
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
@@ -203,83 +184,68 @@ TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Void"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(VarDeclStmt{
+      .body = {{
+          Allocate(VarDeclStmt{
+              .name = "x",
+              .type = Allocate(BasicType{.name = "Int64"}),
+              .init = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Add,
+                  .lhs = Allocate(IntLitExpr{
+                      .value = "2",
+                  }),
+                  .rhs = Allocate(IntLitExpr{
+                      .value = "3",
+                  }),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(InferExprTypes(func), std::nullopt);
+  EXPECT_THAT(func,
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = "foo",
+                  .result_type = MatchesBasicType({.name = "Void"}),
+                  .body = {{
+                      MatchesVarDeclStmt({
                           .name = "x",
-                          .type = Allocate(BasicType{.name = "Int64"}),
-                          .init = Allocate(BinaryOpExpr{
+                          .type = MatchesBasicType({.name = "Int64"}),
+                          .init = MatchesBinaryOpExpr({
                               .op = BinaryOp::Add,
-                              .lhs = Allocate(IntLitExpr{
+                              .type = MatchesBasicType({.name = "Int64"}),
+                              .lhs = MatchesIntLitExpr({
+                                  .type = MatchesBasicType({.name = "Int64"}),
                                   .value = "2",
                               }),
-                              .rhs = Allocate(IntLitExpr{
+                              .rhs = MatchesIntLitExpr({
+                                  .type = MatchesBasicType({.name = "Int64"}),
                                   .value = "3",
                               }),
                           }),
                       }),
-                  },
-          },
-  };
-
-  EXPECT_EQ(InferExprTypes(func), std::nullopt);
-  EXPECT_THAT(
-      func,
-      HoldsFuncDef(MatchesFuncDefStmt(  //
-          {
-              .name = "foo",
-              .result_type = MatchesBasicType({.name = "Void"}),
-              .body =
-                  {
-                      {{
-                          MatchesVarDeclStmt({
-                              .name = "x",
-                              .type = MatchesBasicType({.name = "Int64"}),
-                              .init = MatchesBinaryOpExpr({
-                                  .op = BinaryOp::Add,
-                                  .type = MatchesBasicType({.name = "Int64"}),
-                                  .lhs = MatchesIntLitExpr({
-                                      .type =
-                                          MatchesBasicType({.name = "Int64"}),
-                                      .value = "2",
-                                  }),
-                                  .rhs = MatchesIntLitExpr({
-                                      .type =
-                                          MatchesBasicType({.name = "Int64"}),
-                                      .value = "3",
-                                  }),
-                              }),
-                          }),
-                      }},
-                  },
-          })));
+                  }},
+              })));
 }
 
 TEST_F(InferExprTypesTest, ThroughFuncCall) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Void"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(VarDeclStmt{
-                          .name = "x",
-                          .type = Allocate(BasicType{.name = "Int32"}),
-                          .init = Allocate(FuncCallExpr{
-                              .func_name = "id",
-                              .arguments =
-                                  {
-                                      Allocate(IntLitExpr{
-                                          .value = "21",
-                                      }),
-                                  },
+      .body = {{
+          Allocate(VarDeclStmt{
+              .name = "x",
+              .type = Allocate(BasicType{.name = "Int32"}),
+              .init = Allocate(FuncCallExpr{
+                  .func_name = "id",
+                  .arguments =
+                      {
+                          Allocate(IntLitExpr{
+                              .value = "21",
                           }),
-                      }),
-                  },
-          },
+                      },
+              }),
+          }),
+      }},
   };
 
   std::vector<FuncParam> id_func_params = {
@@ -291,18 +257,17 @@ TEST_F(InferExprTypesTest, ThroughFuncCall) {
   };
 
   EXPECT_EQ(InferExprTypes(func, {{"id", id_func_type}}), std::nullopt);
-  EXPECT_THAT(
-      func,
-      HoldsFuncDef(MatchesFuncDefStmt(  //
-          {
-              .name = "foo",
-              .result_type = MatchesBasicType({.name = "Void"}),
-              .body =
+  EXPECT_THAT(func,
+              HoldsFuncDef(MatchesFuncDefStmt(  //
                   {
-                      {{
+                      .name = "foo",
+                      .result_type = MatchesBasicType({.name = "Void"}),
+                      .body = {{
                           MatchesVarDeclStmt({
                               .name = "x",
-                              .type = MatchesBasicType({.name = "Int32"}),
+                              .type = MatchesBasicType({
+                                  .name = "Int32",
+                              }),
                               .init = MatchesFuncCallExpr({
                                   .type = MatchesBasicType({.name = "Int32"}),
                                   .func_name = "id",
@@ -317,81 +282,65 @@ TEST_F(InferExprTypesTest, ThroughFuncCall) {
                               }),
                           }),
                       }},
-                  },
-          })));
+                  })));
 }
 
 TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Void"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(IfStmt{
-                          .cond = Allocate(BinaryOpExpr{
+      .body = {{
+          Allocate(IfStmt{
+              .cond = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Lt,
+                  .lhs = Allocate(IntLitExpr{
+                      .value = "2",
+                  }),
+                  .rhs = Allocate(IntLitExpr{
+                      .value = "3",
+                  }),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(InferExprTypes(func), std::nullopt);
+  EXPECT_THAT(func,
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = "foo",
+                  .result_type = MatchesBasicType({.name = "Void"}),
+                  .body = {{
+                      MatchesIfStmt({
+                          .cond = MatchesBinaryOpExpr({
                               .op = BinaryOp::Lt,
-                              .lhs = Allocate(IntLitExpr{
+                              .type = MatchesBasicType({.name = "Bool"}),
+                              .lhs = MatchesIntLitExpr({
+                                  .type = MatchesBasicType({.name = "Int32"}),
                                   .value = "2",
                               }),
-                              .rhs = Allocate(IntLitExpr{
+                              .rhs = MatchesIntLitExpr({
+                                  .type = MatchesBasicType({.name = "Int32"}),
                                   .value = "3",
                               }),
                           }),
                       }),
-                  },
-          },
-  };
-
-  EXPECT_EQ(InferExprTypes(func), std::nullopt);
-  EXPECT_THAT(
-      func,
-      HoldsFuncDef(MatchesFuncDefStmt(  //
-          {
-              .name = "foo",
-              .result_type = MatchesBasicType({.name = "Void"}),
-              .body =
-                  {
-                      {{
-                          MatchesIfStmt({
-                              .cond = MatchesBinaryOpExpr({
-                                  .op = BinaryOp::Lt,
-                                  .type = MatchesBasicType({.name = "Bool"}),
-                                  .lhs = MatchesIntLitExpr({
-                                      .type =
-                                          MatchesBasicType({.name = "Int32"}),
-                                      .value = "2",
-                                  }),
-                                  .rhs = MatchesIntLitExpr({
-                                      .type =
-                                          MatchesBasicType({.name = "Int32"}),
-                                      .value = "3",
-                                  }),
-                              }),
-                          }),
-                      }},
-                  },
-          })));
+                  }},
+              })));
 }
 
 TEST_F(InferExprTypesTest, ErrorBoolLitAsInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Void"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(VarDeclStmt{
-                          .name = "x",
-                          .type = Allocate(BasicType{.name = "Int64"}),
-                          .init = Allocate(BoolLitExpr{
-                              .value = "true",
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(VarDeclStmt{
+              .name = "x",
+              .type = Allocate(BasicType{.name = "Int64"}),
+              .init = Allocate(BoolLitExpr{
+                  .value = "true",
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(InferExprTypes(func), TypeError("expected type Int64"));
@@ -401,26 +350,22 @@ TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Void"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(VarDeclStmt{
-                          .name = "x",
-                          .type = Allocate(BasicType{.name = "Int32"}),
-                          .init = Allocate(IntLitExpr{
-                              .value = "2",
-                          }),
-                      }),
-                      Allocate(VarDeclStmt{
-                          .name = "y",
-                          .type = Allocate(BasicType{.name = "Int64"}),
-                          .init = Allocate(IdentExpr{
-                              .name = "x",
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(VarDeclStmt{
+              .name = "x",
+              .type = Allocate(BasicType{.name = "Int32"}),
+              .init = Allocate(IntLitExpr{
+                  .value = "2",
+              }),
+          }),
+          Allocate(VarDeclStmt{
+              .name = "y",
+              .type = Allocate(BasicType{.name = "Int64"}),
+              .init = Allocate(IdentExpr{
+                  .name = "x",
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(InferExprTypes(func), TypeError("expected type Int64"));

@@ -35,15 +35,11 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnInt32Lit) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(IntLitExpr{.value = "21"}),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(IntLitExpr{.value = "21"}),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -64,15 +60,11 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnInt64Lit) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int64"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(IntLitExpr{.value = "21"}),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(IntLitExpr{.value = "21"}),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -100,17 +92,13 @@ TEST_F(GenerateArmAssemblySourceTest, FuncWithInt32Param) {
                   .type = Allocate(BasicType{.name = "Int32"}),
               },
           },
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(IdentExpr{
-                              .name = "x",
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(IdentExpr{
+                  .name = "x",
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(id:
@@ -139,17 +127,13 @@ TEST_F(GenerateArmAssemblySourceTest, FuncWithInt64Param) {
                   .type = Allocate(BasicType{.name = "Int64"}),
               },
           },
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(IdentExpr{
-                              .name = "x",
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(IdentExpr{
+                  .name = "x",
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(id:
@@ -171,21 +155,17 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt32Arg) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(FuncCallExpr{
-                              .func_name = "id",
-                              .arguments =
-                                  {
-                                      Allocate(IntLitExpr{.value = "21"}),
-                                  },
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(FuncCallExpr{
+                  .func_name = "id",
+                  .arguments =
+                      {
+                          Allocate(IntLitExpr{.value = "21"}),
+                      },
+              }),
+          }),
+      }},
   };
 
   std::vector<FuncParam> id_func_params = {
@@ -221,21 +201,17 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt64Arg) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int64"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(FuncCallExpr{
-                              .func_name = "id",
-                              .arguments =
-                                  {
-                                      Allocate(IntLitExpr{.value = "21"}),
-                                  },
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(FuncCallExpr{
+                  .func_name = "id",
+                  .arguments =
+                      {
+                          Allocate(IntLitExpr{.value = "21"}),
+                      },
+              }),
+          }),
+      }},
   };
 
   std::vector<FuncParam> id_func_params = {
@@ -271,19 +247,15 @@ TEST_F(GenerateArmAssemblySourceTest, AddInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Add,
-                              .lhs = Allocate(IntLitExpr{.value = "2"}),
-                              .rhs = Allocate(IntLitExpr{.value = "3"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Add,
+                  .lhs = Allocate(IntLitExpr{.value = "2"}),
+                  .rhs = Allocate(IntLitExpr{.value = "3"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -310,19 +282,15 @@ TEST_F(GenerateArmAssemblySourceTest, AddInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int64"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Add,
-                              .lhs = Allocate(IntLitExpr{.value = "2"}),
-                              .rhs = Allocate(IntLitExpr{.value = "3"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Add,
+                  .lhs = Allocate(IntLitExpr{.value = "2"}),
+                  .rhs = Allocate(IntLitExpr{.value = "3"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -349,19 +317,15 @@ TEST_F(GenerateArmAssemblySourceTest, SubtractInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Sub,
-                              .lhs = Allocate(IntLitExpr{.value = "7"}),
-                              .rhs = Allocate(IntLitExpr{.value = "5"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Sub,
+                  .lhs = Allocate(IntLitExpr{.value = "7"}),
+                  .rhs = Allocate(IntLitExpr{.value = "5"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -388,19 +352,15 @@ TEST_F(GenerateArmAssemblySourceTest, SubtractInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int64"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Sub,
-                              .lhs = Allocate(IntLitExpr{.value = "7"}),
-                              .rhs = Allocate(IntLitExpr{.value = "5"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Sub,
+                  .lhs = Allocate(IntLitExpr{.value = "7"}),
+                  .rhs = Allocate(IntLitExpr{.value = "5"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -427,19 +387,15 @@ TEST_F(GenerateArmAssemblySourceTest, MultiplyInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Mul,
-                              .lhs = Allocate(IntLitExpr{.value = "2"}),
-                              .rhs = Allocate(IntLitExpr{.value = "3"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Mul,
+                  .lhs = Allocate(IntLitExpr{.value = "2"}),
+                  .rhs = Allocate(IntLitExpr{.value = "3"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -466,19 +422,15 @@ TEST_F(GenerateArmAssemblySourceTest, MultiplyInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int64"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Mul,
-                              .lhs = Allocate(IntLitExpr{.value = "2"}),
-                              .rhs = Allocate(IntLitExpr{.value = "3"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Mul,
+                  .lhs = Allocate(IntLitExpr{.value = "2"}),
+                  .rhs = Allocate(IntLitExpr{.value = "3"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -505,19 +457,15 @@ TEST_F(GenerateArmAssemblySourceTest, DivideInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Div,
-                              .lhs = Allocate(IntLitExpr{.value = "8"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Div,
+                  .lhs = Allocate(IntLitExpr{.value = "8"}),
+                  .rhs = Allocate(IntLitExpr{.value = "2"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -544,19 +492,15 @@ TEST_F(GenerateArmAssemblySourceTest, DivideInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int64"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Div,
-                              .lhs = Allocate(IntLitExpr{.value = "8"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Div,
+                  .lhs = Allocate(IntLitExpr{.value = "8"}),
+                  .rhs = Allocate(IntLitExpr{.value = "2"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -580,41 +524,32 @@ RET
 }
 
 TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
-  auto return_add_expr = Allocate(ReturnStmt{
-      .value = Allocate(BinaryOpExpr{
-          .op = BinaryOp::Add,
-          .lhs = Allocate(IntLitExpr{.value = "2"}),
-          .rhs = Allocate(IntLitExpr{.value = "3"}),
-      }),
-  });
-  auto return_mul_expr = Allocate(ReturnStmt{
-      .value = Allocate(BinaryOpExpr{
-          .op = BinaryOp::Mul,
-          .lhs = Allocate(IntLitExpr{.value = "4"}),
-          .rhs = Allocate(IntLitExpr{.value = "5"}),
-      }),
-  });
-  auto if_stmt = Allocate(IfStmt{
-      .cond = Allocate(BoolLitExpr{.value = "true"}),
-      .then_body = {.statements =
-                        {
-                            return_add_expr,
-                        }},
-      .else_body = {.statements =
-                        {
-                            return_mul_expr,
-                        }},
-  });
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .statements =
-                  {
-                      if_stmt,
-                  },
-          },
+      .body = {{
+          Allocate(IfStmt{
+              .cond = Allocate(BoolLitExpr{.value = "true"}),
+              .then_body = {{
+                  Allocate(ReturnStmt{
+                      .value = Allocate(BinaryOpExpr{
+                          .op = BinaryOp::Add,
+                          .lhs = Allocate(IntLitExpr{.value = "2"}),
+                          .rhs = Allocate(IntLitExpr{.value = "3"}),
+                      }),
+                  }),
+              }},
+              .else_body = {{
+                  Allocate(ReturnStmt{
+                      .value = Allocate(BinaryOpExpr{
+                          .op = BinaryOp::Mul,
+                          .lhs = Allocate(IntLitExpr{.value = "4"}),
+                          .rhs = Allocate(IntLitExpr{.value = "5"}),
+                      }),
+                  }),
+              }},
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -660,19 +595,15 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Bool"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Gt,
-                              .lhs = Allocate(IntLitExpr{.value = "3"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Gt,
+                  .lhs = Allocate(IntLitExpr{.value = "3"}),
+                  .rhs = Allocate(IntLitExpr{.value = "2"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -711,19 +642,15 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt32) {
                   .type = Allocate(BasicType{.name = "Int32"}),
               },
           },
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Gt,
-                              .lhs = Allocate(IdentExpr{.name = "x"}),
-                              .rhs = Allocate(IdentExpr{.name = "y"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Gt,
+                  .lhs = Allocate(IdentExpr{.name = "x"}),
+                  .rhs = Allocate(IdentExpr{.name = "y"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -764,19 +691,15 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
                   .type = Allocate(BasicType{.name = "Int64"}),
               },
           },
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Gt,
-                              .lhs = Allocate(IdentExpr{.name = "x"}),
-                              .rhs = Allocate(IdentExpr{.name = "y"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Gt,
+                  .lhs = Allocate(IdentExpr{.name = "x"}),
+                  .rhs = Allocate(IdentExpr{.name = "y"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -806,19 +729,15 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Bool"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Lt,
-                              .lhs = Allocate(IntLitExpr{.value = "3"}),
-                              .rhs = Allocate(IntLitExpr{.value = "2"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Lt,
+                  .lhs = Allocate(IntLitExpr{.value = "3"}),
+                  .rhs = Allocate(IntLitExpr{.value = "2"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -857,19 +776,15 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt32) {
                   .type = Allocate(BasicType{.name = "Int32"}),
               },
           },
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Lt,
-                              .lhs = Allocate(IdentExpr{.name = "x"}),
-                              .rhs = Allocate(IdentExpr{.name = "y"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Lt,
+                  .lhs = Allocate(IdentExpr{.name = "x"}),
+                  .rhs = Allocate(IdentExpr{.name = "y"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -910,19 +825,15 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
                   .type = Allocate(BasicType{.name = "Int64"}),
               },
           },
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Lt,
-                              .lhs = Allocate(IdentExpr{.name = "x"}),
-                              .rhs = Allocate(IdentExpr{.name = "y"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Lt,
+                  .lhs = Allocate(IdentExpr{.name = "x"}),
+                  .rhs = Allocate(IdentExpr{.name = "y"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -963,19 +874,15 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
                   .type = Allocate(BasicType{.name = "Int32"}),
               },
           },
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Eq,
-                              .lhs = Allocate(IdentExpr{.name = "x"}),
-                              .rhs = Allocate(IdentExpr{.name = "y"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Eq,
+                  .lhs = Allocate(IdentExpr{.name = "x"}),
+                  .rhs = Allocate(IdentExpr{.name = "y"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1016,19 +923,15 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
                   .type = Allocate(BasicType{.name = "Int64"}),
               },
           },
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Eq,
-                              .lhs = Allocate(IdentExpr{.name = "x"}),
-                              .rhs = Allocate(IdentExpr{.name = "y"}),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Eq,
+                  .lhs = Allocate(IdentExpr{.name = "x"}),
+                  .rhs = Allocate(IdentExpr{.name = "y"}),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1058,33 +961,29 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(VarDeclStmt{
-                          .name = "x",
-                          .type = Allocate(BasicType{.name = "Int32"}),
-                          .init = Allocate(IntLitExpr{.value = "2"}),
-                      }),
-                      Allocate(VarDeclStmt{
-                          .name = "y",
-                          .type = Allocate(BasicType{.name = "Int32"}),
-                          .init = Allocate(IntLitExpr{.value = "3"}),
-                      }),
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Add,
-                              .lhs = Allocate(IdentExpr{
-                                  .name = "x",
-                              }),
-                              .rhs = Allocate(IdentExpr{
-                                  .name = "y",
-                              }),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(VarDeclStmt{
+              .name = "x",
+              .type = Allocate(BasicType{.name = "Int32"}),
+              .init = Allocate(IntLitExpr{.value = "2"}),
+          }),
+          Allocate(VarDeclStmt{
+              .name = "y",
+              .type = Allocate(BasicType{.name = "Int32"}),
+              .init = Allocate(IntLitExpr{.value = "3"}),
+          }),
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Add,
+                  .lhs = Allocate(IdentExpr{
+                      .name = "x",
+                  }),
+                  .rhs = Allocate(IdentExpr{
+                      .name = "y",
+                  }),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1119,33 +1018,29 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = Allocate(BasicType{.name = "Int64"}),
-      .body =
-          {
-              .statements =
-                  {
-                      Allocate(VarDeclStmt{
-                          .name = "x",
-                          .type = Allocate(BasicType{.name = "Int64"}),
-                          .init = Allocate(IntLitExpr{.value = "2"}),
-                      }),
-                      Allocate(VarDeclStmt{
-                          .name = "y",
-                          .type = Allocate(BasicType{.name = "Int64"}),
-                          .init = Allocate(IntLitExpr{.value = "3"}),
-                      }),
-                      Allocate(ReturnStmt{
-                          .value = Allocate(BinaryOpExpr{
-                              .op = BinaryOp::Add,
-                              .lhs = Allocate(IdentExpr{
-                                  .name = "x",
-                              }),
-                              .rhs = Allocate(IdentExpr{
-                                  .name = "y",
-                              }),
-                          }),
-                      }),
-                  },
-          },
+      .body = {{
+          Allocate(VarDeclStmt{
+              .name = "x",
+              .type = Allocate(BasicType{.name = "Int64"}),
+              .init = Allocate(IntLitExpr{.value = "2"}),
+          }),
+          Allocate(VarDeclStmt{
+              .name = "y",
+              .type = Allocate(BasicType{.name = "Int64"}),
+              .init = Allocate(IntLitExpr{.value = "3"}),
+          }),
+          Allocate(ReturnStmt{
+              .value = Allocate(BinaryOpExpr{
+                  .op = BinaryOp::Add,
+                  .lhs = Allocate(IdentExpr{
+                      .name = "x",
+                  }),
+                  .rhs = Allocate(IdentExpr{
+                      .name = "y",
+                  }),
+              }),
+          }),
+      }},
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
