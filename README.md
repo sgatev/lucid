@@ -5,7 +5,7 @@ Lucid is an experimental programming language.
 ## Requires
 
 * Mac with ARM64 architecture
-* C++ 20 compatible compiler
+* LLVM with C++ 20 support
 * [Bazel](https://bazel.build)
 
 ## Test
