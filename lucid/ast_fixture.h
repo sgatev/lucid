@@ -140,8 +140,9 @@ struct BasicTypePattern {
 
 class AstFixture {
  protected:
+  // *A*llocates the statement `stmt` on an *A*rena.
   template <typename T>
-  StmtRef Allocate(T stmt) {
+  StmtRef A(T stmt) {
     return arena_.add(stmt);
   }
 

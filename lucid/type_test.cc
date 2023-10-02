@@ -31,15 +31,15 @@ TEST_F(ExtractFuncTypesTest, MultipleFuncDefs) {
   const std::vector<FuncDefStmt> func_defs = {
       {
           .name = "id",
-          .result_type = Allocate(BasicType{.name = "Int32"}),
+          .result_type = A(BasicType{.name = "Int32"}),
           .parameters =
               {
-                  {.type = Allocate(BasicType{.name = "Int32"})},
+                  {.type = A(BasicType{.name = "Int32"})},
               },
       },
       {
           .name = "foo",
-          .result_type = Allocate(BasicType{.name = "Int64"}),
+          .result_type = A(BasicType{.name = "Int64"}),
       },
   };
 
@@ -69,10 +69,10 @@ class InferExprTypesTest : public testing::Test, public AstFixture {
 TEST_F(InferExprTypesTest, FromResult) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Int32"}),
+      .result_type = A(BasicType{.name = "Int32"}),
       .body = {{
-          Allocate(ReturnStmt{
-              .value = Allocate(IntLitExpr{
+          A(ReturnStmt{
+              .value = A(IntLitExpr{
                   .value = "21",
               }),
           }),
@@ -97,12 +97,12 @@ TEST_F(InferExprTypesTest, FromResult) {
 TEST_F(InferExprTypesTest, FromVarDecl) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Void"}),
+      .result_type = A(BasicType{.name = "Void"}),
       .body = {{
-          Allocate(VarDeclStmt{
+          A(VarDeclStmt{
               .name = "x",
-              .type = Allocate(BasicType{.name = "Int64"}),
-              .init = Allocate(IntLitExpr{
+              .type = A(BasicType{.name = "Int64"}),
+              .init = A(IntLitExpr{
                   .value = "21",
               }),
           }),
@@ -129,20 +129,20 @@ TEST_F(InferExprTypesTest, FromVarDecl) {
 TEST_F(InferExprTypesTest, IfStmtCond) {
   auto func = FuncDefStmt{
       .name = "fact",
-      .result_type = Allocate(BasicType{.name = "Void"}),
+      .result_type = A(BasicType{.name = "Void"}),
       .parameters =
           {
               {
                   .name = "n",
-                  .type = Allocate(BasicType{.name = "Int32"}),
+                  .type = A(BasicType{.name = "Int32"}),
               },
           },
       .body = {{
-          Allocate(IfStmt{
-              .cond = Allocate(BinaryOpExpr{
+          A(IfStmt{
+              .cond = A(BinaryOpExpr{
                   .op = BinaryOp::Eq,
-                  .lhs = Allocate(IdentExpr{.name = "n"}),
-                  .rhs = Allocate(IntLitExpr{.value = "1"}),
+                  .lhs = A(IdentExpr{.name = "n"}),
+                  .rhs = A(IntLitExpr{.value = "1"}),
               }),
 
           }),
@@ -183,17 +183,17 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
 TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Void"}),
+      .result_type = A(BasicType{.name = "Void"}),
       .body = {{
-          Allocate(VarDeclStmt{
+          A(VarDeclStmt{
               .name = "x",
-              .type = Allocate(BasicType{.name = "Int64"}),
-              .init = Allocate(BinaryOpExpr{
+              .type = A(BasicType{.name = "Int64"}),
+              .init = A(BinaryOpExpr{
                   .op = BinaryOp::Add,
-                  .lhs = Allocate(IntLitExpr{
+                  .lhs = A(IntLitExpr{
                       .value = "2",
                   }),
-                  .rhs = Allocate(IntLitExpr{
+                  .rhs = A(IntLitExpr{
                       .value = "3",
                   }),
               }),
@@ -230,16 +230,16 @@ TEST_F(InferExprTypesTest, ThroughBinOpExpr) {
 TEST_F(InferExprTypesTest, ThroughFuncCall) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Void"}),
+      .result_type = A(BasicType{.name = "Void"}),
       .body = {{
-          Allocate(VarDeclStmt{
+          A(VarDeclStmt{
               .name = "x",
-              .type = Allocate(BasicType{.name = "Int32"}),
-              .init = Allocate(FuncCallExpr{
+              .type = A(BasicType{.name = "Int32"}),
+              .init = A(FuncCallExpr{
                   .func_name = "id",
                   .arguments =
                       {
-                          Allocate(IntLitExpr{
+                          A(IntLitExpr{
                               .value = "21",
                           }),
                       },
@@ -249,7 +249,7 @@ TEST_F(InferExprTypesTest, ThroughFuncCall) {
   };
 
   std::vector<FuncParam> id_func_params = {
-      {.type = Allocate(BasicType{.name = "Int32"})},
+      {.type = A(BasicType{.name = "Int32"})},
   };
   auto id_func_type = FuncType{
       .result_type = "Int32",
@@ -288,15 +288,15 @@ TEST_F(InferExprTypesTest, ThroughFuncCall) {
 TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Void"}),
+      .result_type = A(BasicType{.name = "Void"}),
       .body = {{
-          Allocate(IfStmt{
-              .cond = Allocate(BinaryOpExpr{
+          A(IfStmt{
+              .cond = A(BinaryOpExpr{
                   .op = BinaryOp::Lt,
-                  .lhs = Allocate(IntLitExpr{
+                  .lhs = A(IntLitExpr{
                       .value = "2",
                   }),
-                  .rhs = Allocate(IntLitExpr{
+                  .rhs = A(IntLitExpr{
                       .value = "3",
                   }),
               }),
@@ -331,12 +331,12 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
 TEST_F(InferExprTypesTest, ErrorBoolLitAsInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Void"}),
+      .result_type = A(BasicType{.name = "Void"}),
       .body = {{
-          Allocate(VarDeclStmt{
+          A(VarDeclStmt{
               .name = "x",
-              .type = Allocate(BasicType{.name = "Int64"}),
-              .init = Allocate(BoolLitExpr{
+              .type = A(BasicType{.name = "Int64"}),
+              .init = A(BoolLitExpr{
                   .value = "true",
               }),
           }),
@@ -349,19 +349,19 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt64) {
 TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = Allocate(BasicType{.name = "Void"}),
+      .result_type = A(BasicType{.name = "Void"}),
       .body = {{
-          Allocate(VarDeclStmt{
+          A(VarDeclStmt{
               .name = "x",
-              .type = Allocate(BasicType{.name = "Int32"}),
-              .init = Allocate(IntLitExpr{
+              .type = A(BasicType{.name = "Int32"}),
+              .init = A(IntLitExpr{
                   .value = "2",
               }),
           }),
-          Allocate(VarDeclStmt{
+          A(VarDeclStmt{
               .name = "y",
-              .type = Allocate(BasicType{.name = "Int64"}),
-              .init = Allocate(IdentExpr{
+              .type = A(BasicType{.name = "Int64"}),
+              .init = A(IdentExpr{
                   .name = "x",
               }),
           }),
