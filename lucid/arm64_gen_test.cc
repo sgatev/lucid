@@ -539,6 +539,72 @@ TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
                       }),
                   }),
               }},
+          }),
+          A(ReturnStmt{
+              .value = A(BinaryOpExpr{
+                  .op = BinaryOp::Mul,
+                  .lhs = A(IntLitExpr{.value = "4"}),
+                  .rhs = A(IntLitExpr{.value = "5"}),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #64
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
+STR X4, [SP, #24]
+STR X5, [SP, #32]
+STR X6, [SP, #40]
+STR X7, [SP, #48]
+foo0:
+MOV W1, #1
+CMP W1, 0
+B.EQ foo2
+B foo3
+foo1:
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+LDR X4, [SP, #24]
+LDR X5, [SP, #32]
+LDR X6, [SP, #40]
+LDR X7, [SP, #48]
+ADD SP, SP, #64
+RET
+foo2:
+MOV W2, #4
+MOV W3, #5
+MUL W4, W2, W3
+MOV W0, W4
+B foo1
+foo3:
+MOV W5, #2
+MOV W6, #3
+ADD W7, W5, W6
+MOV W0, W7
+B foo1
+)");
+}
+
+TEST_F(GenerateArmAssemblySourceTest, IfElseStmt) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Int32"}),
+      .body = {{
+          A(IfStmt{
+              .cond = A(BoolLitExpr{.value = "true"}),
+              .then_body = {{
+                  A(ReturnStmt{
+                      .value = A(BinaryOpExpr{
+                          .op = BinaryOp::Add,
+                          .lhs = A(IntLitExpr{.value = "2"}),
+                          .rhs = A(IntLitExpr{.value = "3"}),
+                      }),
+                  }),
+              }},
               .else_body = {{
                   A(ReturnStmt{
                       .value = A(BinaryOpExpr{
@@ -564,8 +630,8 @@ STR X7, [SP, #48]
 foo0:
 MOV W1, #1
 CMP W1, 0
-B.EQ foo3
-B foo2
+B.EQ foo4
+B foo3
 foo1:
 LDR X1, [SP, #0]
 LDR X2, [SP, #8]
@@ -577,12 +643,14 @@ LDR X7, [SP, #48]
 ADD SP, SP, #64
 RET
 foo2:
+B foo1
+foo3:
 MOV W2, #2
 MOV W3, #3
 ADD W4, W2, W3
 MOV W0, W4
 B foo1
-foo3:
+foo4:
 MOV W5, #4
 MOV W6, #5
 MUL W7, W5, W6

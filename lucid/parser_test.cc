@@ -313,6 +313,45 @@ TEST_F(ParserTest, IfStmt) {
     let foo = () -> Int32 {
       if true {
         return 2 + 3
+      }
+      return 4 * 5
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = "foo",
+                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .body = {{
+                      MatchesIfStmt({
+                          .cond = MatchesBoolLitExpr({
+                              .value = "true",
+                          }),
+                          .then_body = {{
+                              MatchesReturnStmt({
+                                  .value = MatchesBinaryOpExpr({
+                                      .op = BinaryOp::Add,
+                                      .lhs = MatchesIntLitExpr({.value = "2"}),
+                                      .rhs = MatchesIntLitExpr({.value = "3"}),
+                                  }),
+                              }),
+                          }},
+                      }),
+                      MatchesReturnStmt({
+                          .value = MatchesBinaryOpExpr({
+                              .op = BinaryOp::Mul,
+                              .lhs = MatchesIntLitExpr({.value = "4"}),
+                              .rhs = MatchesIntLitExpr({.value = "5"}),
+                          }),
+                      }),
+                  }},
+              })));
+}
+
+TEST_F(ParserTest, IfElseStmt) {
+  std::string_view src = R"(
+    let foo = () -> Int32 {
+      if true {
+        return 2 + 3
       } else {
         return 4 * 5
       }

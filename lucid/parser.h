@@ -179,25 +179,25 @@ class Parser {
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
       Read();
 
+      IfStmt if_stmt;
+
       const auto cond = ParseExpr();
       if (IsError(cond)) return std::get<ParserError>(cond);
+      if_stmt.cond = std::get<ExprRef>(cond);
 
       auto then_body = ParseCompoundStmt();
       if (IsError(then_body)) return std::get<ParserError>(then_body);
+      if_stmt.then_body = std::get<CompoundStmt>(then_body);
 
-      if (auto r = ExpectIdent("else", ParserError::Kind::ExpectedLetKeyword);
-          IsError(r)) {
-        return *r;
+      if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "else") {
+        Read();
+
+        auto else_body = ParseCompoundStmt();
+        if (IsError(else_body)) return std::get<ParserError>(else_body);
+        if_stmt.else_body = std::get<CompoundStmt>(else_body);
       }
 
-      auto else_body = ParseCompoundStmt();
-      if (IsError(else_body)) return std::get<ParserError>(else_body);
-
-      return arena_.add(IfStmt{
-          .cond = std::get<ExprRef>(cond),
-          .then_body = std::get<CompoundStmt>(then_body),
-          .else_body = std::get<CompoundStmt>(else_body),
-      });
+      return arena_.add(std::move(if_stmt));
     }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "let") {
       Read();

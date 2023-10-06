@@ -826,6 +826,154 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                       }),
                   }),
               }},
+          }),
+          A(ReturnStmt{
+              .value = A(BinaryOpExpr{
+                  .op = BinaryOp::Mul,
+                  .lhs = A(IntLitExpr{.value = "4"}),
+                  .rhs = A(IntLitExpr{.value = "5"}),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 2,
+                                          },
+                                          StoreStack64{
+                                              .offset = 2,
+                                              .src_reg = 3,
+                                          },
+                                          StoreStack64{
+                                              .offset = 3,
+                                              .src_reg = 4,
+                                          },
+                                          StoreStack64{
+                                              .offset = 4,
+                                              .src_reg = 5,
+                                          },
+                                          StoreStack64{
+                                              .offset = 5,
+                                              .src_reg = 6,
+                                          },
+                                          StoreStack64{
+                                              .offset = 6,
+                                              .src_reg = 7,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          SetReg32{
+                                              .src_val = "1",
+                                              .dst_reg = 1,
+                                          },
+                                          CondJump{
+                                              .cond_reg = 1,
+                                              .then_label = 3,
+                                              .else_label = 2,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 0,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 1,
+                                              .dst_reg = 2,
+                                          },
+                                          LoadStack64{
+                                              .offset = 2,
+                                              .dst_reg = 3,
+                                          },
+                                          LoadStack64{
+                                              .offset = 3,
+                                              .dst_reg = 4,
+                                          },
+                                          LoadStack64{
+                                              .offset = 4,
+                                              .dst_reg = 5,
+                                          },
+                                          LoadStack64{
+                                              .offset = 5,
+                                              .dst_reg = 6,
+                                          },
+                                          LoadStack64{
+                                              .offset = 6,
+                                              .dst_reg = 7,
+                                          },
+                                          PopStack{}, Return{},
+                                          Label{
+                                              .id = 2,
+                                          },
+                                          SetReg32{
+                                              .src_val = "4",
+                                              .dst_reg = 2,
+                                          },
+                                          SetReg32{
+                                              .src_val = "5",
+                                              .dst_reg = 3,
+                                          },
+                                          MulReg32{
+                                              .res_reg = 4,
+                                              .lhs_reg = 2,
+                                              .rhs_reg = 3,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 4,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 3,
+                                          },
+                                          SetReg32{
+                                              .src_val = "2",
+                                              .dst_reg = 5,
+                                          },
+                                          SetReg32{
+                                              .src_val = "3",
+                                              .dst_reg = 6,
+                                          },
+                                          AddReg32{
+                                              .res_reg = 7,
+                                              .lhs_reg = 5,
+                                              .rhs_reg = 6,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 7,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          }));
+}
+
+TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Int32"}),
+      .body = {{
+          A(IfStmt{
+              .cond = A(BoolLitExpr{.value = "true"}),
+              .then_body = {{
+                  A(ReturnStmt{
+                      .value = A(BinaryOpExpr{
+                          .op = BinaryOp::Add,
+                          .lhs = A(IntLitExpr{.value = "2"}),
+                          .rhs = A(IntLitExpr{.value = "3"}),
+                      }),
+                  }),
+              }},
               .else_body = {{
                   A(ReturnStmt{
                       .value = A(BinaryOpExpr{
@@ -877,8 +1025,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           },
                                           CondJump{
                                               .cond_reg = 1,
-                                              .then_label = 2,
-                                              .else_label = 3,
+                                              .then_label = 3,
+                                              .else_label = 4,
                                           },
                                           Label{
                                               .id = 1,
@@ -915,6 +1063,12 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           Label{
                                               .id = 2,
                                           },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 3,
+                                          },
                                           SetReg32{
                                               .src_val = "2",
                                               .dst_reg = 2,
@@ -936,7 +1090,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                               .label = 1,
                                           },
                                           Label{
-                                              .id = 3,
+                                              .id = 4,
                                           },
                                           SetReg32{
                                               .src_val = "4",

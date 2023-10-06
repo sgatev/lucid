@@ -336,9 +336,8 @@ TEST_F(CompilerTest, FibRec) {
       let fib = (n: Int32) -> Int32 {
         if n < 2 {
           return n
-        } else {
-          return fib(n-1) + fib(n-2)
         }
+        return fib(n-1) + fib(n-2)
       }
 
       let main = () -> Int32 {
