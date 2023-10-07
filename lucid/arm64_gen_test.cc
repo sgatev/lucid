@@ -3,6 +3,8 @@
 #include <string>
 #include <string_view>
 #include <strstream>
+#include <unordered_map>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

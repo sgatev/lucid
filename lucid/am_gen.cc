@@ -4,9 +4,7 @@
 #include <map>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <variant>
-#include <vector>
 
 #include "lucid/am.h"
 #include "lucid/arena.h"
