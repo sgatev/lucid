@@ -74,6 +74,8 @@ class ExprTypeInferenceEngine {
       ProcessPendingStmt(stmt_ref, *return_stmt);
     } else if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
       ProcessPendingStmt(stmt_ref, *var_decl_stmt);
+    } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
+      ProcessPendingStmt(stmt_ref, *var_assign_stmt);
     } else if (auto* expr = std::get_if<Expr>(&stmt)) {
       ProcessPendingStmt(stmt_ref, *expr);
     }
@@ -95,6 +97,11 @@ class ExprTypeInferenceEngine {
     SetIdentType(stmt.name, stmt.type);
     RequireTypeForExpr(stmt.init, stmt.type);
     AddPendingExpr(stmt.init);
+  }
+
+  void ProcessPendingStmt(StmtRef stmt_ref, const VarAssignStmt& stmt) {
+    RequireTypeForExpr(stmt.expr, GetIdentType(stmt.name));
+    AddPendingExpr(stmt.expr);
   }
 
   void ProcessPendingStmt(StmtRef stmt_ref, const Expr& stmt) {

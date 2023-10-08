@@ -132,6 +132,15 @@ struct VarDeclStmtPattern {
   }
 };
 
+struct VarAssignStmtPattern {
+  std::string_view name;
+  ExprRefMatcher expr;
+
+  bool operator()(const VarAssignStmt& stmt) const {
+    return name == stmt.name && expr(stmt.expr);
+  }
+};
+
 struct BasicTypePattern {
   std::string_view name;
 
@@ -181,6 +190,10 @@ class AstFixture {
 
   StmtRefMatcher MatchesVarDeclStmt(VarDeclStmtPattern pattern) {
     return MatchesStmt<VarDeclStmt>(std::move(pattern));
+  }
+
+  StmtRefMatcher MatchesVarAssignStmt(VarAssignStmtPattern pattern) {
+    return MatchesStmt<VarAssignStmt>(std::move(pattern));
   }
 
   TypeRefMatcher MatchesBasicType(BasicTypePattern pattern) {

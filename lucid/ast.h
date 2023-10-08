@@ -16,6 +16,7 @@ struct IntLitExpr;
 struct BoolLitExpr;
 struct FuncCallExpr;
 struct VarDeclStmt;
+struct VarAssignStmt;
 struct IdentExpr;
 struct BinaryOpExpr;
 struct IfStmt;
@@ -29,7 +30,8 @@ using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, IdentExpr,
                           BinaryOpExpr, Type>;
 
 // A statement in the Lucid language.
-using Stmt = std::variant<Expr, VarDeclStmt, FuncDefStmt, ReturnStmt, IfStmt>;
+using Stmt = std::variant<Expr, VarDeclStmt, VarAssignStmt, FuncDefStmt,
+                          ReturnStmt, IfStmt>;
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
@@ -121,6 +123,15 @@ struct VarDeclStmt {
 
   // Initializer expression.
   ExprRef init;
+};
+
+// A statement that represents assignment of an expression to a variable.
+struct VarAssignStmt {
+  // Name of the variable.
+  std::string_view name;
+
+  // Assigned expression.
+  ExprRef expr;
 };
 
 // An expression that represents an identifier.

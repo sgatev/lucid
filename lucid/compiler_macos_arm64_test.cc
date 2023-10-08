@@ -312,6 +312,22 @@ TEST_F(CompilerTest, VarDeclFromVar) {
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(2)));
 }
 
+TEST_F(CompilerTest, VarAssign) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+      let foo = (n: Int32) -> Int32 {
+        n = 3
+        return n
+      }
+
+      let main = () -> Int32 {
+        return foo(2)
+      }
+    )"));
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(3)));
+}
+
 TEST_F(CompilerTest, FactRec) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
       let fact = (n: Int32) -> Int32 {

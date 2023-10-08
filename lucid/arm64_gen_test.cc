@@ -1141,5 +1141,73 @@ RET
 )");
 }
 
+TEST_F(GenerateArmAssemblySourceTest, VarAssignInt32) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Void"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = A(BasicType{.name = "Int32"}),
+              },
+          },
+      .body = {{
+          A(VarAssignStmt{
+              .name = "x",
+              .expr = A(IntLitExpr{.value = "2"}),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #16
+STR X1, [SP, #4]
+STR W1, [SP, #0]
+foo0:
+MOV W1, #2
+STR W1, [SP, #0]
+B foo1
+foo1:
+LDR X1, [SP, #4]
+ADD SP, SP, #16
+RET
+)");
+}
+
+TEST_F(GenerateArmAssemblySourceTest, VarAssignInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Void"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = A(BasicType{.name = "Int64"}),
+              },
+          },
+      .body = {{
+          A(VarAssignStmt{
+              .name = "x",
+              .expr = A(IntLitExpr{.value = "2"}),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+SUB SP, SP, #16
+STR X1, [SP, #8]
+STR X1, [SP, #0]
+foo0:
+MOV X1, #2
+STR X1, [SP, #0]
+B foo1
+foo1:
+LDR X1, [SP, #8]
+ADD SP, SP, #16
+RET
+)");
+}
+
 }  // namespace
 }  // namespace lucid

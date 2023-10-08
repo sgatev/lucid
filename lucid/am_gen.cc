@@ -247,6 +247,22 @@ class AbstractMachineFunctionGenerator {
     }
   }
 
+  void Process(StmtRef stmt_ref, const VarAssignStmt& stmt) {
+    auto expr_type =
+        std::get<BasicType>(DerefType(GetType(DerefExpr(stmt.expr))));
+    if (expr_type.name == "Int32") {
+      state_.func.instructions.push_back(StoreStack32{
+          .offset = var_stack_[stmt.name],
+          .src_reg = state_.out_reg[stmt.expr],
+      });
+    } else if (expr_type.name == "Int64") {
+      state_.func.instructions.push_back(StoreStack64{
+          .offset = var_stack_[stmt.name],
+          .src_reg = state_.out_reg[stmt.expr],
+      });
+    }
+  }
+
   void ProcessExpr(ExprRef ref, const IdentExpr& expr) {
     auto expr_type = std::get<BasicType>(DerefType(expr.type));
     RegId reg = next_reg_++;

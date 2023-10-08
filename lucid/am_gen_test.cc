@@ -1906,5 +1906,109 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
                                           PopStack{}, Return{}));
 }
 
+TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Void"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = A(BasicType{.name = "Int32"}),
+              },
+          },
+      .body = {{
+          A(VarAssignStmt{
+              .name = "x",
+              .expr = A(IntLitExpr{.value = "2"}),
+          }),
+      }},
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          SetReg32{
+                                              .src_val = "2",
+                                              .dst_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 1,
+                                              .dst_reg = 1,
+                                          },
+                                          PopStack{}, Return{}));
+}
+
+TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Void"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = A(BasicType{.name = "Int64"}),
+              },
+          },
+      .body = {{
+          A(VarAssignStmt{
+              .name = "x",
+              .expr = A(IntLitExpr{.value = "2"}),
+          }),
+      }},
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          SetReg64{
+                                              .src_val = "2",
+                                              .dst_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 1,
+                                              .dst_reg = 1,
+                                          },
+                                          PopStack{}, Return{}));
+}
+
 }  // namespace
 }  // namespace lucid

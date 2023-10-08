@@ -111,6 +111,10 @@ class ControlFlowGraphBuilder {
     ProcessSubExpr(stmt.init, block);
   }
 
+  void ProcessStmt(const VarAssignStmt& stmt, BlockRef block, BlockRef end) {
+    ProcessSubExpr(stmt.expr, block);
+  }
+
   void ProcessStmt(const FuncDefStmt& stmt, BlockRef block, BlockRef end) {
     // TODO: Does it make sense to have a `FuncDefStmt` as a nested statement?
   }

@@ -126,6 +126,50 @@ TEST_F(InferExprTypesTest, FromVarDecl) {
                     })));
 }
 
+TEST_F(InferExprTypesTest, ThroughVarAssign) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Void"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = A(BasicType{.name = "Int64"}),
+              },
+          },
+      .body = {{
+          A(VarAssignStmt{
+              .name = "x",
+              .expr = A(IntLitExpr{
+                  .value = "21",
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(InferExprTypes(func), std::nullopt);
+  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
+                        .name = "foo",
+                        .result_type = MatchesBasicType({.name = "Void"}),
+                        .parameters =
+                            {
+                                {
+                                    .name = "x",
+                                    .type = MatchesBasicType({.name = "Int64"}),
+                                },
+                            },
+                        .body = {{
+                            MatchesVarAssignStmt({
+                                .name = "x",
+                                .expr = MatchesIntLitExpr({
+                                    .type = MatchesBasicType({.name = "Int64"}),
+                                    .value = "21",
+                                }),
+                            }),
+                        }},
+                    })));
+}
+
 TEST_F(InferExprTypesTest, IfStmtCond) {
   auto func = FuncDefStmt{
       .name = "fact",

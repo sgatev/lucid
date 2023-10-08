@@ -506,6 +506,30 @@ TEST_F(ParserTest, VarDecl) {
       })));
 }
 
+TEST_F(ParserTest, VarAssignment) {
+  std::string_view src = R"(
+    let foo = (n: Int32) -> Void {
+      n = 3
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "foo",
+          .result_type = MatchesBasicType({.name = "Void"}),
+          .parameters =
+              {
+                  {.name = "n", .type = MatchesBasicType({.name = "Int32"})},
+              },
+          .body = {{
+              MatchesVarAssignStmt({
+                  .name = "n",
+                  .expr = MatchesIntLitExpr({.value = "3"}),
+              }),
+          }},
+      })));
+}
+
 TEST_F(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
     = () -> Void {
@@ -634,7 +658,8 @@ TEST_F(ParserTest, FuncDefMissingClosingBrace) {
   std::string_view src = R"(
     let main = () -> Void {
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 3"));
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected identifier at line 3, column 3"));
 }
 
 TEST_F(ParserTest, ReturnMissingValue) {
@@ -652,7 +677,7 @@ TEST_F(ParserTest, VarDeclMissingLet) {
       m: Int32 = 1
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 7"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 8"));
 }
 
 TEST_F(ParserTest, VarDeclMissingName) {
@@ -706,6 +731,24 @@ TEST_F(ParserTest, VarDeclMissingInit) {
   std::string_view src = R"(
     let main = () -> Void {
       let m: Int32 =
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
+}
+
+TEST_F(ParserTest, VarAssignMissingEqual) {
+  std::string_view src = R"(
+    let foo = (n: Int32) -> Void {
+      n
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
+}
+
+TEST_F(ParserTest, VarAssignMissingValue) {
+  std::string_view src = R"(
+    let foo = (n: Int32) -> Void {
+      n =
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));

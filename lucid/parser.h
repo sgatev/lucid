@@ -221,7 +221,23 @@ class Parser {
           .init = std::get<ExprRef>(init),
       });
     }
-    return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+    return ParseVarAssignStmt();
+  }
+
+  std::variant<StmtRef, ParserError> ParseVarAssignStmt() {
+    VarAssignStmt stmt;
+
+    const auto maybe_name = ParseIdent();
+    if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
+    stmt.name = std::get<std::string_view>(maybe_name);
+
+    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
+
+    const auto expr = ParseExpr();
+    if (IsError(expr)) return std::get<ParserError>(expr);
+    stmt.expr = std::get<ExprRef>(expr);
+
+    return arena_.add(std::move(stmt));
   }
 
   std::variant<ExprRef, ParserError> ParseExpr() {
