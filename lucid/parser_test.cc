@@ -248,6 +248,27 @@ TEST_F(ParserTest, MultipleFuncParams) {
 
 TEST_F(ParserTest, FuncCallExpr) {
   std::string_view src = R"(
+    let foo = () -> Void {
+      bar(3)
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsFuncDef(MatchesFuncDefStmt({
+                              .name = "foo",
+                              .result_type = MatchesBasicType({.name = "Void"}),
+                              .body = {{
+                                  MatchesFuncCallExpr({
+                                      .func_name = "bar",
+                                      .arguments =
+                                          {
+                                              MatchesIntLitExpr({.value = "3"}),
+                                          },
+                                  }),
+                              }},
+                          })));
+}
+
+TEST_F(ParserTest, ReturnFuncCallExpr) {
+  std::string_view src = R"(
     let main = () -> Int32 {
       return id(21)
     }
@@ -658,8 +679,7 @@ TEST_F(ParserTest, FuncDefMissingClosingBrace) {
   std::string_view src = R"(
     let main = () -> Void {
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("expected identifier at line 3, column 3"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 3"));
 }
 
 TEST_F(ParserTest, ReturnMissingValue) {
@@ -731,15 +751,6 @@ TEST_F(ParserTest, VarDeclMissingInit) {
   std::string_view src = R"(
     let main = () -> Void {
       let m: Int32 =
-    }
-  )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
-}
-
-TEST_F(ParserTest, VarAssignMissingEqual) {
-  std::string_view src = R"(
-    let foo = (n: Int32) -> Void {
-      n
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));

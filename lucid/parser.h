@@ -221,29 +221,34 @@ class Parser {
           .init = std::get<ExprRef>(init),
       });
     }
-    return ParseVarAssignStmt();
-  }
+    if (Peek().kind == Token::Kind::Ident) {
+      const auto maybe_ident = ParseIdent();
+      if (IsError(maybe_ident)) return std::get<ParserError>(maybe_ident);
+      auto ident = std::get<std::string_view>(maybe_ident);
 
-  std::variant<StmtRef, ParserError> ParseVarAssignStmt() {
-    VarAssignStmt stmt;
+      if (Peek().kind == Token::Kind::Equal) {
+        Read();
 
-    const auto maybe_name = ParseIdent();
-    if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
-    stmt.name = std::get<std::string_view>(maybe_name);
+        VarAssignStmt stmt;
+        stmt.name = ident;
 
-    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
+        const auto expr = ParseExpr();
+        if (IsError(expr)) return std::get<ParserError>(expr);
+        stmt.expr = std::get<ExprRef>(expr);
 
-    const auto expr = ParseExpr();
-    if (IsError(expr)) return std::get<ParserError>(expr);
-    stmt.expr = std::get<ExprRef>(expr);
+        return arena_.add(std::move(stmt));
+      }
 
-    return arena_.add(std::move(stmt));
+      return ParseExprStartingWithIdent(ident);
+    }
+    return MakeError(ParserError::Kind::UnexpectedToken, Peek());
   }
 
   std::variant<ExprRef, ParserError> ParseExpr() {
     std::variant<ExprRef, ParserError> maybe_expr;
     if (Peek().kind == Token::Kind::Ident) {
-      maybe_expr = ParseExprStartingWithIdent();
+      auto ident = std::get<std::string_view>(ParseIdent());
+      maybe_expr = ParseExprStartingWithIdent(ident);
     } else if (Peek().kind == Token::Kind::Number) {
       maybe_expr = ParseNumber();
     } else {
@@ -312,9 +317,8 @@ class Parser {
     return maybe_expr;
   }
 
-  std::variant<ExprRef, ParserError> ParseExprStartingWithIdent() {
-    const auto ident = std::get<std::string_view>(ParseIdent());
-
+  std::variant<ExprRef, ParserError> ParseExprStartingWithIdent(
+      std::string_view ident) {
     if (Peek().kind == Token::Kind::OpenParen) {
       Read();
 

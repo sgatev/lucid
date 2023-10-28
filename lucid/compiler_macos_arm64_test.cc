@@ -5,6 +5,7 @@
 namespace lucid {
 namespace {
 
+using ::testing::AllOf;
 using ::testing::Eq;
 
 TEST_F(CompilerTest, EmptyMain) {
@@ -363,6 +364,22 @@ TEST_F(CompilerTest, FibRec) {
   ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(21)));
+}
+
+TEST_F(CompilerTest, Print) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+      let print = (n: Int32) -> Int32 {
+        return 0
+      }
+
+      let main = () -> Int32 {
+        print(21)
+        return 0
+      }
+    )"));
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), AllOf(ReturnsCode(Eq(0)), Prints("21")));
 }
 
 }  // namespace

@@ -21,6 +21,21 @@ class Arm64Generator {
     Append(func_.name);
     Append(":\n");
 
+    if (func_.name == "print") {
+      Append("STP X29, X30, [SP, #-16]!\n");
+      Append("SUB SP, SP, #16\n");
+      Append("STR X1, [SP]\n");
+
+      Append("ADR X0, NumberFormat\n");
+      Append("BL _printf\n");
+
+      Append("MOV X0, #0\n");
+      Append("ADD SP, SP, #16\n");
+      Append("LDP X29, X30, [SP], #16\n");
+      Append("RET\n");
+      return;
+    }
+
     for (std::size_t size : func_.stack_slots) stack_size_ += size;
     std::size_t quot = stack_size_ % 16;
     stack_size_ = quot == 0 ? stack_size_ : stack_size_ + 16 - quot;
@@ -319,7 +334,13 @@ _start:
   BL main
   LDP X29, X30, [sp], #16
   MOV X16, #1
-  SVC #0x80
+  BL _exit
+)";
+}
+
+void GenerateArmEndSource(std::ostream& out) {
+  out << R"(
+NumberFormat: .ascii "%d"
 )";
 }
 

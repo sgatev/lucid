@@ -74,6 +74,7 @@ std::optional<CompileError> Compile(std::string_view src, std::ostream& out) {
     OptimizeAbstractMachineInstructions(state.func.instructions);
     GenerateArmAssemblySource(state.func, out);
   }
+  GenerateArmEndSource(out);
   return std::nullopt;
 }
 

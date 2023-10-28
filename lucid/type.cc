@@ -124,6 +124,8 @@ class ExprTypeInferenceEngine {
 
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
     const auto& func_type = func_types_.at(expr.func_name);
+    RequireTypeForExpr(expr_ref,
+                       arena_.add(BasicType{.name = func_type.result_type}));
     for (int i = 0; i < expr.arguments.size(); ++i) {
       const auto& arg = expr.arguments[i];
 

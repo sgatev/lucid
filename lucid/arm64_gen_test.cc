@@ -1209,5 +1209,36 @@ RET
 )");
 }
 
+TEST_F(GenerateArmAssemblySourceTest, Print) {
+  auto func = FuncDefStmt{
+      .name = "print",
+      .result_type = A(BasicType{.name = "Int32"}),
+      .parameters =
+          {
+              {
+                  .name = "n",
+                  .type = A(BasicType{.name = "Int32"}),
+              },
+          },
+      .body = {{
+          A(ReturnStmt{
+              .value = A(IntLitExpr{.value = "0"}),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(Generate(func), R"(print:
+STP X29, X30, [SP, #-16]!
+SUB SP, SP, #16
+STR X1, [SP]
+ADR X0, NumberFormat
+BL _printf
+MOV X0, #0
+ADD SP, SP, #16
+LDP X29, X30, [SP], #16
+RET
+)");
+}
+
 }  // namespace
 }  // namespace lucid
