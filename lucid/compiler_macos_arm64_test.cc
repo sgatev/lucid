@@ -19,21 +19,6 @@ TEST_F(CompilerTest, EmptyMain) {
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(0)));
 }
 
-TEST_F(CompilerTest, FunctionCall) {
-  ASSERT_TRUE(CreateFile("main.lu", R"(
-    let id = (x: Int32) -> Int32 {
-      return x
-    }
-
-    let main = () -> Int32 {
-      return id(21)
-    }
-  )"));
-  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
-              ReturnsCode(Eq(0)));
-  EXPECT_THAT(Run("main"), ReturnsCode(Eq(21)));
-}
-
 TEST_F(CompilerTest, AddInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {
@@ -327,6 +312,36 @@ TEST_F(CompilerTest, VarAssign) {
   ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(3)));
+}
+
+TEST_F(CompilerTest, FuncCallSingleArg) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let id = (x: Int32) -> Int32 {
+      return x
+    }
+
+    let main = () -> Int32 {
+      return id(21)
+    }
+  )"));
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(21)));
+}
+
+TEST_F(CompilerTest, FuncCallArgsSameType) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let sum = (x: Int32, y: Int32, z: Int32) -> Int32 {
+      return x + y + z
+    }
+
+    let main = () -> Int32 {
+      return sum(2, 3, 5)
+    }
+  )"));
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"), ReturnsCode(Eq(10)));
 }
 
 TEST_F(CompilerTest, FactRec) {
