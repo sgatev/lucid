@@ -60,7 +60,8 @@ std::variant<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
 
 using CompileError = std::variant<ParserError, TypeError>;
 
-std::optional<CompileError> Compile(std::string_view src, std::ostream& out) {
+std::optional<CompileError> CompileSource(std::string_view src,
+                                          std::ostream& out) {
   Arena<Stmt> arena;
   auto maybe_funcs = ParseFuncDefs(src, arena);
   if (auto* err = std::get_if<ParserError>(&maybe_funcs)) return *err;
@@ -100,7 +101,7 @@ int Build(CommandContext ctx) {
   auto assembly_path = build_dir / (std::string(binary_name) + ".s");
   {
     std::ofstream assembly_stream(assembly_path);
-    if (auto err = Compile(*src, assembly_stream); err) {
+    if (auto err = CompileSource(*src, assembly_stream); err) {
       std::visit([&ctx](auto& err) { PrintError(ctx.err) << err << "\n"; },
                  *err);
       return 1;
@@ -122,6 +123,35 @@ int Build(CommandContext ctx) {
   return 0;
 }
 
+int Compile(CommandContext ctx) {
+  if (ctx.args.size() != 1) {
+    PrintError(ctx.err) << "'compile' command requires exactly 1 argument\n";
+    return 1;
+  }
+
+  // Load Lucid sources.
+  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  const auto src = ReadFile(src_path.c_str());
+  if (!src.has_value()) {
+    PrintError(ctx.err) << "could not read file '" << ctx.args[0] << "'\n";
+    return 1;
+  }
+
+  // Compile sources to assembly.
+  auto assembly_path = std::filesystem::current_path() / src_path.filename();
+  assembly_path.replace_extension("s");
+  {
+    std::ofstream assembly_stream(assembly_path);
+    if (auto err = CompileSource(*src, assembly_stream); err) {
+      std::visit([&ctx](auto& err) { PrintError(ctx.err) << err << "\n"; },
+                 *err);
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 int Version(CommandContext ctx) {
   ctx.out << "Commit: " << kGitCommit << "\n";
   return 0;
@@ -137,6 +167,11 @@ int Main(std::vector<std::string_view> args) {
               .name = "build",
               .help = "Compiles the specified target and builds a binary.",
               .handler = Build,
+          },
+          {
+              .name = "compile",
+              .help = "Compiles the specified target.",
+              .handler = Compile,
           },
           {
               .name = "version",
