@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -74,7 +75,7 @@ std::optional<CompileError> Compile(std::string_view src, std::ostream& out) {
     OptimizeAbstractMachineInstructions(state.func.instructions);
     GenerateArmAssemblySource(state.func, out);
   }
-  GenerateArmEndSource(out);
+  GenerateArmEndSource(state.strings, out);
   return std::nullopt;
 }
 

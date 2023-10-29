@@ -1,6 +1,7 @@
 #include "lucid/am_gen.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <string>
 #include <string_view>
@@ -187,6 +188,18 @@ class AbstractMachineFunctionGenerator {
     RegId reg = next_reg_++;
     state_.func.instructions.push_back(SetReg32{
         .src_val = expr.value == "true" ? "1" : "0",
+        .dst_reg = reg,
+    });
+    state_.out_reg[ref] = reg;
+  }
+
+  void ProcessExpr(ExprRef ref, const StringLitExpr& expr) {
+    auto string_id = reinterpret_cast<std::uintptr_t>(expr.value.data());
+    state_.strings[string_id] = expr.value;
+
+    RegId reg = next_reg_++;
+    state_.func.instructions.push_back(SetStr{
+        .src_val = std::to_string(string_id),
         .dst_reg = reg,
     });
     state_.out_reg[ref] = reg;

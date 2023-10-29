@@ -84,6 +84,22 @@ struct SetReg64 {
   }
 };
 
+// Sets string value in a register.
+struct SetStr {
+  // Source value.
+  std::string src_val;
+
+  // Destination register.
+  RegId dst_reg;
+
+  bool operator==(const SetStr&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const SetStr& inst) {
+    return os << "{.src_val=\"" << inst.src_val
+              << "\", .dst_reg=" << inst.dst_reg << "}";
+  }
+};
+
 // Jumps to a labeled location.
 struct Jump {
   // Label of the location to jump to.
@@ -498,11 +514,13 @@ struct LoadStack64 {
 };
 
 // An instruction for the Lucid abstract machine.
-using Instruction = std::variant<
-    Nop, MoveReg32, MoveReg64, SetReg32, SetReg64, Jump, UncondJump, CondJump,
-    Label, Return, AddReg32, AddReg64, SubReg32, SubReg64, MulReg32, MulReg64,
-    DivReg32, DivReg64, GtReg32, GtReg64, LtReg32, LtReg64, EqReg32, EqReg64,
-    PushStack, PopStack, StoreStack32, StoreStack64, LoadStack32, LoadStack64>;
+using Instruction =
+    std::variant<Nop, MoveReg32, MoveReg64, SetReg32, SetReg64, SetStr, Jump,
+                 UncondJump, CondJump, Label, Return, AddReg32, AddReg64,
+                 SubReg32, SubReg64, MulReg32, MulReg64, DivReg32, DivReg64,
+                 GtReg32, GtReg64, LtReg32, LtReg64, EqReg32, EqReg64,
+                 PushStack, PopStack, StoreStack32, StoreStack64, LoadStack32,
+                 LoadStack64>;
 
 // Abstract machine function definition.
 struct Function {

@@ -1,0 +1,8 @@
+let prints = (n: String) -> Int32 {
+  return 0
+}
+
+let main = () -> Int32 {
+  prints("Hello, world!\n")
+  return 0
+}

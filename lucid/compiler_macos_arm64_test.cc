@@ -366,7 +366,7 @@ TEST_F(CompilerTest, FibRec) {
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(21)));
 }
 
-TEST_F(CompilerTest, Print) {
+TEST_F(CompilerTest, PrintInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let print = (n: Int32) -> Int32 {
       return 0
@@ -380,6 +380,23 @@ TEST_F(CompilerTest, Print) {
   ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), AllOf(ReturnsCode(Eq(0)), Prints("21")));
+}
+
+TEST_F(CompilerTest, PrintString) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let prints = (n: String) -> Int32 {
+      return 0
+    }
+
+    let main = () -> Int32 {
+      prints("Hello, world!\n")
+      return 0
+    }
+  )"));
+  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
+              ReturnsCode(Eq(0)));
+  EXPECT_THAT(Run("main"),
+              AllOf(ReturnsCode(Eq(0)), Prints("Hello, world!\n")));
 }
 
 }  // namespace

@@ -88,6 +88,16 @@ struct BoolLitExprPattern {
   bool operator()(const BoolLitExpr& expr) const { return value == expr.value; }
 };
 
+struct StringLitExprPattern {
+  TypeRefMatcher type;
+  std::string_view value;
+
+  bool operator()(const StringLitExpr& expr) const {
+    if (type != nullptr && !type(expr.type)) return false;
+    return value == expr.value;
+  }
+};
+
 struct BinaryOpExprPattern {
   TypeRefMatcher type;
   BinaryOp op;
@@ -174,6 +184,10 @@ class AstFixture {
 
   ExprRefMatcher MatchesBoolLitExpr(BoolLitExprPattern pattern) {
     return MatchesExpr<BoolLitExpr>(std::move(pattern));
+  }
+
+  ExprRefMatcher MatchesStringLitExpr(StringLitExprPattern pattern) {
+    return MatchesExpr<StringLitExpr>(std::move(pattern));
   }
 
   ExprRefMatcher MatchesBinaryOpExpr(BinaryOpExprPattern pattern) {

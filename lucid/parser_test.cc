@@ -246,7 +246,7 @@ TEST_F(ParserTest, MultipleFuncParams) {
       })));
 }
 
-TEST_F(ParserTest, FuncCallExpr) {
+TEST_F(ParserTest, FuncCallExprIntLitArg) {
   std::string_view src = R"(
     let foo = () -> Void {
       bar(3)
@@ -265,6 +265,28 @@ TEST_F(ParserTest, FuncCallExpr) {
                                   }),
                               }},
                           })));
+}
+
+TEST_F(ParserTest, FuncCallExprStringLitArg) {
+  std::string_view src = R"(
+    let foo = () -> Void {
+      bar("foo")
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = "foo",
+                  .result_type = MatchesBasicType({.name = "Void"}),
+                  .body = {{
+                      MatchesFuncCallExpr({
+                          .func_name = "bar",
+                          .arguments =
+                              {
+                                  MatchesStringLitExpr({.value = R"("foo")"}),
+                              },
+                      }),
+                  }},
+              })));
 }
 
 TEST_F(ParserTest, ReturnFuncCallExpr) {
@@ -786,6 +808,16 @@ TEST_F(ParserTest, SpaceBetweenEqualSigns) {
       } else {
         return 3
       }
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
+}
+
+// TODO:
+TEST_F(ParserTest, DISABLED_MissingStringClosingQuote) {
+  std::string_view src = R"(
+    let foo = () -> Void {
+      bar("foo)
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));

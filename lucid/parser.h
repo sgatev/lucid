@@ -22,6 +22,7 @@ class ParserError {
     End,
     ExpectedIdent,
     ExpectedNumber,
+    ExpectedString,
     UnexpectedToken,
     ExpectedClosingParenOrParam,
     ExpectedClosingParenOrExpr,
@@ -47,6 +48,8 @@ class ParserError {
         return "expected identifier";
       case Kind::ExpectedNumber:
         return "expected number";
+      case Kind::ExpectedString:
+        return "expected string";
       case Kind::UnexpectedToken:
         return "unexpected token";
       case Kind::ExpectedClosingParenOrParam:
@@ -251,6 +254,8 @@ class Parser {
       maybe_expr = ParseExprStartingWithIdent(ident);
     } else if (Peek().kind == Token::Kind::Number) {
       maybe_expr = ParseNumber();
+    } else if (Peek().kind == Token::Kind::String) {
+      maybe_expr = ParseString();
     } else {
       maybe_expr = MakeError(ParserError::Kind::UnexpectedToken, Peek());
     }
@@ -354,6 +359,16 @@ class Parser {
       return MakeError(ParserError::Kind::ExpectedNumber, token);
     }
     return arena_.add(IntLitExpr{
+        .value = TokenString(token),
+    });
+  }
+
+  std::variant<ExprRef, ParserError> ParseString() {
+    Token token = Read();
+    if (token.kind != Token::Kind::String) {
+      return MakeError(ParserError::Kind::ExpectedString, token);
+    }
+    return arena_.add(StringLitExpr{
         .value = TokenString(token),
     });
   }

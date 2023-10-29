@@ -14,6 +14,7 @@ struct FuncDefStmt;
 struct ReturnStmt;
 struct IntLitExpr;
 struct BoolLitExpr;
+struct StringLitExpr;
 struct FuncCallExpr;
 struct VarDeclStmt;
 struct VarAssignStmt;
@@ -26,8 +27,8 @@ struct BasicType;
 using Type = std::variant<BasicType>;
 
 // An expression in the Lucid language.
-using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, IdentExpr,
-                          BinaryOpExpr, Type>;
+using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
+                          IdentExpr, BinaryOpExpr, Type>;
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, VarDeclStmt, VarAssignStmt, FuncDefStmt,
@@ -98,6 +99,15 @@ struct BoolLitExpr {
   TypeRef type;
 
   // Value of the boolean.
+  std::string_view value;
+};
+
+// An expression that represents a string literal.
+struct StringLitExpr {
+  // Type of the expression.
+  TypeRef type;
+
+  // Value of the string.
   std::string_view value;
 };
 

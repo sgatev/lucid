@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "lucid/am.h"
@@ -18,6 +21,9 @@ struct AbstractMachineState {
   // Register allocation data structure that is used to generate abstract
   // machine instructions.
   std::vector<RegId> out_reg;
+
+  // Strings used in `func`.
+  std::unordered_map<std::uintptr_t, std::string> strings;
 };
 
 // Generates abstract machine instructions for `graph`.

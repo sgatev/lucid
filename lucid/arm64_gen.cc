@@ -1,7 +1,10 @@
 #include "lucid/arm64_gen.h"
 
+#include <cstdint>
 #include <ostream>
+#include <string>
 #include <string_view>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -25,11 +28,23 @@ class Arm64Generator {
       Append("STP X29, X30, [SP, #-16]!\n");
       Append("SUB SP, SP, #16\n");
       Append("STR X1, [SP]\n");
-
       Append("ADR X0, NumberFormat\n");
       Append("BL _printf\n");
-
       Append("MOV X0, #0\n");
+      Append("ADD SP, SP, #16\n");
+      Append("LDP X29, X30, [SP], #16\n");
+      Append("RET\n");
+      return;
+    }
+
+    if (func_.name == "prints") {
+      Append("STP X29, X30, [SP, #-16]!\n");
+      Append("SUB SP, SP, #16\n");
+      Append("STR X1, [SP]\n");
+      Append("ADR X0, StringFormat\n");
+      Append("BL _printf\n");
+      Append("MOV X0, #0\n");
+      Append("LDR X1, [SP, #0]\n");
       Append("ADD SP, SP, #16\n");
       Append("LDP X29, X30, [SP], #16\n");
       Append("RET\n");
@@ -84,6 +99,14 @@ class Arm64Generator {
     Append("MOV X");
     Append(inst.dst_reg);
     Append(", #");
+    Append(inst.src_val);
+    Append("\n");
+  }
+
+  void Process(const SetStr& inst) {
+    Append("ADR X");
+    Append(inst.dst_reg);
+    Append(", str");
     Append(inst.src_val);
     Append("\n");
   }
@@ -338,10 +361,16 @@ _start:
 )";
 }
 
-void GenerateArmEndSource(std::ostream& out) {
+void GenerateArmEndSource(
+    const std::unordered_map<std::uintptr_t, std::string>& strings,
+    std::ostream& out) {
   out << R"(
-NumberFormat: .ascii "%d"
+NumberFormat: .asciz "%d"
+StringFormat: .asciz "%s"
 )";
+  for (auto [k, v] : strings) {
+    out << "str" << std::to_string(k) << ": .asciz " << v << "\n";
+  }
 }
 
 void GenerateArmAssemblySource(const Function& func, std::ostream& out) {
