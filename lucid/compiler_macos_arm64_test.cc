@@ -383,12 +383,12 @@ TEST_F(CompilerTest, FibRec) {
 
 TEST_F(CompilerTest, PrintInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let print = (n: Int32) -> Int32 {
+    let printf = (n: String, m: Int32) -> Int32 {
       return 0
     }
 
     let main = () -> Int32 {
-      print(21)
+      printf("%d", 21)
       return 0
     }
   )"));
@@ -399,12 +399,12 @@ TEST_F(CompilerTest, PrintInt32) {
 
 TEST_F(CompilerTest, PrintString) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let prints = (n: String) -> Int32 {
+    let printf = (n: String, m: String) -> Int32 {
       return 0
     }
 
     let main = () -> Int32 {
-      prints("Hello, world!\n")
+      printf("%s\n", "Hello, world!")
       return 0
     }
   )"));

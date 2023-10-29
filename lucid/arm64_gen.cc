@@ -24,24 +24,11 @@ class Arm64Generator {
     Append(func_.name);
     Append(":\n");
 
-    if (func_.name == "print") {
+    if (func_.name == "printf") {
       Append("STP X29, X30, [SP, #-16]!\n");
       Append("SUB SP, SP, #16\n");
-      Append("STR X1, [SP]\n");
-      Append("ADR X0, NumberFormat\n");
-      Append("BL _printf\n");
-      Append("MOV X0, #0\n");
-      Append("ADD SP, SP, #16\n");
-      Append("LDP X29, X30, [SP], #16\n");
-      Append("RET\n");
-      return;
-    }
-
-    if (func_.name == "prints") {
-      Append("STP X29, X30, [SP, #-16]!\n");
-      Append("SUB SP, SP, #16\n");
-      Append("STR X1, [SP]\n");
-      Append("ADR X0, StringFormat\n");
+      Append("STR X2, [SP]\n");
+      Append("MOV X0, X1\n");
       Append("BL _printf\n");
       Append("MOV X0, #0\n");
       Append("LDR X1, [SP, #0]\n");

@@ -221,6 +221,11 @@ class AbstractMachineFunctionGenerator {
             .src_reg = state_.out_reg[arg],
             .dst_reg = i++,
         });
+      } else if (arg_type.name == "String") {
+        state_.func.instructions.push_back(MoveReg64{
+            .src_reg = state_.out_reg[arg],
+            .dst_reg = i++,
+        });
       }
     }
     state_.func.instructions.push_back(Jump{

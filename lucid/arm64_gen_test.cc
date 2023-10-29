@@ -1209,14 +1209,18 @@ RET
 )");
 }
 
-TEST_F(GenerateArmAssemblySourceTest, Print) {
+TEST_F(GenerateArmAssemblySourceTest, Printf) {
   auto func = FuncDefStmt{
-      .name = "print",
+      .name = "printf",
       .result_type = A(BasicType{.name = "Int32"}),
       .parameters =
           {
               {
                   .name = "n",
+                  .type = A(BasicType{.name = "String"}),
+              },
+              {
+                  .name = "m",
                   .type = A(BasicType{.name = "Int32"}),
               },
           },
@@ -1227,13 +1231,14 @@ TEST_F(GenerateArmAssemblySourceTest, Print) {
       }},
   };
 
-  EXPECT_EQ(Generate(func), R"(print:
+  EXPECT_EQ(Generate(func), R"(printf:
 STP X29, X30, [SP, #-16]!
 SUB SP, SP, #16
-STR X1, [SP]
-ADR X0, NumberFormat
+STR X2, [SP]
+MOV X0, X1
 BL _printf
 MOV X0, #0
+LDR X1, [SP, #0]
 ADD SP, SP, #16
 LDP X29, X30, [SP], #16
 RET
