@@ -23,20 +23,7 @@ class Arm64Generator {
   void Generate() && {
     Append(func_.name);
     Append(":\n");
-
-    if (func_.name == "printf") {
-      Append("STP X29, X30, [SP, #-16]!\n");
-      Append("SUB SP, SP, #16\n");
-      Append("STR X2, [SP]\n");
-      Append("MOV X0, X1\n");
-      Append("BL _printf\n");
-      Append("MOV X0, #0\n");
-      Append("LDR X1, [SP, #0]\n");
-      Append("ADD SP, SP, #16\n");
-      Append("LDP X29, X30, [SP], #16\n");
-      Append("RET\n");
-      return;
-    }
+    Append("STP X29, X30, [SP, #-16]!\n");
 
     for (std::size_t size : func_.stack_slots) stack_size_ += size;
     std::size_t quot = stack_size_ % 16;
@@ -98,14 +85,15 @@ class Arm64Generator {
     Append("\n");
   }
 
-  void Process(const Return& inst) { Append("RET\n"); }
+  void Process(const Return& inst) {
+    Append("LDP X29, X30, [SP], #16\n");
+    Append("RET\n");
+  }
 
   void Process(const Jump& inst) {
-    Append("STP X29, X30, [sp, #-16]!\n");
     Append("BL ");
     Append(inst.label);
     Append("\n");
-    Append("LDP X29, X30, [sp], #16\n");
   }
 
   void Process(const UncondJump& inst) {
