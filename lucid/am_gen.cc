@@ -223,7 +223,7 @@ class AbstractMachineFunctionGenerator {
 
     RegId reg = next_reg_++;
     state_.func.instructions.push_back(SetStr{
-        .src_val = std::to_string(string_id),
+        .src_val = string_id,
         .dst_reg = reg,
     });
     state_.out_reg[ref] = reg;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <ostream>
 #include <string_view>
 #include <variant>
@@ -87,7 +88,7 @@ struct SetReg64 {
 // Sets string value in a register.
 struct SetStr {
   // Source value.
-  std::string src_val;
+  std::uintptr_t src_val;
 
   // Destination register.
   RegId dst_reg;
