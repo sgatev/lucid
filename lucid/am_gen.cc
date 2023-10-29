@@ -64,10 +64,12 @@ class AbstractMachineFunctionGenerator {
 
     if (graph_.func_name == "printf") {
       state_.func.instructions.push_back(PushStack{});
-      state_.func.instructions.push_back(StoreStack64{
-          .offset = 0,
-          .src_reg = 2,
-      });
+      if (graph_.func_params.size() > 1) {
+        state_.func.instructions.push_back(StoreStack64{
+            .offset = 0,
+            .src_reg = 2,
+        });
+      }
       state_.func.instructions.push_back(MoveReg64{
           .dst_reg = 0,
           .src_reg = 1,

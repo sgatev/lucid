@@ -399,12 +399,12 @@ TEST_F(CompilerTest, PrintInt32) {
 
 TEST_F(CompilerTest, PrintString) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let printf = (n: String, m: String) -> Int32 {
+    let printf = (n: String) -> Int32 {
       return 0
     }
 
     let main = () -> Int32 {
-      printf("%s\n", "Hello, world!")
+      printf("Hello, world!\n")
       return 0
     }
   )"));
