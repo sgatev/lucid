@@ -25,6 +25,7 @@ TEST_F(CompilerTest, MissingArguments) {
 Available commands:
   build 	Compiles the specified target and builds a binary.
   compile 	Compiles the specified target.
+  run 	Compiles the specified target, builds a binary, and runs it.
   version 	Prints version information for lucid.
 )"))));
 }

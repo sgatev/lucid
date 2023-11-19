@@ -152,6 +152,52 @@ int Compile(CommandContext ctx) {
   return 0;
 }
 
+int Run(CommandContext ctx) {
+  if (ctx.args.size() != 1) {
+    PrintError(ctx.err) << "'run' command requires exactly 1 argument\n";
+    return 1;
+  }
+
+  auto build_dir = std::filesystem::temp_directory_path();
+  std::string_view binary_name = "temp_binary";
+  auto binary_path = build_dir / binary_name;
+
+  // Load Lucid sources.
+  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  const auto src = ReadFile(src_path.c_str());
+  if (!src.has_value()) {
+    PrintError(ctx.err) << "could not read file '" << ctx.args[0] << "'\n";
+    return 1;
+  }
+
+  // Compile sources to assembly.
+  auto assembly_path = build_dir / (std::string(binary_name) + ".s");
+  {
+    std::ofstream assembly_stream(assembly_path);
+    if (auto err = CompileSource(*src, assembly_stream); err) {
+      std::visit([&ctx](auto& err) { PrintError(ctx.err) << err << "\n"; },
+                 *err);
+      return 1;
+    }
+  }
+
+  // Translate assembly into object code.
+  const std::string as_cmd = StringFormat(
+      "as -arch arm64 -o %s.o %s", binary_path.c_str(), assembly_path.c_str());
+  std::system(as_cmd.data());
+
+  // Link object code and create a binary.
+  const std::string ld_cmd = StringFormat(
+      "ld -o %s %s.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` "
+      "-e _start -arch arm64",
+      binary_path.c_str(), binary_path.c_str());
+  std::system(ld_cmd.data());
+
+  // Run the binary.
+  int status = std::system(binary_path.c_str());
+  return WEXITSTATUS(status);
+}
+
 int Version(CommandContext ctx) {
   ctx.out << "Commit: " << kGitCommit << "\n";
   return 0;
@@ -172,6 +218,12 @@ int Main(std::vector<std::string_view> args) {
               .name = "compile",
               .help = "Compiles the specified target.",
               .handler = Compile,
+          },
+          {
+              .name = "run",
+              .help = "Compiles the specified target, builds a binary, and "
+                      "runs it.",
+              .handler = Run,
           },
           {
               .name = "version",

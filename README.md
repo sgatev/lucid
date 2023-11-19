@@ -32,3 +32,9 @@ To compile and run code execute
 $ bazel-bin/lucid/compiler build main examples/main.lu
 $ ./main
 ```
+
+or simply
+
+```
+$ bazel-bin/lucid/compiler run examples/main.lu
+```
