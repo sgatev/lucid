@@ -813,14 +813,14 @@ TEST_F(ParserTest, SpaceBetweenEqualSigns) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
 }
 
-// TODO:
-TEST_F(ParserTest, DISABLED_MissingStringClosingQuote) {
+TEST_F(ParserTest, MissingStringClosingQuote) {
   std::string_view src = R"(
     let foo = () -> Void {
       bar("foo)
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
+  EXPECT_THAT(Parse(src),
+              HoldsError("incomplete string literal at line 3, column 11"));
 }
 
 }  // namespace

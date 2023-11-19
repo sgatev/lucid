@@ -202,5 +202,24 @@ TEST(LexerTest, If) {
                   Tok(Kind::CloseBrace, "}")));
 }
 
+TEST(LexerTest, IncompleteString) {
+  EXPECT_THAT(ReadTokens(R"(
+    let main = () -> Int32 {
+      print("Hello, world!)
+      return 0
+    }
+  )"),
+              ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "main"),
+                          Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
+                          Tok(Kind::CloseParen, ")"), Tok(Kind::Minus, "-"),
+                          Tok(Kind::Greater, ">"), Tok(Kind::Ident, "Int32"),
+                          Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "print"),
+                          Tok(Kind::OpenParen, "("),
+                          Tok(Kind::IncompleteString, R"("Hello, world!)
+      return 0
+    }
+  )")));
+}
+
 }  // namespace
 }  // namespace lucid

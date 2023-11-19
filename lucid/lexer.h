@@ -33,6 +33,10 @@ class Lexer {
     } else if (c == '"' || c == '#') {
       // String or comment.
       auto pos = std::find(buffer_.begin() + 1, buffer_.end(), finishers[c]);
+      if (pos == buffer_.end()) {
+        advance(buffer_.size());
+        return Token(Token::Kind::IncompleteString, start_pos, pos_);
+      }
       advance(pos - buffer_.begin() + 1);
     } else if (c == '=') {
       advance(1);

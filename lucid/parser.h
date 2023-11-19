@@ -27,6 +27,7 @@ class ParserError {
     ExpectedClosingParenOrParam,
     ExpectedClosingParenOrExpr,
     ExpectedLetKeyword,
+    IncompleteStringLiteral,
   };
 
   explicit ParserError(Kind kind, std::size_t line, std::size_t col)
@@ -58,6 +59,8 @@ class ParserError {
         return "expected closing parenthesis or expression";
       case Kind::ExpectedLetKeyword:
         return "expected 'let' keyword";
+      case Kind::IncompleteStringLiteral:
+        return "incomplete string literal";
     }
   }
 
@@ -254,7 +257,8 @@ class Parser {
       maybe_expr = ParseExprStartingWithIdent(ident);
     } else if (Peek().kind == Token::Kind::Number) {
       maybe_expr = ParseNumber();
-    } else if (Peek().kind == Token::Kind::String) {
+    } else if (Peek().kind == Token::Kind::String ||
+               Peek().kind == Token::Kind::IncompleteString) {
       maybe_expr = ParseString();
     } else {
       maybe_expr = MakeError(ParserError::Kind::UnexpectedToken, Peek());
@@ -365,6 +369,9 @@ class Parser {
 
   std::variant<ExprRef, ParserError> ParseString() {
     Token token = Read();
+    if (token.kind == Token::Kind::IncompleteString) {
+      return MakeError(ParserError::Kind::IncompleteStringLiteral, token);
+    }
     if (token.kind != Token::Kind::String) {
       return MakeError(ParserError::Kind::ExpectedString, token);
     }
