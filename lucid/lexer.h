@@ -29,6 +29,7 @@ class Lexer {
     } else if (alphanumeric[c]) {
       // Identifier or number.
       do advance(1);
+      // `buffer_` is not empty as it must end in `\n`.
       while (alphanumeric[buffer_.front()]);
     } else if (c == '"' || c == '#') {
       // String or comment.
@@ -40,7 +41,8 @@ class Lexer {
       advance(pos - buffer_.begin() + 1);
     } else if (c == '=') {
       advance(1);
-      if (!buffer_.empty() && buffer_.front() == '=') {
+      // `buffer_` is not empty as it must end in `\n`.
+      if (buffer_.front() == '=') {
         advance(1);
         return Token(Token::Kind::DoubleEqual, start_pos, pos_);
       }
