@@ -13,42 +13,44 @@ namespace lucid {
 class Lexer {
  public:
   // `buffer_` must end in `\n`.
-  explicit Lexer(std::string_view buffer) : buffer_(buffer), pos_(0) {}
+  explicit Lexer(std::string_view buffer)
+      : buffer_(buffer.data()), size_(buffer.size()), pos_(0) {}
 
   // Returns the next token in the buffer.
   Token next() {
   start:
-    if (buffer_.empty()) return Token(Token::Kind::End, pos_, pos_);
+    if (pos_ == size_) return Token(Token::Kind::End, pos_, pos_);
 
-    const char c = buffer_.front();
+    const char c = buffer_[pos_];
     const std::size_t start_pos = pos_;
     if (c == ' ' || c == '\n' || c == '\t') {
       // Whitespace.
-      advance(1);
+      ++pos_;
       goto start;
     } else if (alphanumeric[c]) {
       // Identifier or number.
-      do advance(1);
+      do ++pos_;
       // `buffer_` is not empty as it must end in `\n`.
-      while (alphanumeric[buffer_.front()]);
+      while (alphanumeric[buffer_[pos_]]);
     } else if (c == '"' || c == '#') {
       // String or comment.
-      auto pos = std::find(buffer_.begin() + 1, buffer_.end(), finishers[c]);
-      if (pos == buffer_.end()) {
-        advance(buffer_.size());
+      const char* pos = std::char_traits<char>::find(
+          buffer_ + pos_ + 1, size_ - pos_ - 1, finishers[c]);
+      if (pos == nullptr) {
+        pos_ = size_;
         return Token(Token::Kind::IncompleteString, start_pos, pos_);
       }
-      advance(pos - buffer_.begin() + 1);
+      pos_ = pos - buffer_ + 1;
     } else if (c == '=') {
-      advance(1);
+      ++pos_;
       // `buffer_` is not empty as it must end in `\n`.
-      if (buffer_.front() == '=') {
-        advance(1);
+      if (buffer_[pos_] == '=') {
+        ++pos_;
         return Token(Token::Kind::DoubleEqual, start_pos, pos_);
       }
     } else {
       // Singleton.
-      advance(1);
+      ++pos_;
     }
     return Token(kind[c], start_pos, pos_);
   }
@@ -94,12 +96,8 @@ class Lexer {
     return finishers;
   }();
 
-  void advance(std::size_t pos) {
-    buffer_.remove_prefix(pos);
-    pos_ += pos;
-  }
-
-  std::string_view buffer_;
+  const char* buffer_;
+  const std::size_t size_;
   std::size_t pos_;
 };
 
