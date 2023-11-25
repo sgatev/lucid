@@ -18,9 +18,7 @@ class TypeError {
  public:
   explicit TypeError(std::string message) : message_(std::move(message)) {}
 
-  bool operator==(const TypeError& other) const {
-    return message_ == other.message_;
-  }
+  bool operator==(const TypeError& other) const = default;
 
   friend std::ostream& operator<<(std::ostream& out, const TypeError error) {
     return out << error.message_;

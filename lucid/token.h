@@ -36,10 +36,7 @@ struct Token {
   constexpr Token(Kind kind, std::size_t start_pos, std::size_t end_pos)
       : kind(kind), start_pos(start_pos), end_pos(end_pos) {}
 
-  constexpr bool operator==(const Token& other) const {
-    return kind == other.kind && start_pos == other.start_pos &&
-           end_pos == other.end_pos;
-  }
+  constexpr bool operator==(const Token& other) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const Token& token);
 
