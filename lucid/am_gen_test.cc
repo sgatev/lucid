@@ -1780,6 +1780,182 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
                                           PopStack{}, Return{}));
 }
 
+TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = A(BasicType{.name = "Int32"}),
+              },
+              {
+                  .name = "y",
+                  .type = A(BasicType{.name = "Int32"}),
+              },
+          },
+      .body = {{
+          A(ReturnStmt{
+              .value = A(BinaryOpExpr{
+                  .op = BinaryOp::NotEq,
+                  .lhs = A(IdentExpr{.name = "x"}),
+                  .rhs = A(IdentExpr{.name = "y"}),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 2,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 3,
+                                              .src_reg = 2,
+                                          },
+                                          StoreStack64{
+                                              .offset = 4,
+                                              .src_reg = 3,
+                                          },
+                                          StoreStack32{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 1,
+                                              .src_reg = 2,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          LoadStack32{
+                                              .offset = 0,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack32{
+                                              .offset = 1,
+                                              .dst_reg = 2,
+                                          },
+                                          NotEqReg32{
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 3,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 2,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 3,
+                                              .dst_reg = 2,
+                                          },
+                                          LoadStack64{
+                                              .offset = 4,
+                                              .dst_reg = 3,
+                                          },
+                                          PopStack{}, Return{}));
+}
+
+TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = A(BasicType{.name = "Int64"}),
+              },
+              {
+                  .name = "y",
+                  .type = A(BasicType{.name = "Int64"}),
+              },
+          },
+      .body = {{
+          A(ReturnStmt{
+              .value = A(BinaryOpExpr{
+                  .op = BinaryOp::NotEq,
+                  .lhs = A(IdentExpr{.name = "x"}),
+                  .rhs = A(IdentExpr{.name = "y"}),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 2,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 3,
+                                              .src_reg = 2,
+                                          },
+                                          StoreStack64{
+                                              .offset = 4,
+                                              .src_reg = 3,
+                                          },
+                                          StoreStack64{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 2,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          LoadStack64{
+                                              .offset = 0,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 1,
+                                              .dst_reg = 2,
+                                          },
+                                          NotEqReg64{
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 3,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 2,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 3,
+                                              .dst_reg = 2,
+                                          },
+                                          LoadStack64{
+                                              .offset = 4,
+                                              .dst_reg = 3,
+                                          },
+                                          PopStack{}, Return{}));
+}
+
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
   auto func = FuncDefStmt{
       .name = "foo",

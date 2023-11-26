@@ -432,6 +432,21 @@ class AbstractMachineFunctionGenerator {
           });
         }
         break;
+      case BinaryOp::NotEq:
+        if (expr_type.name == "Int64") {
+          state_.func.instructions.push_back(NotEqReg64{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        } else {
+          state_.func.instructions.push_back(NotEqReg32{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        }
+        break;
     }
     state_.out_reg[ref] = reg;
   }

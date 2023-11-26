@@ -31,6 +31,7 @@ struct Token {
     Comment,
     Number,
     IncompleteString,
+    NotEqual,
   };
 
   constexpr Token(Kind kind, std::size_t start_pos, std::size_t end_pos)

@@ -1071,6 +1071,108 @@ RET
 )");
 }
 
+TEST_F(GenerateArmAssemblySourceTest, NotEqInt32) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = A(BasicType{.name = "Int32"}),
+              },
+              {
+                  .name = "y",
+                  .type = A(BasicType{.name = "Int32"}),
+              },
+          },
+      .body = {{
+          A(ReturnStmt{
+              .value = A(BinaryOpExpr{
+                  .op = BinaryOp::NotEq,
+                  .lhs = A(IdentExpr{.name = "x"}),
+                  .rhs = A(IdentExpr{.name = "y"}),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+STP X29, X30, [SP, #-16]!
+SUB SP, SP, #32
+STR X1, [SP, #8]
+STR X2, [SP, #16]
+STR X3, [SP, #24]
+STR W1, [SP, #0]
+STR W2, [SP, #4]
+foo0:
+LDR W1, [SP, #0]
+LDR W2, [SP, #4]
+CMP W1, W2
+CSET W3, NE
+MOV W0, W3
+B foo1
+foo1:
+LDR X1, [SP, #8]
+LDR X2, [SP, #16]
+LDR X3, [SP, #24]
+ADD SP, SP, #32
+LDP X29, X30, [SP], #16
+RET
+)");
+}
+
+TEST_F(GenerateArmAssemblySourceTest, NotEqInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Bool"}),
+      .parameters =
+          {
+              {
+                  .name = "x",
+                  .type = A(BasicType{.name = "Int64"}),
+              },
+              {
+                  .name = "y",
+                  .type = A(BasicType{.name = "Int64"}),
+              },
+          },
+      .body = {{
+          A(ReturnStmt{
+              .value = A(BinaryOpExpr{
+                  .op = BinaryOp::NotEq,
+                  .lhs = A(IdentExpr{.name = "x"}),
+                  .rhs = A(IdentExpr{.name = "y"}),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+STP X29, X30, [SP, #-16]!
+SUB SP, SP, #48
+STR X1, [SP, #16]
+STR X2, [SP, #24]
+STR X3, [SP, #32]
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+foo0:
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+CMP X1, X2
+CSET X3, NE
+MOV W0, W3
+B foo1
+foo1:
+LDR X1, [SP, #16]
+LDR X2, [SP, #24]
+LDR X3, [SP, #32]
+ADD SP, SP, #48
+LDP X29, X30, [SP], #16
+RET
+)");
+}
+
 TEST_F(GenerateArmAssemblySourceTest, VarDeclInt32) {
   auto func = FuncDefStmt{
       .name = "foo",

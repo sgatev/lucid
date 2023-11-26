@@ -148,7 +148,7 @@ class ExprTypeInferenceEngine {
 
   void ProcessPendingExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {
     if (expr.op == BinaryOp::Eq || expr.op == BinaryOp::Lt ||
-        expr.op == BinaryOp::Gt) {
+        expr.op == BinaryOp::Gt || expr.op == BinaryOp::NotEq) {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr.lhs, expr.rhs);
       RequireTypeForExpr(expr_ref, arena_.add(BasicType{.name = "Bool"}));

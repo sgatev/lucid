@@ -230,6 +230,32 @@ TEST_F(CompilerTest, EqInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(2)));
 }
 
+TEST_F(CompilerTest, NotEqInt32) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int32 {
+      if 1 != 1 {
+        return 2
+      } else {
+        return 3
+      }
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(3)));
+}
+
+TEST_F(CompilerTest, NotEqInt64) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int64 {
+      if 1 != 1 {
+        return 2
+      } else {
+        return 3
+      }
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(3)));
+}
+
 TEST_F(CompilerTest, EqFalse) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {

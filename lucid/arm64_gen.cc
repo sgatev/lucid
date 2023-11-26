@@ -269,6 +269,28 @@ class Arm64Generator {
     Append(", EQ\n");
   }
 
+  void Process(const NotEqReg32& inst) {
+    Append("CMP W");
+    Append(inst.lhs_reg);
+    Append(", W");
+    Append(inst.rhs_reg);
+    Append("\n");
+    Append("CSET W");
+    Append(inst.res_reg);
+    Append(", NE\n");
+  }
+
+  void Process(const NotEqReg64& inst) {
+    Append("CMP X");
+    Append(inst.lhs_reg);
+    Append(", X");
+    Append(inst.rhs_reg);
+    Append("\n");
+    Append("CSET X");
+    Append(inst.res_reg);
+    Append(", NE\n");
+  }
+
   void Process(const PushStack& inst) {
     Append("SUB SP, SP, #");
     Append(stack_size_);

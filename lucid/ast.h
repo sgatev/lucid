@@ -175,6 +175,9 @@ enum class BinaryOp {
 
   // Equals comparison operator.
   Eq,
+
+  // Not equals comparison operator.
+  NotEq,
 };
 
 // An expression that represents a binary operation over the values of two

@@ -17,7 +17,7 @@ class Lexer {
       : buffer_(buffer.data()), size_(buffer.size()), pos_(0) {}
 
   // Returns the next token in the buffer.
-  Token next() {
+  inline Token next() {
   start:
     if (pos_ == size_) return Token(Token::Kind::End, pos_, pos_);
 
@@ -47,6 +47,13 @@ class Lexer {
       if (buffer_[pos_] == '=') {
         ++pos_;
         return Token(Token::Kind::DoubleEqual, start_pos, pos_);
+      }
+    } else if (c == '!') {
+      ++pos_;
+      // `buffer_` is not empty as it must end in `\n`.
+      if (buffer_[pos_] == '=') {
+        ++pos_;
+        return Token(Token::Kind::NotEqual, start_pos, pos_);
       }
     } else {
       // Singleton.

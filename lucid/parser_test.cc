@@ -516,6 +516,34 @@ TEST_F(ParserTest, EqInts) {
       })));
 }
 
+TEST_F(ParserTest, NotEqInts) {
+  std::string_view src = R"(
+    let neq = (x: Int32, y: Int32) -> Bool {
+      return x != y
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "neq",
+          .result_type = MatchesBasicType({.name = "Bool"}),
+          .parameters =
+              {
+                  {.name = "x", .type = MatchesBasicType({.name = "Int32"})},
+                  {.name = "y", .type = MatchesBasicType({.name = "Int32"})},
+              },
+          .body = {{
+              MatchesReturnStmt({
+                  .value = MatchesBinaryOpExpr({
+                      .op = BinaryOp::NotEq,
+                      .lhs = MatchesIdentExpr({.name = "x"}),
+                      .rhs = MatchesIdentExpr({.name = "y"}),
+                  }),
+              }),
+          }},
+      })));
+}
+
 TEST_F(ParserTest, VarDecl) {
   std::string_view src = R"(
     let inc = (n: Int32) -> Int32 {

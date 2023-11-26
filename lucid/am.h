@@ -432,6 +432,44 @@ struct EqReg64 {
   }
 };
 
+// Tests the values in two 32-bit registers for a "not equals" relationship.
+struct NotEqReg32 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const NotEqReg32&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const NotEqReg32& inst) {
+    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
+              << ", .rhs_reg=" << inst.rhs_reg << "}";
+  }
+};
+
+// Tests the values in two 64-bit registers for a "not equals" relationship.
+struct NotEqReg64 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const NotEqReg64&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const NotEqReg64& inst) {
+    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
+              << ", .rhs_reg=" << inst.rhs_reg << "}";
+  }
+};
+
 // Pushes bytes onto the stack.
 struct PushStack {
   bool operator==(const PushStack&) const = default;
@@ -520,8 +558,8 @@ using Instruction =
                  UncondJump, CondJump, Label, Return, AddReg32, AddReg64,
                  SubReg32, SubReg64, MulReg32, MulReg64, DivReg32, DivReg64,
                  GtReg32, GtReg64, LtReg32, LtReg64, EqReg32, EqReg64,
-                 PushStack, PopStack, StoreStack32, StoreStack64, LoadStack32,
-                 LoadStack64>;
+                 NotEqReg32, NotEqReg64, PushStack, PopStack, StoreStack32,
+                 StoreStack64, LoadStack32, LoadStack64>;
 
 // Abstract machine function definition.
 struct Function {
