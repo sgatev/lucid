@@ -401,5 +401,49 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   EXPECT_THAT(last_block.statements, IsEmpty());
 }
 
+TEST_F(ControlFlowGraphTest, Loop) {
+  auto add_lhs_expr = A(IntLitExpr{.value = "2"});
+  auto add_rhs_expr = A(IntLitExpr{.value = "3"});
+  auto add_expr = A(BinaryOpExpr{
+      .op = BinaryOp::Add,
+      .lhs = add_lhs_expr,
+      .rhs = add_rhs_expr,
+  });
+  auto loop_stmt = A(LoopStmt{
+      .body = {{
+          add_expr,
+      }},
+  });
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
+      .name = "foo",
+      .body = {{
+          loop_stmt,
+      }},
+      .result_type = A(BasicType{.name = "Int32"}),
+  });
+
+  ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
+  const auto& first_block = graph.get(graph.first);
+  EXPECT_EQ(first_block.id, 0);
+  ASSERT_THAT(first_block.next, SizeIs(1));
+  EXPECT_THAT(first_block.statements, IsEmpty());
+
+  ASSERT_NE(first_block.next[0], ControlFlowGraph::kNullBlockRef);
+  const auto& loop_block = graph.get(first_block.next[0]);
+  EXPECT_EQ(loop_block.id, 3);
+  EXPECT_THAT(loop_block.next, ElementsAre(3));
+  EXPECT_THAT(loop_block.statements, ElementsAreArray({
+                                         add_lhs_expr,
+                                         add_rhs_expr,
+                                         add_expr,
+                                     }));
+
+  ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
+  const auto& last_block = graph.get(graph.last);
+  EXPECT_EQ(last_block.id, 1);
+  EXPECT_THAT(last_block.next, IsEmpty());
+  EXPECT_THAT(last_block.statements, IsEmpty());
+}
+
 }  // namespace
 }  // namespace lucid

@@ -72,6 +72,14 @@ struct IfStmtPattern {
   }
 };
 
+struct LoopStmtPattern {
+  CompoundStmtPattern body;
+
+  bool operator()(const LoopStmt& stmt) const {
+    return AllMatch(stmt.body.statements, body.statements);
+  }
+};
+
 struct IntLitExprPattern {
   TypeRefMatcher type;
   std::string_view value;
@@ -176,6 +184,10 @@ class AstFixture {
 
   StmtRefMatcher MatchesIfStmt(IfStmtPattern pattern) {
     return MatchesStmt<IfStmt>(std::move(pattern));
+  }
+
+  StmtRefMatcher MatchesLoopStmt(LoopStmtPattern pattern) {
+    return MatchesStmt<LoopStmt>(std::move(pattern));
   }
 
   ExprRefMatcher MatchesIntLitExpr(IntLitExprPattern pattern) {

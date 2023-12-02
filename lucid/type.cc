@@ -68,7 +68,9 @@ class ExprTypeInferenceEngine {
 
  private:
   void ProcessPendingStmt(StmtRef stmt_ref, const Stmt& stmt) {
-    if (auto* if_stmt = std::get_if<IfStmt>(&stmt)) {
+    if (auto* loop_stmt = std::get_if<LoopStmt>(&stmt)) {
+      ProcessPendingStmt(stmt_ref, *loop_stmt);
+    } else if (auto* if_stmt = std::get_if<IfStmt>(&stmt)) {
       ProcessPendingStmt(stmt_ref, *if_stmt);
     } else if (auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
       ProcessPendingStmt(stmt_ref, *return_stmt);
@@ -79,6 +81,10 @@ class ExprTypeInferenceEngine {
     } else if (auto* expr = std::get_if<Expr>(&stmt)) {
       ProcessPendingStmt(stmt_ref, *expr);
     }
+  }
+
+  void ProcessPendingStmt(StmtRef stmt_ref, const LoopStmt& stmt) {
+    AddPendingStmts(std::ranges::reverse_view(stmt.body.statements));
   }
 
   void ProcessPendingStmt(StmtRef stmt_ref, const IfStmt& stmt) {

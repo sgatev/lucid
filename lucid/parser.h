@@ -182,6 +182,17 @@ class Parser {
           .value = std::get<ExprRef>(maybe_value),
       });
     }
+    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "loop") {
+      Read();
+
+      LoopStmt loop_stmt;
+
+      auto body = ParseCompoundStmt();
+      if (IsError(body)) return std::get<ParserError>(body);
+      loop_stmt.body = std::get<CompoundStmt>(body);
+
+      return arena_.add(std::move(loop_stmt));
+    }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
       Read();
 

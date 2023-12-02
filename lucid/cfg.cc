@@ -38,7 +38,12 @@ class ControlFlowGraphBuilder {
 
   void BuildBlock(const CompoundStmt& stmt, BlockRef block, BlockRef end) {
     for (StmtRef stmt_ref : stmt.statements) {
-      if (auto* if_stmt = std::get_if<IfStmt>(&DerefStmt(stmt_ref))) {
+      if (auto* loop_stmt = std::get_if<LoopStmt>(&DerefStmt(stmt_ref))) {
+        auto post_loop_block = AddBlock();
+        ProcessStmt(*loop_stmt, block, post_loop_block);
+        FlushSubExprs(block, post_loop_block);
+        block = post_loop_block;
+      } else if (auto* if_stmt = std::get_if<IfStmt>(&DerefStmt(stmt_ref))) {
         auto post_if_block = AddBlock();
         ProcessStmt(*if_stmt, block, post_if_block);
         FlushSubExprs(block, post_if_block);
@@ -121,6 +126,12 @@ class ControlFlowGraphBuilder {
 
   void ProcessStmt(const FuncDefStmt& stmt, BlockRef block, BlockRef end) {
     // TODO: Does it make sense to have a `FuncDefStmt` as a nested statement?
+  }
+
+  void ProcessStmt(const LoopStmt& stmt, BlockRef block, BlockRef end) {
+    auto loop_block = AddBlock();
+    BuildBlock(stmt.body, loop_block, loop_block);
+    graph_.get(block).next.push_back(loop_block);
   }
 
   void ProcessStmt(const IfStmt& stmt, BlockRef block, BlockRef end) {

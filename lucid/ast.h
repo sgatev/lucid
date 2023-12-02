@@ -21,6 +21,7 @@ struct VarAssignStmt;
 struct IdentExpr;
 struct BinaryOpExpr;
 struct IfStmt;
+struct LoopStmt;
 struct BasicType;
 
 // A type expression in the Lucid language.
@@ -32,7 +33,7 @@ using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, VarDeclStmt, VarAssignStmt, FuncDefStmt,
-                          ReturnStmt, IfStmt>;
+                          ReturnStmt, IfStmt, LoopStmt>;
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
@@ -206,6 +207,12 @@ struct IfStmt {
 
   // Body of the branch where the condition is false.
   CompoundStmt else_body;
+};
+
+// A statement that represents loop execution.
+struct LoopStmt {
+  // Body of the loop.
+  CompoundStmt body;
 };
 
 // Basic type in the Lucid language.

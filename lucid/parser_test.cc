@@ -601,6 +601,34 @@ TEST_F(ParserTest, VarAssignment) {
       })));
 }
 
+TEST_F(ParserTest, LoopStmt) {
+  std::string_view src = R"(
+    let foo = () -> Int32 {
+      loop {
+        return 1
+      }
+      return 2
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = "foo",
+                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .body = {{
+                      MatchesLoopStmt({
+                          .body = {{
+                              MatchesReturnStmt({
+                                  .value = MatchesIntLitExpr({.value = "1"}),
+                              }),
+                          }},
+                      }),
+                      MatchesReturnStmt({
+                          .value = MatchesIntLitExpr({.value = "2"}),
+                      }),
+                  }},
+              })));
+}
+
 TEST_F(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
     = () -> Void {
@@ -849,6 +877,29 @@ TEST_F(ParserTest, MissingStringClosingQuote) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsError("incomplete string literal at line 3, column 11"));
+}
+
+TEST_F(ParserTest, MissingLoopOpenBrace) {
+  std::string_view src = R"(
+    let main = () -> Int32 {
+      loop
+        return 1
+      } 
+      return 2
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 9"));
+}
+
+TEST_F(ParserTest, MissingLoopCloseBrace) {
+  std::string_view src = R"(
+    let main = () -> Int32 {
+      loop {
+        return 1
+      return 2
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 7, column 3"));
 }
 
 }  // namespace

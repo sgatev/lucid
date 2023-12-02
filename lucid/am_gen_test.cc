@@ -2186,5 +2186,80 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
                                           PopStack{}, Return{}));
 }
 
+TEST_F(GenerateAbstractMachineFunctionTest, LoopStmt) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Int32"}),
+      .body = {{
+          A(LoopStmt{
+              .body = {{
+                  A(ReturnStmt{
+                      .value = A(IntLitExpr{.value = "1"}),
+                  }),
+              }},
+          }),
+          A(ReturnStmt{
+              .value = A(IntLitExpr{.value = "2"}),
+          }),
+      }},
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 2,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 3,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 0,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 1,
+                                              .dst_reg = 2,
+                                          },
+                                          PopStack{}, Return{},
+                                          Label{
+                                              .id = 2,
+                                          },
+                                          SetReg32{
+                                              .src_val = "2",
+                                              .dst_reg = 1,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 1,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 3,
+                                          },
+                                          SetReg32{
+                                              .src_val = "1",
+                                              .dst_reg = 2,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 2,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          }));
+}
+
 }  // namespace
 }  // namespace lucid
