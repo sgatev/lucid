@@ -366,6 +366,30 @@ TEST_F(CompilerTest, FibRec) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(21)));
 }
 
+TEST_F(CompilerTest, FibIter) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let fib = (n: Int32) -> Int32 {
+      let a: Int32 = 0
+      let b: Int32 = 1
+      loop {
+        if n == 0 {
+          return a
+        }
+
+        let c: Int32 = a
+        a = b
+        b = c + b
+        n = n - 1
+      }
+    }
+
+    let main = () -> Int32 {
+      return fib(8)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(21)));
+}
+
 TEST_F(CompilerTest, PrintInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let printf = (n: String, m: Int32) -> Int32 {
@@ -394,22 +418,6 @@ TEST_F(CompilerTest, PrintString) {
   )"));
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
               AllOf(ReturnsCode(Eq(0)), Prints("Hello, world!\n")));
-}
-
-TEST_F(CompilerTest, Loop) {
-  ASSERT_TRUE(CreateFile("main.lu", R"(
-    let main = () -> Int32 {
-      let n: Int32 = 1
-      loop {
-        if n > 3 {
-          return n
-        }
-        n = n + 1
-      }
-      return 0
-    }
-  )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(4)));
 }
 
 }  // namespace
