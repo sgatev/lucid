@@ -56,6 +56,11 @@ class ControlFlowGraphBuilder {
           graph_.get(block).next.push_back(graph_.last);
           return;
         }
+
+        if (std::holds_alternative<BreakStmt>(DerefStmt(stmt_ref))) {
+          graph_.get(block).next.push_back(post_loop_blocks_.top());
+          return;
+        }
       }
     }
 
@@ -129,10 +134,16 @@ class ControlFlowGraphBuilder {
   }
 
   void ProcessStmt(const LoopStmt& stmt, BlockRef block, BlockRef end) {
+    post_loop_blocks_.push(end);
+
     auto loop_block = AddBlock();
     BuildBlock(stmt.body, loop_block, loop_block);
     graph_.get(block).next.push_back(loop_block);
+
+    post_loop_blocks_.pop();
   }
+
+  void ProcessStmt(const BreakStmt& stmt, BlockRef block, BlockRef end) {}
 
   void ProcessStmt(const IfStmt& stmt, BlockRef block, BlockRef end) {
     auto then_block = AddBlock();
@@ -160,6 +171,7 @@ class ControlFlowGraphBuilder {
   const Arena<Stmt>& arena_;
   std::stack<StmtRef, std::vector<StmtRef>> pending_sub_exprs_;
   ControlFlowGraph graph_;
+  std::stack<BlockRef> post_loop_blocks_;
 };
 
 }  // namespace

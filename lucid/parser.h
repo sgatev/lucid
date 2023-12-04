@@ -238,6 +238,11 @@ class Parser {
           .init = std::get<ExprRef>(init),
       });
     }
+    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "break") {
+      Read();
+
+      return arena_.add(BreakStmt{});
+    }
     if (Peek().kind == Token::Kind::Ident) {
       const auto maybe_ident = ParseIdent();
       if (IsError(maybe_ident)) return std::get<ParserError>(maybe_ident);

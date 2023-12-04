@@ -23,6 +23,7 @@ struct BinaryOpExpr;
 struct IfStmt;
 struct LoopStmt;
 struct BasicType;
+struct BreakStmt;
 
 // A type expression in the Lucid language.
 using Type = std::variant<BasicType>;
@@ -33,7 +34,7 @@ using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, VarDeclStmt, VarAssignStmt, FuncDefStmt,
-                          ReturnStmt, IfStmt, LoopStmt>;
+                          ReturnStmt, IfStmt, LoopStmt, BreakStmt>;
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
@@ -214,6 +215,9 @@ struct LoopStmt {
   // Body of the loop.
   CompoundStmt body;
 };
+
+// A statement that breaks from the inner-most loop execution.
+struct BreakStmt {};
 
 // Basic type in the Lucid language.
 struct BasicType {

@@ -420,5 +420,26 @@ TEST_F(CompilerTest, PrintString) {
               AllOf(ReturnsCode(Eq(0)), Prints("Hello, world!\n")));
 }
 
+TEST_F(CompilerTest, LoopAndBreak) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let four = () -> Int32 {
+      let n: Int32 = 0
+      loop {
+        if n > 3 {
+          break
+        }
+
+        n = n + 1
+      }
+      return n
+    }
+
+    let main = () -> Int32 {
+      return four()
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(4)));
+}
+
 }  // namespace
 }  // namespace lucid

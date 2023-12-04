@@ -425,7 +425,7 @@ TEST_F(ControlFlowGraphTest, Loop) {
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
-  ASSERT_THAT(first_block.next, SizeIs(1));
+  ASSERT_THAT(first_block.next, ElementsAre(3));
   EXPECT_THAT(first_block.statements, IsEmpty());
 
   ASSERT_NE(first_block.next[0], ControlFlowGraph::kNullBlockRef);
@@ -437,6 +437,114 @@ TEST_F(ControlFlowGraphTest, Loop) {
                                          add_rhs_expr,
                                          add_expr,
                                      }));
+
+  ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
+  const auto& last_block = graph.get(graph.last);
+  EXPECT_EQ(last_block.id, 1);
+  EXPECT_THAT(last_block.next, IsEmpty());
+  EXPECT_THAT(last_block.statements, IsEmpty());
+}
+
+TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
+  auto n_var_init_ref = A(IntLitExpr{
+      .value = "0",
+  });
+  auto n_var_decl_ref = A(VarDeclStmt{
+      .type = A(BasicType{.name = "Int32"}),
+      .name = "n",
+      .init = n_var_init_ref,
+  });
+  auto if_cond_lhs_ref = A(IdentExpr{.name = "n"});
+  auto if_cond_rhs_ref = A(IntLitExpr{.value = "3"});
+  auto if_cond_ref = A(BinaryOpExpr{
+      .op = BinaryOp::Gt,
+      .lhs = if_cond_lhs_ref,
+      .rhs = if_cond_rhs_ref,
+  });
+  auto break_stmt_ref = A(BreakStmt{});
+  auto if_stmt = A(IfStmt{
+      .cond = if_cond_ref,
+      .then_body = {{
+          break_stmt_ref,
+      }},
+  });
+  auto var_assign_lhs_ref = A(IdentExpr{.name = "n"});
+  auto var_assign_rhs_ref = A(IntLitExpr{.value = "1"});
+  auto binary_op_expr_ref = A(BinaryOpExpr{
+      .op = BinaryOp::Add,
+      .lhs = var_assign_lhs_ref,
+      .rhs = var_assign_rhs_ref,
+  });
+  auto var_assign_stmt_ref = A(VarAssignStmt{
+      .name = "n",
+      .expr = binary_op_expr_ref,
+  });
+  auto loop_stmt = A(LoopStmt{
+      .body = {{
+          if_stmt,
+          var_assign_stmt_ref,
+      }},
+  });
+  auto return_value_ref = A(IdentExpr{.name = "n"});
+  auto return_stmt = A(ReturnStmt{
+      .value = return_value_ref,
+  });
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
+      .name = "foo",
+      .body = {{
+          n_var_decl_ref,
+          loop_stmt,
+          return_stmt,
+      }},
+      .result_type = A(BasicType{.name = "Int32"}),
+  });
+
+  ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
+  const auto& first_block = graph.get(graph.first);
+  EXPECT_EQ(first_block.id, 0);
+  ASSERT_THAT(first_block.next, ElementsAre(3));
+  EXPECT_THAT(first_block.statements, ElementsAreArray({
+                                          n_var_init_ref,
+                                          n_var_decl_ref,
+                                      }));
+
+  ASSERT_NE(first_block.next[0], ControlFlowGraph::kNullBlockRef);
+  const auto& loop_block = graph.get(first_block.next[0]);
+  EXPECT_EQ(loop_block.id, 3);
+  EXPECT_THAT(loop_block.next, ElementsAre(5, 4));
+  EXPECT_THAT(loop_block.statements, ElementsAreArray({
+                                         if_cond_lhs_ref,
+                                         if_cond_rhs_ref,
+                                         if_cond_ref,
+                                     }));
+
+  ASSERT_NE(loop_block.next[0], ControlFlowGraph::kNullBlockRef);
+  const auto& if_then_block = graph.get(loop_block.next[0]);
+  EXPECT_EQ(if_then_block.id, 5);
+  EXPECT_THAT(if_then_block.next, ElementsAre(2));
+  EXPECT_THAT(if_then_block.statements, ElementsAreArray({
+                                            break_stmt_ref,
+                                        }));
+
+  ASSERT_NE(loop_block.next[1], ControlFlowGraph::kNullBlockRef);
+  const auto& post_if_block = graph.get(loop_block.next[1]);
+  EXPECT_EQ(post_if_block.id, 4);
+  EXPECT_THAT(post_if_block.next, ElementsAre(3));
+  EXPECT_THAT(post_if_block.statements, ElementsAreArray({
+                                            var_assign_lhs_ref,
+                                            var_assign_rhs_ref,
+                                            binary_op_expr_ref,
+                                            var_assign_stmt_ref,
+                                        }));
+
+  ASSERT_NE(if_then_block.next[0], ControlFlowGraph::kNullBlockRef);
+  const auto& post_loop_block = graph.get(if_then_block.next[0]);
+  EXPECT_EQ(post_loop_block.id, 2);
+  EXPECT_THAT(post_loop_block.next, ElementsAre(graph.last));
+  EXPECT_THAT(post_loop_block.statements, ElementsAreArray({
+                                              return_value_ref,
+                                              return_stmt,
+                                          }));
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);

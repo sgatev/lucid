@@ -305,6 +305,8 @@ class AbstractMachineFunctionGenerator {
     }
   }
 
+  void Process(StmtRef stmt_ref, const BreakStmt& stmt) {}
+
   void ProcessExpr(ExprRef ref, const IdentExpr& expr) {
     auto expr_type = std::get<BasicType>(DerefType(expr.type));
     RegId reg = next_reg_++;

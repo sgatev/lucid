@@ -2186,7 +2186,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
                                           PopStack{}, Return{}));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, LoopStmt) {
+TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = A(BasicType{.name = "Int32"}),
@@ -2258,6 +2258,195 @@ TEST_F(GenerateAbstractMachineFunctionTest, LoopStmt) {
                                           },
                                           UncondJump{
                                               .label = 1,
+                                          }));
+}
+
+TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .body = {{
+          A(VarDeclStmt{
+              .type = A(BasicType{.name = "Int32"}),
+              .name = "n",
+              .init = A(IntLitExpr{
+                  .value = "0",
+              }),
+          }),
+          A(LoopStmt{
+              .body = {{
+                  A(IfStmt{
+                      .cond = A(BinaryOpExpr{
+                          .op = BinaryOp::Gt,
+                          .lhs = A(IdentExpr{.name = "n"}),
+                          .rhs = A(IntLitExpr{.value = "3"}),
+                      }),
+                      .then_body = {{
+                          A(BreakStmt{}),
+                      }},
+                  }),
+                  A(VarAssignStmt{
+                      .name = "n",
+                      .expr = A(BinaryOpExpr{
+                          .op = BinaryOp::Add,
+                          .lhs = A(IdentExpr{.name = "n"}),
+                          .rhs = A(IntLitExpr{.value = "1"}),
+                      }),
+                  }),
+              }},
+          }),
+          A(ReturnStmt{
+              .value = A(IdentExpr{.name = "n"}),
+          }),
+      }},
+      .result_type = A(BasicType{.name = "Int32"}),
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 2,
+                                              .src_reg = 2,
+                                          },
+                                          StoreStack64{
+                                              .offset = 3,
+                                              .src_reg = 3,
+                                          },
+                                          StoreStack64{
+                                              .offset = 4,
+                                              .src_reg = 4,
+                                          },
+                                          StoreStack64{
+                                              .offset = 5,
+                                              .src_reg = 5,
+                                          },
+                                          StoreStack64{
+                                              .offset = 6,
+                                              .src_reg = 6,
+                                          },
+                                          StoreStack64{
+                                              .offset = 7,
+                                              .src_reg = 7,
+                                          },
+                                          StoreStack64{
+                                              .offset = 8,
+                                              .src_reg = 8,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          SetReg32{
+                                              .src_val = "0",
+                                              .dst_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          UncondJump{
+                                              .label = 3,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 1,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 2,
+                                              .dst_reg = 2,
+                                          },
+                                          LoadStack64{
+                                              .offset = 3,
+                                              .dst_reg = 3,
+                                          },
+                                          LoadStack64{
+                                              .offset = 4,
+                                              .dst_reg = 4,
+                                          },
+                                          LoadStack64{
+                                              .offset = 5,
+                                              .dst_reg = 5,
+                                          },
+                                          LoadStack64{
+                                              .offset = 6,
+                                              .dst_reg = 6,
+                                          },
+                                          LoadStack64{
+                                              .offset = 7,
+                                              .dst_reg = 7,
+                                          },
+                                          LoadStack64{
+                                              .offset = 8,
+                                              .dst_reg = 8,
+                                          },
+                                          PopStack{}, Return{},
+                                          Label{
+                                              .id = 2,
+                                          },
+                                          LoadStack32{
+                                              .offset = 0,
+                                              .dst_reg = 2,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 2,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 3,
+                                          },
+                                          LoadStack32{
+                                              .offset = 0,
+                                              .dst_reg = 3,
+                                          },
+                                          SetReg32{
+                                              .src_val = "3",
+                                              .dst_reg = 4,
+                                          },
+                                          GtReg32{
+                                              .res_reg = 5,
+                                              .lhs_reg = 3,
+                                              .rhs_reg = 4,
+                                          },
+                                          CondJump{
+                                              .cond_reg = 5,
+                                              .then_label = 5,
+                                              .else_label = 4,
+                                          },
+                                          Label{
+                                              .id = 4,
+                                          },
+                                          LoadStack32{
+                                              .offset = 0,
+                                              .dst_reg = 6,
+                                          },
+                                          SetReg32{
+                                              .src_val = "1",
+                                              .dst_reg = 7,
+                                          },
+                                          AddReg32{
+                                              .res_reg = 8,
+                                              .lhs_reg = 6,
+                                              .rhs_reg = 7,
+                                          },
+                                          StoreStack32{
+                                              .offset = 0,
+                                              .src_reg = 8,
+                                          },
+                                          UncondJump{
+                                              .label = 3,
+                                          },
+                                          Label{
+                                              .id = 5,
+                                          },
+                                          UncondJump{
+                                              .label = 2,
                                           }));
 }
 

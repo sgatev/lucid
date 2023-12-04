@@ -190,6 +190,8 @@ class AstFixture {
     return MatchesStmt<LoopStmt>(std::move(pattern));
   }
 
+  StmtRefMatcher MatchesBreakStmt() { return MatchesStmt<BreakStmt>(); }
+
   ExprRefMatcher MatchesIntLitExpr(IntLitExprPattern pattern) {
     return MatchesExpr<IntLitExpr>(std::move(pattern));
   }
@@ -229,6 +231,13 @@ class AstFixture {
   Arena<Stmt> arena_;
 
  private:
+  template <typename S>
+  ExprRefMatcher MatchesStmt() {
+    return [this](ExprRef ref) {
+      return std::holds_alternative<S>(arena_.get(ref));
+    };
+  }
+
   template <typename S, typename P>
   ExprRefMatcher MatchesStmt(P pattern) {
     return [this, pattern](ExprRef ref) {

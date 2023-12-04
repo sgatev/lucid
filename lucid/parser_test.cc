@@ -601,11 +601,11 @@ TEST_F(ParserTest, VarAssignment) {
       })));
 }
 
-TEST_F(ParserTest, LoopStmt) {
+TEST_F(ParserTest, LoopAndBreakStmt) {
   std::string_view src = R"(
     let foo = () -> Int32 {
       loop {
-        return 1
+        break
       }
       return 2
     }
@@ -617,9 +617,7 @@ TEST_F(ParserTest, LoopStmt) {
                   .body = {{
                       MatchesLoopStmt({
                           .body = {{
-                              MatchesReturnStmt({
-                                  .value = MatchesIntLitExpr({.value = "1"}),
-                              }),
+                              MatchesBreakStmt(),
                           }},
                       }),
                       MatchesReturnStmt({
