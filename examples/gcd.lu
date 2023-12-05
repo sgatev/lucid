@@ -1,0 +1,17 @@
+let gcd = (a: Int32, b: Int32) -> Int32 {
+  loop {
+    if a == b {
+      break
+    }
+    if a > b {
+      a = a - b
+    } else {
+      b = b - a
+    }
+  }
+  return a
+}
+
+let main = () -> Int32 {
+  return gcd(252, 105)
+}
