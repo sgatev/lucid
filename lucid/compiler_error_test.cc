@@ -23,10 +23,10 @@ TEST_F(CompilerTest, MissingArguments) {
               AllOf(ReturnsCode(Eq(0)), Prints(Eq(R"(Usage: lucid <command> ...
 
 Available commands:
-  build 	Compiles the specified target and builds a binary.
-  compile 	Compiles the specified target.
-  run 	Compiles the specified target, builds a binary, and runs it.
-  version 	Prints version information for lucid.
+  build    Compiles the specified target and builds a binary.
+  compile  Compiles the specified target.
+  run      Compiles the specified target, builds a binary, and runs it.
+  version  Prints version information for lucid.
 )"))));
 }
 

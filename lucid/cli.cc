@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <iomanip>
 #include <span>
 #include <string>
 #include <string_view>
@@ -14,7 +15,8 @@ int RunCommand(std::string_view root_name,
     ctx.out << "Usage: " << root_name << " <command> ...\n\n"
             << "Available commands:\n";
     for (const auto& command : commands) {
-      ctx.out << "  " << command.name << " \t" << command.help << "\n";
+      ctx.out << std::left << "  " << std::setw(8) << command.name << " "
+              << command.help << "\n";
     }
     return 0;
   }
