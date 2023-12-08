@@ -169,6 +169,9 @@ enum class BinaryOp {
   // Binary division operation.
   Div,
 
+  // Binary modulo operation.
+  Mod,
+
   // Greater than comparison operation.
   Gt,
 

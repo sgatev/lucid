@@ -100,6 +100,24 @@ TEST_F(CompilerTest, DivInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(4)));
 }
 
+TEST_F(CompilerTest, ModInt32) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int32 {
+      return 23 % 7
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(2)));
+}
+
+TEST_F(CompilerTest, ModInt64) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int64 {
+      return 17 % 5
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(2)));
+}
+
 TEST_F(CompilerTest, IfStmtThenBranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {

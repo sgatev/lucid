@@ -549,6 +549,82 @@ RET
 )");
 }
 
+TEST_F(GenerateArmAssemblySourceTest, ModuloInt32) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Int32"}),
+      .body = {{
+          A(ReturnStmt{
+              .value = A(BinaryOpExpr{
+                  .op = BinaryOp::Mod,
+                  .lhs = A(IntLitExpr{.value = "8"}),
+                  .rhs = A(IntLitExpr{.value = "2"}),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+STP X29, X30, [SP, #-16]!
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
+foo0:
+MOV W1, #8
+MOV W2, #2
+UDIV W3, W1, W2
+MSUB W3, W3, W2, W1
+MOV W0, W3
+B foo1
+foo1:
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
+LDP X29, X30, [SP], #16
+RET
+)");
+}
+
+TEST_F(GenerateArmAssemblySourceTest, ModuloInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Int64"}),
+      .body = {{
+          A(ReturnStmt{
+              .value = A(BinaryOpExpr{
+                  .op = BinaryOp::Mod,
+                  .lhs = A(IntLitExpr{.value = "8"}),
+                  .rhs = A(IntLitExpr{.value = "2"}),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_EQ(Generate(func), R"(foo:
+STP X29, X30, [SP, #-16]!
+SUB SP, SP, #32
+STR X1, [SP, #0]
+STR X2, [SP, #8]
+STR X3, [SP, #16]
+foo0:
+MOV X1, #8
+MOV X2, #2
+UDIV X3, X1, X2
+MSUB X3, X3, X2, X1
+MOV X0, X3
+B foo1
+foo1:
+LDR X1, [SP, #0]
+LDR X2, [SP, #8]
+LDR X3, [SP, #16]
+ADD SP, SP, #32
+LDP X29, X30, [SP], #16
+RET
+)");
+}
+
 TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
   auto func = FuncDefStmt{
       .name = "foo",

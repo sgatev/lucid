@@ -175,6 +175,32 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
               })));
 }
 
+TEST_F(ParserTest, ReturnModBinaryOpExpr) {
+  std::string_view src = R"(
+    let main = () -> Int32 {
+      return 3 % 2
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = "main",
+                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .body = {{
+                      MatchesReturnStmt({
+                          .value = MatchesBinaryOpExpr({
+                              .op = BinaryOp::Mod,
+                              .lhs = MatchesIntLitExpr({
+                                  .value = "3",
+                              }),
+                              .rhs = MatchesIntLitExpr({
+                                  .value = "2",
+                              }),
+                          }),
+                      }),
+                  }},
+              })));
+}
+
 TEST_F(ParserTest, ReturnGtBinaryOpExpr) {
   std::string_view src = R"(
     let foo = () -> Bool {

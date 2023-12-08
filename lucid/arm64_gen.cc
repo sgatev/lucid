@@ -203,6 +203,46 @@ class Arm64Generator {
     Append("\n");
   }
 
+  void Process(const ModReg32& inst) {
+    Append("UDIV W");
+    Append(inst.res_reg);
+    Append(", W");
+    Append(inst.lhs_reg);
+    Append(", W");
+    Append(inst.rhs_reg);
+    Append("\n");
+
+    Append("MSUB W");
+    Append(inst.res_reg);
+    Append(", W");
+    Append(inst.res_reg);
+    Append(", W");
+    Append(inst.rhs_reg);
+    Append(", W");
+    Append(inst.lhs_reg);
+    Append("\n");
+  }
+
+  void Process(const ModReg64& inst) {
+    Append("UDIV X");
+    Append(inst.res_reg);
+    Append(", X");
+    Append(inst.lhs_reg);
+    Append(", X");
+    Append(inst.rhs_reg);
+    Append("\n");
+
+    Append("MSUB X");
+    Append(inst.res_reg);
+    Append(", X");
+    Append(inst.res_reg);
+    Append(", X");
+    Append(inst.rhs_reg);
+    Append(", X");
+    Append(inst.lhs_reg);
+    Append("\n");
+  }
+
   void Process(const GtReg32& inst) {
     Append("CMP W");
     Append(inst.lhs_reg);

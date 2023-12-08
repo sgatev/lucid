@@ -318,6 +318,46 @@ struct DivReg64 {
   }
 };
 
+// Computes the remainder after dividing the contents of one 32-bit register by
+// another.
+struct ModReg32 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const ModReg32&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const ModReg32& inst) {
+    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
+              << ", .rhs_reg=" << inst.rhs_reg << "}";
+  }
+};
+
+// Computes the remainder after dividing the contents of one 64-bit register by
+// another.
+struct ModReg64 {
+  // Result register.
+  RegId res_reg;
+
+  // First operand register.
+  RegId lhs_reg;
+
+  // Second operand register.
+  RegId rhs_reg;
+
+  bool operator==(const ModReg64&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const ModReg64& inst) {
+    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
+              << ", .rhs_reg=" << inst.rhs_reg << "}";
+  }
+};
+
 // Tests the values in two 32-bit registers for a "greater than" relationship.
 struct GtReg32 {
   // Result register.
@@ -557,9 +597,9 @@ using Instruction =
     std::variant<Nop, MoveReg32, MoveReg64, SetReg32, SetReg64, SetStr, Jump,
                  UncondJump, CondJump, Label, Return, AddReg32, AddReg64,
                  SubReg32, SubReg64, MulReg32, MulReg64, DivReg32, DivReg64,
-                 GtReg32, GtReg64, LtReg32, LtReg64, EqReg32, EqReg64,
-                 NotEqReg32, NotEqReg64, PushStack, PopStack, StoreStack32,
-                 StoreStack64, LoadStack32, LoadStack64>;
+                 ModReg32, ModReg64, GtReg32, GtReg64, LtReg32, LtReg64,
+                 EqReg32, EqReg64, NotEqReg32, NotEqReg64, PushStack, PopStack,
+                 StoreStack32, StoreStack64, LoadStack32, LoadStack64>;
 
 // Abstract machine function definition.
 struct Function {

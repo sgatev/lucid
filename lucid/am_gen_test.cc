@@ -810,6 +810,144 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
                                           PopStack{}, Return{}));
 }
 
+TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Int32"}),
+      .body = {{
+          A(ReturnStmt{
+              .value = A(BinaryOpExpr{
+                  .op = BinaryOp::Mod,
+                  .lhs = A(IntLitExpr{.value = "8"}),
+                  .rhs = A(IntLitExpr{.value = "2"}),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 2,
+                                          },
+                                          StoreStack64{
+                                              .offset = 2,
+                                              .src_reg = 3,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          SetReg32{
+                                              .src_val = "8",
+                                              .dst_reg = 1,
+                                          },
+                                          SetReg32{
+                                              .src_val = "2",
+                                              .dst_reg = 2,
+                                          },
+                                          ModReg32{
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 3,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 0,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 1,
+                                              .dst_reg = 2,
+                                          },
+                                          LoadStack64{
+                                              .offset = 2,
+                                              .dst_reg = 3,
+                                          },
+                                          PopStack{}, Return{}));
+}
+
+TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Int64"}),
+      .body = {{
+          A(ReturnStmt{
+              .value = A(BinaryOpExpr{
+                  .op = BinaryOp::Mod,
+                  .lhs = A(IntLitExpr{.value = "8"}),
+                  .rhs = A(IntLitExpr{.value = "2"}),
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 2,
+                                          },
+                                          StoreStack64{
+                                              .offset = 2,
+                                              .src_reg = 3,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          SetReg64{
+                                              .src_val = "8",
+                                              .dst_reg = 1,
+                                          },
+                                          SetReg64{
+                                              .src_val = "2",
+                                              .dst_reg = 2,
+                                          },
+                                          ModReg64{
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
+                                          },
+                                          MoveReg64{
+                                              .src_reg = 3,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 0,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 1,
+                                              .dst_reg = 2,
+                                          },
+                                          LoadStack64{
+                                              .offset = 2,
+                                              .dst_reg = 3,
+                                          },
+                                          PopStack{}, Return{}));
+}
+
 TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
   auto func = FuncDefStmt{
       .name = "foo",

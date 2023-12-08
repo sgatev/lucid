@@ -389,6 +389,21 @@ class AbstractMachineFunctionGenerator {
           });
         }
         break;
+      case BinaryOp::Mod:
+        if (expr_type.name == "Int32") {
+          state_.func.instructions.push_back(ModReg32{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        } else if (expr_type.name == "Int64") {
+          state_.func.instructions.push_back(ModReg64{
+              .res_reg = reg,
+              .lhs_reg = state_.out_reg[expr.lhs],
+              .rhs_reg = state_.out_reg[expr.rhs],
+          });
+        }
+        break;
       case BinaryOp::Gt:
         if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(GtReg64{

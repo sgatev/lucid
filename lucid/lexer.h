@@ -90,6 +90,7 @@ class Lexer {
     kind['|'] = Token::Kind::Bar;
     kind['#'] = Token::Kind::Comment;
     kind['"'] = Token::Kind::String;
+    kind['%'] = Token::Kind::Percent;
     for (char c = 'a'; c <= 'z'; ++c) kind[c] = Token::Kind::Ident;
     for (char c = 'A'; c <= 'Z'; ++c) kind[c] = Token::Kind::Ident;
     for (char c = '0'; c <= '9'; ++c) kind[c] = Token::Kind::Number;
