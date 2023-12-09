@@ -1,0 +1,27 @@
+let printf = (n: String, m: Int32) -> Int32 {
+  return 0
+}
+
+let main = () -> Int32 {
+  let n: Int32 = 1
+  loop {
+    if n > 30 {
+      break
+    }
+
+    let r3: Int32 = n % 3
+    let r5: Int32 = n % 5
+    if r3 == 0 {
+      printf("fizz\n", 0)
+    } else {
+      if r5 == 0 {
+        printf("buzz\n", 0)
+      } else {
+        printf("%d\n", n)
+      }
+    }
+
+    n = n + 1
+  }
+  return 0
+}
