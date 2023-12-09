@@ -653,6 +653,202 @@ TEST_F(ParserTest, LoopAndBreakStmt) {
               })));
 }
 
+TEST_F(ParserTest, EqOverMod) {
+  std::string_view src = R"(
+    let foo = (a: Int32, b: Int32) -> Int32 {
+      if a % b == 10 {
+        return 1
+      }
+      return 2
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "foo",
+          .parameters =
+              {
+                  {.name = "a", .type = MatchesBasicType({.name = "Int32"})},
+                  {.name = "b", .type = MatchesBasicType({.name = "Int32"})},
+              },
+          .result_type = MatchesBasicType({.name = "Int32"}),
+          .body = {{
+              MatchesIfStmt({
+                  .cond = MatchesBinaryOpExpr({
+                      .op = BinaryOp::Eq,
+                      .lhs = MatchesBinaryOpExpr({
+                          .op = BinaryOp::Mod,
+                          .lhs = MatchesIdentExpr({
+                              .name = "a",
+                          }),
+                          .rhs = MatchesIdentExpr({
+                              .name = "b",
+                          }),
+                      }),
+                      .rhs = MatchesIntLitExpr({
+                          .value = "10",
+                      }),
+                  }),
+                  .then_body = {{
+                      MatchesReturnStmt({
+                          .value = MatchesIntLitExpr({.value = "1"}),
+                      }),
+                  }},
+              }),
+              MatchesReturnStmt({
+                  .value = MatchesIntLitExpr({.value = "2"}),
+              }),
+          }},
+      })));
+}
+
+TEST_F(ParserTest, NotEqOverAdd) {
+  std::string_view src = R"(
+    let foo = (a: Int32, b: Int32) -> Int32 {
+      if a + b != 10 {
+        return 1
+      }
+      return 2
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "foo",
+          .parameters =
+              {
+                  {.name = "a", .type = MatchesBasicType({.name = "Int32"})},
+                  {.name = "b", .type = MatchesBasicType({.name = "Int32"})},
+              },
+          .result_type = MatchesBasicType({.name = "Int32"}),
+          .body = {{
+              MatchesIfStmt({
+                  .cond = MatchesBinaryOpExpr({
+                      .op = BinaryOp::NotEq,
+                      .lhs = MatchesBinaryOpExpr({
+                          .op = BinaryOp::Add,
+                          .lhs = MatchesIdentExpr({
+                              .name = "a",
+                          }),
+                          .rhs = MatchesIdentExpr({
+                              .name = "b",
+                          }),
+                      }),
+                      .rhs = MatchesIntLitExpr({
+                          .value = "10",
+                      }),
+                  }),
+                  .then_body = {{
+                      MatchesReturnStmt({
+                          .value = MatchesIntLitExpr({.value = "1"}),
+                      }),
+                  }},
+              }),
+              MatchesReturnStmt({
+                  .value = MatchesIntLitExpr({.value = "2"}),
+              }),
+          }},
+      })));
+}
+
+TEST_F(ParserTest, GtOverMul) {
+  std::string_view src = R"(
+    let foo = (a: Int32, b: Int32) -> Int32 {
+      if a * b > 10 {
+        return 1
+      }
+      return 2
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "foo",
+          .parameters =
+              {
+                  {.name = "a", .type = MatchesBasicType({.name = "Int32"})},
+                  {.name = "b", .type = MatchesBasicType({.name = "Int32"})},
+              },
+          .result_type = MatchesBasicType({.name = "Int32"}),
+          .body = {{
+              MatchesIfStmt({
+                  .cond = MatchesBinaryOpExpr({
+                      .op = BinaryOp::Gt,
+                      .lhs = MatchesBinaryOpExpr({
+                          .op = BinaryOp::Mul,
+                          .lhs = MatchesIdentExpr({
+                              .name = "a",
+                          }),
+                          .rhs = MatchesIdentExpr({
+                              .name = "b",
+                          }),
+                      }),
+                      .rhs = MatchesIntLitExpr({
+                          .value = "10",
+                      }),
+                  }),
+                  .then_body = {{
+                      MatchesReturnStmt({
+                          .value = MatchesIntLitExpr({.value = "1"}),
+                      }),
+                  }},
+              }),
+              MatchesReturnStmt({
+                  .value = MatchesIntLitExpr({.value = "2"}),
+              }),
+          }},
+      })));
+}
+
+TEST_F(ParserTest, LtOverSub) {
+  std::string_view src = R"(
+    let foo = (a: Int32, b: Int32) -> Int32 {
+      if a - b < 10 {
+        return 1
+      }
+      return 2
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "foo",
+          .parameters =
+              {
+                  {.name = "a", .type = MatchesBasicType({.name = "Int32"})},
+                  {.name = "b", .type = MatchesBasicType({.name = "Int32"})},
+              },
+          .result_type = MatchesBasicType({.name = "Int32"}),
+          .body = {{
+              MatchesIfStmt({
+                  .cond = MatchesBinaryOpExpr({
+                      .op = BinaryOp::Lt,
+                      .lhs = MatchesBinaryOpExpr({
+                          .op = BinaryOp::Sub,
+                          .lhs = MatchesIdentExpr({
+                              .name = "a",
+                          }),
+                          .rhs = MatchesIdentExpr({
+                              .name = "b",
+                          }),
+                      }),
+                      .rhs = MatchesIntLitExpr({
+                          .value = "10",
+                      }),
+                  }),
+                  .then_body = {{
+                      MatchesReturnStmt({
+                          .value = MatchesIntLitExpr({.value = "1"}),
+                      }),
+                  }},
+              }),
+              MatchesReturnStmt({
+                  .value = MatchesIntLitExpr({.value = "2"}),
+              }),
+          }},
+      })));
+}
+
 TEST_F(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
     = () -> Void {

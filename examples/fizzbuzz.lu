@@ -9,12 +9,10 @@ let main = () -> Int32 {
       break
     }
 
-    let r3: Int32 = n % 3
-    let r5: Int32 = n % 5
-    if r3 == 0 {
+    if n % 3 == 0 {
       printf("fizz\n", 0)
     } else {
-      if r5 == 0 {
+      if n % 5 == 0 {
         printf("buzz\n", 0)
       } else {
         printf("%d\n", n)
