@@ -25,8 +25,7 @@ cc_test(
         ":ast_fixture",
         ":cfg",
         ":type",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -39,7 +38,7 @@ cc_binary(
         ":cfg",
         ":lexer",
         ":parser",
-        "@gbench//:benchmark",
+        "@google_benchmark//:benchmark",
     ],
 )
 
@@ -53,8 +52,7 @@ cc_test(
     srcs = ["arena_test.cc"],
     deps = [
         ":arena",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -79,8 +77,7 @@ cc_test(
         ":ast_fixture",
         ":cfg",
         ":type",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -120,8 +117,7 @@ cc_test(
         ":ast",
         ":ast_fixture",
         ":cfg",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -136,8 +132,7 @@ cc_test(
     srcs = ["cli_test.cc"],
     deps = [
         ":cli",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -174,8 +169,7 @@ cc_test(
         ":cli",
         ":compiler_test_fixture",
         ":file",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -189,8 +183,7 @@ cc_test(
         ":cli",
         ":compiler_test_fixture",
         ":file",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -201,7 +194,7 @@ cc_library(
     deps = [
         ":cli",
         ":file",
-        "@gtest",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -219,8 +212,7 @@ cc_test(
     ],
     deps = [
         ":file",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -238,8 +230,7 @@ cc_test(
     deps = [
         ":lexer",
         ":token",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -249,7 +240,7 @@ cc_binary(
     deps = [
         ":lexer",
         ":token",
-        "@gbench//:benchmark",
+        "@google_benchmark//:benchmark",
     ],
 )
 
@@ -268,8 +259,7 @@ cc_test(
     deps = [
         ":am",
         ":opt",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -293,8 +283,7 @@ cc_test(
         ":ast_fixture",
         ":lexer",
         ":parser",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -307,7 +296,7 @@ cc_binary(
         ":lexer",
         ":parser",
         ":token",
-        "@gbench//:benchmark",
+        "@google_benchmark//:benchmark",
     ],
 )
 
@@ -322,8 +311,7 @@ cc_test(
     srcs = ["token_test.cc"],
     deps = [
         ":token",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -344,8 +332,7 @@ cc_test(
         ":ast",
         ":ast_fixture",
         ":type",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@googletest//:gtest_main",
     ],
 )
 

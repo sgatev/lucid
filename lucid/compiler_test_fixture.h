@@ -92,7 +92,7 @@ class CompilerTest : public testing::Test {
     };
   }
 
-  const std::filesystem::path runtime_dir_ = testing::SrcDir() + "__main__";
+  const std::filesystem::path runtime_dir_ = testing::SrcDir() + "_main";
   const std::filesystem::path temp_dir_ = testing::TempDir();
 };
 
