@@ -109,7 +109,11 @@ class AbstractMachineFunctionGenerator {
       }
     }
 
+    RegId highest_reg = 1;
     for (const auto& block : graph_.blocks()) {
+      if (next_reg_ > highest_reg) highest_reg = next_reg_;
+      next_reg_ = 1;
+
       state_.func.instructions.push_back(Label{
           .id = block.id,
       });
@@ -135,6 +139,7 @@ class AbstractMachineFunctionGenerator {
         });
       }
     }
+    next_reg_ = highest_reg;
 
     std::size_t offset = stack_offset_;
 

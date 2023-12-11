@@ -9,13 +9,17 @@ let main = () -> Int32 {
       break
     }
 
-    if n % 3 == 0 {
-      printf("fizz\n", 0)
+    if n % 15 == 0 {
+      printf("fizzbuzz\n", 0)
     } else {
-      if n % 5 == 0 {
-        printf("buzz\n", 0)
+      if n % 3 == 0 {
+        printf("fizz\n", 0)
       } else {
-        printf("%d\n", n)
+        if n % 5 == 0 {
+          printf("buzz\n", 0)
+        } else {
+          printf("%d\n", n)
+        }
       }
     }
 

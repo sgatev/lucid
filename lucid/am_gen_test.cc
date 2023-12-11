@@ -988,22 +988,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                               .offset = 2,
                                               .src_reg = 3,
                                           },
-                                          StoreStack64{
-                                              .offset = 3,
-                                              .src_reg = 4,
-                                          },
-                                          StoreStack64{
-                                              .offset = 4,
-                                              .src_reg = 5,
-                                          },
-                                          StoreStack64{
-                                              .offset = 5,
-                                              .src_reg = 6,
-                                          },
-                                          StoreStack64{
-                                              .offset = 6,
-                                              .src_reg = 7,
-                                          },
                                           Label{
                                               .id = 0,
                                           },
@@ -1031,41 +1015,25 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                               .offset = 2,
                                               .dst_reg = 3,
                                           },
-                                          LoadStack64{
-                                              .offset = 3,
-                                              .dst_reg = 4,
-                                          },
-                                          LoadStack64{
-                                              .offset = 4,
-                                              .dst_reg = 5,
-                                          },
-                                          LoadStack64{
-                                              .offset = 5,
-                                              .dst_reg = 6,
-                                          },
-                                          LoadStack64{
-                                              .offset = 6,
-                                              .dst_reg = 7,
-                                          },
                                           PopStack{}, Return{},
                                           Label{
                                               .id = 2,
                                           },
                                           SetReg32{
                                               .src_val = "4",
-                                              .dst_reg = 2,
+                                              .dst_reg = 1,
                                           },
                                           SetReg32{
                                               .src_val = "5",
-                                              .dst_reg = 3,
+                                              .dst_reg = 2,
                                           },
                                           MulReg32{
-                                              .res_reg = 4,
-                                              .lhs_reg = 2,
-                                              .rhs_reg = 3,
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
                                           },
                                           MoveReg32{
-                                              .src_reg = 4,
+                                              .src_reg = 3,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -1076,19 +1044,19 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           },
                                           SetReg32{
                                               .src_val = "2",
-                                              .dst_reg = 5,
+                                              .dst_reg = 1,
                                           },
                                           SetReg32{
                                               .src_val = "3",
-                                              .dst_reg = 6,
+                                              .dst_reg = 2,
                                           },
                                           AddReg32{
-                                              .res_reg = 7,
-                                              .lhs_reg = 5,
-                                              .rhs_reg = 6,
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
                                           },
                                           MoveReg32{
-                                              .src_reg = 7,
+                                              .src_reg = 3,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -1138,22 +1106,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                               .offset = 2,
                                               .src_reg = 3,
                                           },
-                                          StoreStack64{
-                                              .offset = 3,
-                                              .src_reg = 4,
-                                          },
-                                          StoreStack64{
-                                              .offset = 4,
-                                              .src_reg = 5,
-                                          },
-                                          StoreStack64{
-                                              .offset = 5,
-                                              .src_reg = 6,
-                                          },
-                                          StoreStack64{
-                                              .offset = 6,
-                                              .src_reg = 7,
-                                          },
                                           Label{
                                               .id = 0,
                                           },
@@ -1181,22 +1133,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                               .offset = 2,
                                               .dst_reg = 3,
                                           },
-                                          LoadStack64{
-                                              .offset = 3,
-                                              .dst_reg = 4,
-                                          },
-                                          LoadStack64{
-                                              .offset = 4,
-                                              .dst_reg = 5,
-                                          },
-                                          LoadStack64{
-                                              .offset = 5,
-                                              .dst_reg = 6,
-                                          },
-                                          LoadStack64{
-                                              .offset = 6,
-                                              .dst_reg = 7,
-                                          },
                                           PopStack{}, Return{},
                                           Label{
                                               .id = 2,
@@ -1209,19 +1145,19 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           },
                                           SetReg32{
                                               .src_val = "2",
-                                              .dst_reg = 2,
+                                              .dst_reg = 1,
                                           },
                                           SetReg32{
                                               .src_val = "3",
-                                              .dst_reg = 3,
+                                              .dst_reg = 2,
                                           },
                                           AddReg32{
-                                              .res_reg = 4,
-                                              .lhs_reg = 2,
-                                              .rhs_reg = 3,
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
                                           },
                                           MoveReg32{
-                                              .src_reg = 4,
+                                              .src_reg = 3,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -1232,19 +1168,19 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           },
                                           SetReg32{
                                               .src_val = "4",
-                                              .dst_reg = 5,
+                                              .dst_reg = 1,
                                           },
                                           SetReg32{
                                               .src_val = "5",
-                                              .dst_reg = 6,
+                                              .dst_reg = 2,
                                           },
                                           MulReg32{
-                                              .res_reg = 7,
-                                              .lhs_reg = 5,
-                                              .rhs_reg = 6,
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
                                           },
                                           MoveReg32{
-                                              .src_reg = 7,
+                                              .src_reg = 3,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -2347,10 +2283,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                               .offset = 0,
                                               .src_reg = 1,
                                           },
-                                          StoreStack64{
-                                              .offset = 1,
-                                              .src_reg = 2,
-                                          },
                                           Label{
                                               .id = 0,
                                           },
@@ -2363,10 +2295,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                           LoadStack64{
                                               .offset = 0,
                                               .dst_reg = 1,
-                                          },
-                                          LoadStack64{
-                                              .offset = 1,
-                                              .dst_reg = 2,
                                           },
                                           PopStack{}, Return{},
                                           Label{
@@ -2388,10 +2316,10 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                           },
                                           SetReg32{
                                               .src_val = "1",
-                                              .dst_reg = 2,
+                                              .dst_reg = 1,
                                           },
                                           MoveReg32{
-                                              .src_reg = 2,
+                                              .src_reg = 1,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -2452,26 +2380,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .offset = 3,
                                               .src_reg = 3,
                                           },
-                                          StoreStack64{
-                                              .offset = 4,
-                                              .src_reg = 4,
-                                          },
-                                          StoreStack64{
-                                              .offset = 5,
-                                              .src_reg = 5,
-                                          },
-                                          StoreStack64{
-                                              .offset = 6,
-                                              .src_reg = 6,
-                                          },
-                                          StoreStack64{
-                                              .offset = 7,
-                                              .src_reg = 7,
-                                          },
-                                          StoreStack64{
-                                              .offset = 8,
-                                              .src_reg = 8,
-                                          },
                                           Label{
                                               .id = 0,
                                           },
@@ -2501,36 +2409,16 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .offset = 3,
                                               .dst_reg = 3,
                                           },
-                                          LoadStack64{
-                                              .offset = 4,
-                                              .dst_reg = 4,
-                                          },
-                                          LoadStack64{
-                                              .offset = 5,
-                                              .dst_reg = 5,
-                                          },
-                                          LoadStack64{
-                                              .offset = 6,
-                                              .dst_reg = 6,
-                                          },
-                                          LoadStack64{
-                                              .offset = 7,
-                                              .dst_reg = 7,
-                                          },
-                                          LoadStack64{
-                                              .offset = 8,
-                                              .dst_reg = 8,
-                                          },
                                           PopStack{}, Return{},
                                           Label{
                                               .id = 2,
                                           },
                                           LoadStack32{
                                               .offset = 0,
-                                              .dst_reg = 2,
+                                              .dst_reg = 1,
                                           },
                                           MoveReg32{
-                                              .src_reg = 2,
+                                              .src_reg = 1,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -2541,19 +2429,19 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           },
                                           LoadStack32{
                                               .offset = 0,
-                                              .dst_reg = 3,
+                                              .dst_reg = 1,
                                           },
                                           SetReg32{
                                               .src_val = "3",
-                                              .dst_reg = 4,
+                                              .dst_reg = 2,
                                           },
                                           GtReg32{
-                                              .res_reg = 5,
-                                              .lhs_reg = 3,
-                                              .rhs_reg = 4,
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
                                           },
                                           CondJump{
-                                              .cond_reg = 5,
+                                              .cond_reg = 3,
                                               .then_label = 5,
                                               .else_label = 4,
                                           },
@@ -2562,20 +2450,20 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           },
                                           LoadStack32{
                                               .offset = 0,
-                                              .dst_reg = 6,
+                                              .dst_reg = 1,
                                           },
                                           SetReg32{
                                               .src_val = "1",
-                                              .dst_reg = 7,
+                                              .dst_reg = 2,
                                           },
                                           AddReg32{
-                                              .res_reg = 8,
-                                              .lhs_reg = 6,
-                                              .rhs_reg = 7,
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
                                           },
                                           StoreStack32{
                                               .offset = 0,
-                                              .src_reg = 8,
+                                              .src_reg = 3,
                                           },
                                           UncondJump{
                                               .label = 3,
