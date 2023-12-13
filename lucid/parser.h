@@ -209,9 +209,15 @@ class Parser {
       if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "else") {
         Read();
 
-        auto else_body = ParseCompoundStmt();
-        if (IsError(else_body)) return std::get<ParserError>(else_body);
-        if_stmt.else_body = std::get<CompoundStmt>(else_body);
+        if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
+          const auto stmt = ParseStmt();
+          if (IsError(stmt)) return std::get<ParserError>(stmt);
+          if_stmt.else_body.statements.push_back(std::get<StmtRef>(stmt));
+        } else {
+          auto else_body = ParseCompoundStmt();
+          if (IsError(else_body)) return std::get<ParserError>(else_body);
+          if_stmt.else_body = std::get<CompoundStmt>(else_body);
+        }
       }
 
       return arena_.add(std::move(if_stmt));

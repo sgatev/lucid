@@ -11,16 +11,12 @@ let main = () -> Int32 {
 
     if n % 15 == 0 {
       printf("fizzbuzz\n", 0)
+    } else if n % 3 == 0 {
+      printf("fizz\n", 0)
+    } else if n % 5 == 0 {
+      printf("buzz\n", 0)
     } else {
-      if n % 3 == 0 {
-        printf("fizz\n", 0)
-      } else {
-        if n % 5 == 0 {
-          printf("buzz\n", 0)
-        } else {
-          printf("%d\n", n)
-        }
-      }
+      printf("%d\n", n)
     }
 
     n = n + 1

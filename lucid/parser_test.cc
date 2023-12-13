@@ -458,6 +458,63 @@ TEST_F(ParserTest, IfElseStmt) {
               })));
 }
 
+TEST_F(ParserTest, IfElseIfElseStmt) {
+  std::string_view src = R"(
+    let foo = (x: Int32) -> Int32 {
+      if x > 0 {
+        return 1
+      } else if x < 0 {
+        return 2
+      } else {
+        return 3
+      }
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "foo",
+          .parameters =
+              {
+                  {.name = "x", .type = MatchesBasicType({.name = "Int32"})},
+              },
+          .result_type = MatchesBasicType({.name = "Int32"}),
+          .body = {{
+              MatchesIfStmt({
+                  .cond = MatchesBinaryOpExpr({
+                      .op = BinaryOp::Gt,
+                      .lhs = MatchesIdentExpr({.name = "x"}),
+                      .rhs = MatchesIntLitExpr({.value = "0"}),
+                  }),
+                  .then_body = {{
+                      MatchesReturnStmt({
+                          .value = MatchesIntLitExpr({.value = "1"}),
+                      }),
+                  }},
+                  .else_body = {{
+                      MatchesIfStmt({
+                          .cond = MatchesBinaryOpExpr({
+                              .op = BinaryOp::Lt,
+                              .lhs = MatchesIdentExpr({.name = "x"}),
+                              .rhs = MatchesIntLitExpr({.value = "0"}),
+                          }),
+                          .then_body = {{
+                              MatchesReturnStmt({
+                                  .value = MatchesIntLitExpr({.value = "2"}),
+                              }),
+                          }},
+                          .else_body = {{
+                              MatchesReturnStmt({
+                                  .value = MatchesIntLitExpr({.value = "3"}),
+                              }),
+                          }},
+                      }),
+                  }},
+              }),
+          }},
+      })));
+}
+
 TEST_F(ParserTest, GtInts) {
   std::string_view src = R"(
     let gt = (x: Int32, y: Int32) -> Bool {
