@@ -64,11 +64,20 @@ class AbstractMachineFunctionGenerator {
 
     if (graph_.func_name == "printf") {
       state_.func.instructions.push_back(PushStack{});
+      std::size_t offset = 0;
       if (graph_.func_params.size() > 1) {
         state_.func.instructions.push_back(StoreStack64{
-            .offset = 0,
+            .offset = offset,
             .src_reg = 2,
         });
+        offset += 1;
+      }
+      if (graph_.func_params.size() > 2) {
+        state_.func.instructions.push_back(StoreStack64{
+            .offset = offset,
+            .src_reg = 3,
+        });
+        offset += 1;
       }
       state_.func.instructions.push_back(MoveReg64{
           .dst_reg = 0,

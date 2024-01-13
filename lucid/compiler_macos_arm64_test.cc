@@ -410,7 +410,7 @@ TEST_F(CompilerTest, FibIter) {
 
 TEST_F(CompilerTest, PrintInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let printf = (n: String, m: Int32) -> Int32 {
+    let printf = (f: String, n: Int64) -> Int32 {
       return 0
     }
 
@@ -425,7 +425,7 @@ TEST_F(CompilerTest, PrintInt32) {
 
 TEST_F(CompilerTest, PrintString) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let printf = (n: String) -> Int32 {
+    let printf = (f: String) -> Int32 {
       return 0
     }
 
@@ -436,6 +436,21 @@ TEST_F(CompilerTest, PrintString) {
   )"));
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
               AllOf(ReturnsCode(Eq(0)), Prints("Hello, world!\n")));
+}
+
+TEST_F(CompilerTest, PrintMultipleValues) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let printf = (f: String, n: Int64, m: Int64) -> Int32 {
+      return 0
+    }
+
+    let main = () -> Int32 {
+      printf("%d, %d\n", 0, 1)
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
+              AllOf(ReturnsCode(Eq(0)), Prints("0, 1\n")));
 }
 
 TEST_F(CompilerTest, LoopAndBreak) {

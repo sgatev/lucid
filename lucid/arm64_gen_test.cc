@@ -1430,12 +1430,16 @@ TEST_F(GenerateArmAssemblySourceTest, Printf) {
       .parameters =
           {
               {
-                  .name = "n",
+                  .name = "f",
                   .type = A(BasicType{.name = "String"}),
               },
               {
+                  .name = "n",
+                  .type = A(BasicType{.name = "Int64"}),
+              },
+              {
                   .name = "m",
-                  .type = A(BasicType{.name = "Int32"}),
+                  .type = A(BasicType{.name = "Int64"}),
               },
           },
       .body = {{
@@ -1449,6 +1453,7 @@ TEST_F(GenerateArmAssemblySourceTest, Printf) {
 STP X29, X30, [SP, #-16]!
 SUB SP, SP, #16
 STR X2, [SP, #0]
+STR X3, [SP, #8]
 MOV X0, X1
 BL _printf
 MOV W0, #0
