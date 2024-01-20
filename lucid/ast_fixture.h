@@ -165,6 +165,15 @@ struct BasicTypePattern {
   bool operator()(const BasicType& type) const { return name == type.name; }
 };
 
+struct ArrayTypePattern {
+  TypeRefMatcher element_type;
+  IntLitExprPattern size;
+
+  bool operator()(const ArrayType& type) const {
+    return element_type(type.element_type) && size(type.size);
+  }
+};
+
 class AstFixture {
  protected:
   // *A*llocates the statement `stmt` on an *A*rena.
@@ -226,6 +235,10 @@ class AstFixture {
 
   TypeRefMatcher MatchesBasicType(BasicTypePattern pattern) {
     return MatchesType<BasicType>(std::move(pattern));
+  }
+
+  TypeRefMatcher MatchesArrayType(ArrayTypePattern pattern) {
+    return MatchesType<ArrayType>(std::move(pattern));
   }
 
   Arena<Stmt> arena_;

@@ -906,6 +906,37 @@ TEST_F(ParserTest, LtOverSub) {
       })));
 }
 
+TEST_F(ParserTest, ArrayParam) {
+  std::string_view src = R"(
+    let len = (a: Int32[10]) -> Int32 {
+      return 10
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "len",
+          .parameters =
+              {
+                  {
+                      .name = "a",
+                      .type = MatchesArrayType({
+                          .element_type = MatchesBasicType({.name = "Int32"}),
+                          .size = {.value = "10"},
+                      }),
+                  },
+              },
+          .result_type = MatchesBasicType({.name = "Int32"}),
+          .body = {{
+              MatchesReturnStmt({
+                  .value = MatchesIntLitExpr({
+                      .value = "10",
+                  }),
+              }),
+          }},
+      })));
+}
+
 TEST_F(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
     = () -> Void {

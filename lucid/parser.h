@@ -404,14 +404,20 @@ class Parser {
     });
   }
 
-  std::variant<ExprRef, ParserError> ParseNumber() {
+  std::variant<IntLitExpr, ParserError> ParseIntLitExpr() {
     Token token = Read();
     if (token.kind != Token::Kind::Number) {
       return MakeError(ParserError::Kind::ExpectedNumber, token);
     }
-    return arena_.add(IntLitExpr{
+    return IntLitExpr{
         .value = TokenString(token),
-    });
+    };
+  }
+
+  std::variant<ExprRef, ParserError> ParseNumber() {
+    const auto maybe_int_lit = ParseIntLitExpr();
+    if (IsError(maybe_int_lit)) return std::get<ParserError>(maybe_int_lit);
+    return arena_.add(std::get<IntLitExpr>(maybe_int_lit));
   }
 
   std::variant<ExprRef, ParserError> ParseString() {
@@ -430,6 +436,25 @@ class Parser {
   std::variant<TypeRef, ParserError> ParseType() {
     const auto maybe_type = ParseIdent();
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
+
+    if (Peek().kind == Token::Kind::OpenBracket) {
+      Read();
+
+      const auto maybe_size = ParseIntLitExpr();
+      if (IsError(maybe_size)) return std::get<ParserError>(maybe_size);
+
+      if (auto r = ExpectToken(Token::Kind::CloseBracket); IsError(r)) {
+        return *r;
+      }
+
+      return arena_.add(ArrayType{
+          .element_type = arena_.add(BasicType{
+              .name = std::get<std::string_view>(maybe_type),
+          }),
+          .size = std::get<IntLitExpr>(maybe_size),
+      });
+    }
+
     return arena_.add(BasicType{
         .name = std::get<std::string_view>(maybe_type),
     });

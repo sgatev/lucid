@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <string_view>
 #include <type_traits>
 #include <variant>
@@ -23,10 +24,11 @@ struct BinaryOpExpr;
 struct IfStmt;
 struct LoopStmt;
 struct BasicType;
+struct ArrayType;
 struct BreakStmt;
 
 // A type expression in the Lucid language.
-using Type = std::variant<BasicType>;
+using Type = std::variant<BasicType, ArrayType>;
 
 // An expression in the Lucid language.
 using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
@@ -228,6 +230,15 @@ struct BasicType {
   std::string_view name;
 
   bool operator==(const BasicType&) const = default;
+};
+
+// An array type in the Lucid language.
+struct ArrayType {
+  // Type of the elements of the array.
+  TypeRef element_type;
+
+  // Number of elements in the array.
+  IntLitExpr size;
 };
 
 // Returns the type of `expr`.

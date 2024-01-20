@@ -78,6 +78,8 @@ class Lexer {
     kind[')'] = Token::Kind::CloseParen;
     kind['{'] = Token::Kind::OpenBrace;
     kind['}'] = Token::Kind::CloseBrace;
+    kind['['] = Token::Kind::OpenBracket;
+    kind[']'] = Token::Kind::CloseBracket;
     kind[':'] = Token::Kind::Colon;
     kind[','] = Token::Kind::Comma;
     kind['+'] = Token::Kind::Plus;

@@ -248,5 +248,15 @@ TEST(LexerTest, IncompleteString) {
   )")));
 }
 
+TEST(LexerTest, ArrayType) {
+  EXPECT_THAT(ReadTokens(R"(
+    let a: Int32[10]
+  )"),
+              ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "a"),
+                          Tok(Kind::Colon, ":"), Tok(Kind::Ident, "Int32"),
+                          Tok(Kind::OpenBracket, "["), Tok(Kind::Number, "10"),
+                          Tok(Kind::CloseBracket, "]")));
+}
+
 }  // namespace
 }  // namespace lucid
