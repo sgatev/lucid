@@ -2156,6 +2156,206 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
                                           PopStack{}, Return{}));
 }
 
+TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Int32"}),
+      .body = {{
+          A(VarDeclStmt{
+              .name = "x",
+              .type = A(ArrayType{.element_type = A(BasicType{.name = "Int32"}),
+                                  .size = IntLitExpr{.value = "10"}}),
+              .init = A(IntLitExpr{.value = "2"}),
+          }),
+          A(ReturnStmt{
+              .value = A(IntLitExpr{
+                  .value = "0",
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 10,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 11,
+                                              .src_reg = 2,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          SetReg32{
+                                              .src_val = "2",
+                                              .dst_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 1,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 2,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 3,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 4,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 5,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 6,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 7,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 8,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack32{
+                                              .offset = 9,
+                                              .src_reg = 1,
+                                          },
+                                          SetReg32{
+                                              .src_val = "0",
+                                              .dst_reg = 2,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 2,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 10,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 11,
+                                              .dst_reg = 2,
+                                          },
+                                          PopStack{}, Return{}));
+}
+
+TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = A(BasicType{.name = "Int64"}),
+      .body = {{
+          A(VarDeclStmt{
+              .name = "x",
+              .type = A(ArrayType{.element_type = A(BasicType{.name = "Int64"}),
+                                  .size = IntLitExpr{.value = "10"}}),
+              .init = A(IntLitExpr{.value = "2"}),
+          }),
+          A(ReturnStmt{
+              .value = A(IntLitExpr{
+                  .value = "0",
+              }),
+          }),
+      }},
+  };
+
+  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
+                                          StoreStack64{
+                                              .offset = 10,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 11,
+                                              .src_reg = 2,
+                                          },
+                                          Label{
+                                              .id = 0,
+                                          },
+                                          SetReg64{
+                                              .src_val = "2",
+                                              .dst_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 0,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 1,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 2,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 3,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 4,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 5,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 6,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 7,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 8,
+                                              .src_reg = 1,
+                                          },
+                                          StoreStack64{
+                                              .offset = 9,
+                                              .src_reg = 1,
+                                          },
+                                          SetReg64{
+                                              .src_val = "0",
+                                              .dst_reg = 2,
+                                          },
+                                          MoveReg64{
+                                              .src_reg = 2,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 10,
+                                              .dst_reg = 1,
+                                          },
+                                          LoadStack64{
+                                              .offset = 11,
+                                              .dst_reg = 2,
+                                          },
+                                          PopStack{}, Return{}));
+}
+
 TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
   auto func = FuncDefStmt{
       .name = "foo",

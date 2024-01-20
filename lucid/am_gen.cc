@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <map>
 #include <string>
 #include <string_view>
@@ -22,6 +23,7 @@ class AbstractMachineFunctionGenerator {
                                    AbstractMachineState& state)
       : arena_(arena), graph_(graph), state_(state) {
     for (const auto& param : graph.func_params) {
+      // TODO: Handle `ArrayType`.
       const auto& param_type = std::get<BasicType>(DerefType(param.type));
       if (param_type.name == "Int32") {
         state_.func.stack_slots.push_back(4);
@@ -35,14 +37,30 @@ class AbstractMachineFunctionGenerator {
       for (const auto& stmt_ref : block.statements) {
         const auto& stmt = arena.get(stmt_ref);
         if (auto* var_decl = std::get_if<VarDeclStmt>(&stmt)) {
-          const auto& var_decl_type =
-              std::get<BasicType>(DerefType(var_decl->type));
-          if (var_decl_type.name == "Int32") {
-            state_.func.stack_slots.push_back(4);
-          } else if (var_decl_type.name == "Int64") {
-            state_.func.stack_slots.push_back(8);
-          } else if (var_decl_type.name == "Bool") {
-            state_.func.stack_slots.push_back(1);
+          if (auto* array_type =
+                  std::get_if<ArrayType>(&DerefType(var_decl->type))) {
+            const auto& var_decl_type =
+                std::get<BasicType>(DerefType(array_type->element_type));
+            auto size = std::atoi(array_type->size.value.data());
+            for (int i = 0; i < size; ++i) {
+              if (var_decl_type.name == "Int32") {
+                state_.func.stack_slots.push_back(4);
+              } else if (var_decl_type.name == "Int64") {
+                state_.func.stack_slots.push_back(8);
+              } else if (var_decl_type.name == "Bool") {
+                state_.func.stack_slots.push_back(1);
+              }
+            }
+          } else {
+            const auto& var_decl_type =
+                std::get<BasicType>(DerefType(var_decl->type));
+            if (var_decl_type.name == "Int32") {
+              state_.func.stack_slots.push_back(4);
+            } else if (var_decl_type.name == "Int64") {
+              state_.func.stack_slots.push_back(8);
+            } else if (var_decl_type.name == "Bool") {
+              state_.func.stack_slots.push_back(1);
+            }
           }
         }
       }
@@ -285,6 +303,30 @@ class AbstractMachineFunctionGenerator {
   }
 
   void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {
+    if (std::holds_alternative<ArrayType>(DerefType(stmt.type))) {
+      auto array_type = std::get<ArrayType>(DerefType(stmt.type));
+      auto size = std::atoi(array_type.size.value.data());
+      var_stack_[stmt.name] = stack_offset_;
+      for (int i = 0; i < size; ++i) {
+        auto stmt_type =
+            std::get<BasicType>(DerefType(array_type.element_type));
+        if (stmt_type.name == "Int32") {
+          state_.func.instructions.push_back(StoreStack32{
+              .offset = stack_offset_,
+              .src_reg = state_.out_reg[stmt.init],
+          });
+          ++stack_offset_;
+        } else if (stmt_type.name == "Int64") {
+          state_.func.instructions.push_back(StoreStack64{
+              .offset = stack_offset_,
+              .src_reg = state_.out_reg[stmt.init],
+          });
+          ++stack_offset_;
+        }
+      }
+      return;
+    }
+
     auto stmt_type = std::get<BasicType>(DerefType(stmt.type));
     if (stmt_type.name == "Int32") {
       state_.func.instructions.push_back(StoreStack32{

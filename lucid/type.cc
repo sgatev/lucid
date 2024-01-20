@@ -101,7 +101,11 @@ class ExprTypeInferenceEngine {
 
   void ProcessPendingStmt(StmtRef stmt_ref, const VarDeclStmt& stmt) {
     SetIdentType(stmt.name, stmt.type);
-    RequireTypeForExpr(stmt.init, stmt.type);
+    if (auto* array_type = std::get_if<ArrayType>(&DerefType(stmt.type))) {
+      RequireTypeForExpr(stmt.init, array_type->element_type);
+    } else {
+      RequireTypeForExpr(stmt.init, stmt.type);
+    }
     AddPendingExpr(stmt.init);
   }
 
@@ -171,9 +175,13 @@ class ExprTypeInferenceEngine {
   void RequireTypeForExpr(ExprRef expr_ref, TypeRef type_ref) {
     if (auto it = expr_from_type_.find(expr_ref);
         it != expr_from_type_.end() && !TypesEqual(it->second, type_ref)) {
-      const auto& it_type = std::get<BasicType>(DerefType(it->second));
-      errors_.push_back(std::string("expected type ") +
-                        std::string(it_type.name));
+      if (std::holds_alternative<ArrayType>(DerefType(it->second))) {
+        errors_.push_back(std::string("expected array type"));
+      } else {
+        const auto& it_type = std::get<BasicType>(DerefType(it->second));
+        errors_.push_back(std::string("expected type ") +
+                          std::string(it_type.name));
+      }
     }
     expr_from_type_[expr_ref] = type_ref;
   }
@@ -191,8 +199,19 @@ class ExprTypeInferenceEngine {
   }
 
   bool TypesEqual(TypeRef lhs_ref, TypeRef rhs_ref) {
-    const auto& lhs = std::get<BasicType>(DerefType(lhs_ref));
-    const auto& rhs = std::get<BasicType>(DerefType(rhs_ref));
+    auto lhs_type = DerefType(lhs_ref);
+    auto rhs_type = DerefType(rhs_ref);
+    if (lhs_type.index() != rhs_type.index()) return false;
+
+    if (std::holds_alternative<ArrayType>(lhs_type)) {
+      const auto& lhs = std::get<ArrayType>(lhs_type);
+      const auto& rhs = std::get<ArrayType>(rhs_type);
+      return TypesEqual(lhs.element_type, rhs.element_type) &&
+             lhs.size.value == rhs.size.value;
+    }
+
+    const auto& lhs = std::get<BasicType>(lhs_type);
+    const auto& rhs = std::get<BasicType>(rhs_type);
     return lhs.name == rhs.name;
   }
 
