@@ -127,6 +127,8 @@ class ExprTypeInferenceEngine {
       ProcessPendingExpr(expr_ref, *int_lit_expr);
     } else if (auto* ident_expr = std::get_if<IdentExpr>(&expr)) {
       ProcessPendingExpr(expr_ref, *ident_expr);
+    } else if (auto* index_expr = std::get_if<IndexExpr>(&expr)) {
+      ProcessPendingExpr(expr_ref, *index_expr);
     } else if (auto* binary_op_expr = std::get_if<BinaryOpExpr>(&expr)) {
       ProcessPendingExpr(expr_ref, *binary_op_expr);
     }
@@ -154,6 +156,10 @@ class ExprTypeInferenceEngine {
 
   void ProcessPendingExpr(ExprRef expr_ref, const IdentExpr& expr) {
     RequireTypeForExpr(expr_ref, GetIdentType(expr.name));
+  }
+
+  void ProcessPendingExpr(ExprRef expr_ref, const IndexExpr& expr) {
+    // TODO: Add constraint
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {

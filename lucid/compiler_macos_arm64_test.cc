@@ -474,5 +474,15 @@ TEST_F(CompilerTest, LoopAndBreak) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(4)));
 }
 
+TEST_F(CompilerTest, Int32Array) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int32 {
+      let a: Int32[10] = 8
+      return a[2]
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(8)));
+}
+
 }  // namespace
 }  // namespace lucid

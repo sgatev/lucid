@@ -380,6 +380,25 @@ class AbstractMachineFunctionGenerator {
     state_.out_reg[ref] = reg;
   }
 
+  void ProcessExpr(ExprRef ref, const IndexExpr& expr) {
+    auto expr_type = std::get<BasicType>(DerefType(expr.type));
+    RegId reg = next_reg_++;
+    std::size_t offset =
+        GetStackOffset(expr.base) + std::atoi(expr.index.value.data());
+    if (expr_type.name == "Int32") {
+      state_.func.instructions.push_back(LoadStack32{
+          .offset = offset,
+          .dst_reg = reg,
+      });
+    } else if (expr_type.name == "Int64") {
+      state_.func.instructions.push_back(LoadStack64{
+          .offset = offset,
+          .dst_reg = reg,
+      });
+    }
+    state_.out_reg[ref] = reg;
+  }
+
   void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr) {
     auto expr_type =
         std::get<BasicType>(DerefType(GetType(DerefExpr(expr.lhs))));
@@ -526,6 +545,11 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const Type& expr) {
     // TODO: How to generate code for types?
+  }
+
+  std::size_t GetStackOffset(ExprRef expr_ref) {
+    const auto& expr = std::get<IdentExpr>(DerefExpr(expr_ref));
+    return var_stack_[expr.name];
   }
 
   const Stmt& DerefStmt(StmtRef ref) const { return arena_.get(ref); }

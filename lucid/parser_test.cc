@@ -909,7 +909,7 @@ TEST_F(ParserTest, LtOverSub) {
 TEST_F(ParserTest, ArrayParam) {
   std::string_view src = R"(
     let len = (a: Int32[10]) -> Int32 {
-      return 10
+      return a[2]
     }
   )";
   EXPECT_THAT(
@@ -929,8 +929,9 @@ TEST_F(ParserTest, ArrayParam) {
           .result_type = MatchesBasicType({.name = "Int32"}),
           .body = {{
               MatchesReturnStmt({
-                  .value = MatchesIntLitExpr({
-                      .value = "10",
+                  .value = MatchesIndexExpr({
+                      .base = MatchesIdentExpr({.name = "a"}),
+                      .index = {.value = "2"},
                   }),
               }),
           }},

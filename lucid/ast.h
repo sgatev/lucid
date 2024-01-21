@@ -20,6 +20,7 @@ struct FuncCallExpr;
 struct VarDeclStmt;
 struct VarAssignStmt;
 struct IdentExpr;
+struct IndexExpr;
 struct BinaryOpExpr;
 struct IfStmt;
 struct LoopStmt;
@@ -32,7 +33,7 @@ using Type = std::variant<BasicType, ArrayType>;
 
 // An expression in the Lucid language.
 using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
-                          IdentExpr, BinaryOpExpr, Type>;
+                          IdentExpr, IndexExpr, BinaryOpExpr, Type>;
 
 // A statement in the Lucid language.
 using Stmt = std::variant<Expr, VarDeclStmt, VarAssignStmt, FuncDefStmt,
@@ -155,6 +156,18 @@ struct IdentExpr {
 
   // Name of the identifier.
   std::string_view name;
+};
+
+// An expression that represents an indexing operation.
+struct IndexExpr {
+  // Type of the expression.
+  TypeRef type;
+
+  // Base of the indexing operation.
+  ExprRef base;
+
+  // Index of the indexing operation.
+  IntLitExpr index;
 };
 
 // A binary operation kind.

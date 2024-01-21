@@ -128,6 +128,17 @@ struct IdentExprPattern {
   }
 };
 
+struct IndexExprPattern {
+  TypeRefMatcher type;
+  ExprRefMatcher base;
+  IntLitExprPattern index;
+
+  bool operator()(const IndexExpr& expr) const {
+    if (type != nullptr && !type(expr.type)) return false;
+    return base(expr.base) && index(expr.index);
+  }
+};
+
 struct FuncCallExprPattern {
   TypeRefMatcher type;
   std::string_view func_name;
@@ -219,6 +230,10 @@ class AstFixture {
 
   ExprRefMatcher MatchesIdentExpr(IdentExprPattern pattern) {
     return MatchesExpr<IdentExpr>(std::move(pattern));
+  }
+
+  ExprRefMatcher MatchesIndexExpr(IndexExprPattern pattern) {
+    return MatchesExpr<IndexExpr>(std::move(pattern));
   }
 
   ExprRefMatcher MatchesFuncCallExpr(FuncCallExprPattern pattern) {
