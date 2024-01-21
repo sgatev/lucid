@@ -105,7 +105,8 @@ class ControlFlowGraphBuilder {
   }
 
   void ProcessExpr(const IndexExpr& expr, BlockRef block, BlockRef end) {
-    // No sub-expressions to process.
+    ProcessSubExpr(expr.base, block);
+    ProcessSubExpr(expr.index, block);
   }
 
   void ProcessExpr(const BinaryOpExpr& expr, BlockRef block, BlockRef end) {

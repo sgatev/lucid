@@ -931,7 +931,7 @@ TEST_F(ParserTest, ArrayParam) {
               MatchesReturnStmt({
                   .value = MatchesIndexExpr({
                       .base = MatchesIdentExpr({.name = "a"}),
-                      .index = {.value = "2"},
+                      .index = MatchesIntLitExpr({.value = "2"}),
                   }),
               }),
           }},

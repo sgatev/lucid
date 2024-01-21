@@ -131,7 +131,7 @@ struct IdentExprPattern {
 struct IndexExprPattern {
   TypeRefMatcher type;
   ExprRefMatcher base;
-  IntLitExprPattern index;
+  ExprRefMatcher index;
 
   bool operator()(const IndexExpr& expr) const {
     if (type != nullptr && !type(expr.type)) return false;

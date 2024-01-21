@@ -381,18 +381,41 @@ class AbstractMachineFunctionGenerator {
   }
 
   void ProcessExpr(ExprRef ref, const IndexExpr& expr) {
+    std::size_t base_offset = GetStackOffset(expr.base);
     auto expr_type = std::get<BasicType>(DerefType(expr.type));
     RegId reg = next_reg_++;
-    std::size_t offset =
-        GetStackOffset(expr.base) + std::atoi(expr.index.value.data());
     if (expr_type.name == "Int32") {
-      state_.func.instructions.push_back(LoadStack32{
-          .offset = offset,
+      RegId offset_reg = next_reg_++;
+      state_.func.instructions.push_back(SetReg32{
+          .dst_reg = offset_reg,
+          .src_val = "4",
+      });
+      state_.func.instructions.push_back(MulReg32{
+          .res_reg = offset_reg,
+          .lhs_reg = offset_reg,
+          .rhs_reg = state_.out_reg[expr.index],
+      });
+
+      state_.func.instructions.push_back(LoadStackReg32{
+          .offset = base_offset,
+          .offset_reg = offset_reg,
           .dst_reg = reg,
       });
     } else if (expr_type.name == "Int64") {
-      state_.func.instructions.push_back(LoadStack64{
-          .offset = offset,
+      RegId offset_reg = next_reg_++;
+      state_.func.instructions.push_back(SetReg32{
+          .dst_reg = offset_reg,
+          .src_val = "8",
+      });
+      state_.func.instructions.push_back(MulReg32{
+          .res_reg = offset_reg,
+          .lhs_reg = offset_reg,
+          .rhs_reg = state_.out_reg[expr.index],
+      });
+
+      state_.func.instructions.push_back(LoadStackReg64{
+          .offset = base_offset,
+          .offset_reg = offset_reg,
           .dst_reg = reg,
       });
     }

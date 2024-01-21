@@ -367,11 +367,45 @@ class Arm64Generator {
     Append("]\n");
   }
 
+  void Process(const LoadStackReg32& inst) {
+    Append("ADD W");
+    Append(inst.offset_reg);
+    Append(", W");
+    Append(inst.offset_reg);
+    Append(", #");
+    Append(stack_offsets_[inst.offset]);
+    Append("\n");
+
+    Append("LDR W");
+    Append(inst.dst_reg);
+    Append(", [SP, W");
+    Append(inst.offset_reg);
+    Append(", uxtw");
+    Append("]\n");
+  }
+
   void Process(const LoadStack64& inst) {
     Append("LDR X");
     Append(inst.dst_reg);
     Append(", [SP, #");
     Append(stack_offsets_[inst.offset]);
+    Append("]\n");
+  }
+
+  void Process(const LoadStackReg64& inst) {
+    Append("ADD X");
+    Append(inst.offset_reg);
+    Append(", X");
+    Append(inst.offset_reg);
+    Append(", #");
+    Append(stack_offsets_[inst.offset]);
+    Append("\n");
+
+    Append("LDR X");
+    Append(inst.dst_reg);
+    Append(", [SP, X");
+    Append(inst.offset_reg);
+    Append(", uxtw");
     Append("]\n");
   }
 

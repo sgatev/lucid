@@ -167,7 +167,7 @@ struct IndexExpr {
   ExprRef base;
 
   // Index of the indexing operation.
-  IntLitExpr index;
+  ExprRef index;
 };
 
 // A binary operation kind.

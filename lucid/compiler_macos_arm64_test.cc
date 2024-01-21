@@ -478,10 +478,44 @@ TEST_F(CompilerTest, Int32Array) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {
       let a: Int32[10] = 8
-      return a[2]
+      let r: Int32 = 0
+      let i: Int32 = 0
+      loop {
+        if i == 10 {
+          break
+        }
+
+        let q: Int32 = a[i]
+        r = r + q
+
+        i = i + 1
+      }
+      return r
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(8)));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(80)));
+}
+
+TEST_F(CompilerTest, Int64Array) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int64 {
+      let a: Int64[10] = 8
+      let r: Int64 = 0
+      let i: Int64 = 0
+      loop {
+        if i == 10 {
+          break
+        }
+
+        let q: Int64 = a[i]
+        r = r + q
+
+        i = i + 1
+      }
+      return r
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(80)));
 }
 
 }  // namespace

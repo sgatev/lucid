@@ -279,7 +279,7 @@ class Parser {
     if (Peek().kind == Token::Kind::OpenBracket) {
       Read();
 
-      const auto maybe_size = ParseIntLitExpr();
+      const auto maybe_size = ParseExpr();
       if (IsError(maybe_size)) return std::get<ParserError>(maybe_size);
 
       if (auto r = ExpectToken(Token::Kind::CloseBracket); IsError(r)) {
@@ -288,7 +288,7 @@ class Parser {
 
       return arena_.add(IndexExpr{
           .base = std::get<ExprRef>(maybe_expr),
-          .index = std::get<IntLitExpr>(maybe_size),
+          .index = std::get<ExprRef>(maybe_size),
       });
     } else if (Peek().kind == Token::Kind::Greater) {
       Read();
