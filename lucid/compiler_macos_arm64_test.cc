@@ -485,8 +485,7 @@ TEST_F(CompilerTest, Int32Array) {
           break
         }
 
-        let q: Int32 = a[i]
-        r = r + q
+        r = r + a[i]
 
         i = i + 1
       }
@@ -507,8 +506,7 @@ TEST_F(CompilerTest, Int64Array) {
           break
         }
 
-        let q: Int64 = a[i]
-        r = r + q
+        r = r + a[i]
 
         i = i + 1
       }
