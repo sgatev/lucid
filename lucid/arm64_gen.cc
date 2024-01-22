@@ -469,10 +469,6 @@ _start:
 void GenerateArmEndSource(
     const std::unordered_map<std::uintptr_t, std::string>& strings,
     std::ostream& out) {
-  out << R"(
-NumberFormat: .asciz "%d"
-StringFormat: .asciz "%s"
-)";
   for (auto [k, v] : strings) {
     out << "str" << std::to_string(k) << ": .asciz " << v << "\n";
   }
