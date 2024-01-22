@@ -361,6 +361,46 @@ class AbstractMachineFunctionGenerator {
     }
   }
 
+  void Process(StmtRef stmt_ref, const ArrayAssignStmt& stmt) {
+    auto expr_type =
+        std::get<BasicType>(DerefType(GetType(DerefExpr(stmt.expr))));
+    if (expr_type.name == "Int32") {
+      RegId offset_reg = next_reg_++;
+      state_.func.instructions.push_back(SetReg32{
+          .dst_reg = offset_reg,
+          .src_val = "4",
+      });
+      state_.func.instructions.push_back(MulReg32{
+          .res_reg = offset_reg,
+          .lhs_reg = offset_reg,
+          .rhs_reg = state_.out_reg[stmt.index],
+      });
+
+      state_.func.instructions.push_back(StoreStackReg32{
+          .offset = var_stack_[stmt.name],
+          .offset_reg = offset_reg,
+          .src_reg = state_.out_reg[stmt.expr],
+      });
+    } else if (expr_type.name == "Int64") {
+      RegId offset_reg = next_reg_++;
+      state_.func.instructions.push_back(SetReg32{
+          .dst_reg = offset_reg,
+          .src_val = "8",
+      });
+      state_.func.instructions.push_back(MulReg32{
+          .res_reg = offset_reg,
+          .lhs_reg = offset_reg,
+          .rhs_reg = state_.out_reg[stmt.index],
+      });
+
+      state_.func.instructions.push_back(StoreStackReg64{
+          .offset = var_stack_[stmt.name],
+          .offset_reg = offset_reg,
+          .src_reg = state_.out_reg[stmt.expr],
+      });
+    }
+  }
+
   void Process(StmtRef stmt_ref, const BreakStmt& stmt) {}
 
   void ProcessExpr(ExprRef ref, const IdentExpr& expr) {

@@ -544,6 +544,28 @@ struct StoreStack32 {
   }
 };
 
+// Stores the value of a 32-bit register on the stack.
+struct StoreStackReg32 {
+  // Initial offset from the top of the stack.
+  std::size_t offset;
+
+  // 32-bit register whose value is added to `offset` to reach the destination
+  // address.
+  RegId offset_reg;
+
+  // Source register.
+  RegId src_reg;
+
+  bool operator==(const StoreStackReg32&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const StoreStackReg32& inst) {
+    return os << "{.offset=" << inst.offset_reg
+              << ", .offset_reg=" << inst.offset_reg
+              << ", .src_reg=" << inst.src_reg << "}";
+  }
+};
+
 // Stores the value of a 64-bit register on the stack.
 struct StoreStack64 {
   // Offset from the top of the stack where the value will be placed.
@@ -557,6 +579,28 @@ struct StoreStack64 {
   friend std::ostream& operator<<(std::ostream& os, const StoreStack64& inst) {
     return os << "{.offset=" << inst.offset << ", .src_reg=" << inst.src_reg
               << "}";
+  }
+};
+
+// Stores the value of a 64-bit register on the stack.
+struct StoreStackReg64 {
+  // Initial offset from the top of the stack.
+  std::size_t offset;
+
+  // 64-bit register whose value is added to `offset` to reach the destination
+  // address.
+  RegId offset_reg;
+
+  // Source register.
+  RegId src_reg;
+
+  bool operator==(const StoreStackReg64&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const StoreStackReg64& inst) {
+    return os << "{.offset=" << inst.offset_reg
+              << ", .offset_reg=" << inst.offset_reg
+              << ", .src_reg=" << inst.src_reg << "}";
   }
 };
 
@@ -643,8 +687,8 @@ using Instruction =
                  SubReg32, SubReg64, MulReg32, MulReg64, DivReg32, DivReg64,
                  ModReg32, ModReg64, GtReg32, GtReg64, LtReg32, LtReg64,
                  EqReg32, EqReg64, NotEqReg32, NotEqReg64, PushStack, PopStack,
-                 StoreStack32, StoreStack64, LoadStack32, LoadStackReg32,
-                 LoadStack64, LoadStackReg64>;
+                 StoreStack32, StoreStackReg32, StoreStack64, StoreStackReg64,
+                 LoadStack32, LoadStackReg32, LoadStack64, LoadStackReg64>;
 
 // Abstract machine function definition.
 struct Function {

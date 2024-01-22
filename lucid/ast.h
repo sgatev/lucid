@@ -18,6 +18,7 @@ struct BoolLitExpr;
 struct StringLitExpr;
 struct FuncCallExpr;
 struct VarDeclStmt;
+struct ArrayAssignStmt;
 struct VarAssignStmt;
 struct IdentExpr;
 struct IndexExpr;
@@ -36,8 +37,8 @@ using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
                           IdentExpr, IndexExpr, BinaryOpExpr, Type>;
 
 // A statement in the Lucid language.
-using Stmt = std::variant<Expr, VarDeclStmt, VarAssignStmt, FuncDefStmt,
-                          ReturnStmt, IfStmt, LoopStmt, BreakStmt>;
+using Stmt = std::variant<Expr, VarDeclStmt, VarAssignStmt, ArrayAssignStmt,
+                          FuncDefStmt, ReturnStmt, IfStmt, LoopStmt, BreakStmt>;
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
@@ -144,6 +145,18 @@ struct VarDeclStmt {
 struct VarAssignStmt {
   // Name of the variable.
   std::string_view name;
+
+  // Assigned expression.
+  ExprRef expr;
+};
+
+// A statement that represents assignment of an expression to an array element.
+struct ArrayAssignStmt {
+  // Name of the array.
+  std::string_view name;
+
+  // Index in the array.
+  ExprRef index;
 
   // Assigned expression.
   ExprRef expr;

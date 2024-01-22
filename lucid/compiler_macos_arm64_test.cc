@@ -478,29 +478,20 @@ TEST_F(CompilerTest, Int32Array) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {
       let a: Int32[10] = 8
-      let r: Int32 = 0
+
       let i: Int32 = 0
       loop {
         if i == 10 {
           break
         }
 
-        r = r + a[i]
+        a[i] = i
 
         i = i + 1
       }
-      return r
-    }
-  )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(80)));
-}
 
-TEST_F(CompilerTest, Int64Array) {
-  ASSERT_TRUE(CreateFile("main.lu", R"(
-    let main = () -> Int64 {
-      let a: Int64[10] = 8
-      let r: Int64 = 0
-      let i: Int64 = 0
+      let r: Int32 = 0
+      i = 0
       loop {
         if i == 10 {
           break
@@ -510,10 +501,45 @@ TEST_F(CompilerTest, Int64Array) {
 
         i = i + 1
       }
+
       return r
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(80)));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(45)));
+}
+
+TEST_F(CompilerTest, Int64Array) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int64 {
+      let a: Int64[10] = 8
+
+      let i: Int64 = 0
+      loop {
+        if i == 10 {
+          break
+        }
+
+        a[i] = i
+
+        i = i + 1
+      }
+
+      let r: Int64 = 0
+      i = 0
+      loop {
+        if i == 10 {
+          break
+        }
+
+        r = r + a[i]
+
+        i = i + 1
+      }
+
+      return r
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(45)));
 }
 
 }  // namespace

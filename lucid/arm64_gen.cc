@@ -351,11 +351,45 @@ class Arm64Generator {
     Append("]\n");
   }
 
+  void Process(const StoreStackReg32& inst) {
+    Append("ADD W");
+    Append(inst.offset_reg);
+    Append(", W");
+    Append(inst.offset_reg);
+    Append(", #");
+    Append(stack_offsets_[inst.offset]);
+    Append("\n");
+
+    Append("STR W");
+    Append(inst.src_reg);
+    Append(", [SP, W");
+    Append(inst.offset_reg);
+    Append(", uxtw #0");
+    Append("]\n");
+  }
+
   void Process(const StoreStack64& inst) {
     Append("STR X");
     Append(inst.src_reg);
     Append(", [SP, #");
     Append(stack_offsets_[inst.offset]);
+    Append("]\n");
+  }
+
+  void Process(const StoreStackReg64& inst) {
+    Append("ADD X");
+    Append(inst.offset_reg);
+    Append(", X");
+    Append(inst.offset_reg);
+    Append(", #");
+    Append(stack_offsets_[inst.offset]);
+    Append("\n");
+
+    Append("STR X");
+    Append(inst.src_reg);
+    Append(", [SP, X");
+    Append(inst.offset_reg);
+    Append(", lsl #0");
     Append("]\n");
   }
 
@@ -405,7 +439,7 @@ class Arm64Generator {
     Append(inst.dst_reg);
     Append(", [SP, X");
     Append(inst.offset_reg);
-    Append(", uxtw");
+    Append(", lsl #0");
     Append("]\n");
   }
 

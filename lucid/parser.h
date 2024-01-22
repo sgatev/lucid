@@ -254,6 +254,33 @@ class Parser {
       if (IsError(maybe_ident)) return std::get<ParserError>(maybe_ident);
       auto ident = std::get<std::string_view>(maybe_ident);
 
+      if (Peek().kind == Token::Kind::OpenBracket) {
+        Read();
+
+        const auto maybe_size = ParseExpr();
+        if (IsError(maybe_size)) return std::get<ParserError>(maybe_size);
+
+        if (auto r = ExpectToken(Token::Kind::CloseBracket); IsError(r)) {
+          return *r;
+        }
+
+        if (Peek().kind == Token::Kind::Equal) {
+          Read();
+
+          ArrayAssignStmt stmt;
+          stmt.name = ident;
+          stmt.index = std::get<ExprRef>(maybe_size);
+
+          const auto expr = ParseExpr();
+          if (IsError(expr)) return std::get<ParserError>(expr);
+          stmt.expr = std::get<ExprRef>(expr);
+
+          return arena_.add(std::move(stmt));
+        }
+
+        return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+      }
+
       if (Peek().kind == Token::Kind::Equal) {
         Read();
 
