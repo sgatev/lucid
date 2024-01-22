@@ -365,11 +365,13 @@ class Parser {
         return *r;
       }
 
-      return arena_.add(IndexExpr{
+      maybe_expr = arena_.add(IndexExpr{
           .base = std::get<ExprRef>(maybe_expr),
           .index = std::get<ExprRef>(maybe_size),
       });
-    } else if (Peek().kind == Token::Kind::Plus) {
+    }
+
+    if (Peek().kind == Token::Kind::Plus) {
       Read();
 
       const auto maybe_rhs = ParseExprInternal();

@@ -166,7 +166,8 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const IndexExpr& expr) {
-    // TODO: Add constraint
+    // TODO: expr.base
+    AddPendingExpr(expr.index);
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {
