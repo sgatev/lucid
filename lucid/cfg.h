@@ -64,6 +64,10 @@ struct ControlFlowGraph {
   // The last block in the control flow graph.
   BlockRef last = kNullBlockRef;
 
+  // True if one of the statements in the graph involves a function call
+  // expression.
+  bool has_func_calls = false;
+
  private:
   Arena<Block> blocks_;
 };

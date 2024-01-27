@@ -3,28 +3,41 @@ let printf = (n: String) -> Int32 {
 }
 
 let main = () -> Int32 {
-  let a: Int32[10] = 0
-  let b: Int32[10] = 0
-
-  a[5] = 1
+  let a: Int32[101] = 0
+  let b: Int32[101] = 0
 
   let j: Int32 = 0
   loop {
-    if j == 10 {
+    if j == 101 {
+      break
+    }
+
+    a[j] = 0
+    b[j] = 0
+
+    j = j + 1
+  }
+
+
+  a[51] = 1
+
+  j = 0
+  loop {
+    if j == 48 {
       break
     }
 
     let i: Int32 = 0
     loop {
-      if i == 10 {
+      if i == 101 {
         break
       }
 
       let r: Int32 = a[i]
       if r == 0 {
-        printf(" ")
+        printf("  ")
       } else {
-        printf("█")
+        printf("██")
       }
 
       i = i + 1
@@ -33,7 +46,7 @@ let main = () -> Int32 {
 
     i = 1
     loop {
-      if i == 9 {
+      if i == 100 {
         break
       }
 
@@ -76,7 +89,7 @@ let main = () -> Int32 {
 
     i = 0
     loop {
-      if i == 10 {
+      if i == 101 {
         break
       }
 

@@ -68,6 +68,8 @@ class AbstractMachineFunctionGenerator {
   }
 
   void Generate() {
+    if (graph_.has_func_calls) stack_offset_ = 12;
+
     state_.out_reg.clear();
     state_.out_reg.reserve(arena_.size());
 
@@ -168,27 +170,25 @@ class AbstractMachineFunctionGenerator {
     }
     next_reg_ = highest_reg;
 
-    std::size_t offset = stack_offset_;
-
     state_.func.instructions.insert(state_.func.instructions.begin() + pop_pos,
                                     PopStack{});
-    for (int i = next_reg_ - 1; i >= 1; --i) {
-      state_.func.instructions.insert(
-          state_.func.instructions.begin() + pop_pos,
-          LoadStack64{
-              .offset = offset + (i - 1),
-              .dst_reg = i,
-          });
-      state_.func.stack_slots.push_back(8);
-    }
-
-    for (int i = next_reg_ - 1; i >= 1; --i) {
-      state_.func.instructions.insert(
-          state_.func.instructions.begin() + push_pos,
-          StoreStack64{
-              .offset = offset + (i - 1),
-              .src_reg = i,
-          });
+    if (graph_.has_func_calls) {
+      for (std::size_t i = 1; i <= 12; ++i) {
+        state_.func.instructions.insert(
+            state_.func.instructions.begin() + pop_pos, LoadStack64{
+                                                            .offset = i - 1,
+                                                            .dst_reg = RegId(i),
+                                                        });
+        state_.func.stack_slots.push_back(8);
+      }
+      for (std::size_t i = 1; i <= 12; ++i) {
+        state_.func.instructions.insert(
+            state_.func.instructions.begin() + push_pos,
+            StoreStack64{
+                .offset = i - 1,
+                .src_reg = RegId(i),
+            });
+      }
     }
     state_.func.instructions.insert(state_.func.instructions.begin() + push_pos,
                                     PushStack{});
@@ -308,21 +308,7 @@ class AbstractMachineFunctionGenerator {
       auto size = std::atoi(array_type.size.value.data());
       var_stack_[stmt.name] = stack_offset_;
       for (int i = 0; i < size; ++i) {
-        auto stmt_type =
-            std::get<BasicType>(DerefType(array_type.element_type));
-        if (stmt_type.name == "Int32") {
-          state_.func.instructions.push_back(StoreStack32{
-              .offset = stack_offset_,
-              .src_reg = state_.out_reg[stmt.init],
-          });
-          ++stack_offset_;
-        } else if (stmt_type.name == "Int64") {
-          state_.func.instructions.push_back(StoreStack64{
-              .offset = stack_offset_,
-              .src_reg = state_.out_reg[stmt.init],
-          });
-          ++stack_offset_;
-        }
+        ++stack_offset_;
       }
       return;
     }

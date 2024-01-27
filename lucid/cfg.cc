@@ -85,6 +85,7 @@ class ControlFlowGraphBuilder {
   }
 
   void ProcessExpr(const FuncCallExpr& expr, BlockRef block, BlockRef end) {
+    graph_.has_func_calls = true;
     for (ExprRef arg : expr.arguments) ProcessSubExpr(arg, block);
   }
 
