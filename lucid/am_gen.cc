@@ -48,7 +48,7 @@ class AbstractMachineFunctionGenerator {
               } else if (var_decl_type.name == "Int64") {
                 state_.func.stack_slots.push_back(8);
               } else if (var_decl_type.name == "Bool") {
-                state_.func.stack_slots.push_back(1);
+                state_.func.stack_slots.push_back(4);
               }
             }
           } else {
@@ -384,6 +384,23 @@ class AbstractMachineFunctionGenerator {
           .offset_reg = offset_reg,
           .src_reg = state_.out_reg[stmt.expr],
       });
+    } else if (expr_type.name == "Bool") {
+      RegId offset_reg = next_reg_++;
+      state_.func.instructions.push_back(SetReg32{
+          .dst_reg = offset_reg,
+          .src_val = "4",
+      });
+      state_.func.instructions.push_back(MulReg32{
+          .res_reg = offset_reg,
+          .lhs_reg = offset_reg,
+          .rhs_reg = state_.out_reg[stmt.index],
+      });
+
+      state_.func.instructions.push_back(StoreStackReg32{
+          .offset = var_stack_[stmt.name],
+          .offset_reg = offset_reg,
+          .src_reg = state_.out_reg[stmt.expr],
+      });
     }
   }
 
@@ -441,6 +458,23 @@ class AbstractMachineFunctionGenerator {
       });
 
       state_.func.instructions.push_back(LoadStackReg64{
+          .offset = base_offset,
+          .offset_reg = offset_reg,
+          .dst_reg = reg,
+      });
+    } else if (expr_type.name == "Bool") {
+      RegId offset_reg = next_reg_++;
+      state_.func.instructions.push_back(SetReg32{
+          .dst_reg = offset_reg,
+          .src_val = "4",
+      });
+      state_.func.instructions.push_back(MulReg32{
+          .res_reg = offset_reg,
+          .lhs_reg = offset_reg,
+          .rhs_reg = state_.out_reg[expr.index],
+      });
+
+      state_.func.instructions.push_back(LoadStackReg32{
           .offset = base_offset,
           .offset_reg = offset_reg,
           .dst_reg = reg,

@@ -542,5 +542,45 @@ TEST_F(CompilerTest, Int64Array) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(45)));
 }
 
+TEST_F(CompilerTest, BoolArray) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int32 {
+      let a: Bool[10] = false
+
+      let i: Int32 = 0
+      loop {
+        if i == 10 {
+          break
+        }
+
+        if i % 2 == 0 {
+          a[i] = true
+        } else {
+          a[i] = false
+        }
+
+        i = i + 1
+      }
+
+      let r: Int32 = 0
+      i = 0
+      loop {
+        if i == 10 {
+          break
+        }
+
+        if a[i] {
+          r = r + 1
+        }
+
+        i = i + 1
+      }
+
+      return r
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(5)));
+}
+
 }  // namespace
 }  // namespace lucid
