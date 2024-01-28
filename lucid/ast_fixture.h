@@ -157,7 +157,8 @@ struct VarDeclStmtPattern {
 
   bool operator()(const VarDeclStmt& stmt) const {
     if (type != nullptr && !type(stmt.type)) return false;
-    return name == stmt.name && init(stmt.init);
+    if (init != nullptr && !init(stmt.init)) return false;
+    return name == stmt.name;
   }
 };
 
@@ -191,6 +192,10 @@ class AstFixture {
   template <typename T>
   StmtRef A(T stmt) {
     return arena_.add(stmt);
+  }
+
+  ExprRefMatcher MatchesAnyExpr() {
+    return MatchesStmt<Expr>([](const Expr&) { return true; });
   }
 
   std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(

@@ -390,6 +390,7 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef stmt_ref, const BreakStmt& stmt) {}
 
   void ProcessExpr(ExprRef ref, const IdentExpr& expr) {
+    if (std::holds_alternative<ArrayType>(DerefType(expr.type))) return;
     auto expr_type = std::get<BasicType>(DerefType(expr.type));
     RegId reg = next_reg_++;
     if (expr_type.name == "Int32") {

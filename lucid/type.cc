@@ -143,14 +143,13 @@ class ExprTypeInferenceEngine {
 
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
     const auto& func_type = func_types_.at(expr.func_name);
-    RequireTypeForExpr(expr_ref,
-                       arena_.add(BasicType{.name = func_type.result_type}));
     for (int i = 0; i < expr.arguments.size(); ++i) {
-      const auto& arg = expr.arguments[i];
-
+      ExprRef arg = expr.arguments[i];
       RequireTypeForExpr(arg, func_type.parameters[i].type);
       AddPendingExpr(arg);
     }
+    RequireTypeForExpr(expr_ref,
+                       arena_.add(BasicType{.name = func_type.result_type}));
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
@@ -166,7 +165,8 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const IndexExpr& expr) {
-    // TODO: expr.base
+    AddPendingExpr(expr.base);
+    RequireArrayElementTypeForExpr(expr_ref, expr.base);
     AddPendingExpr(expr.index);
   }
 
@@ -202,6 +202,10 @@ class ExprTypeInferenceEngine {
 
   void RequireSameTypesForExprs(ExprRef lhs, ExprRef rhs) {
     expr_from_expr_[lhs] = rhs;
+  }
+
+  void RequireArrayElementTypeForExpr(ExprRef element, ExprRef array) {
+    expr_from_array_[element] = array;
   }
 
   void SetIdentType(std::string_view name, TypeRef type_ref) {
@@ -258,6 +262,14 @@ class ExprTypeInferenceEngine {
 
   void SolveTypeEquations() {
     while (true) {
+      for (auto [element, array] : expr_from_array_) {
+        if (auto it = expr_from_type_.find(array);
+            it != expr_from_type_.end()) {
+          const auto& array_type = std::get<ArrayType>(DerefType(it->second));
+          expr_from_type_[element] = array_type.element_type;
+        }
+      }
+
       std::unordered_map<ExprRef, ExprRef> next_expr_from_expr;
       for (auto [lhs, rhs] : expr_from_expr_) {
         if (auto it = expr_from_type_.find(rhs); it != expr_from_type_.end()) {
@@ -283,6 +295,7 @@ class ExprTypeInferenceEngine {
   std::unordered_map<ExprRef, ExprRef> expr_from_expr_;
   std::unordered_map<ExprRef, TypeRef> expr_from_type_;
   std::unordered_map<std::string_view, TypeRef> ident_from_type_;
+  std::unordered_map<ExprRef, ExprRef> expr_from_array_;
 
   std::vector<StmtRef> pending_stmts_;
   std::vector<ExprRef> pending_exprs_;

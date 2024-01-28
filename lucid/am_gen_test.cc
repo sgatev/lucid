@@ -1749,7 +1749,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
               .name = "x",
               .type = A(ArrayType{.element_type = A(BasicType{.name = "Int32"}),
                                   .size = IntLitExpr{.value = "10"}}),
-              .init = A(IntLitExpr{.value = "2"}),
           }),
           A(ReturnStmt{
               .value = A(IntLitExpr{
@@ -1764,15 +1763,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
                                               .id = 0,
                                           },
                                           SetReg32{
-                                              .src_val = "2",
+                                              .src_val = "0",
                                               .dst_reg = 1,
                                           },
-                                          SetReg32{
-                                              .src_val = "0",
-                                              .dst_reg = 2,
-                                          },
                                           MoveReg32{
-                                              .src_reg = 2,
+                                              .src_reg = 1,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -1793,7 +1788,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
               .name = "x",
               .type = A(ArrayType{.element_type = A(BasicType{.name = "Int64"}),
                                   .size = IntLitExpr{.value = "10"}}),
-              .init = A(IntLitExpr{.value = "2"}),
           }),
           A(ReturnStmt{
               .value = A(IntLitExpr{
@@ -1808,15 +1802,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
                                               .id = 0,
                                           },
                                           SetReg64{
-                                              .src_val = "2",
+                                              .src_val = "0",
                                               .dst_reg = 1,
                                           },
-                                          SetReg64{
-                                              .src_val = "0",
-                                              .dst_reg = 2,
-                                          },
                                           MoveReg64{
-                                              .src_reg = 2,
+                                              .src_reg = 1,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
