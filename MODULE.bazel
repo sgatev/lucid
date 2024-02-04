@@ -1,4 +1,15 @@
-module(name = "lucid", version = "0.1")
+module(
+    name = "lucid",
+    version = "0.1",
+)
 
 bazel_dep(name = "googletest", version = "1.14.0")
 bazel_dep(name = "google_benchmark", version = "1.8.3")
+
+# https://github.com/hedronvision/bazel-compile-commands-extractor
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    commit = "d7d9efd0e2315fccd03e413796a3267ba001b732",
+    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
+)
