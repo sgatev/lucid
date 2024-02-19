@@ -13,6 +13,7 @@ namespace lucid {
 struct CompoundStmt;
 struct FuncDefStmt;
 struct ReturnStmt;
+struct DoStmt;
 struct IntLitExpr;
 struct BoolLitExpr;
 struct StringLitExpr;
@@ -37,8 +38,9 @@ using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
                           IdentExpr, IndexExpr, BinaryOpExpr, Type>;
 
 // A statement in the Lucid language.
-using Stmt = std::variant<Expr, VarDeclStmt, VarAssignStmt, ArrayAssignStmt,
-                          FuncDefStmt, ReturnStmt, IfStmt, LoopStmt, BreakStmt>;
+using Stmt =
+    std::variant<Expr, VarDeclStmt, VarAssignStmt, ArrayAssignStmt, FuncDefStmt,
+                 ReturnStmt, DoStmt, IfStmt, LoopStmt, BreakStmt>;
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
@@ -88,6 +90,13 @@ struct FuncDefStmt {
 struct ReturnStmt {
   // Value that is returned by the function.
   ExprRef value;
+};
+
+// A statement that represents the execution of a procedure.
+struct DoStmt {
+  // The procedure that's being executed.
+  // TODO: Find an appropriate representation for a procedure.
+  ExprRef expr;
 };
 
 // An expression that represents an integer literal.

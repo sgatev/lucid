@@ -415,7 +415,7 @@ TEST_F(CompilerTest, PrintInt32) {
     }
 
     let main = () -> Int32 {
-      printf("%d", 21)
+      do printf("%d", 21)
       return 0
     }
   )"));
@@ -430,7 +430,7 @@ TEST_F(CompilerTest, PrintString) {
     }
 
     let main = () -> Int32 {
-      printf("Hello, world!\n")
+      do printf("Hello, world!\n")
       return 0
     }
   )"));
@@ -445,7 +445,7 @@ TEST_F(CompilerTest, PrintMultipleValues) {
     }
 
     let main = () -> Int32 {
-      printf("%d, %d\n", 0, 1)
+      do printf("%d, %d\n", 0, 1)
       return 0
     }
   )"));

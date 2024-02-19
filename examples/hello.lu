@@ -3,6 +3,6 @@ let printf = (n: String) -> Int32 {
 }
 
 let main = () -> Int32 {
-  printf("Hello, world!\n")
+  do printf("Hello, world!\n")
   return 0
 }

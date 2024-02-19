@@ -219,6 +219,8 @@ class AbstractMachineFunctionGenerator {
     }
   }
 
+  void Process(StmtRef ref, const DoStmt& stmt) {}
+
   void Process(StmtRef ref, const Expr& expr) {
     std::visit([this, ref](auto&& expr) { ProcessExpr(ref, expr); }, expr);
   }

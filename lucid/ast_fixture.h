@@ -54,8 +54,14 @@ struct FuncDefStmtPattern {
   }
 };
 
+struct DoStmtPattern {
+  ExprRefMatcher expr;
+
+  bool operator()(const DoStmt& stmt) const { return expr(stmt.expr); }
+};
+
 struct ReturnStmtPattern {
-  StmtRefMatcher value;
+  ExprRefMatcher value;
 
   bool operator()(const ReturnStmt& stmt) const { return value(stmt.value); }
 };
@@ -201,6 +207,10 @@ class AstFixture {
   std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(
       FuncDefStmtPattern pattern) {
     return [pattern](FuncDefStmt stmt) { return pattern(stmt); };
+  }
+
+  StmtRefMatcher MatchesDoStmt(DoStmtPattern pattern) {
+    return MatchesStmt<DoStmt>(std::move(pattern));
   }
 
   StmtRefMatcher MatchesReturnStmt(ReturnStmtPattern pattern) {

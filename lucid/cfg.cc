@@ -123,6 +123,10 @@ class ControlFlowGraphBuilder {
     ProcessSubExpr(stmt.value, block);
   }
 
+  void ProcessStmt(const DoStmt& stmt, BlockRef block, BlockRef end) {
+    ProcessSubExpr(stmt.expr, block);
+  }
+
   void ProcessStmt(const Expr& expr, BlockRef block, BlockRef end) {
     std::visit([&](auto&& expr) { ProcessExpr(expr, block, end); }, expr);
   }

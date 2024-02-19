@@ -10,7 +10,7 @@ let factors = (n: Int32) -> Int32 {
     }
 
     if n % i == 0 {
-      printf("%d\n", i)
+      do printf("%d\n", i)
     }
     
     i = i + 1
@@ -19,6 +19,6 @@ let factors = (n: Int32) -> Int32 {
 }
 
 let main = () -> Int32 {
-  factors(42)
+  do factors(42)
   return 0
 }

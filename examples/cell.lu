@@ -62,14 +62,14 @@ let main = () -> Int32 {
       }
 
       if buffer[col] == 0 {
-        printf("  ")
+        do printf("  ")
       } else {
-        printf("██")
+        do printf("██")
       }
 
       col = col + 1
     }
-    printf("\n")
+    do printf("\n")
 
     let prev: Int32 = buffer[0]
     col = 1

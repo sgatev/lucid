@@ -172,6 +172,16 @@ class Parser {
   }
 
   std::variant<StmtRef, ParserError> ParseStmt() {
+    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "do") {
+      Read();
+
+      const auto maybe_value = ParseExpr();
+      if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
+
+      return arena_.add(DoStmt{
+          .expr = std::get<ExprRef>(maybe_value),
+      });
+    }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "return") {
       Read();
 

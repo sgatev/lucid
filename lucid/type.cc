@@ -72,6 +72,8 @@ class ExprTypeInferenceEngine {
       ProcessPendingStmt(stmt_ref, *loop_stmt);
     } else if (auto* if_stmt = std::get_if<IfStmt>(&stmt)) {
       ProcessPendingStmt(stmt_ref, *if_stmt);
+    } else if (auto* do_stmt = std::get_if<DoStmt>(&stmt)) {
+      ProcessPendingStmt(stmt_ref, *do_stmt);
     } else if (auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
       ProcessPendingStmt(stmt_ref, *return_stmt);
     } else if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
@@ -94,6 +96,10 @@ class ExprTypeInferenceEngine {
     AddPendingStmts(std::ranges::reverse_view(stmt.then_body.statements));
     RequireTypeForExpr(stmt.cond, arena_.add(BasicType{.name = "Bool"}));
     AddPendingExpr(stmt.cond);
+  }
+
+  void ProcessPendingStmt(StmtRef stmt_ref, const DoStmt& stmt) {
+    AddPendingExpr(stmt.expr);
   }
 
   void ProcessPendingStmt(StmtRef stmt_ref, const ReturnStmt& stmt) {
