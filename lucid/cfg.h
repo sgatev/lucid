@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <string_view>
 #include <vector>
 
@@ -17,13 +18,22 @@ struct ControlFlowGraph {
   // A null block reference.
   static constexpr BlockRef kNullBlockRef = Arena<Block>::kNullRef;
 
+  // A sequence of expressions and an optional statement in evaluation order.
+  struct Sequence {
+    // Expressions in the sequence in evaluation order.
+    std::vector<ExprRef> expressions;
+
+    // Statement of the sequence.
+    std::optional<StmtRef> stmt;
+  };
+
   // Represents a basic block in the control flow graph of a function.
   struct Block {
     // Id of the basic block.
     std::size_t id;
 
-    // Statements in the block in evaluation order.
-    std::vector<StmtRef> statements;
+    // A list of sequences in evaluation order.
+    std::vector<Sequence> sequences;
 
     // Reference to the subsequent blocks.
     //

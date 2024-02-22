@@ -15,6 +15,7 @@ namespace {
 // Builds the control flow graph of a function.
 class ControlFlowGraphBuilder {
   using BlockRef = ControlFlowGraph::BlockRef;
+  using Sequence = ControlFlowGraph::Sequence;
 
  public:
   ControlFlowGraphBuilder(const Arena<Stmt>& arena, const FuncDefStmt& func_def)
@@ -40,17 +41,30 @@ class ControlFlowGraphBuilder {
     for (StmtRef stmt_ref : stmt.statements) {
       if (auto* loop_stmt = std::get_if<LoopStmt>(&DerefStmt(stmt_ref))) {
         auto post_loop_block = AddBlock();
-        ProcessStmt(*loop_stmt, block, post_loop_block);
-        FlushSubExprs(block, post_loop_block);
+
+        post_loop_blocks_.push(post_loop_block);
+
+        auto loop_block = AddBlock();
+        BuildBlock(loop_stmt->body, loop_block, loop_block);
+        graph_.get(block).next.push_back(loop_block);
+
+        post_loop_blocks_.pop();
+
         block = post_loop_block;
       } else if (auto* if_stmt = std::get_if<IfStmt>(&DerefStmt(stmt_ref))) {
+        auto& seq = graph_.get(block).sequences.emplace_back();
         auto post_if_block = AddBlock();
-        ProcessStmt(*if_stmt, block, post_if_block);
-        FlushSubExprs(block, post_if_block);
+        ProcessStmt(*if_stmt, seq, block, post_if_block);
+        FlushSubExprs(seq, block, post_if_block);
         block = post_if_block;
       } else {
-        ProcessSubExpr(stmt_ref, block);
-        FlushSubExprs(block, end);
+        auto& seq = graph_.get(block).sequences.emplace_back();
+        seq.stmt = stmt_ref;
+
+        std::visit([&](auto&& stmt) { ProcessStmt(stmt, seq, block, end); },
+                   DerefStmt(stmt_ref));
+
+        FlushSubExprs(seq, block, end);
 
         if (std::holds_alternative<ReturnStmt>(DerefStmt(stmt_ref))) {
           graph_.get(block).next.push_back(graph_.last);
@@ -67,21 +81,20 @@ class ControlFlowGraphBuilder {
     graph_.get(block).next.push_back(end);
   }
 
-  void FlushSubExprs(BlockRef block, BlockRef end) {
-    auto expr_begin = graph_.get(block).statements.size();
+  void FlushSubExprs(Sequence& seq, BlockRef block, BlockRef end) {
+    auto expr_begin = seq.expressions.size();
 
     while (!pending_sub_exprs_.empty()) {
-      auto stmt_ref = pending_sub_exprs_.top();
+      auto expr_ref = pending_sub_exprs_.top();
       pending_sub_exprs_.pop();
 
-      graph_.get(block).statements.push_back(stmt_ref);
+      seq.expressions.push_back(expr_ref);
 
-      std::visit([&](auto&& stmt) { ProcessStmt(stmt, block, end); },
-                 DerefStmt(stmt_ref));
+      std::visit([&](auto&& stmt) { ProcessStmt(stmt, seq, block, end); },
+                 DerefStmt(expr_ref));
     }
 
-    std::reverse(graph_.get(block).statements.begin() + expr_begin,
-                 graph_.get(block).statements.end());
+    std::reverse(seq.expressions.begin() + expr_begin, seq.expressions.end());
   }
 
   void ProcessExpr(const FuncCallExpr& expr, BlockRef block, BlockRef end) {
@@ -119,48 +132,50 @@ class ControlFlowGraphBuilder {
     // TODO: How to represent types in CFG?
   }
 
-  void ProcessStmt(const ReturnStmt& stmt, BlockRef block, BlockRef end) {
+  void ProcessStmt(const ReturnStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {
     ProcessSubExpr(stmt.value, block);
   }
 
-  void ProcessStmt(const DoStmt& stmt, BlockRef block, BlockRef end) {
+  void ProcessStmt(const DoStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {
     ProcessSubExpr(stmt.expr, block);
   }
 
-  void ProcessStmt(const Expr& expr, BlockRef block, BlockRef end) {
+  void ProcessStmt(const Expr& expr, Sequence& seq, BlockRef block,
+                   BlockRef end) {
     std::visit([&](auto&& expr) { ProcessExpr(expr, block, end); }, expr);
   }
 
-  void ProcessStmt(const VarDeclStmt& stmt, BlockRef block, BlockRef end) {
+  void ProcessStmt(const VarDeclStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {
     ProcessSubExpr(stmt.init, block);
   }
 
-  void ProcessStmt(const VarAssignStmt& stmt, BlockRef block, BlockRef end) {
+  void ProcessStmt(const VarAssignStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {
     ProcessSubExpr(stmt.expr, block);
   }
 
-  void ProcessStmt(const ArrayAssignStmt& stmt, BlockRef block, BlockRef end) {
+  void ProcessStmt(const ArrayAssignStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {
     ProcessSubExpr(stmt.index, block);
     ProcessSubExpr(stmt.expr, block);
   }
 
-  void ProcessStmt(const FuncDefStmt& stmt, BlockRef block, BlockRef end) {
+  void ProcessStmt(const FuncDefStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {
     // TODO: Does it make sense to have a `FuncDefStmt` as a nested statement?
   }
 
-  void ProcessStmt(const LoopStmt& stmt, BlockRef block, BlockRef end) {
-    post_loop_blocks_.push(end);
+  void ProcessStmt(const LoopStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {}
 
-    auto loop_block = AddBlock();
-    BuildBlock(stmt.body, loop_block, loop_block);
-    graph_.get(block).next.push_back(loop_block);
+  void ProcessStmt(const BreakStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {}
 
-    post_loop_blocks_.pop();
-  }
-
-  void ProcessStmt(const BreakStmt& stmt, BlockRef block, BlockRef end) {}
-
-  void ProcessStmt(const IfStmt& stmt, BlockRef block, BlockRef end) {
+  void ProcessStmt(const IfStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {
     auto then_block = AddBlock();
     BuildBlock(stmt.then_body, then_block, end);
     graph_.get(block).next.push_back(then_block);
@@ -184,7 +199,7 @@ class ControlFlowGraphBuilder {
   const Stmt& DerefStmt(StmtRef stmt_ref) { return arena_.get(stmt_ref); }
 
   const Arena<Stmt>& arena_;
-  std::stack<StmtRef, std::vector<StmtRef>> pending_sub_exprs_;
+  std::stack<ExprRef, std::vector<ExprRef>> pending_sub_exprs_;
   ControlFlowGraph graph_;
   std::stack<BlockRef> post_loop_blocks_;
 };

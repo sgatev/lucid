@@ -40,24 +40,25 @@ TEST_F(ControlFlowGraphTest, EmptyFunction) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   EXPECT_THAT(first_block.next, ElementsAre(graph.last));
-  EXPECT_THAT(first_block.statements, IsEmpty());
+  EXPECT_THAT(first_block.sequences, IsEmpty());
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   auto func_call_expr = A(FuncCallExpr({
       .func_name = "bar",
   }));
+  auto do_stmt = A(DoStmt{.expr = func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = A(BasicType{.name = "Void"}),
       .body = {{
-          func_call_expr,
+          do_stmt,
       }},
   });
 
@@ -65,15 +66,17 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   EXPECT_THAT(first_block.next, ElementsAre(graph.last));
-  EXPECT_THAT(first_block.statements, ElementsAreArray({
-                                          func_call_expr,
-                                      }));
+  ASSERT_EQ(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
+                                                        func_call_expr,
+                                                    }));
+  EXPECT_THAT(first_block.sequences[0].stmt, do_stmt);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
@@ -98,11 +101,12 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
               baz_func_call_expr,
           },
   }));
+  auto do_stmt = A(DoStmt{.expr = func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = A(BasicType{.name = "Void"}),
       .body = {{
-          func_call_expr,
+          do_stmt,
       }},
   });
 
@@ -110,18 +114,20 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   EXPECT_THAT(first_block.next, ElementsAre(graph.last));
-  EXPECT_THAT(first_block.statements, ElementsAreArray({
-                                          arg1_expr,
-                                          arg2_expr,
-                                          baz_func_call_expr,
-                                          func_call_expr,
-                                      }));
+  ASSERT_EQ(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
+                                                        arg1_expr,
+                                                        arg2_expr,
+                                                        baz_func_call_expr,
+                                                        func_call_expr,
+                                                    }));
+  EXPECT_THAT(first_block.sequences[0].stmt, do_stmt);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 TEST_F(ControlFlowGraphTest, ReturnStmt) {
@@ -150,17 +156,18 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   EXPECT_THAT(first_block.next, ElementsAre(graph.last));
-  EXPECT_THAT(first_block.statements, ElementsAreArray({
-                                          arg1_expr,
-                                          func_call_expr,
-                                          return_stmt,
-                                      }));
+  ASSERT_EQ(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
+                                                        arg1_expr,
+                                                        func_call_expr,
+                                                    }));
+  EXPECT_THAT(first_block.sequences[0].stmt, return_stmt);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 TEST_F(ControlFlowGraphTest, VarDeclStmt) {
@@ -182,16 +189,17 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   EXPECT_THAT(first_block.next, ElementsAre(graph.last));
-  EXPECT_THAT(first_block.statements, ElementsAreArray({
-                                          func_call_stmt_ref,
-                                          x_var_decl_ref,
-                                      }));
+  ASSERT_EQ(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
+                                                        func_call_stmt_ref,
+                                                    }));
+  EXPECT_THAT(first_block.sequences[0].stmt, x_var_decl_ref);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
@@ -202,10 +210,11 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
       .lhs = lhs_expr,
       .rhs = rhs_expr,
   });
+  auto do_stmt = A(DoStmt{.expr = add_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .body = {{
-          add_expr,
+          do_stmt,
       }},
       .result_type = A(BasicType{.name = "Int32"}),
   });
@@ -214,17 +223,19 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   EXPECT_THAT(first_block.next, ElementsAre(graph.last));
-  EXPECT_THAT(first_block.statements, ElementsAreArray({
-                                          lhs_expr,
-                                          rhs_expr,
-                                          add_expr,
-                                      }));
+  ASSERT_EQ(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
+                                                        lhs_expr,
+                                                        rhs_expr,
+                                                        add_expr,
+                                                    }));
+  EXPECT_THAT(first_block.sequences[0].stmt, do_stmt);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 TEST_F(ControlFlowGraphTest, IfStmt) {
@@ -249,11 +260,12 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
           add_expr,
       }},
   });
+  auto do_stmt = A(DoStmt{.expr = mul_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .body = {{
           if_stmt,
-          mul_expr,
+          do_stmt,
       }},
       .result_type = A(BasicType{.name = "Int32"}),
   });
@@ -262,9 +274,10 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   ASSERT_THAT(first_block.next, SizeIs(2));
-  EXPECT_THAT(first_block.statements, ElementsAreArray({
-                                          cond_expr,
-                                      }));
+  ASSERT_THAT(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
+                                                        cond_expr,
+                                                    }));
   EXPECT_EQ(first_block.branch_cond, cond_expr);
 
   ASSERT_NE(first_block.next[0], ControlFlowGraph::kNullBlockRef);
@@ -276,18 +289,20 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
   EXPECT_EQ(then_block.next[0], first_block.next[1]);
   const auto& post_if_block = graph.get(then_block.next[0]);
   EXPECT_EQ(post_if_block.id, 2);
-  EXPECT_THAT(post_if_block.statements, ElementsAreArray({
-                                            mul_lhs_expr,
-                                            mul_rhs_expr,
-                                            mul_expr,
-                                        }));
+  ASSERT_THAT(post_if_block.sequences.size(), 1);
+  EXPECT_THAT(post_if_block.sequences[0].expressions, ElementsAreArray({
+                                                          mul_lhs_expr,
+                                                          mul_rhs_expr,
+                                                          mul_expr,
+                                                      }));
+  EXPECT_THAT(post_if_block.sequences[0].stmt, do_stmt);
   EXPECT_THAT(post_if_block.next, ElementsAre(graph.last));
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 TEST_F(ControlFlowGraphTest, IfElseStmt) {
@@ -306,13 +321,15 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
       .rhs = mul_rhs_expr,
   });
   auto cond_expr = A(BoolLitExpr{.value = "true"});
+  auto then_do_stmt = A(DoStmt{.expr = add_expr});
+  auto else_do_stmt = A(DoStmt{.expr = mul_expr});
   auto if_stmt = A(IfStmt{
       .cond = cond_expr,
       .then_body = {{
-          add_expr,
+          then_do_stmt,
       }},
       .else_body = {{
-          mul_expr,
+          else_do_stmt,
       }},
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
@@ -327,36 +344,41 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   ASSERT_THAT(first_block.next, SizeIs(2));
-  EXPECT_THAT(first_block.statements, ElementsAreArray({
-                                          cond_expr,
-                                      }));
+  ASSERT_THAT(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
+                                                        cond_expr,
+                                                    }));
   EXPECT_EQ(first_block.branch_cond, cond_expr);
 
   ASSERT_NE(first_block.next[0], ControlFlowGraph::kNullBlockRef);
   const auto& then_block = graph.get(first_block.next[0]);
   EXPECT_EQ(then_block.id, 3);
   EXPECT_THAT(then_block.next, ElementsAre(2));
-  EXPECT_THAT(then_block.statements, ElementsAreArray({
-                                         add_lhs_expr,
-                                         add_rhs_expr,
-                                         add_expr,
-                                     }));
+  ASSERT_THAT(then_block.sequences.size(), 1);
+  EXPECT_THAT(then_block.sequences[0].expressions, ElementsAreArray({
+                                                       add_lhs_expr,
+                                                       add_rhs_expr,
+                                                       add_expr,
+                                                   }));
+  EXPECT_THAT(then_block.sequences[0].stmt, then_do_stmt);
 
   ASSERT_NE(first_block.next[1], ControlFlowGraph::kNullBlockRef);
   const auto& else_block = graph.get(first_block.next[1]);
   EXPECT_EQ(else_block.id, 4);
   EXPECT_THAT(else_block.next, ElementsAre(2));
-  EXPECT_THAT(else_block.statements, ElementsAreArray({
-                                         mul_lhs_expr,
-                                         mul_rhs_expr,
-                                         mul_expr,
-                                     }));
+  ASSERT_THAT(then_block.sequences.size(), 1);
+  EXPECT_THAT(else_block.sequences[0].expressions, ElementsAreArray({
+                                                       mul_lhs_expr,
+                                                       mul_rhs_expr,
+                                                       mul_expr,
+                                                   }));
+  EXPECT_THAT(else_block.sequences[0].stmt, else_do_stmt);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 TEST_F(ControlFlowGraphTest, VarDecl) {
@@ -387,18 +409,21 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   EXPECT_THAT(first_block.next, ElementsAre(graph.last));
-  EXPECT_THAT(first_block.statements, ElementsAreArray({
-                                          int_lit,
-                                          const_decl_stmt,
-                                          ident_expr,
-                                          return_stmt,
-                                      }));
+  ASSERT_THAT(first_block.sequences.size(), 2);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
+                                                        int_lit,
+                                                    }));
+  EXPECT_THAT(first_block.sequences[0].stmt, const_decl_stmt);
+  EXPECT_THAT(first_block.sequences[1].expressions, ElementsAreArray({
+                                                        ident_expr,
+                                                    }));
+  EXPECT_THAT(first_block.sequences[1].stmt, return_stmt);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 TEST_F(ControlFlowGraphTest, Loop) {
@@ -409,9 +434,10 @@ TEST_F(ControlFlowGraphTest, Loop) {
       .lhs = add_lhs_expr,
       .rhs = add_rhs_expr,
   });
+  auto do_stmt = A(DoStmt{.expr = add_expr});
   auto loop_stmt = A(LoopStmt{
       .body = {{
-          add_expr,
+          do_stmt,
       }},
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
@@ -426,23 +452,25 @@ TEST_F(ControlFlowGraphTest, Loop) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   ASSERT_THAT(first_block.next, ElementsAre(3));
-  EXPECT_THAT(first_block.statements, IsEmpty());
+  EXPECT_THAT(first_block.sequences, IsEmpty());
 
   ASSERT_NE(first_block.next[0], ControlFlowGraph::kNullBlockRef);
   const auto& loop_block = graph.get(first_block.next[0]);
   EXPECT_EQ(loop_block.id, 3);
   EXPECT_THAT(loop_block.next, ElementsAre(3));
-  EXPECT_THAT(loop_block.statements, ElementsAreArray({
-                                         add_lhs_expr,
-                                         add_rhs_expr,
-                                         add_expr,
-                                     }));
+  ASSERT_THAT(loop_block.sequences.size(), 1);
+  EXPECT_THAT(loop_block.sequences[0].expressions, ElementsAreArray({
+                                                       add_lhs_expr,
+                                                       add_rhs_expr,
+                                                       add_expr,
+                                                   }));
+  EXPECT_THAT(loop_block.sequences[0].stmt, do_stmt);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
@@ -503,54 +531,57 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   const auto& first_block = graph.get(graph.first);
   EXPECT_EQ(first_block.id, 0);
   ASSERT_THAT(first_block.next, ElementsAre(3));
-  EXPECT_THAT(first_block.statements, ElementsAreArray({
-                                          n_var_init_ref,
-                                          n_var_decl_ref,
-                                      }));
+  ASSERT_THAT(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
+                                                        n_var_init_ref,
+                                                    }));
+  EXPECT_THAT(first_block.sequences[0].stmt, n_var_decl_ref);
 
   ASSERT_NE(first_block.next[0], ControlFlowGraph::kNullBlockRef);
   const auto& loop_block = graph.get(first_block.next[0]);
   EXPECT_EQ(loop_block.id, 3);
   EXPECT_THAT(loop_block.next, ElementsAre(5, 4));
-  EXPECT_THAT(loop_block.statements, ElementsAreArray({
-                                         if_cond_lhs_ref,
-                                         if_cond_rhs_ref,
-                                         if_cond_ref,
-                                     }));
+  ASSERT_THAT(loop_block.sequences.size(), 1);
+  EXPECT_THAT(loop_block.sequences[0].expressions, ElementsAreArray({
+                                                       if_cond_lhs_ref,
+                                                       if_cond_rhs_ref,
+                                                       if_cond_ref,
+                                                   }));
 
   ASSERT_NE(loop_block.next[0], ControlFlowGraph::kNullBlockRef);
   const auto& if_then_block = graph.get(loop_block.next[0]);
   EXPECT_EQ(if_then_block.id, 5);
   EXPECT_THAT(if_then_block.next, ElementsAre(2));
-  EXPECT_THAT(if_then_block.statements, ElementsAreArray({
-                                            break_stmt_ref,
-                                        }));
+  ASSERT_THAT(if_then_block.sequences.size(), 1);
+  EXPECT_THAT(if_then_block.sequences[0].stmt, break_stmt_ref);
 
   ASSERT_NE(loop_block.next[1], ControlFlowGraph::kNullBlockRef);
   const auto& post_if_block = graph.get(loop_block.next[1]);
   EXPECT_EQ(post_if_block.id, 4);
   EXPECT_THAT(post_if_block.next, ElementsAre(3));
-  EXPECT_THAT(post_if_block.statements, ElementsAreArray({
-                                            var_assign_lhs_ref,
-                                            var_assign_rhs_ref,
-                                            binary_op_expr_ref,
-                                            var_assign_stmt_ref,
-                                        }));
+  ASSERT_THAT(post_if_block.sequences.size(), 1);
+  EXPECT_THAT(post_if_block.sequences[0].expressions, ElementsAreArray({
+                                                          var_assign_lhs_ref,
+                                                          var_assign_rhs_ref,
+                                                          binary_op_expr_ref,
+                                                      }));
+  EXPECT_THAT(post_if_block.sequences[0].stmt, var_assign_stmt_ref);
 
   ASSERT_NE(if_then_block.next[0], ControlFlowGraph::kNullBlockRef);
   const auto& post_loop_block = graph.get(if_then_block.next[0]);
   EXPECT_EQ(post_loop_block.id, 2);
   EXPECT_THAT(post_loop_block.next, ElementsAre(graph.last));
-  EXPECT_THAT(post_loop_block.statements, ElementsAreArray({
-                                              return_value_ref,
-                                              return_stmt,
-                                          }));
+  ASSERT_THAT(post_loop_block.sequences.size(), 1);
+  EXPECT_THAT(post_loop_block.sequences[0].expressions, ElementsAreArray({
+                                                            return_value_ref,
+                                                        }));
+  EXPECT_THAT(post_loop_block.sequences[0].stmt, return_stmt);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
   EXPECT_EQ(last_block.id, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.statements, IsEmpty());
+  EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
 }  // namespace

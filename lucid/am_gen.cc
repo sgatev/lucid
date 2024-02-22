@@ -34,32 +34,34 @@ class AbstractMachineFunctionGenerator {
       }
     }
     for (const auto& block : graph.blocks()) {
-      for (const auto& stmt_ref : block.statements) {
-        const auto& stmt = arena.get(stmt_ref);
-        if (auto* var_decl = std::get_if<VarDeclStmt>(&stmt)) {
-          if (auto* array_type =
-                  std::get_if<ArrayType>(&DerefType(var_decl->type))) {
-            const auto& var_decl_type =
-                std::get<BasicType>(DerefType(array_type->element_type));
-            auto size = std::atoi(array_type->size.value.data());
-            for (int i = 0; i < size; ++i) {
+      for (const auto& seq : block.sequences) {
+        if (seq.stmt.has_value()) {
+          const auto& stmt = arena.get(*seq.stmt);
+          if (auto* var_decl = std::get_if<VarDeclStmt>(&stmt)) {
+            if (auto* array_type =
+                    std::get_if<ArrayType>(&DerefType(var_decl->type))) {
+              const auto& var_decl_type =
+                  std::get<BasicType>(DerefType(array_type->element_type));
+              auto size = std::atoi(array_type->size.value.data());
+              for (int i = 0; i < size; ++i) {
+                if (var_decl_type.name == "Int32") {
+                  state_.func.stack_slots.push_back(4);
+                } else if (var_decl_type.name == "Int64") {
+                  state_.func.stack_slots.push_back(8);
+                } else if (var_decl_type.name == "Bool") {
+                  state_.func.stack_slots.push_back(4);
+                }
+              }
+            } else {
+              const auto& var_decl_type =
+                  std::get<BasicType>(DerefType(var_decl->type));
               if (var_decl_type.name == "Int32") {
                 state_.func.stack_slots.push_back(4);
               } else if (var_decl_type.name == "Int64") {
                 state_.func.stack_slots.push_back(8);
               } else if (var_decl_type.name == "Bool") {
-                state_.func.stack_slots.push_back(4);
+                state_.func.stack_slots.push_back(1);
               }
-            }
-          } else {
-            const auto& var_decl_type =
-                std::get<BasicType>(DerefType(var_decl->type));
-            if (var_decl_type.name == "Int32") {
-              state_.func.stack_slots.push_back(4);
-            } else if (var_decl_type.name == "Int64") {
-              state_.func.stack_slots.push_back(8);
-            } else if (var_decl_type.name == "Bool") {
-              state_.func.stack_slots.push_back(1);
             }
           }
         }
@@ -77,7 +79,9 @@ class AbstractMachineFunctionGenerator {
 
     std::size_t instructions_count = 0;
     for (const auto& block : graph_.blocks()) {
-      instructions_count += block.statements.size();
+      for (const auto& seq : block.sequences) {
+        instructions_count += seq.expressions.size() + 1;
+      }
     }
     state_.func.instructions.clear();
     state_.func.instructions.reserve(instructions_count * 2);
@@ -152,8 +156,13 @@ class AbstractMachineFunctionGenerator {
         state_.func.instructions.push_back(Return{});
       }
 
-      for (const auto& stmt_ref : block.statements) {
-        Process(stmt_ref, DerefStmt(stmt_ref));
+      for (const auto& seq : block.sequences) {
+        for (const auto& stmt_ref : seq.expressions) {
+          Process(stmt_ref, DerefStmt(stmt_ref));
+        }
+        if (seq.stmt.has_value()) {
+          Process(*seq.stmt, DerefStmt(*seq.stmt));
+        }
       }
 
       if (block.branch_cond != ControlFlowGraph::kNullBlockRef) {
