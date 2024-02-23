@@ -43,10 +43,11 @@ std::string StringFormat(const std::string& fmt, Args... args) {
 }
 
 std::variant<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
-    std::string_view src, Arena<Stmt>& arena) {
+    std::string_view src, Arena<Stmt>& stmt_arena, Arena<Expr>& expr_arena,
+    Arena<Type>& type_arena) {
   std::vector<FuncDefStmt> func_defs;
   Lexer lexer(src);
-  Parser parser(arena, src, lexer);
+  Parser parser(stmt_arena, expr_arena, type_arena, src, lexer);
   while (true) {
     auto maybe_func_def = parser.ParseFuncDef();
     if (auto* err = std::get_if<ParserError>(&maybe_func_def)) {
@@ -62,17 +63,24 @@ using CompileError = std::variant<ParserError, TypeError>;
 
 std::optional<CompileError> CompileSource(std::string_view src,
                                           std::ostream& out) {
-  Arena<Stmt> arena;
-  auto maybe_funcs = ParseFuncDefs(src, arena);
+  Arena<Stmt> stmt_arena;
+  Arena<Expr> expr_arena;
+  Arena<Type> type_arena;
+  auto maybe_funcs = ParseFuncDefs(src, stmt_arena, expr_arena, type_arena);
   if (auto* err = std::get_if<ParserError>(&maybe_funcs)) return *err;
   auto& func_defs = std::get<std::vector<FuncDefStmt>>(maybe_funcs);
-  auto func_types = ExtractFuncTypes(arena, func_defs);
+  auto func_types =
+      ExtractFuncTypes(stmt_arena, expr_arena, type_arena, func_defs);
   AbstractMachineState state;
   GenerateArmStartSource(out);
   for (auto& func : func_defs) {
-    if (auto err = InferExprTypes(arena, func_types, func); err) return *err;
-    auto graph = BuildControlFlowGraph(arena, func);
-    GenerateAbstractMachineFunction(arena, graph, state);
+    if (auto err = InferExprTypes(stmt_arena, expr_arena, type_arena,
+                                  func_types, func);
+        err)
+      return *err;
+    auto graph = BuildControlFlowGraph(stmt_arena, expr_arena, func);
+    GenerateAbstractMachineFunction(stmt_arena, expr_arena, type_arena, graph,
+                                    state);
     OptimizeAbstractMachineInstructions(state.func.instructions);
     GenerateArmAssemblySource(state.func, out);
   }

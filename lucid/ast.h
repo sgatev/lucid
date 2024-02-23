@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <string_view>
 #include <type_traits>
 #include <variant>
@@ -35,11 +36,11 @@ using Type = std::variant<BasicType, ArrayType>;
 
 // An expression in the Lucid language.
 using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
-                          IdentExpr, IndexExpr, BinaryOpExpr, Type>;
+                          IdentExpr, IndexExpr, BinaryOpExpr>;
 
 // A statement in the Lucid language.
 using Stmt =
-    std::variant<Expr, VarDeclStmt, VarAssignStmt, ArrayAssignStmt, FuncDefStmt,
+    std::variant<VarDeclStmt, VarAssignStmt, ArrayAssignStmt, FuncDefStmt,
                  ReturnStmt, DoStmt, IfStmt, LoopStmt, BreakStmt>;
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
@@ -147,7 +148,7 @@ struct VarDeclStmt {
   std::string_view name;
 
   // Initializer expression.
-  ExprRef init;
+  std::optional<ExprRef> init;
 };
 
 // A statement that represents assignment of an expression to a variable.

@@ -31,7 +31,9 @@ namespace {
 class ParserTest : public testing::Test, public AstFixture {
  protected:
   std::variant<FuncDefStmt, std::string> Parse(std::string_view src) {
-    auto maybe_func_def_stmt = Parser(arena_, src, Lexer(src)).ParseFuncDef();
+    auto maybe_func_def_stmt =
+        Parser(stmt_arena_, expr_arena_, type_arena_, src, Lexer(src))
+            .ParseFuncDef();
     if (auto* ref = std::get_if<FuncDefStmt>(&maybe_func_def_stmt)) return *ref;
     std::stringstream out;
     out << std::get<ParserError>(maybe_func_def_stmt);

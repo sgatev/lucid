@@ -17,14 +17,14 @@ using ::testing::SizeIs;
 class ControlFlowGraphTest : public testing::Test, public AstFixture {
  protected:
   ControlFlowGraph BuildControlFlowGraph(FuncDefStmt func_def) {
-    return ::lucid::BuildControlFlowGraph(arena_, func_def);
+    return ::lucid::BuildControlFlowGraph(stmt_arena_, expr_arena_, func_def);
   }
 };
 
 TEST_F(ControlFlowGraphTest, FunctionName) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = A(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = "Void"}),
   });
 
   EXPECT_EQ(graph.func_name, "foo");
@@ -33,7 +33,7 @@ TEST_F(ControlFlowGraphTest, FunctionName) {
 TEST_F(ControlFlowGraphTest, EmptyFunction) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = A(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = "Void"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -50,13 +50,13 @@ TEST_F(ControlFlowGraphTest, EmptyFunction) {
 }
 
 TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
-  auto func_call_expr = A(FuncCallExpr({
+  auto func_call_expr = E(FuncCallExpr({
       .func_name = "bar",
   }));
-  auto do_stmt = A(DoStmt{.expr = func_call_expr});
+  auto do_stmt = S(DoStmt{.expr = func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = A(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = "Void"}),
       .body = {{
           do_stmt,
       }},
@@ -80,20 +80,20 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
 }
 
 TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
-  auto arg1_expr = A(IntLitExpr{
+  auto arg1_expr = E(IntLitExpr{
       .value = "3",
   });
-  auto arg2_expr = A(IntLitExpr{
+  auto arg2_expr = E(IntLitExpr{
       .value = "7",
   });
-  auto baz_func_call_expr = A(FuncCallExpr({
+  auto baz_func_call_expr = E(FuncCallExpr({
       .func_name = "baz",
       .arguments =
           {
               arg2_expr,
           },
   }));
-  auto func_call_expr = A(FuncCallExpr({
+  auto func_call_expr = E(FuncCallExpr({
       .func_name = "bar",
       .arguments =
           {
@@ -101,10 +101,10 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
               baz_func_call_expr,
           },
   }));
-  auto do_stmt = A(DoStmt{.expr = func_call_expr});
+  auto do_stmt = S(DoStmt{.expr = func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = A(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = "Void"}),
       .body = {{
           do_stmt,
       }},
@@ -131,22 +131,22 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
 }
 
 TEST_F(ControlFlowGraphTest, ReturnStmt) {
-  auto arg1_expr = A(IntLitExpr{
+  auto arg1_expr = E(IntLitExpr{
       .value = "3",
   });
-  auto func_call_expr = A(FuncCallExpr({
+  auto func_call_expr = E(FuncCallExpr({
       .func_name = "bar",
       .arguments =
           {
               arg1_expr,
           },
   }));
-  auto return_stmt = A(ReturnStmt{
+  auto return_stmt = S(ReturnStmt{
       .value = func_call_expr,
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = A(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = "Void"}),
       .body = {{
           return_stmt,
       }},
@@ -171,9 +171,9 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
 }
 
 TEST_F(ControlFlowGraphTest, VarDeclStmt) {
-  auto func_call_stmt_ref = A(FuncCallExpr{.func_name = "bar"});
-  auto x_var_decl_ref = A(VarDeclStmt{
-      .type = A(BasicType{.name = "Int32"}),
+  auto func_call_stmt_ref = E(FuncCallExpr{.func_name = "bar"});
+  auto x_var_decl_ref = S(VarDeclStmt{
+      .type = T(BasicType{.name = "Int32"}),
       .name = "x",
       .init = func_call_stmt_ref,
   });
@@ -182,7 +182,7 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
       .body = {{
           x_var_decl_ref,
       }},
-      .result_type = A(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = "Void"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -203,20 +203,20 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
 }
 
 TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
-  auto lhs_expr = A(IntLitExpr{.value = "2"});
-  auto rhs_expr = A(IntLitExpr{.value = "3"});
-  auto add_expr = A(BinaryOpExpr{
+  auto lhs_expr = E(IntLitExpr{.value = "2"});
+  auto rhs_expr = E(IntLitExpr{.value = "3"});
+  auto add_expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = lhs_expr,
       .rhs = rhs_expr,
   });
-  auto do_stmt = A(DoStmt{.expr = add_expr});
+  auto do_stmt = S(DoStmt{.expr = add_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .body = {{
           do_stmt,
       }},
-      .result_type = A(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = "Int32"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -239,35 +239,35 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
 }
 
 TEST_F(ControlFlowGraphTest, IfStmt) {
-  auto add_lhs_expr = A(IntLitExpr{.value = "2"});
-  auto add_rhs_expr = A(IntLitExpr{.value = "3"});
-  auto add_expr = A(BinaryOpExpr{
+  auto add_lhs_expr = E(IntLitExpr{.value = "2"});
+  auto add_rhs_expr = E(IntLitExpr{.value = "3"});
+  auto add_expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = add_lhs_expr,
       .rhs = add_rhs_expr,
   });
-  auto mul_lhs_expr = A(IntLitExpr{.value = "4"});
-  auto mul_rhs_expr = A(IntLitExpr{.value = "5"});
-  auto mul_expr = A(BinaryOpExpr{
+  auto mul_lhs_expr = E(IntLitExpr{.value = "4"});
+  auto mul_rhs_expr = E(IntLitExpr{.value = "5"});
+  auto mul_expr = E(BinaryOpExpr{
       .op = BinaryOp::Mul,
       .lhs = mul_lhs_expr,
       .rhs = mul_rhs_expr,
   });
-  auto cond_expr = A(BoolLitExpr{.value = "true"});
-  auto if_stmt = A(IfStmt{
+  auto cond_expr = E(BoolLitExpr{.value = "true"});
+  auto if_stmt = S(IfStmt{
       .cond = cond_expr,
       .then_body = {{
-          add_expr,
+          S(DoStmt{.expr = add_expr}),
       }},
   });
-  auto do_stmt = A(DoStmt{.expr = mul_expr});
+  auto do_stmt = S(DoStmt{.expr = mul_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .body = {{
           if_stmt,
           do_stmt,
       }},
-      .result_type = A(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = "Int32"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -306,24 +306,24 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
 }
 
 TEST_F(ControlFlowGraphTest, IfElseStmt) {
-  auto add_lhs_expr = A(IntLitExpr{.value = "2"});
-  auto add_rhs_expr = A(IntLitExpr{.value = "3"});
-  auto add_expr = A(BinaryOpExpr{
+  auto add_lhs_expr = E(IntLitExpr{.value = "2"});
+  auto add_rhs_expr = E(IntLitExpr{.value = "3"});
+  auto add_expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = add_lhs_expr,
       .rhs = add_rhs_expr,
   });
-  auto mul_lhs_expr = A(IntLitExpr{.value = "4"});
-  auto mul_rhs_expr = A(IntLitExpr{.value = "5"});
-  auto mul_expr = A(BinaryOpExpr{
+  auto mul_lhs_expr = E(IntLitExpr{.value = "4"});
+  auto mul_rhs_expr = E(IntLitExpr{.value = "5"});
+  auto mul_expr = E(BinaryOpExpr{
       .op = BinaryOp::Mul,
       .lhs = mul_lhs_expr,
       .rhs = mul_rhs_expr,
   });
-  auto cond_expr = A(BoolLitExpr{.value = "true"});
-  auto then_do_stmt = A(DoStmt{.expr = add_expr});
-  auto else_do_stmt = A(DoStmt{.expr = mul_expr});
-  auto if_stmt = A(IfStmt{
+  auto cond_expr = E(BoolLitExpr{.value = "true"});
+  auto then_do_stmt = S(DoStmt{.expr = add_expr});
+  auto else_do_stmt = S(DoStmt{.expr = mul_expr});
+  auto if_stmt = S(IfStmt{
       .cond = cond_expr,
       .then_body = {{
           then_do_stmt,
@@ -337,7 +337,7 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
       .body = {{
           if_stmt,
       }},
-      .result_type = A(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = "Int32"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -382,23 +382,23 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
 }
 
 TEST_F(ControlFlowGraphTest, VarDecl) {
-  auto int_lit = A(IntLitExpr{
+  auto int_lit = E(IntLitExpr{
       .value = "3",
   });
-  auto const_decl_stmt = A(VarDeclStmt{
+  auto const_decl_stmt = S(VarDeclStmt{
       .name = "x",
-      .type = A(BasicType{.name = "Int32"}),
+      .type = T(BasicType{.name = "Int32"}),
       .init = int_lit,
   });
-  auto ident_expr = A(IdentExpr{
+  auto ident_expr = E(IdentExpr{
       .name = "x",
   });
-  auto return_stmt = A(ReturnStmt{
+  auto return_stmt = S(ReturnStmt{
       .value = ident_expr,
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .result_type = A(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = "Int32"}),
       .body = {{
           const_decl_stmt,
           return_stmt,
@@ -427,15 +427,15 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
 }
 
 TEST_F(ControlFlowGraphTest, Loop) {
-  auto add_lhs_expr = A(IntLitExpr{.value = "2"});
-  auto add_rhs_expr = A(IntLitExpr{.value = "3"});
-  auto add_expr = A(BinaryOpExpr{
+  auto add_lhs_expr = E(IntLitExpr{.value = "2"});
+  auto add_rhs_expr = E(IntLitExpr{.value = "3"});
+  auto add_expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = add_lhs_expr,
       .rhs = add_rhs_expr,
   });
-  auto do_stmt = A(DoStmt{.expr = add_expr});
-  auto loop_stmt = A(LoopStmt{
+  auto do_stmt = S(DoStmt{.expr = add_expr});
+  auto loop_stmt = S(LoopStmt{
       .body = {{
           do_stmt,
       }},
@@ -445,7 +445,7 @@ TEST_F(ControlFlowGraphTest, Loop) {
       .body = {{
           loop_stmt,
       }},
-      .result_type = A(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = "Int32"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -474,47 +474,47 @@ TEST_F(ControlFlowGraphTest, Loop) {
 }
 
 TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
-  auto n_var_init_ref = A(IntLitExpr{
+  auto n_var_init_ref = E(IntLitExpr{
       .value = "0",
   });
-  auto n_var_decl_ref = A(VarDeclStmt{
-      .type = A(BasicType{.name = "Int32"}),
+  auto n_var_decl_ref = S(VarDeclStmt{
+      .type = T(BasicType{.name = "Int32"}),
       .name = "n",
       .init = n_var_init_ref,
   });
-  auto if_cond_lhs_ref = A(IdentExpr{.name = "n"});
-  auto if_cond_rhs_ref = A(IntLitExpr{.value = "3"});
-  auto if_cond_ref = A(BinaryOpExpr{
+  auto if_cond_lhs_ref = E(IdentExpr{.name = "n"});
+  auto if_cond_rhs_ref = E(IntLitExpr{.value = "3"});
+  auto if_cond_ref = E(BinaryOpExpr{
       .op = BinaryOp::Gt,
       .lhs = if_cond_lhs_ref,
       .rhs = if_cond_rhs_ref,
   });
-  auto break_stmt_ref = A(BreakStmt{});
-  auto if_stmt = A(IfStmt{
+  auto break_stmt_ref = S(BreakStmt{});
+  auto if_stmt = S(IfStmt{
       .cond = if_cond_ref,
       .then_body = {{
           break_stmt_ref,
       }},
   });
-  auto var_assign_lhs_ref = A(IdentExpr{.name = "n"});
-  auto var_assign_rhs_ref = A(IntLitExpr{.value = "1"});
-  auto binary_op_expr_ref = A(BinaryOpExpr{
+  auto var_assign_lhs_ref = E(IdentExpr{.name = "n"});
+  auto var_assign_rhs_ref = E(IntLitExpr{.value = "1"});
+  auto binary_op_expr_ref = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = var_assign_lhs_ref,
       .rhs = var_assign_rhs_ref,
   });
-  auto var_assign_stmt_ref = A(VarAssignStmt{
+  auto var_assign_stmt_ref = S(VarAssignStmt{
       .name = "n",
       .expr = binary_op_expr_ref,
   });
-  auto loop_stmt = A(LoopStmt{
+  auto loop_stmt = S(LoopStmt{
       .body = {{
           if_stmt,
           var_assign_stmt_ref,
       }},
   });
-  auto return_value_ref = A(IdentExpr{.name = "n"});
-  auto return_stmt = A(ReturnStmt{
+  auto return_value_ref = E(IdentExpr{.name = "n"});
+  auto return_stmt = S(ReturnStmt{
       .value = return_value_ref,
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
@@ -524,7 +524,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
           loop_stmt,
           return_stmt,
       }},
-      .result_type = A(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = "Int32"}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);

@@ -163,7 +163,10 @@ struct VarDeclStmtPattern {
 
   bool operator()(const VarDeclStmt& stmt) const {
     if (type != nullptr && !type(stmt.type)) return false;
-    if (init != nullptr && !init(stmt.init)) return false;
+    if (init != nullptr) {
+      if (!stmt.init.has_value()) return false;
+      if (init != nullptr && !init(*stmt.init)) return false;
+    }
     return name == stmt.name;
   }
 };
@@ -194,14 +197,26 @@ struct ArrayTypePattern {
 
 class AstFixture {
  protected:
-  // *A*llocates the statement `stmt` on an *A*rena.
+  // Allocates the statement `stmt` on an arena.
+  template <typename S>
+  StmtRef S(S stmt) {
+    return stmt_arena_.add(stmt);
+  }
+
+  // Allocates the expression `expr` on an arena.
+  template <typename E>
+  ExprRef E(E expr) {
+    return expr_arena_.add(expr);
+  }
+
+  // Allocates the type `type` on an arena.
   template <typename T>
-  StmtRef A(T stmt) {
-    return arena_.add(stmt);
+  TypeRef T(T type) {
+    return type_arena_.add(type);
   }
 
   ExprRefMatcher MatchesAnyExpr() {
-    return MatchesStmt<Expr>([](const Expr&) { return true; });
+    return [](ExprRef) { return true; };
   }
 
   std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(
@@ -271,38 +286,43 @@ class AstFixture {
     return MatchesType<ArrayType>(std::move(pattern));
   }
 
-  Arena<Stmt> arena_;
+  Arena<Stmt> stmt_arena_;
+  Arena<Expr> expr_arena_;
+  Arena<Type> type_arena_;
 
  private:
   template <typename S>
   ExprRefMatcher MatchesStmt() {
-    return [this](ExprRef ref) {
-      return std::holds_alternative<S>(arena_.get(ref));
+    return [this](StmtRef ref) {
+      return std::holds_alternative<S>(stmt_arena_.get(ref));
     };
   }
 
   template <typename S, typename P>
   ExprRefMatcher MatchesStmt(P pattern) {
-    return [this, pattern](ExprRef ref) {
-      if (auto* stmt = std::get_if<S>(&arena_.get(ref))) return pattern(*stmt);
+    return [this, pattern](StmtRef ref) {
+      if (auto* stmt = std::get_if<S>(&stmt_arena_.get(ref)))
+        return pattern(*stmt);
       return false;
     };
   }
 
   template <typename E, typename P>
   ExprRefMatcher MatchesExpr(P pattern) {
-    return MatchesStmt<Expr>([pattern](const Expr& stmt) {
-      if (auto* expr = std::get_if<E>(&stmt)) return pattern(*expr);
+    return [this, pattern](ExprRef ref) {
+      if (auto* stmt = std::get_if<E>(&expr_arena_.get(ref)))
+        return pattern(*stmt);
       return false;
-    });
+    };
   }
 
   template <typename T, typename P>
   TypeRefMatcher MatchesType(P pattern) {
-    return MatchesExpr<Type>([pattern](const Type& expr) {
-      if (auto* type = std::get_if<T>(&expr)) return pattern(*type);
+    return [this, pattern](TypeRef ref) {
+      if (auto* stmt = std::get_if<T>(&type_arena_.get(ref)))
+        return pattern(*stmt);
       return false;
-    });
+    };
   }
 };
 

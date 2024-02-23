@@ -12,9 +12,11 @@
 #include "lucid/token.h"
 
 std::size_t CountTokens(std::string_view code) {
-  lucid::Arena<lucid::Stmt> arena;
+  lucid::Arena<lucid::Stmt> stmt_arena;
+  lucid::Arena<lucid::Expr> expr_arena;
+  lucid::Arena<lucid::Type> type_arena;
   lucid::Lexer lexer(code);
-  lucid::Parser parser(arena, code, lexer);
+  lucid::Parser parser(stmt_arena, expr_arena, type_arena, code, lexer);
   std::size_t cnt = 0;
   while (true) {
     auto node = parser.ParseFuncDef();

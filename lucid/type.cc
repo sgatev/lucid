@@ -19,10 +19,15 @@ namespace {
 class ExprTypeInferenceEngine {
  public:
   ExprTypeInferenceEngine(
-      Arena<Stmt>& arena,
+      const Arena<Stmt>& stmt_arena, Arena<Expr>& expr_arena,
+      Arena<Type>& type_arena,
       const std::unordered_map<std::string_view, FuncType>& func_types,
       FuncDefStmt& func_def)
-      : arena_(arena), func_types_(func_types), func_def_(func_def) {}
+      : stmt_arena_(stmt_arena),
+        expr_arena_(expr_arena),
+        type_arena_(type_arena),
+        func_types_(func_types),
+        func_def_(func_def) {}
 
   std::optional<TypeError> InferTypes() {
     for (const auto& param : func_def_.parameters) {
@@ -55,7 +60,8 @@ class ExprTypeInferenceEngine {
 
     for (auto int_lit_expr : int_lit_exprs_) {
       if (expr_from_type_.find(int_lit_expr) == expr_from_type_.end()) {
-        expr_from_type_[int_lit_expr] = arena_.add(BasicType{.name = "Int32"});
+        expr_from_type_[int_lit_expr] =
+            type_arena_.add(BasicType{.name = "Int32"});
       }
     }
 
@@ -82,8 +88,6 @@ class ExprTypeInferenceEngine {
       ProcessPendingStmt(stmt_ref, *var_assign_stmt);
     } else if (auto* array_assign_stmt = std::get_if<ArrayAssignStmt>(&stmt)) {
       ProcessPendingStmt(stmt_ref, *array_assign_stmt);
-    } else if (auto* expr = std::get_if<Expr>(&stmt)) {
-      ProcessPendingStmt(stmt_ref, *expr);
     }
   }
 
@@ -94,7 +98,7 @@ class ExprTypeInferenceEngine {
   void ProcessPendingStmt(StmtRef stmt_ref, const IfStmt& stmt) {
     AddPendingStmts(std::ranges::reverse_view(stmt.else_body.statements));
     AddPendingStmts(std::ranges::reverse_view(stmt.then_body.statements));
-    RequireTypeForExpr(stmt.cond, arena_.add(BasicType{.name = "Bool"}));
+    RequireTypeForExpr(stmt.cond, type_arena_.add(BasicType{.name = "Bool"}));
     AddPendingExpr(stmt.cond);
   }
 
@@ -109,12 +113,14 @@ class ExprTypeInferenceEngine {
 
   void ProcessPendingStmt(StmtRef stmt_ref, const VarDeclStmt& stmt) {
     SetIdentType(stmt.name, stmt.type);
-    if (auto* array_type = std::get_if<ArrayType>(&DerefType(stmt.type))) {
-      RequireTypeForExpr(stmt.init, array_type->element_type);
-    } else {
-      RequireTypeForExpr(stmt.init, stmt.type);
+    if (stmt.init.has_value()) {
+      if (auto* array_type = std::get_if<ArrayType>(&DerefType(stmt.type))) {
+        RequireTypeForExpr(*stmt.init, array_type->element_type);
+      } else {
+        RequireTypeForExpr(*stmt.init, stmt.type);
+      }
+      AddPendingExpr(*stmt.init);
     }
-    AddPendingExpr(stmt.init);
   }
 
   void ProcessPendingStmt(StmtRef stmt_ref, const VarAssignStmt& stmt) {
@@ -154,12 +160,12 @@ class ExprTypeInferenceEngine {
       RequireTypeForExpr(arg, func_type.parameters[i].type);
       AddPendingExpr(arg);
     }
-    RequireTypeForExpr(expr_ref,
-                       arena_.add(BasicType{.name = func_type.result_type}));
+    RequireTypeForExpr(
+        expr_ref, type_arena_.add(BasicType{.name = func_type.result_type}));
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
-    RequireTypeForExpr(expr_ref, arena_.add(BasicType{.name = "Bool"}));
+    RequireTypeForExpr(expr_ref, type_arena_.add(BasicType{.name = "Bool"}));
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const IntLitExpr& expr) {
@@ -181,7 +187,7 @@ class ExprTypeInferenceEngine {
         expr.op == BinaryOp::Gt || expr.op == BinaryOp::NotEq) {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr.lhs, expr.rhs);
-      RequireTypeForExpr(expr_ref, arena_.add(BasicType{.name = "Bool"}));
+      RequireTypeForExpr(expr_ref, type_arena_.add(BasicType{.name = "Bool"}));
     } else {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr_ref, expr.rhs);
@@ -260,11 +266,11 @@ class ExprTypeInferenceEngine {
 
   void AddPendingExpr(ExprRef expr_ref) { pending_exprs_.push_back(expr_ref); }
 
-  Stmt& DerefStmt(StmtRef ref) { return arena_.get(ref); }
+  const Stmt& DerefStmt(StmtRef ref) { return stmt_arena_.get(ref); }
 
-  Expr& DerefExpr(ExprRef ref) { return std::get<Expr>(DerefStmt(ref)); }
+  Expr& DerefExpr(ExprRef ref) { return expr_arena_.get(ref); }
 
-  Type& DerefType(TypeRef ref) { return std::get<Type>(DerefExpr(ref)); }
+  Type& DerefType(TypeRef ref) { return type_arena_.get(ref); }
 
   void SolveTypeEquations() {
     while (true) {
@@ -294,7 +300,9 @@ class ExprTypeInferenceEngine {
     return std::move(errors_[0]);
   }
 
-  Arena<Stmt>& arena_;
+  const Arena<Stmt>& stmt_arena_;
+  Arena<Expr>& expr_arena_;
+  Arena<Type>& type_arena_;
   const std::unordered_map<std::string_view, FuncType>& func_types_;
   FuncDefStmt& func_def_;
 
@@ -313,11 +321,12 @@ class ExprTypeInferenceEngine {
 }  // namespace
 
 std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
-    const Arena<Stmt>& arena, const std::vector<FuncDefStmt>& func_defs) {
+    const Arena<Stmt>& stmt_arena, const Arena<Expr>& expr_arena,
+    const Arena<Type>& type_arena, const std::vector<FuncDefStmt>& func_defs) {
   std::unordered_map<std::string_view, FuncType> func_types;
   for (const auto& func_def : func_defs) {
-    const auto& result_type = std::get<BasicType>(
-        std::get<Type>(std::get<Expr>(arena.get(func_def.result_type))));
+    const auto& result_type =
+        std::get<BasicType>(type_arena.get(func_def.result_type));
     func_types[func_def.name] = {
         .result_type = result_type.name,
         .parameters = func_def.parameters,
@@ -327,10 +336,13 @@ std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
 }
 
 std::optional<TypeError> InferExprTypes(
-    Arena<Stmt>& arena,
+    const Arena<Stmt>& stmt_arena, Arena<Expr>& expr_arena,
+    Arena<Type>& type_arena,
     const std::unordered_map<std::string_view, FuncType>& func_types,
     FuncDefStmt& func_def) {
-  return ExprTypeInferenceEngine(arena, func_types, func_def).InferTypes();
+  return ExprTypeInferenceEngine(stmt_arena, expr_arena, type_arena, func_types,
+                                 func_def)
+      .InferTypes();
 }
 
 }  // namespace lucid

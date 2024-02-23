@@ -18,8 +18,10 @@ class ControlFlowGraphBuilder {
   using Sequence = ControlFlowGraph::Sequence;
 
  public:
-  ControlFlowGraphBuilder(const Arena<Stmt>& arena, const FuncDefStmt& func_def)
-      : arena_(arena) {
+  ControlFlowGraphBuilder(const Arena<Stmt>& stmt_arena,
+                          const Arena<Expr>& expr_arena,
+                          const FuncDefStmt& func_def)
+      : stmt_arena_(stmt_arena), expr_arena_(expr_arena) {
     graph_.func_name = func_def.name;
     graph_.func_params = func_def.parameters;
     graph_.first = AddBlock();
@@ -90,8 +92,8 @@ class ControlFlowGraphBuilder {
 
       seq.expressions.push_back(expr_ref);
 
-      std::visit([&](auto&& stmt) { ProcessStmt(stmt, seq, block, end); },
-                 DerefStmt(expr_ref));
+      std::visit([&](auto&& expr) { ProcessExpr(expr, block, end); },
+                 DerefExpr(expr_ref));
     }
 
     std::reverse(seq.expressions.begin() + expr_begin, seq.expressions.end());
@@ -142,14 +144,9 @@ class ControlFlowGraphBuilder {
     ProcessSubExpr(stmt.expr, block);
   }
 
-  void ProcessStmt(const Expr& expr, Sequence& seq, BlockRef block,
-                   BlockRef end) {
-    std::visit([&](auto&& expr) { ProcessExpr(expr, block, end); }, expr);
-  }
-
   void ProcessStmt(const VarDeclStmt& stmt, Sequence& seq, BlockRef block,
                    BlockRef end) {
-    ProcessSubExpr(stmt.init, block);
+    if (stmt.init.has_value()) ProcessSubExpr(*stmt.init, block);
   }
 
   void ProcessStmt(const VarAssignStmt& stmt, Sequence& seq, BlockRef block,
@@ -196,9 +193,12 @@ class ControlFlowGraphBuilder {
     pending_sub_exprs_.push(expr_ref);
   }
 
-  const Stmt& DerefStmt(StmtRef stmt_ref) { return arena_.get(stmt_ref); }
+  const Stmt& DerefStmt(StmtRef stmt_ref) { return stmt_arena_.get(stmt_ref); }
 
-  const Arena<Stmt>& arena_;
+  const Expr& DerefExpr(ExprRef expr_ref) { return expr_arena_.get(expr_ref); }
+
+  const Arena<Stmt>& stmt_arena_;
+  const Arena<Expr>& expr_arena_;
   std::stack<ExprRef, std::vector<ExprRef>> pending_sub_exprs_;
   ControlFlowGraph graph_;
   std::stack<BlockRef> post_loop_blocks_;
@@ -206,9 +206,10 @@ class ControlFlowGraphBuilder {
 
 }  // namespace
 
-ControlFlowGraph BuildControlFlowGraph(const Arena<Stmt>& arena,
+ControlFlowGraph BuildControlFlowGraph(const Arena<Stmt>& stmt_arena,
+                                       const Arena<Expr>& expr_arena,
                                        const FuncDefStmt& func) {
-  return ControlFlowGraphBuilder(arena, func).Consume();
+  return ControlFlowGraphBuilder(stmt_arena, expr_arena, func).Consume();
 }
 
 }  // namespace lucid

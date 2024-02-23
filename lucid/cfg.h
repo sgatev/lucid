@@ -84,8 +84,13 @@ struct ControlFlowGraph {
 
 // Returns the control flow graph of `func`.
 //
-// All statements that are reachable from `func` must be allocated on `arena`.
-ControlFlowGraph BuildControlFlowGraph(const Arena<Stmt>& arena,
+// Requirements:
+//  * Statements that are reachable from `func` must be allocated on
+//    `stmt_arena`.
+//  * Expressions that are reachable from `func` must be allocated on
+//    `expr_arena`.
+ControlFlowGraph BuildControlFlowGraph(const Arena<Stmt>& stmt_arena,
+                                       const Arena<Expr>& expr_arena,
                                        const FuncDefStmt& func);
 
 }  // namespace lucid

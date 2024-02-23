@@ -18,10 +18,16 @@ namespace {
 
 class AbstractMachineFunctionGenerator {
  public:
-  AbstractMachineFunctionGenerator(const Arena<Stmt>& arena,
+  AbstractMachineFunctionGenerator(const Arena<Stmt>& stmt_arena,
+                                   const Arena<Expr>& expr_arena,
+                                   const Arena<Type>& type_arena,
                                    const ControlFlowGraph& graph,
                                    AbstractMachineState& state)
-      : arena_(arena), graph_(graph), state_(state) {
+      : stmt_arena_(stmt_arena),
+        expr_arena_(expr_arena),
+        type_arena_(type_arena),
+        graph_(graph),
+        state_(state) {
     for (const auto& param : graph.func_params) {
       // TODO: Handle `ArrayType`.
       const auto& param_type = std::get<BasicType>(DerefType(param.type));
@@ -36,7 +42,7 @@ class AbstractMachineFunctionGenerator {
     for (const auto& block : graph.blocks()) {
       for (const auto& seq : block.sequences) {
         if (seq.stmt.has_value()) {
-          const auto& stmt = arena.get(*seq.stmt);
+          const auto& stmt = stmt_arena.get(*seq.stmt);
           if (auto* var_decl = std::get_if<VarDeclStmt>(&stmt)) {
             if (auto* array_type =
                     std::get_if<ArrayType>(&DerefType(var_decl->type))) {
@@ -73,7 +79,8 @@ class AbstractMachineFunctionGenerator {
     if (graph_.has_func_calls) stack_offset_ = 12;
 
     state_.out_reg.clear();
-    state_.out_reg.reserve(arena_.size());
+    state_.out_reg.reserve(stmt_arena_.size() + expr_arena_.size() +
+                           type_arena_.size());
 
     state_.func.name = graph_.func_name;
 
@@ -157,8 +164,8 @@ class AbstractMachineFunctionGenerator {
       }
 
       for (const auto& seq : block.sequences) {
-        for (const auto& stmt_ref : seq.expressions) {
-          Process(stmt_ref, DerefStmt(stmt_ref));
+        for (const auto& expr_ref : seq.expressions) {
+          Process(expr_ref, DerefExpr(expr_ref));
         }
         if (seq.stmt.has_value()) {
           Process(*seq.stmt, DerefStmt(*seq.stmt));
@@ -324,18 +331,20 @@ class AbstractMachineFunctionGenerator {
       return;
     }
 
+    if (!stmt.init.has_value()) return;
+
     auto stmt_type = std::get<BasicType>(DerefType(stmt.type));
     if (stmt_type.name == "Int32") {
       state_.func.instructions.push_back(StoreStack32{
           .offset = stack_offset_,
-          .src_reg = state_.out_reg[stmt.init],
+          .src_reg = state_.out_reg[*stmt.init],
       });
       var_stack_[stmt.name] = stack_offset_;
       ++stack_offset_;
     } else if (stmt_type.name == "Int64") {
       state_.func.instructions.push_back(StoreStack64{
           .offset = stack_offset_,
-          .src_reg = state_.out_reg[stmt.init],
+          .src_reg = state_.out_reg[*stmt.init],
       });
       var_stack_[stmt.name] = stack_offset_;
       ++stack_offset_;
@@ -647,17 +656,15 @@ class AbstractMachineFunctionGenerator {
     return var_stack_[expr.name];
   }
 
-  const Stmt& DerefStmt(StmtRef ref) const { return arena_.get(ref); }
+  const Stmt& DerefStmt(StmtRef ref) const { return stmt_arena_.get(ref); }
 
-  const Expr& DerefExpr(ExprRef ref) const {
-    return std::get<Expr>(DerefStmt(ref));
-  }
+  const Expr& DerefExpr(ExprRef ref) const { return expr_arena_.get(ref); }
 
-  const Type& DerefType(TypeRef ref) const {
-    return std::get<Type>(DerefExpr(ref));
-  }
+  const Type& DerefType(TypeRef ref) const { return type_arena_.get(ref); }
 
-  const Arena<Stmt>& arena_;
+  const Arena<Stmt>& stmt_arena_;
+  const Arena<Expr>& expr_arena_;
+  const Arena<Type>& type_arena_;
   const ControlFlowGraph& graph_;
   AbstractMachineState& state_;
   RegId next_reg_ = 1;
@@ -667,10 +674,14 @@ class AbstractMachineFunctionGenerator {
 
 }  // namespace
 
-void GenerateAbstractMachineFunction(const Arena<Stmt>& arena,
+void GenerateAbstractMachineFunction(const Arena<Stmt>& stmt_arena,
+                                     const Arena<Expr>& expr_arena,
+                                     const Arena<Type>& type_arena,
                                      const ControlFlowGraph& graph,
                                      AbstractMachineState& state) {
-  AbstractMachineFunctionGenerator(arena, graph, state).Generate();
+  AbstractMachineFunctionGenerator(stmt_arena, expr_arena, type_arena, graph,
+                                   state)
+      .Generate();
 }
 
 }  // namespace lucid
