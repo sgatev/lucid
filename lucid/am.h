@@ -10,7 +10,7 @@
 namespace lucid {
 
 // A register in the Lucid abstract machine.
-using RegId = int;
+using RegId = std::int32_t;
 
 // A no op instruction.
 struct Nop {

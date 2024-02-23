@@ -129,20 +129,20 @@ class AbstractMachineFunctionGenerator {
     std::size_t push_pos, pop_pos;
 
     push_pos = state_.func.instructions.size();
-    for (int i = 0; i < graph_.func_params.size(); ++i) {
+    for (RegId i = 0; i < graph_.func_params.size(); ++i) {
       const auto& param = graph_.func_params[i];
       const auto& param_type = std::get<BasicType>(DerefType(param.type));
       if (param_type.name == "Int32") {
         state_.func.instructions.push_back(StoreStack32{
             .offset = stack_offset_,
-            .src_reg = i + 1,
+            .src_reg = static_cast<RegId>(i + 1),
         });
         var_stack_[graph_.func_params[i].name] = stack_offset_;
         ++stack_offset_;
       } else if (param_type.name == "Int64") {
         state_.func.instructions.push_back(StoreStack64{
             .offset = stack_offset_,
-            .src_reg = i + 1,
+            .src_reg = static_cast<RegId>(i + 1),
         });
         var_stack_[graph_.func_params[i].name] = stack_offset_;
         ++stack_offset_;
@@ -281,7 +281,7 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const FuncCallExpr& expr) {
     RegId reg = next_reg_++;
-    int i = 1;
+    RegId i = 1;
     for (const auto arg : expr.arguments) {
       const auto& arg_expr = DerefExpr(arg);
       auto arg_type = std::get<BasicType>(DerefType(GetType(arg_expr)));

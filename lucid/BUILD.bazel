@@ -3,6 +3,15 @@ cc_library(
     hdrs = ["am.h"],
 )
 
+cc_test(
+    name = "am_test",
+    srcs = ["am_test.cc"],
+    deps = [
+        ":am",
+        "@googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "am_gen",
     srcs = ["am_gen.cc"],
