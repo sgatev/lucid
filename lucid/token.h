@@ -23,7 +23,7 @@ struct Token {
     IncompleteString,
     Less,
     Minus,
-    NotEqual,
+    Exclamation,
     Number,
     OpenBrace,
     OpenParen,

@@ -41,13 +41,6 @@ class Lexer {
         return Token(Token::Kind::IncompleteString, start_pos, pos_);
       }
       pos_ = pos - buffer_ + 1;
-    } else if (c == '!') {
-      ++pos_;
-      // `buffer_` is not empty as it must end in `\n`.
-      if (buffer_[pos_] == '=') {
-        ++pos_;
-        return Token(Token::Kind::NotEqual, start_pos, pos_);
-      }
     } else {
       // Singleton.
       ++pos_;
@@ -91,6 +84,7 @@ class Lexer {
     kind['<'] = Token::Kind::Less;
     kind['.'] = Token::Kind::Dot;
     kind['|'] = Token::Kind::Bar;
+    kind['!'] = Token::Kind::Exclamation;
     kind['#'] = Token::Kind::Comment;
     kind['"'] = Token::Kind::String;
     kind['%'] = Token::Kind::Percent;
