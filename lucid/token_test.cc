@@ -22,7 +22,7 @@ TEST(TokenTest, OutputStream) {
   std::stringstream out;
   out << Token(Token::Kind::Ident, 0, 3);
   EXPECT_EQ(std::string(out.str()),
-            "Token{.kind=11, .start_pos=0, .end_pos=3}");
+            "Token{.kind=10, .start_pos=0, .end_pos=3}");
 }
 
 TEST(FindLineTest, Works) {

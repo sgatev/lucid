@@ -16,7 +16,6 @@ struct Token {
     Comma,
     Comment,
     Dot,
-    DoubleEqual,
     End,
     Equal,
     Greater,

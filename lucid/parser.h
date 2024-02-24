@@ -385,8 +385,12 @@ class Parser {
 
       return MakeBinaryOpExpr(BinaryOp::Lt, std::get<ExprRef>(maybe_expr),
                               std::get<ExprRef>(maybe_rhs));
-    } else if (Peek().kind == Token::Kind::DoubleEqual) {
+    } else if (Peek().kind == Token::Kind::Equal) {
       Read();
+
+      if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) {
+        return *r;
+      }
 
       SkipWhitespace();
 

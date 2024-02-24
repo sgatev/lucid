@@ -1164,7 +1164,7 @@ TEST_F(ParserTest, MissingEqualSign) {
       }
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
 }
 
 TEST_F(ParserTest, SpaceBetweenEqualSigns) {
@@ -1177,7 +1177,7 @@ TEST_F(ParserTest, SpaceBetweenEqualSigns) {
       }
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
 }
 
 TEST_F(ParserTest, MissingStringClosingQuote) {
