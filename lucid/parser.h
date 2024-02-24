@@ -84,6 +84,8 @@ class Parser {
         next_(lexer_.next()) {}
 
   std::variant<FuncDefStmt, ParserError> ParseFuncDef() {
+    SkipWhitespace();
+
     if (Peek().kind == Token::Kind::End) {
       return MakeError(ParserError::Kind::End, Peek());
     }
@@ -95,16 +97,24 @@ class Parser {
       return *r;
     }
 
+    SkipWhitespace();
+
     const auto maybe_name = ParseIdent();
     if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
     stmt.name = std::get<std::string_view>(maybe_name);
 
+    SkipWhitespace();
+
     if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
+
+    SkipWhitespace();
 
     if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) return *r;
     while (true) {
       if (Peek().kind == Token::Kind::Comma) {
         Read();
+
+        SkipWhitespace();
       } else if (Peek().kind == Token::Kind::CloseParen) {
         Read();
         break;
@@ -120,8 +130,12 @@ class Parser {
       stmt.parameters.push_back(std::move(std::get<FuncParam>(maybe_param)));
     }
 
+    SkipWhitespace();
+
     if (auto r = ExpectToken(Token::Kind::Minus); IsError(r)) return *r;
     if (auto r = ExpectToken(Token::Kind::Greater); IsError(r)) return *r;
+
+    SkipWhitespace();
 
     const auto maybe_result_type = ParseType();
     if (IsError(maybe_result_type)) {
@@ -146,6 +160,8 @@ class Parser {
 
     if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) return *r;
 
+    SkipWhitespace();
+
     const auto maybe_type = ParseType();
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
     param.type = std::get<TypeRef>(maybe_type);
@@ -162,9 +178,15 @@ class Parser {
   std::variant<CompoundStmt, ParserError> ParseCompoundStmt() {
     CompoundStmt stmt;
 
+    SkipWhitespace();
+
     if (auto r = ExpectToken(Token::Kind::OpenBrace); IsError(r)) return *r;
 
-    while (Peek().kind != Token::Kind::CloseBrace) {
+    while (true) {
+      SkipWhitespace();
+
+      if (Peek().kind == Token::Kind::CloseBrace) break;
+
       const auto maybe_stmt = ParseStmt();
       if (IsError(maybe_stmt)) return std::get<ParserError>(maybe_stmt);
       stmt.statements.push_back(std::get<StmtRef>(maybe_stmt));
@@ -210,6 +232,8 @@ class Parser {
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
       Read();
 
+      SkipWhitespace();
+
       IfStmt if_stmt;
 
       const auto cond = ParseExpr();
@@ -220,8 +244,12 @@ class Parser {
       if (IsError(then_body)) return std::get<ParserError>(then_body);
       if_stmt.then_body = std::get<CompoundStmt>(then_body);
 
+      SkipWhitespace();
+
       if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "else") {
         Read();
+
+        SkipWhitespace();
 
         if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
           const auto stmt = ParseStmt();
@@ -239,15 +267,23 @@ class Parser {
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "let") {
       Read();
 
+      SkipWhitespace();
+
       const auto maybe_name = ParseIdent();
       if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
 
       if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) return *r;
 
+      SkipWhitespace();
+
       const auto maybe_type = ParseType();
       if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
 
+      SkipWhitespace();
+
       if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
+
+      SkipWhitespace();
 
       const auto init = ParseExpr();
       if (IsError(init)) return std::get<ParserError>(init);
@@ -278,8 +314,12 @@ class Parser {
           return *r;
         }
 
+        SkipWhitespace();
+
         if (Peek().kind == Token::Kind::Equal) {
           Read();
+
+          SkipWhitespace();
 
           ArrayAssignStmt stmt;
           stmt.name = ident;
@@ -295,8 +335,12 @@ class Parser {
         return MakeError(ParserError::Kind::UnexpectedToken, Peek());
       }
 
+      SkipWhitespace();
+
       if (Peek().kind == Token::Kind::Equal) {
         Read();
+
+        SkipWhitespace();
 
         VarAssignStmt stmt;
         stmt.name = ident;
@@ -314,11 +358,17 @@ class Parser {
   }
 
   std::variant<ExprRef, ParserError> ParseExpr() {
+    SkipWhitespace();
+
     const auto maybe_expr = ParseExprInternal();
     if (IsError(maybe_expr)) return std::get<ParserError>(maybe_expr);
 
+    SkipWhitespace();
+
     if (Peek().kind == Token::Kind::Greater) {
       Read();
+
+      SkipWhitespace();
 
       const auto maybe_rhs = ParseExprInternal();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -328,6 +378,8 @@ class Parser {
     } else if (Peek().kind == Token::Kind::Less) {
       Read();
 
+      SkipWhitespace();
+
       const auto maybe_rhs = ParseExprInternal();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
@@ -336,6 +388,8 @@ class Parser {
     } else if (Peek().kind == Token::Kind::DoubleEqual) {
       Read();
 
+      SkipWhitespace();
+
       const auto maybe_rhs = ParseExprInternal();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
@@ -343,6 +397,8 @@ class Parser {
                               std::get<ExprRef>(maybe_rhs));
     } else if (Peek().kind == Token::Kind::NotEqual) {
       Read();
+
+      SkipWhitespace();
 
       const auto maybe_rhs = ParseExprInternal();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -369,6 +425,8 @@ class Parser {
     }
     if (IsError(maybe_expr)) return std::get<ParserError>(maybe_expr);
 
+    SkipWhitespace();
+
     if (Peek().kind == Token::Kind::OpenBracket) {
       Read();
 
@@ -388,6 +446,8 @@ class Parser {
     if (Peek().kind == Token::Kind::Plus) {
       Read();
 
+      SkipWhitespace();
+
       const auto maybe_rhs = ParseExprInternal();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
@@ -395,6 +455,8 @@ class Parser {
                               std::get<ExprRef>(maybe_rhs));
     } else if (Peek().kind == Token::Kind::Minus) {
       Read();
+
+      SkipWhitespace();
 
       const auto maybe_rhs = ParseExprInternal();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -404,6 +466,8 @@ class Parser {
     } else if (Peek().kind == Token::Kind::Star) {
       Read();
 
+      SkipWhitespace();
+
       const auto maybe_rhs = ParseExprInternal();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
@@ -412,6 +476,8 @@ class Parser {
     } else if (Peek().kind == Token::Kind::Slash) {
       Read();
 
+      SkipWhitespace();
+
       const auto maybe_rhs = ParseExprInternal();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
@@ -419,6 +485,8 @@ class Parser {
                               std::get<ExprRef>(maybe_rhs));
     } else if (Peek().kind == Token::Kind::Percent) {
       Read();
+
+      SkipWhitespace();
 
       const auto maybe_rhs = ParseExprInternal();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -534,6 +602,10 @@ class Parser {
       return MakeError(error_kind, token);
     }
     return std::nullopt;
+  }
+
+  void SkipWhitespace() {
+    while (Peek().kind == Token::Kind::Whitespace) Read();
   }
 
   std::string_view TokenString(Token token) const {

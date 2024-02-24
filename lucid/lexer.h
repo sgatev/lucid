@@ -18,15 +18,15 @@ class Lexer {
 
   // Returns the next token in the buffer.
   inline Token next() {
-  start:
     if (pos_ == size_) return Token(Token::Kind::End, pos_, pos_);
 
     const char c = buffer_[pos_];
     const std::size_t start_pos = pos_;
-    if (c == ' ' || c == '\n' || c == '\t') {
+    if (whitespace[c]) {
       // Whitespace.
-      ++pos_;
-      goto start;
+      do ++pos_;
+      // `buffer_` is not empty as it must end in `\n`.
+      while (whitespace[buffer_[pos_]]);
     } else if (alphanumeric[c]) {
       // Identifier or number.
       do ++pos_;
@@ -63,6 +63,14 @@ class Lexer {
   }
 
  private:
+  static constexpr std::array<bool, 256> whitespace = []() consteval {
+    std::array<bool, 256> whitespace = {false};
+    whitespace[' '] = true;
+    whitespace['\n'] = true;
+    whitespace['\t'] = true;
+    return whitespace;
+  }();
+
   static constexpr std::array<bool, 256> alphanumeric = []() consteval {
     std::array<bool, 256> alphanumeric = {false};
     for (char c = 'a'; c <= 'z'; ++c) alphanumeric[c] = true;
@@ -93,6 +101,9 @@ class Lexer {
     kind['#'] = Token::Kind::Comment;
     kind['"'] = Token::Kind::String;
     kind['%'] = Token::Kind::Percent;
+    kind[' '] = Token::Kind::Whitespace;
+    kind['\t'] = Token::Kind::Whitespace;
+    kind['\n'] = Token::Kind::Whitespace;
     for (char c = 'a'; c <= 'z'; ++c) kind[c] = Token::Kind::Ident;
     for (char c = 'A'; c <= 'Z'; ++c) kind[c] = Token::Kind::Ident;
     for (char c = '0'; c <= '9'; ++c) kind[c] = Token::Kind::Number;

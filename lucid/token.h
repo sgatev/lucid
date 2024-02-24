@@ -35,6 +35,7 @@ struct Token {
     Percent,
     OpenBracket,
     CloseBracket,
+    Whitespace,
   };
 
   constexpr Token(Kind kind, std::size_t start_pos, std::size_t end_pos)

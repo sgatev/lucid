@@ -62,31 +62,43 @@ TEST(LexerTest, Function) {
       return 0
     }
   )"),
-      ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "main"),
-                  Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
-                  Tok(Kind::CloseParen, ")"), Tok(Kind::Minus, "-"),
-                  Tok(Kind::Greater, ">"), Tok(Kind::Ident, "Int32"),
-                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "print"),
+      ElementsAre(Tok(Kind::Whitespace, "\n    "), Tok(Kind::Ident, "let"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "main"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Equal, "="),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenParen, "("),
+                  Tok(Kind::CloseParen, ")"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Minus, "-"), Tok(Kind::Greater, ">"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "Int32"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenBrace, "{"),
+                  Tok(Kind::Whitespace, "\n      "), Tok(Kind::Ident, "print"),
                   Tok(Kind::OpenParen, "("),
                   Tok(Kind::String, "\"Hello, world!\""),
-                  Tok(Kind::CloseParen, ")"), Tok(Kind::Ident, "return"),
-                  Tok(Kind::Number, "0"), Tok(Kind::CloseBrace, "}")));
+                  Tok(Kind::CloseParen, ")"), Tok(Kind::Whitespace, "\n      "),
+                  Tok(Kind::Ident, "return"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Number, "0"), Tok(Kind::Whitespace, "\n    "),
+                  Tok(Kind::CloseBrace, "}"), Tok(Kind::Whitespace, "\n  ")));
 }
 
 TEST(LexerTest, Tuple) {
-  EXPECT_THAT(ReadTokens(R"(
+  EXPECT_THAT(
+      ReadTokens(R"(
     let Point = (
       x: Int32,
       y: Int32,
     )
   )"),
-              ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "Point"),
-                          Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
-                          Tok(Kind::Ident, "x"), Tok(Kind::Colon, ":"),
-                          Tok(Kind::Ident, "Int32"), Tok(Kind::Comma, ","),
-                          Tok(Kind::Ident, "y"), Tok(Kind::Colon, ":"),
-                          Tok(Kind::Ident, "Int32"), Tok(Kind::Comma, ","),
-                          Tok(Kind::CloseParen, ")")));
+      ElementsAre(Tok(Kind::Whitespace, "\n    "), Tok(Kind::Ident, "let"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "Point"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Equal, "="),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenParen, "("),
+                  Tok(Kind::Whitespace, "\n      "), Tok(Kind::Ident, "x"),
+                  Tok(Kind::Colon, ":"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "Int32"), Tok(Kind::Comma, ","),
+                  Tok(Kind::Whitespace, "\n      "), Tok(Kind::Ident, "y"),
+                  Tok(Kind::Colon, ":"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "Int32"), Tok(Kind::Comma, ","),
+                  Tok(Kind::Whitespace, "\n    "), Tok(Kind::CloseParen, ")"),
+                  Tok(Kind::Whitespace, "\n  ")));
 }
 
 TEST(LexerTest, Lambda) {
@@ -98,27 +110,39 @@ TEST(LexerTest, Lambda) {
       })
     }
   )"),
-      ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "sortByLength"),
-                  Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
-                  Tok(Kind::Ident, "mut"), Tok(Kind::Ident, "names"),
-                  Tok(Kind::Colon, ":"), Tok(Kind::Ident, "List"),
-                  Tok(Kind::OpenParen, "("), Tok(Kind::Ident, "String"),
-                  Tok(Kind::CloseParen, ")"), Tok(Kind::CloseParen, ")"),
-                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "sort"),
-                  Tok(Kind::OpenParen, "("), Tok(Kind::Ident, "mut"),
-                  Tok(Kind::Ident, "names"), Tok(Kind::Comma, ","),
-                  Tok(Kind::OpenParen, "("), Tok(Kind::Ident, "a"),
-                  Tok(Kind::Colon, ":"), Tok(Kind::Ident, "String"),
-                  Tok(Kind::Comma, ","), Tok(Kind::Ident, "b"),
-                  Tok(Kind::Colon, ":"), Tok(Kind::Ident, "String"),
-                  Tok(Kind::CloseParen, ")"), Tok(Kind::Minus, "-"),
-                  Tok(Kind::Greater, ">"), Tok(Kind::Ident, "Bool"),
-                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "return"),
-                  Tok(Kind::Ident, "a"), Tok(Kind::Dot, "."),
-                  Tok(Kind::Ident, "len"), Tok(Kind::Less, "<"),
-                  Tok(Kind::Ident, "b"), Tok(Kind::Dot, "."),
-                  Tok(Kind::Ident, "len"), Tok(Kind::CloseBrace, "}"),
-                  Tok(Kind::CloseParen, ")"), Tok(Kind::CloseBrace, "}")));
+      ElementsAre(
+          Tok(Kind::Whitespace, "\n    "), Tok(Kind::Ident, "let"),
+          Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "sortByLength"),
+          Tok(Kind::Whitespace, " "), Tok(Kind::Equal, "="),
+          Tok(Kind::Whitespace, " "), Tok(Kind::OpenParen, "("),
+          Tok(Kind::Ident, "mut"), Tok(Kind::Whitespace, " "),
+          Tok(Kind::Ident, "names"), Tok(Kind::Colon, ":"),
+          Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "List"),
+          Tok(Kind::OpenParen, "("), Tok(Kind::Ident, "String"),
+          Tok(Kind::CloseParen, ")"), Tok(Kind::CloseParen, ")"),
+          Tok(Kind::Whitespace, " "), Tok(Kind::OpenBrace, "{"),
+          Tok(Kind::Whitespace, "\n      "), Tok(Kind::Ident, "sort"),
+          Tok(Kind::OpenParen, "("), Tok(Kind::Ident, "mut"),
+          Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "names"),
+          Tok(Kind::Comma, ","), Tok(Kind::Whitespace, " "),
+          Tok(Kind::OpenParen, "("), Tok(Kind::Ident, "a"),
+          Tok(Kind::Colon, ":"), Tok(Kind::Whitespace, " "),
+          Tok(Kind::Ident, "String"), Tok(Kind::Comma, ","),
+          Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "b"),
+          Tok(Kind::Colon, ":"), Tok(Kind::Whitespace, " "),
+          Tok(Kind::Ident, "String"), Tok(Kind::CloseParen, ")"),
+          Tok(Kind::Whitespace, " "), Tok(Kind::Minus, "-"),
+          Tok(Kind::Greater, ">"), Tok(Kind::Whitespace, " "),
+          Tok(Kind::Ident, "Bool"), Tok(Kind::Whitespace, " "),
+          Tok(Kind::OpenBrace, "{"), Tok(Kind::Whitespace, "\n        "),
+          Tok(Kind::Ident, "return"), Tok(Kind::Whitespace, " "),
+          Tok(Kind::Ident, "a"), Tok(Kind::Dot, "."), Tok(Kind::Ident, "len"),
+          Tok(Kind::Whitespace, " "), Tok(Kind::Less, "<"),
+          Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "b"),
+          Tok(Kind::Dot, "."), Tok(Kind::Ident, "len"),
+          Tok(Kind::Whitespace, "\n      "), Tok(Kind::CloseBrace, "}"),
+          Tok(Kind::CloseParen, ")"), Tok(Kind::Whitespace, "\n    "),
+          Tok(Kind::CloseBrace, "}"), Tok(Kind::Whitespace, "\n  ")));
 }
 
 TEST(LexerTest, Union) {
@@ -130,17 +154,26 @@ TEST(LexerTest, Union) {
       return T | Nothing
     }
   )"),
-      ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "Nothing"),
-                  Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
-                  Tok(Kind::CloseParen, ")"), Tok(Kind::Ident, "let"),
-                  Tok(Kind::Ident, "Optional"), Tok(Kind::Equal, "="),
+      ElementsAre(Tok(Kind::Whitespace, "\n    "), Tok(Kind::Ident, "let"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "Nothing"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Equal, "="),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenParen, "("),
+                  Tok(Kind::CloseParen, ")"), Tok(Kind::Whitespace, "\n\n    "),
+                  Tok(Kind::Ident, "let"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "Optional"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Equal, "="), Tok(Kind::Whitespace, " "),
                   Tok(Kind::OpenParen, "("), Tok(Kind::Ident, "T"),
-                  Tok(Kind::Colon, ":"), Tok(Kind::Ident, "Type"),
-                  Tok(Kind::CloseParen, ")"), Tok(Kind::Minus, "-"),
-                  Tok(Kind::Greater, ">"), Tok(Kind::Ident, "Type"),
-                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "return"),
-                  Tok(Kind::Ident, "T"), Tok(Kind::Bar, "|"),
-                  Tok(Kind::Ident, "Nothing"), Tok(Kind::CloseBrace, "}")));
+                  Tok(Kind::Colon, ":"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "Type"), Tok(Kind::CloseParen, ")"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Minus, "-"),
+                  Tok(Kind::Greater, ">"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "Type"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Whitespace, "\n      "),
+                  Tok(Kind::Ident, "return"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "T"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Bar, "|"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "Nothing"), Tok(Kind::Whitespace, "\n    "),
+                  Tok(Kind::CloseBrace, "}"), Tok(Kind::Whitespace, "\n  ")));
 }
 
 TEST(LexerTest, Comment) {
@@ -151,28 +184,41 @@ TEST(LexerTest, Comment) {
       return a + b # can overflow
     }
   )"),
-      ElementsAre(Tok(Kind::Comment, "# Returns the sum of two integers.\n"),
-                  Tok(Kind::Ident, "let"), Tok(Kind::Ident, "sum"),
-                  Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
+      ElementsAre(Tok(Kind::Whitespace, "\n    "),
+                  Tok(Kind::Comment, "# Returns the sum of two integers.\n"),
+                  Tok(Kind::Whitespace, "    "), Tok(Kind::Ident, "let"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "sum"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Equal, "="),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenParen, "("),
                   Tok(Kind::Ident, "a"), Tok(Kind::Colon, ":"),
-                  Tok(Kind::Ident, "Int32"), Tok(Kind::Comma, ","),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "Int32"),
+                  Tok(Kind::Comma, ","), Tok(Kind::Whitespace, " "),
                   Tok(Kind::Ident, "b"), Tok(Kind::Colon, ":"),
-                  Tok(Kind::Ident, "Int32"), Tok(Kind::CloseParen, ")"),
-                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "return"),
-                  Tok(Kind::Ident, "a"), Tok(Kind::Plus, "+"),
-                  Tok(Kind::Ident, "b"), Tok(Kind::Comment, "# can overflow\n"),
-                  Tok(Kind::CloseBrace, "}")));
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "Int32"),
+                  Tok(Kind::CloseParen, ")"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Whitespace, "\n      "),
+                  Tok(Kind::Ident, "return"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "a"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Plus, "+"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "b"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Comment, "# can overflow\n"),
+                  Tok(Kind::Whitespace, "    "), Tok(Kind::CloseBrace, "}"),
+                  Tok(Kind::Whitespace, "\n  ")));
 }
 
 TEST(LexerTest, Number) {
-  EXPECT_THAT(ReadTokens(R"(
+  EXPECT_THAT(
+      ReadTokens(R"(
     let c = sum(21, 32)
   )"),
-              ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "c"),
-                          Tok(Kind::Equal, "="), Tok(Kind::Ident, "sum"),
-                          Tok(Kind::OpenParen, "("), Tok(Kind::Number, "21"),
-                          Tok(Kind::Comma, ","), Tok(Kind::Number, "32"),
-                          Tok(Kind::CloseParen, ")")));
+      ElementsAre(Tok(Kind::Whitespace, "\n    "), Tok(Kind::Ident, "let"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "c"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Equal, "="),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "sum"),
+                  Tok(Kind::OpenParen, "("), Tok(Kind::Number, "21"),
+                  Tok(Kind::Comma, ","), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Number, "32"), Tok(Kind::CloseParen, ")"),
+                  Tok(Kind::Whitespace, "\n  ")));
 }
 
 TEST(LexerTest, If) {
@@ -185,21 +231,32 @@ TEST(LexerTest, If) {
       return n * fib(n-1)
     }
   )"),
-      ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "fact"),
-                  Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
+      ElementsAre(Tok(Kind::Whitespace, "\n    "), Tok(Kind::Ident, "let"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "fact"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Equal, "="),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenParen, "("),
                   Tok(Kind::Ident, "n"), Tok(Kind::Colon, ":"),
-                  Tok(Kind::Ident, "Int32"), Tok(Kind::CloseParen, ")"),
-                  Tok(Kind::Colon, ":"), Tok(Kind::Ident, "Int32"),
-                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "if"),
-                  Tok(Kind::Ident, "n"), Tok(Kind::DoubleEqual, "=="),
-                  Tok(Kind::Number, "1"), Tok(Kind::OpenBrace, "{"),
-                  Tok(Kind::Ident, "return"), Tok(Kind::Number, "1"),
-                  Tok(Kind::CloseBrace, "}"), Tok(Kind::Ident, "return"),
-                  Tok(Kind::Ident, "n"), Tok(Kind::Star, "*"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "Int32"),
+                  Tok(Kind::CloseParen, ")"), Tok(Kind::Colon, ":"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "Int32"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenBrace, "{"),
+                  Tok(Kind::Whitespace, "\n      "), Tok(Kind::Ident, "if"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "n"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::DoubleEqual, "=="),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Number, "1"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenBrace, "{"),
+                  Tok(Kind::Whitespace, "\n        "),
+                  Tok(Kind::Ident, "return"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Number, "1"), Tok(Kind::Whitespace, "\n      "),
+                  Tok(Kind::CloseBrace, "}"), Tok(Kind::Whitespace, "\n      "),
+                  Tok(Kind::Ident, "return"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "n"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Star, "*"), Tok(Kind::Whitespace, " "),
                   Tok(Kind::Ident, "fib"), Tok(Kind::OpenParen, "("),
                   Tok(Kind::Ident, "n"), Tok(Kind::Minus, "-"),
                   Tok(Kind::Number, "1"), Tok(Kind::CloseParen, ")"),
-                  Tok(Kind::CloseBrace, "}")));
+                  Tok(Kind::Whitespace, "\n    "), Tok(Kind::CloseBrace, "}"),
+                  Tok(Kind::Whitespace, "\n  ")));
 }
 
 TEST(LexerTest, IfNot) {
@@ -212,50 +269,69 @@ TEST(LexerTest, IfNot) {
       return n * fib(n-1)
     }
   )"),
-      ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "fact"),
-                  Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
+      ElementsAre(Tok(Kind::Whitespace, "\n    "), Tok(Kind::Ident, "let"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "fact"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Equal, "="),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenParen, "("),
                   Tok(Kind::Ident, "n"), Tok(Kind::Colon, ":"),
-                  Tok(Kind::Ident, "Int32"), Tok(Kind::CloseParen, ")"),
-                  Tok(Kind::Colon, ":"), Tok(Kind::Ident, "Int32"),
-                  Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "if"),
-                  Tok(Kind::Ident, "n"), Tok(Kind::NotEqual, "!="),
-                  Tok(Kind::Number, "1"), Tok(Kind::OpenBrace, "{"),
-                  Tok(Kind::Ident, "return"), Tok(Kind::Number, "1"),
-                  Tok(Kind::CloseBrace, "}"), Tok(Kind::Ident, "return"),
-                  Tok(Kind::Ident, "n"), Tok(Kind::Star, "*"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "Int32"),
+                  Tok(Kind::CloseParen, ")"), Tok(Kind::Colon, ":"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "Int32"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenBrace, "{"),
+                  Tok(Kind::Whitespace, "\n      "), Tok(Kind::Ident, "if"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "n"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::NotEqual, "!="),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Number, "1"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenBrace, "{"),
+                  Tok(Kind::Whitespace, "\n        "),
+                  Tok(Kind::Ident, "return"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Number, "1"), Tok(Kind::Whitespace, "\n      "),
+                  Tok(Kind::CloseBrace, "}"), Tok(Kind::Whitespace, "\n      "),
+                  Tok(Kind::Ident, "return"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "n"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Star, "*"), Tok(Kind::Whitespace, " "),
                   Tok(Kind::Ident, "fib"), Tok(Kind::OpenParen, "("),
                   Tok(Kind::Ident, "n"), Tok(Kind::Minus, "-"),
                   Tok(Kind::Number, "1"), Tok(Kind::CloseParen, ")"),
-                  Tok(Kind::CloseBrace, "}")));
+                  Tok(Kind::Whitespace, "\n    "), Tok(Kind::CloseBrace, "}"),
+                  Tok(Kind::Whitespace, "\n  ")));
 }
 
 TEST(LexerTest, IncompleteString) {
-  EXPECT_THAT(ReadTokens(R"(
+  EXPECT_THAT(
+      ReadTokens(R"(
     let main = () -> Int32 {
       print("Hello, world!)
       return 0
     }
   )"),
-              ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "main"),
-                          Tok(Kind::Equal, "="), Tok(Kind::OpenParen, "("),
-                          Tok(Kind::CloseParen, ")"), Tok(Kind::Minus, "-"),
-                          Tok(Kind::Greater, ">"), Tok(Kind::Ident, "Int32"),
-                          Tok(Kind::OpenBrace, "{"), Tok(Kind::Ident, "print"),
-                          Tok(Kind::OpenParen, "("),
-                          Tok(Kind::IncompleteString, R"("Hello, world!)
+      ElementsAre(Tok(Kind::Whitespace, "\n    "), Tok(Kind::Ident, "let"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "main"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Equal, "="),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenParen, "("),
+                  Tok(Kind::CloseParen, ")"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Minus, "-"), Tok(Kind::Greater, ">"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "Int32"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::OpenBrace, "{"),
+                  Tok(Kind::Whitespace, "\n      "), Tok(Kind::Ident, "print"),
+                  Tok(Kind::OpenParen, "("),
+                  Tok(Kind::IncompleteString, R"("Hello, world!)
       return 0
     }
   )")));
 }
 
 TEST(LexerTest, ArrayType) {
-  EXPECT_THAT(ReadTokens(R"(
+  EXPECT_THAT(
+      ReadTokens(R"(
     let a: Int32[10]
   )"),
-              ElementsAre(Tok(Kind::Ident, "let"), Tok(Kind::Ident, "a"),
-                          Tok(Kind::Colon, ":"), Tok(Kind::Ident, "Int32"),
-                          Tok(Kind::OpenBracket, "["), Tok(Kind::Number, "10"),
-                          Tok(Kind::CloseBracket, "]")));
+      ElementsAre(Tok(Kind::Whitespace, "\n    "), Tok(Kind::Ident, "let"),
+                  Tok(Kind::Whitespace, " "), Tok(Kind::Ident, "a"),
+                  Tok(Kind::Colon, ":"), Tok(Kind::Whitespace, " "),
+                  Tok(Kind::Ident, "Int32"), Tok(Kind::OpenBracket, "["),
+                  Tok(Kind::Number, "10"), Tok(Kind::CloseBracket, "]"),
+                  Tok(Kind::Whitespace, "\n  ")));
 }
 
 }  // namespace

@@ -990,7 +990,7 @@ TEST_F(ParserTest, FuncDefMissingParamColon) {
       return x
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 17"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 16"));
 }
 
 TEST_F(ParserTest, FuncDefMissingParamType) {
@@ -1028,7 +1028,7 @@ TEST_F(ParserTest, FuncDefMissingClosingParen) {
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 18"));
+                                     "parameter at line 2, column 17"));
 }
 
 TEST_F(ParserTest, FuncDefMissingResultArrowDash) {
@@ -1044,7 +1044,7 @@ TEST_F(ParserTest, FuncDefMissingResultArrowHead) {
     let main = () - Void {
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 21"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 20"));
 }
 
 TEST_F(ParserTest, FuncDefMissingResultType) {
@@ -1105,7 +1105,7 @@ TEST_F(ParserTest, VarDeclMissingColon) {
       let m Int32 = 1
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
 }
 
 TEST_F(ParserTest, VarDeclMissingType) {
@@ -1124,7 +1124,7 @@ TEST_F(ParserTest, VarDeclMissingColonAndType) {
       let m = 1
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
 }
 
 TEST_F(ParserTest, VarDeclMissingEqual) {

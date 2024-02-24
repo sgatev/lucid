@@ -62,7 +62,7 @@ TEST_F(CompilerTest, ParseError) {
       RunCompiler({"build", "main", FullPath("main.lu")}),
       AllOf(ReturnsCode(Eq(1)), PrintsError(FormattedError(
                                     Eq("expected closing parenthesis or "
-                                       "parameter at line 2, column 20\n")))));
+                                       "parameter at line 2, column 19\n")))));
 }
 
 TEST_F(CompilerTest, TypeError) {
