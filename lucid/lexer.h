@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <string_view>
 
 #include "lucid/token.h"
@@ -21,21 +22,16 @@ class Lexer {
     if (pos_ == size_) return Token(Token::Kind::End, pos_, pos_);
 
     const char c = buffer_[pos_];
+    const std::uint8_t cc = kEquivClassMap[c];
     const std::size_t start_pos = pos_;
-    if (whitespace[c]) {
-      // Whitespace.
+    if (cc == kAlphaNumClass || cc == kWhitespaceClass) {
       do ++pos_;
       // `buffer_` is not empty as it must end in `\n`.
-      while (whitespace[buffer_[pos_]]);
-    } else if (alphanumeric[c]) {
-      // Identifier or number.
-      do ++pos_;
-      // `buffer_` is not empty as it must end in `\n`.
-      while (alphanumeric[buffer_[pos_]]);
+      while (pos_ < size_ && kEquivClassMap[buffer_[pos_]] == cc);
     } else if (c == '"' || c == '#') {
       // String or comment.
       const char* pos = std::char_traits<char>::find(
-          buffer_ + pos_ + 1, size_ - pos_ - 1, finishers[c]);
+          buffer_ + pos_ + 1, size_ - pos_ - 1, kFinishersMap[c]);
       if (pos == nullptr) {
         pos_ = size_;
         return Token(Token::Kind::IncompleteString, start_pos, pos_);
@@ -45,63 +41,65 @@ class Lexer {
       // Singleton.
       ++pos_;
     }
-    return Token(kind[c], start_pos, pos_);
+    return Token(kTokenKindMap[c], start_pos, pos_);
   }
 
  private:
-  static constexpr std::array<bool, 256> whitespace = []() consteval {
-    std::array<bool, 256> whitespace = {false};
-    whitespace[' '] = true;
-    whitespace['\n'] = true;
-    whitespace['\t'] = true;
-    return whitespace;
+  static constexpr std::uint8_t kAlphaNumClass = 0xFF;
+  static constexpr std::uint8_t kWhitespaceClass = 0xFE;
+
+  static constexpr std::array<std::uint8_t, 256> kEquivClassMap =
+      []() consteval {
+        std::array<std::uint8_t, 256> map = {0};
+        for (int i = 0; i < 256; ++i) map[i] = i;
+
+        for (char c = 'a'; c <= 'z'; ++c) map[c] = kAlphaNumClass;
+        for (char c = 'A'; c <= 'Z'; ++c) map[c] = kAlphaNumClass;
+        for (char c = '0'; c <= '9'; ++c) map[c] = kAlphaNumClass;
+
+        map[' '] = kWhitespaceClass;
+        map['\n'] = kWhitespaceClass;
+        map['\t'] = kWhitespaceClass;
+        return map;
+      }();
+
+  static constexpr std::array<Token::Kind, 256> kTokenKindMap = []() consteval {
+    std::array<Token::Kind, 256> map = {Token::Kind::End};
+    map['='] = Token::Kind::Equal;
+    map['('] = Token::Kind::OpenParen;
+    map[')'] = Token::Kind::CloseParen;
+    map['{'] = Token::Kind::OpenBrace;
+    map['}'] = Token::Kind::CloseBrace;
+    map['['] = Token::Kind::OpenBracket;
+    map[']'] = Token::Kind::CloseBracket;
+    map[':'] = Token::Kind::Colon;
+    map[','] = Token::Kind::Comma;
+    map['+'] = Token::Kind::Plus;
+    map['-'] = Token::Kind::Minus;
+    map['*'] = Token::Kind::Star;
+    map['/'] = Token::Kind::Slash;
+    map['>'] = Token::Kind::Greater;
+    map['<'] = Token::Kind::Less;
+    map['.'] = Token::Kind::Dot;
+    map['|'] = Token::Kind::Bar;
+    map['!'] = Token::Kind::Exclamation;
+    map['#'] = Token::Kind::Comment;
+    map['"'] = Token::Kind::String;
+    map['%'] = Token::Kind::Percent;
+    map[' '] = Token::Kind::Whitespace;
+    map['\t'] = Token::Kind::Whitespace;
+    map['\n'] = Token::Kind::Whitespace;
+    for (char c = 'a'; c <= 'z'; ++c) map[c] = Token::Kind::Ident;
+    for (char c = 'A'; c <= 'Z'; ++c) map[c] = Token::Kind::Ident;
+    for (char c = '0'; c <= '9'; ++c) map[c] = Token::Kind::Number;
+    return map;
   }();
 
-  static constexpr std::array<bool, 256> alphanumeric = []() consteval {
-    std::array<bool, 256> alphanumeric = {false};
-    for (char c = 'a'; c <= 'z'; ++c) alphanumeric[c] = true;
-    for (char c = 'A'; c <= 'Z'; ++c) alphanumeric[c] = true;
-    for (char c = '0'; c <= '9'; ++c) alphanumeric[c] = true;
-    return alphanumeric;
-  }();
-
-  static constexpr std::array<Token::Kind, 256> kind = []() consteval {
-    std::array<Token::Kind, 256> kind = {Token::Kind::End};
-    kind['='] = Token::Kind::Equal;
-    kind['('] = Token::Kind::OpenParen;
-    kind[')'] = Token::Kind::CloseParen;
-    kind['{'] = Token::Kind::OpenBrace;
-    kind['}'] = Token::Kind::CloseBrace;
-    kind['['] = Token::Kind::OpenBracket;
-    kind[']'] = Token::Kind::CloseBracket;
-    kind[':'] = Token::Kind::Colon;
-    kind[','] = Token::Kind::Comma;
-    kind['+'] = Token::Kind::Plus;
-    kind['-'] = Token::Kind::Minus;
-    kind['*'] = Token::Kind::Star;
-    kind['/'] = Token::Kind::Slash;
-    kind['>'] = Token::Kind::Greater;
-    kind['<'] = Token::Kind::Less;
-    kind['.'] = Token::Kind::Dot;
-    kind['|'] = Token::Kind::Bar;
-    kind['!'] = Token::Kind::Exclamation;
-    kind['#'] = Token::Kind::Comment;
-    kind['"'] = Token::Kind::String;
-    kind['%'] = Token::Kind::Percent;
-    kind[' '] = Token::Kind::Whitespace;
-    kind['\t'] = Token::Kind::Whitespace;
-    kind['\n'] = Token::Kind::Whitespace;
-    for (char c = 'a'; c <= 'z'; ++c) kind[c] = Token::Kind::Ident;
-    for (char c = 'A'; c <= 'Z'; ++c) kind[c] = Token::Kind::Ident;
-    for (char c = '0'; c <= '9'; ++c) kind[c] = Token::Kind::Number;
-    return kind;
-  }();
-
-  static constexpr std::array<char, 256> finishers = []() consteval {
-    std::array<char, 256> finishers = {' '};
-    finishers['"'] = '"';
-    finishers['#'] = '\n';
-    return finishers;
+  static constexpr std::array<char, 256> kFinishersMap = []() consteval {
+    std::array<char, 256> map = {' '};
+    map['"'] = '"';
+    map['#'] = '\n';
+    return map;
   }();
 
   const char* buffer_;
