@@ -19,27 +19,25 @@ class Lexer {
 
   // Returns the next token in the buffer.
   inline Token next() {
-    if (pos_ == size_) return Token(Token::Kind::End, pos_, pos_);
+    if (pos_ == size_) [[unlikely]] {
+      return Token(Token::Kind::End, pos_, pos_);
+    }
 
     const char c = buffer_[pos_];
     const std::uint8_t cc = kEquivClassMap[c];
-    const std::size_t start_pos = pos_;
-    if (cc == kAlphaNumClass || cc == kWhitespaceClass) {
-      do ++pos_;
-      // `buffer_` is not empty as it must end in `\n`.
-      while (pos_ < size_ && kEquivClassMap[buffer_[pos_]] == cc);
+    const std::size_t start_pos = pos_++;
+    if (cc > 0xFD) [[likely]] {
+      // Ident, number, or whitespace.
+      while (pos_ < size_ && kEquivClassMap[buffer_[pos_]] == cc) ++pos_;
     } else if (c == '"' || c == '#') {
       // String or comment.
       const char* pos = std::char_traits<char>::find(
-          buffer_ + pos_ + 1, size_ - pos_ - 1, kFinishersMap[c]);
+          buffer_ + pos_, size_ - pos_ - 2, c == '"' ? '"' : '\n');
       if (pos == nullptr) {
         pos_ = size_;
         return Token(Token::Kind::IncompleteString, start_pos, pos_);
       }
       pos_ = pos - buffer_ + 1;
-    } else {
-      // Singleton.
-      ++pos_;
     }
     return Token(kTokenKindMap[c], start_pos, pos_);
   }
@@ -92,13 +90,6 @@ class Lexer {
     for (char c = 'a'; c <= 'z'; ++c) map[c] = Token::Kind::Ident;
     for (char c = 'A'; c <= 'Z'; ++c) map[c] = Token::Kind::Ident;
     for (char c = '0'; c <= '9'; ++c) map[c] = Token::Kind::Number;
-    return map;
-  }();
-
-  static constexpr std::array<char, 256> kFinishersMap = []() consteval {
-    std::array<char, 256> map = {' '};
-    map['"'] = '"';
-    map['#'] = '\n';
     return map;
   }();
 
