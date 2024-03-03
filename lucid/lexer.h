@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <string_view>
@@ -13,33 +14,37 @@ namespace lucid {
 // Converts a string of Lucid code into a stream of tokens.
 class Lexer {
  public:
-  // `buffer_` must end in `\n`.
+  // `buffer_` must end in `\0`.
   explicit Lexer(std::string_view buffer)
-      : buffer_(buffer.data()), size_(buffer.size()), pos_(0) {}
+      : buffer_(buffer.data()), size_(buffer.size()), pos_(0) {
+    assert(size_ > 0);
+    assert(buffer_[size_ - 1] == '\0');
+  }
 
   // Returns the next token in the buffer.
+  //
+  // Requirements:
+  //
+  //   * Must not be called after it returns a `Kind::End` or
+  //     `Kind::IncompleteString` token.
   inline Token next() {
-    if (pos_ == size_) [[unlikely]] {
-      return Token(Token::Kind::End, pos_, pos_);
-    }
-
-    const char c = buffer_[pos_];
-    const std::uint8_t cc = kEquivClassMap[c];
+    const char sym = buffer_[pos_];
+    const std::uint8_t sym_class = kEquivClassMap[sym];
     const std::size_t start_pos = pos_++;
-    if (cc > 0xFD) [[likely]] {
+    if (sym_class >= kWhitespaceClass) [[unlikely]] {
       // Ident, number, or whitespace.
-      while (pos_ < size_ && kEquivClassMap[buffer_[pos_]] == cc) ++pos_;
-    } else if (c == '"' || c == '#') {
+      while (pos_ < size_ && kEquivClassMap[buffer_[pos_]] == sym_class) ++pos_;
+    } else if (sym == '"' || sym == '#') [[unlikely]] {
       // String or comment.
       const char* pos = std::char_traits<char>::find(
-          buffer_ + pos_, size_ - pos_ - 2, c == '"' ? '"' : '\n');
-      if (pos == nullptr) {
+          buffer_ + pos_, size_ - pos_ - 2, sym == '"' ? '"' : '\n');
+      if (pos == nullptr) [[unlikely]] {
         pos_ = size_;
         return Token(Token::Kind::IncompleteString, start_pos, pos_);
       }
       pos_ = pos - buffer_ + 1;
     }
-    return Token(kTokenKindMap[c], start_pos, pos_);
+    return Token(kTokenKindMap[sym], start_pos, pos_);
   }
 
  private:
@@ -87,6 +92,7 @@ class Lexer {
     map[' '] = Token::Kind::Whitespace;
     map['\t'] = Token::Kind::Whitespace;
     map['\n'] = Token::Kind::Whitespace;
+    map['\0'] = Token::Kind::End;
     for (char c = 'a'; c <= 'z'; ++c) map[c] = Token::Kind::Ident;
     for (char c = 'A'; c <= 'Z'; ++c) map[c] = Token::Kind::Ident;
     for (char c = '0'; c <= '9'; ++c) map[c] = Token::Kind::Number;

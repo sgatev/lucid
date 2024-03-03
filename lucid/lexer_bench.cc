@@ -8,6 +8,8 @@
 #include "lucid/lexer.h"
 #include "lucid/token.h"
 
+using namespace std::string_literals;
+
 std::size_t CountTokens(std::string_view code) {
   lucid::Lexer lexer(code);
   std::size_t cnt = 0;
@@ -22,6 +24,7 @@ void Benchmark(benchmark::State &state, std::string_view snippet) {
   std::string code;
   code.reserve(snippet.size() * 10000);
   for (int i = 0; i < 10000; i++) code.append(snippet);
+  code.append("\0"s);
 
   for (auto _ : state) benchmark::DoNotOptimize(CountTokens(code));
 

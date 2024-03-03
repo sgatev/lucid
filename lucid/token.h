@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <ostream>
 #include <string_view>
 
@@ -8,7 +9,7 @@ namespace lucid {
 
 // A token in the Lucid language.
 struct Token {
-  enum class Kind : std::size_t {
+  enum class Kind : std::uint8_t {
     Bar,
     CloseBrace,
     CloseParen,

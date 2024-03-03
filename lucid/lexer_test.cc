@@ -12,6 +12,8 @@
 namespace lucid {
 namespace {
 
+using namespace std::string_literals;
+
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 
@@ -39,8 +41,11 @@ TestToken Tok(Kind kind, std::string_view text) {
 }
 
 std::vector<TestToken> ReadTokens(std::string_view code) {
+  std::string code_with_null(code);
+  code_with_null.append("\0"s);
+
   std::vector<TestToken> tokens;
-  Lexer lexer(code);
+  Lexer lexer(code_with_null);
   while (true) {
     Token token = lexer.next();
     if (token.kind == Kind::End) break;

@@ -28,12 +28,17 @@ MATCHER_P(HoldsError, match_err, "") {
 namespace lucid {
 namespace {
 
+using namespace std::string_literals;
+
 class ParserTest : public testing::Test, public AstFixture {
  protected:
   std::variant<FuncDefStmt, std::string> Parse(std::string_view src) {
-    auto maybe_func_def_stmt =
-        Parser(stmt_arena_, expr_arena_, type_arena_, src, Lexer(src))
-            .ParseFuncDef();
+    std::string code_with_null(src);
+    code_with_null.append("\0"s);
+
+    auto maybe_func_def_stmt = Parser(stmt_arena_, expr_arena_, type_arena_,
+                                      src, Lexer(code_with_null))
+                                   .ParseFuncDef();
     if (auto* ref = std::get_if<FuncDefStmt>(&maybe_func_def_stmt)) return *ref;
     std::stringstream out;
     out << std::get<ParserError>(maybe_func_def_stmt);

@@ -98,7 +98,7 @@ int Build(CommandContext ctx) {
 
   // Load Lucid sources.
   auto src_path = std::filesystem::absolute(ctx.args[1]);
-  const auto src = ReadFile(src_path.c_str());
+  const auto src = ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
   if (!src.has_value()) {
     PrintError(ctx.err) << "could not read file '" << ctx.args[1] << "'\n";
     return 1;
@@ -139,7 +139,7 @@ int Compile(CommandContext ctx) {
 
   // Load Lucid sources.
   auto src_path = std::filesystem::absolute(ctx.args[0]);
-  const auto src = ReadFile(src_path.c_str());
+  const auto src = ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
   if (!src.has_value()) {
     PrintError(ctx.err) << "could not read file '" << ctx.args[0] << "'\n";
     return 1;
@@ -172,7 +172,7 @@ int Run(CommandContext ctx) {
 
   // Load Lucid sources.
   auto src_path = std::filesystem::absolute(ctx.args[0]);
-  const auto src = ReadFile(src_path.c_str());
+  const auto src = ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
   if (!src.has_value()) {
     PrintError(ctx.err) << "could not read file '" << ctx.args[0] << "'\n";
     return 1;
