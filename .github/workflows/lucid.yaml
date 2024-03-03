@@ -9,3 +9,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run tests
         run: bazel test ...
+      - name: Run benchmarks
+        run: bazel run -c opt //lucid:lexer_bench
