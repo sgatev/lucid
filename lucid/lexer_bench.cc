@@ -11,25 +11,31 @@
 using namespace std::string_literals;
 
 std::size_t CountTokens(std::string_view code) {
+  std::size_t count = 0;
   lucid::Lexer lexer(code);
-  std::size_t cnt = 0;
   while (true) {
-    lucid::Token token = lexer.next();
-    if (token.kind == lucid::Token::Kind::End) return cnt;
-    ++cnt;
+    const lucid::Token token = lexer.next();
+    if (token.kind == lucid::Token::Kind::End) break;
+    ++count;
   }
+  return count;
 }
 
-void Benchmark(benchmark::State &state, std::string_view snippet) {
-  std::string code;
-  code.reserve(snippet.size() * 10000);
-  for (int i = 0; i < 10000; i++) code.append(snippet);
-  code.append("\0"s);
+void Benchmark(benchmark::State &state, std::string_view code) {
+  static constexpr int kCodeRepetitions = 10000;
+  std::string repeated_code_with_null;
+  repeated_code_with_null.reserve(code.size() * kCodeRepetitions + 1);
+  for (int i = 0; i < kCodeRepetitions; ++i) {
+    repeated_code_with_null.append(code);
+  }
+  repeated_code_with_null.append("\0"s);
 
-  for (auto _ : state) benchmark::DoNotOptimize(CountTokens(code));
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(CountTokens(repeated_code_with_null));
+  }
 
   state.SetBytesProcessed(std::int64_t(state.iterations()) *
-                          std::int64_t(code.size()));
+                          std::int64_t(repeated_code_with_null.size()));
 }
 
 static void BM_Function(benchmark::State &state) {
@@ -89,5 +95,24 @@ static void BM_Number(benchmark::State &state) {
   )");
 }
 BENCHMARK(BM_Number);
+
+static void BM_Branches(benchmark::State &state) {
+  Benchmark(state, R"(
+    let gcd = (a: Int32, b: Int32) -> Int32 {
+      loop {
+        if a == b {
+          break
+        }
+        if a > b {
+          a = a - b
+        } else {
+          b = b - a
+        }
+      }
+      return a
+    }
+  )");
+}
+BENCHMARK(BM_Branches);
 
 BENCHMARK_MAIN();

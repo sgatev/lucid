@@ -14,7 +14,9 @@ namespace lucid {
 // Converts a string of Lucid code into a stream of tokens.
 class Lexer {
  public:
-  // `buffer_` must end in `\0`.
+  // Requirements:
+  //
+  //   * `buffer_` must end in `\0`.
   explicit Lexer(std::string_view buffer)
       : buffer_(buffer.data()), size_(buffer.size()), pos_(0) {
     assert(size_ > 0);
@@ -37,7 +39,7 @@ class Lexer {
     } else if (sym == '"' || sym == '#') [[unlikely]] {
       // String or comment.
       const char* pos = std::char_traits<char>::find(
-          buffer_ + pos_, size_ - pos_ - 2, sym == '"' ? '"' : '\n');
+          buffer_ + pos_, size_ - pos_ - 1, sym == '"' ? '"' : '\n');
       if (pos == nullptr) [[unlikely]] {
         pos_ = size_;
         return Token(Token::Kind::IncompleteString, start_pos, pos_);
