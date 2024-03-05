@@ -21,7 +21,7 @@ struct Token {
     Equal,
     Greater,
     Ident,
-    IncompleteString,
+    Error,
     Less,
     Minus,
     Exclamation,
@@ -35,7 +35,7 @@ struct Token {
     Percent,
     OpenBracket,
     CloseBracket,
-    Whitespace,
+    Space,
   };
 
   constexpr Token(Kind kind, std::size_t start_pos, std::size_t end_pos)

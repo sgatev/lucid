@@ -60,10 +60,10 @@ std::vector<TestToken> ReadTokens(std::string_view code) {
 TEST(LexerTest, Empty) { EXPECT_THAT(ReadTokens(""), IsEmpty()); }
 
 TEST(LexerTest, Ident) {
-  EXPECT_THAT(ReadTokens("foo  "), ElementsAre(Tok(Kind::Ident, "foo"),
-                                               Tok(Kind::Whitespace, "  ")));
-  EXPECT_THAT(ReadTokens("Foo21  "), ElementsAre(Tok(Kind::Ident, "Foo21"),
-                                                 Tok(Kind::Whitespace, "  ")));
+  EXPECT_THAT(ReadTokens("foo  "),
+              ElementsAre(Tok(Kind::Ident, "foo"), Tok(Kind::Space, "  ")));
+  EXPECT_THAT(ReadTokens("Foo21  "),
+              ElementsAre(Tok(Kind::Ident, "Foo21"), Tok(Kind::Space, "  ")));
   EXPECT_THAT(
       ReadTokens("foo# bar\n"),
       ElementsAre(Tok(Kind::Ident, "foo"), Tok(Kind::Comment, "# bar\n")));
@@ -89,8 +89,17 @@ TEST(LexerTest, Number) {
   EXPECT_THAT(ReadTokens("21"), ElementsAre(Tok(Kind::Number, "21")));
   EXPECT_THAT(ReadTokens("21foo"),
               ElementsAre(Tok(Kind::Number, "21"), Tok(Kind::Ident, "foo")));
-  EXPECT_THAT(ReadTokens("21   "), ElementsAre(Tok(Kind::Number, "21"),
-                                               Tok(Kind::Whitespace, "   ")));
+  EXPECT_THAT(ReadTokens("21   "),
+              ElementsAre(Tok(Kind::Number, "21"), Tok(Kind::Space, "   ")));
+}
+
+TEST(LexerTest, Space) {
+  EXPECT_THAT(ReadTokens("   21"),
+              ElementsAre(Tok(Kind::Space, "   "), Tok(Kind::Number, "21")));
+  EXPECT_THAT(ReadTokens("   foo"),
+              ElementsAre(Tok(Kind::Space, "   "), Tok(Kind::Ident, "foo")));
+  EXPECT_THAT(ReadTokens("   ["), ElementsAre(Tok(Kind::Space, "   "),
+                                              Tok(Kind::OpenBracket, "[")));
 }
 
 TEST(LexerTest, Comment) {
@@ -98,9 +107,8 @@ TEST(LexerTest, Comment) {
               ElementsAre(Tok(Kind::Comment, "# comment\n")));
 }
 
-TEST(LexerTest, IncompleteString) {
-  EXPECT_THAT(ReadTokens(R"("foo)"),
-              ElementsAre(Tok(Kind::IncompleteString, R"("foo)")));
+TEST(LexerTest, Error) {
+  EXPECT_THAT(ReadTokens(R"("foo)"), ElementsAre(Tok(Kind::Error, R"("foo)")));
 }
 
 }  // namespace

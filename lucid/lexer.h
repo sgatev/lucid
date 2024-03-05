@@ -16,7 +16,7 @@ class Lexer {
  public:
   // Requirements:
   //
-  //   * `buffer_` must end in `\0`.
+  //   * `buffer` must end in `\0`.
   explicit Lexer(std::string_view buffer)
       : buffer_(buffer.data()), size_(buffer.size()), pos_(0) {
     assert(size_ > 0);
@@ -28,7 +28,7 @@ class Lexer {
   // Requirements:
   //
   //   * Must not be called after it returns a `Kind::End` or
-  //     `Kind::IncompleteString` token.
+  //     `Kind::Error` token.
   inline Token next() {
     const char sym = buffer_[pos_];
     const std::uint8_t sym_class = kClassMap[sym];
@@ -42,7 +42,7 @@ class Lexer {
           buffer_ + pos_, size_ - pos_ - 1, sym == '"' ? '"' : '\n');
       if (pos == nullptr) [[unlikely]] {
         pos_ = size_;
-        return Token(Token::Kind::IncompleteString, start_pos, pos_);
+        return Token(Token::Kind::Error, start_pos, pos_);
       }
       pos_ = pos - buffer_ + 1;
     }
@@ -96,9 +96,9 @@ class Lexer {
     map['#'] = Token::Kind::Comment;
     map['"'] = Token::Kind::String;
     map['%'] = Token::Kind::Percent;
-    map[' '] = Token::Kind::Whitespace;
-    map['\t'] = Token::Kind::Whitespace;
-    map['\n'] = Token::Kind::Whitespace;
+    map[' '] = Token::Kind::Space;
+    map['\t'] = Token::Kind::Space;
+    map['\n'] = Token::Kind::Space;
     map['\0'] = Token::Kind::End;
     for (char c = 'a'; c <= 'z'; ++c) map[c] = Token::Kind::Ident;
     for (char c = 'A'; c <= 'Z'; ++c) map[c] = Token::Kind::Ident;
