@@ -31,11 +31,11 @@ class Lexer {
   //     `Kind::IncompleteString` token.
   inline Token next() {
     const char sym = buffer_[pos_];
-    const std::uint8_t sym_class = kEquivClassMap[sym];
+    const std::uint8_t sym_class = kClassMap[sym];
     const std::size_t start_pos = pos_++;
-    if (sym_class >= kWhitespaceClass) [[unlikely]] {
+    if (sym_class > 3) [[unlikely]] {
       // Ident, number, or whitespace.
-      while (pos_ < size_ && kEquivClassMap[buffer_[pos_]] == sym_class) ++pos_;
+      while (pos_ < size_ && kClassMap[buffer_[pos_]] % sym_class < 2) ++pos_;
     } else if (sym == '"' || sym == '#') [[unlikely]] {
       // String or comment.
       const char* pos = std::char_traits<char>::find(
@@ -50,23 +50,28 @@ class Lexer {
   }
 
  private:
-  static constexpr std::uint8_t kAlphaNumClass = 0xFF;
-  static constexpr std::uint8_t kWhitespaceClass = 0xFE;
+  static constexpr std::array<std::uint8_t, 256> kClassMap = []() consteval {
+    // The class values have the following properties:
+    // - kAlphaClass mod kAlphaClass = 0
+    // - kNumClass mod kAlphaClass = 1
+    // - kNumClass mod kNumClass = 0
+    // - kSpaceClass mod kSpaceClass = 0
+    // - X mod Y > 1 for every other pair of classes where Y > 3
+    constexpr std::uint8_t kNumClass = 255;
+    constexpr std::uint8_t kAlphaClass = 254;
+    constexpr std::uint8_t kSpaceClass = 252;
+    constexpr std::uint8_t kOtherClass = 3;
 
-  static constexpr std::array<std::uint8_t, 256> kEquivClassMap =
-      []() consteval {
-        std::array<std::uint8_t, 256> map = {0};
-        for (int i = 0; i < 256; ++i) map[i] = i;
-
-        for (char c = 'a'; c <= 'z'; ++c) map[c] = kAlphaNumClass;
-        for (char c = 'A'; c <= 'Z'; ++c) map[c] = kAlphaNumClass;
-        for (char c = '0'; c <= '9'; ++c) map[c] = kAlphaNumClass;
-
-        map[' '] = kWhitespaceClass;
-        map['\n'] = kWhitespaceClass;
-        map['\t'] = kWhitespaceClass;
-        return map;
-      }();
+    std::array<std::uint8_t, 256> map;
+    map.fill(kOtherClass);
+    for (char c = 'a'; c <= 'z'; ++c) map[c] = kAlphaClass;
+    for (char c = 'A'; c <= 'Z'; ++c) map[c] = kAlphaClass;
+    for (char c = '0'; c <= '9'; ++c) map[c] = kNumClass;
+    map[' '] = kSpaceClass;
+    map['\n'] = kSpaceClass;
+    map['\t'] = kSpaceClass;
+    return map;
+  }();
 
   static constexpr std::array<Token::Kind, 256> kTokenKindMap = []() consteval {
     std::array<Token::Kind, 256> map = {Token::Kind::End};

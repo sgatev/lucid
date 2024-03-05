@@ -62,6 +62,8 @@ TEST(LexerTest, Empty) { EXPECT_THAT(ReadTokens(""), IsEmpty()); }
 TEST(LexerTest, Ident) {
   EXPECT_THAT(ReadTokens("foo  "), ElementsAre(Tok(Kind::Ident, "foo"),
                                                Tok(Kind::Whitespace, "  ")));
+  EXPECT_THAT(ReadTokens("Foo21  "), ElementsAre(Tok(Kind::Ident, "Foo21"),
+                                                 Tok(Kind::Whitespace, "  ")));
   EXPECT_THAT(
       ReadTokens("foo# bar\n"),
       ElementsAre(Tok(Kind::Ident, "foo"), Tok(Kind::Comment, "# bar\n")));
@@ -76,8 +78,8 @@ TEST(LexerTest, String) {
 
 TEST(LexerTest, Singleton) {
   EXPECT_THAT(ReadTokens("+"), ElementsAre(Tok(Kind::Plus, "+")));
-  EXPECT_THAT(ReadTokens("+foo"),
-              ElementsAre(Tok(Kind::Plus, "+"), Tok(Kind::Ident, "foo")));
+  EXPECT_THAT(ReadTokens("+Foo"),
+              ElementsAre(Tok(Kind::Plus, "+"), Tok(Kind::Ident, "Foo")));
   EXPECT_THAT(
       ReadTokens(R"(+"foo")"),
       ElementsAre(Tok(Kind::Plus, R"(+)"), Tok(Kind::String, R"("foo")")));
@@ -85,6 +87,10 @@ TEST(LexerTest, Singleton) {
 
 TEST(LexerTest, Number) {
   EXPECT_THAT(ReadTokens("21"), ElementsAre(Tok(Kind::Number, "21")));
+  EXPECT_THAT(ReadTokens("21foo"),
+              ElementsAre(Tok(Kind::Number, "21"), Tok(Kind::Ident, "foo")));
+  EXPECT_THAT(ReadTokens("21   "), ElementsAre(Tok(Kind::Number, "21"),
+                                               Tok(Kind::Whitespace, "   ")));
 }
 
 TEST(LexerTest, Comment) {
