@@ -1,8 +1,8 @@
 #include "lucid/arm64_gen.h"
 
+#include <sstream>
 #include <string>
 #include <string_view>
-#include <strstream>
 #include <unordered_map>
 #include <vector>
 
@@ -28,7 +28,7 @@ class GenerateArmAssemblySourceTest : public testing::Test, public AstFixture {
     AbstractMachineState state;
     GenerateAbstractMachineFunction(stmt_arena_, expr_arena_, type_arena_,
                                     graph, state);
-    std::strstream out;
+    std::stringstream out;
     GenerateArmAssemblySource(state.func, out);
     return out.str();
   }
