@@ -32,14 +32,18 @@ class Arena {
 
   // Returns the value associated with `ref` in the arena.
   //
-  // `ref` must not be `kNullRef`.
+  // Requirements:
+  //   - `ref` must not be `kNullRef`.
   const T& get(Ref ref) const { return values_[ref]; }
   T& get(Ref ref) { return values_[ref]; }
 
   // Returns the number of values that were added to the arena.
   std::size_t size() const { return values_.size(); }
 
+  // Returns an iterator to the first value of the arena.
   auto begin() const { return values_.begin(); }
+
+  // Returns an iterator to the value following the last value of the arena.
   auto end() const { return values_.end(); }
 
  private:

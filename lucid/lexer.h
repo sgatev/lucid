@@ -15,8 +15,7 @@ namespace lucid {
 class Lexer {
  public:
   // Requirements:
-  //
-  //   * `buffer` must end in `\0`.
+  //   - `buffer` must end in `\0`.
   explicit Lexer(std::string_view buffer)
       : buffer_(buffer.data()), size_(buffer.size()), pos_(0) {
     assert(size_ > 0);
@@ -26,8 +25,7 @@ class Lexer {
   // Returns the next token in the buffer.
   //
   // Requirements:
-  //
-  //   * Must not be called after it returns a `Kind::End` or
+  //   - Must not be called after it returns a `Kind::End` or
   //     `Kind::Error` token.
   inline Token next() {
     const char sym = buffer_[pos_];
