@@ -56,7 +56,22 @@ class ControlFlowGraphBuilder {
       } else if (auto* if_stmt = std::get_if<IfStmt>(&DerefStmt(stmt_ref))) {
         auto& seq = graph_.get(block).sequences.emplace_back();
         auto post_if_block = AddBlock();
-        ProcessStmt(*if_stmt, seq, block, post_if_block);
+
+        auto then_block = AddBlock();
+        BuildBlock(if_stmt->then_body, then_block, post_if_block);
+        graph_.get(block).next.push_back(then_block);
+
+        if (if_stmt->else_body.statements.empty()) {
+          graph_.get(block).next.push_back(post_if_block);
+        } else {
+          auto else_block = AddBlock();
+          BuildBlock(if_stmt->else_body, else_block, post_if_block);
+          graph_.get(block).next.push_back(else_block);
+        }
+
+        pending_sub_exprs_.push(if_stmt->cond);
+        graph_.get(block).branch_cond = if_stmt->cond;
+
         FlushSubExprs(seq, block, post_if_block);
         block = post_if_block;
       } else {
@@ -172,22 +187,7 @@ class ControlFlowGraphBuilder {
                    BlockRef end) {}
 
   void ProcessStmt(const IfStmt& stmt, Sequence& seq, BlockRef block,
-                   BlockRef end) {
-    auto then_block = AddBlock();
-    BuildBlock(stmt.then_body, then_block, end);
-    graph_.get(block).next.push_back(then_block);
-
-    if (stmt.else_body.statements.empty()) {
-      graph_.get(block).next.push_back(end);
-    } else {
-      auto else_block = AddBlock();
-      BuildBlock(stmt.else_body, else_block, end);
-      graph_.get(block).next.push_back(else_block);
-    }
-
-    pending_sub_exprs_.push(stmt.cond);
-    graph_.get(block).branch_cond = stmt.cond;
-  }
+                   BlockRef end) {}
 
   void ProcessSubExpr(ExprRef expr_ref, BlockRef block) {
     pending_sub_exprs_.push(expr_ref);
