@@ -98,6 +98,15 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "ast_test",
+    srcs = ["ast_test.cc"],
+    deps = [
+        ":ast",
+        "@googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "ast_fixture",
     testonly = True,
