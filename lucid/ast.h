@@ -47,13 +47,12 @@ using Stmt =
 // object.
 using StmtRef = ArenaRef<Stmt>;
 
-// A reference to an expression that can be dereferenced using an `Arena<Stmt>`
+// A reference to an expression that can be dereferenced using an `Arena<Expr>`
 // object.
-using ExprRef = StmtRef;
+using ExprRef = ArenaRef<Expr>;
 
-// A reference to a type expression that can be dereferenced using an
-// `Arena<Stmt>` object.
-using TypeRef = StmtRef;
+// A reference to a type that can be dereferenced using an `Arena<Type>` object.
+using TypeRef = ArenaRef<Type>;
 
 // A list of zero or more statements.
 struct CompoundStmt {
