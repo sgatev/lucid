@@ -1,6 +1,7 @@
 #include "lucid/cfg.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <stack>
 #include <utility>
@@ -116,7 +117,7 @@ class ControlFlowGraphBuilder {
 
   void ProcessExpr(const FuncCallExpr& expr, BlockRef block, BlockRef end) {
     graph_.has_func_calls = true;
-    for (ExprRef arg : expr.arguments) ProcessSubExpr(arg, block);
+    for (ExprRef arg : expr.args) ProcessSubExpr(arg, block);
   }
 
   void ProcessExpr(const IntLitExpr& expr, BlockRef block, BlockRef end) {

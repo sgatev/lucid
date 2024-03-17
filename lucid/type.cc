@@ -1,5 +1,6 @@
 #include "lucid/type.h"
 
+#include <cstdint>
 #include <optional>
 #include <ranges>
 #include <string>
@@ -155,8 +156,8 @@ class ExprTypeInferenceEngine {
 
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
     const auto& func_type = func_types_.at(expr.func_name);
-    for (int i = 0; i < expr.arguments.size(); ++i) {
-      ExprRef arg = expr.arguments[i];
+    for (std::uint8_t i = 0; i < expr.args.size(); ++i) {
+      ExprRef arg = expr.args[i];
       RequireTypeForExpr(arg, func_type.parameters[i].type);
       AddPendingExpr(arg);
     }

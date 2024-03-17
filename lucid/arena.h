@@ -26,16 +26,24 @@ class Arena {
   // Adds `value` to the arena and returns a reference that can be used to
   // retrieve it.
   Ref add(T value) {
+    Ref ref = indices_.size();
+    indices_.push_back(values_.size());
     values_.push_back(std::move(value));
-    return values_.size() - 1;
+    return ref;
+  }
+
+  // Adds another reference for the value that `ref` refers to.
+  Ref alias(Ref ref) {
+    indices_.push_back(indices_[ref]);
+    return indices_.size() - 1;
   }
 
   // Returns the value associated with `ref` in the arena.
   //
   // Requirements:
   //   - `ref` must not be `kNullRef`.
-  const T& get(Ref ref) const { return values_[ref]; }
-  T& get(Ref ref) { return values_[ref]; }
+  const T& get(Ref ref) const { return values_[indices_[ref]]; }
+  T& get(Ref ref) { return values_[indices_[ref]]; }
 
   // Returns the number of values that were added to the arena.
   std::size_t size() const { return values_.size(); }
@@ -47,6 +55,7 @@ class Arena {
   auto end() const { return values_.end(); }
 
  private:
+  std::vector<std::size_t> indices_;
   std::vector<T> values_;
 };
 

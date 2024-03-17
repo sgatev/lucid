@@ -291,7 +291,7 @@ TEST_F(ParserTest, FuncCallExprIntLitArg) {
                               .body = {{
                                   MatchesFuncCallExpr({
                                       .func_name = "bar",
-                                      .arguments =
+                                      .args =
                                           {
                                               MatchesIntLitExpr({.value = "3"}),
                                           },
@@ -313,13 +313,51 @@ TEST_F(ParserTest, FuncCallExprStringLitArg) {
                   .body = {{
                       MatchesFuncCallExpr({
                           .func_name = "bar",
-                          .arguments =
+                          .args =
                               {
                                   MatchesStringLitExpr({.value = R"("foo")"}),
                               },
                       }),
                   }},
               })));
+}
+
+TEST_F(ParserTest, FuncCallExprNestedArg) {
+  std::string_view src = R"(
+    let foo = () -> Void {
+      bar(baz(1, 2), qux(3, 4))
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "foo",
+          .result_type = MatchesBasicType({.name = "Void"}),
+          .body = {{
+              MatchesFuncCallExpr({
+                  .func_name = "bar",
+                  .args =
+                      {
+                          MatchesFuncCallExpr({
+                              .func_name = "baz",
+                              .args =
+                                  {
+                                      MatchesIntLitExpr({.value = "1"}),
+                                      MatchesIntLitExpr({.value = "2"}),
+                                  },
+                          }),
+                          MatchesFuncCallExpr({
+                              .func_name = "qux",
+                              .args =
+                                  {
+                                      MatchesIntLitExpr({.value = "3"}),
+                                      MatchesIntLitExpr({.value = "4"}),
+                                  },
+                          }),
+                      },
+              }),
+          }},
+      })));
 }
 
 TEST_F(ParserTest, ReturnFuncCallExpr) {
@@ -336,7 +374,7 @@ TEST_F(ParserTest, ReturnFuncCallExpr) {
                       MatchesReturnStmt({
                           .value = MatchesFuncCallExpr({
                               .func_name = "id",
-                              .arguments =
+                              .args =
                                   {
                                       MatchesIntLitExpr({.value = "21"}),
                                   },

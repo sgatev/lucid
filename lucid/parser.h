@@ -511,19 +511,29 @@ class Parser {
     if (Peek().kind == Token::Kind::OpenParen) {
       Read();
 
-      FuncCallExpr expr;
-      expr.func_name = ident;
-
+      std::vector<ExprRef> foo;
       while (Peek().kind != Token::Kind::CloseParen) {
         auto maybe_arg = ParseExpr();
         if (IsError(maybe_arg)) return std::get<ParserError>(maybe_arg);
-        expr.arguments.push_back(std::get<ExprRef>(maybe_arg));
+        foo.push_back(std::get<ExprRef>(maybe_arg));
 
         if (Peek().kind == Token::Kind::Comma) Read();
       }
       Read();
 
-      return expr_arena_.add(std::move(expr));
+      std::uint8_t args_size = foo.size();
+      ExprRef args_first = Arena<Expr>::kNullRef;
+      if (!foo.empty()) {
+        args_first = expr_arena_.alias(foo[0]);
+      }
+      for (int i = 1; i < foo.size(); ++i) {
+        expr_arena_.alias(foo[i]);
+      }
+
+      return expr_arena_.add(FuncCallExpr{
+          .func_name = ident,
+          .args = ExprList(args_size, args_first),
+      });
     }
 
     if (ident == "true" || ident == "false") {

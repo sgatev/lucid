@@ -52,6 +52,7 @@ TEST_F(ControlFlowGraphTest, EmptyFunction) {
 TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   auto func_call_expr = E(FuncCallExpr({
       .func_name = "bar",
+      .args = EmptyExprList(),
   }));
   auto do_stmt = S(DoStmt{.expr = func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
@@ -80,28 +81,36 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
 }
 
 TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
-  auto arg1_expr = E(IntLitExpr{
+  auto baz_arg1_expr = IntLitExpr{
       .value = "3",
-  });
-  auto arg2_expr = E(IntLitExpr{
+  };
+  auto baz_arg2_expr = IntLitExpr{
       .value = "7",
-  });
-  auto baz_func_call_expr = E(FuncCallExpr({
+  };
+  auto baz_func_call_args = ExprListOf(baz_arg1_expr, baz_arg2_expr);
+  auto baz_func_call_expr = FuncCallExpr({
       .func_name = "baz",
-      .arguments =
-          {
-              arg2_expr,
-          },
-  }));
-  auto func_call_expr = E(FuncCallExpr({
+      .args = baz_func_call_args,
+  });
+
+  auto qux_arg1_expr = IntLitExpr{
+      .value = "9",
+  };
+  auto qux_arg2_expr = IntLitExpr{
+      .value = "21",
+  };
+  auto qux_func_call_args = ExprListOf(qux_arg1_expr, qux_arg2_expr);
+  auto qux_func_call_expr = FuncCallExpr({
+      .func_name = "qux",
+      .args = qux_func_call_args,
+  });
+
+  auto bar_func_call_args = ExprListOf(baz_func_call_expr, qux_func_call_expr);
+  auto bar_func_call_expr = E(FuncCallExpr({
       .func_name = "bar",
-      .arguments =
-          {
-              arg1_expr,
-              baz_func_call_expr,
-          },
+      .args = bar_func_call_args,
   }));
-  auto do_stmt = S(DoStmt{.expr = func_call_expr});
+  auto do_stmt = S(DoStmt{.expr = bar_func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
@@ -116,10 +125,13 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   EXPECT_THAT(first_block.next, ElementsAre(graph.last));
   ASSERT_EQ(first_block.sequences.size(), 1);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        arg1_expr,
-                                                        arg2_expr,
-                                                        baz_func_call_expr,
-                                                        func_call_expr,
+                                                        baz_func_call_args[0],
+                                                        baz_func_call_args[1],
+                                                        bar_func_call_args[0],
+                                                        qux_func_call_args[0],
+                                                        qux_func_call_args[1],
+                                                        bar_func_call_args[1],
+                                                        bar_func_call_expr,
                                                     }));
   EXPECT_THAT(first_block.sequences[0].stmt, do_stmt);
 
@@ -131,15 +143,12 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
 }
 
 TEST_F(ControlFlowGraphTest, ReturnStmt) {
-  auto arg1_expr = E(IntLitExpr{
+  auto func_call_args = ExprListOf(IntLitExpr{
       .value = "3",
   });
   auto func_call_expr = E(FuncCallExpr({
       .func_name = "bar",
-      .arguments =
-          {
-              arg1_expr,
-          },
+      .args = func_call_args,
   }));
   auto return_stmt = S(ReturnStmt{
       .value = func_call_expr,
@@ -158,7 +167,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   EXPECT_THAT(first_block.next, ElementsAre(graph.last));
   ASSERT_EQ(first_block.sequences.size(), 1);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        arg1_expr,
+                                                        func_call_args[0],
                                                         func_call_expr,
                                                     }));
   EXPECT_THAT(first_block.sequences[0].stmt, return_stmt);
@@ -171,7 +180,10 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
 }
 
 TEST_F(ControlFlowGraphTest, VarDeclStmt) {
-  auto func_call_stmt_ref = E(FuncCallExpr{.func_name = "bar"});
+  auto func_call_stmt_ref = E(FuncCallExpr{
+      .func_name = "bar",
+      .args = EmptyExprList(),
+  });
   auto x_var_decl_ref = S(VarDeclStmt{
       .type = T(BasicType{.name = "Int32"}),
       .name = "x",

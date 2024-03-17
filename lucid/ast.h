@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -126,6 +127,47 @@ struct StringLitExpr {
   std::string_view value;
 };
 
+// A list of expression references.
+class ExprList {
+ public:
+  class iterator {
+   public:
+    explicit iterator(ExprRef expr) : expr_(expr) {}
+
+    iterator operator++() {
+      ++expr_;
+      return *this;
+    }
+
+    bool operator!=(const iterator& other) const {
+      return expr_ != other.expr_;
+    }
+
+    const ExprRef& operator*() const { return expr_; }
+
+   private:
+    ExprRef expr_;
+  };
+
+  ExprList(std::uint8_t size, ExprRef first) : size_(size), first_(first) {}
+
+  // Returns the reference at the given index.
+  ExprRef operator[](std::uint8_t i) const { return first_ + i; }
+
+  // Returns the size of the list.
+  std::uint8_t size() const { return size_; }
+
+  // Returns an iterator to the first reference of the list.
+  auto begin() const { return iterator(first_); }
+
+  // Returns an iterator to the value following the last reference of the list.
+  auto end() const { return iterator(first_ + size_); }
+
+ private:
+  std::uint8_t size_;
+  ExprRef first_;
+};
+
 // An expression that represents a function call.
 struct FuncCallExpr {
   // Type of the expression.
@@ -135,7 +177,7 @@ struct FuncCallExpr {
   std::string_view func_name;
 
   // Arguments to the function call.
-  std::vector<ExprRef> arguments;
+  ExprList args;
 };
 
 // A statement that represents a variable declaration.

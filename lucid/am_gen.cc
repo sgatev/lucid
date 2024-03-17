@@ -282,7 +282,7 @@ class AbstractMachineFunctionGenerator {
   void ProcessExpr(ExprRef ref, const FuncCallExpr& expr) {
     RegId reg = next_reg_++;
     RegId i = 1;
-    for (const auto arg : expr.arguments) {
+    for (ExprRef arg : expr.args) {
       const auto& arg_expr = DerefExpr(arg);
       auto arg_type = std::get<BasicType>(DerefType(GetType(arg_expr)));
       if (arg_type.name == "Int32") {

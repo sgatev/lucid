@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <string_view>
 #include <utility>
@@ -12,6 +13,12 @@
 
 namespace lucid {
 
+using StmtRefMatcher = std::function<bool(StmtRef)>;
+
+using ExprRefMatcher = std::function<bool(ExprRef)>;
+
+using TypeRefMatcher = std::function<bool(TypeRef)>;
+
 template <typename T, typename P>
 bool AllMatch(const std::vector<T>& real, const std::vector<P>& patterns) {
   if (real.size() != patterns.size()) return false;
@@ -21,11 +28,14 @@ bool AllMatch(const std::vector<T>& real, const std::vector<P>& patterns) {
   return true;
 }
 
-using StmtRefMatcher = std::function<bool(StmtRef)>;
-
-using ExprRefMatcher = std::function<bool(ExprRef)>;
-
-using TypeRefMatcher = std::function<bool(TypeRef)>;
+inline bool AllMatch(ExprList real,
+                     const std::vector<ExprRefMatcher>& patterns) {
+  if (real.size() != patterns.size()) return false;
+  for (int i = 0; i < real.size(); ++i) {
+    if (!patterns[i](real[i])) return false;
+  }
+  return true;
+}
 
 struct FuncParamPattern {
   std::string_view name;
@@ -148,11 +158,11 @@ struct IndexExprPattern {
 struct FuncCallExprPattern {
   TypeRefMatcher type;
   std::string_view func_name;
-  std::vector<ExprRefMatcher> arguments;
+  std::vector<ExprRefMatcher> args;
 
   bool operator()(const FuncCallExpr& expr) const {
     if (type != nullptr && !type(expr.type)) return false;
-    return func_name == expr.func_name && AllMatch(expr.arguments, arguments);
+    return func_name == expr.func_name && AllMatch(expr.args, args);
   }
 };
 
@@ -213,6 +223,18 @@ class AstFixture {
   template <typename T>
   TypeRef T(T type) {
     return type_arena_.add(type);
+  }
+
+  // Returns an empty expression list.
+  ExprList EmptyExprList() { return ExprList(0, Arena<Expr>::kNullRef); }
+
+  // Allocates the given expressions on an arena and returns a list of
+  // references.
+  template <typename E, typename... Es>
+  ExprList ExprListOf(E expr, Es... exprs) {
+    auto first_expr = expr_arena_.add(expr);
+    (expr_arena_.add(exprs), ...);
+    return ExprList(1 + sizeof...(Es), first_expr);
   }
 
   ExprRefMatcher MatchesAnyExpr() {
@@ -301,8 +323,9 @@ class AstFixture {
   template <typename S, typename P>
   ExprRefMatcher MatchesStmt(P pattern) {
     return [this, pattern](StmtRef ref) {
-      if (auto* stmt = std::get_if<S>(&stmt_arena_.get(ref)))
+      if (auto* stmt = std::get_if<S>(&stmt_arena_.get(ref))) {
         return pattern(*stmt);
+      }
       return false;
     };
   }
@@ -310,8 +333,9 @@ class AstFixture {
   template <typename E, typename P>
   ExprRefMatcher MatchesExpr(P pattern) {
     return [this, pattern](ExprRef ref) {
-      if (auto* stmt = std::get_if<E>(&expr_arena_.get(ref)))
-        return pattern(*stmt);
+      if (auto* expr = std::get_if<E>(&expr_arena_.get(ref))) {
+        return pattern(*expr);
+      }
       return false;
     };
   }
@@ -319,8 +343,9 @@ class AstFixture {
   template <typename T, typename P>
   TypeRefMatcher MatchesType(P pattern) {
     return [this, pattern](TypeRef ref) {
-      if (auto* stmt = std::get_if<T>(&type_arena_.get(ref)))
-        return pattern(*stmt);
+      if (auto* type = std::get_if<T>(&type_arena_.get(ref))) {
+        return pattern(*type);
+      }
       return false;
     };
   }
