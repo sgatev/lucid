@@ -38,11 +38,12 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnInt32Lit) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(IntLitExpr{.value = "21"}),
-          }),
-      }},
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(IntLitExpr{.value = "21"}),
+              }),
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -63,11 +64,12 @@ TEST_F(GenerateArmAssemblySourceTest, ReturnInt64Lit) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int64"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(IntLitExpr{.value = "21"}),
-          }),
-      }},
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(IntLitExpr{.value = "21"}),
+              }),
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -95,13 +97,14 @@ TEST_F(GenerateArmAssemblySourceTest, FuncWithInt32Param) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(IdentExpr{
-                  .name = "x",
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(IdentExpr{
+                      .name = "x",
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(id:
@@ -130,13 +133,14 @@ TEST_F(GenerateArmAssemblySourceTest, FuncWithInt64Param) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(IdentExpr{
-                  .name = "x",
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(IdentExpr{
+                      .name = "x",
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(id:
@@ -158,14 +162,15 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt32Arg) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(FuncCallExpr{
-                  .func_name = "id",
-                  .args = ExprListOf(IntLitExpr{.value = "21"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(FuncCallExpr{
+                      .func_name = "id",
+                      .args = ExprListOf(IntLitExpr{.value = "21"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   std::vector<FuncParam> id_func_params = {
@@ -221,14 +226,15 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt64Arg) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int64"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(FuncCallExpr{
-                  .func_name = "id",
-                  .args = ExprListOf(IntLitExpr{.value = "21"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(FuncCallExpr{
+                      .func_name = "id",
+                      .args = ExprListOf(IntLitExpr{.value = "21"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   std::vector<FuncParam> id_func_params = {
@@ -284,15 +290,16 @@ TEST_F(GenerateArmAssemblySourceTest, AddInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Add,
-                  .lhs = E(IntLitExpr{.value = "2"}),
-                  .rhs = E(IntLitExpr{.value = "3"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Add,
+                      .lhs = E(IntLitExpr{.value = "2"}),
+                      .rhs = E(IntLitExpr{.value = "3"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -315,15 +322,16 @@ TEST_F(GenerateArmAssemblySourceTest, AddInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int64"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Add,
-                  .lhs = E(IntLitExpr{.value = "2"}),
-                  .rhs = E(IntLitExpr{.value = "3"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Add,
+                      .lhs = E(IntLitExpr{.value = "2"}),
+                      .rhs = E(IntLitExpr{.value = "3"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -346,15 +354,16 @@ TEST_F(GenerateArmAssemblySourceTest, SubtractInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Sub,
-                  .lhs = E(IntLitExpr{.value = "7"}),
-                  .rhs = E(IntLitExpr{.value = "5"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Sub,
+                      .lhs = E(IntLitExpr{.value = "7"}),
+                      .rhs = E(IntLitExpr{.value = "5"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -377,15 +386,16 @@ TEST_F(GenerateArmAssemblySourceTest, SubtractInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int64"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Sub,
-                  .lhs = E(IntLitExpr{.value = "7"}),
-                  .rhs = E(IntLitExpr{.value = "5"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Sub,
+                      .lhs = E(IntLitExpr{.value = "7"}),
+                      .rhs = E(IntLitExpr{.value = "5"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -408,15 +418,16 @@ TEST_F(GenerateArmAssemblySourceTest, MultiplyInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Mul,
-                  .lhs = E(IntLitExpr{.value = "2"}),
-                  .rhs = E(IntLitExpr{.value = "3"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Mul,
+                      .lhs = E(IntLitExpr{.value = "2"}),
+                      .rhs = E(IntLitExpr{.value = "3"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -439,15 +450,16 @@ TEST_F(GenerateArmAssemblySourceTest, MultiplyInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int64"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Mul,
-                  .lhs = E(IntLitExpr{.value = "2"}),
-                  .rhs = E(IntLitExpr{.value = "3"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Mul,
+                      .lhs = E(IntLitExpr{.value = "2"}),
+                      .rhs = E(IntLitExpr{.value = "3"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -470,15 +482,16 @@ TEST_F(GenerateArmAssemblySourceTest, DivideInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Div,
-                  .lhs = E(IntLitExpr{.value = "8"}),
-                  .rhs = E(IntLitExpr{.value = "2"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Div,
+                      .lhs = E(IntLitExpr{.value = "8"}),
+                      .rhs = E(IntLitExpr{.value = "2"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -501,15 +514,16 @@ TEST_F(GenerateArmAssemblySourceTest, DivideInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int64"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Div,
-                  .lhs = E(IntLitExpr{.value = "8"}),
-                  .rhs = E(IntLitExpr{.value = "2"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Div,
+                      .lhs = E(IntLitExpr{.value = "8"}),
+                      .rhs = E(IntLitExpr{.value = "2"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -532,15 +546,16 @@ TEST_F(GenerateArmAssemblySourceTest, ModuloInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Mod,
-                  .lhs = E(IntLitExpr{.value = "8"}),
-                  .rhs = E(IntLitExpr{.value = "2"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Mod,
+                      .lhs = E(IntLitExpr{.value = "8"}),
+                      .rhs = E(IntLitExpr{.value = "2"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -564,15 +579,16 @@ TEST_F(GenerateArmAssemblySourceTest, ModuloInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int64"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Mod,
-                  .lhs = E(IntLitExpr{.value = "8"}),
-                  .rhs = E(IntLitExpr{.value = "2"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Mod,
+                      .lhs = E(IntLitExpr{.value = "8"}),
+                      .rhs = E(IntLitExpr{.value = "2"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -596,27 +612,27 @@ TEST_F(GenerateArmAssemblySourceTest, IfStmt) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          S(IfStmt{
+      .body = {
+          .stmts = StmtListOf(IfStmt{
               .cond = E(BoolLitExpr{.value = "true"}),
-              .then_body = {{
-                  S(ReturnStmt{
+              .then_body = {
+                  .stmts = StmtListOf(ReturnStmt{
                       .value = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
                           .lhs = E(IntLitExpr{.value = "2"}),
                           .rhs = E(IntLitExpr{.value = "3"}),
                       }),
                   }),
-              }},
-          }),
-          S(ReturnStmt{
+              },
+          },
+          ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Mul,
                   .lhs = E(IntLitExpr{.value = "4"}),
                   .rhs = E(IntLitExpr{.value = "5"}),
               }),
           }),
-      }},
+      },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -647,33 +663,62 @@ B foo1
 }
 
 TEST_F(GenerateArmAssemblySourceTest, IfElseStmt) {
-  auto func = FuncDefStmt{
-      .name = "foo",
-      .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          S(IfStmt{
-              .cond = E(BoolLitExpr{.value = "true"}),
-              .then_body = {{
-                  S(ReturnStmt{
-                      .value = E(BinaryOpExpr{
-                          .op = BinaryOp::Add,
-                          .lhs = E(IntLitExpr{.value = "2"}),
-                          .rhs = E(IntLitExpr{.value = "3"}),
-                      }),
-                  }),
-              }},
-              .else_body = {{
-                  S(ReturnStmt{
-                      .value = E(BinaryOpExpr{
-                          .op = BinaryOp::Mul,
-                          .lhs = E(IntLitExpr{.value = "4"}),
-                          .rhs = E(IntLitExpr{.value = "5"}),
-                      }),
-                  }),
-              }},
-          }),
-      }},
-  };
+  auto
+      func =
+          FuncDefStmt{
+              .name = "foo",
+              .result_type = T(BasicType{.name = "Int32"}),
+              .body =
+                  {
+                      .stmts =
+                          StmtListOf(
+                              IfStmt{
+                                  .cond = E(BoolLitExpr{.value = "true"}),
+                                  .then_body =
+                                      {
+                                          .stmts =
+                                              StmtListOf(
+                                                  ReturnStmt{
+                                                      .value =
+                                                          E(
+                                                              BinaryOpExpr{
+                                                                  .op =
+                                                                      BinaryOp::Add,
+                                                                  .lhs =
+                                                                      E(
+                                                                          IntLitExpr{
+                                                                              .value = "2"}),
+                                                                  .rhs =
+                                                                      E(
+                                                                          IntLitExpr{
+                                                                              .value = "3"}),
+                                                              }),
+                                                  }),
+                                      },
+                                  .else_body =
+                                      {
+                                          .stmts =
+                                              StmtListOf(
+                                                  ReturnStmt{
+                                                      .value =
+                                                          E(
+                                                              BinaryOpExpr{
+                                                                  .op =
+                                                                      BinaryOp::Mul,
+                                                                  .lhs =
+                                                                      E(
+                                                                          IntLitExpr{
+                                                                              .value = "4"}),
+                                                                  .rhs =
+                                                                      E(
+                                                                          IntLitExpr{
+                                                                              .value = "5"}),
+                                                              }),
+                                                  }),
+                                      },
+                              }),
+                  },
+          };
 
   EXPECT_EQ(Generate(func), R"(foo:
 STP X29, X30, [SP, #-16]!
@@ -708,15 +753,16 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Bool"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Gt,
-                  .lhs = E(IntLitExpr{.value = "3"}),
-                  .rhs = E(IntLitExpr{.value = "2"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Gt,
+                      .lhs = E(IntLitExpr{.value = "3"}),
+                      .rhs = E(IntLitExpr{.value = "2"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -751,15 +797,16 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt32) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Gt,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Gt,
+                      .lhs = E(IdentExpr{.name = "x"}),
+                      .rhs = E(IdentExpr{.name = "y"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -796,15 +843,16 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Gt,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Gt,
+                      .lhs = E(IdentExpr{.name = "x"}),
+                      .rhs = E(IdentExpr{.name = "y"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -830,15 +878,16 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Bool"}),
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Lt,
-                  .lhs = E(IntLitExpr{.value = "3"}),
-                  .rhs = E(IntLitExpr{.value = "2"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Lt,
+                      .lhs = E(IntLitExpr{.value = "3"}),
+                      .rhs = E(IntLitExpr{.value = "2"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -873,15 +922,16 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt32) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Lt,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Lt,
+                      .lhs = E(IdentExpr{.name = "x"}),
+                      .rhs = E(IdentExpr{.name = "y"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -918,15 +968,16 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Lt,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Lt,
+                      .lhs = E(IdentExpr{.name = "x"}),
+                      .rhs = E(IdentExpr{.name = "y"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -963,15 +1014,16 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Eq,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Eq,
+                      .lhs = E(IdentExpr{.name = "x"}),
+                      .rhs = E(IdentExpr{.name = "y"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1008,15 +1060,16 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Eq,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::Eq,
+                      .lhs = E(IdentExpr{.name = "x"}),
+                      .rhs = E(IdentExpr{.name = "y"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1053,15 +1106,16 @@ TEST_F(GenerateArmAssemblySourceTest, NotEqInt32) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::NotEq,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::NotEq,
+                      .lhs = E(IdentExpr{.name = "x"}),
+                      .rhs = E(IdentExpr{.name = "y"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1098,15 +1152,16 @@ TEST_F(GenerateArmAssemblySourceTest, NotEqInt64) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::NotEq,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(BinaryOpExpr{
+                      .op = BinaryOp::NotEq,
+                      .lhs = E(IdentExpr{.name = "x"}),
+                      .rhs = E(IdentExpr{.name = "y"}),
+                  }),
               }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1132,29 +1187,31 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          S(VarDeclStmt{
-              .name = "x",
-              .type = T(BasicType{.name = "Int32"}),
-              .init = E(IntLitExpr{.value = "2"}),
-          }),
-          S(VarDeclStmt{
-              .name = "y",
-              .type = T(BasicType{.name = "Int32"}),
-              .init = E(IntLitExpr{.value = "3"}),
-          }),
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Add,
-                  .lhs = E(IdentExpr{
+      .body =
+          {
+              .stmts = StmtListOf(
+                  VarDeclStmt{
                       .name = "x",
-                  }),
-                  .rhs = E(IdentExpr{
+                      .type = T(BasicType{.name = "Int32"}),
+                      .init = E(IntLitExpr{.value = "2"}),
+                  },
+                  VarDeclStmt{
                       .name = "y",
+                      .type = T(BasicType{.name = "Int32"}),
+                      .init = E(IntLitExpr{.value = "3"}),
+                  },
+                  ReturnStmt{
+                      .value = E(BinaryOpExpr{
+                          .op = BinaryOp::Add,
+                          .lhs = E(IdentExpr{
+                              .name = "x",
+                          }),
+                          .rhs = E(IdentExpr{
+                              .name = "y",
+                          }),
+                      }),
                   }),
-              }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1181,29 +1238,31 @@ TEST_F(GenerateArmAssemblySourceTest, VarDeclInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int64"}),
-      .body = {{
-          S(VarDeclStmt{
-              .name = "x",
-              .type = T(BasicType{.name = "Int64"}),
-              .init = E(IntLitExpr{.value = "2"}),
-          }),
-          S(VarDeclStmt{
-              .name = "y",
-              .type = T(BasicType{.name = "Int64"}),
-              .init = E(IntLitExpr{.value = "3"}),
-          }),
-          S(ReturnStmt{
-              .value = E(BinaryOpExpr{
-                  .op = BinaryOp::Add,
-                  .lhs = E(IdentExpr{
+      .body =
+          {
+              .stmts = StmtListOf(
+                  VarDeclStmt{
                       .name = "x",
-                  }),
-                  .rhs = E(IdentExpr{
+                      .type = T(BasicType{.name = "Int64"}),
+                      .init = E(IntLitExpr{.value = "2"}),
+                  },
+                  VarDeclStmt{
                       .name = "y",
+                      .type = T(BasicType{.name = "Int64"}),
+                      .init = E(IntLitExpr{.value = "3"}),
+                  },
+                  ReturnStmt{
+                      .value = E(BinaryOpExpr{
+                          .op = BinaryOp::Add,
+                          .lhs = E(IdentExpr{
+                              .name = "x",
+                          }),
+                          .rhs = E(IdentExpr{
+                              .name = "y",
+                          }),
+                      }),
                   }),
-              }),
-          }),
-      }},
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1237,12 +1296,13 @@ TEST_F(GenerateArmAssemblySourceTest, VarAssignInt32) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
-      .body = {{
-          S(VarAssignStmt{
-              .name = "x",
-              .expr = E(IntLitExpr{.value = "2"}),
-          }),
-      }},
+      .body =
+          {
+              .stmts = StmtListOf(VarAssignStmt{
+                  .name = "x",
+                  .expr = E(IntLitExpr{.value = "2"}),
+              }),
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1271,12 +1331,13 @@ TEST_F(GenerateArmAssemblySourceTest, VarAssignInt64) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
-      .body = {{
-          S(VarAssignStmt{
-              .name = "x",
-              .expr = E(IntLitExpr{.value = "2"}),
-          }),
-      }},
+      .body =
+          {
+              .stmts = StmtListOf(VarAssignStmt{
+                  .name = "x",
+                  .expr = E(IntLitExpr{.value = "2"}),
+              }),
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(foo:
@@ -1313,11 +1374,12 @@ TEST_F(GenerateArmAssemblySourceTest, Printf) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
-      .body = {{
-          S(ReturnStmt{
-              .value = E(IntLitExpr{.value = "0"}),
-          }),
-      }},
+      .body =
+          {
+              .stmts = StmtListOf(ReturnStmt{
+                  .value = E(IntLitExpr{.value = "0"}),
+              }),
+          },
   };
 
   EXPECT_EQ(Generate(func), R"(printf:

@@ -282,28 +282,7 @@ TEST_F(ParserTest, MultipleFuncParams) {
 TEST_F(ParserTest, FuncCallExprIntLitArg) {
   std::string_view src = R"(
     let foo = () -> Void {
-      bar(3)
-    }
-  )";
-  EXPECT_THAT(Parse(src), HoldsFuncDef(MatchesFuncDefStmt({
-                              .name = "foo",
-                              .result_type = MatchesBasicType({.name = "Void"}),
-                              .body = {{
-                                  MatchesFuncCallExpr({
-                                      .func_name = "bar",
-                                      .args =
-                                          {
-                                              MatchesIntLitExpr({.value = "3"}),
-                                          },
-                                  }),
-                              }},
-                          })));
-}
-
-TEST_F(ParserTest, FuncCallExprStringLitArg) {
-  std::string_view src = R"(
-    let foo = () -> Void {
-      bar("foo")
+      do bar(3)
     }
   )";
   EXPECT_THAT(Parse(src),
@@ -311,21 +290,23 @@ TEST_F(ParserTest, FuncCallExprStringLitArg) {
                   .name = "foo",
                   .result_type = MatchesBasicType({.name = "Void"}),
                   .body = {{
-                      MatchesFuncCallExpr({
-                          .func_name = "bar",
-                          .args =
-                              {
-                                  MatchesStringLitExpr({.value = R"("foo")"}),
-                              },
+                      MatchesDoStmt({
+                          .expr = MatchesFuncCallExpr({
+                              .func_name = "bar",
+                              .args =
+                                  {
+                                      MatchesIntLitExpr({.value = "3"}),
+                                  },
+                          }),
                       }),
                   }},
               })));
 }
 
-TEST_F(ParserTest, FuncCallExprNestedArg) {
+TEST_F(ParserTest, FuncCallExprStringLitArg) {
   std::string_view src = R"(
     let foo = () -> Void {
-      bar(baz(1, 2), qux(3, 4))
+      do bar("foo")
     }
   )";
   EXPECT_THAT(
@@ -334,27 +315,54 @@ TEST_F(ParserTest, FuncCallExprNestedArg) {
           .name = "foo",
           .result_type = MatchesBasicType({.name = "Void"}),
           .body = {{
-              MatchesFuncCallExpr({
-                  .func_name = "bar",
-                  .args =
-                      {
-                          MatchesFuncCallExpr({
-                              .func_name = "baz",
-                              .args =
-                                  {
-                                      MatchesIntLitExpr({.value = "1"}),
-                                      MatchesIntLitExpr({.value = "2"}),
-                                  },
-                          }),
-                          MatchesFuncCallExpr({
-                              .func_name = "qux",
-                              .args =
-                                  {
-                                      MatchesIntLitExpr({.value = "3"}),
-                                      MatchesIntLitExpr({.value = "4"}),
-                                  },
-                          }),
-                      },
+              MatchesDoStmt({
+                  .expr = MatchesFuncCallExpr({
+                      .func_name = "bar",
+                      .args =
+                          {
+                              MatchesStringLitExpr({.value = R"("foo")"}),
+                          },
+                  }),
+              }),
+          }},
+      })));
+}
+
+TEST_F(ParserTest, FuncCallExprNestedArg) {
+  std::string_view src = R"(
+    let foo = () -> Void {
+      do bar(baz(1, 2), qux(3, 4))
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "foo",
+          .result_type = MatchesBasicType({.name = "Void"}),
+          .body = {{
+              MatchesDoStmt({
+                  .expr = MatchesFuncCallExpr({
+                      .func_name = "bar",
+                      .args =
+                          {
+                              MatchesFuncCallExpr({
+                                  .func_name = "baz",
+                                  .args =
+                                      {
+                                          MatchesIntLitExpr({.value = "1"}),
+                                          MatchesIntLitExpr({.value = "2"}),
+                                      },
+                              }),
+                              MatchesFuncCallExpr({
+                                  .func_name = "qux",
+                                  .args =
+                                      {
+                                          MatchesIntLitExpr({.value = "3"}),
+                                          MatchesIntLitExpr({.value = "4"}),
+                                      },
+                              }),
+                          },
+                  }),
               }),
           }},
       })));

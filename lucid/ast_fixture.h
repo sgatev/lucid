@@ -28,8 +28,8 @@ bool AllMatch(const std::vector<T>& real, const std::vector<P>& patterns) {
   return true;
 }
 
-inline bool AllMatch(ExprList real,
-                     const std::vector<ExprRefMatcher>& patterns) {
+template <typename T, typename P>
+inline bool AllMatch(List<T> real, const std::vector<P>& patterns) {
   if (real.size() != patterns.size()) return false;
   for (int i = 0; i < real.size(); ++i) {
     if (!patterns[i](real[i])) return false;
@@ -60,7 +60,7 @@ struct FuncDefStmtPattern {
   bool operator()(const FuncDefStmt& stmt) const {
     if (result_type != nullptr && !result_type(stmt.result_type)) return false;
     return name == stmt.name && AllMatch(stmt.parameters, parameters) &&
-           AllMatch(stmt.body.statements, body.statements);
+           AllMatch(stmt.body.stmts, body.statements);
   }
 };
 
@@ -83,8 +83,8 @@ struct IfStmtPattern {
 
   bool operator()(const IfStmt& stmt) const {
     return cond(stmt.cond) &&
-           AllMatch(stmt.then_body.statements, then_body.statements) &&
-           AllMatch(stmt.else_body.statements, else_body.statements);
+           AllMatch(stmt.then_body.stmts, then_body.statements) &&
+           AllMatch(stmt.else_body.stmts, else_body.statements);
   }
 };
 
@@ -92,7 +92,7 @@ struct LoopStmtPattern {
   CompoundStmtPattern body;
 
   bool operator()(const LoopStmt& stmt) const {
-    return AllMatch(stmt.body.statements, body.statements);
+    return AllMatch(stmt.body.stmts, body.statements);
   }
 };
 
@@ -226,15 +226,26 @@ class AstFixture {
   }
 
   // Returns an empty expression list.
-  ExprList EmptyExprList() { return ExprList(0, Arena<Expr>::kNullRef); }
+  List<ExprRef> EmptyExprList() {
+    return List<ExprRef>(0, Arena<Expr>::kNullRef);
+  }
 
   // Allocates the given expressions on an arena and returns a list of
   // references.
   template <typename E, typename... Es>
-  ExprList ExprListOf(E expr, Es... exprs) {
+  List<ExprRef> ExprListOf(E expr, Es... exprs) {
     auto first_expr = expr_arena_.add(expr);
     (expr_arena_.add(exprs), ...);
-    return ExprList(1 + sizeof...(Es), first_expr);
+    return List<ExprRef>(1 + sizeof...(Es), first_expr);
+  }
+
+  // Allocates the given statements on an arena and returns a list of
+  // references.
+  template <typename S, typename... Ss>
+  List<StmtRef> StmtListOf(S stmt, Ss... stmts) {
+    auto first_stmt = stmt_arena_.add(stmt);
+    (stmt_arena_.add(stmts), ...);
+    return List<StmtRef>(1 + sizeof...(Ss), first_stmt);
   }
 
   ExprRefMatcher MatchesAnyExpr() {

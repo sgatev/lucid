@@ -176,12 +176,11 @@ class Parser {
   }
 
   std::variant<CompoundStmt, ParserError> ParseCompoundStmt() {
-    CompoundStmt stmt;
-
     SkipSpace();
 
     if (auto r = ExpectToken(Token::Kind::OpenBrace); IsError(r)) return *r;
 
+    std::vector<StmtRef> stmts;
     while (true) {
       SkipSpace();
 
@@ -189,12 +188,23 @@ class Parser {
 
       const auto maybe_stmt = ParseStmt();
       if (IsError(maybe_stmt)) return std::get<ParserError>(maybe_stmt);
-      stmt.statements.push_back(std::get<StmtRef>(maybe_stmt));
+      stmts.push_back(std::get<StmtRef>(maybe_stmt));
     }
 
     Read();
 
-    return stmt;
+    std::uint8_t args_size = stmts.size();
+    StmtRef args_first = Arena<Stmt>::kNullRef;
+    if (!stmts.empty()) {
+      args_first = stmt_arena_.alias(stmts[0]);
+    }
+    for (int i = 1; i < stmts.size(); ++i) {
+      stmt_arena_.alias(stmts[i]);
+    }
+
+    return CompoundStmt{
+        .stmts = List<StmtRef>(args_size, args_first),
+    };
   }
 
   std::variant<StmtRef, ParserError> ParseStmt() {
@@ -254,7 +264,7 @@ class Parser {
         if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
           const auto stmt = ParseStmt();
           if (IsError(stmt)) return std::get<ParserError>(stmt);
-          if_stmt.else_body.statements.push_back(std::get<StmtRef>(stmt));
+          if_stmt.else_body.stmts = List<StmtRef>(1, std::get<StmtRef>(stmt));
         } else {
           auto else_body = ParseCompoundStmt();
           if (IsError(else_body)) return std::get<ParserError>(else_body);
@@ -511,28 +521,28 @@ class Parser {
     if (Peek().kind == Token::Kind::OpenParen) {
       Read();
 
-      std::vector<ExprRef> foo;
+      std::vector<ExprRef> exprs;
       while (Peek().kind != Token::Kind::CloseParen) {
         auto maybe_arg = ParseExpr();
         if (IsError(maybe_arg)) return std::get<ParserError>(maybe_arg);
-        foo.push_back(std::get<ExprRef>(maybe_arg));
+        exprs.push_back(std::get<ExprRef>(maybe_arg));
 
         if (Peek().kind == Token::Kind::Comma) Read();
       }
       Read();
 
-      std::uint8_t args_size = foo.size();
+      std::uint8_t args_size = exprs.size();
       ExprRef args_first = Arena<Expr>::kNullRef;
-      if (!foo.empty()) {
-        args_first = expr_arena_.alias(foo[0]);
+      if (!exprs.empty()) {
+        args_first = expr_arena_.alias(exprs[0]);
       }
-      for (int i = 1; i < foo.size(); ++i) {
-        expr_arena_.alias(foo[i]);
+      for (int i = 1; i < exprs.size(); ++i) {
+        expr_arena_.alias(exprs[i]);
       }
 
       return expr_arena_.add(FuncCallExpr{
           .func_name = ident,
-          .args = ExprList(args_size, args_first),
+          .args = List<ExprRef>(args_size, args_first),
       });
     }
 

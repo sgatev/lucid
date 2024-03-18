@@ -54,13 +54,14 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
       .func_name = "bar",
       .args = EmptyExprList(),
   }));
-  auto do_stmt = S(DoStmt{.expr = func_call_expr});
+  auto stmts = StmtListOf(DoStmt{.expr = func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body = {{
-          do_stmt,
-      }},
+      .body =
+          {
+              .stmts = stmts,
+          },
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -71,7 +72,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
                                                         func_call_expr,
                                                     }));
-  EXPECT_THAT(first_block.sequences[0].stmt, do_stmt);
+  EXPECT_THAT(first_block.sequences[0].stmt, stmts[0]);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
@@ -110,13 +111,14 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
       .func_name = "bar",
       .args = bar_func_call_args,
   }));
-  auto do_stmt = S(DoStmt{.expr = bar_func_call_expr});
+  auto stmts = StmtListOf(DoStmt{.expr = bar_func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body = {{
-          do_stmt,
-      }},
+      .body =
+          {
+              .stmts = stmts,
+          },
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -133,7 +135,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
                                                         bar_func_call_args[1],
                                                         bar_func_call_expr,
                                                     }));
-  EXPECT_THAT(first_block.sequences[0].stmt, do_stmt);
+  EXPECT_THAT(first_block.sequences[0].stmt, stmts[0]);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
@@ -150,15 +152,16 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
       .func_name = "bar",
       .args = func_call_args,
   }));
-  auto return_stmt = S(ReturnStmt{
+  auto stmts = StmtListOf(ReturnStmt{
       .value = func_call_expr,
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body = {{
-          return_stmt,
-      }},
+      .body =
+          {
+              .stmts = stmts,
+          },
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -170,7 +173,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
                                                         func_call_args[0],
                                                         func_call_expr,
                                                     }));
-  EXPECT_THAT(first_block.sequences[0].stmt, return_stmt);
+  EXPECT_THAT(first_block.sequences[0].stmt, stmts[0]);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
@@ -184,16 +187,17 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
       .func_name = "bar",
       .args = EmptyExprList(),
   });
-  auto x_var_decl_ref = S(VarDeclStmt{
+  auto stmts = StmtListOf(VarDeclStmt{
       .type = T(BasicType{.name = "Int32"}),
       .name = "x",
       .init = func_call_stmt_ref,
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body = {{
-          x_var_decl_ref,
-      }},
+      .body =
+          {
+              .stmts = stmts,
+          },
       .result_type = T(BasicType{.name = "Void"}),
   });
 
@@ -205,7 +209,7 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
                                                         func_call_stmt_ref,
                                                     }));
-  EXPECT_THAT(first_block.sequences[0].stmt, x_var_decl_ref);
+  EXPECT_THAT(first_block.sequences[0].stmt, stmts[0]);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
@@ -222,12 +226,13 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
       .lhs = lhs_expr,
       .rhs = rhs_expr,
   });
-  auto do_stmt = S(DoStmt{.expr = add_expr});
+  auto stmts = StmtListOf(DoStmt{.expr = add_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body = {{
-          do_stmt,
-      }},
+      .body =
+          {
+              .stmts = stmts,
+          },
       .result_type = T(BasicType{.name = "Int32"}),
   });
 
@@ -241,7 +246,7 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
                                                         rhs_expr,
                                                         add_expr,
                                                     }));
-  EXPECT_THAT(first_block.sequences[0].stmt, do_stmt);
+  EXPECT_THAT(first_block.sequences[0].stmt, stmts[0]);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
@@ -266,19 +271,22 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
       .rhs = mul_rhs_expr,
   });
   auto cond_expr = E(BoolLitExpr{.value = "true"});
-  auto if_stmt = S(IfStmt{
-      .cond = cond_expr,
-      .then_body = {{
-          S(DoStmt{.expr = add_expr}),
-      }},
-  });
-  auto do_stmt = S(DoStmt{.expr = mul_expr});
+  auto then_stmts = StmtListOf(DoStmt{.expr = add_expr});
+  auto stmts = StmtListOf(
+      IfStmt{
+          .cond = cond_expr,
+          .then_body =
+              {
+                  .stmts = then_stmts,
+              },
+      },
+      DoStmt{.expr = mul_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body = {{
-          if_stmt,
-          do_stmt,
-      }},
+      .body =
+          {
+              .stmts = stmts,
+          },
       .result_type = T(BasicType{.name = "Int32"}),
   });
 
@@ -307,7 +315,7 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
                                                           mul_rhs_expr,
                                                           mul_expr,
                                                       }));
-  EXPECT_THAT(post_if_block.sequences[0].stmt, do_stmt);
+  EXPECT_THAT(post_if_block.sequences[0].stmt, stmts[1]);
   EXPECT_THAT(post_if_block.next, ElementsAre(graph.last));
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
@@ -333,22 +341,25 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
       .rhs = mul_rhs_expr,
   });
   auto cond_expr = E(BoolLitExpr{.value = "true"});
-  auto then_do_stmt = S(DoStmt{.expr = add_expr});
-  auto else_do_stmt = S(DoStmt{.expr = mul_expr});
-  auto if_stmt = S(IfStmt{
+  auto then_stmts = StmtListOf(DoStmt{.expr = add_expr});
+  auto else_stmts = StmtListOf(DoStmt{.expr = mul_expr});
+  auto stmts = StmtListOf(IfStmt{
       .cond = cond_expr,
-      .then_body = {{
-          then_do_stmt,
-      }},
-      .else_body = {{
-          else_do_stmt,
-      }},
+      .then_body =
+          {
+              .stmts = then_stmts,
+          },
+      .else_body =
+          {
+              .stmts = else_stmts,
+          },
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body = {{
-          if_stmt,
-      }},
+      .body =
+          {
+              .stmts = stmts,
+          },
       .result_type = T(BasicType{.name = "Int32"}),
   });
 
@@ -372,7 +383,7 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
                                                        add_rhs_expr,
                                                        add_expr,
                                                    }));
-  EXPECT_THAT(then_block.sequences[0].stmt, then_do_stmt);
+  EXPECT_THAT(then_block.sequences[0].stmt, then_stmts[0]);
 
   ASSERT_NE(first_block.next[1], ControlFlowGraph::kNullBlockRef);
   const auto& else_block = graph.get(first_block.next[1]);
@@ -384,7 +395,7 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
                                                        mul_rhs_expr,
                                                        mul_expr,
                                                    }));
-  EXPECT_THAT(else_block.sequences[0].stmt, else_do_stmt);
+  EXPECT_THAT(else_block.sequences[0].stmt, else_stmts[0]);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
@@ -397,24 +408,25 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   auto int_lit = E(IntLitExpr{
       .value = "3",
   });
-  auto const_decl_stmt = S(VarDeclStmt{
-      .name = "x",
-      .type = T(BasicType{.name = "Int32"}),
-      .init = int_lit,
-  });
   auto ident_expr = E(IdentExpr{
       .name = "x",
   });
-  auto return_stmt = S(ReturnStmt{
-      .value = ident_expr,
-  });
+  auto stmts = StmtListOf(
+      VarDeclStmt{
+          .name = "x",
+          .type = T(BasicType{.name = "Int32"}),
+          .init = int_lit,
+      },
+      ReturnStmt{
+          .value = ident_expr,
+      });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body = {{
-          const_decl_stmt,
-          return_stmt,
-      }},
+      .body =
+          {
+              .stmts = stmts,
+          },
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -425,11 +437,11 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
                                                         int_lit,
                                                     }));
-  EXPECT_THAT(first_block.sequences[0].stmt, const_decl_stmt);
+  EXPECT_THAT(first_block.sequences[0].stmt, stmts[0]);
   EXPECT_THAT(first_block.sequences[1].expressions, ElementsAreArray({
                                                         ident_expr,
                                                     }));
-  EXPECT_THAT(first_block.sequences[1].stmt, return_stmt);
+  EXPECT_THAT(first_block.sequences[1].stmt, stmts[1]);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
@@ -446,17 +458,19 @@ TEST_F(ControlFlowGraphTest, Loop) {
       .lhs = add_lhs_expr,
       .rhs = add_rhs_expr,
   });
-  auto do_stmt = S(DoStmt{.expr = add_expr});
-  auto loop_stmt = S(LoopStmt{
-      .body = {{
-          do_stmt,
-      }},
+  auto loop_stmts = StmtListOf(DoStmt{.expr = add_expr});
+  auto stmts = StmtListOf(LoopStmt{
+      .body =
+          {
+              .stmts = loop_stmts,
+          },
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body = {{
-          loop_stmt,
-      }},
+      .body =
+          {
+              .stmts = stmts,
+          },
       .result_type = T(BasicType{.name = "Int32"}),
   });
 
@@ -476,7 +490,7 @@ TEST_F(ControlFlowGraphTest, Loop) {
                                                        add_rhs_expr,
                                                        add_expr,
                                                    }));
-  EXPECT_THAT(loop_block.sequences[0].stmt, do_stmt);
+  EXPECT_THAT(loop_block.sequences[0].stmt, loop_stmts[0]);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);
@@ -489,11 +503,6 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   auto n_var_init_ref = E(IntLitExpr{
       .value = "0",
   });
-  auto n_var_decl_ref = S(VarDeclStmt{
-      .type = T(BasicType{.name = "Int32"}),
-      .name = "n",
-      .init = n_var_init_ref,
-  });
   auto if_cond_lhs_ref = E(IdentExpr{.name = "n"});
   auto if_cond_rhs_ref = E(IntLitExpr{.value = "3"});
   auto if_cond_ref = E(BinaryOpExpr{
@@ -501,13 +510,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
       .lhs = if_cond_lhs_ref,
       .rhs = if_cond_rhs_ref,
   });
-  auto break_stmt_ref = S(BreakStmt{});
-  auto if_stmt = S(IfStmt{
-      .cond = if_cond_ref,
-      .then_body = {{
-          break_stmt_ref,
-      }},
-  });
+  auto then_stmts = StmtListOf(BreakStmt{});
   auto var_assign_lhs_ref = E(IdentExpr{.name = "n"});
   auto var_assign_rhs_ref = E(IntLitExpr{.value = "1"});
   auto binary_op_expr_ref = E(BinaryOpExpr{
@@ -515,27 +518,40 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
       .lhs = var_assign_lhs_ref,
       .rhs = var_assign_rhs_ref,
   });
-  auto var_assign_stmt_ref = S(VarAssignStmt{
-      .name = "n",
-      .expr = binary_op_expr_ref,
-  });
-  auto loop_stmt = S(LoopStmt{
-      .body = {{
-          if_stmt,
-          var_assign_stmt_ref,
-      }},
-  });
+  auto loop_stmts = StmtListOf(
+      IfStmt{
+          .cond = if_cond_ref,
+          .then_body =
+              {
+                  .stmts = then_stmts,
+              },
+      },
+      VarAssignStmt{
+          .name = "n",
+          .expr = binary_op_expr_ref,
+      });
   auto return_value_ref = E(IdentExpr{.name = "n"});
-  auto return_stmt = S(ReturnStmt{
-      .value = return_value_ref,
-  });
+  auto stmts = StmtListOf(
+      VarDeclStmt{
+          .type = T(BasicType{.name = "Int32"}),
+          .name = "n",
+          .init = n_var_init_ref,
+      },
+      LoopStmt{
+          .body =
+              {
+                  .stmts = loop_stmts,
+              },
+      },
+      ReturnStmt{
+          .value = return_value_ref,
+      });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body = {{
-          n_var_decl_ref,
-          loop_stmt,
-          return_stmt,
-      }},
+      .body =
+          {
+              .stmts = stmts,
+          },
       .result_type = T(BasicType{.name = "Int32"}),
   });
 
@@ -547,7 +563,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
                                                         n_var_init_ref,
                                                     }));
-  EXPECT_THAT(first_block.sequences[0].stmt, n_var_decl_ref);
+  EXPECT_THAT(first_block.sequences[0].stmt, stmts[0]);
 
   ASSERT_NE(first_block.next[0], ControlFlowGraph::kNullBlockRef);
   const auto& loop_block = graph.get(first_block.next[0]);
@@ -565,7 +581,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   EXPECT_EQ(if_then_block.id, 5);
   EXPECT_THAT(if_then_block.next, ElementsAre(2));
   ASSERT_THAT(if_then_block.sequences.size(), 1);
-  EXPECT_THAT(if_then_block.sequences[0].stmt, break_stmt_ref);
+  EXPECT_THAT(if_then_block.sequences[0].stmt, then_stmts[0]);
 
   ASSERT_NE(loop_block.next[1], ControlFlowGraph::kNullBlockRef);
   const auto& post_if_block = graph.get(loop_block.next[1]);
@@ -577,7 +593,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
                                                           var_assign_rhs_ref,
                                                           binary_op_expr_ref,
                                                       }));
-  EXPECT_THAT(post_if_block.sequences[0].stmt, var_assign_stmt_ref);
+  EXPECT_THAT(post_if_block.sequences[0].stmt, loop_stmts[1]);
 
   ASSERT_NE(if_then_block.next[0], ControlFlowGraph::kNullBlockRef);
   const auto& post_loop_block = graph.get(if_then_block.next[0]);
@@ -587,7 +603,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   EXPECT_THAT(post_loop_block.sequences[0].expressions, ElementsAreArray({
                                                             return_value_ref,
                                                         }));
-  EXPECT_THAT(post_loop_block.sequences[0].stmt, return_stmt);
+  EXPECT_THAT(post_loop_block.sequences[0].stmt, stmts[2]);
 
   ASSERT_NE(graph.last, ControlFlowGraph::kNullBlockRef);
   const auto& last_block = graph.get(graph.last);

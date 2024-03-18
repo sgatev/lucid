@@ -41,7 +41,7 @@ class ControlFlowGraphBuilder {
   }
 
   void BuildBlock(const CompoundStmt& stmt, BlockRef block, BlockRef end) {
-    for (StmtRef stmt_ref : stmt.statements) {
+    for (StmtRef stmt_ref : stmt.stmts) {
       if (auto* loop_stmt = std::get_if<LoopStmt>(&DerefStmt(stmt_ref))) {
         auto post_loop_block = AddBlock();
 
@@ -62,7 +62,7 @@ class ControlFlowGraphBuilder {
         BuildBlock(if_stmt->then_body, then_block, post_if_block);
         graph_.get(block).next.push_back(then_block);
 
-        if (if_stmt->else_body.statements.empty()) {
+        if (if_stmt->else_body.stmts.size() == 0) {
           graph_.get(block).next.push_back(post_if_block);
         } else {
           auto else_block = AddBlock();

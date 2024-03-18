@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -55,10 +56,88 @@ using ExprRef = ArenaRef<Expr>;
 // A reference to a type that can be dereferenced using an `Arena<Type>` object.
 using TypeRef = ArenaRef<Type>;
 
+// A list of references.
+template <typename T>
+class List {
+ public:
+  class iterator {
+   public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = T;
+    using element_type = T;
+    using pointer = T*;
+    using reference = T&;
+    using difference_type = std::ptrdiff_t;
+
+    iterator() : expr_(0) {}
+
+    explicit iterator(T expr) : expr_(expr) {}
+
+    iterator(const iterator& other) = default;
+    iterator(iterator&& other) = default;
+    iterator& operator=(const iterator& other) = default;
+    iterator& operator=(iterator&& other) = default;
+
+    iterator& operator++() {
+      ++expr_;
+      return *this;
+    }
+
+    iterator operator++(int) {
+      ++expr_;
+      return *this;
+    }
+
+    iterator& operator--() {
+      --expr_;
+      return *this;
+    }
+
+    iterator operator--(int) {
+      --expr_;
+      return *this;
+    }
+
+    bool operator==(const iterator& other) const {
+      return expr_ == other.expr_;
+    }
+
+    bool operator!=(const iterator& other) const { return !(*this == other); }
+
+    const T& operator*() const { return expr_; }
+    pointer operator->() { return &expr_; }
+
+   private:
+    T expr_;
+  };
+
+  List() : size_(0), first_(0) {}
+
+  List(std::uint8_t size, T first) : size_(size), first_(first) {}
+
+  // Returns the reference at the given index.
+  T operator[](std::uint8_t i) const { return first_ + i; }
+
+  // Returns the size of the list.
+  std::uint8_t size() const { return size_; }
+
+  // Returns an iterator to the first reference of the list.
+  auto begin() const { return iterator(first_); }
+
+  // Returns an iterator to the value following the last reference of the list.
+  auto end() const { return iterator(first_ + size_); }
+
+ private:
+  std::uint8_t size_;
+  T first_;
+};
+
+static_assert(std::bidirectional_iterator<List<StmtRef>::iterator>);
+
 // A list of zero or more statements.
 struct CompoundStmt {
   // Statements in the list.
-  std::vector<StmtRef> statements;
+  List<StmtRef> stmts;
 };
 
 // A function parameter.
@@ -127,47 +206,6 @@ struct StringLitExpr {
   std::string_view value;
 };
 
-// A list of expression references.
-class ExprList {
- public:
-  class iterator {
-   public:
-    explicit iterator(ExprRef expr) : expr_(expr) {}
-
-    iterator operator++() {
-      ++expr_;
-      return *this;
-    }
-
-    bool operator!=(const iterator& other) const {
-      return expr_ != other.expr_;
-    }
-
-    const ExprRef& operator*() const { return expr_; }
-
-   private:
-    ExprRef expr_;
-  };
-
-  ExprList(std::uint8_t size, ExprRef first) : size_(size), first_(first) {}
-
-  // Returns the reference at the given index.
-  ExprRef operator[](std::uint8_t i) const { return first_ + i; }
-
-  // Returns the size of the list.
-  std::uint8_t size() const { return size_; }
-
-  // Returns an iterator to the first reference of the list.
-  auto begin() const { return iterator(first_); }
-
-  // Returns an iterator to the value following the last reference of the list.
-  auto end() const { return iterator(first_ + size_); }
-
- private:
-  std::uint8_t size_;
-  ExprRef first_;
-};
-
 // An expression that represents a function call.
 struct FuncCallExpr {
   // Type of the expression.
@@ -177,7 +215,7 @@ struct FuncCallExpr {
   std::string_view func_name;
 
   // Arguments to the function call.
-  ExprList args;
+  List<ExprRef> args;
 };
 
 // A statement that represents a variable declaration.
