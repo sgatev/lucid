@@ -41,7 +41,7 @@ class Arena {
   // Returns the value associated with `ref` in the arena.
   //
   // Requirements:
-  //   - `ref` must not be `kNullRef`.
+  // - `ref` must not be `kNullRef`.
   const T& get(Ref ref) const { return values_[indices_[ref]]; }
   T& get(Ref ref) { return values_[indices_[ref]]; }
 
