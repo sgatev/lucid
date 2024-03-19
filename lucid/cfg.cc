@@ -27,7 +27,7 @@ class ControlFlowGraphBuilder {
     graph_.func_params = func_def.parameters;
     graph_.first = AddBlock();
     graph_.last = AddBlock();
-    BuildBlock(func_def.body, graph_.first, graph_.last);
+    BuildBlock(func_def.stmts, graph_.first, graph_.last);
   }
 
   // Returns the constructed control flow graph.
@@ -40,15 +40,15 @@ class ControlFlowGraphBuilder {
     return graph_.add(std::move(block));
   }
 
-  void BuildBlock(const CompoundStmt& stmt, BlockRef block, BlockRef end) {
-    for (StmtRef stmt_ref : stmt.stmts) {
+  void BuildBlock(const List<StmtRef>& stmts, BlockRef block, BlockRef end) {
+    for (StmtRef stmt_ref : stmts) {
       if (auto* loop_stmt = std::get_if<LoopStmt>(&DerefStmt(stmt_ref))) {
         auto post_loop_block = AddBlock();
 
         post_loop_blocks_.push(post_loop_block);
 
         auto loop_block = AddBlock();
-        BuildBlock(loop_stmt->body, loop_block, loop_block);
+        BuildBlock(loop_stmt->stmts, loop_block, loop_block);
         graph_.get(block).next.push_back(loop_block);
 
         post_loop_blocks_.pop();
@@ -59,14 +59,14 @@ class ControlFlowGraphBuilder {
         auto post_if_block = AddBlock();
 
         auto then_block = AddBlock();
-        BuildBlock(if_stmt->then_body, then_block, post_if_block);
+        BuildBlock(if_stmt->then_stmts, then_block, post_if_block);
         graph_.get(block).next.push_back(then_block);
 
-        if (if_stmt->else_body.stmts.size() == 0) {
+        if (if_stmt->else_stmts.size() == 0) {
           graph_.get(block).next.push_back(post_if_block);
         } else {
           auto else_block = AddBlock();
-          BuildBlock(if_stmt->else_body, else_block, post_if_block);
+          BuildBlock(if_stmt->else_stmts, else_block, post_if_block);
           graph_.get(block).next.push_back(else_block);
         }
 

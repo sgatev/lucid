@@ -13,7 +13,6 @@
 
 namespace lucid {
 
-struct CompoundStmt;
 struct FuncDefStmt;
 struct ReturnStmt;
 struct DoStmt;
@@ -134,12 +133,6 @@ class List {
 
 static_assert(std::bidirectional_iterator<List<StmtRef>::iterator>);
 
-// A list of zero or more statements.
-struct CompoundStmt {
-  // Statements in the list.
-  List<StmtRef> stmts;
-};
-
 // A function parameter.
 struct FuncParam {
   // Type of the parameter.
@@ -157,7 +150,7 @@ struct FuncDefStmt {
   std::string_view name;
 
   // Body of the function.
-  CompoundStmt body;
+  List<StmtRef> stmts;
 
   // Type of the result of the function.
   TypeRef result_type;
@@ -324,16 +317,16 @@ struct IfStmt {
   ExprRef cond;
 
   // Body of the branch where the condition is true.
-  CompoundStmt then_body;
+  List<StmtRef> then_stmts;
 
   // Body of the branch where the condition is false.
-  CompoundStmt else_body;
+  List<StmtRef> else_stmts;
 };
 
 // A statement that represents loop execution.
 struct LoopStmt {
   // Body of the loop.
-  CompoundStmt body;
+  List<StmtRef> stmts;
 };
 
 // A statement that breaks from the inner-most loop execution.

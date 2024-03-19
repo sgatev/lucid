@@ -62,7 +62,7 @@ struct FuncDefStmtPattern {
   bool operator()(const FuncDefStmt& stmt) const {
     if (result_type != nullptr && !result_type(stmt.result_type)) return false;
     return name == stmt.name && AllMatch(stmt.parameters, parameters) &&
-           AllMatch(stmt.body.stmts, body.statements);
+           AllMatch(stmt.stmts, body.statements);
   }
 };
 
@@ -84,9 +84,8 @@ struct IfStmtPattern {
   CompoundStmtPattern else_body;
 
   bool operator()(const IfStmt& stmt) const {
-    return cond(stmt.cond) &&
-           AllMatch(stmt.then_body.stmts, then_body.statements) &&
-           AllMatch(stmt.else_body.stmts, else_body.statements);
+    return cond(stmt.cond) && AllMatch(stmt.then_stmts, then_body.statements) &&
+           AllMatch(stmt.else_stmts, else_body.statements);
   }
 };
 
@@ -94,7 +93,7 @@ struct LoopStmtPattern {
   CompoundStmtPattern body;
 
   bool operator()(const LoopStmt& stmt) const {
-    return AllMatch(stmt.body.stmts, body.statements);
+    return AllMatch(stmt.stmts, body.statements);
   }
 };
 

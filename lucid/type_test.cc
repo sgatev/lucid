@@ -72,16 +72,13 @@ TEST_F(InferExprTypesTest, ReturnValueFromResultType) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(ReturnStmt{
-                      .value = E(IntLitExpr{
-                          .value = "21",
-                      }),
-                  }),
+      .stmts = StmtListOf({
+          S(ReturnStmt{
+              .value = E(IntLitExpr{
+                  .value = "21",
               }),
-          },
+          }),
+      }),
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
@@ -103,18 +100,15 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(VarDeclStmt{
-                      .name = "x",
-                      .type = T(BasicType{.name = "Int64"}),
-                      .init = E(IntLitExpr{
-                          .value = "21",
-                      }),
-                  }),
+      .stmts = StmtListOf({
+          S(VarDeclStmt{
+              .name = "x",
+              .type = T(BasicType{.name = "Int64"}),
+              .init = E(IntLitExpr{
+                  .value = "21",
               }),
-          },
+          }),
+      }),
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
@@ -145,17 +139,14 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(VarAssignStmt{
-                      .name = "x",
-                      .expr = E(IntLitExpr{
-                          .value = "21",
-                      }),
-                  }),
+      .stmts = StmtListOf({
+          S(VarAssignStmt{
+              .name = "x",
+              .expr = E(IntLitExpr{
+                  .value = "21",
               }),
-          },
+          }),
+      }),
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
@@ -192,19 +183,16 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(IfStmt{
-                      .cond = E(BinaryOpExpr{
-                          .op = BinaryOp::Eq,
-                          .lhs = E(IdentExpr{.name = "n"}),
-                          .rhs = E(IntLitExpr{.value = "1"}),
-                      }),
-
-                  }),
+      .stmts = StmtListOf({
+          S(IfStmt{
+              .cond = E(BinaryOpExpr{
+                  .op = BinaryOp::Eq,
+                  .lhs = E(IdentExpr{.name = "n"}),
+                  .rhs = E(IntLitExpr{.value = "1"}),
               }),
-          },
+
+          }),
+      }),
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
@@ -235,24 +223,21 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(VarDeclStmt{
-                      .name = "x",
-                      .type = T(BasicType{.name = "Int64"}),
-                      .init = E(BinaryOpExpr{
-                          .op = BinaryOp::Add,
-                          .lhs = E(IntLitExpr{
-                              .value = "2",
-                          }),
-                          .rhs = E(IntLitExpr{
-                              .value = "3",
-                          }),
-                      }),
+      .stmts = StmtListOf({
+          S(VarDeclStmt{
+              .name = "x",
+              .type = T(BasicType{.name = "Int64"}),
+              .init = E(BinaryOpExpr{
+                  .op = BinaryOp::Add,
+                  .lhs = E(IntLitExpr{
+                      .value = "2",
+                  }),
+                  .rhs = E(IntLitExpr{
+                      .value = "3",
                   }),
               }),
-          },
+          }),
+      }),
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
@@ -285,21 +270,18 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(ReturnStmt{
-                      .value = E(FuncCallExpr{
-                          .func_name = "id",
-                          .args = ExprListOf({
-                              E(IntLitExpr{
-                                  .value = "21",
-                              }),
-                          }),
+      .stmts = StmtListOf({
+          S(ReturnStmt{
+              .value = E(FuncCallExpr{
+                  .func_name = "id",
+                  .args = ExprListOf({
+                      E(IntLitExpr{
+                          .value = "21",
                       }),
                   }),
               }),
-          },
+          }),
+      }),
   };
 
   std::vector<FuncParam> id_func_params = {
@@ -337,22 +319,19 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(IfStmt{
-                      .cond = E(BinaryOpExpr{
-                          .op = BinaryOp::Lt,
-                          .lhs = E(IntLitExpr{
-                              .value = "2",
-                          }),
-                          .rhs = E(IntLitExpr{
-                              .value = "3",
-                          }),
-                      }),
+      .stmts = StmtListOf({
+          S(IfStmt{
+              .cond = E(BinaryOpExpr{
+                  .op = BinaryOp::Lt,
+                  .lhs = E(IntLitExpr{
+                      .value = "2",
+                  }),
+                  .rhs = E(IntLitExpr{
+                      .value = "3",
                   }),
               }),
-          },
+          }),
+      }),
   };
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
@@ -383,23 +362,21 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
   auto func =
       FuncDefStmt{.name = "foo",
                   .result_type = T(BasicType{.name = "Int32"}),
-                  .body = {
-                      .stmts = StmtListOf({
-                          S(VarDeclStmt{
-                              .name = "a",
-                              .type = T(ArrayType{
-                                  .element_type = T(BasicType{.name = "Int32"}),
-                                  .size = IntLitExpr{.value = "10"},
-                              }),
-                          }),
-                          S(ReturnStmt{
-                              .value = E(IndexExpr{
-                                  .base = E(IdentExpr{.name = "a"}),
-                                  .index = E(IntLitExpr{.value = "2"}),
-                              }),
+                  .stmts = StmtListOf({
+                      S(VarDeclStmt{
+                          .name = "a",
+                          .type = T(ArrayType{
+                              .element_type = T(BasicType{.name = "Int32"}),
+                              .size = IntLitExpr{.value = "10"},
                           }),
                       }),
-                  }};
+                      S(ReturnStmt{
+                          .value = E(IndexExpr{
+                              .base = E(IdentExpr{.name = "a"}),
+                              .index = E(IntLitExpr{.value = "2"}),
+                          }),
+                      }),
+                  })};
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
   EXPECT_THAT(
@@ -439,18 +416,15 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(VarDeclStmt{
-                      .name = "x",
-                      .type = T(BasicType{.name = "Int32"}),
-                      .init = E(BoolLitExpr{
-                          .value = "true",
-                      }),
-                  }),
+      .stmts = StmtListOf({
+          S(VarDeclStmt{
+              .name = "x",
+              .type = T(BasicType{.name = "Int32"}),
+              .init = E(BoolLitExpr{
+                  .value = "true",
               }),
-          },
+          }),
+      }),
   };
 
   EXPECT_EQ(InferExprTypes(func), TypeError("expected type Int32"));
@@ -460,25 +434,22 @@ TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(VarDeclStmt{
-                      .name = "x",
-                      .type = T(BasicType{.name = "Int32"}),
-                      .init = E(IntLitExpr{
-                          .value = "2",
-                      }),
-                  }),
-                  S(VarDeclStmt{
-                      .name = "y",
-                      .type = T(BasicType{.name = "Int64"}),
-                      .init = E(IdentExpr{
-                          .name = "x",
-                      }),
-                  }),
+      .stmts = StmtListOf({
+          S(VarDeclStmt{
+              .name = "x",
+              .type = T(BasicType{.name = "Int32"}),
+              .init = E(IntLitExpr{
+                  .value = "2",
               }),
-          },
+          }),
+          S(VarDeclStmt{
+              .name = "y",
+              .type = T(BasicType{.name = "Int64"}),
+              .init = E(IdentExpr{
+                  .name = "x",
+              }),
+          }),
+      }),
   };
 
   EXPECT_EQ(InferExprTypes(func), TypeError("expected type Int64"));

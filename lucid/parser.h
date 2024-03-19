@@ -145,7 +145,7 @@ class Parser {
 
     auto maybe_body = ParseCompoundStmt();
     if (IsError(maybe_body)) return std::get<ParserError>(maybe_body);
-    stmt.body = std::get<CompoundStmt>(std::move(maybe_body));
+    stmt.stmts = std::get<List<StmtRef>>(std::move(maybe_body));
 
     return stmt;
   }
@@ -175,7 +175,7 @@ class Parser {
     return MakeError(ParserError::Kind::ExpectedIdent, token);
   }
 
-  std::variant<CompoundStmt, ParserError> ParseCompoundStmt() {
+  std::variant<List<StmtRef>, ParserError> ParseCompoundStmt() {
     SkipSpace();
 
     if (auto r = ExpectToken(Token::Kind::OpenBrace); IsError(r)) return *r;
@@ -202,9 +202,7 @@ class Parser {
       stmt_arena_.alias(stmts[i]);
     }
 
-    return CompoundStmt{
-        .stmts = List<StmtRef>(args_size, args_first),
-    };
+    return List<StmtRef>(args_size, args_first);
   }
 
   std::variant<StmtRef, ParserError> ParseStmt() {
@@ -235,7 +233,7 @@ class Parser {
 
       auto body = ParseCompoundStmt();
       if (IsError(body)) return std::get<ParserError>(body);
-      loop_stmt.body = std::get<CompoundStmt>(body);
+      loop_stmt.stmts = std::get<List<StmtRef>>(body);
 
       return stmt_arena_.add(std::move(loop_stmt));
     }
@@ -252,7 +250,7 @@ class Parser {
 
       auto then_body = ParseCompoundStmt();
       if (IsError(then_body)) return std::get<ParserError>(then_body);
-      if_stmt.then_body = std::get<CompoundStmt>(then_body);
+      if_stmt.then_stmts = std::get<List<StmtRef>>(then_body);
 
       SkipSpace();
 
@@ -264,11 +262,11 @@ class Parser {
         if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
           const auto stmt = ParseStmt();
           if (IsError(stmt)) return std::get<ParserError>(stmt);
-          if_stmt.else_body.stmts = List<StmtRef>(1, std::get<StmtRef>(stmt));
+          if_stmt.else_stmts = List<StmtRef>(1, std::get<StmtRef>(stmt));
         } else {
           auto else_body = ParseCompoundStmt();
           if (IsError(else_body)) return std::get<ParserError>(else_body);
-          if_stmt.else_body = std::get<CompoundStmt>(else_body);
+          if_stmt.else_stmts = std::get<List<StmtRef>>(else_body);
         }
       }
 

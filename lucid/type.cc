@@ -35,8 +35,8 @@ class ExprTypeInferenceEngine {
       SetIdentType(param.name, param.type);
     }
 
-    AddPendingStmts(std::ranges::reverse_view(std::ranges::subrange(
-        func_def_.body.stmts.begin(), func_def_.body.stmts.end())));
+    AddPendingStmts(std::ranges::reverse_view(
+        std::ranges::subrange(func_def_.stmts.begin(), func_def_.stmts.end())));
 
     while (true) {
       auto stmt_ref = NextStmt();
@@ -94,12 +94,12 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingStmt(StmtRef stmt_ref, const LoopStmt& stmt) {
-    AddPendingStmts(std::ranges::reverse_view(stmt.body.stmts));
+    AddPendingStmts(std::ranges::reverse_view(stmt.stmts));
   }
 
   void ProcessPendingStmt(StmtRef stmt_ref, const IfStmt& stmt) {
-    AddPendingStmts(std::ranges::reverse_view(stmt.else_body.stmts));
-    AddPendingStmts(std::ranges::reverse_view(stmt.then_body.stmts));
+    AddPendingStmts(std::ranges::reverse_view(stmt.else_stmts));
+    AddPendingStmts(std::ranges::reverse_view(stmt.then_stmts));
     RequireTypeForExpr(stmt.cond, type_arena_.add(BasicType{.name = "Bool"}));
     AddPendingExpr(stmt.cond);
   }

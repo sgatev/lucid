@@ -59,12 +59,9 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body =
-          {
-              .stmts = StmtListOf({
-                  do_stmt,
-              }),
-          },
+      .stmts = StmtListOf({
+          do_stmt,
+      }),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -120,12 +117,9 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body =
-          {
-              .stmts = StmtListOf({
-                  do_stmt,
-              }),
-          },
+      .stmts = StmtListOf({
+          do_stmt,
+      }),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -167,10 +161,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .body =
-          {
-              .stmts = StmtListOf({return_stmt}),
-          },
+      .stmts = StmtListOf({return_stmt}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -204,10 +195,7 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body =
-          {
-              .stmts = StmtListOf({var_decl_stmt}),
-          },
+      .stmts = StmtListOf({var_decl_stmt}),
       .result_type = T(BasicType{.name = "Void"}),
   });
 
@@ -240,10 +228,7 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
   auto do_stmt = S(DoStmt{.expr = add_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body =
-          {
-              .stmts = StmtListOf({do_stmt}),
-          },
+      .stmts = StmtListOf({do_stmt}),
       .result_type = T(BasicType{.name = "Int32"}),
   });
 
@@ -285,18 +270,15 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
   auto do_mul_stmt = S(DoStmt{.expr = mul_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body = {.stmts = StmtListOf({
-                   S(IfStmt{
-                       .cond = cond_expr,
-                       .then_body =
-                           {
-                               .stmts = StmtListOf({
-                                   S(DoStmt{.expr = add_expr}),
-                               }),
-                           },
-                   }),
-                   do_mul_stmt,
-               })},
+      .stmts = StmtListOf({
+          S(IfStmt{
+              .cond = cond_expr,
+              .then_stmts = StmtListOf({
+                  S(DoStmt{.expr = add_expr}),
+              }),
+          }),
+          do_mul_stmt,
+      }),
       .result_type = T(BasicType{.name = "Int32"}),
   });
 
@@ -356,22 +338,13 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
   auto do_mul_stmt = S(DoStmt{.expr = mul_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(IfStmt{
-                      .cond = cond_expr,
-                      .then_body =
-                          {
-                              .stmts = StmtListOf({do_add_stmt}),
-                          },
-                      .else_body =
-                          {
-                              .stmts = StmtListOf({do_mul_stmt}),
-                          },
-                  }),
-              }),
-          },
+      .stmts = StmtListOf({
+          S(IfStmt{
+              .cond = cond_expr,
+              .then_stmts = StmtListOf({do_add_stmt}),
+              .else_stmts = StmtListOf({do_mul_stmt}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Int32"}),
   });
 
@@ -434,10 +407,7 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .stmts = StmtListOf({var_decl_stmt, return_stmt}),
-          },
+      .stmts = StmtListOf({var_decl_stmt, return_stmt}),
   });
 
   ASSERT_NE(graph.first, ControlFlowGraph::kNullBlockRef);
@@ -474,17 +444,11 @@ TEST_F(ControlFlowGraphTest, Loop) {
   auto do_add_stmt = S(DoStmt{.expr = add_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body =
-          {
-              .stmts = StmtListOf({
-                  S(LoopStmt{
-                      .body =
-                          {
-                              .stmts = StmtListOf({do_add_stmt}),
-                          },
-                  }),
-              }),
-          },
+      .stmts = StmtListOf({
+          S(LoopStmt{
+              .stmts = StmtListOf({do_add_stmt}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Int32"}),
   });
 
@@ -547,20 +511,19 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = "foo",
-      .body = {.stmts = StmtListOf({
-                   var_decl_stmt,
-                   S(LoopStmt{
-                       .body = {.stmts = StmtListOf({
-                                    S(IfStmt{
-                                        .cond = if_cond_ref,
-                                        .then_body = {.stmts = StmtListOf(
-                                                          {break_stmt})},
-                                    }),
-                                    var_assign_stmt,
-                                })},
-                   }),
-                   return_stmt,
-               })},
+      .stmts = StmtListOf({
+          var_decl_stmt,
+          S(LoopStmt{
+              .stmts = StmtListOf({
+                  S(IfStmt{
+                      .cond = if_cond_ref,
+                      .then_stmts = StmtListOf({break_stmt}),
+                  }),
+                  var_assign_stmt,
+              }),
+          }),
+          return_stmt,
+      }),
       .result_type = T(BasicType{.name = "Int32"}),
   });
 
