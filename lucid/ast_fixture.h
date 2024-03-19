@@ -227,23 +227,20 @@ class AstFixture {
     return type_arena_.add(type);
   }
 
-  // Returns an empty expression list.
-  List<ExprRef> EmptyExprList() {
-    return List<ExprRef>(0, Arena<Expr>::kNullRef);
-  }
-
+  // Returns an empty list.
   template <typename T>
   List<typename Arena<T>::Ref> EmptyList() {
     return List<typename Arena<T>::Ref>(0, Arena<T>::kNullRef);
   }
 
-  // Allocates the given expressions on an arena and returns a list of
-  // references.
-  template <typename E, typename... Es>
-  List<ExprRef> ExprListOf(E expr, Es... exprs) {
-    auto first_expr = expr_arena_.add(expr);
-    (expr_arena_.add(exprs), ...);
-    return List<ExprRef>(1 + sizeof...(Es), first_expr);
+  // Creates a list of the given expression references.
+  List<ExprRef> ExprListOf(std::initializer_list<ExprRef> exprs) {
+    if (std::empty(exprs)) return EmptyList<Expr>();
+    auto it = exprs.begin();
+    auto first_expr = expr_arena_.alias(*it);
+    ++it;
+    for (; it != exprs.end(); ++it) expr_arena_.alias(*it);
+    return List<StmtRef>(exprs.size(), first_expr);
   }
 
   // Creates a list of the given statement references.

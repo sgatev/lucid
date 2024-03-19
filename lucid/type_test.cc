@@ -291,8 +291,10 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
                   S(ReturnStmt{
                       .value = E(FuncCallExpr{
                           .func_name = "id",
-                          .args = ExprListOf(IntLitExpr{
-                              .value = "21",
+                          .args = ExprListOf({
+                              E(IntLitExpr{
+                                  .value = "21",
+                              }),
                           }),
                       }),
                   }),

@@ -176,7 +176,9 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt32Arg) {
                   S(ReturnStmt{
                       .value = E(FuncCallExpr{
                           .func_name = "id",
-                          .args = ExprListOf(IntLitExpr{.value = "21"}),
+                          .args = ExprListOf({
+                              E(IntLitExpr{.value = "21"}),
+                          }),
                       }),
                   }),
               }),
@@ -242,7 +244,9 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt64Arg) {
                   S(ReturnStmt{
                       .value = E(FuncCallExpr{
                           .func_name = "id",
-                          .args = ExprListOf(IntLitExpr{.value = "21"}),
+                          .args = ExprListOf({
+                              E(IntLitExpr{.value = "21"}),
+                          }),
                       }),
                   }),
               }),

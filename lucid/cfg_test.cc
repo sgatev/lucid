@@ -53,7 +53,7 @@ TEST_F(ControlFlowGraphTest, EmptyFunction) {
 TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   auto func_call_expr = E(FuncCallExpr({
       .func_name = "bar",
-      .args = EmptyExprList(),
+      .args = EmptyList<Expr>(),
   }));
   auto do_stmt = S(DoStmt{.expr = func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
@@ -92,7 +92,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   auto baz_arg2_expr = IntLitExpr{
       .value = "7",
   };
-  auto baz_func_call_args = ExprListOf(baz_arg1_expr, baz_arg2_expr);
+  auto baz_func_call_args = ExprListOf({E(baz_arg1_expr), E(baz_arg2_expr)});
   auto baz_func_call_expr = FuncCallExpr({
       .func_name = "baz",
       .args = baz_func_call_args,
@@ -104,13 +104,14 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   auto qux_arg2_expr = IntLitExpr{
       .value = "21",
   };
-  auto qux_func_call_args = ExprListOf(qux_arg1_expr, qux_arg2_expr);
+  auto qux_func_call_args = ExprListOf({E(qux_arg1_expr), E(qux_arg2_expr)});
   auto qux_func_call_expr = FuncCallExpr({
       .func_name = "qux",
       .args = qux_func_call_args,
   });
 
-  auto bar_func_call_args = ExprListOf(baz_func_call_expr, qux_func_call_expr);
+  auto bar_func_call_args =
+      ExprListOf({E(baz_func_call_expr), E(qux_func_call_expr)});
   auto bar_func_call_expr = E(FuncCallExpr({
       .func_name = "bar",
       .args = bar_func_call_args,
@@ -151,8 +152,10 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
 }
 
 TEST_F(ControlFlowGraphTest, ReturnStmt) {
-  auto func_call_args = ExprListOf(IntLitExpr{
-      .value = "3",
+  auto func_call_args = ExprListOf({
+      E(IntLitExpr{
+          .value = "3",
+      }),
   });
   auto func_call_expr = E(FuncCallExpr({
       .func_name = "bar",
@@ -192,7 +195,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
 TEST_F(ControlFlowGraphTest, VarDeclStmt) {
   auto func_call_stmt_ref = E(FuncCallExpr{
       .func_name = "bar",
-      .args = EmptyExprList(),
+      .args = EmptyList<Expr>(),
   });
   auto var_decl_stmt = S(VarDeclStmt{
       .type = T(BasicType{.name = "Int32"}),
