@@ -45,6 +45,9 @@ class Arena {
   const T& get(Ref ref) const { return values_[indices_[ref]]; }
   T& get(Ref ref) { return values_[indices_[ref]]; }
 
+  // Returns true iff the two references refer to the same value.
+  bool equiv(Ref lhs, Ref rhs) const { return indices_[lhs] == indices_[rhs]; }
+
   // Returns the number of values that were added to the arena.
   std::size_t size() const { return values_.size(); }
 

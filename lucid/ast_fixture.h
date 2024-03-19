@@ -3,11 +3,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <iterator>
 #include <string_view>
 #include <utility>
 #include <variant>
 #include <vector>
 
+#include "gmock/gmock.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
 
@@ -230,6 +232,11 @@ class AstFixture {
     return List<ExprRef>(0, Arena<Expr>::kNullRef);
   }
 
+  template <typename T>
+  List<typename Arena<T>::Ref> EmptyList() {
+    return List<typename Arena<T>::Ref>(0, Arena<T>::kNullRef);
+  }
+
   // Allocates the given expressions on an arena and returns a list of
   // references.
   template <typename E, typename... Es>
@@ -239,13 +246,22 @@ class AstFixture {
     return List<ExprRef>(1 + sizeof...(Es), first_expr);
   }
 
-  // Allocates the given statements on an arena and returns a list of
-  // references.
-  template <typename S, typename... Ss>
-  List<StmtRef> StmtListOf(S stmt, Ss... stmts) {
-    auto first_stmt = stmt_arena_.add(stmt);
-    (stmt_arena_.add(stmts), ...);
-    return List<StmtRef>(1 + sizeof...(Ss), first_stmt);
+  // Creates a list of the given statement references.
+  List<StmtRef> StmtListOf(std::initializer_list<StmtRef> stmts) {
+    if (std::empty(stmts)) return EmptyList<Stmt>();
+    auto it = stmts.begin();
+    auto first_stmt = stmt_arena_.alias(*it);
+    ++it;
+    for (; it != stmts.end(); ++it) stmt_arena_.alias(*it);
+    return List<StmtRef>(stmts.size(), first_stmt);
+  }
+
+  // Returns a matcher that is satisfied if the argument is a statement
+  // reference equivalent to `expected`.
+  auto StmtEquivTo(StmtRef expected) {
+    return testing::Truly([this, expected](StmtRef actual) {
+      return stmt_arena_.equiv(expected, actual);
+    });
   }
 
   ExprRefMatcher MatchesAnyExpr() {

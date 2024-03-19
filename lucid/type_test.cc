@@ -74,9 +74,11 @@ TEST_F(InferExprTypesTest, ReturnValueFromResultType) {
       .result_type = T(BasicType{.name = "Int32"}),
       .body =
           {
-              .stmts = StmtListOf(ReturnStmt{
-                  .value = E(IntLitExpr{
-                      .value = "21",
+              .stmts = StmtListOf({
+                  S(ReturnStmt{
+                      .value = E(IntLitExpr{
+                          .value = "21",
+                      }),
                   }),
               }),
           },
@@ -103,11 +105,13 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
       .result_type = T(BasicType{.name = "Void"}),
       .body =
           {
-              .stmts = StmtListOf(VarDeclStmt{
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int64"}),
-                  .init = E(IntLitExpr{
-                      .value = "21",
+              .stmts = StmtListOf({
+                  S(VarDeclStmt{
+                      .name = "x",
+                      .type = T(BasicType{.name = "Int64"}),
+                      .init = E(IntLitExpr{
+                          .value = "21",
+                      }),
                   }),
               }),
           },
@@ -143,10 +147,12 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
           },
       .body =
           {
-              .stmts = StmtListOf(VarAssignStmt{
-                  .name = "x",
-                  .expr = E(IntLitExpr{
-                      .value = "21",
+              .stmts = StmtListOf({
+                  S(VarAssignStmt{
+                      .name = "x",
+                      .expr = E(IntLitExpr{
+                          .value = "21",
+                      }),
                   }),
               }),
           },
@@ -188,13 +194,15 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
           },
       .body =
           {
-              .stmts = StmtListOf(IfStmt{
-                  .cond = E(BinaryOpExpr{
-                      .op = BinaryOp::Eq,
-                      .lhs = E(IdentExpr{.name = "n"}),
-                      .rhs = E(IntLitExpr{.value = "1"}),
-                  }),
+              .stmts = StmtListOf({
+                  S(IfStmt{
+                      .cond = E(BinaryOpExpr{
+                          .op = BinaryOp::Eq,
+                          .lhs = E(IdentExpr{.name = "n"}),
+                          .rhs = E(IntLitExpr{.value = "1"}),
+                      }),
 
+                  }),
               }),
           },
   };
@@ -229,16 +237,18 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
       .result_type = T(BasicType{.name = "Void"}),
       .body =
           {
-              .stmts = StmtListOf(VarDeclStmt{
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int64"}),
-                  .init = E(BinaryOpExpr{
-                      .op = BinaryOp::Add,
-                      .lhs = E(IntLitExpr{
-                          .value = "2",
-                      }),
-                      .rhs = E(IntLitExpr{
-                          .value = "3",
+              .stmts = StmtListOf({
+                  S(VarDeclStmt{
+                      .name = "x",
+                      .type = T(BasicType{.name = "Int64"}),
+                      .init = E(BinaryOpExpr{
+                          .op = BinaryOp::Add,
+                          .lhs = E(IntLitExpr{
+                              .value = "2",
+                          }),
+                          .rhs = E(IntLitExpr{
+                              .value = "3",
+                          }),
                       }),
                   }),
               }),
@@ -277,11 +287,13 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
       .result_type = T(BasicType{.name = "Int32"}),
       .body =
           {
-              .stmts = StmtListOf(ReturnStmt{
-                  .value = E(FuncCallExpr{
-                      .func_name = "id",
-                      .args = ExprListOf(IntLitExpr{
-                          .value = "21",
+              .stmts = StmtListOf({
+                  S(ReturnStmt{
+                      .value = E(FuncCallExpr{
+                          .func_name = "id",
+                          .args = ExprListOf(IntLitExpr{
+                              .value = "21",
+                          }),
                       }),
                   }),
               }),
@@ -325,14 +337,16 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
       .result_type = T(BasicType{.name = "Void"}),
       .body =
           {
-              .stmts = StmtListOf(IfStmt{
-                  .cond = E(BinaryOpExpr{
-                      .op = BinaryOp::Lt,
-                      .lhs = E(IntLitExpr{
-                          .value = "2",
-                      }),
-                      .rhs = E(IntLitExpr{
-                          .value = "3",
+              .stmts = StmtListOf({
+                  S(IfStmt{
+                      .cond = E(BinaryOpExpr{
+                          .op = BinaryOp::Lt,
+                          .lhs = E(IntLitExpr{
+                              .value = "2",
+                          }),
+                          .rhs = E(IntLitExpr{
+                              .value = "3",
+                          }),
                       }),
                   }),
               }),
@@ -364,27 +378,26 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
 }
 
 TEST_F(InferExprTypesTest, ArrayIndex) {
-  auto func = FuncDefStmt{
-      .name = "foo",
-      .result_type = T(BasicType{.name = "Int32"}),
-      .body =
-          {
-              .stmts = StmtListOf(
-                  VarDeclStmt{
-                      .name = "a",
-                      .type = T(ArrayType{
-                          .element_type = T(BasicType{.name = "Int32"}),
-                          .size = IntLitExpr{.value = "10"},
+  auto func =
+      FuncDefStmt{.name = "foo",
+                  .result_type = T(BasicType{.name = "Int32"}),
+                  .body = {
+                      .stmts = StmtListOf({
+                          S(VarDeclStmt{
+                              .name = "a",
+                              .type = T(ArrayType{
+                                  .element_type = T(BasicType{.name = "Int32"}),
+                                  .size = IntLitExpr{.value = "10"},
+                              }),
+                          }),
+                          S(ReturnStmt{
+                              .value = E(IndexExpr{
+                                  .base = E(IdentExpr{.name = "a"}),
+                                  .index = E(IntLitExpr{.value = "2"}),
+                              }),
+                          }),
                       }),
-                  },
-                  ReturnStmt{
-                      .value = E(IndexExpr{
-                          .base = E(IdentExpr{.name = "a"}),
-                          .index = E(IntLitExpr{.value = "2"}),
-                      }),
-                  }),
-          },
-  };
+                  }};
 
   EXPECT_EQ(InferExprTypes(func), std::nullopt);
   EXPECT_THAT(
@@ -426,11 +439,13 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
       .result_type = T(BasicType{.name = "Void"}),
       .body =
           {
-              .stmts = StmtListOf(VarDeclStmt{
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int32"}),
-                  .init = E(BoolLitExpr{
-                      .value = "true",
+              .stmts = StmtListOf({
+                  S(VarDeclStmt{
+                      .name = "x",
+                      .type = T(BasicType{.name = "Int32"}),
+                      .init = E(BoolLitExpr{
+                          .value = "true",
+                      }),
                   }),
               }),
           },
@@ -445,21 +460,22 @@ TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
       .result_type = T(BasicType{.name = "Void"}),
       .body =
           {
-              .stmts = StmtListOf(
-                  VarDeclStmt{
+              .stmts = StmtListOf({
+                  S(VarDeclStmt{
                       .name = "x",
                       .type = T(BasicType{.name = "Int32"}),
                       .init = E(IntLitExpr{
                           .value = "2",
                       }),
-                  },
-                  VarDeclStmt{
+                  }),
+                  S(VarDeclStmt{
                       .name = "y",
                       .type = T(BasicType{.name = "Int64"}),
                       .init = E(IdentExpr{
                           .name = "x",
                       }),
                   }),
+              }),
           },
   };
 
