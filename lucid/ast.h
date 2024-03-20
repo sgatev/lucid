@@ -351,29 +351,12 @@ struct ArrayType {
 
 // Returns the type of `expr`.
 inline TypeRef GetType(const Expr& expr) {
-  return std::visit(
-      [](const auto& expr) -> TypeRef {
-        using T = std::decay_t<decltype(expr)>;
-        if constexpr (std::is_same_v<T, Type>) {
-          // TODO: Provide a TypeRef for meta type.
-          return 0;
-        } else {
-          return expr.type;
-        }
-      },
-      expr);
+  return std::visit([](const auto& expr) { return expr.type; }, expr);
 }
 
 // Sets `type` as the type of `expr`.
 inline void SetType(Expr& expr, TypeRef type) {
-  std::visit(
-      [type](auto& expr) {
-        using T = std::decay_t<decltype(expr)>;
-        if constexpr (!std::is_same_v<T, Type>) {
-          expr.type = type;
-        }
-      },
-      expr);
+  std::visit([type](auto& expr) { expr.type = type; }, expr);
 }
 
 }  // namespace lucid
