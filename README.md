@@ -38,3 +38,10 @@ or simply
 ```
 $ bazel-bin/lucid/compiler run examples/main.lu
 ```
+
+## Code
+
+To enable syntax highlighting in your editor install
+
+* [neovim-lucid](https://github.com/sgatev/nvim-lucid/tree/main) plugin for [Neovim](https://neovim.io)
+* [tree-sitter-lucid](https://github.com/sgatev/tree-sitter-lucid/tree/main) grammar for [Tree-sitter](https://tree-sitter.github.io/tree-sitter)
