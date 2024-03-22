@@ -297,8 +297,8 @@ class Parser {
       if (IsError(init)) return std::get<ParserError>(init);
 
       return stmt_arena_.add(VarDeclStmt{
-          .name = std::get<std::string_view>(maybe_name),
           .type = std::get<TypeRef>(maybe_type),
+          .name = std::get<std::string_view>(maybe_name),
           .init = std::get<ExprRef>(init),
       });
     }

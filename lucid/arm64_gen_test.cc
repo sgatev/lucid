@@ -87,7 +87,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, FuncWithInt32Param) {
   auto func = FuncDefStmt{
       .name = "id",
-      .result_type = T(BasicType{.name = "Int32"}),
       .parameters =
           {
               {
@@ -95,6 +94,7 @@ TEST_F(GenerateArmAssemblySourceTest, FuncWithInt32Param) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
+      .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(IdentExpr{
@@ -122,7 +122,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, FuncWithInt64Param) {
   auto func = FuncDefStmt{
       .name = "id",
-      .result_type = T(BasicType{.name = "Int64"}),
       .parameters =
           {
               {
@@ -130,6 +129,7 @@ TEST_F(GenerateArmAssemblySourceTest, FuncWithInt64Param) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
+      .result_type = T(BasicType{.name = "Int64"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(IdentExpr{
@@ -743,7 +743,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, GtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = T(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
@@ -755,6 +754,7 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt32) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
+      .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -788,7 +788,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = T(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
@@ -800,6 +799,7 @@ TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
+      .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -865,7 +865,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, LtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = T(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
@@ -877,6 +876,7 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt32) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
+      .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -910,7 +910,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = T(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
@@ -922,6 +921,7 @@ TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
+      .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -955,7 +955,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = T(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
@@ -967,6 +966,7 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
+      .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -1000,7 +1000,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = T(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
@@ -1012,6 +1011,7 @@ TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
+      .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -1045,7 +1045,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, NotEqInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = T(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
@@ -1057,6 +1056,7 @@ TEST_F(GenerateArmAssemblySourceTest, NotEqInt32) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
+      .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -1090,7 +1090,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, NotEqInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = T(BasicType{.name = "Bool"}),
       .parameters =
           {
               {
@@ -1102,6 +1101,7 @@ TEST_F(GenerateArmAssemblySourceTest, NotEqInt64) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
+      .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -1233,7 +1233,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, VarAssignInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = T(BasicType{.name = "Void"}),
       .parameters =
           {
               {
@@ -1241,6 +1240,7 @@ TEST_F(GenerateArmAssemblySourceTest, VarAssignInt32) {
                   .type = T(BasicType{.name = "Int32"}),
               },
           },
+      .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarAssignStmt{
               .name = "x",
@@ -1267,7 +1267,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, VarAssignInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .result_type = T(BasicType{.name = "Void"}),
       .parameters =
           {
               {
@@ -1275,6 +1274,7 @@ TEST_F(GenerateArmAssemblySourceTest, VarAssignInt64) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
+      .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarAssignStmt{
               .name = "x",
@@ -1301,7 +1301,6 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, Printf) {
   auto func = FuncDefStmt{
       .name = "printf",
-      .result_type = T(BasicType{.name = "Int32"}),
       .parameters =
           {
               {
@@ -1317,6 +1316,7 @@ TEST_F(GenerateArmAssemblySourceTest, Printf) {
                   .type = T(BasicType{.name = "Int64"}),
               },
           },
+      .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(IntLitExpr{.value = "0"}),

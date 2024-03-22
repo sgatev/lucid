@@ -135,11 +135,11 @@ static_assert(std::bidirectional_iterator<List<StmtRef>::iterator>);
 
 // A function parameter.
 struct FuncParam {
-  // Type of the parameter.
-  TypeRef type;
-
   // Name of the parameter.
   std::string_view name;
+
+  // Type of the parameter.
+  TypeRef type;
 
   bool operator==(const FuncParam&) const = default;
 };
@@ -149,14 +149,14 @@ struct FuncDefStmt {
   // Name of the function.
   std::string_view name;
 
-  // Body of the function.
-  List<StmtRef> stmts;
+  // Parameters of the function.
+  std::vector<FuncParam> parameters;
 
   // Type of the result of the function.
   TypeRef result_type;
 
-  // Parameters of the function.
-  std::vector<FuncParam> parameters;
+  // Body of the function.
+  List<StmtRef> stmts;
 };
 
 // A statement that represents a return point in a function.
@@ -213,11 +213,11 @@ struct FuncCallExpr {
 
 // A statement that represents a variable declaration.
 struct VarDeclStmt {
-  // Type of the variable.
-  TypeRef type;
-
   // Name of the variable.
   std::string_view name;
+
+  // Type of the variable.
+  TypeRef type;
 
   // Initializer expression.
   std::optional<ExprRef> init;

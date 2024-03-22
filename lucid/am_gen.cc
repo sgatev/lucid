@@ -98,28 +98,26 @@ class AbstractMachineFunctionGenerator {
       std::size_t offset = 0;
       if (graph_.func_params.size() > 1) {
         state_.func.instructions.push_back(StoreStack64{
-            .offset = offset,
+            .offset = offset++,
             .src_reg = 2,
         });
-        offset += 1;
       }
       if (graph_.func_params.size() > 2) {
         state_.func.instructions.push_back(StoreStack64{
-            .offset = offset,
+            .offset = offset++,
             .src_reg = 3,
         });
-        offset += 1;
       }
       state_.func.instructions.push_back(MoveReg64{
-          .dst_reg = 0,
           .src_reg = 1,
+          .dst_reg = 0,
       });
       state_.func.instructions.push_back(Jump{
           .label = "_printf",
       });
       state_.func.instructions.push_back(SetReg32{
-          .dst_reg = 0,
           .src_val = "0",
+          .dst_reg = 0,
       });
       state_.func.instructions.push_back(PopStack{});
       state_.func.instructions.push_back(Return{});
@@ -373,8 +371,8 @@ class AbstractMachineFunctionGenerator {
     if (expr_type.name == "Int32") {
       RegId offset_reg = next_reg_++;
       state_.func.instructions.push_back(SetReg32{
-          .dst_reg = offset_reg,
           .src_val = "4",
+          .dst_reg = offset_reg,
       });
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
@@ -390,8 +388,8 @@ class AbstractMachineFunctionGenerator {
     } else if (expr_type.name == "Int64") {
       RegId offset_reg = next_reg_++;
       state_.func.instructions.push_back(SetReg32{
-          .dst_reg = offset_reg,
           .src_val = "8",
+          .dst_reg = offset_reg,
       });
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
@@ -407,8 +405,8 @@ class AbstractMachineFunctionGenerator {
     } else if (expr_type.name == "Bool") {
       RegId offset_reg = next_reg_++;
       state_.func.instructions.push_back(SetReg32{
-          .dst_reg = offset_reg,
           .src_val = "4",
+          .dst_reg = offset_reg,
       });
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
@@ -451,8 +449,8 @@ class AbstractMachineFunctionGenerator {
     if (expr_type.name == "Int32") {
       RegId offset_reg = next_reg_++;
       state_.func.instructions.push_back(SetReg32{
-          .dst_reg = offset_reg,
           .src_val = "4",
+          .dst_reg = offset_reg,
       });
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
@@ -468,8 +466,8 @@ class AbstractMachineFunctionGenerator {
     } else if (expr_type.name == "Int64") {
       RegId offset_reg = next_reg_++;
       state_.func.instructions.push_back(SetReg32{
-          .dst_reg = offset_reg,
           .src_val = "8",
+          .dst_reg = offset_reg,
       });
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
@@ -485,8 +483,8 @@ class AbstractMachineFunctionGenerator {
     } else if (expr_type.name == "Bool") {
       RegId offset_reg = next_reg_++;
       state_.func.instructions.push_back(SetReg32{
-          .dst_reg = offset_reg,
           .src_val = "4",
+          .dst_reg = offset_reg,
       });
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
