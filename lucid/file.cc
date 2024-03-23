@@ -3,16 +3,16 @@
 #include <cstddef>
 #include <fstream>
 #include <ios>
-#include <optional>
 #include <string>
 #include <string_view>
+#include <variant>
 
 namespace lucid {
 
-std::optional<std::string> ReadFile(std::string_view path,
-                                    bool with_trailing_zero) {
+std::variant<std::string, ReadFileError> ReadFile(std::string_view path,
+                                                  bool with_trailing_zero) {
   std::ifstream file(path);
-  if (!file) return std::nullopt;
+  if (!file) return ReadFileError(path);
 
   file.seekg(0, std::ios::end);
   std::streamsize size = file.tellg();

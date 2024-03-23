@@ -31,8 +31,8 @@ struct CommandResult {
 inline std::ostream& operator<<(std::ostream& stream,
                                 const CommandResult& res) {
   return stream << "CommandResult{.return_code=" << res.return_code
-                << ", .out=\"" << res.out << "\" "
-                << ", .err=\"" << res.err << "\"}";
+                << ", .out=\"" << res.out << "\" " << ", .err=\"" << res.err
+                << "\"}";
 }
 
 // Matches the return code of a command.
@@ -87,8 +87,8 @@ class CompilerTest : public testing::Test {
     const int return_code = WEXITSTATUS(result);
     return {
         .return_code = return_code,
-        .out = ReadFile(out_path).value(),
-        .err = ReadFile(err_path).value(),
+        .out = std::get<std::string>(ReadFile(out_path)),
+        .err = std::get<std::string>(ReadFile(err_path)),
     };
   }
 

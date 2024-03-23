@@ -98,18 +98,20 @@ int Build(CommandContext ctx) {
 
   // Load Lucid sources.
   auto src_path = std::filesystem::absolute(ctx.args[1]);
-  const auto src = ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
-  if (!src.has_value()) {
-    PrintError(ctx.err) << "could not read file '" << ctx.args[1] << "'\n";
+  const auto src_or_err =
+      ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
+  if (auto* err = std::get_if<ReadFileError>(&src_or_err); err != nullptr) {
+    PrintError(ctx.err) << *err << "'\n";
     return 1;
   }
+  const auto& src = std::get<std::string>(src_or_err);
 
   // Compile sources to assembly.
   auto build_dir = std::filesystem::temp_directory_path();
   auto assembly_path = build_dir / (std::string(binary_name) + ".s");
   {
     std::ofstream assembly_stream(assembly_path);
-    if (auto err = CompileSource(*src, assembly_stream); err) {
+    if (auto err = CompileSource(src, assembly_stream); err) {
       std::visit([&ctx](auto& err) { PrintError(ctx.err) << err << "\n"; },
                  *err);
       return 1;
@@ -139,18 +141,20 @@ int Compile(CommandContext ctx) {
 
   // Load Lucid sources.
   auto src_path = std::filesystem::absolute(ctx.args[0]);
-  const auto src = ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
-  if (!src.has_value()) {
-    PrintError(ctx.err) << "could not read file '" << ctx.args[0] << "'\n";
+  const auto src_or_err =
+      ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
+  if (auto* err = std::get_if<ReadFileError>(&src_or_err); err != nullptr) {
+    PrintError(ctx.err) << *err << "'\n";
     return 1;
   }
+  const auto& src = std::get<std::string>(src_or_err);
 
   // Compile sources to assembly.
   auto assembly_path = std::filesystem::current_path() / src_path.filename();
   assembly_path.replace_extension("s");
   {
     std::ofstream assembly_stream(assembly_path);
-    if (auto err = CompileSource(*src, assembly_stream); err) {
+    if (auto err = CompileSource(src, assembly_stream); err) {
       std::visit([&ctx](auto& err) { PrintError(ctx.err) << err << "\n"; },
                  *err);
       return 1;
@@ -172,17 +176,19 @@ int Run(CommandContext ctx) {
 
   // Load Lucid sources.
   auto src_path = std::filesystem::absolute(ctx.args[0]);
-  const auto src = ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
-  if (!src.has_value()) {
-    PrintError(ctx.err) << "could not read file '" << ctx.args[0] << "'\n";
+  const auto src_or_err =
+      ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
+  if (auto* err = std::get_if<ReadFileError>(&src_or_err); err != nullptr) {
+    PrintError(ctx.err) << *err << "'\n";
     return 1;
   }
+  const auto& src = std::get<std::string>(src_or_err);
 
   // Compile sources to assembly.
   auto assembly_path = build_dir / (std::string(binary_name) + ".s");
   {
     std::ofstream assembly_stream(assembly_path);
-    if (auto err = CompileSource(*src, assembly_stream); err) {
+    if (auto err = CompileSource(src, assembly_stream); err) {
       std::visit([&ctx](auto& err) { PrintError(ctx.err) << err << "\n"; },
                  *err);
       return 1;

@@ -1,17 +1,30 @@
 #pragma once
 
-#include <optional>
+#include <ostream>
 #include <string>
 #include <string_view>
+#include <variant>
 
 namespace lucid {
 
-// Returns the content of the file located at `path` or nullopt in case of
-// an error.
+class ReadFileError {
+ public:
+  explicit ReadFileError(std::string_view path) : path_(path) {}
+
+  friend std::ostream& operator<<(std::ostream& out,
+                                  const ReadFileError error) {
+    return out << "could not read file '" << error.path_;
+  }
+
+ private:
+  std::string path_;
+};
+
+// Returns the content of the file located at `path`.
 //
 // If `with_trailing_zero` is set to `true`, appends a null terminating
 // character at the end of the returned string.
-std::optional<std::string> ReadFile(std::string_view path,
-                                    bool with_trailing_zero = false);
+std::variant<std::string, ReadFileError> ReadFile(
+    std::string_view path, bool with_trailing_zero = false);
 
 }  // namespace lucid
