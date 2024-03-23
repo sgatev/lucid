@@ -14,8 +14,7 @@ std::ostream& operator<<(std::ostream& os, const Token& token) {
 }
 
 std::size_t FindLine(std::string_view buffer, const Token& token) {
-  std::string_view prefix = buffer.substr(0, token.start_pos);
-  return std::count(prefix.begin(), prefix.end(), '\n') + 1;
+  return std::ranges::count(buffer.substr(0, token.start_pos), '\n') + 1;
 }
 
 std::size_t FindColumn(std::string_view buffer, const Token& token) {
