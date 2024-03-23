@@ -50,12 +50,11 @@ class AbstractMachineFunctionGenerator {
                   std::get<BasicType>(DerefType(array_type->element_type));
               auto size = std::atoi(array_type->size.value.data());
               for (int i = 0; i < size; ++i) {
-                if (var_decl_type.name == "Int32") {
+                if (var_decl_type.name == "Int32" ||
+                    var_decl_type.name == "Bool") {
                   state_.func.stack_slots.push_back(4);
                 } else if (var_decl_type.name == "Int64") {
                   state_.func.stack_slots.push_back(8);
-                } else if (var_decl_type.name == "Bool") {
-                  state_.func.stack_slots.push_back(4);
                 }
               }
             } else {
@@ -124,9 +123,10 @@ class AbstractMachineFunctionGenerator {
       return;
     }
 
-    std::size_t push_pos, pop_pos;
+    std::ptrdiff_t push_pos, pop_pos;
 
-    push_pos = state_.func.instructions.size();
+    push_pos =
+        state_.func.instructions.end() - state_.func.instructions.begin();
     for (RegId i = 0; i < graph_.func_params.size(); ++i) {
       const auto& param = graph_.func_params[i];
       const auto& param_type = std::get<BasicType>(DerefType(param.type));
@@ -157,7 +157,8 @@ class AbstractMachineFunctionGenerator {
       });
 
       if (block.id == graph_.get(graph_.last).id) {
-        pop_pos = state_.func.instructions.size();
+        pop_pos =
+            state_.func.instructions.end() - state_.func.instructions.begin();
         state_.func.instructions.push_back(Return{});
       }
 
@@ -215,18 +216,13 @@ class AbstractMachineFunctionGenerator {
 
   void Process(StmtRef ref, const ReturnStmt& stmt) {
     auto type = std::get<BasicType>(DerefType(GetType(DerefExpr(stmt.value))));
-    if (type.name == "Int32") {
+    if (type.name == "Int32" || type.name == "Bool") {
       state_.func.instructions.push_back(MoveReg32{
           .src_reg = state_.out_reg[stmt.value],
           .dst_reg = 0,
       });
     } else if (type.name == "Int64") {
       state_.func.instructions.push_back(MoveReg64{
-          .src_reg = state_.out_reg[stmt.value],
-          .dst_reg = 0,
-      });
-    } else if (type.name == "Bool") {
-      state_.func.instructions.push_back(MoveReg32{
           .src_reg = state_.out_reg[stmt.value],
           .dst_reg = 0,
       });
@@ -288,12 +284,7 @@ class AbstractMachineFunctionGenerator {
             .src_reg = state_.out_reg[arg],
             .dst_reg = i++,
         });
-      } else if (arg_type.name == "Int64") {
-        state_.func.instructions.push_back(MoveReg64{
-            .src_reg = state_.out_reg[arg],
-            .dst_reg = i++,
-        });
-      } else if (arg_type.name == "String") {
+      } else if (arg_type.name == "Int64" || arg_type.name == "String") {
         state_.func.instructions.push_back(MoveReg64{
             .src_reg = state_.out_reg[arg],
             .dst_reg = i++,

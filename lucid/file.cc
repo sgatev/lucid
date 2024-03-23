@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <fstream>
+#include <ios>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -14,7 +15,7 @@ std::optional<std::string> ReadFile(std::string_view path,
   if (!file) return std::nullopt;
 
   file.seekg(0, std::ios::end);
-  std::size_t size = file.tellg();
+  std::streamsize size = file.tellg();
   if (with_trailing_zero) ++size;
 
   std::string buffer(size, '\0');

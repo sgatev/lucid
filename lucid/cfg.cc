@@ -100,8 +100,6 @@ class ControlFlowGraphBuilder {
   }
 
   void FlushSubExprs(Sequence& seq, BlockRef block, BlockRef end) {
-    auto expr_begin = seq.expressions.size();
-
     while (!pending_sub_exprs_.empty()) {
       auto expr_ref = pending_sub_exprs_.top();
       pending_sub_exprs_.pop();
@@ -112,12 +110,12 @@ class ControlFlowGraphBuilder {
                  DerefExpr(expr_ref));
     }
 
-    std::reverse(seq.expressions.begin() + expr_begin, seq.expressions.end());
+    std::reverse(seq.expressions.begin(), seq.expressions.end());
   }
 
   void ProcessExpr(const FuncCallExpr& expr, BlockRef block, BlockRef end) {
     graph_.has_func_calls = true;
-    for (ExprRef arg : expr.args) ProcessSubExpr(arg, block);
+    for (ExprRef arg : expr.args) ProcessSubExpr(arg);
   }
 
   void ProcessExpr(const IntLitExpr& expr, BlockRef block, BlockRef end) {
@@ -137,13 +135,13 @@ class ControlFlowGraphBuilder {
   }
 
   void ProcessExpr(const IndexExpr& expr, BlockRef block, BlockRef end) {
-    ProcessSubExpr(expr.base, block);
-    ProcessSubExpr(expr.index, block);
+    ProcessSubExpr(expr.base);
+    ProcessSubExpr(expr.index);
   }
 
   void ProcessExpr(const BinaryOpExpr& expr, BlockRef block, BlockRef end) {
-    ProcessSubExpr(expr.lhs, block);
-    ProcessSubExpr(expr.rhs, block);
+    ProcessSubExpr(expr.lhs);
+    ProcessSubExpr(expr.rhs);
   }
 
   void ProcessExpr(const Type& expr, BlockRef block, BlockRef end) {
@@ -152,28 +150,28 @@ class ControlFlowGraphBuilder {
 
   void ProcessStmt(const ReturnStmt& stmt, Sequence& seq, BlockRef block,
                    BlockRef end) {
-    ProcessSubExpr(stmt.value, block);
+    ProcessSubExpr(stmt.value);
   }
 
   void ProcessStmt(const DoStmt& stmt, Sequence& seq, BlockRef block,
                    BlockRef end) {
-    ProcessSubExpr(stmt.expr, block);
+    ProcessSubExpr(stmt.expr);
   }
 
   void ProcessStmt(const VarDeclStmt& stmt, Sequence& seq, BlockRef block,
                    BlockRef end) {
-    if (stmt.init.has_value()) ProcessSubExpr(*stmt.init, block);
+    if (stmt.init.has_value()) ProcessSubExpr(*stmt.init);
   }
 
   void ProcessStmt(const VarAssignStmt& stmt, Sequence& seq, BlockRef block,
                    BlockRef end) {
-    ProcessSubExpr(stmt.expr, block);
+    ProcessSubExpr(stmt.expr);
   }
 
   void ProcessStmt(const ArrayAssignStmt& stmt, Sequence& seq, BlockRef block,
                    BlockRef end) {
-    ProcessSubExpr(stmt.index, block);
-    ProcessSubExpr(stmt.expr, block);
+    ProcessSubExpr(stmt.index);
+    ProcessSubExpr(stmt.expr);
   }
 
   void ProcessStmt(const FuncDefStmt& stmt, Sequence& seq, BlockRef block,
@@ -190,9 +188,7 @@ class ControlFlowGraphBuilder {
   void ProcessStmt(const IfStmt& stmt, Sequence& seq, BlockRef block,
                    BlockRef end) {}
 
-  void ProcessSubExpr(ExprRef expr_ref, BlockRef block) {
-    pending_sub_exprs_.push(expr_ref);
-  }
+  void ProcessSubExpr(ExprRef expr_ref) { pending_sub_exprs_.push(expr_ref); }
 
   const Stmt& DerefStmt(StmtRef stmt_ref) { return stmt_arena_.get(stmt_ref); }
 

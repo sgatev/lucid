@@ -157,7 +157,7 @@ class ExprTypeInferenceEngine {
 
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
     const auto& func_type = func_types_.at(expr.func_name);
-    for (std::uint8_t i = 0; i < expr.args.size(); ++i) {
+    for (std::uint32_t i = 0; i < expr.args.size(); ++i) {
       ExprRef arg = expr.args[i];
       RequireTypeForExpr(arg, func_type.parameters[i].type);
       AddPendingExpr(arg);
