@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <utility>
 #include <vector>
@@ -11,10 +12,10 @@ namespace lucid {
 template <typename T>
 class Arena {
  public:
-  using Ref = std::size_t;
+  using Ref = std::uint32_t;
 
   // A null `Arena<T>` reference.
-  static constexpr Ref kNullRef = std::numeric_limits<std::size_t>::max();
+  static constexpr Ref kNullRef = std::numeric_limits<std::uint32_t>::max();
 
   Arena() = default;
   Arena(Arena&&) = default;

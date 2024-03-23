@@ -11,6 +11,8 @@ namespace {
 
 using ::testing::ElementsAre;
 
+TEST(ArenaRefTest, Size) { EXPECT_EQ(sizeof(Arena<int>::Ref), 4); }
+
 TEST(ArenaTest, StoresValues) {
   Arena<int> arena;
 

@@ -112,13 +112,13 @@ class List {
 
   List() : size_(0), first_(0) {}
 
-  List(std::uint8_t size, T first) : size_(size), first_(first) {}
+  List(std::uint32_t size, T first) : size_(size), first_(first) {}
 
   // Returns the reference at the given index.
   T operator[](std::uint8_t i) const { return first_ + i; }
 
   // Returns the size of the list.
-  std::uint8_t size() const { return size_; }
+  std::uint32_t size() const { return size_; }
 
   // Returns an iterator to the first reference of the list.
   auto begin() const { return iterator(first_); }
@@ -127,7 +127,7 @@ class List {
   auto end() const { return iterator(first_ + size_); }
 
  private:
-  std::uint8_t size_;
+  std::uint32_t size_;
   T first_;
 };
 
