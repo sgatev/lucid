@@ -3,7 +3,8 @@
 #include <ostream>
 #include <string>
 #include <string_view>
-#include <variant>
+
+#include "lucid/result.h"
 
 namespace lucid {
 
@@ -13,7 +14,7 @@ class ReadFileError {
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const ReadFileError error) {
-    return out << "could not read file '" << error.path_;
+    return out << "could not read file '" << error.path_ << "'";
   }
 
  private:
@@ -24,7 +25,7 @@ class ReadFileError {
 //
 // If `with_trailing_zero` is set to `true`, appends a null terminating
 // character at the end of the returned string.
-std::variant<std::string, ReadFileError> ReadFile(
-    std::string_view path, bool with_trailing_zero = false);
+Result<std::string, ReadFileError> ReadFile(std::string_view path,
+                                            bool with_trailing_zero = false);
 
 }  // namespace lucid

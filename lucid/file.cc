@@ -5,12 +5,13 @@
 #include <ios>
 #include <string>
 #include <string_view>
-#include <variant>
+
+#include "lucid/result.h"
 
 namespace lucid {
 
-std::variant<std::string, ReadFileError> ReadFile(std::string_view path,
-                                                  bool with_trailing_zero) {
+Result<std::string, ReadFileError> ReadFile(std::string_view path,
+                                            bool with_trailing_zero) {
   std::ifstream file(path);
   if (!file) return ReadFileError(path);
 

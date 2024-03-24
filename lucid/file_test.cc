@@ -6,6 +6,11 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+MATCHER_P(HasValue, matcher, "") {
+  if (!arg.HasValue()) return false;
+  return ExplainMatchResult(matcher, arg.GetValue(), result_listener);
+}
+
 namespace lucid {
 namespace {
 
@@ -16,14 +21,12 @@ using ::testing::VariantWith;
 
 TEST(ReadFileTest, Works) {
   std::string path = testing::SrcDir() + "_main/lucid/testdata/foobarbaz";
-  EXPECT_THAT(ReadFile(path), VariantWith<std::string>("foobarbaz\n"s));
+  EXPECT_THAT(ReadFile(path), HasValue("foobarbaz\n"s));
   EXPECT_THAT(ReadFile(path, /*with_trailing_zero=*/true),
-              VariantWith<std::string>("foobarbaz\n\0"s));
+              HasValue("foobarbaz\n\0"s));
 }
 
-TEST(ReadFileTest, MissingFile) {
-  EXPECT_THAT(ReadFile("unknown"), VariantWith<ReadFileError>(_));
-}
+TEST(ReadFileTest, MissingFile) { EXPECT_TRUE(ReadFile("unknown").HasError()); }
 
 }  // namespace
 }  // namespace lucid

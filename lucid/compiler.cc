@@ -100,11 +100,11 @@ int Build(CommandContext ctx) {
   auto src_path = std::filesystem::absolute(ctx.args[1]);
   const auto src_or_err =
       ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
-  if (auto* err = std::get_if<ReadFileError>(&src_or_err); err != nullptr) {
-    PrintError(ctx.err) << *err << "'\n";
+  if (src_or_err.HasError()) {
+    src_or_err.OutputError(PrintError(ctx.err));
     return 1;
   }
-  const auto& src = std::get<std::string>(src_or_err);
+  const auto& src = src_or_err.GetValue();
 
   // Compile sources to assembly.
   auto build_dir = std::filesystem::temp_directory_path();
@@ -143,11 +143,11 @@ int Compile(CommandContext ctx) {
   auto src_path = std::filesystem::absolute(ctx.args[0]);
   const auto src_or_err =
       ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
-  if (auto* err = std::get_if<ReadFileError>(&src_or_err); err != nullptr) {
-    PrintError(ctx.err) << *err << "'\n";
+  if (src_or_err.HasError()) {
+    src_or_err.OutputError(PrintError(ctx.err));
     return 1;
   }
-  const auto& src = std::get<std::string>(src_or_err);
+  const auto& src = src_or_err.GetValue();
 
   // Compile sources to assembly.
   auto assembly_path = std::filesystem::current_path() / src_path.filename();
@@ -178,11 +178,11 @@ int Run(CommandContext ctx) {
   auto src_path = std::filesystem::absolute(ctx.args[0]);
   const auto src_or_err =
       ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
-  if (auto* err = std::get_if<ReadFileError>(&src_or_err); err != nullptr) {
-    PrintError(ctx.err) << *err << "'\n";
+  if (src_or_err.HasError()) {
+    src_or_err.OutputError(PrintError(ctx.err));
     return 1;
   }
-  const auto& src = std::get<std::string>(src_or_err);
+  const auto& src = src_or_err.GetValue();
 
   // Compile sources to assembly.
   auto assembly_path = build_dir / (std::string(binary_name) + ".s");

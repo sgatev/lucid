@@ -221,6 +221,9 @@ cc_library(
     name = "file",
     srcs = ["file.cc"],
     hdrs = ["file.h"],
+    deps = [
+        ":result",
+    ],
 )
 
 cc_test(
@@ -316,6 +319,20 @@ cc_binary(
         ":parser",
         ":token",
         "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_library(
+    name = "result",
+    hdrs = ["result.h"],
+)
+
+cc_test(
+    name = "result_test",
+    srcs = ["result_test.cc"],
+    deps = [
+        ":result",
+        "@googletest//:gtest_main",
     ],
 )
 

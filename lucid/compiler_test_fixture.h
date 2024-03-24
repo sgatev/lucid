@@ -87,8 +87,8 @@ class CompilerTest : public testing::Test {
     const int return_code = WEXITSTATUS(result);
     return {
         .return_code = return_code,
-        .out = std::get<std::string>(ReadFile(out_path)),
-        .err = std::get<std::string>(ReadFile(err_path)),
+        .out = ReadFile(out_path).GetValue(),
+        .err = ReadFile(err_path).GetValue(),
     };
   }
 
