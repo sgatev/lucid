@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ostream>
+#include <type_traits>
 #include <utility>
 #include <variant>
 
@@ -61,6 +62,66 @@ class Result {
   friend class Result;
 
   std::variant<V, Es...> state_;
+};
+
+template <typename... Es>
+class Result<void, Es...> {
+ public:
+  Result() : state_(std::monostate()) {}
+
+  template <typename E>
+  Result(const E& e) : state_(e) {}
+
+  template <typename... Ts>
+  Result(const Result<void, Ts...>& r)
+      : state_(std::visit(
+            [](auto&& a) -> std::variant<std::monostate, Es...> { return a; },
+            r.state_)) {}
+
+  template <typename... Ts>
+  Result(Result<void, Ts...>&& r)
+      : state_(std::visit(
+            [](auto&& a) -> std::variant<std::monostate, Es...> { return a; },
+            std::move(r.state_))) {}
+
+  Result& operator=(const Result&) = delete;
+  Result& operator=(Result&&) = delete;
+
+  // Returns true iff the result contains a value.
+  bool HasValue() const {
+    return std::holds_alternative<std::monostate>(state_);
+  }
+
+  // Returns true iff the result contains an error.
+  bool HasError() const { return !HasValue(); }
+
+  // Returns true iff the result contains an error of type `E`.
+  template <typename E>
+  bool HasError() const {
+    const E* e = std::get_if<E>(&state_);
+    return e != nullptr;
+  }
+
+  // Outputs an error to `out`.
+  //
+  // Requirements:
+  // - Must be called only if the result contains an error.
+  void OutputError(std::ostream& out) const {
+    std::visit(
+        [&out](auto&& a) {
+          using T = std::decay_t<decltype(a)>;
+          if constexpr (!std::is_same_v<T, std::monostate>) {
+            out << a << "\n";
+          }
+        },
+        state_);
+  }
+
+ private:
+  template <typename, typename...>
+  friend class Result;
+
+  std::variant<std::monostate, Es...> state_;
 };
 
 }  // namespace lucid

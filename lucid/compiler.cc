@@ -22,6 +22,7 @@
 #include "lucid/lexer.h"
 #include "lucid/opt.h"
 #include "lucid/parser.h"
+#include "lucid/result.h"
 #include "lucid/type.h"
 #include "lucid/version.h"
 
@@ -59,10 +60,8 @@ std::variant<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
   return func_defs;
 }
 
-using CompileError = std::variant<ParserError, TypeError>;
-
-std::optional<CompileError> CompileSource(std::string_view src,
-                                          std::ostream& out) {
+Result<void, ParserError, TypeError> CompileSource(std::string_view src,
+                                                   std::ostream& out) {
   Arena<Stmt> stmt_arena;
   Arena<Expr> expr_arena;
   Arena<Type> type_arena;
@@ -85,7 +84,7 @@ std::optional<CompileError> CompileSource(std::string_view src,
     GenerateArmAssemblySource(state.func, out);
   }
   GenerateArmEndSource(state.strings, out);
-  return std::nullopt;
+  return {};
 }
 
 int Build(CommandContext ctx) {
@@ -111,9 +110,8 @@ int Build(CommandContext ctx) {
   auto assembly_path = build_dir / (std::string(binary_name) + ".s");
   {
     std::ofstream assembly_stream(assembly_path);
-    if (auto err = CompileSource(src, assembly_stream); err) {
-      std::visit([&ctx](auto& err) { PrintError(ctx.err) << err << "\n"; },
-                 *err);
+    if (auto err = CompileSource(src, assembly_stream); err.HasError()) {
+      err.OutputError(PrintError(ctx.err));
       return 1;
     }
   }
@@ -154,9 +152,8 @@ int Compile(CommandContext ctx) {
   assembly_path.replace_extension("s");
   {
     std::ofstream assembly_stream(assembly_path);
-    if (auto err = CompileSource(src, assembly_stream); err) {
-      std::visit([&ctx](auto& err) { PrintError(ctx.err) << err << "\n"; },
-                 *err);
+    if (auto err = CompileSource(src, assembly_stream); err.HasError()) {
+      err.OutputError(PrintError(ctx.err));
       return 1;
     }
   }
@@ -188,9 +185,8 @@ int Run(CommandContext ctx) {
   auto assembly_path = build_dir / (std::string(binary_name) + ".s");
   {
     std::ofstream assembly_stream(assembly_path);
-    if (auto err = CompileSource(src, assembly_stream); err) {
-      std::visit([&ctx](auto& err) { PrintError(ctx.err) << err << "\n"; },
-                 *err);
+    if (auto err = CompileSource(src, assembly_stream); err.HasError()) {
+      err.OutputError(PrintError(ctx.err));
       return 1;
     }
   }
