@@ -26,7 +26,7 @@ TEST(ResultTest, Error) {
   EXPECT_FALSE(e.HasValue());
   EXPECT_TRUE(e.HasError());
   EXPECT_TRUE(e.HasError<FooErr>());
-  //e.Error();
+  EXPECT_TRUE(e.GetError().Is<FooErr>());
 }
 
 TEST(ResultTest, Void) {
@@ -36,20 +36,31 @@ TEST(ResultTest, Void) {
   ASSERT_TRUE(e.HasValue());
 }
 
-TEST(ResultTest, ValueConversion) {
+TEST(ResultTest, ValueChangeErrorType) {
   Result<int, FooErr> e1 = FooErr{};
   Result<int, FooErr, BarErr> e2 = e1;
 
   EXPECT_TRUE(e2.HasError());
   EXPECT_TRUE(e2.HasError<FooErr>());
+  EXPECT_TRUE(e2.GetError().Is<FooErr>());
 }
 
-TEST(ResultTest, VoidConversion) {
+TEST(ResultTest, VoidChangeErrorType) {
   Result<void, FooErr> e1 = FooErr{};
   Result<void, FooErr, BarErr> e2 = e1;
 
   EXPECT_TRUE(e2.HasError());
   EXPECT_TRUE(e2.HasError<FooErr>());
+  EXPECT_TRUE(e2.GetError().Is<FooErr>());
+}
+
+TEST(ResultTest, ChangeValueType) {
+  Result<int, FooErr> e1 = FooErr{};
+  Result<void, FooErr, BarErr> e2 = e1.GetError();
+
+  EXPECT_TRUE(e2.HasError());
+  EXPECT_TRUE(e2.HasError<FooErr>());
+  EXPECT_TRUE(e2.GetError().Is<FooErr>());
 }
 
 }  // namespace
