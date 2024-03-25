@@ -15,17 +15,20 @@ class Result {
   Result(V&& v) : state_(std::move(v)) {}
 
   template <typename E>
-  Result(const E& e) : state_(e) {}
+  Result(const E& e) : state_(Errors(e)) {}
 
   template <typename... Ts>
   Result(const Result<V, Ts...>& r)
-      : state_(std::visit([](auto&& a) -> std::variant<V, Es...> { return a; },
-                          r.state_)) {}
-
-  template <typename... Ts>
-  Result(Result<V, Ts...>&& r)
-      : state_(std::visit([](auto&& a) -> std::variant<V, Es...> { return a; },
-                          std::move(r.state_))) {}
+      : state_(std::visit(
+            [](auto&& a) -> std::variant<V, Errors> {
+              using T = std::decay_t<decltype(a)>;
+              if constexpr (std::is_same_v<T, V>) {
+                return a;
+              } else {
+                return std::visit([](auto&& a) -> Errors { return a; }, a);
+              }
+            },
+            r.state_)) {}
 
   Result& operator=(const Result&) = delete;
   Result& operator=(Result&&) = delete;
@@ -39,7 +42,7 @@ class Result {
   // Returns true iff the result contains an error of type `E`.
   template <typename E>
   bool HasError() const {
-    const E* e = std::get_if<E>(&state_);
+    const E* e = std::get_if<E>(&std::get<Errors>(state_));
     return e != nullptr;
   }
 
@@ -54,14 +57,17 @@ class Result {
   // Requirements:
   // - Must be called only if the result contains an error.
   void OutputError(std::ostream& out) const {
-    std::visit([&out](auto&& a) { out << a << "\n"; }, state_);
+    std::visit([&out](auto&& a) { out << a << "\n"; },
+               std::get<Errors>(state_));
   }
 
  private:
   template <typename, typename...>
   friend class Result;
 
-  std::variant<V, Es...> state_;
+  using Errors = std::variant<Es...>;
+
+  std::variant<V, Errors> state_;
 };
 
 template <typename... Es>
@@ -70,19 +76,20 @@ class Result<void, Es...> {
   Result() : state_(std::monostate()) {}
 
   template <typename E>
-  Result(const E& e) : state_(e) {}
+  Result(const E& e) : state_(Errors(e)) {}
 
   template <typename... Ts>
   Result(const Result<void, Ts...>& r)
       : state_(std::visit(
-            [](auto&& a) -> std::variant<std::monostate, Es...> { return a; },
+            [](auto&& a) -> std::variant<std::monostate, Errors> {
+              using T = std::decay_t<decltype(a)>;
+              if constexpr (std::is_same_v<T, std::monostate>) {
+                return std::monostate();
+              } else {
+                return std::visit([](auto&& a) -> Errors { return a; }, a);
+              }
+            },
             r.state_)) {}
-
-  template <typename... Ts>
-  Result(Result<void, Ts...>&& r)
-      : state_(std::visit(
-            [](auto&& a) -> std::variant<std::monostate, Es...> { return a; },
-            std::move(r.state_))) {}
 
   Result& operator=(const Result&) = delete;
   Result& operator=(Result&&) = delete;
@@ -98,7 +105,7 @@ class Result<void, Es...> {
   // Returns true iff the result contains an error of type `E`.
   template <typename E>
   bool HasError() const {
-    const E* e = std::get_if<E>(&state_);
+    const E* e = std::get_if<E>(&std::get<Errors>(state_));
     return e != nullptr;
   }
 
@@ -114,14 +121,16 @@ class Result<void, Es...> {
             out << a << "\n";
           }
         },
-        state_);
+        std::get<Errors>(state_));
   }
 
  private:
   template <typename, typename...>
   friend class Result;
 
-  std::variant<std::monostate, Es...> state_;
+  using Errors = std::variant<Es...>;
+
+  std::variant<std::monostate, Errors> state_;
 };
 
 }  // namespace lucid

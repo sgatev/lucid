@@ -26,6 +26,7 @@ TEST(ResultTest, Error) {
   EXPECT_FALSE(e.HasValue());
   EXPECT_TRUE(e.HasError());
   EXPECT_TRUE(e.HasError<FooErr>());
+  //e.Error();
 }
 
 TEST(ResultTest, Void) {
