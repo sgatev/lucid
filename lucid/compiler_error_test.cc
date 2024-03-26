@@ -49,7 +49,7 @@ TEST_F(CompilerTest, UnknownFile) {
       RunCompiler({"build", "unknown", "unknown.lu"}),
       AllOf(ReturnsCode(Eq(1)),
             PrintsError(AllOf(FormattedError(StartsWith("could not read file")),
-                              EndsWith("unknown.lu'\n")))));
+                              EndsWith("unknown.lu\"\n")))));
 }
 
 TEST_F(CompilerTest, ParseError) {

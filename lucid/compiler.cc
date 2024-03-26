@@ -89,13 +89,10 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
 
 Result<void, ReadFileError, ParserError, TypeError> DoCompile(
     std::filesystem::path src_path, std::filesystem::path asm_path) {
-  // Load Lucid sources.
-  const auto src_or_err =
-      ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
-  if (src_or_err.HasError()) {
-    return src_or_err.GetError();
-  }
-  const auto& src = src_or_err.GetValue();
+  // Read Lucid sources.
+  const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
+  if (maybe_src.HasError()) return maybe_src.GetError();
+  const auto& src = maybe_src.GetValue();
 
   // Compile sources to assembly.
   std::ofstream assembly_stream(asm_path);

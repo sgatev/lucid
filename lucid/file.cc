@@ -1,16 +1,16 @@
 #include "lucid/file.h"
 
 #include <cstddef>
+#include <filesystem>
 #include <fstream>
 #include <ios>
 #include <string>
-#include <string_view>
 
 #include "lucid/result.h"
 
 namespace lucid {
 
-Result<std::string, ReadFileError> ReadFile(std::string_view path,
+Result<std::string, ReadFileError> ReadFile(std::filesystem::path path,
                                             bool with_trailing_zero) {
   std::ifstream file(path);
   if (!file) return ReadFileError(path);
