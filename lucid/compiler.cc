@@ -43,7 +43,7 @@ std::string StringFormat(const std::string& fmt, Args... args) {
   return result;
 }
 
-std::variant<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
+Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
     std::string_view src, Arena<Stmt>& stmt_arena, Arena<Expr>& expr_arena,
     Arena<Type>& type_arena) {
   std::vector<FuncDefStmt> func_defs;
@@ -66,8 +66,8 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
   Arena<Expr> expr_arena;
   Arena<Type> type_arena;
   auto maybe_funcs = ParseFuncDefs(src, stmt_arena, expr_arena, type_arena);
-  if (auto* err = std::get_if<ParserError>(&maybe_funcs)) return *err;
-  auto& func_defs = std::get<std::vector<FuncDefStmt>>(maybe_funcs);
+  if (maybe_funcs.HasError()) return maybe_funcs.GetError();
+  auto& func_defs = maybe_funcs.GetValue();
   auto func_types =
       ExtractFuncTypes(stmt_arena, expr_arena, type_arena, func_defs);
   AbstractMachineState state;

@@ -78,6 +78,7 @@ class Result {
   // Requirements:
   // - Must be called only if the result contains a value.
   const V& GetValue() const { return std::get<V>(state_); }
+  V& GetValue() { return std::get<V>(state_); }
 
   // Returns the error that the result contains.
   //
