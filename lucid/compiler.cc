@@ -87,48 +87,47 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
   return {};
 }
 
-int Build(CommandContext ctx) {
-  if (ctx.args.size() != 2) {
-    PrintError(ctx.err) << "'build' command requires exactly 2 arguments\n";
-    return 1;
-  }
-
-  std::string_view binary_name = ctx.args[0];
-
+Result<void, ReadFileError, ParserError, TypeError> DoCompile(
+    std::filesystem::path src_path, std::filesystem::path asm_path) {
   // Load Lucid sources.
-  auto src_path = std::filesystem::absolute(ctx.args[1]);
   const auto src_or_err =
       ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
   if (src_or_err.HasError()) {
-    src_or_err.OutputError(PrintError(ctx.err));
-    return 1;
+    return src_or_err.GetError();
   }
   const auto& src = src_or_err.GetValue();
 
   // Compile sources to assembly.
-  auto build_dir = std::filesystem::temp_directory_path();
-  auto assembly_path = build_dir / (std::string(binary_name) + ".s");
-  {
-    std::ofstream assembly_stream(assembly_path);
-    if (auto err = CompileSource(src, assembly_stream); err.HasError()) {
-      err.OutputError(PrintError(ctx.err));
-      return 1;
-    }
+  std::ofstream assembly_stream(asm_path);
+  if (auto err = CompileSource(src, assembly_stream); err.HasError()) {
+    return err.GetError();
+  }
+
+  return {};
+}
+
+Result<void, ReadFileError, ParserError, TypeError> DoBuild(
+    std::filesystem::path bin_path, std::filesystem::path src_path) {
+  auto asm_path = bin_path;
+  asm_path.replace_extension("s");
+
+  if (auto res = DoCompile(src_path, asm_path); res.HasError()) {
+    return res.GetError();
   }
 
   // Translate assembly into object code.
-  const std::string as_cmd = StringFormat(
-      "as -arch arm64 -o %s.o %s", binary_name.data(), assembly_path.c_str());
+  const std::string as_cmd = StringFormat("as -arch arm64 -o %s.o %s",
+                                          bin_path.c_str(), asm_path.c_str());
   std::system(as_cmd.data());
 
   // Link object code and create a binary.
   const std::string ld_cmd = StringFormat(
       "ld -o %s %s.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` "
       "-e _start -arch arm64",
-      binary_name.data(), binary_name.data());
+      bin_path.c_str(), bin_path.c_str());
   std::system(ld_cmd.data());
 
-  return 0;
+  return {};
 }
 
 int Compile(CommandContext ctx) {
@@ -137,25 +136,30 @@ int Compile(CommandContext ctx) {
     return 1;
   }
 
-  // Load Lucid sources.
   auto src_path = std::filesystem::absolute(ctx.args[0]);
-  const auto src_or_err =
-      ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
-  if (src_or_err.HasError()) {
-    src_or_err.OutputError(PrintError(ctx.err));
+  auto asm_path = std::filesystem::current_path() / src_path.filename();
+  asm_path.replace_extension("s");
+
+  if (auto res = DoCompile(src_path, asm_path); res.HasError()) {
+    res.OutputError(PrintError(ctx.err));
     return 1;
   }
-  const auto& src = src_or_err.GetValue();
 
-  // Compile sources to assembly.
-  auto assembly_path = std::filesystem::current_path() / src_path.filename();
-  assembly_path.replace_extension("s");
-  {
-    std::ofstream assembly_stream(assembly_path);
-    if (auto err = CompileSource(src, assembly_stream); err.HasError()) {
-      err.OutputError(PrintError(ctx.err));
-      return 1;
-    }
+  return 0;
+}
+
+int Build(CommandContext ctx) {
+  if (ctx.args.size() != 2) {
+    PrintError(ctx.err) << "'build' command requires exactly 2 arguments\n";
+    return 1;
+  }
+
+  auto src_path = std::filesystem::absolute(ctx.args[1]);
+  auto bin_path = std::filesystem::temp_directory_path() / ctx.args[0];
+
+  if (auto res = DoBuild(bin_path, src_path); res.HasError()) {
+    res.OutputError(PrintError(ctx.err));
+    return 1;
   }
 
   return 0;
@@ -167,49 +171,23 @@ int Run(CommandContext ctx) {
     return 1;
   }
 
-  auto build_dir = std::filesystem::temp_directory_path();
-  std::string_view binary_name = "temp_binary";
-  auto binary_path = build_dir / binary_name;
-
-  // Load Lucid sources.
   auto src_path = std::filesystem::absolute(ctx.args[0]);
-  const auto src_or_err =
-      ReadFile(src_path.c_str(), /*with_trailing_zero=*/true);
-  if (src_or_err.HasError()) {
-    src_or_err.OutputError(PrintError(ctx.err));
+  auto bin_path = std::filesystem::temp_directory_path() / src_path.filename();
+  bin_path.replace_extension();
+
+  if (auto res = DoBuild(bin_path, src_path); res.HasError()) {
+    res.OutputError(PrintError(ctx.err));
     return 1;
   }
-  const auto& src = src_or_err.GetValue();
-
-  // Compile sources to assembly.
-  auto assembly_path = build_dir / (std::string(binary_name) + ".s");
-  {
-    std::ofstream assembly_stream(assembly_path);
-    if (auto err = CompileSource(src, assembly_stream); err.HasError()) {
-      err.OutputError(PrintError(ctx.err));
-      return 1;
-    }
-  }
-
-  // Translate assembly into object code.
-  const std::string as_cmd = StringFormat(
-      "as -arch arm64 -o %s.o %s", binary_path.c_str(), assembly_path.c_str());
-  std::system(as_cmd.data());
-
-  // Link object code and create a binary.
-  const std::string ld_cmd = StringFormat(
-      "ld -o %s %s.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` "
-      "-e _start -arch arm64",
-      binary_path.c_str(), binary_path.c_str());
-  std::system(ld_cmd.data());
 
   // Run the binary.
-  int status = std::system(binary_path.c_str());
+  int status = std::system(bin_path.c_str());
   return WEXITSTATUS(status);
 }
 
 int Version(CommandContext ctx) {
   ctx.out << "Commit: " << kGitCommit << "\n";
+
   return 0;
 }
 
