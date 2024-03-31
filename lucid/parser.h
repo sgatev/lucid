@@ -180,7 +180,7 @@ class Parser {
 
     if (auto r = ExpectToken(Token::Kind::OpenBrace); IsError(r)) return *r;
 
-    std::vector<StmtRef> stmts;
+    const auto start_idx = pending_stmts_.size();
     while (true) {
       SkipSpace();
 
@@ -188,18 +188,21 @@ class Parser {
 
       const auto maybe_stmt = ParseStmt();
       if (IsError(maybe_stmt)) return std::get<ParserError>(maybe_stmt);
-      stmts.push_back(std::get<StmtRef>(maybe_stmt));
+      pending_stmts_.push_back(std::get<StmtRef>(maybe_stmt));
     }
 
     Read();
 
-    std::uint8_t args_size = stmts.size();
+    const std::uint8_t args_size = pending_stmts_.size() - start_idx;
     StmtRef args_first = Arena<Stmt>::kNullRef;
-    if (!stmts.empty()) {
-      args_first = stmt_arena_.alias(stmts[0]);
+    if (args_size > 0) {
+      args_first = stmt_arena_.alias(pending_stmts_[start_idx]);
     }
-    for (int i = 1; i < stmts.size(); ++i) {
-      stmt_arena_.alias(stmts[i]);
+    for (std::size_t i = 1; i < args_size; ++i) {
+      stmt_arena_.alias(pending_stmts_[start_idx + i]);
+    }
+    for (std::size_t i = 0; i < args_size; ++i) {
+      pending_stmts_.pop_back();
     }
 
     return List<StmtRef>(args_size, args_first);
@@ -519,23 +522,26 @@ class Parser {
     if (Peek().kind == Token::Kind::OpenParen) {
       Read();
 
-      std::vector<ExprRef> exprs;
+      const auto start_idx = pending_exprs_.size();
       while (Peek().kind != Token::Kind::CloseParen) {
         auto maybe_arg = ParseExpr();
         if (IsError(maybe_arg)) return std::get<ParserError>(maybe_arg);
-        exprs.push_back(std::get<ExprRef>(maybe_arg));
+        pending_exprs_.push_back(std::get<ExprRef>(maybe_arg));
 
         if (Peek().kind == Token::Kind::Comma) Read();
       }
       Read();
 
-      std::uint8_t args_size = exprs.size();
+      const std::uint8_t args_size = pending_exprs_.size() - start_idx;
       ExprRef args_first = Arena<Expr>::kNullRef;
-      if (!exprs.empty()) {
-        args_first = expr_arena_.alias(exprs[0]);
+      if (args_size > 0) {
+        args_first = expr_arena_.alias(pending_exprs_[start_idx]);
       }
-      for (int i = 1; i < exprs.size(); ++i) {
-        expr_arena_.alias(exprs[i]);
+      for (std::size_t i = 1; i < args_size; ++i) {
+        expr_arena_.alias(pending_exprs_[start_idx + i]);
+      }
+      for (std::size_t i = 0; i < args_size; ++i) {
+        pending_exprs_.pop_back();
       }
 
       return expr_arena_.add(FuncCallExpr{
@@ -662,6 +668,8 @@ class Parser {
   std::string_view buffer_;
   LexerT lexer_;
   Token next_;
+  std::vector<StmtRef> pending_stmts_;
+  std::vector<ExprRef> pending_exprs_;
 };
 
 }  // namespace lucid
