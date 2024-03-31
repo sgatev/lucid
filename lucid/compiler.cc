@@ -1,13 +1,10 @@
-#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
-#include <optional>
-#include <stdexcept>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -28,20 +25,6 @@
 
 namespace lucid {
 namespace {
-
-// Format `args` according to the format string `fmt`.
-//
-// From https://stackoverflow.com/a/26221725.
-template <typename... Args>
-std::string StringFormat(const std::string& fmt, Args... args) {
-  int size = std::snprintf(nullptr, 0, fmt.c_str(), args...) + 1;
-  if (size < 0) throw std::runtime_error("Error during formatting.");
-
-  std::string result;
-  result.resize(size);
-  std::snprintf(result.data(), size, fmt.c_str(), args...);
-  return result;
-}
 
 Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
     std::string_view src, Arena<Stmt>& stmt_arena, Arena<Expr>& expr_arena,
@@ -113,13 +96,13 @@ Result<void, ReadFileError, ParserError, TypeError> DoBuild(
   }
 
   // Translate assembly into object code.
-  const std::string as_cmd = StringFormat("as -arch arm64 -o %s.o %s",
-                                          bin_path.c_str(), asm_path.c_str());
+  const std::string as_cmd = std::format("as -arch arm64 -o {}.o {}",
+                                         bin_path.c_str(), asm_path.c_str());
   std::system(as_cmd.data());
 
   // Link object code and create a binary.
-  const std::string ld_cmd = StringFormat(
-      "ld -o %s %s.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` "
+  const std::string ld_cmd = std::format(
+      "ld -o {} {}.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` "
       "-e _start -arch arm64",
       bin_path.c_str(), bin_path.c_str());
   std::system(ld_cmd.data());
