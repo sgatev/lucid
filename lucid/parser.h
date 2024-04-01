@@ -637,7 +637,7 @@ class Parser {
   }
 
   void SkipSpace() {
-    while (Peek().kind == Token::Kind::Space) Read();
+    if (Peek().kind == Token::Kind::Space) Read();
   }
 
   std::string_view TokenString(Token token) const {
