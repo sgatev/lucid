@@ -31,6 +31,7 @@ struct LoopStmt;
 struct BasicType;
 struct ArrayType;
 struct BreakStmt;
+struct FuncParam;
 
 // A type expression in the Lucid language.
 using Type = std::variant<BasicType, ArrayType>;
@@ -54,6 +55,8 @@ using ExprRef = ArenaRef<Expr>;
 
 // A reference to a type that can be dereferenced using an `Arena<Type>` object.
 using TypeRef = ArenaRef<Type>;
+
+using ParamRef = ArenaRef<FuncParam>;
 
 // A list of references.
 template <typename T>
@@ -112,6 +115,12 @@ class List {
 
   List() : size_(0), first_(0) {}
 
+  List(const List& other) = default;
+  List(List&& other) = default;
+
+  List& operator=(const List& other) = default;
+  List& operator=(List&& other) = default;
+
   List(std::uint32_t size, T first) : size_(size), first_(first) {}
 
   // Returns the reference at the given index.
@@ -150,7 +159,7 @@ struct FuncDefStmt {
   std::string_view name;
 
   // Parameters of the function.
-  std::vector<FuncParam> parameters;
+  List<ParamRef> params;
 
   // Type of the result of the function.
   TypeRef result_type;
@@ -371,11 +380,17 @@ class SyntaxContext {
   // Adds `type` to the context.
   TypeRef Add(Type type) { return types_.add(std::move(type)); }
 
+  // Adds `param` to the context.
+  ParamRef Add(FuncParam param) { return params_.add(std::move(param)); }
+
   // Creates an alias of `ref` in the context.
   StmtRef AliasStmt(StmtRef ref) { return stmts_.alias(ref); }
 
   // Creates an alias of `ref` in the context.
   ExprRef AliasExpr(ExprRef ref) { return exprs_.alias(ref); }
+
+  // Creates an alias of `ref` in the context.
+  ParamRef AliasParam(ParamRef ref) { return params_.alias(ref); }
 
   // Returns the statement that `ref` refers to.
   Stmt& DerefStmt(StmtRef ref) { return stmts_.get(ref); }
@@ -388,6 +403,9 @@ class SyntaxContext {
   // Returns the type that `ref` refers to.
   Type& DerefType(TypeRef ref) { return types_.get(ref); }
   const Type& DerefType(TypeRef ref) const { return types_.get(ref); }
+
+  FuncParam& DerefParam(ParamRef ref) { return params_.get(ref); }
+  const FuncParam& DerefParam(ParamRef ref) const { return params_.get(ref); }
 
   // Returns true if and only if `lhs` and `rhs` refer to equivalent statements.
   bool EquivStmts(StmtRef lhs, StmtRef rhs) const {
@@ -402,6 +420,7 @@ class SyntaxContext {
   Arena<Stmt> stmts_;
   Arena<Expr> exprs_;
   Arena<Type> types_;
+  Arena<FuncParam> params_;
 };
 
 }  // namespace lucid

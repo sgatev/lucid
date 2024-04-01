@@ -10,7 +10,7 @@ TEST(TypeTest, Size) { EXPECT_EQ(sizeof(Type), 40); }
 
 TEST(ExprTest, Size) { EXPECT_EQ(sizeof(Expr), 40); }
 
-TEST(StmtTest, Size) { EXPECT_EQ(sizeof(Stmt), 64); }
+TEST(StmtTest, Size) { EXPECT_EQ(sizeof(Stmt), 48); }
 
 }  // namespace
 }  // namespace lucid

@@ -86,13 +86,12 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, FuncWithInt32Param) {
   auto func = FuncDefStmt{
       .name = "id",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -121,13 +120,12 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, FuncWithInt64Param) {
   auto func = FuncDefStmt{
       .name = "id",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Int64"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -169,12 +167,13 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt32Arg) {
       }),
   };
 
-  std::vector<FuncParam> id_func_params = {
-      {.type = T(BasicType{.name = "Int32"})},
-  };
   auto id_func_type = FuncType{
       .result_type = "Int32",
-      .parameters = id_func_params,
+      .params = ParamListOf({
+          P(FuncParam{
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+      }),
   };
 
   EXPECT_EQ(Generate(func, {{"id", id_func_type}}), R"(foo:
@@ -234,12 +233,13 @@ TEST_F(GenerateArmAssemblySourceTest, FuncCallWithInt64Arg) {
       }),
   };
 
-  std::vector<FuncParam> id_func_params = {
-      {.type = T(BasicType{.name = "Int64"})},
-  };
   auto id_func_type = FuncType{
       .result_type = "Int64",
-      .parameters = id_func_params,
+      .params = ParamListOf({
+          P(FuncParam{
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+      }),
   };
 
   EXPECT_EQ(Generate(func, {{"id", id_func_type}}), R"(foo:
@@ -742,17 +742,16 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, GtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-              {
-                  .name = "y",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+          P(FuncParam{
+              .name = "y",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -787,17 +786,16 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, GtInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-              {
-                  .name = "y",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+          P(FuncParam{
+              .name = "y",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -864,17 +862,16 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, LtInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-              {
-                  .name = "y",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+          P(FuncParam{
+              .name = "y",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -909,17 +906,16 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, LtInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-              {
-                  .name = "y",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+          P(FuncParam{
+              .name = "y",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -954,17 +950,16 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, EqInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-              {
-                  .name = "y",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+          P(FuncParam{
+              .name = "y",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -999,17 +994,16 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, EqInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-              {
-                  .name = "y",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+          P(FuncParam{
+              .name = "y",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -1044,17 +1038,16 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, NotEqInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-              {
-                  .name = "y",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+          P(FuncParam{
+              .name = "y",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -1089,17 +1082,16 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, NotEqInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-              {
-                  .name = "y",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+          P(FuncParam{
+              .name = "y",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Bool"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -1232,13 +1224,12 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, VarAssignInt32) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarAssignStmt{
@@ -1266,13 +1257,12 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, VarAssignInt64) {
   auto func = FuncDefStmt{
       .name = "foo",
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarAssignStmt{
@@ -1300,21 +1290,20 @@ RET
 TEST_F(GenerateArmAssemblySourceTest, Printf) {
   auto func = FuncDefStmt{
       .name = "printf",
-      .parameters =
-          {
-              {
-                  .name = "f",
-                  .type = T(BasicType{.name = "String"}),
-              },
-              {
-                  .name = "n",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-              {
-                  .name = "m",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "f",
+              .type = T(BasicType{.name = "String"}),
+          }),
+          P(FuncParam{
+              .name = "n",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+          P(FuncParam{
+              .name = "m",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+      }),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(ReturnStmt{

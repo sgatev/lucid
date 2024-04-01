@@ -26,7 +26,8 @@ class ExprTypeInferenceEngine {
       : ctx_(ctx), func_types_(func_types), func_def_(func_def) {}
 
   std::optional<TypeError> InferTypes() {
-    for (const auto& param : func_def_.parameters) {
+    for (const auto& param_ref : func_def_.params) {
+      const auto& param = ctx_.DerefParam(param_ref);
       SetIdentType(param.name, param.type);
     }
 
@@ -153,8 +154,9 @@ class ExprTypeInferenceEngine {
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
     const auto& func_type = func_types_.at(expr.func_name);
     for (std::uint32_t i = 0; i < expr.args.size(); ++i) {
+      const auto& param = ctx_.DerefParam(func_type.params[i]);
       ExprRef arg = expr.args[i];
-      RequireTypeForExpr(arg, func_type.parameters[i].type);
+      RequireTypeForExpr(arg, param.type);
       AddPendingExpr(arg);
     }
     RequireTypeForExpr(expr_ref,
@@ -318,7 +320,7 @@ std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
         std::get<BasicType>(ctx.DerefType(func_def.result_type));
     func_types[func_def.name] = {
         .result_type = result_type.name,
-        .parameters = func_def.parameters,
+        .params = func_def.params,
     };
   }
   return func_types;

@@ -66,7 +66,7 @@ struct ControlFlowGraph {
   std::string_view func_name;
 
   // Parameters of the function.
-  std::vector<FuncParam> func_params;
+  List<ParamRef> func_params;
 
   // The first block in the control flow graph.
   BlockRef first = kNullBlockRef;

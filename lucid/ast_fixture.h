@@ -21,6 +21,8 @@ using ExprRefMatcher = std::function<bool(ExprRef)>;
 
 using TypeRefMatcher = std::function<bool(TypeRef)>;
 
+using ParamRefMatcher = std::function<bool(ParamRef)>;
+
 template <typename T, typename P>
 bool AllMatch(const std::vector<T>& real, const std::vector<P>& patterns) {
   if (real.size() != patterns.size()) return false;
@@ -55,13 +57,13 @@ struct CompoundStmtPattern {
 
 struct FuncDefStmtPattern {
   std::string_view name;
-  std::vector<FuncParamPattern> parameters;
+  std::vector<ParamRefMatcher> params;
   TypeRefMatcher result_type;
   CompoundStmtPattern body;
 
   bool operator()(const FuncDefStmt& stmt) const {
     if (result_type != nullptr && !result_type(stmt.result_type)) return false;
-    return name == stmt.name && AllMatch(stmt.parameters, parameters) &&
+    return name == stmt.name && AllMatch(stmt.params, params) &&
            AllMatch(stmt.stmts, body.statements);
   }
 };
@@ -226,6 +228,12 @@ class AstFixture {
     return ctx_.Add(type);
   }
 
+  // Allocates the type `param` on an arena.
+  template <typename P>
+  ParamRef P(P param) {
+    return ctx_.Add(param);
+  }
+
   // Returns an empty list.
   template <typename T>
   List<typename Arena<T>::Ref> EmptyList() {
@@ -250,6 +258,16 @@ class AstFixture {
     ++it;
     for (; it != stmts.end(); ++it) ctx_.AliasStmt(*it);
     return List<StmtRef>(stmts.size(), first_stmt);
+  }
+
+  // Creates a list of the given parameter references.
+  List<ParamRef> ParamListOf(std::initializer_list<ParamRef> params) {
+    if (std::empty(params)) return EmptyList<ParamRef>();
+    auto it = params.begin();
+    auto first_stmt = ctx_.AliasParam(*it);
+    ++it;
+    for (; it != params.end(); ++it) ctx_.AliasParam(*it);
+    return List<ParamRef>(params.size(), first_stmt);
   }
 
   // Returns a matcher that is satisfied if the argument is a statement
@@ -331,18 +349,23 @@ class AstFixture {
     return MatchesType<ArrayType>(std::move(pattern));
   }
 
+  ParamRefMatcher MatchesFuncParam(FuncParamPattern pattern) {
+    return
+        [this, pattern](ParamRef ref) { return pattern(ctx_.DerefParam(ref)); };
+  }
+
   SyntaxContext ctx_;
 
  private:
   template <typename S>
-  ExprRefMatcher MatchesStmt() {
+  StmtRefMatcher MatchesStmt() {
     return [this](StmtRef ref) {
       return std::holds_alternative<S>(ctx_.DerefStmt(ref));
     };
   }
 
   template <typename S, typename P>
-  ExprRefMatcher MatchesStmt(P pattern) {
+  StmtRefMatcher MatchesStmt(P pattern) {
     return [this, pattern](StmtRef ref) {
       if (auto* stmt = std::get_if<S>(&ctx_.DerefStmt(ref))) {
         return pattern(*stmt);

@@ -22,7 +22,8 @@ class AbstractMachineFunctionGenerator {
                                    const ControlFlowGraph& graph,
                                    AbstractMachineState& state)
       : ctx_(ctx), graph_(graph), state_(state) {
-    for (const auto& param : graph.func_params) {
+    for (const auto& param_ref : graph.func_params) {
+      const auto& param = ctx_.DerefParam(param_ref);
       // TODO: Handle `ArrayType`.
       const auto& param_type = std::get<BasicType>(ctx_.DerefType(param.type));
       if (param_type.name == "Int32") {
@@ -121,21 +122,21 @@ class AbstractMachineFunctionGenerator {
     push_pos =
         state_.func.instructions.end() - state_.func.instructions.begin();
     for (RegId i = 0; i < graph_.func_params.size(); ++i) {
-      const auto& param = graph_.func_params[i];
+      const auto& param = ctx_.DerefParam(graph_.func_params[i]);
       const auto& param_type = std::get<BasicType>(ctx_.DerefType(param.type));
       if (param_type.name == "Int32") {
         state_.func.instructions.push_back(StoreStack32{
             .offset = stack_offset_,
             .src_reg = static_cast<RegId>(i + 1),
         });
-        var_stack_[graph_.func_params[i].name] = stack_offset_;
+        var_stack_[param.name] = stack_offset_;
         ++stack_offset_;
       } else if (param_type.name == "Int64") {
         state_.func.instructions.push_back(StoreStack64{
             .offset = stack_offset_,
             .src_reg = static_cast<RegId>(i + 1),
         });
-        var_stack_[graph_.func_params[i].name] = stack_offset_;
+        var_stack_[param.name] = stack_offset_;
         ++stack_offset_;
       }
     }

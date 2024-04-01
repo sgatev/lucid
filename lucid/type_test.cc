@@ -32,10 +32,11 @@ TEST_F(ExtractFuncTypesTest, MultipleFuncDefs) {
       {
           .name = "id",
           .result_type = T(BasicType{.name = "Int32"}),
-          .parameters =
-              {
-                  {.type = T(BasicType{.name = "Int32"})},
-              },
+          .params = ParamListOf({
+              P(FuncParam{
+                  .type = T(BasicType{.name = "Int32"}),
+              }),
+          }),
       },
       {
           .name = "foo",
@@ -43,16 +44,15 @@ TEST_F(ExtractFuncTypesTest, MultipleFuncDefs) {
       },
   };
 
-  EXPECT_THAT(
-      ExtractFuncTypes(func_defs),
-      UnorderedElementsAre(Pair("id",
-                                FuncType{
-                                    .result_type = "Int32",
-                                    .parameters = func_defs[0].parameters,
-                                }),
-                           Pair("foo", FuncType{
-                                           .result_type = "Int64",
-                                       })));
+  EXPECT_THAT(ExtractFuncTypes(func_defs),
+              UnorderedElementsAre(Pair("id",
+                                        FuncType{
+                                            .result_type = "Int32",
+                                            .params = func_defs[0].params,
+                                        }),
+                                   Pair("foo", FuncType{
+                                                   .result_type = "Int64",
+                                               })));
 }
 
 MATCHER_P(HoldsFuncDef, match_stmt, "") { return match_stmt(arg); }
@@ -130,13 +130,12 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Void"}),
-      .parameters =
-          {
-              {
-                  .name = "x",
-                  .type = T(BasicType{.name = "Int64"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int64"}),
+          }),
+      }),
       .stmts = StmtListOf({
           S(VarAssignStmt{
               .name = "x",
@@ -151,12 +150,12 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "foo",
                         .result_type = MatchesBasicType({.name = "Void"}),
-                        .parameters =
+                        .params =
                             {
-                                {
+                                MatchesFuncParam({
                                     .name = "x",
                                     .type = MatchesBasicType({.name = "Int64"}),
-                                },
+                                }),
                             },
                         .body = {{
                             MatchesVarAssignStmt({
@@ -174,13 +173,12 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
   auto func = FuncDefStmt{
       .name = "fact",
       .result_type = T(BasicType{.name = "Void"}),
-      .parameters =
-          {
-              {
-                  .name = "n",
-                  .type = T(BasicType{.name = "Int32"}),
-              },
-          },
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "n",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+      }),
       .stmts = StmtListOf({
           S(IfStmt{
               .cond = E(BinaryOpExpr{
@@ -197,12 +195,12 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
                         .name = "fact",
                         .result_type = MatchesBasicType({.name = "Void"}),
-                        .parameters =
+                        .params =
                             {
-                                {
+                                MatchesFuncParam({
                                     .name = "n",
                                     .type = MatchesBasicType({.name = "Int32"}),
-                                },
+                                }),
                             },
                         .body = {{{
                             MatchesIfStmt({
@@ -282,12 +280,13 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
       }),
   };
 
-  std::vector<FuncParam> id_func_params = {
-      {.type = T(BasicType{.name = "Int32"})},
-  };
   auto id_func_type = FuncType{
       .result_type = "Int32",
-      .parameters = id_func_params,
+      .params = ParamListOf({
+          P(FuncParam{
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+      }),
   };
 
   EXPECT_EQ(InferExprTypes(func, {{"id", id_func_type}}), std::nullopt);

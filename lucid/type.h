@@ -33,14 +33,14 @@ struct FuncType {
   // Type of the result of the function.
   std::string_view result_type;
 
-  // Types of parameters of the function.
-  std::span<const FuncParam> parameters;
+  // Types of the parameters of the function.
+  List<ParamRef> params;
 
   bool operator==(const FuncType& func_type) const {
     if (result_type != func_type.result_type) return false;
-    if (parameters.size() != func_type.parameters.size()) return false;
-    for (int i = 0; i < parameters.size(); ++i) {
-      if (parameters[i] != func_type.parameters[i]) return false;
+    if (params.size() != func_type.params.size()) return false;
+    for (int i = 0; i < params.size(); ++i) {
+      if (params[i] != func_type.params[i]) return false;
     }
     return true;
   }

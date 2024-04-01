@@ -105,6 +105,8 @@ class Parser {
 
     SkipSpace();
 
+    std::uint8_t params_size = 0;
+    ParamRef first_param = Arena<FuncParam>::kNullRef;
     if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) return *r;
     while (true) {
       if (Peek().kind == Token::Kind::Comma) {
@@ -123,8 +125,11 @@ class Parser {
 
       auto maybe_param = ParseParam();
       if (IsError(maybe_param)) return std::get<ParserError>(maybe_param);
-      stmt.parameters.push_back(std::move(std::get<FuncParam>(maybe_param)));
+      auto param = ctx_.Add(std::move(std::get<FuncParam>(maybe_param)));
+      if (params_size == 0) first_param = param;
+      ++params_size;
     }
+    stmt.params = List<ParamRef>(params_size, first_param);
 
     SkipSpace();
 
