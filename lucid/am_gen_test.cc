@@ -22,11 +22,10 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
   std::vector<Instruction> Generate(
       FuncDefStmt& func,
       const std::unordered_map<std::string_view, FuncType>& func_types = {}) {
-    InferExprTypes(stmt_arena_, expr_arena_, type_arena_, func_types, func);
-    auto graph = BuildControlFlowGraph(stmt_arena_, expr_arena_, func);
+    InferExprTypes(ctx_, func_types, func);
+    auto graph = BuildControlFlowGraph(ctx_, func);
     AbstractMachineState state;
-    GenerateAbstractMachineFunction(stmt_arena_, expr_arena_, type_arena_,
-                                    graph, state);
+    GenerateAbstractMachineFunction(ctx_, graph, state);
     return state.func.instructions;
   }
 };

@@ -359,4 +359,49 @@ inline void SetType(Expr& expr, TypeRef type) {
   std::visit([type](auto& expr) { expr.type = type; }, expr);
 }
 
+// A context for syntactic operations.
+class SyntaxContext {
+ public:
+  // Adds `stmt` to the context.
+  StmtRef Add(Stmt stmt) { return stmts_.add(std::move(stmt)); }
+
+  // Adds `expr` to the context.
+  ExprRef Add(Expr expr) { return exprs_.add(std::move(expr)); }
+
+  // Adds `type` to the context.
+  TypeRef Add(Type type) { return types_.add(std::move(type)); }
+
+  // Creates an alias of `ref` in the context.
+  StmtRef AliasStmt(StmtRef ref) { return stmts_.alias(ref); }
+
+  // Creates an alias of `ref` in the context.
+  ExprRef AliasExpr(ExprRef ref) { return exprs_.alias(ref); }
+
+  // Returns the statement that `ref` refers to.
+  Stmt& DerefStmt(StmtRef ref) { return stmts_.get(ref); }
+  const Stmt& DerefStmt(StmtRef ref) const { return stmts_.get(ref); }
+
+  // Returns the expression that `ref` refers to.
+  Expr& DerefExpr(ExprRef ref) { return exprs_.get(ref); }
+  const Expr& DerefExpr(ExprRef ref) const { return exprs_.get(ref); }
+
+  // Returns the type that `ref` refers to.
+  Type& DerefType(TypeRef ref) { return types_.get(ref); }
+  const Type& DerefType(TypeRef ref) const { return types_.get(ref); }
+
+  // Returns true if and only if `lhs` and `rhs` refer to equivalent statements.
+  bool EquivStmts(StmtRef lhs, StmtRef rhs) const {
+    return stmts_.equiv(lhs, rhs);
+  }
+
+  std::size_t Size() const {
+    return stmts_.size() + exprs_.size() + types_.size();
+  }
+
+ private:
+  Arena<Stmt> stmts_;
+  Arena<Expr> exprs_;
+  Arena<Type> types_;
+};
+
 }  // namespace lucid

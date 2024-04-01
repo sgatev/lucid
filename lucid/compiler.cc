@@ -27,11 +27,10 @@ namespace lucid {
 namespace {
 
 Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
-    std::string_view src, Arena<Stmt>& stmt_arena, Arena<Expr>& expr_arena,
-    Arena<Type>& type_arena) {
+    std::string_view src, SyntaxContext& ctx) {
   std::vector<FuncDefStmt> func_defs;
   Lexer lexer(src);
-  Parser parser(stmt_arena, expr_arena, type_arena, src, lexer);
+  Parser parser(ctx, src, lexer);
   while (true) {
     auto maybe_func_def = parser.ParseFuncDef();
     if (auto* err = std::get_if<ParserError>(&maybe_func_def)) {
@@ -45,24 +44,17 @@ Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
 
 Result<void, ParserError, TypeError> CompileSource(std::string_view src,
                                                    std::ostream& out) {
-  Arena<Stmt> stmt_arena;
-  Arena<Expr> expr_arena;
-  Arena<Type> type_arena;
-  auto maybe_funcs = ParseFuncDefs(src, stmt_arena, expr_arena, type_arena);
+  SyntaxContext ctx;
+  auto maybe_funcs = ParseFuncDefs(src, ctx);
   if (maybe_funcs.HasError()) return maybe_funcs.GetError();
   auto& func_defs = maybe_funcs.GetValue();
-  auto func_types =
-      ExtractFuncTypes(stmt_arena, expr_arena, type_arena, func_defs);
+  auto func_types = ExtractFuncTypes(ctx, func_defs);
   AbstractMachineState state;
   GenerateArmStartSource(out);
   for (auto& func : func_defs) {
-    if (auto err = InferExprTypes(stmt_arena, expr_arena, type_arena,
-                                  func_types, func);
-        err)
-      return *err;
-    auto graph = BuildControlFlowGraph(stmt_arena, expr_arena, func);
-    GenerateAbstractMachineFunction(stmt_arena, expr_arena, type_arena, graph,
-                                    state);
+    if (auto err = InferExprTypes(ctx, func_types, func); err) return *err;
+    auto graph = BuildControlFlowGraph(ctx, func);
+    GenerateAbstractMachineFunction(ctx, graph, state);
     OptimizeAbstractMachineInstructions(state.func.instructions);
     GenerateArmAssemblySource(state.func, out);
   }

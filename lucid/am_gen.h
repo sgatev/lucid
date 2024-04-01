@@ -31,15 +31,8 @@ struct AbstractMachineState {
 // The generated instructions are stored in `state`.
 //
 // Requirements:
-//  * Statements that are reachable from `graph` must be allocated on
-//    `stmt_arena`.
-//  * Expressions that are reachable from `graph` must be allocated on
-//    `expr_arena`.
-//  * Types that are reachable from `graph` must be allocated on
-//    `type_arena`.
-void GenerateAbstractMachineFunction(const Arena<Stmt>& stmt_arena,
-                                     const Arena<Expr>& expr_arena,
-                                     const Arena<Type>& type_arena,
+//  * `graph` must be constructed in `ctx`.
+void GenerateAbstractMachineFunction(const SyntaxContext& ctx,
                                      const ControlFlowGraph& graph,
                                      AbstractMachineState& state);
 

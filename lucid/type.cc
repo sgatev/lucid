@@ -20,15 +20,10 @@ namespace {
 class ExprTypeInferenceEngine {
  public:
   ExprTypeInferenceEngine(
-      const Arena<Stmt>& stmt_arena, Arena<Expr>& expr_arena,
-      Arena<Type>& type_arena,
+      SyntaxContext& ctx,
       const std::unordered_map<std::string_view, FuncType>& func_types,
       FuncDefStmt& func_def)
-      : stmt_arena_(stmt_arena),
-        expr_arena_(expr_arena),
-        type_arena_(type_arena),
-        func_types_(func_types),
-        func_def_(func_def) {}
+      : ctx_(ctx), func_types_(func_types), func_def_(func_def) {}
 
   std::optional<TypeError> InferTypes() {
     for (const auto& param : func_def_.parameters) {
@@ -41,14 +36,14 @@ class ExprTypeInferenceEngine {
     while (true) {
       auto stmt_ref = NextStmt();
       if (!stmt_ref.has_value()) break;
-      const auto& stmt = DerefStmt(*stmt_ref);
+      const auto& stmt = ctx_.DerefStmt(*stmt_ref);
 
       ProcessPendingStmt(*stmt_ref, stmt);
 
       while (true) {
         auto expr_ref = NextExpr();
         if (!expr_ref.has_value()) break;
-        const auto& expr = DerefExpr(*expr_ref);
+        const auto& expr = ctx_.DerefExpr(*expr_ref);
 
         ProcessPendingExpr(*expr_ref, expr);
       }
@@ -62,13 +57,12 @@ class ExprTypeInferenceEngine {
 
     for (auto int_lit_expr : int_lit_exprs_) {
       if (expr_from_type_.find(int_lit_expr) == expr_from_type_.end()) {
-        expr_from_type_[int_lit_expr] =
-            type_arena_.add(BasicType{.name = "Int32"});
+        expr_from_type_[int_lit_expr] = ctx_.Add(BasicType{.name = "Int32"});
       }
     }
 
     for (auto [expr_ref, type] : expr_from_type_) {
-      SetType(DerefExpr(expr_ref), type);
+      SetType(ctx_.DerefExpr(expr_ref), type);
     }
 
     return std::nullopt;
@@ -100,7 +94,7 @@ class ExprTypeInferenceEngine {
   void ProcessPendingStmt(StmtRef stmt_ref, const IfStmt& stmt) {
     AddPendingStmts(std::ranges::reverse_view(stmt.else_stmts));
     AddPendingStmts(std::ranges::reverse_view(stmt.then_stmts));
-    RequireTypeForExpr(stmt.cond, type_arena_.add(BasicType{.name = "Bool"}));
+    RequireTypeForExpr(stmt.cond, ctx_.Add(BasicType{.name = "Bool"}));
     AddPendingExpr(stmt.cond);
   }
 
@@ -116,7 +110,8 @@ class ExprTypeInferenceEngine {
   void ProcessPendingStmt(StmtRef stmt_ref, const VarDeclStmt& stmt) {
     SetIdentType(stmt.name, stmt.type);
     if (stmt.init.has_value()) {
-      if (auto* array_type = std::get_if<ArrayType>(&DerefType(stmt.type))) {
+      if (auto* array_type =
+              std::get_if<ArrayType>(&ctx_.DerefType(stmt.type))) {
         RequireTypeForExpr(*stmt.init, array_type->element_type);
       } else {
         RequireTypeForExpr(*stmt.init, stmt.type);
@@ -162,12 +157,12 @@ class ExprTypeInferenceEngine {
       RequireTypeForExpr(arg, func_type.parameters[i].type);
       AddPendingExpr(arg);
     }
-    RequireTypeForExpr(
-        expr_ref, type_arena_.add(BasicType{.name = func_type.result_type}));
+    RequireTypeForExpr(expr_ref,
+                       ctx_.Add(BasicType{.name = func_type.result_type}));
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
-    RequireTypeForExpr(expr_ref, type_arena_.add(BasicType{.name = "Bool"}));
+    RequireTypeForExpr(expr_ref, ctx_.Add(BasicType{.name = "Bool"}));
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const IntLitExpr& expr) {
@@ -189,7 +184,7 @@ class ExprTypeInferenceEngine {
         expr.op == BinaryOp::Gt || expr.op == BinaryOp::NotEq) {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr.lhs, expr.rhs);
-      RequireTypeForExpr(expr_ref, type_arena_.add(BasicType{.name = "Bool"}));
+      RequireTypeForExpr(expr_ref, ctx_.Add(BasicType{.name = "Bool"}));
     } else {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr_ref, expr.rhs);
@@ -203,10 +198,10 @@ class ExprTypeInferenceEngine {
   void RequireTypeForExpr(ExprRef expr_ref, TypeRef type_ref) {
     if (auto it = expr_from_type_.find(expr_ref);
         it != expr_from_type_.end() && !TypesEqual(it->second, type_ref)) {
-      if (std::holds_alternative<ArrayType>(DerefType(it->second))) {
+      if (std::holds_alternative<ArrayType>(ctx_.DerefType(it->second))) {
         errors_.push_back(std::string("expected array type"));
       } else {
-        const auto& it_type = std::get<BasicType>(DerefType(it->second));
+        const auto& it_type = std::get<BasicType>(ctx_.DerefType(it->second));
         errors_.push_back(std::string("expected type ") +
                           std::string(it_type.name));
       }
@@ -231,8 +226,8 @@ class ExprTypeInferenceEngine {
   }
 
   bool TypesEqual(TypeRef lhs_ref, TypeRef rhs_ref) {
-    auto lhs_type = DerefType(lhs_ref);
-    auto rhs_type = DerefType(rhs_ref);
+    auto lhs_type = ctx_.DerefType(lhs_ref);
+    auto rhs_type = ctx_.DerefType(rhs_ref);
     if (lhs_type.index() != rhs_type.index()) return false;
 
     if (std::holds_alternative<ArrayType>(lhs_type)) {
@@ -268,18 +263,13 @@ class ExprTypeInferenceEngine {
 
   void AddPendingExpr(ExprRef expr_ref) { pending_exprs_.push_back(expr_ref); }
 
-  const Stmt& DerefStmt(StmtRef ref) { return stmt_arena_.get(ref); }
-
-  Expr& DerefExpr(ExprRef ref) { return expr_arena_.get(ref); }
-
-  Type& DerefType(TypeRef ref) { return type_arena_.get(ref); }
-
   void SolveTypeEquations() {
     while (true) {
       for (auto [element, array] : expr_from_array_) {
         if (auto it = expr_from_type_.find(array);
             it != expr_from_type_.end()) {
-          const auto& array_type = std::get<ArrayType>(DerefType(it->second));
+          const auto& array_type =
+              std::get<ArrayType>(ctx_.DerefType(it->second));
           expr_from_type_[element] = array_type.element_type;
         }
       }
@@ -302,9 +292,7 @@ class ExprTypeInferenceEngine {
     return std::move(errors_[0]);
   }
 
-  const Arena<Stmt>& stmt_arena_;
-  Arena<Expr>& expr_arena_;
-  Arena<Type>& type_arena_;
+  SyntaxContext& ctx_;
   const std::unordered_map<std::string_view, FuncType>& func_types_;
   FuncDefStmt& func_def_;
 
@@ -323,12 +311,11 @@ class ExprTypeInferenceEngine {
 }  // namespace
 
 std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
-    const Arena<Stmt>& stmt_arena, const Arena<Expr>& expr_arena,
-    const Arena<Type>& type_arena, const std::vector<FuncDefStmt>& func_defs) {
+    const SyntaxContext& ctx, const std::vector<FuncDefStmt>& func_defs) {
   std::unordered_map<std::string_view, FuncType> func_types;
   for (const auto& func_def : func_defs) {
     const auto& result_type =
-        std::get<BasicType>(type_arena.get(func_def.result_type));
+        std::get<BasicType>(ctx.DerefType(func_def.result_type));
     func_types[func_def.name] = {
         .result_type = result_type.name,
         .parameters = func_def.parameters,
@@ -338,13 +325,10 @@ std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
 }
 
 std::optional<TypeError> InferExprTypes(
-    const Arena<Stmt>& stmt_arena, Arena<Expr>& expr_arena,
-    Arena<Type>& type_arena,
+    SyntaxContext& ctx,
     const std::unordered_map<std::string_view, FuncType>& func_types,
     FuncDefStmt& func_def) {
-  return ExprTypeInferenceEngine(stmt_arena, expr_arena, type_arena, func_types,
-                                 func_def)
-      .InferTypes();
+  return ExprTypeInferenceEngine(ctx, func_types, func_def).InferTypes();
 }
 
 }  // namespace lucid

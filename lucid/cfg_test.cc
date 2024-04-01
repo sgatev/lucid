@@ -18,7 +18,7 @@ using ::testing::SizeIs;
 class ControlFlowGraphTest : public testing::Test, public AstFixture {
  protected:
   ControlFlowGraph BuildControlFlowGraph(FuncDefStmt func_def) {
-    return ::lucid::BuildControlFlowGraph(stmt_arena_, expr_arena_, func_def);
+    return ::lucid::BuildControlFlowGraph(ctx_, func_def);
   }
 };
 

@@ -73,12 +73,8 @@ class ParserError {
 template <typename LexerT>
 class Parser {
  public:
-  explicit Parser(Arena<Stmt>& stmt_arena, Arena<Expr>& expr_arena,
-                  Arena<Type>& type_arena, std::string_view buffer,
-                  LexerT lexer)
-      : stmt_arena_(stmt_arena),
-        expr_arena_(expr_arena),
-        type_arena_(type_arena),
+  explicit Parser(SyntaxContext& ctx, std::string_view buffer, LexerT lexer)
+      : ctx_(ctx),
         buffer_(buffer),
         lexer_(std::move(lexer)),
         next_(lexer_.next()) {}
@@ -196,10 +192,10 @@ class Parser {
     const std::uint8_t args_size = pending_stmts_.size() - start_idx;
     StmtRef args_first = Arena<Stmt>::kNullRef;
     if (args_size > 0) {
-      args_first = stmt_arena_.alias(pending_stmts_[start_idx]);
+      args_first = ctx_.AliasStmt(pending_stmts_[start_idx]);
     }
     for (std::size_t i = 1; i < args_size; ++i) {
-      stmt_arena_.alias(pending_stmts_[start_idx + i]);
+      ctx_.AliasStmt(pending_stmts_[start_idx + i]);
     }
     for (std::size_t i = 0; i < args_size; ++i) {
       pending_stmts_.pop_back();
@@ -215,7 +211,7 @@ class Parser {
       const auto maybe_value = ParseExpr();
       if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
 
-      return stmt_arena_.add(DoStmt{
+      return ctx_.Add(DoStmt{
           .expr = std::get<ExprRef>(maybe_value),
       });
     }
@@ -225,7 +221,7 @@ class Parser {
       const auto maybe_value = ParseExpr();
       if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
 
-      return stmt_arena_.add(ReturnStmt{
+      return ctx_.Add(ReturnStmt{
           .value = std::get<ExprRef>(maybe_value),
       });
     }
@@ -238,7 +234,7 @@ class Parser {
       if (IsError(body)) return std::get<ParserError>(body);
       loop_stmt.stmts = std::get<List<StmtRef>>(body);
 
-      return stmt_arena_.add(std::move(loop_stmt));
+      return ctx_.Add(std::move(loop_stmt));
     }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
       Read();
@@ -273,7 +269,7 @@ class Parser {
         }
       }
 
-      return stmt_arena_.add(std::move(if_stmt));
+      return ctx_.Add(std::move(if_stmt));
     }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "let") {
       Read();
@@ -299,7 +295,7 @@ class Parser {
       const auto init = ParseExpr();
       if (IsError(init)) return std::get<ParserError>(init);
 
-      return stmt_arena_.add(VarDeclStmt{
+      return ctx_.Add(VarDeclStmt{
           .type = std::get<TypeRef>(maybe_type),
           .name = std::get<std::string_view>(maybe_name),
           .init = std::get<ExprRef>(init),
@@ -308,7 +304,7 @@ class Parser {
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "break") {
       Read();
 
-      return stmt_arena_.add(BreakStmt{});
+      return ctx_.Add(BreakStmt{});
     }
     if (Peek().kind == Token::Kind::Ident) {
       const auto maybe_ident = ParseIdent();
@@ -340,7 +336,7 @@ class Parser {
           if (IsError(expr)) return std::get<ParserError>(expr);
           stmt.expr = std::get<ExprRef>(expr);
 
-          return stmt_arena_.add(std::move(stmt));
+          return ctx_.Add(std::move(stmt));
         }
 
         return MakeError(ParserError::Kind::UnexpectedToken, Peek());
@@ -360,7 +356,7 @@ class Parser {
         if (IsError(expr)) return std::get<ParserError>(expr);
         stmt.expr = std::get<ExprRef>(expr);
 
-        return stmt_arena_.add(std::move(stmt));
+        return ctx_.Add(std::move(stmt));
       }
 
       return ParseExprStartingWithIdent(ident);
@@ -456,7 +452,7 @@ class Parser {
         return *r;
       }
 
-      maybe_expr = expr_arena_.add(IndexExpr{
+      maybe_expr = ctx_.Add(IndexExpr{
           .base = std::get<ExprRef>(maybe_expr),
           .index = std::get<ExprRef>(maybe_size),
       });
@@ -535,28 +531,28 @@ class Parser {
       const std::uint8_t args_size = pending_exprs_.size() - start_idx;
       ExprRef args_first = Arena<Expr>::kNullRef;
       if (args_size > 0) {
-        args_first = expr_arena_.alias(pending_exprs_[start_idx]);
+        args_first = ctx_.AliasExpr(pending_exprs_[start_idx]);
       }
       for (std::size_t i = 1; i < args_size; ++i) {
-        expr_arena_.alias(pending_exprs_[start_idx + i]);
+        ctx_.AliasExpr(pending_exprs_[start_idx + i]);
       }
       for (std::size_t i = 0; i < args_size; ++i) {
         pending_exprs_.pop_back();
       }
 
-      return expr_arena_.add(FuncCallExpr{
+      return ctx_.Add(FuncCallExpr{
           .func_name = ident,
           .args = List<ExprRef>(args_size, args_first),
       });
     }
 
     if (ident == "true" || ident == "false") {
-      return expr_arena_.add(BoolLitExpr{
+      return ctx_.Add(BoolLitExpr{
           .value = ident,
       });
     }
 
-    return expr_arena_.add(IdentExpr{
+    return ctx_.Add(IdentExpr{
         .name = ident,
     });
   }
@@ -574,7 +570,7 @@ class Parser {
   std::variant<ExprRef, ParserError> ParseNumber() {
     const auto maybe_int_lit = ParseIntLitExpr();
     if (IsError(maybe_int_lit)) return std::get<ParserError>(maybe_int_lit);
-    return expr_arena_.add(std::get<IntLitExpr>(maybe_int_lit));
+    return ctx_.Add(std::get<IntLitExpr>(maybe_int_lit));
   }
 
   std::variant<ExprRef, ParserError> ParseString() {
@@ -585,7 +581,7 @@ class Parser {
     if (token.kind != Token::Kind::String) {
       return MakeError(ParserError::Kind::ExpectedString, token);
     }
-    return expr_arena_.add(StringLitExpr{
+    return ctx_.Add(StringLitExpr{
         .value = TokenString(token),
     });
   }
@@ -604,21 +600,21 @@ class Parser {
         return *r;
       }
 
-      return type_arena_.add(ArrayType{
-          .element_type = type_arena_.add(BasicType{
+      return ctx_.Add(ArrayType{
+          .element_type = ctx_.Add(BasicType{
               .name = std::get<std::string_view>(maybe_type),
           }),
           .size = std::get<IntLitExpr>(maybe_size),
       });
     }
 
-    return type_arena_.add(BasicType{
+    return ctx_.Add(BasicType{
         .name = std::get<std::string_view>(maybe_type),
     });
   }
 
   ExprRef MakeBinaryOpExpr(BinaryOp op, ExprRef lhs, ExprRef rhs) {
-    return expr_arena_.add(BinaryOpExpr{.op = op, .lhs = lhs, .rhs = rhs});
+    return ctx_.Add(BinaryOpExpr{.op = op, .lhs = lhs, .rhs = rhs});
   }
 
   std::optional<ParserError> ExpectToken(Token::Kind kind) {
@@ -662,9 +658,7 @@ class Parser {
     return r.has_value();
   }
 
-  Arena<Stmt>& stmt_arena_;
-  Arena<Expr>& expr_arena_;
-  Arena<Type>& type_arena_;
+  SyntaxContext& ctx_;
   std::string_view buffer_;
   LexerT lexer_;
   Token next_;

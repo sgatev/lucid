@@ -211,19 +211,19 @@ class AstFixture {
   // Allocates the statement `stmt` on an arena.
   template <typename S>
   StmtRef S(S stmt) {
-    return stmt_arena_.add(stmt);
+    return ctx_.Add(stmt);
   }
 
   // Allocates the expression `expr` on an arena.
   template <typename E>
   ExprRef E(E expr) {
-    return expr_arena_.add(expr);
+    return ctx_.Add(expr);
   }
 
   // Allocates the type `type` on an arena.
   template <typename T>
   TypeRef T(T type) {
-    return type_arena_.add(type);
+    return ctx_.Add(type);
   }
 
   // Returns an empty list.
@@ -236,9 +236,9 @@ class AstFixture {
   List<ExprRef> ExprListOf(std::initializer_list<ExprRef> exprs) {
     if (std::empty(exprs)) return EmptyList<Expr>();
     auto it = exprs.begin();
-    auto first_expr = expr_arena_.alias(*it);
+    auto first_expr = ctx_.AliasExpr(*it);
     ++it;
-    for (; it != exprs.end(); ++it) expr_arena_.alias(*it);
+    for (; it != exprs.end(); ++it) ctx_.AliasExpr(*it);
     return List<StmtRef>(exprs.size(), first_expr);
   }
 
@@ -246,9 +246,9 @@ class AstFixture {
   List<StmtRef> StmtListOf(std::initializer_list<StmtRef> stmts) {
     if (std::empty(stmts)) return EmptyList<Stmt>();
     auto it = stmts.begin();
-    auto first_stmt = stmt_arena_.alias(*it);
+    auto first_stmt = ctx_.AliasStmt(*it);
     ++it;
-    for (; it != stmts.end(); ++it) stmt_arena_.alias(*it);
+    for (; it != stmts.end(); ++it) ctx_.AliasStmt(*it);
     return List<StmtRef>(stmts.size(), first_stmt);
   }
 
@@ -256,7 +256,7 @@ class AstFixture {
   // reference equivalent to `expected`.
   auto StmtEquivTo(StmtRef expected) {
     return testing::Truly([this, expected](StmtRef actual) {
-      return stmt_arena_.equiv(expected, actual);
+      return ctx_.EquivStmts(expected, actual);
     });
   }
 
@@ -331,22 +331,20 @@ class AstFixture {
     return MatchesType<ArrayType>(std::move(pattern));
   }
 
-  Arena<Stmt> stmt_arena_;
-  Arena<Expr> expr_arena_;
-  Arena<Type> type_arena_;
+  SyntaxContext ctx_;
 
  private:
   template <typename S>
   ExprRefMatcher MatchesStmt() {
     return [this](StmtRef ref) {
-      return std::holds_alternative<S>(stmt_arena_.get(ref));
+      return std::holds_alternative<S>(ctx_.DerefStmt(ref));
     };
   }
 
   template <typename S, typename P>
   ExprRefMatcher MatchesStmt(P pattern) {
     return [this, pattern](StmtRef ref) {
-      if (auto* stmt = std::get_if<S>(&stmt_arena_.get(ref))) {
+      if (auto* stmt = std::get_if<S>(&ctx_.DerefStmt(ref))) {
         return pattern(*stmt);
       }
       return false;
@@ -356,7 +354,7 @@ class AstFixture {
   template <typename E, typename P>
   ExprRefMatcher MatchesExpr(P pattern) {
     return [this, pattern](ExprRef ref) {
-      if (auto* expr = std::get_if<E>(&expr_arena_.get(ref))) {
+      if (auto* expr = std::get_if<E>(&ctx_.DerefExpr(ref))) {
         return pattern(*expr);
       }
       return false;
@@ -366,7 +364,7 @@ class AstFixture {
   template <typename T, typename P>
   TypeRefMatcher MatchesType(P pattern) {
     return [this, pattern](TypeRef ref) {
-      if (auto* type = std::get_if<T>(&type_arena_.get(ref))) {
+      if (auto* type = std::get_if<T>(&ctx_.DerefType(ref))) {
         return pattern(*type);
       }
       return false;

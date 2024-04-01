@@ -19,8 +19,7 @@ class ExtractFuncTypesTest : public testing::Test, public AstFixture {
  protected:
   std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
       const std::vector<FuncDefStmt>& func_defs) {
-    return ::lucid::ExtractFuncTypes(stmt_arena_, expr_arena_, type_arena_,
-                                     func_defs);
+    return ::lucid::ExtractFuncTypes(ctx_, func_defs);
   }
 };
 
@@ -63,8 +62,7 @@ class InferExprTypesTest : public testing::Test, public AstFixture {
   std::optional<TypeError> InferExprTypes(
       FuncDefStmt& stmt,
       const std::unordered_map<std::string_view, FuncType>& func_types = {}) {
-    return ::lucid::InferExprTypes(stmt_arena_, expr_arena_, type_arena_,
-                                   func_types, stmt);
+    return ::lucid::InferExprTypes(ctx_, func_types, stmt);
   }
 };
 

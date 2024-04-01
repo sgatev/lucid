@@ -18,19 +18,13 @@ namespace {
 
 class AbstractMachineFunctionGenerator {
  public:
-  AbstractMachineFunctionGenerator(const Arena<Stmt>& stmt_arena,
-                                   const Arena<Expr>& expr_arena,
-                                   const Arena<Type>& type_arena,
+  AbstractMachineFunctionGenerator(const SyntaxContext& ctx,
                                    const ControlFlowGraph& graph,
                                    AbstractMachineState& state)
-      : stmt_arena_(stmt_arena),
-        expr_arena_(expr_arena),
-        type_arena_(type_arena),
-        graph_(graph),
-        state_(state) {
+      : ctx_(ctx), graph_(graph), state_(state) {
     for (const auto& param : graph.func_params) {
       // TODO: Handle `ArrayType`.
-      const auto& param_type = std::get<BasicType>(DerefType(param.type));
+      const auto& param_type = std::get<BasicType>(ctx_.DerefType(param.type));
       if (param_type.name == "Int32") {
         state_.func.stack_slots.push_back(4);
       } else if (param_type.name == "Int64") {
@@ -42,12 +36,12 @@ class AbstractMachineFunctionGenerator {
     for (const auto& block : graph.blocks()) {
       for (const auto& seq : block.sequences) {
         if (seq.stmt.has_value()) {
-          const auto& stmt = stmt_arena.get(*seq.stmt);
+          const auto& stmt = ctx_.DerefStmt(*seq.stmt);
           if (auto* var_decl = std::get_if<VarDeclStmt>(&stmt)) {
             if (auto* array_type =
-                    std::get_if<ArrayType>(&DerefType(var_decl->type))) {
+                    std::get_if<ArrayType>(&ctx_.DerefType(var_decl->type))) {
               const auto& var_decl_type =
-                  std::get<BasicType>(DerefType(array_type->element_type));
+                  std::get<BasicType>(ctx_.DerefType(array_type->element_type));
               auto size = std::atoi(array_type->size.value.data());
               for (int i = 0; i < size; ++i) {
                 if (var_decl_type.name == "Int32" ||
@@ -59,7 +53,7 @@ class AbstractMachineFunctionGenerator {
               }
             } else {
               const auto& var_decl_type =
-                  std::get<BasicType>(DerefType(var_decl->type));
+                  std::get<BasicType>(ctx_.DerefType(var_decl->type));
               if (var_decl_type.name == "Int32") {
                 state_.func.stack_slots.push_back(4);
               } else if (var_decl_type.name == "Int64") {
@@ -78,8 +72,7 @@ class AbstractMachineFunctionGenerator {
     if (graph_.has_func_calls) stack_offset_ = 12;
 
     state_.out_reg.clear();
-    state_.out_reg.reserve(stmt_arena_.size() + expr_arena_.size() +
-                           type_arena_.size());
+    state_.out_reg.reserve(ctx_.Size());
 
     state_.func.name = graph_.func_name;
 
@@ -129,7 +122,7 @@ class AbstractMachineFunctionGenerator {
         state_.func.instructions.end() - state_.func.instructions.begin();
     for (RegId i = 0; i < graph_.func_params.size(); ++i) {
       const auto& param = graph_.func_params[i];
-      const auto& param_type = std::get<BasicType>(DerefType(param.type));
+      const auto& param_type = std::get<BasicType>(ctx_.DerefType(param.type));
       if (param_type.name == "Int32") {
         state_.func.instructions.push_back(StoreStack32{
             .offset = stack_offset_,
@@ -164,10 +157,10 @@ class AbstractMachineFunctionGenerator {
 
       for (const auto& seq : block.sequences) {
         for (const auto& expr_ref : seq.expressions) {
-          Process(expr_ref, DerefExpr(expr_ref));
+          Process(expr_ref, ctx_.DerefExpr(expr_ref));
         }
         if (seq.stmt.has_value()) {
-          Process(*seq.stmt, DerefStmt(*seq.stmt));
+          Process(*seq.stmt, ctx_.DerefStmt(*seq.stmt));
         }
       }
 
@@ -215,7 +208,8 @@ class AbstractMachineFunctionGenerator {
   }
 
   void Process(StmtRef ref, const ReturnStmt& stmt) {
-    auto type = std::get<BasicType>(DerefType(GetType(DerefExpr(stmt.value))));
+    auto type = std::get<BasicType>(
+        ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.value))));
     if (type.name == "Int32" || type.name == "Bool") {
       state_.func.instructions.push_back(MoveReg32{
           .src_reg = state_.out_reg[stmt.value],
@@ -236,7 +230,7 @@ class AbstractMachineFunctionGenerator {
   }
 
   void ProcessExpr(ExprRef ref, const IntLitExpr& expr) {
-    auto expr_type = std::get<BasicType>(DerefType(expr.type));
+    auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
     RegId reg = next_reg_++;
     if (expr_type.name == "Int64") {
       state_.func.instructions.push_back(SetReg64{
@@ -277,8 +271,8 @@ class AbstractMachineFunctionGenerator {
     RegId reg = next_reg_++;
     RegId i = 1;
     for (ExprRef arg : expr.args) {
-      const auto& arg_expr = DerefExpr(arg);
-      auto arg_type = std::get<BasicType>(DerefType(GetType(arg_expr)));
+      const auto& arg_expr = ctx_.DerefExpr(arg);
+      auto arg_type = std::get<BasicType>(ctx_.DerefType(GetType(arg_expr)));
       if (arg_type.name == "Int32") {
         state_.func.instructions.push_back(MoveReg32{
             .src_reg = state_.out_reg[arg],
@@ -294,7 +288,7 @@ class AbstractMachineFunctionGenerator {
     state_.func.instructions.push_back(Jump{
         .label = expr.func_name,
     });
-    auto expr_type = std::get<BasicType>(DerefType(expr.type));
+    auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
     if (expr_type.name == "Int32") {
       state_.func.instructions.push_back(MoveReg32{
           .src_reg = 0,
@@ -310,8 +304,8 @@ class AbstractMachineFunctionGenerator {
   }
 
   void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {
-    if (std::holds_alternative<ArrayType>(DerefType(stmt.type))) {
-      auto array_type = std::get<ArrayType>(DerefType(stmt.type));
+    if (std::holds_alternative<ArrayType>(ctx_.DerefType(stmt.type))) {
+      auto array_type = std::get<ArrayType>(ctx_.DerefType(stmt.type));
       auto size = std::atoi(array_type.size.value.data());
       var_stack_[stmt.name] = stack_offset_;
       for (int i = 0; i < size; ++i) {
@@ -322,7 +316,7 @@ class AbstractMachineFunctionGenerator {
 
     if (!stmt.init.has_value()) return;
 
-    auto stmt_type = std::get<BasicType>(DerefType(stmt.type));
+    auto stmt_type = std::get<BasicType>(ctx_.DerefType(stmt.type));
     if (stmt_type.name == "Int32") {
       state_.func.instructions.push_back(StoreStack32{
           .offset = stack_offset_,
@@ -342,7 +336,7 @@ class AbstractMachineFunctionGenerator {
 
   void Process(StmtRef stmt_ref, const VarAssignStmt& stmt) {
     auto expr_type =
-        std::get<BasicType>(DerefType(GetType(DerefExpr(stmt.expr))));
+        std::get<BasicType>(ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.expr))));
     if (expr_type.name == "Int32") {
       state_.func.instructions.push_back(StoreStack32{
           .offset = var_stack_[stmt.name],
@@ -358,7 +352,7 @@ class AbstractMachineFunctionGenerator {
 
   void Process(StmtRef stmt_ref, const ArrayAssignStmt& stmt) {
     auto expr_type =
-        std::get<BasicType>(DerefType(GetType(DerefExpr(stmt.expr))));
+        std::get<BasicType>(ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.expr))));
     if (expr_type.name == "Int32") {
       RegId offset_reg = next_reg_++;
       state_.func.instructions.push_back(SetReg32{
@@ -416,8 +410,8 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef stmt_ref, const BreakStmt& stmt) {}
 
   void ProcessExpr(ExprRef ref, const IdentExpr& expr) {
-    if (std::holds_alternative<ArrayType>(DerefType(expr.type))) return;
-    auto expr_type = std::get<BasicType>(DerefType(expr.type));
+    if (std::holds_alternative<ArrayType>(ctx_.DerefType(expr.type))) return;
+    auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
     RegId reg = next_reg_++;
     if (expr_type.name == "Int32") {
       state_.func.instructions.push_back(LoadStack32{
@@ -435,7 +429,7 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const IndexExpr& expr) {
     std::size_t base_offset = GetStackOffset(expr.base);
-    auto expr_type = std::get<BasicType>(DerefType(expr.type));
+    auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
     RegId reg = next_reg_++;
     if (expr_type.name == "Int32") {
       RegId offset_reg = next_reg_++;
@@ -494,7 +488,7 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr) {
     auto expr_type =
-        std::get<BasicType>(DerefType(GetType(DerefExpr(expr.lhs))));
+        std::get<BasicType>(ctx_.DerefType(GetType(ctx_.DerefExpr(expr.lhs))));
     auto reg = next_reg_++;
     switch (expr.op) {
       case BinaryOp::Add:
@@ -641,19 +635,11 @@ class AbstractMachineFunctionGenerator {
   }
 
   std::size_t GetStackOffset(ExprRef expr_ref) {
-    const auto& expr = std::get<IdentExpr>(DerefExpr(expr_ref));
+    const auto& expr = std::get<IdentExpr>(ctx_.DerefExpr(expr_ref));
     return var_stack_[expr.name];
   }
 
-  const Stmt& DerefStmt(StmtRef ref) const { return stmt_arena_.get(ref); }
-
-  const Expr& DerefExpr(ExprRef ref) const { return expr_arena_.get(ref); }
-
-  const Type& DerefType(TypeRef ref) const { return type_arena_.get(ref); }
-
-  const Arena<Stmt>& stmt_arena_;
-  const Arena<Expr>& expr_arena_;
-  const Arena<Type>& type_arena_;
+  const SyntaxContext& ctx_;
   const ControlFlowGraph& graph_;
   AbstractMachineState& state_;
   RegId next_reg_ = 1;
@@ -663,14 +649,10 @@ class AbstractMachineFunctionGenerator {
 
 }  // namespace
 
-void GenerateAbstractMachineFunction(const Arena<Stmt>& stmt_arena,
-                                     const Arena<Expr>& expr_arena,
-                                     const Arena<Type>& type_arena,
+void GenerateAbstractMachineFunction(const SyntaxContext& ctx,
                                      const ControlFlowGraph& graph,
                                      AbstractMachineState& state) {
-  AbstractMachineFunctionGenerator(stmt_arena, expr_arena, type_arena, graph,
-                                   state)
-      .Generate();
+  AbstractMachineFunctionGenerator(ctx, graph, state).Generate();
 }
 
 }  // namespace lucid

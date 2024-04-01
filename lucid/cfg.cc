@@ -19,10 +19,8 @@ class ControlFlowGraphBuilder {
   using Sequence = ControlFlowGraph::Sequence;
 
  public:
-  ControlFlowGraphBuilder(const Arena<Stmt>& stmt_arena,
-                          const Arena<Expr>& expr_arena,
-                          const FuncDefStmt& func_def)
-      : stmt_arena_(stmt_arena), expr_arena_(expr_arena) {
+  ControlFlowGraphBuilder(const SyntaxContext& ctx, const FuncDefStmt& func_def)
+      : ctx_(ctx) {
     graph_.func_name = func_def.name;
     graph_.func_params = func_def.parameters;
     graph_.first = AddBlock();
@@ -42,7 +40,7 @@ class ControlFlowGraphBuilder {
 
   void BuildBlock(const List<StmtRef>& stmts, BlockRef block, BlockRef end) {
     for (StmtRef stmt_ref : stmts) {
-      if (auto* loop_stmt = std::get_if<LoopStmt>(&DerefStmt(stmt_ref))) {
+      if (auto* loop_stmt = std::get_if<LoopStmt>(&ctx_.DerefStmt(stmt_ref))) {
         auto post_loop_block = AddBlock();
 
         post_loop_blocks_.push(post_loop_block);
@@ -54,7 +52,8 @@ class ControlFlowGraphBuilder {
         post_loop_blocks_.pop();
 
         block = post_loop_block;
-      } else if (auto* if_stmt = std::get_if<IfStmt>(&DerefStmt(stmt_ref))) {
+      } else if (auto* if_stmt =
+                     std::get_if<IfStmt>(&ctx_.DerefStmt(stmt_ref))) {
         auto& seq = graph_.get(block).sequences.emplace_back();
         auto post_if_block = AddBlock();
 
@@ -80,16 +79,16 @@ class ControlFlowGraphBuilder {
         seq.stmt = stmt_ref;
 
         std::visit([&](auto&& stmt) { ProcessStmt(stmt, seq, block, end); },
-                   DerefStmt(stmt_ref));
+                   ctx_.DerefStmt(stmt_ref));
 
         FlushSubExprs(seq, block, end);
 
-        if (std::holds_alternative<ReturnStmt>(DerefStmt(stmt_ref))) {
+        if (std::holds_alternative<ReturnStmt>(ctx_.DerefStmt(stmt_ref))) {
           graph_.get(block).next.push_back(graph_.last);
           return;
         }
 
-        if (std::holds_alternative<BreakStmt>(DerefStmt(stmt_ref))) {
+        if (std::holds_alternative<BreakStmt>(ctx_.DerefStmt(stmt_ref))) {
           graph_.get(block).next.push_back(post_loop_blocks_.top());
           return;
         }
@@ -107,7 +106,7 @@ class ControlFlowGraphBuilder {
       seq.expressions.push_back(expr_ref);
 
       std::visit([&](auto&& expr) { ProcessExpr(expr, block, end); },
-                 DerefExpr(expr_ref));
+                 ctx_.DerefExpr(expr_ref));
     }
 
     std::reverse(seq.expressions.begin(), seq.expressions.end());
@@ -190,12 +189,7 @@ class ControlFlowGraphBuilder {
 
   void ProcessSubExpr(ExprRef expr_ref) { pending_sub_exprs_.push(expr_ref); }
 
-  const Stmt& DerefStmt(StmtRef stmt_ref) { return stmt_arena_.get(stmt_ref); }
-
-  const Expr& DerefExpr(ExprRef expr_ref) { return expr_arena_.get(expr_ref); }
-
-  const Arena<Stmt>& stmt_arena_;
-  const Arena<Expr>& expr_arena_;
+  const SyntaxContext& ctx_;
   std::stack<ExprRef, std::vector<ExprRef>> pending_sub_exprs_;
   ControlFlowGraph graph_;
   std::stack<BlockRef> post_loop_blocks_;
@@ -203,10 +197,9 @@ class ControlFlowGraphBuilder {
 
 }  // namespace
 
-ControlFlowGraph BuildControlFlowGraph(const Arena<Stmt>& stmt_arena,
-                                       const Arena<Expr>& expr_arena,
+ControlFlowGraph BuildControlFlowGraph(const SyntaxContext& ctx,
                                        const FuncDefStmt& func) {
-  return ControlFlowGraphBuilder(stmt_arena, expr_arena, func).Consume();
+  return ControlFlowGraphBuilder(ctx, func).Consume();
 }
 
 }  // namespace lucid
