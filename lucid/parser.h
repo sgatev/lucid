@@ -187,9 +187,9 @@ class Parser {
 
       if (Peek().kind == Token::Kind::CloseBrace) break;
 
-      const auto maybe_stmt = ParseStmt();
+      auto maybe_stmt = ParseStmt();
       if (IsError(maybe_stmt)) return std::get<ParserError>(maybe_stmt);
-      pending_stmts_.push_back(std::get<StmtRef>(maybe_stmt));
+      pending_stmts_.push_back(std::get<Stmt>(std::move(maybe_stmt)));
     }
 
     Read();
@@ -197,10 +197,10 @@ class Parser {
     const std::uint8_t args_size = pending_stmts_.size() - start_idx;
     StmtRef args_first = Arena<Stmt>::kNullRef;
     if (args_size > 0) {
-      args_first = ctx_.AliasStmt(pending_stmts_[start_idx]);
+      args_first = ctx_.Add(std::move(pending_stmts_[start_idx]));
     }
     for (std::size_t i = 1; i < args_size; ++i) {
-      ctx_.AliasStmt(pending_stmts_[start_idx + i]);
+      ctx_.Add(std::move(pending_stmts_[start_idx + i]));
     }
     for (std::size_t i = 0; i < args_size; ++i) {
       pending_stmts_.pop_back();
@@ -209,16 +209,16 @@ class Parser {
     return List<StmtRef>(args_size, args_first);
   }
 
-  std::variant<StmtRef, ParserError> ParseStmt() {
+  std::variant<Stmt, ParserError> ParseStmt() {
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "do") {
       Read();
 
       const auto maybe_value = ParseExpr();
       if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
 
-      return ctx_.Add(DoStmt{
+      return DoStmt{
           .expr = std::get<ExprRef>(maybe_value),
-      });
+      };
     }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "return") {
       Read();
@@ -226,9 +226,9 @@ class Parser {
       const auto maybe_value = ParseExpr();
       if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
 
-      return ctx_.Add(ReturnStmt{
+      return ReturnStmt{
           .value = std::get<ExprRef>(maybe_value),
-      });
+      };
     }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "loop") {
       Read();
@@ -238,9 +238,9 @@ class Parser {
       auto body = ParseCompoundStmt();
       if (IsError(body)) return std::get<ParserError>(body);
 
-      return ctx_.Add(LoopStmt{
+      return LoopStmt{
           .stmts = std::get<List<StmtRef>>(body),
-      });
+      };
     }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
       Read();
@@ -267,7 +267,7 @@ class Parser {
         if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
           const auto stmt = ParseStmt();
           if (IsError(stmt)) return std::get<ParserError>(stmt);
-          if_stmt.else_stmts = List<StmtRef>(1, std::get<StmtRef>(stmt));
+          if_stmt.else_stmts = List<StmtRef>(1, ctx_.Add(std::get<Stmt>(stmt)));
         } else {
           auto else_body = ParseCompoundStmt();
           if (IsError(else_body)) return std::get<ParserError>(else_body);
@@ -275,7 +275,7 @@ class Parser {
         }
       }
 
-      return ctx_.Add(std::move(if_stmt));
+      return std::move(if_stmt);
     }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "let") {
       Read();
@@ -301,16 +301,16 @@ class Parser {
       const auto init = ParseExpr();
       if (IsError(init)) return std::get<ParserError>(init);
 
-      return ctx_.Add(VarDeclStmt{
+      return VarDeclStmt{
           .type = std::get<TypeRef>(maybe_type),
           .name = std::get<std::string_view>(maybe_name),
           .init = std::get<ExprRef>(init),
-      });
+      };
     }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "break") {
       Read();
 
-      return ctx_.Add(BreakStmt{});
+      return BreakStmt{};
     }
     if (Peek().kind == Token::Kind::Ident) {
       const auto maybe_ident = ParseIdent();
@@ -337,11 +337,11 @@ class Parser {
           const auto expr = ParseExpr();
           if (IsError(expr)) return std::get<ParserError>(expr);
 
-          return ctx_.Add(ArrayAssignStmt{
+          return ArrayAssignStmt{
               .name = ident,
               .index = std::get<ExprRef>(maybe_size),
               .expr = std::get<ExprRef>(expr),
-          });
+          };
         }
 
         return MakeError(ParserError::Kind::UnexpectedToken, Peek());
@@ -357,10 +357,10 @@ class Parser {
         const auto expr = ParseExpr();
         if (IsError(expr)) return std::get<ParserError>(expr);
 
-        return ctx_.Add(VarAssignStmt{
+        return VarAssignStmt{
             .name = ident,
             .expr = std::get<ExprRef>(expr),
-        });
+        };
       }
     }
     return MakeError(ParserError::Kind::UnexpectedToken, Peek());
@@ -664,7 +664,7 @@ class Parser {
   std::string_view buffer_;
   LexerT lexer_;
   Token next_;
-  std::vector<StmtRef> pending_stmts_;
+  std::vector<Stmt> pending_stmts_;
   std::vector<ExprRef> pending_exprs_;
 };
 
