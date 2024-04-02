@@ -1288,11 +1288,11 @@ TEST_F(ParserTest, SpaceBetweenEqualSigns) {
 TEST_F(ParserTest, MissingStringClosingQuote) {
   std::string_view src = R"(
     let foo = () -> Void {
-      bar("foo)
+      do bar("foo)
     }
   )";
   EXPECT_THAT(Parse(src),
-              HoldsError("incomplete string literal at line 3, column 11"));
+              HoldsError("incomplete string literal at line 3, column 14"));
 }
 
 TEST_F(ParserTest, MissingLoopOpenBrace) {

@@ -237,9 +237,10 @@ class Parser {
 
       auto body = ParseCompoundStmt();
       if (IsError(body)) return std::get<ParserError>(body);
-      loop_stmt.stmts = std::get<List<StmtRef>>(body);
 
-      return ctx_.Add(std::move(loop_stmt));
+      return ctx_.Add(LoopStmt{
+          .stmts = std::get<List<StmtRef>>(body),
+      });
     }
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
       Read();
@@ -333,15 +334,14 @@ class Parser {
 
           SkipSpace();
 
-          ArrayAssignStmt stmt;
-          stmt.name = ident;
-          stmt.index = std::get<ExprRef>(maybe_size);
-
           const auto expr = ParseExpr();
           if (IsError(expr)) return std::get<ParserError>(expr);
-          stmt.expr = std::get<ExprRef>(expr);
 
-          return ctx_.Add(std::move(stmt));
+          return ctx_.Add(ArrayAssignStmt{
+              .name = ident,
+              .index = std::get<ExprRef>(maybe_size),
+              .expr = std::get<ExprRef>(expr),
+          });
         }
 
         return MakeError(ParserError::Kind::UnexpectedToken, Peek());
@@ -354,17 +354,14 @@ class Parser {
 
         SkipSpace();
 
-        VarAssignStmt stmt;
-        stmt.name = ident;
-
         const auto expr = ParseExpr();
         if (IsError(expr)) return std::get<ParserError>(expr);
-        stmt.expr = std::get<ExprRef>(expr);
 
-        return ctx_.Add(std::move(stmt));
+        return ctx_.Add(VarAssignStmt{
+            .name = ident,
+            .expr = std::get<ExprRef>(expr),
+        });
       }
-
-      return ParseExprStartingWithIdent(ident);
     }
     return MakeError(ParserError::Kind::UnexpectedToken, Peek());
   }
