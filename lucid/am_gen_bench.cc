@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string_view>
 
 #include "benchmark/benchmark.h"
@@ -19,9 +20,9 @@ std::size_t CountInstructions(const lucid::SyntaxContext& ctx,
 
 void Benchmark(benchmark::State& state, std::string_view code) {
   lucid::SyntaxContext ctx;
-  auto func_def = std::get<lucid::FuncDefStmt>(
+  auto func_def = std::get<std::optional<lucid::FuncDefStmt>>(
       lucid::Parser(ctx, code, lucid::Lexer(code)).ParseFuncDef());
-  auto graph = BuildControlFlowGraph(ctx, func_def);
+  auto graph = BuildControlFlowGraph(ctx, func_def.value());
   lucid::AbstractMachineState am_state;
 
   for (auto _ : state) {

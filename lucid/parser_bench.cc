@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -18,8 +19,9 @@ std::size_t CountTokens(std::string_view code) {
   std::size_t cnt = 0;
   while (true) {
     auto node = parser.ParseFuncDef();
-    if (auto *err = std::get_if<lucid::ParserError>(&node)) {
-      if (err->GetKind() == lucid::ParserError::Kind::End) return cnt;
+    if (auto *func_def =
+            std::get_if<std::optional<lucid::FuncDefStmt>>(&node)) {
+      if (*func_def == std::nullopt) return cnt;
     }
     ++cnt;
   }

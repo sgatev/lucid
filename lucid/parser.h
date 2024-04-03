@@ -19,7 +19,6 @@ namespace lucid {
 class ParserError {
  public:
   enum class Kind : std::uint8_t {
-    End,
     ExpectedIdent,
     ExpectedNumber,
     ExpectedString,
@@ -43,8 +42,6 @@ class ParserError {
  private:
   std::string_view KindString() const {
     switch (kind_) {
-      case Kind::End:
-        return "end";
       case Kind::ExpectedIdent:
         return "expected identifier";
       case Kind::ExpectedNumber:
@@ -79,12 +76,10 @@ class Parser {
         lexer_(std::move(lexer)),
         next_(lexer_.next()) {}
 
-  std::variant<FuncDefStmt, ParserError> ParseFuncDef() {
+  std::variant<std::optional<FuncDefStmt>, ParserError> ParseFuncDef() {
     SkipSpace();
 
-    if (Peek().kind == Token::Kind::End) {
-      return MakeError(ParserError::Kind::End, Peek());
-    }
+    if (Peek().kind == Token::Kind::End) return std::nullopt;
 
     FuncDefStmt stmt;
 

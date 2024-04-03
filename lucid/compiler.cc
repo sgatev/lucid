@@ -34,10 +34,14 @@ Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
   while (true) {
     auto maybe_func_def = parser.ParseFuncDef();
     if (auto* err = std::get_if<ParserError>(&maybe_func_def)) {
-      if (err->GetKind() == ParserError::Kind::End) break;
       return std::move(*err);
     }
-    func_defs.push_back(std::get<FuncDefStmt>(std::move(maybe_func_def)));
+
+    auto func_def =
+        std::get<std::optional<FuncDefStmt>>(std::move(maybe_func_def));
+    if (!func_def.has_value()) break;
+
+    func_defs.push_back(std::move(*func_def));
   }
   return func_defs;
 }
