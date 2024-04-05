@@ -33,7 +33,7 @@ class Lexer {
     const std::size_t start_pos = pos_++;
     if (sym_class > 3) [[unlikely]] {
       // Ident, number, or whitespace.
-      while (pos_ < size_ && kClassMap[buffer_[pos_]] % sym_class < 2) ++pos_;
+      while (kClassMap[buffer_[pos_]] % sym_class < 2) ++pos_;
     } else if (sym == '"' || sym == '#') [[unlikely]] {
       // String or comment.
       const char* pos = std::char_traits<char>::find(
