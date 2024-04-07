@@ -9,7 +9,7 @@
 namespace lucid {
 namespace {
 
-TEST(TokenTest, Size) { EXPECT_EQ(sizeof(Token), 24); }
+TEST(TokenTest, Size) { EXPECT_EQ(sizeof(Token), 12); }
 
 TEST(TokenTest, Equality) {
   EXPECT_EQ(Token(Token::Kind::Ident, 0, 3), Token(Token::Kind::Ident, 0, 3));

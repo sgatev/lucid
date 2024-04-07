@@ -30,7 +30,7 @@ class Lexer {
   inline Token next() {
     const char sym = buffer_[pos_];
     const std::uint8_t sym_class = kClassMap[sym];
-    const std::size_t start_pos = pos_++;
+    const std::uint32_t start_pos = pos_++;
     if (sym_class > 3) [[unlikely]] {
       // Ident, number, or whitespace.
       while (kClassMap[buffer_[pos_]] % sym_class < 2) ++pos_;
@@ -105,8 +105,8 @@ class Lexer {
   }();
 
   const char* buffer_;
-  const std::size_t size_;
-  std::size_t pos_;
+  const std::uint32_t size_;
+  std::uint32_t pos_;
 };
 
 }  // namespace lucid

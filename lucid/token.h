@@ -38,7 +38,7 @@ struct Token {
     Space,
   };
 
-  constexpr Token(Kind kind, std::size_t start_pos, std::size_t end_pos)
+  constexpr Token(Kind kind, std::uint32_t start_pos, std::uint32_t end_pos)
       : kind(kind), start_pos(start_pos), end_pos(end_pos) {}
 
   constexpr bool operator==(const Token& other) const = default;
@@ -46,8 +46,8 @@ struct Token {
   friend std::ostream& operator<<(std::ostream& os, const Token& token);
 
   Kind kind;
-  std::size_t start_pos;
-  std::size_t end_pos;
+  std::uint32_t start_pos;
+  std::uint32_t end_pos;
 };
 
 // Returns the index of the line in `buffer` that contains `token`.
