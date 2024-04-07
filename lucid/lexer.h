@@ -62,6 +62,7 @@ class Lexer {
 
     std::array<std::uint8_t, 256> map;
     map.fill(kOtherClass);
+    map['_'] = kAlphaClass;
     for (char c = 'a'; c <= 'z'; ++c) map[c] = kAlphaClass;
     for (char c = 'A'; c <= 'Z'; ++c) map[c] = kAlphaClass;
     for (char c = '0'; c <= '9'; ++c) map[c] = kNumClass;
@@ -98,6 +99,7 @@ class Lexer {
     map['\t'] = Token::Kind::Space;
     map['\n'] = Token::Kind::Space;
     map['\0'] = Token::Kind::End;
+    map['_'] = Token::Kind::Ident;
     for (char c = 'a'; c <= 'z'; ++c) map[c] = Token::Kind::Ident;
     for (char c = 'A'; c <= 'Z'; ++c) map[c] = Token::Kind::Ident;
     for (char c = '0'; c <= '9'; ++c) map[c] = Token::Kind::Number;

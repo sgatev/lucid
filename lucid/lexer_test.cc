@@ -62,6 +62,9 @@ TEST(LexerTest, Empty) { EXPECT_THAT(ReadTokens(""), IsEmpty()); }
 TEST(LexerTest, Ident) {
   EXPECT_THAT(ReadTokens("foo  "),
               ElementsAre(Tok(Kind::Ident, "foo"), Tok(Kind::Space, "  ")));
+  EXPECT_THAT(
+      ReadTokens("_foo_bar  "),
+      ElementsAre(Tok(Kind::Ident, "_foo_bar"), Tok(Kind::Space, "  ")));
   EXPECT_THAT(ReadTokens("Foo21  "),
               ElementsAre(Tok(Kind::Ident, "Foo21"), Tok(Kind::Space, "  ")));
   EXPECT_THAT(
