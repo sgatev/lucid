@@ -15,7 +15,7 @@ namespace lucid {
 class Lexer {
  public:
   // Requirements:
-  //   - `buffer` must end in `\0`.
+  // - `buffer` must end in `\0`.
   explicit Lexer(std::string_view buffer)
       : buffer_(buffer.data()), size_(buffer.size()), pos_(0) {
     assert(size_ > 0);
@@ -25,16 +25,15 @@ class Lexer {
   // Returns the next token in the buffer.
   //
   // Requirements:
-  //   - Must not be called after it returns a `Kind::End` or
-  //     `Kind::Error` token.
+  // - Must not be called after it returns a `Kind::End` or `Kind::Error` token.
   inline Token next() {
     const char sym = buffer_[pos_];
     const std::uint8_t sym_class = kClassMap[sym];
     const std::uint32_t start_pos = pos_++;
-    if (sym_class > 3) [[unlikely]] {
+    if (sym_class > 4) [[unlikely]] {
       // Ident, number, or whitespace.
       while (kClassMap[buffer_[pos_]] % sym_class < 2) ++pos_;
-    } else if (sym == '"' || sym == '#') [[unlikely]] {
+    } else if (sym_class == 4) [[unlikely]] {
       // String or comment.
       const char* pos = std::char_traits<char>::find(
           buffer_ + pos_, size_ - pos_ - 1, sym == '"' ? '"' : '\n');
@@ -54,10 +53,11 @@ class Lexer {
     // - kNumClass mod kAlphaClass = 1
     // - kNumClass mod kNumClass = 0
     // - kSpaceClass mod kSpaceClass = 0
-    // - X mod Y > 1 for every other pair of classes where Y > 3
+    // - X mod Y > 1 for every other pair of classes where Y > 4
     constexpr std::uint8_t kNumClass = 255;
     constexpr std::uint8_t kAlphaClass = 254;
     constexpr std::uint8_t kSpaceClass = 252;
+    constexpr std::uint8_t kStringCommentClass = 4;
     constexpr std::uint8_t kOtherClass = 3;
 
     std::array<std::uint8_t, 256> map;
@@ -69,6 +69,8 @@ class Lexer {
     map[' '] = kSpaceClass;
     map['\n'] = kSpaceClass;
     map['\t'] = kSpaceClass;
+    map['"'] = kStringCommentClass;
+    map['#'] = kStringCommentClass;
     return map;
   }();
 
