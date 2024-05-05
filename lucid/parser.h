@@ -1,7 +1,9 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <ostream>
 #include <string_view>
@@ -10,6 +12,7 @@
 
 #include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/fixed_map.h"
 #include "lucid/lexer.h"
 #include "lucid/token.h"
 
@@ -205,141 +208,143 @@ class Parser {
   }
 
   std::variant<Stmt, ParserError> ParseStmt() {
-    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "do") {
-      Read();
-
-      const auto maybe_value = ParseExpr();
-      if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
-
-      return DoStmt{
-          .expr = ctx_.Add(std::get<Expr>(maybe_value)),
-      };
+    if (Peek().kind != Token::Kind::Ident) {
+      return MakeError(ParserError::Kind::UnexpectedToken, Peek());
     }
-    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "return") {
-      Read();
 
-      const auto maybe_value = ParseExpr();
-      if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
+    using namespace std::literals::string_view_literals;
+    static constexpr FixedMap parselets(
+        std::array{
+            std::pair{"do"sv, &Parser::ParseDoStmt},
+            std::pair{"return"sv, &Parser::ParseReturnStmt},
+            std::pair{"loop"sv, &Parser::ParseLoopStmt},
+            std::pair{"if"sv, &Parser::ParseIfStmt},
+            std::pair{"let"sv, &Parser::ParseLetStmt},
+            std::pair{"break"sv, &Parser::ParseBreakStmt},
+        },
+        &Parser::ParseAssignStmt);
+    return std::invoke(parselets[TokenString(Peek())], this);
+  }
 
-      return ReturnStmt{
-          .value = ctx_.Add(std::get<Expr>(maybe_value)),
-      };
-    }
-    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "loop") {
-      Read();
+  std::variant<Stmt, ParserError> ParseDoStmt() {
+    Read();
 
-      LoopStmt loop_stmt;
+    const auto maybe_value = ParseExpr();
+    if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
 
-      auto body = ParseCompoundStmt();
-      if (IsError(body)) return std::get<ParserError>(body);
+    return DoStmt{
+        .expr = ctx_.Add(std::get<Expr>(maybe_value)),
+    };
+  }
 
-      return LoopStmt{
-          .stmts = std::get<List<StmtRef>>(body),
-      };
-    }
-    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
+  std::variant<Stmt, ParserError> ParseReturnStmt() {
+    Read();
+
+    const auto maybe_value = ParseExpr();
+    if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
+
+    return ReturnStmt{
+        .value = ctx_.Add(std::get<Expr>(maybe_value)),
+    };
+  }
+
+  std::variant<Stmt, ParserError> ParseLoopStmt() {
+    Read();
+
+    LoopStmt loop_stmt;
+
+    auto body = ParseCompoundStmt();
+    if (IsError(body)) return std::get<ParserError>(body);
+
+    return LoopStmt{
+        .stmts = std::get<List<StmtRef>>(body),
+    };
+  }
+
+  std::variant<Stmt, ParserError> ParseIfStmt() {
+    Read();
+
+    SkipSpace();
+
+    IfStmt if_stmt;
+
+    const auto cond = ParseExpr();
+    if (IsError(cond)) return std::get<ParserError>(cond);
+    if_stmt.cond = ctx_.Add(std::get<Expr>(cond));
+
+    auto then_body = ParseCompoundStmt();
+    if (IsError(then_body)) return std::get<ParserError>(then_body);
+    if_stmt.then_stmts = std::get<List<StmtRef>>(then_body);
+
+    SkipSpace();
+
+    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "else") {
       Read();
 
       SkipSpace();
 
-      IfStmt if_stmt;
-
-      const auto cond = ParseExpr();
-      if (IsError(cond)) return std::get<ParserError>(cond);
-      if_stmt.cond = ctx_.Add(std::get<Expr>(cond));
-
-      auto then_body = ParseCompoundStmt();
-      if (IsError(then_body)) return std::get<ParserError>(then_body);
-      if_stmt.then_stmts = std::get<List<StmtRef>>(then_body);
-
-      SkipSpace();
-
-      if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "else") {
-        Read();
-
-        SkipSpace();
-
-        if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
-          const auto stmt = ParseStmt();
-          if (IsError(stmt)) return std::get<ParserError>(stmt);
-          if_stmt.else_stmts = List<StmtRef>(1, ctx_.Add(std::get<Stmt>(stmt)));
-        } else {
-          auto else_body = ParseCompoundStmt();
-          if (IsError(else_body)) return std::get<ParserError>(else_body);
-          if_stmt.else_stmts = std::get<List<StmtRef>>(else_body);
-        }
+      if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
+        const auto stmt = ParseStmt();
+        if (IsError(stmt)) return std::get<ParserError>(stmt);
+        if_stmt.else_stmts = List<StmtRef>(1, ctx_.Add(std::get<Stmt>(stmt)));
+      } else {
+        auto else_body = ParseCompoundStmt();
+        if (IsError(else_body)) return std::get<ParserError>(else_body);
+        if_stmt.else_stmts = std::get<List<StmtRef>>(else_body);
       }
-
-      return std::move(if_stmt);
     }
-    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "let") {
+
+    return std::move(if_stmt);
+  }
+
+  std::variant<Stmt, ParserError> ParseLetStmt() {
+    Read();
+
+    SkipSpace();
+
+    const auto maybe_name = ParseIdent();
+    if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
+
+    if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) return *r;
+
+    SkipSpace();
+
+    const auto maybe_type = ParseType();
+    if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
+
+    SkipSpace();
+
+    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
+
+    SkipSpace();
+
+    const auto init = ParseExpr();
+    if (IsError(init)) return std::get<ParserError>(init);
+
+    return VarDeclStmt{
+        .type = std::get<TypeRef>(maybe_type),
+        .name = std::get<std::string_view>(maybe_name),
+        .init = ctx_.Add(std::get<Expr>(init)),
+    };
+  }
+
+  std::variant<Stmt, ParserError> ParseBreakStmt() {
+    Read();
+
+    return BreakStmt{};
+  }
+
+  std::variant<Stmt, ParserError> ParseAssignStmt() {
+    auto ident = std::get<std::string_view>(ParseIdent());
+
+    if (Peek().kind == Token::Kind::OpenBracket) {
       Read();
 
-      SkipSpace();
+      const auto maybe_size = ParseExpr();
+      if (IsError(maybe_size)) return std::get<ParserError>(maybe_size);
 
-      const auto maybe_name = ParseIdent();
-      if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
-
-      if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) return *r;
-
-      SkipSpace();
-
-      const auto maybe_type = ParseType();
-      if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
-
-      SkipSpace();
-
-      if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
-
-      SkipSpace();
-
-      const auto init = ParseExpr();
-      if (IsError(init)) return std::get<ParserError>(init);
-
-      return VarDeclStmt{
-          .type = std::get<TypeRef>(maybe_type),
-          .name = std::get<std::string_view>(maybe_name),
-          .init = ctx_.Add(std::get<Expr>(init)),
-      };
-    }
-    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "break") {
-      Read();
-
-      return BreakStmt{};
-    }
-    if (Peek().kind == Token::Kind::Ident) {
-      const auto maybe_ident = ParseIdent();
-      if (IsError(maybe_ident)) return std::get<ParserError>(maybe_ident);
-      auto ident = std::get<std::string_view>(maybe_ident);
-
-      if (Peek().kind == Token::Kind::OpenBracket) {
-        Read();
-
-        const auto maybe_size = ParseExpr();
-        if (IsError(maybe_size)) return std::get<ParserError>(maybe_size);
-
-        if (auto r = ExpectToken(Token::Kind::CloseBracket); IsError(r)) {
-          return *r;
-        }
-
-        SkipSpace();
-
-        if (Peek().kind == Token::Kind::Equal) {
-          Read();
-
-          SkipSpace();
-
-          const auto expr = ParseExpr();
-          if (IsError(expr)) return std::get<ParserError>(expr);
-
-          return ArrayAssignStmt{
-              .name = ident,
-              .index = ctx_.Add(std::get<Expr>(maybe_size)),
-              .expr = ctx_.Add(std::get<Expr>(expr)),
-          };
-        }
-
-        return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+      if (auto r = ExpectToken(Token::Kind::CloseBracket); IsError(r)) {
+        return *r;
       }
 
       SkipSpace();
@@ -352,12 +357,32 @@ class Parser {
         const auto expr = ParseExpr();
         if (IsError(expr)) return std::get<ParserError>(expr);
 
-        return VarAssignStmt{
+        return ArrayAssignStmt{
             .name = ident,
+            .index = ctx_.Add(std::get<Expr>(maybe_size)),
             .expr = ctx_.Add(std::get<Expr>(expr)),
         };
       }
+
+      return MakeError(ParserError::Kind::UnexpectedToken, Peek());
     }
+
+    SkipSpace();
+
+    if (Peek().kind == Token::Kind::Equal) {
+      Read();
+
+      SkipSpace();
+
+      const auto expr = ParseExpr();
+      if (IsError(expr)) return std::get<ParserError>(expr);
+
+      return VarAssignStmt{
+          .name = ident,
+          .expr = ctx_.Add(std::get<Expr>(expr)),
+      };
+    }
+
     return MakeError(ParserError::Kind::UnexpectedToken, Peek());
   }
 
