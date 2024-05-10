@@ -161,6 +161,30 @@ int Run(CommandContext ctx) {
   return WEXITSTATUS(status);
 }
 
+int Parse(CommandContext ctx) {
+  if (ctx.args.size() != 1) {
+    PrintError(ctx.err) << "'parse' command requires exactly 1 argument\n";
+    return 1;
+  }
+
+  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
+  if (maybe_src.HasError()) {
+    maybe_src.OutputError(PrintError(ctx.err));
+    return 1;
+  }
+  const auto& src = maybe_src.GetValue();
+
+  SyntaxContext sctx;
+  auto maybe_funcs = ParseFuncDefs(src, sctx);
+  if (maybe_funcs.HasError()) {
+    maybe_funcs.OutputError(PrintError(ctx.err));
+    return 1;
+  }
+
+  return 0;
+}
+
 int Version(CommandContext ctx) {
   ctx.out << "Commit: " << kGitCommit << "\n";
 
@@ -188,6 +212,11 @@ int Main(std::vector<std::string_view> args) {
               .help = "Compiles the specified target, builds a binary, and "
                       "runs it.",
               .handler = Run,
+          },
+          {
+              .name = "parse",
+              .help = "Parses the specified target.",
+              .handler = Parse,
           },
           {
               .name = "version",
