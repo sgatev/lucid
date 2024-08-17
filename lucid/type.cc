@@ -31,8 +31,7 @@ class ExprTypeInferenceEngine {
       SetIdentType(param.name, param.type);
     }
 
-    AddPendingStmts(std::ranges::reverse_view(
-        std::ranges::subrange(func_def_.stmts.begin(), func_def_.stmts.end())));
+    AddPendingStmts(std::ranges::reverse_view(func_def_.stmts));
 
     while (true) {
       auto stmt_ref = NextStmt();

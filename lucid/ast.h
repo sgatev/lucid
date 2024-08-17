@@ -66,10 +66,7 @@ class List {
    public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = T;
-    using element_type = T;
-    using pointer = T*;
-    using reference = T&;
-    using difference_type = std::ptrdiff_t;
+    using difference_type = int;
 
     iterator() : expr_(0) {}
 
@@ -86,8 +83,9 @@ class List {
     }
 
     iterator operator++(int) {
-      ++expr_;
-      return *this;
+      iterator prev = *this;
+      ++*this;
+      return prev;
     }
 
     iterator& operator--() {
@@ -96,8 +94,9 @@ class List {
     }
 
     iterator operator--(int) {
-      --expr_;
-      return *this;
+      iterator prev = *this;
+      --*this;
+      return prev;
     }
 
     bool operator==(const iterator& other) const {
@@ -106,8 +105,7 @@ class List {
 
     bool operator!=(const iterator& other) const { return !(*this == other); }
 
-    const T& operator*() const { return expr_; }
-    pointer operator->() { return &expr_; }
+    value_type operator*() const { return expr_; }
 
    private:
     T expr_;
