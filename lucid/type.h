@@ -48,8 +48,8 @@ struct FuncType {
 
 // Creates a map from names of functions to their respective types.
 //
-// Requirements:
-//   * `func_defs` must be associated with `ctx.
+// Requires:
+// - `func_defs` must be associated with `ctx.
 std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
     const SyntaxContext& ctx, const std::vector<FuncDefStmt>& func_defs);
 
@@ -57,8 +57,8 @@ std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
 //
 // Returns an error if types in `stmt` are incompatible.
 //
-// Requirements:
-//  * `stmt` must be associated with `ctx`.
+// Requires:
+// - `stmt` must be associated with `ctx`.
 std::optional<TypeError> InferExprTypes(
     SyntaxContext& ctx,
     const std::unordered_map<std::string_view, FuncType>& func_types,

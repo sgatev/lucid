@@ -43,9 +43,8 @@ struct Command {
 // Returns an error if `ctx.args` is empty. Returns an error if `commands` does
 // not include the given command.
 //
-// Requirements:
-//
-//   * `commands` must not contain more than one command with a given name.
+// Requires:
+// - `commands` must not contain more than one command with a given name.
 int RunCommand(std::string_view root_name,
                std::initializer_list<Command> commands, CommandContext ctx);
 

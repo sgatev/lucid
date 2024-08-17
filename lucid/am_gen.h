@@ -30,8 +30,8 @@ struct AbstractMachineState {
 //
 // The generated instructions are stored in `state`.
 //
-// Requirements:
-//  * `graph` must be constructed in `ctx`.
+// Requires:
+// - `graph` must be constructed in `ctx`.
 void GenerateAbstractMachineFunction(const SyntaxContext& ctx,
                                      const ControlFlowGraph& graph,
                                      AbstractMachineState& state);

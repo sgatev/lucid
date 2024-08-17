@@ -84,8 +84,8 @@ struct ControlFlowGraph {
 
 // Returns the control flow graph of `func`.
 //
-// Requirements:
-//  * `func` must be associated with `ctx`.
+// Requires:
+// - `func` must be associated with `ctx`.
 ControlFlowGraph BuildControlFlowGraph(const SyntaxContext& ctx,
                                        const FuncDefStmt& func);
 

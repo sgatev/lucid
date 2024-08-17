@@ -75,14 +75,14 @@ class Result {
 
   // Returns a reference to the value that the result contains.
   //
-  // Requirements:
+  // Requires:
   // - Must be called only if the result contains a value.
   const V& GetValue() const { return std::get<V>(state_); }
   V& GetValue() { return std::get<V>(state_); }
 
   // Returns the error that the result contains.
   //
-  // Requirements:
+  // Requires:
   // - Must be called only if the result contains an error.
   ErrorResult<Es...> GetError() const {
     return ErrorResult<Es...>(std::get<Errors>(state_));
@@ -90,7 +90,7 @@ class Result {
 
   // Outputs an error to `out`.
   //
-  // Requirements:
+  // Requires:
   // - Must be called only if the result contains an error.
   void OutputError(std::ostream& out) const {
     std::visit([&out](auto&& a) { out << a << "\n"; },
@@ -154,7 +154,7 @@ class Result<void, Es...> {
 
   // Returns the error that the result contains.
   //
-  // Requirements:
+  // Requires:
   // - Must be called only if the result contains an error.
   ErrorResult<Es...> GetError() const {
     return ErrorResult<Es...>(std::get<Errors>(state_));
@@ -162,7 +162,7 @@ class Result<void, Es...> {
 
   // Outputs an error to `out`.
   //
-  // Requirements:
+  // Requires:
   // - Must be called only if the result contains an error.
   void OutputError(std::ostream& out) const {
     std::visit(
