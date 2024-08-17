@@ -73,7 +73,7 @@ class AbstractMachineFunctionGenerator {
     if (graph_.has_func_calls) stack_offset_ = 12;
 
     state_.out_reg.clear();
-    state_.out_reg.reserve(ctx_.Size());
+    state_.out_reg.resize(ctx_.Size());
 
     state_.func.name = graph_.func_name;
 
@@ -205,7 +205,7 @@ class AbstractMachineFunctionGenerator {
 
  private:
   void Process(StmtRef ref, const Stmt& stmt) {
-    std::visit([this, ref](auto&& stmt) { Process(ref, stmt); }, stmt);
+    std::visit([this, ref](const auto& stmt) { Process(ref, stmt); }, stmt);
   }
 
   void Process(StmtRef ref, const ReturnStmt& stmt) {
