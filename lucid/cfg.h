@@ -47,17 +47,17 @@ struct ControlFlowGraph {
   };
 
   // Adds `block` to the control flow graph and returns a reference to it.
-  BlockRef add(Block block) { return blocks_.add(std::move(block)); }
+  BlockRef add(Block block) { return blocks_.Add(std::move(block)); }
 
   // Returns the block in the control flow graph refererenced by `ref`.
   //
   // `ref` must not be `kNullBlockRef`.
-  Block& get(BlockRef ref) { return blocks_.get(ref); }
+  Block& get(BlockRef ref) { return blocks_.Get(ref); }
 
   // Returns the block in the control flow graph refererenced by `ref`.
   //
   // `ref` must not be `kNullBlockRef`.
-  const Block& get(BlockRef ref) const { return blocks_.get(ref); }
+  const Block& get(BlockRef ref) const { return blocks_.Get(ref); }
 
   // Returns an arena with all blocks that were added to the graph.
   const Arena<Block>& blocks() const { return blocks_; }

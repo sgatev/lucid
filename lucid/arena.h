@@ -8,25 +8,20 @@
 
 namespace lucid {
 
-// Stores values and provides access to them via references.
+// A container of values that can be added dynamically and retrieved via
+// references.
 template <typename T>
 class Arena {
  public:
+  // The type of references for values in the arena.
   using Ref = std::uint32_t;
 
-  // A null `Arena<T>` reference.
-  static constexpr Ref kNullRef = std::numeric_limits<std::uint32_t>::max();
-
-  Arena() = default;
-  Arena(Arena&&) = default;
-  Arena& operator=(Arena&&) = default;
-
-  Arena(const Arena&) = delete;
-  Arena& operator=(const Arena&) = delete;
+  // The null arena reference.
+  static constexpr Ref kNullRef = std::numeric_limits<Ref>::max();
 
   // Adds `value` to the arena and returns a reference that can be used to
   // retrieve it.
-  Ref add(T value) {
+  Ref Add(T value) {
     Ref ref = indices_.size();
     indices_.push_back(values_.size());
     values_.push_back(std::move(value));
@@ -34,7 +29,7 @@ class Arena {
   }
 
   // Adds another reference for the value that `ref` refers to.
-  Ref alias(Ref ref) {
+  Ref Alias(Ref ref) {
     indices_.push_back(indices_[ref]);
     return indices_.size() - 1;
   }
@@ -43,19 +38,19 @@ class Arena {
   //
   // Requires:
   // - `ref` must not be `kNullRef`.
-  const T& get(Ref ref) const { return values_[indices_[ref]]; }
-  T& get(Ref ref) { return values_[indices_[ref]]; }
+  const T& Get(Ref ref) const { return values_[indices_[ref]]; }
+  T& Get(Ref ref) { return values_[indices_[ref]]; }
 
-  // Returns true iff the two references refer to the same value.
-  bool equiv(Ref lhs, Ref rhs) const { return indices_[lhs] == indices_[rhs]; }
+  // Returns true iff `lhs` and `rhs` refer to the same value.
+  bool Equiv(Ref lhs, Ref rhs) const { return indices_[lhs] == indices_[rhs]; }
 
   // Returns the number of values that were added to the arena.
-  std::size_t size() const { return values_.size(); }
+  std::size_t Size() const { return values_.size(); }
 
-  // Returns an iterator to the first value of the arena.
+  // Returns an iterator to the first value in the arena.
   auto begin() const { return values_.begin(); }
 
-  // Returns an iterator to the value following the last value of the arena.
+  // Returns an iterator following the last value in the arena.
   auto end() const { return values_.end(); }
 
  private:

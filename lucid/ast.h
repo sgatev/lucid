@@ -370,48 +370,48 @@ inline void SetType(Expr& expr, TypeRef type) {
 class SyntaxContext {
  public:
   // Adds `stmt` to the context.
-  StmtRef Add(Stmt stmt) { return stmts_.add(std::move(stmt)); }
+  StmtRef Add(Stmt stmt) { return stmts_.Add(std::move(stmt)); }
 
   // Adds `expr` to the context.
-  ExprRef Add(Expr expr) { return exprs_.add(std::move(expr)); }
+  ExprRef Add(Expr expr) { return exprs_.Add(std::move(expr)); }
 
   // Adds `type` to the context.
-  TypeRef Add(Type type) { return types_.add(std::move(type)); }
+  TypeRef Add(Type type) { return types_.Add(std::move(type)); }
 
   // Adds `param` to the context.
-  ParamRef Add(FuncParam param) { return params_.add(std::move(param)); }
+  ParamRef Add(FuncParam param) { return params_.Add(std::move(param)); }
 
   // Creates an alias of `ref` in the context.
-  StmtRef AliasStmt(StmtRef ref) { return stmts_.alias(ref); }
+  StmtRef AliasStmt(StmtRef ref) { return stmts_.Alias(ref); }
 
   // Creates an alias of `ref` in the context.
-  ExprRef AliasExpr(ExprRef ref) { return exprs_.alias(ref); }
+  ExprRef AliasExpr(ExprRef ref) { return exprs_.Alias(ref); }
 
   // Creates an alias of `ref` in the context.
-  ParamRef AliasParam(ParamRef ref) { return params_.alias(ref); }
+  ParamRef AliasParam(ParamRef ref) { return params_.Alias(ref); }
 
   // Returns the statement that `ref` refers to.
-  Stmt& DerefStmt(StmtRef ref) { return stmts_.get(ref); }
-  const Stmt& DerefStmt(StmtRef ref) const { return stmts_.get(ref); }
+  Stmt& DerefStmt(StmtRef ref) { return stmts_.Get(ref); }
+  const Stmt& DerefStmt(StmtRef ref) const { return stmts_.Get(ref); }
 
   // Returns the expression that `ref` refers to.
-  Expr& DerefExpr(ExprRef ref) { return exprs_.get(ref); }
-  const Expr& DerefExpr(ExprRef ref) const { return exprs_.get(ref); }
+  Expr& DerefExpr(ExprRef ref) { return exprs_.Get(ref); }
+  const Expr& DerefExpr(ExprRef ref) const { return exprs_.Get(ref); }
 
   // Returns the type that `ref` refers to.
-  Type& DerefType(TypeRef ref) { return types_.get(ref); }
-  const Type& DerefType(TypeRef ref) const { return types_.get(ref); }
+  Type& DerefType(TypeRef ref) { return types_.Get(ref); }
+  const Type& DerefType(TypeRef ref) const { return types_.Get(ref); }
 
-  FuncParam& DerefParam(ParamRef ref) { return params_.get(ref); }
-  const FuncParam& DerefParam(ParamRef ref) const { return params_.get(ref); }
+  FuncParam& DerefParam(ParamRef ref) { return params_.Get(ref); }
+  const FuncParam& DerefParam(ParamRef ref) const { return params_.Get(ref); }
 
   // Returns true if and only if `lhs` and `rhs` refer to equivalent statements.
   bool EquivStmts(StmtRef lhs, StmtRef rhs) const {
-    return stmts_.equiv(lhs, rhs);
+    return stmts_.Equiv(lhs, rhs);
   }
 
   std::size_t Size() const {
-    return stmts_.size() + exprs_.size() + types_.size();
+    return stmts_.Size() + exprs_.Size() + types_.Size();
   }
 
  private:
