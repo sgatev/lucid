@@ -2,8 +2,7 @@ let gcd = (a: Int32, b: Int32) -> Int32 {
   loop {
     if a == b {
       break
-    }
-    if a > b {
+    } else if a > b {
       a = a - b
     } else {
       b = b - a
