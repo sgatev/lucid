@@ -75,6 +75,30 @@ Inst Mov(bool sf, Reg rd, Reg rm) {
               *rd);
 }
 
+// STP (Post-index)
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+Inst StpPostIndex(bool opc, Reg rt1, Reg rt2, Reg rn, Imm imm) {
+  return Inst(0b00101000100000000000000000000000 | (opc << 31) | (*imm << 15) |
+              (*rt2 << 10) | (*rn << 5) | *rt1);
+}
+
+// STP (Pre-index)
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+Inst StpPreIndex(bool opc, Reg rt1, Reg rt2, Reg rn, Imm imm) {
+  return Inst(0b00101001100000000000000000000000 | (opc << 31) | (*imm << 15) |
+              (*rt2 << 10) | (*rn << 5) | *rt1);
+}
+
+// STP (Signed offset)
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+Inst StpSignedOffset(bool opc, Reg rt1, Reg rt2, Reg rn, Imm imm) {
+  return Inst(0b00101001000000000000000000000000 | (opc << 31) | (*imm << 15) |
+              (*rt2 << 10) | (*rn << 5) | *rt1);
+}
+
 }  // namespace internal
 
 // ADD <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}
@@ -106,6 +130,48 @@ Inst Mov(X rd, X rm) { return Mov(true, rd, rm); }
 // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/RET--Return-from-subroutine-?lang=en
 Inst Ret(X rn = X(0)) {
   return Inst(0b11010110010111110000000000000000 | (*rn << 5));
+}
+
+// STP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+Inst StpPostIndex(W rt1, W rt2, X rn, Imm imm) {
+  return internal::StpPostIndex(false, rt1, rt2, rn, imm);
+}
+
+// STP <Xt1>, <Xt2>, [<Xn|SP>], #<imm>
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+Inst StpPostIndex(X rt1, X rt2, X rn, Imm imm) {
+  return internal::StpPostIndex(true, rt1, rt2, rn, imm);
+}
+
+// STP <Wt1>, <Wt2>, [<Xn|SP>, #<imm>]!
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+Inst StpPreIndex(W rt1, W rt2, X rn, Imm imm) {
+  return internal::StpPreIndex(false, rt1, rt2, rn, imm);
+}
+
+// STP <Xt1>, <Xt2>, [<Xn|SP>, #<imm>]!
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+Inst StpPreIndex(X rt1, X rt2, X rn, Imm imm) {
+  return internal::StpPreIndex(true, rt1, rt2, rn, imm);
+}
+
+// STP <Wt1>, <Wt2>, [<Xn|SP>{, #<imm>}]
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+Inst StpSignedOffset(W rt1, W rt2, X rn, Imm imm) {
+  return internal::StpSignedOffset(false, rt1, rt2, rn, imm);
+}
+
+// STP <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+Inst StpSignedOffset(X rt1, X rt2, X rn, Imm imm) {
+  return internal::StpSignedOffset(true, rt1, rt2, rn, imm);
 }
 
 }  // namespace lucid::arm64
