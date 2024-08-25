@@ -66,6 +66,11 @@ cc_test(
 )
 
 cc_library(
+    name = "arm64",
+    hdrs = ["arm64.h"],
+)
+
+cc_library(
     name = "arm64_gen",
     srcs = ["arm64_gen.cc"],
     hdrs = ["arm64_gen.h"],
@@ -96,6 +101,7 @@ cc_library(
     hdrs = ["arm64_binary_gen.h"],
     deps = [
         ":am",
+        ":arm64",
     ],
 )
 
