@@ -1,0 +1,20 @@
+#include "lucid/arm64_binary_gen.h"
+
+#include <cstdint>
+#include <ostream>
+#include <string>
+#include <unordered_map>
+
+#include "lucid/am.h"
+
+namespace lucid {
+
+void GenerateArmStartBinary(std::ostream& out) {}
+
+void GenerateArmEndBinary(
+    const std::unordered_map<std::uintptr_t, std::string>& strings,
+    std::ostream& out) {}
+
+void GenerateArmAssemblyBinary(const Function& func, std::ostream& out) {}
+
+}  // namespace lucid
