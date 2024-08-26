@@ -58,149 +58,154 @@ class Inst {
   std::uint32_t value;
 };
 
-namespace internal {
+// Builds a list of ARM64 instructions.
+class Arm64 {
+ public:
+  // ADD <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
+  Inst Add(W rd, W rn, Imm imm, bool sh = false) {
+    return Add(false, rd, rn, imm, sh);
+  }
 
-// ADD (immediate)
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
-Inst Add(bool sf, Reg rd, Reg rn, Imm imm, bool sh = false) {
-  return Inst(0b10010001000000000000000000000000 | (sf << 31) | (sh << 22) |
-              (*imm << 10) | (*rn << 5) | *rd);
-}
+  // ADD <Xd|SP>, <Xn|SP>, #<imm>{, <shift>}
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
+  Inst Add(X rd, X rn, Imm imm, bool sh = false) {
+    return Add(true, rd, rn, imm, sh);
+  }
 
-// MOV (register)
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
-Inst Mov(bool sf, Reg rd, Reg rm) {
-  return Inst(0b00101010000000000000001111100000 | (sf << 31) | (*rm << 16) |
-              *rd);
-}
+  // ADR <Xd>, <label>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
+  Inst Adr(X rd, std::string_view label) {
+    auto immlo = 0;  // TODO
+    auto immhi = 0;  // TODO
+    return Inst(0b00010000000000000000000000000000 | (immlo << 29) |
+                (immhi << 5) | *rd);
+  }
 
-// MOV (wide immediate)
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
-Inst Mov(bool sf, Reg rd, Imm imm) {
-  return Inst(0b01010010100000000000000000000000 | (sf << 31) | (*imm << 5) |
-              *rd);
-}
+  // MOV <Wd>, <Wm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
+  Inst Mov(W rd, W rm) { return Mov(false, rd, rm); }
 
-// STP (Post-index)
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-Inst StpPostIndex(bool opc, Reg rt1, Reg rt2, Reg rn, Imm imm) {
-  return Inst(0b00101000100000000000000000000000 | (opc << 31) | (*imm << 15) |
-              (*rt2 << 10) | (*rn << 5) | *rt1);
-}
+  // MOV <Xd>, <Xm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
+  Inst Mov(X rd, X rm) { return Mov(true, rd, rm); }
 
-// STP (Pre-index)
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-Inst StpPreIndex(bool opc, Reg rt1, Reg rt2, Reg rn, Imm imm) {
-  return Inst(0b00101001100000000000000000000000 | (opc << 31) | (*imm << 15) |
-              (*rt2 << 10) | (*rn << 5) | *rt1);
-}
+  // MOV <Wd>, #<imm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
+  Inst Mov(W rd, Imm imm) { return Mov(false, rd, imm); }
 
-// STP (Signed offset)
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-Inst StpSignedOffset(bool opc, Reg rt1, Reg rt2, Reg rn, Imm imm) {
-  return Inst(0b00101001000000000000000000000000 | (opc << 31) | (*imm << 15) |
-              (*rt2 << 10) | (*rn << 5) | *rt1);
-}
+  // MOV <Xd>, #<imm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
+  Inst Mov(X rd, Imm imm) { return Mov(true, rd, imm); }
 
-}  // namespace internal
+  // RET {<Xn>}
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/RET--Return-from-subroutine-?lang=en
+  Inst Ret(X rn = X(0)) {
+    return Inst(0b11010110010111110000000000000000 | (*rn << 5));
+  }
 
-// ADD <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
-Inst Add(W rd, W rn, Imm imm, bool sh = false) {
-  return Add(false, rd, rn, imm, sh);
-}
+  // STP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+  Inst StpPostIndex(W rt1, W rt2, X rn, Imm imm) {
+    return StpPostIndex(false, rt1, rt2, rn, imm);
+  }
 
-// ADD <Xd|SP>, <Xn|SP>, #<imm>{, <shift>}
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
-Inst Add(X rd, X rn, Imm imm, bool sh = false) {
-  return Add(true, rd, rn, imm, sh);
-}
+  // STP <Xt1>, <Xt2>, [<Xn|SP>], #<imm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+  Inst StpPostIndex(X rt1, X rt2, X rn, Imm imm) {
+    return StpPostIndex(true, rt1, rt2, rn, imm);
+  }
 
-// ADR <Xd>, <label>
-//
-// https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
-Inst Adr(X rd, std::string_view label) {
-  auto immlo = 0; // TODO
-  auto immhi = 0; // TODO
-  return Inst(0b00010000000000000000000000000000 | (immlo << 29) |
-              (immhi << 5) | *rd);
-}
+  // STP <Wt1>, <Wt2>, [<Xn|SP>, #<imm>]!
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+  Inst StpPreIndex(W rt1, W rt2, X rn, Imm imm) {
+    return StpPreIndex(false, rt1, rt2, rn, imm);
+  }
 
-// MOV <Wd>, <Wm>
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
-Inst Mov(W rd, W rm) { return Mov(false, rd, rm); }
+  // STP <Xt1>, <Xt2>, [<Xn|SP>, #<imm>]!
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+  Inst StpPreIndex(X rt1, X rt2, X rn, Imm imm) {
+    return StpPreIndex(true, rt1, rt2, rn, imm);
+  }
 
-// MOV <Xd>, <Xm>
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
-Inst Mov(X rd, X rm) { return Mov(true, rd, rm); }
+  // STP <Wt1>, <Wt2>, [<Xn|SP>{, #<imm>}]
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+  Inst StpSignedOffset(W rt1, W rt2, X rn, Imm imm) {
+    return StpSignedOffset(false, rt1, rt2, rn, imm);
+  }
 
-// MOV <Wd>, #<imm>
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
-Inst Mov(W rd, Imm imm) { return Mov(false, rd, imm); }
+  // STP <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+  Inst StpSignedOffset(X rt1, X rt2, X rn, Imm imm) {
+    return StpSignedOffset(true, rt1, rt2, rn, imm);
+  }
 
-// MOV <Xd>, #<imm>
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
-Inst Mov(X rd, Imm imm) { return Mov(true, rd, imm); }
+ private:
+  // ADD (immediate)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
+  Inst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
+           bool sh = false) {
+    return Inst(0b10010001000000000000000000000000 | (sf << 31) | (sh << 22) |
+                (*imm << 10) | (*rn << 5) | *rd);
+  }
 
-// RET {<Xn>}
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/RET--Return-from-subroutine-?lang=en
-Inst Ret(X rn = X(0)) {
-  return Inst(0b11010110010111110000000000000000 | (*rn << 5));
-}
+  // MOV (register)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
+  Inst Mov(bool sf, internal::Reg rd, internal::Reg rm) {
+    return Inst(0b00101010000000000000001111100000 | (sf << 31) | (*rm << 16) |
+                *rd);
+  }
 
-// STP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-Inst StpPostIndex(W rt1, W rt2, X rn, Imm imm) {
-  return internal::StpPostIndex(false, rt1, rt2, rn, imm);
-}
+  // MOV (wide immediate)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
+  Inst Mov(bool sf, internal::Reg rd, Imm imm) {
+    return Inst(0b01010010100000000000000000000000 | (sf << 31) | (*imm << 5) |
+                *rd);
+  }
 
-// STP <Xt1>, <Xt2>, [<Xn|SP>], #<imm>
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-Inst StpPostIndex(X rt1, X rt2, X rn, Imm imm) {
-  return internal::StpPostIndex(true, rt1, rt2, rn, imm);
-}
+  // STP (Post-index)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+  Inst StpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
+                    internal::Reg rn, Imm imm) {
+    return Inst(0b00101000100000000000000000000000 | (opc << 31) |
+                (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+  }
 
-// STP <Wt1>, <Wt2>, [<Xn|SP>, #<imm>]!
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-Inst StpPreIndex(W rt1, W rt2, X rn, Imm imm) {
-  return internal::StpPreIndex(false, rt1, rt2, rn, imm);
-}
+  // STP (Pre-index)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+  Inst StpPreIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
+                   internal::Reg rn, Imm imm) {
+    return Inst(0b00101001100000000000000000000000 | (opc << 31) |
+                (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+  }
 
-// STP <Xt1>, <Xt2>, [<Xn|SP>, #<imm>]!
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-Inst StpPreIndex(X rt1, X rt2, X rn, Imm imm) {
-  return internal::StpPreIndex(true, rt1, rt2, rn, imm);
-}
-
-// STP <Wt1>, <Wt2>, [<Xn|SP>{, #<imm>}]
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-Inst StpSignedOffset(W rt1, W rt2, X rn, Imm imm) {
-  return internal::StpSignedOffset(false, rt1, rt2, rn, imm);
-}
-
-// STP <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]
-//
-// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-Inst StpSignedOffset(X rt1, X rt2, X rn, Imm imm) {
-  return internal::StpSignedOffset(true, rt1, rt2, rn, imm);
-}
+  // STP (Signed offset)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
+  Inst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
+                       internal::Reg rn, Imm imm) {
+    return Inst(0b00101001000000000000000000000000 | (opc << 31) |
+                (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+  }
+};
 
 }  // namespace lucid::arm64
