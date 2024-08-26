@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <string_view>
 
 namespace lucid::arm64 {
 namespace internal {
@@ -121,6 +122,16 @@ Inst Add(W rd, W rn, Imm imm, bool sh = false) {
 // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
 Inst Add(X rd, X rn, Imm imm, bool sh = false) {
   return Add(true, rd, rn, imm, sh);
+}
+
+// ADR <Xd>, <label>
+//
+// https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
+Inst Adr(X rd, std::string_view label) {
+  auto immlo = 0; // TODO
+  auto immhi = 0; // TODO
+  return Inst(0b00010000000000000000000000000000 | (immlo << 29) |
+              (immhi << 5) | *rd);
 }
 
 // MOV <Wd>, <Wm>
