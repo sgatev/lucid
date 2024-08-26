@@ -75,6 +75,14 @@ Inst Mov(bool sf, Reg rd, Reg rm) {
               *rd);
 }
 
+// MOV (wide immediate)
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
+Inst Mov(bool sf, Reg rd, Imm imm) {
+  return Inst(0b01010010100000000000000000000000 | (sf << 31) | (*imm << 5) |
+              *rd);
+}
+
 // STP (Post-index)
 //
 // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
@@ -124,6 +132,16 @@ Inst Mov(W rd, W rm) { return Mov(false, rd, rm); }
 //
 // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
 Inst Mov(X rd, X rm) { return Mov(true, rd, rm); }
+
+// MOV <Wd>, #<imm>
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
+Inst Mov(W rd, Imm imm) { return Mov(false, rd, imm); }
+
+// MOV <Xd>, #<imm>
+//
+// https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
+Inst Mov(X rd, Imm imm) { return Mov(true, rd, imm); }
 
 // RET {<Xn>}
 //
