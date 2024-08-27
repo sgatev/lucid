@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <string_view>
+#include <unordered_map>
 
 namespace lucid::arm64 {
 namespace internal {
@@ -79,8 +81,10 @@ class Arm64 {
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
   Inst Adr(X rd, std::string_view label) {
-    auto immlo = 0;  // TODO
-    auto immhi = 0;  // TODO
+    std::size_t offset = (label_offsets_[label] - idx_) * 4;
+    auto immlo = offset & 0b11;
+    auto immhi = (offset >> 2) & 0b1111111111111111111;
+    ++idx_;
     return Inst(0b00010000000000000000000000000000 | (immlo << 29) |
                 (immhi << 5) | *rd);
   }
@@ -109,6 +113,7 @@ class Arm64 {
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/RET--Return-from-subroutine-?lang=en
   Inst Ret(X rn = X(0)) {
+    ++idx_;
     return Inst(0b11010110010111110000000000000000 | (*rn << 5));
   }
 
@@ -174,6 +179,7 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
   Inst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
            bool sh = false) {
+    ++idx_;
     return Inst(0b10010001000000000000000000000000 | (sf << 31) | (sh << 22) |
                 (*imm << 10) | (*rn << 5) | *rd);
   }
@@ -182,6 +188,7 @@ class Arm64 {
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
   Inst Mov(bool sf, internal::Reg rd, internal::Reg rm) {
+    ++idx_;
     return Inst(0b00101010000000000000001111100000 | (sf << 31) | (*rm << 16) |
                 *rd);
   }
@@ -190,6 +197,7 @@ class Arm64 {
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
   Inst Mov(bool sf, internal::Reg rd, Imm imm) {
+    ++idx_;
     return Inst(0b01010010100000000000000000000000 | (sf << 31) | (*imm << 5) |
                 *rd);
   }
@@ -199,6 +207,7 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   Inst StpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
                     internal::Reg rn, Imm imm) {
+    ++idx_;
     return Inst(0b00101000100000000000000000000000 | (opc << 31) |
                 (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
   }
@@ -208,6 +217,7 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   Inst StpPreIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
                    internal::Reg rn, Imm imm) {
+    ++idx_;
     return Inst(0b00101001100000000000000000000000 | (opc << 31) |
                 (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
   }
@@ -217,6 +227,7 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   Inst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
                        internal::Reg rn, Imm imm) {
+    ++idx_;
     return Inst(0b00101001000000000000000000000000 | (opc << 31) |
                 (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
   }
@@ -226,9 +237,13 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
   Inst LdpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2, X rn,
                     Imm imm) {
+    ++idx_;
     return Inst(0b00101000110000000000000000000000 | (opc << 30) |
                 (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
   }
+
+  std::size_t idx_ = 0;
+  std::unordered_map<std::string_view, std::size_t> label_offsets_;
 };
 
 }  // namespace lucid::arm64
