@@ -19,7 +19,10 @@ void GenerateArmEndBinary(
     std::ostream& out) {}
 
 void GenerateArmAssemblyBinary(const Function& func, std::ostream& out) {
-  Arm64().Mov(W(1), W(2));
+  Arm64 arm;
+  Encoder encoder;
+  encoder.Encode(arm.Mov(W(1), W(2)));
+  encoder.Encode(arm.Adr(X(1), "foo"));
 }
 
 }  // namespace lucid
