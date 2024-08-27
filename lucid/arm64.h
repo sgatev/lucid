@@ -202,6 +202,14 @@ class Arm64 {
     return LdpPostIndex(true, rt1, rt2, rn, imm);
   }
 
+  // BL <label>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
+  Inst Bl(std::string_view label) {
+    std::size_t offset = label_offsets_[label];
+    return Inst(0b10010100000000000000000000000000 | offset);
+  }
+
  private:
   // ADD (immediate)
   //
