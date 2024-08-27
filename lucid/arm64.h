@@ -154,6 +154,20 @@ class Arm64 {
     return StpSignedOffset(true, rt1, rt2, rn, imm);
   }
 
+  // LDP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
+  Inst LdpPostIndex(W rt1, W rt2, X rn, Imm imm) {
+    return LdpPostIndex(false, rt1, rt2, rn, imm);
+  }
+
+  // LDP <Xt1>, <Xt2>, [<Xn|SP>], #<imm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
+  Inst LdpPostIndex(X rt1, X rt2, X rn, Imm imm) {
+    return LdpPostIndex(true, rt1, rt2, rn, imm);
+  }
+
  private:
   // ADD (immediate)
   //
@@ -204,6 +218,15 @@ class Arm64 {
   Inst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
                        internal::Reg rn, Imm imm) {
     return Inst(0b00101001000000000000000000000000 | (opc << 31) |
+                (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+  }
+
+  // LDP (Post-index)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
+  Inst LdpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2, X rn,
+                    Imm imm) {
+    return Inst(0b00101000110000000000000000000000 | (opc << 30) |
                 (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
   }
 };
