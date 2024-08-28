@@ -70,6 +70,15 @@ cc_library(
     hdrs = ["arm64.h"],
 )
 
+cc_test(
+    name = "arm64_test",
+    srcs = ["arm64_test.cc"],
+    deps = [
+        ":arm64",
+        "@googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "arm64_gen",
     srcs = ["arm64_gen.cc"],

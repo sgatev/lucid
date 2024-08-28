@@ -4,6 +4,7 @@
 #include <ostream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "lucid/am.h"
 #include "lucid/arm64.h"
@@ -19,10 +20,14 @@ void GenerateArmEndBinary(
     std::ostream& out) {}
 
 void GenerateArmAssemblyBinary(const Function& func, std::ostream& out) {
+  std::vector<Inst> insts;
+
   Arm64 arm;
+  insts.push_back(arm.Mov(W(1), W(2)));
+  insts.push_back(arm.Adr(X(1), "foo"));
+
   Encoder encoder;
-  encoder.Encode(arm.Mov(W(1), W(2)));
-  encoder.Encode(arm.Adr(X(1), "foo"));
+  for (auto inst : insts) encoder.Encode(inst);
 }
 
 }  // namespace lucid
