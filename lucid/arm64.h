@@ -93,8 +93,42 @@ class AdrInst {
   std::string_view label_;
 };
 
+// Represents an ARM64 B instruction.
+class BInst {
+ public:
+  explicit BInst(std::string_view label) : label_(label) {}
+
+  // Returns a binary representation of the instruction.
+  std::uint32_t Encode(
+      const std::unordered_map<std::string_view, std::size_t>& label_offsets) {
+    std::size_t offset =
+        label_offsets.at(label_) & 0b11111111111111111111111111;
+    return 0b00010100000000000000000000000000 | offset;
+  }
+
+ private:
+  std::string_view label_;
+};
+
+// Represents an ARM64 BL instruction.
+class BlInst {
+ public:
+  explicit BlInst(std::string_view label) : label_(label) {}
+
+  // Returns a binary representation of the instruction.
+  std::uint32_t Encode(
+      const std::unordered_map<std::string_view, std::size_t>& label_offsets) {
+    std::size_t offset =
+        label_offsets.at(label_) & 0b11111111111111111111111111;
+    return 0b10010100000000000000000000000000 | offset;
+  }
+
+ private:
+  std::string_view label_;
+};
+
 // Represents an ARM64 instruction.
-using Inst = std::variant<BasicInst, AdrInst>;
+using Inst = std::variant<BasicInst, AdrInst, BInst, BlInst>;
 
 // Builds a list of ARM64 instructions.
 class Arm64 {
@@ -217,18 +251,12 @@ class Arm64 {
   // B <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B--Branch-?lang=en
-  void B(std::string_view label) {
-    std::size_t offset = label_offsets_[label];
-    insts_.push_back(BasicInst(0b00010100000000000000000000000000 | offset));
-  }
+  void B(std::string_view label) { insts_.push_back(BInst(label)); }
 
   // BL <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
-  void Bl(std::string_view label) {
-    std::size_t offset = label_offsets_[label];
-    insts_.push_back(BasicInst(0b10010100000000000000000000000000 | offset));
-  }
+  void Bl(std::string_view label) { insts_.push_back(BlInst(label)); }
 
  private:
   // ADD (immediate)
