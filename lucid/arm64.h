@@ -8,6 +8,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <variant>
+#include <vector>
 
 namespace lucid::arm64 {
 namespace internal {
@@ -59,7 +60,11 @@ class BasicInst {
 
   std::uint32_t operator*() const { return value; }
 
-  std::uint32_t Encode(std::size_t pos) { return value; }
+  // Returns a binary representation of the instruction.
+  std::uint32_t Encode(
+      const std::unordered_map<std::string_view, std::size_t>& label_offsets) {
+    return value;
+  }
 
  private:
   std::uint32_t value;
@@ -68,11 +73,14 @@ class BasicInst {
 // Represents an ARM64 ADR instruction.
 class AdrInst {
  public:
-  AdrInst(X rd, std::size_t label_offset)
-      : rd_(rd), label_offset_(label_offset) {}
+  AdrInst(std::size_t pos, X rd, std::string_view label)
+      : pos_(pos), rd_(rd), label_(label) {}
 
-  std::uint32_t Encode(std::size_t pos) {
-    std::size_t offset = (label_offset_ - pos) * 4;
+  // Returns a binary representation of the instruction.
+  std::uint32_t Encode(
+      const std::unordered_map<std::string_view, std::size_t>& label_offsets) {
+    std::size_t label_offset = label_offsets.at(label_);
+    std::size_t offset = (label_offset - pos_) * 4;
     auto immlo = offset & 0b11;
     auto immhi = (offset >> 2) & 0b1111111111111111111;
     return 0b00010000000000000000000000000000 | (immlo << 29) | (immhi << 5) |
@@ -80,145 +88,146 @@ class AdrInst {
   }
 
  private:
+  std::size_t pos_;
   X rd_;
-  std::size_t label_offset_;
+  std::string_view label_;
 };
 
 // Represents an ARM64 instruction.
 using Inst = std::variant<BasicInst, AdrInst>;
 
-// Encodes a stream of ARM64 instructions in binary.
-class Encoder {
- public:
-  std::uint32_t Encode(Inst inst) {
-    return std::visit([this](auto inst) { return inst.Encode(pos_++); }, inst);
-  }
-
- private:
-  std::size_t pos_ = 0;
-};
-
 // Builds a list of ARM64 instructions.
 class Arm64 {
  public:
+  // Returns a binary representation of the assembled instructions.
+  std::vector<std::uint32_t> Encode() const {
+    std::vector<std::uint32_t> result;
+    for (const Inst& inst : insts_) {
+      result.push_back(std::visit(
+          [this](auto inst) { return inst.Encode(label_offsets_); }, inst));
+    }
+    return result;
+  }
+
   // ADD <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
-  BasicInst Add(W rd, W rn, Imm imm, bool sh = false) {
-    return Add(false, rd, rn, imm, sh);
+  void Add(W rd, W rn, Imm imm, bool sh = false) {
+    insts_.push_back(Add(false, rd, rn, imm, sh));
   }
 
   // ADD <Xd|SP>, <Xn|SP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
-  BasicInst Add(X rd, X rn, Imm imm, bool sh = false) {
-    return Add(true, rd, rn, imm, sh);
+  void Add(X rd, X rn, Imm imm, bool sh = false) {
+    insts_.push_back(Add(true, rd, rn, imm, sh));
   }
 
   // ADR <Xd>, <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
-  AdrInst Adr(X rd, std::string_view label) {
-    return AdrInst(rd, label_offsets_[label]);
+  void Adr(X rd, std::string_view label) {
+    insts_.push_back(AdrInst(insts_.size(), rd, label));
   }
 
   // MOV <Wd>, <Wm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
-  BasicInst Mov(W rd, W rm) { return Mov(false, rd, rm); }
+  void Mov(W rd, W rm) { insts_.push_back(Mov(false, rd, rm)); }
 
   // MOV <Xd>, <Xm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
-  BasicInst Mov(X rd, X rm) { return Mov(true, rd, rm); }
+  void Mov(X rd, X rm) { insts_.push_back(Mov(true, rd, rm)); }
 
   // MOV <Wd>, #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
-  BasicInst Mov(W rd, Imm imm) { return Mov(false, rd, imm); }
+  void Mov(W rd, Imm imm) { insts_.push_back(Mov(false, rd, imm)); }
 
   // MOV <Xd>, #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
-  BasicInst Mov(X rd, Imm imm) { return Mov(true, rd, imm); }
+  void Mov(X rd, Imm imm) { insts_.push_back(Mov(true, rd, imm)); }
 
   // RET {<Xn>}
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/RET--Return-from-subroutine-?lang=en
-  BasicInst Ret(X rn = X(0)) {
-    return BasicInst(0b11010110010111110000000000000000 | (*rn << 5));
+  void Ret(X rn = X(0)) {
+    insts_.push_back(
+        BasicInst(0b11010110010111110000000000000000 | (*rn << 5)));
   }
 
   // STP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-  BasicInst StpPostIndex(W rt1, W rt2, X rn, Imm imm) {
-    return StpPostIndex(false, rt1, rt2, rn, imm);
+  void StpPostIndex(W rt1, W rt2, X rn, Imm imm) {
+    insts_.push_back(StpPostIndex(false, rt1, rt2, rn, imm));
   }
 
   // STP <Xt1>, <Xt2>, [<Xn|SP>], #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-  BasicInst StpPostIndex(X rt1, X rt2, X rn, Imm imm) {
-    return StpPostIndex(true, rt1, rt2, rn, imm);
+  void StpPostIndex(X rt1, X rt2, X rn, Imm imm) {
+    insts_.push_back(StpPostIndex(true, rt1, rt2, rn, imm));
   }
 
   // STP <Wt1>, <Wt2>, [<Xn|SP>, #<imm>]!
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-  BasicInst StpPreIndex(W rt1, W rt2, X rn, Imm imm) {
-    return StpPreIndex(false, rt1, rt2, rn, imm);
+  void StpPreIndex(W rt1, W rt2, X rn, Imm imm) {
+    insts_.push_back(StpPreIndex(false, rt1, rt2, rn, imm));
   }
 
   // STP <Xt1>, <Xt2>, [<Xn|SP>, #<imm>]!
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-  BasicInst StpPreIndex(X rt1, X rt2, X rn, Imm imm) {
-    return StpPreIndex(true, rt1, rt2, rn, imm);
+  void StpPreIndex(X rt1, X rt2, X rn, Imm imm) {
+    insts_.push_back(StpPreIndex(true, rt1, rt2, rn, imm));
   }
 
   // STP <Wt1>, <Wt2>, [<Xn|SP>{, #<imm>}]
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-  BasicInst StpSignedOffset(W rt1, W rt2, X rn, Imm imm) {
-    return StpSignedOffset(false, rt1, rt2, rn, imm);
+  void StpSignedOffset(W rt1, W rt2, X rn, Imm imm) {
+    insts_.push_back(StpSignedOffset(false, rt1, rt2, rn, imm));
   }
 
   // STP <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
-  BasicInst StpSignedOffset(X rt1, X rt2, X rn, Imm imm) {
-    return StpSignedOffset(true, rt1, rt2, rn, imm);
+  void StpSignedOffset(X rt1, X rt2, X rn, Imm imm) {
+    insts_.push_back(StpSignedOffset(true, rt1, rt2, rn, imm));
   }
 
   // LDP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
-  BasicInst LdpPostIndex(W rt1, W rt2, X rn, Imm imm) {
-    return LdpPostIndex(false, rt1, rt2, rn, imm);
+  void LdpPostIndex(W rt1, W rt2, X rn, Imm imm) {
+    insts_.push_back(LdpPostIndex(false, rt1, rt2, rn, imm));
   }
 
   // LDP <Xt1>, <Xt2>, [<Xn|SP>], #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
-  BasicInst LdpPostIndex(X rt1, X rt2, X rn, Imm imm) {
-    return LdpPostIndex(true, rt1, rt2, rn, imm);
+  void LdpPostIndex(X rt1, X rt2, X rn, Imm imm) {
+    insts_.push_back(LdpPostIndex(true, rt1, rt2, rn, imm));
   }
 
   // B <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B--Branch-?lang=en
-  BasicInst B(std::string_view label) {
+  void B(std::string_view label) {
     std::size_t offset = label_offsets_[label];
-    return BasicInst(0b00010100000000000000000000000000 | offset);
+    insts_.push_back(BasicInst(0b00010100000000000000000000000000 | offset));
   }
 
   // BL <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
-  BasicInst Bl(std::string_view label) {
+  void Bl(std::string_view label) {
     std::size_t offset = label_offsets_[label];
-    return BasicInst(0b10010100000000000000000000000000 | offset);
+    insts_.push_back(BasicInst(0b10010100000000000000000000000000 | offset));
   }
 
  private:
@@ -284,6 +293,7 @@ class Arm64 {
   }
 
   std::unordered_map<std::string_view, std::size_t> label_offsets_;
+  std::vector<Inst> insts_;
 };
 
 }  // namespace lucid::arm64
