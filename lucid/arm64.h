@@ -16,7 +16,7 @@ namespace internal {
 // Represents an ARM64 register.
 class Reg {
  public:
-  explicit Reg(std::uint8_t id) : id(id) { assert(id <= 0b11111); }
+  constexpr explicit Reg(std::uint8_t id) : id(id) { assert(id <= 0b11111); }
 
   std::uint8_t operator*() const { return id; }
 
@@ -29,14 +29,17 @@ class Reg {
 // Represents a 32-bit ARM64 register.
 class W : public internal::Reg {
  public:
-  explicit W(std::uint8_t id) : Reg(id) {}
+  constexpr explicit W(std::uint8_t id) : Reg(id) {}
 };
 
 // Represents a 64-bit ARM64 register.
 class X : public internal::Reg {
  public:
-  explicit X(std::uint8_t id) : Reg(id) {}
+  constexpr explicit X(std::uint8_t id) : Reg(id) {}
 };
+
+// ARM64 stack pointer.
+static constexpr X SP = X(0b11111);
 
 // Represents an ARM64 immediate.
 class Imm {
