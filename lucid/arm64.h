@@ -112,7 +112,15 @@ class BInst {
 
 // ARM64 condition.
 enum class Cond : std::uint8_t {
-  Eq = 0,
+  Eq = 0b0000,
+};
+
+// ARM64 inverse condition.
+enum class InvCond : std::uint8_t {
+  Ne = 0b0000,
+  Eq = 0b0001,
+  Lt = 0b1010,
+  Gt = 0b1101,
 };
 
 // Represents an ARM64 B.cond instruction.
@@ -363,6 +371,20 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CMP--shifted-register---Compare--shifted-register---an-alias-of-SUBS--shifted-register--?lang=en
   void Cmp(X rn, X rm) { insts_.push_back(Cmp(true, rn, rn)); }
 
+  // CSET <Wd>, <invcond>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CSET--Conditional-set--an-alias-of-CSINC-?lang=en
+  void Cset(W rd, InvCond inv_cond) {
+    insts_.push_back(Cset(false, rd, inv_cond));
+  }
+
+  // CSET <Xd>, <invcond>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CSET--Conditional-set--an-alias-of-CSINC-?lang=en
+  void Cset(X rd, InvCond inv_cond) {
+    insts_.push_back(Cset(true, rd, inv_cond));
+  }
+
  private:
   // ADD (immediate)
   //
@@ -439,6 +461,14 @@ class Arm64 {
   BasicInst Cmp(bool opc, internal::Reg rn, internal::Reg rm) {
     return BasicInst(0b01101011000000000000000000011111 | (opc << 31) |
                      (*rm << 16) | (*rn << 5));
+  }
+
+  // CSET
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CSET--Conditional-set--an-alias-of-CSINC-?lang=en
+  BasicInst Cset(bool opc, internal::Reg rd, InvCond inv_cond) {
+    return BasicInst(0b00011010100111110000011111100000 | (opc << 31) |
+                     (static_cast<std::uint8_t>(inv_cond) << 12) | *rd);
   }
 
   // ADD (shifted register
