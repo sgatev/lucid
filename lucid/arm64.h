@@ -393,6 +393,20 @@ class Arm64 {
     insts_.push_back(LdpPostIndex(true, rt1, rt2, rn, imm));
   }
 
+  // LDR <Wt>, [<Xn|SP>, #<simm>]!
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
+  void LdrPreIndex(W rt, X rn, Imm imm) {
+    insts_.push_back(LdrPreIndex(false, rt, rn, imm));
+  }
+
+  // LDR <Xt>, [<Xn|SP>, #<simm>]!
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
+  void LdrPreIndex(X rt, X rn, Imm imm) {
+    insts_.push_back(LdrPreIndex(true, rt, rn, imm));
+  }
+
   // B <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B--Branch-?lang=en
@@ -531,6 +545,14 @@ class Arm64 {
                          Imm imm) {
     return BasicInst(0b00101000110000000000000000000000 | (opc << 31) |
                      (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+  }
+
+  // LDR (Pre-index)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
+  BasicInst LdrPreIndex(bool opc, internal::Reg rt, X rn, Imm imm) {
+    return BasicInst(0b10111000010000000000110000000000 | (opc << 30) |
+                     (*imm << 12) | (*rn << 5) | *rt);
   }
 
   // CMP (immediate)
