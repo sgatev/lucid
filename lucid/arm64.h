@@ -181,6 +181,16 @@ class Arm64 {
     insts_.push_back(Add(true, rd, rn, imm, sh));
   }
 
+  // ADD <Wd>, <Wn>, <Wm>{, <shift> #<amount>}
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADD--shifted-register---Add--shifted-register--?lang=en
+  void Add(W rd, W rn, W rm) { insts_.push_back(Add(false, rd, rn, rm)); }
+
+  // ADD <Xd>, <Xn>, <Xm>{, <shift> #<amount>}
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADD--shifted-register---Add--shifted-register--?lang=en
+  void Add(X rd, X rn, X rm) { insts_.push_back(Add(true, rd, rn, rm)); }
+
   // ADR <Xd>, <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
@@ -367,6 +377,15 @@ class Arm64 {
   BasicInst Cmp(bool opc, internal::Reg rn, Imm imm) {
     return BasicInst(0b01110001000000000000000000011111 | (opc << 31) |
                      (*imm << 10) | (*rn << 5));
+  }
+
+  // ADD (shifted register
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADD--shifted-register---Add--shifted-register--?lang=en
+  BasicInst Add(bool opc, internal::Reg rd, internal::Reg rn,
+                internal::Reg rm) {
+    return BasicInst(0b00001011000000000000000000000000 | (opc << 31) |
+                     (*rm << 16) | (*rn << 5) | *rd);
   }
 
   std::unordered_map<std::string_view, std::size_t> label_offsets_;
