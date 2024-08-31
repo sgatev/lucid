@@ -211,6 +211,16 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MUL--Multiply--an-alias-of-MADD-?lang=en
   void Mul(X rd, X rn, X rm) { insts_.push_back(Mul(true, rd, rn, rm)); }
 
+  // UDIV <Wd>, <Wn>, <Wm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/UDIV--Unsigned-divide-?lang=en
+  void Udiv(W rd, W rn, W rm) { insts_.push_back(Udiv(false, rd, rn, rm)); }
+
+  // UDIV <Xd>, <Xn>, <Xm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/UDIV--Unsigned-divide-?lang=en
+  void Udiv(X rd, X rn, X rm) { insts_.push_back(Udiv(true, rd, rn, rm)); }
+
   // ADR <Xd>, <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
@@ -423,6 +433,15 @@ class Arm64 {
   BasicInst Mul(bool opc, internal::Reg rd, internal::Reg rn,
                 internal::Reg rm) {
     return BasicInst(0b00011011000000000111110000000000 | (opc << 31) |
+                     (*rm << 16) | (*rn << 5) | *rd);
+  }
+
+  // UDIV
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/UDIV--Unsigned-divide-?lang=en
+  BasicInst Udiv(bool opc, internal::Reg rd, internal::Reg rn,
+                 internal::Reg rm) {
+    return BasicInst(0b00011010110000000000100000000000 | (opc << 31) |
                      (*rm << 16) | (*rn << 5) | *rd);
   }
 
