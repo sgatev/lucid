@@ -65,7 +65,7 @@ class BasicInst {
 
   // Returns a binary representation of the instruction.
   std::uint32_t Encode(
-      const std::unordered_map<std::string_view, std::size_t>& label_offsets) {
+      const std::unordered_map<std::string, std::size_t>& label_offsets) {
     return value;
   }
 
@@ -81,8 +81,8 @@ class AdrInst {
 
   // Returns a binary representation of the instruction.
   std::uint32_t Encode(
-      const std::unordered_map<std::string_view, std::size_t>& label_offsets) {
-    std::size_t label_offset = label_offsets.at(label_);
+      const std::unordered_map<std::string, std::size_t>& label_offsets) {
+    std::size_t label_offset = label_offsets.at(std::string(label_));
     std::size_t offset = (label_offset - pos_) * 4;
     auto immlo = offset & 0b11;
     auto immhi = (offset >> 2) & 0b1111111111111111111;
@@ -103,9 +103,9 @@ class BInst {
 
   // Returns a binary representation of the instruction.
   std::uint32_t Encode(
-      const std::unordered_map<std::string_view, std::size_t>& label_offsets) {
+      const std::unordered_map<std::string, std::size_t>& label_offsets) {
     std::size_t offset =
-        label_offsets.at(label_) & 0b11111111111111111111111111;
+        label_offsets.at(std::string(label_)) & 0b11111111111111111111111111;
     return 0b00010100000000000000000000000000 | offset;
   }
 
@@ -133,9 +133,9 @@ class BCondInst {
 
   // Returns a binary representation of the instruction.
   std::uint32_t Encode(
-      const std::unordered_map<std::string_view, std::size_t>& label_offsets) {
+      const std::unordered_map<std::string, std::size_t>& label_offsets) {
     std::size_t offset =
-        label_offsets.at(label_) & 0b11111111111111111111111111;
+        label_offsets.at(std::string(label_)) & 0b11111111111111111111111111;
     return 0b01010100000000000000000000000000 |
            (offset << 5) << static_cast<std::uint8_t>(cond_);
   }
@@ -152,9 +152,9 @@ class BlInst {
 
   // Returns a binary representation of the instruction.
   std::uint32_t Encode(
-      const std::unordered_map<std::string_view, std::size_t>& label_offsets) {
+      const std::unordered_map<std::string, std::size_t>& label_offsets) {
     std::size_t offset =
-        label_offsets.at(label_) & 0b11111111111111111111111111;
+        label_offsets.at(std::string(label_)) & 0b11111111111111111111111111;
     return 0b10010100000000000000000000000000 | offset;
   }
 
@@ -177,6 +177,8 @@ class Arm64 {
     }
     return result;
   }
+
+  void Label(std::string label) { label_offsets_[label] = insts_.size(); }
 
   // ADD <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}
   //
@@ -633,7 +635,7 @@ class Arm64 {
                      (*rm << 16) | (*ra << 10) | (*rn << 5) | *rd);
   }
 
-  std::unordered_map<std::string_view, std::size_t> label_offsets_;
+  std::unordered_map<std::string, std::size_t> label_offsets_;
   std::vector<Inst> insts_;
 };
 
