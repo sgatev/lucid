@@ -201,6 +201,16 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--shifted-register---Subtract--shifted-register--?lang=en
   void Sub(X rd, X rn, X rm) { insts_.push_back(Sub(true, rd, rn, rm)); }
 
+  // MUL <Wd>, <Wn>, <Wm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MUL--Multiply--an-alias-of-MADD-?lang=en
+  void Mul(W rd, W rn, W rm) { insts_.push_back(Mul(false, rd, rn, rm)); }
+
+  // MUL <Xd>, <Xn>, <Xm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MUL--Multiply--an-alias-of-MADD-?lang=en
+  void Mul(X rd, X rn, X rm) { insts_.push_back(Mul(true, rd, rn, rm)); }
+
   // ADR <Xd>, <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
@@ -404,6 +414,15 @@ class Arm64 {
   BasicInst Sub(bool opc, internal::Reg rd, internal::Reg rn,
                 internal::Reg rm) {
     return BasicInst(0b01001011000000000000000000000000 | (opc << 31) |
+                     (*rm << 16) | (*rn << 5) | *rd);
+  }
+
+  // MUL
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MUL--Multiply--an-alias-of-MADD-?lang=en
+  BasicInst Mul(bool opc, internal::Reg rd, internal::Reg rn,
+                internal::Reg rm) {
+    return BasicInst(0b00011011000000000111110000000000 | (opc << 31) |
                      (*rm << 16) | (*rn << 5) | *rd);
   }
 
