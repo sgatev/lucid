@@ -185,6 +185,8 @@ cc_binary(
     deps = [
         ":am_gen",
         ":arena",
+        ":arm64",
+        ":arm64_binary_gen",
         ":arm64_gen",
         ":ast",
         ":cfg",

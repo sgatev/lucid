@@ -11,6 +11,8 @@
 
 #include "lucid/am_gen.h"
 #include "lucid/arena.h"
+#include "lucid/arm64.h"
+#include "lucid/arm64_binary_gen.h"
 #include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
@@ -46,36 +48,54 @@ Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
   return func_defs;
 }
 
-Result<void, ParserError, TypeError> CompileSource(std::string_view src,
-                                                   std::ostream& out) {
+Result<void, ParserError, TypeError> CompileSource(
+    std::string_view src, std::ostream& out, bool arm64_binary_gen = false) {
   SyntaxContext ctx;
   auto maybe_funcs = ParseFuncDefs(src, ctx);
   if (maybe_funcs.HasError()) return maybe_funcs.GetError();
   auto& func_defs = maybe_funcs.GetValue();
   auto func_types = ExtractFuncTypes(ctx, func_defs);
   AbstractMachineState state;
-  GenerateArmStartSource(out);
+  arm64::Arm64 arm;
+  if (arm64_binary_gen) {
+    GenerateArmStartBinary(arm);
+  } else {
+    GenerateArmStartSource(out);
+  }
   for (auto& func : func_defs) {
     if (auto err = InferExprTypes(ctx, func_types, func); err) return *err;
     auto graph = BuildControlFlowGraph(ctx, func);
     GenerateAbstractMachineFunction(ctx, graph, state);
     OptimizeAbstractMachineInstructions(state.func.instructions);
-    GenerateArmAssemblySource(state.func, out);
+    if (arm64_binary_gen) {
+      GenerateArmAssemblyBinary(state.func, arm);
+    } else {
+      GenerateArmAssemblySource(state.func, out);
+    }
   }
-  GenerateArmEndSource(state.strings, out);
+  if (arm64_binary_gen) {
+    std::vector<std::uint32_t> arm64_insts = arm.Encode();
+    for (auto inst : arm64_insts) {
+      out.write(reinterpret_cast<const char*>(&inst), 4);
+    }
+  } else {
+    GenerateArmEndSource(state.strings, out);
+  }
   return {};
 }
 
 Result<void, ReadFileError, ParserError, TypeError> DoCompile(
-    std::filesystem::path src_path, std::filesystem::path asm_path) {
+    std::filesystem::path src_path, std::filesystem::path asm_path,
+    bool arm64_binary_gen = false) {
   // Read Lucid sources.
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (maybe_src.HasError()) return maybe_src.GetError();
   const auto& src = maybe_src.GetValue();
 
   // Compile sources to assembly.
-  std::ofstream assembly_stream(asm_path);
-  if (auto err = CompileSource(src, assembly_stream); err.HasError()) {
+  std::ofstream assembly_stream(asm_path, std::ios::out | std::ios::binary);
+  if (auto err = CompileSource(src, assembly_stream, arm64_binary_gen);
+      err.HasError()) {
     return err.GetError();
   }
 
@@ -117,6 +137,25 @@ int Compile(CommandContext ctx) {
   asm_path.replace_extension("s");
 
   if (auto res = DoCompile(src_path, asm_path); res.HasError()) {
+    res.OutputError(PrintError(ctx.err));
+    return 1;
+  }
+
+  return 0;
+}
+
+int CompileBinary(CommandContext ctx) {
+  if (ctx.args.size() != 1) {
+    PrintError(ctx.err)
+        << "'compile_binary' command requires exactly 1 argument\n";
+    return 1;
+  }
+
+  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  auto asm_path = std::filesystem::current_path() / src_path.filename();
+  asm_path.replace_extension("s");
+
+  if (auto res = DoCompile(src_path, asm_path, true); res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }
@@ -206,6 +245,12 @@ int Main(std::vector<std::string_view> args) {
               .name = "compile",
               .help = "Compiles the specified target.",
               .handler = Compile,
+          },
+          {
+              .name = "compile_binary",
+              .help =
+                  "Compiles the specified target with ARM64 binary generator.",
+              .handler = CompileBinary,
           },
           {
               .name = "run",

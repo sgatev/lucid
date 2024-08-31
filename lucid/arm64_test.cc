@@ -6,7 +6,7 @@
 namespace lucid::arm64 {
 namespace {
 
-TEST(InstTest, Size) { EXPECT_EQ(sizeof(Inst), 40); }
+TEST(InstTest, Size) { EXPECT_EQ(sizeof(Inst), 48); }
 
 }  // namespace
 }  // namespace lucid::arm64

@@ -93,7 +93,7 @@ class AdrInst {
  private:
   std::size_t pos_;
   X rd_;
-  std::string_view label_;
+  std::string label_;
 };
 
 // Represents an ARM64 B instruction.
@@ -110,7 +110,7 @@ class BInst {
   }
 
  private:
-  std::string_view label_;
+  std::string label_;
 };
 
 // ARM64 condition.
@@ -142,7 +142,7 @@ class BCondInst {
 
  private:
   Cond cond_;
-  std::string_view label_;
+  std::string label_;
 };
 
 // Represents an ARM64 BL instruction.
@@ -159,7 +159,7 @@ class BlInst {
   }
 
  private:
-  std::string_view label_;
+  std::string label_;
 };
 
 // Represents an ARM64 instruction.

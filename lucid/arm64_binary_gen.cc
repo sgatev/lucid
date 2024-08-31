@@ -2,7 +2,6 @@
 
 #include <charconv>
 #include <cstdint>
-#include <ostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -17,8 +16,8 @@ using namespace ::lucid::arm64;
 
 class Arm64BinaryGenerator {
  public:
-  explicit Arm64BinaryGenerator(const Function& func, std::ostream& out)
-      : func_(func), out_(out) {}
+  explicit Arm64BinaryGenerator(const Function& func, Arm64& arm)
+      : func_(func), arm_(arm) {}
 
   void Generate() && {
     arm_.Label(std::string(func_.name));
@@ -35,8 +34,6 @@ class Arm64BinaryGenerator {
     }
 
     for (const auto& inst : func_.instructions) Process(inst);
-    std::vector<std::uint32_t> arm64_insts = arm_.Encode();
-    for (auto inst : arm64_insts) out_ << inst;
   }
 
  private:
@@ -271,22 +268,27 @@ class Arm64BinaryGenerator {
   }
 
   const Function& func_;
-  std::ostream& out_;
+  Arm64& arm_;
   std::size_t stack_size_ = 0;
-  Arm64 arm_;
   std::vector<std::size_t> stack_offsets_;
 };
 
 }  // namespace
 
-void GenerateArmStartBinary(std::ostream& out) {}
+void GenerateArmStartBinary(Arm64& arm) {
+  arm.StpPreIndex(X(29), X(30), SP, Imm(-16));
+  arm.Bl("main");
+  arm.LdpPostIndex(X(29), X(30), SP, Imm(16));
+  arm.Mov(X(16), Imm(1));
+  // arm.Bl("_exit");
+}
 
 void GenerateArmEndBinary(
     const std::unordered_map<std::uintptr_t, std::string>& strings,
-    std::ostream& out) {}
+    Arm64& arm) {}
 
-void GenerateArmAssemblyBinary(const Function& func, std::ostream& out) {
-  Arm64BinaryGenerator(func, out).Generate();
+void GenerateArmAssemblyBinary(const Function& func, Arm64& arm) {
+  Arm64BinaryGenerator(func, arm).Generate();
 }
 
 }  // namespace lucid
