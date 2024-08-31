@@ -221,6 +221,20 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/UDIV--Unsigned-divide-?lang=en
   void Udiv(X rd, X rn, X rm) { insts_.push_back(Udiv(true, rd, rn, rm)); }
 
+  // MSUB <Wd>, <Wn>, <Wm>, <Wa>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MSUB--Multiply-subtract-?lang=en
+  void Msub(W rd, W rn, W rm, W ra) {
+    insts_.push_back(Msub(false, rd, rn, rm, ra));
+  }
+
+  // MSUB <Xd>, <Xn>, <Xm>, <Xa>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MSUB--Multiply-subtract-?lang=en
+  void Msub(X rd, X rn, X rm, X ra) {
+    insts_.push_back(Msub(true, rd, rn, rm, ra));
+  }
+
   // ADR <Xd>, <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
@@ -443,6 +457,15 @@ class Arm64 {
                  internal::Reg rm) {
     return BasicInst(0b00011010110000000000100000000000 | (opc << 31) |
                      (*rm << 16) | (*rn << 5) | *rd);
+  }
+
+  // MSUB
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MSUB--Multiply-subtract-?lang=en
+  BasicInst Msub(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm,
+                 internal::Reg ra) {
+    return BasicInst(0b00011011000000001000000000000000 | (opc << 31) |
+                     (*rm << 16) | (*ra << 10) | (*rn << 5) | *rd);
   }
 
   std::unordered_map<std::string_view, std::size_t> label_offsets_;
