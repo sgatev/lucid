@@ -23,6 +23,7 @@ void GenerateArmAssemblyBinary(const Function& func, std::ostream& out) {
   Arm64 arm;
   arm.Mov(W(1), W(2));
   arm.Adr(X(1), "foo");
+  arm.B(Cond::Eq, "foo");
   arm.Encode();
 }
 

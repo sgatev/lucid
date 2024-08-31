@@ -110,6 +110,30 @@ class BInst {
   std::string_view label_;
 };
 
+// ARM64 condition.
+enum class Cond : std::uint8_t {
+  Eq = 0,
+};
+
+// Represents an ARM64 B.cond instruction.
+class BCondInst {
+ public:
+  BCondInst(Cond cond, std::string_view label) : cond_(cond), label_(label) {}
+
+  // Returns a binary representation of the instruction.
+  std::uint32_t Encode(
+      const std::unordered_map<std::string_view, std::size_t>& label_offsets) {
+    std::size_t offset =
+        label_offsets.at(label_) & 0b11111111111111111111111111;
+    return 0b01010100000000000000000000000000 |
+           (offset << 5) << static_cast<std::uint8_t>(cond_);
+  }
+
+ private:
+  Cond cond_;
+  std::string_view label_;
+};
+
 // Represents an ARM64 BL instruction.
 class BlInst {
  public:
@@ -128,7 +152,7 @@ class BlInst {
 };
 
 // Represents an ARM64 instruction.
-using Inst = std::variant<BasicInst, AdrInst, BInst, BlInst>;
+using Inst = std::variant<BasicInst, AdrInst, BInst, BCondInst, BlInst>;
 
 // Builds a list of ARM64 instructions.
 class Arm64 {
@@ -252,6 +276,13 @@ class Arm64 {
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B--Branch-?lang=en
   void B(std::string_view label) { insts_.push_back(BInst(label)); }
+
+  // B.cond <label>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B-cond--Branch-conditionally-?lang=en
+  void B(Cond cond, std::string_view label) {
+    insts_.push_back(BCondInst(cond, label));
+  }
 
   // BL <label>
   //
