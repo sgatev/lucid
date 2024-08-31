@@ -202,6 +202,20 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADD--shifted-register---Add--shifted-register--?lang=en
   void Add(X rd, X rn, X rm) { insts_.push_back(Add(true, rd, rn, rm)); }
 
+  // SUB <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--immediate---Subtract--immediate--?lang=en
+  void Sub(W rd, W rn, Imm imm, bool sh = false) {
+    insts_.push_back(Sub(false, rd, rn, imm, sh));
+  }
+
+  // SUB <Xd|SP>, <Xn|SP>, #<imm>{, <shift>}
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--immediate---Subtract--immediate--?lang=en
+  void Sub(X rd, X rn, Imm imm, bool sh = false) {
+    insts_.push_back(Sub(true, rd, rn, imm, sh));
+  }
+
   // SUB <Wd>, <Wn>, <Wm>{, <shift> #<amount>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--shifted-register---Subtract--shifted-register--?lang=en
@@ -490,6 +504,15 @@ class Arm64 {
                 internal::Reg rm) {
     return BasicInst(0b01001011000000000000000000000000 | (opc << 31) |
                      (*rm << 16) | (*rn << 5) | *rd);
+  }
+
+  // SUB (immediate)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--immediate---Subtract--immediate--?lang=en
+  BasicInst Sub(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
+                bool sh = false) {
+    return BasicInst(0b01010001000000000000000000000000 | (sf << 31) |
+                     (sh << 22) | (*imm << 10) | (*rn << 5) | *rd);
   }
 
   // MUL
