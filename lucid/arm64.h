@@ -353,6 +353,16 @@ class Arm64 {
   // https://developer.arm.com/documentation/100076/0100/A64-Instruction-Set-Reference/A64-General-Instructions/CMP--immediate-
   void Cmp(X rn, Imm imm) { insts_.push_back(Cmp(true, rn, imm)); }
 
+  // CMP <Wn>, <Wm>{, <shift> #<amount>}
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CMP--shifted-register---Compare--shifted-register---an-alias-of-SUBS--shifted-register--?lang=en
+  void Cmp(W rn, W rm) { insts_.push_back(Cmp(false, rn, rm)); }
+
+  // CMP <Xn>, <Xm>{, <shift> #<amount>}
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CMP--shifted-register---Compare--shifted-register---an-alias-of-SUBS--shifted-register--?lang=en
+  void Cmp(X rn, X rm) { insts_.push_back(Cmp(true, rn, rn)); }
+
  private:
   // ADD (immediate)
   //
@@ -421,6 +431,14 @@ class Arm64 {
   BasicInst Cmp(bool opc, internal::Reg rn, Imm imm) {
     return BasicInst(0b01110001000000000000000000011111 | (opc << 31) |
                      (*imm << 10) | (*rn << 5));
+  }
+
+  // CMP (shifted register)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CMP--shifted-register---Compare--shifted-register---an-alias-of-SUBS--shifted-register--?lang=en
+  BasicInst Cmp(bool opc, internal::Reg rn, internal::Reg rm) {
+    return BasicInst(0b01101011000000000000000000011111 | (opc << 31) |
+                     (*rm << 16) | (*rn << 5));
   }
 
   // ADD (shifted register
