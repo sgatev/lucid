@@ -258,6 +258,16 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
   void Bl(std::string_view label) { insts_.push_back(BlInst(label)); }
 
+  // CMP <Wn|WSP>, #<imm>{, <shift>}
+  //
+  // https://developer.arm.com/documentation/100076/0100/A64-Instruction-Set-Reference/A64-General-Instructions/CMP--immediate-
+  void Cmp(W rn, Imm imm) { insts_.push_back(Cmp(false, rn, imm)); }
+
+  // CMP <Xn|SP>, #<imm>{, <shift>}
+  //
+  // https://developer.arm.com/documentation/100076/0100/A64-Instruction-Set-Reference/A64-General-Instructions/CMP--immediate-
+  void Cmp(X rn, Imm imm) { insts_.push_back(Cmp(true, rn, imm)); }
+
  private:
   // ADD (immediate)
   //
@@ -316,8 +326,16 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
   BasicInst LdpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2, X rn,
                          Imm imm) {
-    return BasicInst(0b00101000110000000000000000000000 | (opc << 30) |
+    return BasicInst(0b00101000110000000000000000000000 | (opc << 31) |
                      (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+  }
+
+  // CMP (immediate)
+  //
+  // https://developer.arm.com/documentation/100076/0100/A64-Instruction-Set-Reference/A64-General-Instructions/CMP--immediate-
+  BasicInst Cmp(bool opc, internal::Reg rn, Imm imm) {
+    return BasicInst(0b01110001000000000000000000011111 | (opc << 31) |
+                     (*imm << 10) | (*rn << 5));
   }
 
   std::unordered_map<std::string_view, std::size_t> label_offsets_;
