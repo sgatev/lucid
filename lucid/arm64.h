@@ -337,6 +337,48 @@ class Arm64 {
     insts_.push_back(StpSignedOffset(true, rt1, rt2, rn, imm));
   }
 
+  // STR <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STP--Store-pair-of-registers-?lang=en
+  void StrPostIndex(W rt1, W rt2, X rn, Imm imm) {
+    insts_.push_back(StrPostIndex(false, rt1, rt2, rn, imm));
+  }
+
+  // STP <Xt1>, <Xt2>, [<Xn|SP>], #<imm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STP--Store-pair-of-registers-?lang=en
+  void StrPostIndex(X rt1, X rt2, X rn, Imm imm) {
+    insts_.push_back(StrPostIndex(true, rt1, rt2, rn, imm));
+  }
+
+  // STP <Wt1>, <Wt2>, [<Xn|SP>, #<imm>]!
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STP--Store-pair-of-registers-?lang=en
+  void StrPreIndex(W rt1, W rt2, X rn, Imm imm) {
+    insts_.push_back(StrPreIndex(false, rt1, rt2, rn, imm));
+  }
+
+  // STP <Xt1>, <Xt2>, [<Xn|SP>, #<imm>]!
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STP--Store-pair-of-registers-?lang=en
+  void StrPreIndex(X rt1, X rt2, X rn, Imm imm) {
+    insts_.push_back(StrPreIndex(true, rt1, rt2, rn, imm));
+  }
+
+  // STP <Wt1>, <Wt2>, [<Xn|SP>{, #<imm>}]
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STP--Store-pair-of-registers-?lang=en
+  void StrSignedOffset(W rt1, W rt2, X rn, Imm imm) {
+    insts_.push_back(StrSignedOffset(false, rt1, rt2, rn, imm));
+  }
+
+  // STP <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STP--Store-pair-of-registers-?lang=en
+  void StrSignedOffset(X rt1, X rt2, X rn, Imm imm) {
+    insts_.push_back(StrSignedOffset(true, rt1, rt2, rn, imm));
+  }
+
   // LDP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
@@ -450,6 +492,33 @@ class Arm64 {
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   BasicInst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
+                            internal::Reg rn, Imm imm) {
+    return BasicInst(0b00101001000000000000000000000000 | (opc << 31) |
+                     (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+  }
+
+  // STR (Post-index)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STP--Store-pair-of-registers-?lang=en
+  BasicInst StrPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
+                         internal::Reg rn, Imm imm) {
+    return BasicInst(0b00101000100000000000000000000000 | (opc << 31) |
+                     (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+  }
+
+  // STR (Pre-index)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STP--Store-pair-of-registers-?lang=en
+  BasicInst StrPreIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
+                        internal::Reg rn, Imm imm) {
+    return BasicInst(0b00101001100000000000000000000000 | (opc << 31) |
+                     (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+  }
+
+  // STR (Signed offset)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STP--Store-pair-of-registers-?lang=en
+  BasicInst StrSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
                             internal::Reg rn, Imm imm) {
     return BasicInst(0b00101001000000000000000000000000 | (opc << 31) |
                      (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
