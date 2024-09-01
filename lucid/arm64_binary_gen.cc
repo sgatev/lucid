@@ -21,7 +21,7 @@ class Arm64BinaryGenerator {
 
   void Generate() && {
     arm_.Label(std::string(func_.name));
-    arm_.StrPreIndex(X(29), X(30), SP, Imm(-16));
+    arm_.StpPreIndex(X(29), X(30), SP, Imm(-16));
 
     for (std::size_t size : func_.stack_slots) stack_size_ += size;
     std::size_t quot = stack_size_ % 16;
@@ -182,11 +182,8 @@ class Arm64BinaryGenerator {
   void Process(const PopStack& inst) { arm_.Add(SP, SP, Imm(stack_size_)); }
 
   void Process(const StoreStack32& inst) {
-    /*Append("STR W");
-    Append(inst.src_reg);
-    Append(", [SP, #");
-    Append(stack_offsets_[inst.offset]);
-    Append("]\n");*/
+    arm_.StrUnsignedOffset(W(inst.src_reg), SP,
+                           Imm(stack_offsets_[inst.offset]));
   }
 
   void Process(const StoreStackReg32& inst) {
@@ -202,11 +199,8 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const StoreStack64& inst) {
-    /*Append("STR X");
-    Append(inst.src_reg);
-    Append(", [SP, #");
-    Append(stack_offsets_[inst.offset]);
-    Append("]\n");*/
+    arm_.StrUnsignedOffset(X(inst.src_reg), SP,
+                           Imm(stack_offsets_[inst.offset]));
   }
 
   void Process(const StoreStackReg64& inst) {
