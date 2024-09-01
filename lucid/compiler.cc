@@ -132,30 +132,20 @@ int Compile(CommandContext ctx) {
     return 1;
   }
 
-  auto src_path = std::filesystem::absolute(ctx.args[0]);
-  auto asm_path = std::filesystem::current_path() / src_path.filename();
-  asm_path.replace_extension("s");
-
-  if (auto res = DoCompile(src_path, asm_path); res.HasError()) {
-    res.OutputError(PrintError(ctx.err));
-    return 1;
-  }
-
-  return 0;
-}
-
-int CompileBinary(CommandContext ctx) {
-  if (ctx.args.size() != 1) {
-    PrintError(ctx.err)
-        << "'compile_binary' command requires exactly 1 argument\n";
-    return 1;
-  }
+  auto output_flag_it = ctx.flags.find("output");
+  bool arm64_binary_gen = (output_flag_it != ctx.flags.end() &&
+                           output_flag_it->second == "machine");
 
   auto src_path = std::filesystem::absolute(ctx.args[0]);
   auto asm_path = std::filesystem::current_path() / src_path.filename();
-  asm_path.replace_extension("s");
+  if (arm64_binary_gen) {
+    asm_path.replace_extension("a");
+  } else {
+    asm_path.replace_extension("s");
+  }
 
-  if (auto res = DoCompile(src_path, asm_path, true); res.HasError()) {
+  if (auto res = DoCompile(src_path, asm_path, arm64_binary_gen);
+      res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }
@@ -245,12 +235,6 @@ int Main(std::vector<std::string_view> args) {
               .name = "compile",
               .help = "Compiles the specified target.",
               .handler = Compile,
-          },
-          {
-              .name = "compile_binary",
-              .help =
-                  "Compiles the specified target with ARM64 binary generator.",
-              .handler = CompileBinary,
           },
           {
               .name = "run",

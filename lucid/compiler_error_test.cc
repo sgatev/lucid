@@ -25,7 +25,6 @@ TEST_F(CompilerTest, MissingArguments) {
 Available commands:
   build    Compiles the specified target and builds a binary.
   compile  Compiles the specified target.
-  compile_binary Compiles the specified target with ARM64 binary generator.
   run      Compiles the specified target, builds a binary, and runs it.
   parse    Parses the specified target.
   version  Prints version information for lucid.
