@@ -223,13 +223,7 @@ class Arm64BinaryGenerator {
   void Process(const LoadStackReg32& inst) {
     arm_.Add(W(inst.offset_reg), W(inst.offset_reg),
              Imm(stack_offsets_[inst.offset]));
-
-    /*Append("LDR W");
-    Append(inst.dst_reg);
-    Append(", [SP, W");
-    Append(inst.offset_reg);
-    Append(", uxtw");
-    Append("]\n");*/
+    arm_.Ldr(W(inst.dst_reg), SP, W(inst.offset_reg), Extend::Uxtw);
   }
 
   void Process(const LoadStack64& inst) {
@@ -240,13 +234,7 @@ class Arm64BinaryGenerator {
   void Process(const LoadStackReg64& inst) {
     arm_.Add(X(inst.offset_reg), X(inst.offset_reg),
              Imm(stack_offsets_[inst.offset]));
-
-    /*Append("LDR X");
-    Append(inst.dst_reg);
-    Append(", [SP, X");
-    Append(inst.offset_reg);
-    Append(", lsl #0");
-    Append("]\n");*/
+    arm_.Ldr(X(inst.dst_reg), SP, X(inst.offset_reg), Extend::Lsl, Imm(0));
   }
 
   Imm ParseImm(std::string_view sv) {

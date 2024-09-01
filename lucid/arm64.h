@@ -126,6 +126,14 @@ enum class InvCond : std::uint8_t {
   Gt = 0b1101,
 };
 
+// ARM64 extend.
+enum class Extend : std::uint8_t {
+  Uxtw = 0b010,
+  Lsl = 0b011,
+  Sxtw = 0b110,
+  Sxtx = 0b111,
+};
+
 // Represents an ARM64 B.cond instruction.
 class BCondInst {
  public:
@@ -423,6 +431,20 @@ class Arm64 {
     insts_.push_back(LdrUnsignedOffset(true, rt, rn, imm));
   }
 
+  // LDR <Wt>, [<Xn|SP>, (<Wm>|<Xm>){, <extend> {<amount>}}]
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--register---Load-register--register--?lang=en
+  void Ldr(W rt, X rn, internal::Reg rm, Extend extend, Imm amount = Imm(0)) {
+    insts_.push_back(Ldr(false, rt, rn, rm, extend, amount));
+  }
+
+  // LDR <Xt>, [<Xn|SP>, (<Wm>|<Xm>){, <extend> {<amount>}}]
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--register---Load-register--register--?lang=en
+  void Ldr(X rt, X rn, internal::Reg rm, Extend extend, Imm amount = Imm(0)) {
+    insts_.push_back(Ldr(true, rt, rn, rm, extend, amount));
+  }
+
   // B <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B--Branch-?lang=en
@@ -576,6 +598,16 @@ class Arm64 {
   BasicInst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
     return BasicInst(0b10111001010000000000000000000000 | (opc << 30) |
                      (*imm << 10) | (*rn << 5) | *rt);
+  }
+
+  // LDR (register)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--register---Load-register--register--?lang=en
+  BasicInst Ldr(bool opc, internal::Reg rt, X rn, internal::Reg rm,
+                Extend extend, Imm amount) {
+    return BasicInst(0b10111000011000000000100000000000 | (opc << 30) |
+                     (*rm << 16) | (static_cast<std::uint8_t>(extend) << 13) |
+                     (*amount << 12) | (*rn << 5) | *rt);
   }
 
   // CMP (immediate)
