@@ -216,11 +216,8 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const LoadStack32& inst) {
-    /*Append("LDR W");
-    Append(inst.dst_reg);
-    Append(", [SP, #");
-    Append(stack_offsets_[inst.offset]);
-    Append("]\n");*/
+    arm_.LdrUnsignedOffset(W(inst.dst_reg), SP,
+                           Imm(stack_offsets_[inst.offset]));
   }
 
   void Process(const LoadStackReg32& inst) {
@@ -236,11 +233,8 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const LoadStack64& inst) {
-    /*Append("LDR X");
-    Append(inst.dst_reg);
-    Append(", [SP, #");
-    Append(stack_offsets_[inst.offset]);
-    Append("]\n");*/
+    arm_.LdrUnsignedOffset(X(inst.dst_reg), SP,
+                           Imm(stack_offsets_[inst.offset]));
   }
 
   void Process(const LoadStackReg64& inst) {

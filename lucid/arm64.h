@@ -409,6 +409,20 @@ class Arm64 {
     insts_.push_back(LdrPreIndex(true, rt, rn, imm));
   }
 
+  // LDR <Wt>, [<Xn|SP>{, #<pimm>}]
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
+  void LdrUnsignedOffset(W rt, X rn, Imm imm) {
+    insts_.push_back(LdrUnsignedOffset(false, rt, rn, imm));
+  }
+
+  // LDR <Xt>, [<Xn|SP>{, #<pimm>}]
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
+  void LdrUnsignedOffset(X rt, X rn, Imm imm) {
+    insts_.push_back(LdrUnsignedOffset(true, rt, rn, imm));
+  }
+
   // B <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B--Branch-?lang=en
@@ -554,6 +568,14 @@ class Arm64 {
   BasicInst LdrPreIndex(bool opc, internal::Reg rt, X rn, Imm imm) {
     return BasicInst(0b10111000010000000000110000000000 | (opc << 30) |
                      (*imm << 12) | (*rn << 5) | *rt);
+  }
+
+  // LDR (Unsigned offset)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
+  BasicInst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
+    return BasicInst(0b10111001010000000000000000000000 | (opc << 30) |
+                     (*imm << 10) | (*rn << 5) | *rt);
   }
 
   // CMP (immediate)
