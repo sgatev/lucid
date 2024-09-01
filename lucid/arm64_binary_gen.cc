@@ -189,13 +189,7 @@ class Arm64BinaryGenerator {
   void Process(const StoreStackReg32& inst) {
     arm_.Add(W(inst.offset_reg), W(inst.offset_reg),
              Imm(stack_offsets_[inst.offset]));
-
-    /*Append("STR W");
-    Append(inst.src_reg);
-    Append(", [SP, W");
-    Append(inst.offset_reg);
-    Append(", uxtw #0");
-    Append("]\n");*/
+    arm_.Str(W(inst.src_reg), SP, W(inst.offset_reg), Extend::Uxtw, Imm(0));
   }
 
   void Process(const StoreStack64& inst) {
@@ -206,13 +200,7 @@ class Arm64BinaryGenerator {
   void Process(const StoreStackReg64& inst) {
     arm_.Add(X(inst.offset_reg), X(inst.offset_reg),
              Imm(stack_offsets_[inst.offset]));
-
-    /*Append("STR X");
-    Append(inst.src_reg);
-    Append(", [SP, X");
-    Append(inst.offset_reg);
-    Append(", lsl #0");
-    Append("]\n");*/
+    arm_.Str(X(inst.src_reg), SP, X(inst.offset_reg), Extend::Lsl, Imm(0));
   }
 
   void Process(const LoadStack32& inst) {

@@ -389,6 +389,20 @@ class Arm64 {
     insts_.push_back(StrUnsignedOffset(true, rt, rn, imm));
   }
 
+  // STR <Wt>, [<Xn|SP>, (<Wm>|<Xm>){, <extend> {<amount>}}]
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--register---Store-register--register--?lang=en
+  void Str(W rt, X rn, internal::Reg rm, Extend extend, Imm amount) {
+    insts_.push_back(Str(false, rt, rn, rm, extend, amount));
+  }
+
+  // STR <Xt>, [<Xn|SP>, (<Wm>|<Xm>){, <extend> {<amount>}}]
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--register---Store-register--register--?lang=en
+  void Str(X rt, X rn, internal::Reg rm, Extend extend, Imm amount) {
+    insts_.push_back(Str(false, rt, rn, rm, extend, amount));
+  }
+
   // LDP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
@@ -573,6 +587,16 @@ class Arm64 {
                               Imm imm) {
     return BasicInst(0b10111001000000000000000000000000 | (opc << 31) |
                      (*imm << 10) | (*rn << 5) | *rt);
+  }
+
+  // STR (register)
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--register---Store-register--register--?lang=en
+  BasicInst Str(bool opc, internal::Reg rt, X rn, internal::Reg rm,
+                Extend extend, Imm amount) {
+    return BasicInst(0b10111000001000000000100000000000 | (opc << 30) |
+                     (*rm << 16) | (static_cast<std::uint8_t>(extend) << 13) |
+                     (*amount << 12) | (*rn << 5) | *rt);
   }
 
   // LDP (Post-index)
