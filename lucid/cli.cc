@@ -6,6 +6,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 
 namespace lucid {
 
@@ -21,15 +22,32 @@ int RunCommand(std::string_view root_name,
     return 0;
   }
 
-  auto it = std::find_if(
+  auto command_it = std::find_if(
       commands.begin(), commands.end(),
       [&](const auto& command) { return command.name == ctx.args[0]; });
-  if (it != commands.end()) {
-    return it->handler({ctx.args.subspan(1), ctx.out, ctx.err});
+  if (command_it == commands.end()) {
+    PrintError(ctx.err) << "unknown command '" << ctx.args[0] << "'\n";
+    return 1;
   }
 
-  PrintError(ctx.err) << "unknown command '" << ctx.args[0] << "'\n";
-  return 1;
+  auto args = ctx.args.subspan(1);
+  auto first_non_flag_arg_it =
+      std::find_if(args.begin(), args.end(),
+                   [](auto arg) { return !arg.starts_with("--"); });
+
+  std::unordered_map<std::string_view, std::string_view> flags;
+  for (auto it = args.begin(); it != first_non_flag_arg_it; ++it) {
+    auto flag = it->substr(2);
+    auto count = flag.find("=");
+    flags[flag.substr(0, count)] = flag.substr(count + 1);
+  }
+
+  return command_it->handler({
+      .args = {first_non_flag_arg_it, args.end()},
+      .flags = flags,
+      .out = ctx.out,
+      .err = ctx.err,
+  });
 }
 
 std::ostream& PrintError(std::ostream& out) {

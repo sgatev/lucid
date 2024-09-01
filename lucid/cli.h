@@ -5,6 +5,7 @@
 #include <ostream>
 #include <span>
 #include <string_view>
+#include <unordered_map>
 
 namespace lucid {
 
@@ -12,6 +13,9 @@ namespace lucid {
 struct CommandContext {
   // Arguments passed to the command.
   std::span<std::string_view> args;
+
+  // Flags passed to the command.
+  std::unordered_map<std::string_view, std::string_view> flags;
 
   // Standard output stream of the command.
   std::ostream& out;

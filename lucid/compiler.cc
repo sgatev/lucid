@@ -269,7 +269,7 @@ int Main(std::vector<std::string_view> args) {
               .handler = Version,
           },
       },
-      {args, std::cout, std::cerr});
+      {.args = args, .flags = {}, .out = std::cout, .err = std::cerr});
 }
 
 }  // namespace lucid

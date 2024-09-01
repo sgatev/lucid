@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -13,15 +14,22 @@ namespace lucid {
 namespace {
 
 using ::testing::ElementsAre;
+using ::testing::Pair;
+using ::testing::UnorderedElementsAre;
 
 TEST(RunCommandTest, RunsCommand) {
-  std::vector<std::string> foo_args;
-  auto foo = [&foo_args](CommandContext ctx) {
-    foo_args.assign(ctx.args.begin(), ctx.args.end());
+  std::vector<std::string_view> args = {"foo", "--foo_flag=foo_value", "bar",
+                                        "--bar_flag=bar_value", "baz"};
+
+  std::span<std::string_view> foo_args;
+  std::unordered_map<std::string_view, std::string_view> foo_flags;
+  auto foo = [&foo_args, &foo_flags](CommandContext ctx) {
+    foo_args = ctx.args;
+    foo_flags = ctx.flags;
     return 0;
   };
   auto bar = [](CommandContext) { return 1; };
-  std::vector<std::string_view> args = {"foo", "bar", "baz"};
+
   std::stringstream out, err;
   EXPECT_EQ(RunCommand("test",
                        {
@@ -34,14 +42,17 @@ TEST(RunCommandTest, RunsCommand) {
                                .handler = bar,
                            },
                        },
-                       {args, out, err}),
+                       {.args = args, .flags = {}, .out = out, .err = err}),
             0);
-  EXPECT_THAT(foo_args, ElementsAre("bar", "baz"));
+
+  EXPECT_THAT(foo_args, ElementsAre("bar", "--bar_flag=bar_value", "baz"));
+  EXPECT_THAT(foo_flags, UnorderedElementsAre(Pair("foo_flag", "foo_value")));
 }
 
 TEST(RunCommandTest, UnknownCommand) {
   auto bar = [](CommandContext) { return 0; };
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
+  std::unordered_map<std::string_view, std::string_view> flags = {};
   std::stringstream out, err;
   EXPECT_EQ(RunCommand("test",
                        {
@@ -50,7 +61,7 @@ TEST(RunCommandTest, UnknownCommand) {
                                .handler = bar,
                            },
                        },
-                       {args, out, err}),
+                       {args, flags, out, err}),
             1);
   EXPECT_EQ(std::string(err.str()),
             "\033[31mERROR:\033[0m unknown command 'foo'\n");
@@ -59,12 +70,13 @@ TEST(RunCommandTest, UnknownCommand) {
 TEST(RunCommandTest, EmptyArgs) {
   auto foo = [](CommandContext) { return 1; };
   std::vector<std::string_view> args = {};
+  std::unordered_map<std::string_view, std::string_view> flags = {};
   std::stringstream out, err;
   EXPECT_EQ(RunCommand("test",
                        {
                            {.name = "foo", .handler = foo},
                        },
-                       {args, out, err}),
+                       {args, flags, out, err}),
             0);
 }
 
