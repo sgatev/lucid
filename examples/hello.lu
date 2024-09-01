@@ -1,8 +1,8 @@
-let printf = (n: String) -> Int32 {
+let printString = (s: String, n: Int64) -> Int32 {
   return 0
 }
 
 let main = () -> Int32 {
-  do printf("Hello, world!\n")
+  do printString("Hello, world!\n", 14)
   return 0
 }

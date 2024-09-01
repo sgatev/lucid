@@ -86,33 +86,14 @@ class AbstractMachineFunctionGenerator {
     state_.func.instructions.clear();
     state_.func.instructions.reserve(instructions_count * 2);
 
-    if (graph_.func_name == "printf") {
-      state_.func.instructions.push_back(PushStack{});
-      std::size_t offset = 0;
-      if (graph_.func_params.size() > 1) {
-        state_.func.instructions.push_back(StoreStack64{
-            .offset = offset++,
-            .src_reg = 2,
-        });
-      }
-      if (graph_.func_params.size() > 2) {
-        state_.func.instructions.push_back(StoreStack64{
-            .offset = offset++,
-            .src_reg = 3,
-        });
-      }
-      state_.func.instructions.push_back(MoveReg64{
-          .src_reg = 1,
-          .dst_reg = 0,
-      });
+    if (graph_.func_name == "printString") {
       state_.func.instructions.push_back(Jump{
-          .label = "_printf",
+          .label = "_print_string",
       });
       state_.func.instructions.push_back(SetReg32{
           .src_val = "0",
           .dst_reg = 0,
       });
-      state_.func.instructions.push_back(PopStack{});
       state_.func.instructions.push_back(Return{});
       return;
     }

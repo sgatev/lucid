@@ -426,27 +426,46 @@ TEST_F(CompilerTest, FibIter) {
 
 TEST_F(CompilerTest, PrintInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let printf = (f: String, n: Int64) -> Int32 {
+    let printString = (s: String, n: Int64) -> Int32 {
+      return 0
+    }
+
+    let printInt32 = (i: Int32) -> Int32 {
+      if i > 9 {
+        do printInt32(i / 10)
+      }
+
+      let j: Int32 = i % 10
+      if      j == 0 { do printString("0", 1) }
+      else if j == 1 { do printString("1", 1) }
+      else if j == 2 { do printString("2", 1) }
+      else if j == 3 { do printString("3", 1) }
+      else if j == 4 { do printString("4", 1) }
+      else if j == 5 { do printString("5", 1) }
+      else if j == 6 { do printString("6", 1) }
+      else if j == 7 { do printString("7", 1) }
+      else if j == 8 { do printString("8", 1) }
+      else if j == 9 { do printString("9", 1) }
       return 0
     }
 
     let main = () -> Int32 {
-      do printf("%d", 21)
+      do printInt32(21509)
       return 0
     }
   )"));
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
-              AllOf(ReturnsCode(Eq(0)), Prints("21")));
+              AllOf(ReturnsCode(Eq(0)), Prints("21509")));
 }
 
 TEST_F(CompilerTest, PrintString) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let printf = (f: String) -> Int32 {
+    let printString = (s: String, n: Int64) -> Int32 {
       return 0
     }
 
     let main = () -> Int32 {
-      do printf("Hello, world!\n")
+      do printString("Hello, world!\n", 14)
       return 0
     }
   )"));
@@ -456,12 +475,32 @@ TEST_F(CompilerTest, PrintString) {
 
 TEST_F(CompilerTest, PrintMultipleValues) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let printf = (f: String, n: Int64, m: Int64) -> Int32 {
+    let printString = (s: String, n: Int64) -> Int32 {
+      return 0
+    }
+
+    let printInt32 = (i: Int32) -> Int32 {
+      if i > 9 { do printInt32(i / 10) }
+
+      let j: Int32 = i % 10
+      if      j == 0 { do printString("0", 1) }
+      else if j == 1 { do printString("1", 1) }
+      else if j == 2 { do printString("2", 1) }
+      else if j == 3 { do printString("3", 1) }
+      else if j == 4 { do printString("4", 1) }
+      else if j == 5 { do printString("5", 1) }
+      else if j == 6 { do printString("6", 1) }
+      else if j == 7 { do printString("7", 1) }
+      else if j == 8 { do printString("8", 1) }
+      else if j == 9 { do printString("9", 1) }
       return 0
     }
 
     let main = () -> Int32 {
-      do printf("%d, %d\n", 0, 1)
+      do printInt32(0)
+      do printString(", ", 2)
+      do printInt32(1)
+      do printString("\n", 1)
       return 0
     }
   )"));

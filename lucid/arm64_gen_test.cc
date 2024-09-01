@@ -1287,7 +1287,7 @@ RET
 )");
 }
 
-TEST_F(GenerateArmAssemblySourceTest, Printf) {
+TEST_F(GenerateArmAssemblySourceTest, DISABLED_Printf) {
   auto func = FuncDefStmt{
       .name = "printf",
       .params = ParamListOf({

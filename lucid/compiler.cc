@@ -117,10 +117,8 @@ Result<void, ReadFileError, ParserError, TypeError> DoBuild(
   std::system(as_cmd.data());
 
   // Link object code and create a binary.
-  const std::string ld_cmd = std::format(
-      "ld -o {} {}.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` "
-      "-e _start -arch arm64",
-      bin_path.c_str(), bin_path.c_str());
+  const std::string ld_cmd = std::format("ld -o {} {}.o -e _start -arch arm64",
+                                         bin_path.c_str(), bin_path.c_str());
   std::system(ld_cmd.data());
 
   return {};

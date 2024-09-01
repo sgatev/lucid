@@ -1,4 +1,4 @@
-let printf = (n: String) -> Int32 {
+let printString = (s: String, n: Int64) -> Int32 {
   return 0
 }
 
@@ -62,14 +62,14 @@ let main = () -> Int32 {
       }
 
       if buffer[col] == 0 {
-        do printf("  ")
+        do printString("  ", 3)
       } else {
-        do printf("██")
+        do printString("██", 3)
       }
 
       col = col + 1
     }
-    do printf("\n")
+    do printString("\n", 1)
 
     let prev: Int32 = buffer[0]
     col = 1

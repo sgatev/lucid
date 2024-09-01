@@ -462,7 +462,12 @@ _start:
   BL main
   LDP X29, X30, [sp], #16
   MOV X16, #1
-  BL _exit
+  SVC 0
+_print_string:
+  MOV X0, #1
+  MOV X16, #4
+  SVC 0
+  RET
 )";
 }
 
