@@ -19,6 +19,7 @@
 #include "lucid/cli.h"
 #include "lucid/file.h"
 #include "lucid/lexer.h"
+#include "lucid/macho.h"
 #include "lucid/opt.h"
 #include "lucid/parser.h"
 #include "lucid/result.h"
@@ -74,10 +75,7 @@ Result<void, ParserError, TypeError> CompileSource(
     }
   }
   if (arm64_binary_gen) {
-    std::vector<std::uint32_t> arm64_insts = arm.Encode();
-    for (auto inst : arm64_insts) {
-      out.write(reinterpret_cast<const char*>(&inst), 4);
-    }
+    AssembleMachObject(arm, out);
   } else {
     GenerateArmEndSource(state.strings, out);
   }

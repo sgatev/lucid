@@ -193,6 +193,7 @@ cc_binary(
         ":cli",
         ":file",
         ":lexer",
+        ":macho",
         ":opt",
         ":parser",
         ":type",
@@ -322,6 +323,15 @@ cc_test(
     deps = [
         ":fixed_map",
         "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "macho",
+    srcs = ["macho.cc"],
+    hdrs = ["macho.h"],
+    deps = [
+        ":arm64",
     ],
 )
 
