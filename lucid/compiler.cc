@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "lucid/am_gen.h"
-#include "lucid/arena.h"
 #include "lucid/arm64.h"
 #include "lucid/arm64_binary_gen.h"
 #include "lucid/arm64_gen.h"
@@ -101,18 +100,26 @@ Result<void, ReadFileError, ParserError, TypeError> DoCompile(
 }
 
 Result<void, ReadFileError, ParserError, TypeError> DoBuild(
-    std::filesystem::path bin_path, std::filesystem::path src_path) {
+    std::filesystem::path bin_path, std::filesystem::path src_path,
+    bool arm64_binary_gen = false) {
   auto asm_path = bin_path;
-  asm_path.replace_extension("s");
+  if (arm64_binary_gen) {
+    asm_path.replace_extension("o");
+  } else {
+    asm_path.replace_extension("s");
+  }
 
-  if (auto res = DoCompile(src_path, asm_path); res.HasError()) {
+  if (auto res = DoCompile(src_path, asm_path, arm64_binary_gen);
+      res.HasError()) {
     return res.GetError();
   }
 
-  // Translate assembly into object code.
-  const std::string as_cmd = std::format("as -arch arm64 -o {}.o {}",
-                                         bin_path.c_str(), asm_path.c_str());
-  std::system(as_cmd.data());
+  if (!arm64_binary_gen) {
+    // Translate assembly into object code.
+    const std::string as_cmd = std::format("as -arch arm64 -o {}.o {}",
+                                           bin_path.c_str(), asm_path.c_str());
+    std::system(as_cmd.data());
+  }
 
   // Link object code and create a binary.
   const std::string ld_cmd = std::format("ld -o {} {}.o -e _start -arch arm64",
@@ -155,10 +162,15 @@ int Build(CommandContext ctx) {
     return 1;
   }
 
-  auto src_path = std::filesystem::absolute(ctx.args[1]);
-  auto bin_path = std::filesystem::temp_directory_path() / ctx.args[0];
+  auto output_flag_it = ctx.flags.find("output");
+  bool arm64_binary_gen = (output_flag_it != ctx.flags.end() &&
+                           output_flag_it->second == "machine");
 
-  if (auto res = DoBuild(bin_path, src_path); res.HasError()) {
+  auto src_path = std::filesystem::absolute(ctx.args[1]);
+  auto bin_path = ctx.args[0];
+
+  if (auto res = DoBuild(bin_path, src_path, arm64_binary_gen);
+      res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }
