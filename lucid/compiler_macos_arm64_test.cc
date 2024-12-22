@@ -560,7 +560,8 @@ TEST_F(CompilerTest, LoopAndBreak) {
       return four()
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(4)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(4)));
 }
 
 TEST_F(CompilerTest, Int32Array) {
@@ -594,7 +595,8 @@ TEST_F(CompilerTest, Int32Array) {
       return r
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(45)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(45)));
 }
 
 TEST_F(CompilerTest, Int64Array) {
@@ -668,7 +670,8 @@ TEST_F(CompilerTest, BoolArray) {
       return r
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(5)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(5)));
 }
 
 }  // namespace
