@@ -5,7 +5,6 @@
 
 #include "benchmark/benchmark.h"
 #include "lucid/am_gen.h"
-#include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/lexer.h"

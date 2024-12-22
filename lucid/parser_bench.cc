@@ -1,16 +1,13 @@
 #include <cstddef>
 #include <optional>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <variant>
 
 #include "benchmark/benchmark.h"
-#include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/lexer.h"
 #include "lucid/parser.h"
-#include "lucid/token.h"
 
 std::size_t CountTokens(std::string_view code) {
   lucid::SyntaxContext ctx;

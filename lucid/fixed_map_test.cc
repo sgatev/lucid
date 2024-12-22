@@ -2,7 +2,6 @@
 
 #include <string_view>
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 namespace lucid {

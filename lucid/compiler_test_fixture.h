@@ -2,7 +2,6 @@
 
 #include <sys/wait.h>
 
-#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
@@ -11,7 +10,6 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lucid/cli.h"
 #include "lucid/file.h"
 
 namespace lucid {

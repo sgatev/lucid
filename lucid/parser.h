@@ -13,7 +13,6 @@
 #include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/fixed_map.h"
-#include "lucid/lexer.h"
 #include "lucid/token.h"
 
 namespace lucid {

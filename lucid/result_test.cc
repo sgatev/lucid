@@ -1,9 +1,5 @@
 #include "lucid/result.h"
 
-#include <utility>
-#include <variant>
-
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 namespace lucid {

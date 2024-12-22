@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "lucid/am.h"
-#include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
 

@@ -1,6 +1,5 @@
 #include "lucid/file.h"
 
-#include <optional>
 #include <string>
 
 #include "gmock/gmock.h"

@@ -11,7 +11,6 @@
 #include <variant>
 #include <vector>
 
-#include "lucid/arena.h"
 #include "lucid/ast.h"
 
 namespace lucid {

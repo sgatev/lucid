@@ -4,12 +4,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <map>
-#include <string>
 #include <string_view>
 #include <variant>
 
 #include "lucid/am.h"
-#include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
 

@@ -1,6 +1,5 @@
 #include "lucid/file.h"
 
-#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <ios>

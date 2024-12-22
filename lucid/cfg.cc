@@ -1,8 +1,6 @@
 #include "lucid/cfg.h"
 
 #include <algorithm>
-#include <cstdint>
-#include <memory>
 #include <stack>
 #include <utility>
 #include <variant>
