@@ -65,9 +65,13 @@ class BasicInst {
   std::uint32_t operator*() const { return value; }
 
   // Returns a binary representation of the instruction.
-  std::uint32_t Encode(
-      const std::unordered_map<std::string, std::size_t>& label_offsets) {
-    return value;
+  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
+              std::vector<std::uint8_t>& result) {
+    auto p = (uint8_t*)&value;
+    result.push_back(*p);
+    result.push_back(*(p + 1));
+    result.push_back(*(p + 2));
+    result.push_back(*(p + 3));
   }
 
  private:
@@ -81,14 +85,19 @@ class AdrInst {
       : pos_(pos), rd_(rd), label_(label) {}
 
   // Returns a binary representation of the instruction.
-  std::uint32_t Encode(
-      const std::unordered_map<std::string, std::size_t>& label_offsets) {
+  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
+              std::vector<std::uint8_t>& result) {
     std::size_t label_offset = label_offsets.at(std::string(label_));
     std::size_t offset = (label_offset - pos_) * 4;
     auto immlo = offset & 0b11;
     auto immhi = (offset >> 2) & 0b1111111111111111111;
-    return 0b00010000000000000000000000000000 | (immlo << 29) | (immhi << 5) |
-           *rd_;
+    std::uint32_t res = 0b00010000000000000000000000000000 | (immlo << 29) |
+                        (immhi << 5) | *rd_;
+    auto p = (uint8_t*)&res;
+    result.push_back(*p);
+    result.push_back(*(p + 1));
+    result.push_back(*(p + 2));
+    result.push_back(*(p + 3));
   }
 
  private:
@@ -104,12 +113,17 @@ class BInst {
       : this_offset_(this_offset), label_(label) {}
 
   // Returns a binary representation of the instruction.
-  std::uint32_t Encode(
-      const std::unordered_map<std::string, std::size_t>& label_offsets) {
+  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
+              std::vector<std::uint8_t>& result) {
     std::size_t offset =
         (label_offsets.at(std::string(label_)) - this_offset_) &
         0b11111111111111111111111111;
-    return 0b00010100000000000000000000000000 | offset;
+    std::uint32_t res = 0b00010100000000000000000000000000 | offset;
+    auto p = (uint8_t*)&res;
+    result.push_back(*p);
+    result.push_back(*(p + 1));
+    result.push_back(*(p + 2));
+    result.push_back(*(p + 3));
   }
 
  private:
@@ -145,13 +159,18 @@ class BCondInst {
       : this_offset_(this_offset), cond_(cond), label_(label) {}
 
   // Returns a binary representation of the instruction.
-  std::uint32_t Encode(
-      const std::unordered_map<std::string, std::size_t>& label_offsets) {
+  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
+              std::vector<std::uint8_t>& result) {
     std::size_t offset =
         (label_offsets.at(std::string(label_)) - this_offset_) &
         0b11111111111111111111111111;
-    return 0b01010100000000000000000000000000 |
-           (offset << 5) << static_cast<std::uint8_t>(cond_);
+    std::uint32_t res = 0b01010100000000000000000000000000 |
+                        (offset << 5) << static_cast<std::uint8_t>(cond_);
+    auto p = (uint8_t*)&res;
+    result.push_back(*p);
+    result.push_back(*(p + 1));
+    result.push_back(*(p + 2));
+    result.push_back(*(p + 3));
   }
 
  private:
@@ -167,12 +186,17 @@ class BlInst {
       : this_offset_(this_offset), label_(label) {}
 
   // Returns a binary representation of the instruction.
-  std::uint32_t Encode(
-      const std::unordered_map<std::string, std::size_t>& label_offsets) {
+  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
+              std::vector<std::uint8_t>& result) {
     std::size_t offset =
         (label_offsets.at(std::string(label_)) - this_offset_) &
         0b11111111111111111111111111;
-    return 0b10010100000000000000000000000000 | offset;
+    std::uint32_t res = 0b10010100000000000000000000000000 | offset;
+    auto p = (uint8_t*)&res;
+    result.push_back(*p);
+    result.push_back(*(p + 1));
+    result.push_back(*(p + 2));
+    result.push_back(*(p + 3));
   }
 
  private:
@@ -185,11 +209,18 @@ class AscizInst {
   explicit AscizInst(std::string_view s) : s_(s) {}
 
   // Returns a binary representation of the instruction.
-  std::uint32_t Encode(
-      const std::unordered_map<std::string, std::size_t>& label_offsets) {
-    std::uint32_t res = 0;
-    res = res | (s_[1]);
-    return res;
+  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
+              std::vector<std::uint8_t>& result) {
+    for (std::size_t i = 1; i < s_.size() - 1; ++i) {
+      if (s_[i] == '\\' && s_[i + 1] == 'n')
+        result.push_back('\n');
+      else
+        result.push_back(s_[i]);
+    }
+    result.push_back(0);
+
+    std::size_t c = 4 - ((s_.size() - 2 + 1) % 4);
+    for (std::size_t i = 0; i < c; ++i) result.push_back(0);
   }
 
  private:
@@ -204,11 +235,11 @@ using Inst =
 class Arm64 {
  public:
   // Returns a binary representation of the assembled instructions.
-  std::vector<std::uint32_t> Encode() const {
-    std::vector<std::uint32_t> result;
+  std::vector<std::uint8_t> Encode() const {
+    std::vector<std::uint8_t> result;
     for (const Inst& inst : insts_) {
-      result.push_back(std::visit(
-          [this](auto inst) { return inst.Encode(label_offsets_); }, inst));
+      std::visit([&](auto inst) { return inst.Encode(label_offsets_, result); },
+                 inst);
     }
     return result;
   }

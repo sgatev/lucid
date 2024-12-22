@@ -503,7 +503,7 @@ TEST_F(CompilerTest, PrintString) {
       return 0
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
               AllOf(ReturnsCode(Eq(0)), Prints("Hello, world!\n")));
 }
 
@@ -538,7 +538,7 @@ TEST_F(CompilerTest, PrintMultipleValues) {
       return 0
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
               AllOf(ReturnsCode(Eq(0)), Prints("0, 1\n")));
 }
 

@@ -127,12 +127,12 @@ struct nlist_64 {
 }  // namespace
 
 void AssembleMachObject(const arm64::Arm64& arm, std::ostream& out) {
-  const std::vector<std::uint32_t> insts = arm.Encode();
+  const std::vector<std::uint8_t> insts = arm.Encode();
 
   std::uint32_t section_offset =
       sizeof(mach_header_64) + sizeof(segment_command_64) + sizeof(section_64) +
       sizeof(build_version_command) + sizeof(symtab_command);
-  std::uint32_t section_size = insts.size() * 4;
+  std::uint32_t section_size = insts.size();
 
   std::uint32_t symtab_offset = section_offset + section_size;
   std::uint32_t symtab_size = sizeof(nlist_64);
@@ -182,7 +182,7 @@ void AssembleMachObject(const arm64::Arm64& arm, std::ostream& out) {
       .vmaddr = 0,
       .vmsize = section_size,
       .fileoff = section_offset,
-      .filesize = insts.size() * 4,
+      .filesize = section_size,
       .maxprot = kVmProtRead | kVmProtWrite | kVmProtExecute,
       .initprot = kVmProtRead | kVmProtWrite | kVmProtExecute,
       .nsects = 1,
@@ -204,7 +204,7 @@ void AssembleMachObject(const arm64::Arm64& arm, std::ostream& out) {
             sizeof(build_version));
   out.write(reinterpret_cast<const char*>(&sym_tab), sizeof(sym_tab));
   for (auto inst : insts) {
-    out.write(reinterpret_cast<const char*>(&inst), 4);
+    out.write(reinterpret_cast<const char*>(&inst), 1);
   }
   out.write(reinterpret_cast<const char*>(&sym), sizeof(sym));
 
