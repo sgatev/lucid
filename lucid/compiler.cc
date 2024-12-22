@@ -12,7 +12,6 @@
 #include "lucid/am_gen.h"
 #include "lucid/arm64.h"
 #include "lucid/arm64_binary_gen.h"
-#include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/cli.h"
@@ -48,8 +47,8 @@ Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
   return func_defs;
 }
 
-Result<void, ParserError, TypeError> CompileSource(
-    std::string_view src, std::ostream& out, bool arm64_binary_gen = false) {
+Result<void, ParserError, TypeError> CompileSource(std::string_view src,
+                                                   std::ostream& out) {
   SyntaxContext ctx;
   auto maybe_funcs = ParseFuncDefs(src, ctx);
   if (maybe_funcs.HasError()) return maybe_funcs.GetError();
@@ -57,34 +56,21 @@ Result<void, ParserError, TypeError> CompileSource(
   auto func_types = ExtractFuncTypes(ctx, func_defs);
   AbstractMachineState state;
   arm64::Arm64 arm;
-  if (arm64_binary_gen) {
-    GenerateArmStartBinary(arm);
-  } else {
-    GenerateArmStartSource(out);
-  }
+  GenerateArmStartBinary(arm);
   for (auto& func : func_defs) {
     if (auto err = InferExprTypes(ctx, func_types, func); err) return *err;
     auto graph = BuildControlFlowGraph(ctx, func);
     GenerateAbstractMachineFunction(ctx, graph, state);
     OptimizeAbstractMachineInstructions(state.func.instructions);
-    if (arm64_binary_gen) {
-      GenerateArmAssemblyBinary(state.func, arm);
-    } else {
-      GenerateArmAssemblySource(state.func, out);
-    }
+    GenerateArmAssemblyBinary(state.func, arm);
   }
-  if (arm64_binary_gen) {
-    GenerateArmEndBinary(state.strings, arm);
-    AssembleMachObject(arm, out);
-  } else {
-    GenerateArmEndSource(state.strings, out);
-  }
+  GenerateArmEndBinary(state.strings, arm);
+  AssembleMachObject(arm, out);
   return {};
 }
 
 Result<void, ReadFileError, ParserError, TypeError> DoCompile(
-    std::filesystem::path src_path, std::filesystem::path asm_path,
-    bool arm64_binary_gen = false) {
+    std::filesystem::path src_path, std::filesystem::path asm_path) {
   // Read Lucid sources.
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (maybe_src.HasError()) return maybe_src.GetError();
@@ -92,8 +78,7 @@ Result<void, ReadFileError, ParserError, TypeError> DoCompile(
 
   // Compile sources to assembly.
   std::ofstream assembly_stream(asm_path, std::ios::out | std::ios::binary);
-  if (auto err = CompileSource(src, assembly_stream, arm64_binary_gen);
-      err.HasError()) {
+  if (auto err = CompileSource(src, assembly_stream); err.HasError()) {
     return err.GetError();
   }
 
@@ -101,25 +86,12 @@ Result<void, ReadFileError, ParserError, TypeError> DoCompile(
 }
 
 Result<void, ReadFileError, ParserError, TypeError> DoBuild(
-    std::filesystem::path bin_path, std::filesystem::path src_path,
-    bool arm64_binary_gen = false) {
+    std::filesystem::path bin_path, std::filesystem::path src_path) {
   auto asm_path = bin_path;
-  if (arm64_binary_gen) {
-    asm_path.replace_extension("o");
-  } else {
-    asm_path.replace_extension("s");
-  }
+  asm_path.replace_extension("o");
 
-  if (auto res = DoCompile(src_path, asm_path, arm64_binary_gen);
-      res.HasError()) {
+  if (auto res = DoCompile(src_path, asm_path); res.HasError()) {
     return res.GetError();
-  }
-
-  if (!arm64_binary_gen) {
-    // Translate assembly into object code.
-    const std::string as_cmd = std::format("as -arch arm64 -o {}.o {}",
-                                           bin_path.c_str(), asm_path.c_str());
-    std::system(as_cmd.data());
   }
 
   // Link object code and create a binary.
@@ -136,20 +108,11 @@ int Compile(CommandContext ctx) {
     return 1;
   }
 
-  auto output_flag_it = ctx.flags.find("output");
-  bool arm64_binary_gen = (output_flag_it != ctx.flags.end() &&
-                           output_flag_it->second == "machine");
-
   auto src_path = std::filesystem::absolute(ctx.args[0]);
   auto asm_path = std::filesystem::current_path() / src_path.filename();
-  if (arm64_binary_gen) {
-    asm_path.replace_extension("a");
-  } else {
-    asm_path.replace_extension("s");
-  }
+  asm_path.replace_extension("a");
 
-  if (auto res = DoCompile(src_path, asm_path, arm64_binary_gen);
-      res.HasError()) {
+  if (auto res = DoCompile(src_path, asm_path); res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }
@@ -163,15 +126,10 @@ int Build(CommandContext ctx) {
     return 1;
   }
 
-  auto output_flag_it = ctx.flags.find("output");
-  bool arm64_binary_gen = (output_flag_it != ctx.flags.end() &&
-                           output_flag_it->second == "machine");
-
   auto src_path = std::filesystem::absolute(ctx.args[1]);
   auto bin_path = ctx.args[0];
 
-  if (auto res = DoBuild(bin_path, src_path, arm64_binary_gen);
-      res.HasError()) {
+  if (auto res = DoBuild(bin_path, src_path); res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }
@@ -185,16 +143,11 @@ int Run(CommandContext ctx) {
     return 1;
   }
 
-  auto output_flag_it = ctx.flags.find("output");
-  bool arm64_binary_gen = (output_flag_it != ctx.flags.end() &&
-                           output_flag_it->second == "machine");
-
   auto src_path = std::filesystem::absolute(ctx.args[0]);
   auto bin_path = std::filesystem::temp_directory_path() / src_path.filename();
   bin_path.replace_extension();
 
-  if (auto res = DoBuild(bin_path, src_path, arm64_binary_gen);
-      res.HasError()) {
+  if (auto res = DoBuild(bin_path, src_path); res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }

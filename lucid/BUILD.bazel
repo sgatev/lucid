@@ -80,31 +80,6 @@ cc_test(
 )
 
 cc_library(
-    name = "arm64_gen",
-    srcs = ["arm64_gen.cc"],
-    hdrs = ["arm64_gen.h"],
-    deps = [
-        ":am",
-        ":am_gen",
-    ],
-)
-
-cc_test(
-    name = "arm64_gen_test",
-    srcs = ["arm64_gen_test.cc"],
-    deps = [
-        ":am_gen",
-        ":arena",
-        ":arm64_gen",
-        ":ast",
-        ":ast_fixture",
-        ":cfg",
-        ":type",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "arm64_binary_gen",
     srcs = ["arm64_binary_gen.cc"],
     hdrs = ["arm64_binary_gen.h"],
@@ -187,7 +162,6 @@ cc_binary(
         ":arena",
         ":arm64",
         ":arm64_binary_gen",
-        ":arm64_gen",
         ":ast",
         ":cfg",
         ":cli",
