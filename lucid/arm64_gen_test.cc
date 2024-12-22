@@ -1,4 +1,4 @@
-#include "lucid/arm64_binary_gen.h"
+#include "lucid/arm64_gen.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

@@ -6,12 +6,11 @@
 #include <string>
 #include <string_view>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include "lucid/am_gen.h"
 #include "lucid/arm64.h"
-#include "lucid/arm64_binary_gen.h"
+#include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/cli.h"

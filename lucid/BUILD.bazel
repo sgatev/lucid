@@ -80,9 +80,9 @@ cc_test(
 )
 
 cc_library(
-    name = "arm64_binary_gen",
-    srcs = ["arm64_binary_gen.cc"],
-    hdrs = ["arm64_binary_gen.h"],
+    name = "arm64_gen",
+    srcs = ["arm64_gen.cc"],
+    hdrs = ["arm64_gen.h"],
     deps = [
         ":am",
         ":arm64",
@@ -161,7 +161,7 @@ cc_binary(
         ":am_gen",
         ":arena",
         ":arm64",
-        ":arm64_binary_gen",
+        ":arm64_gen",
         ":ast",
         ":cfg",
         ":cli",
