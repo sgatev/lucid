@@ -362,9 +362,7 @@ TEST_F(CompilerTest, FuncCallArgsSameType) {
       return sum(2, 3, 5)
     }
   )"));
-  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
-              ReturnsCode(Eq(0)));
-  EXPECT_THAT(Run("main"), ReturnsCode(Eq(10)));
+  ASSERT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(10)));
 }
 
 TEST_F(CompilerTest, FactRec) {
