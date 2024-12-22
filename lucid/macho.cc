@@ -180,7 +180,7 @@ void AssembleMachObject(const arm64::Arm64& arm, std::ostream& out) {
       .cmdsize = sizeof(segment_command_64) + (sizeof(section_64) * 1),
       .segname = "",
       .vmaddr = 0,
-      .vmsize = 0x0000000000000188,
+      .vmsize = section_size,
       .fileoff = section_offset,
       .filesize = insts.size() * 4,
       .maxprot = kVmProtRead | kVmProtWrite | kVmProtExecute,

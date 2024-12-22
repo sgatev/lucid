@@ -255,7 +255,12 @@ void GenerateArmStartBinary(Arm64& arm) {
 
 void GenerateArmEndBinary(
     const std::unordered_map<std::uintptr_t, std::string>& strings,
-    Arm64& arm) {}
+    Arm64& arm) {
+  for (auto [k, v] : strings) {
+    arm.Label("str" + std::to_string(k));
+    arm.Asciz(v);
+  }
+}
 
 void GenerateArmAssemblyBinary(const Function& func, Arm64& arm) {
   Arm64BinaryGenerator(func, arm).Generate();

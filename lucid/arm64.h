@@ -180,8 +180,25 @@ class BlInst {
   std::string label_;
 };
 
+class AscizInst {
+ public:
+  explicit AscizInst(std::string_view s) : s_(s) {}
+
+  // Returns a binary representation of the instruction.
+  std::uint32_t Encode(
+      const std::unordered_map<std::string, std::size_t>& label_offsets) {
+    std::uint32_t res = 0;
+    res = res | (s_[1]);
+    return res;
+  }
+
+ private:
+  std::string s_;
+};
+
 // Represents an ARM64 instruction.
-using Inst = std::variant<BasicInst, AdrInst, BInst, BCondInst, BlInst>;
+using Inst =
+    std::variant<BasicInst, AdrInst, BInst, BCondInst, BlInst, AscizInst>;
 
 // Builds a list of ARM64 instructions.
 class Arm64 {
@@ -322,6 +339,8 @@ class Arm64 {
     insts_.push_back(
         BasicInst(0b11010100000000000000000000000001 | (*imm << 5)));
   }
+
+  void Asciz(std::string s) { insts_.push_back(AscizInst(s)); }
 
   // STP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
   //

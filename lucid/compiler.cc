@@ -74,6 +74,7 @@ Result<void, ParserError, TypeError> CompileSource(
     }
   }
   if (arm64_binary_gen) {
+    GenerateArmEndBinary(state.strings, arm);
     AssembleMachObject(arm, out);
   } else {
     GenerateArmEndSource(state.strings, out);

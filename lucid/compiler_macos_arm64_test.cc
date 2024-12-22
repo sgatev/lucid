@@ -488,7 +488,7 @@ TEST_F(CompilerTest, PrintInt32) {
       return 0
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
               AllOf(ReturnsCode(Eq(0)), Prints("21509")));
 }
 
