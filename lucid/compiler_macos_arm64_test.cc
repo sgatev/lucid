@@ -429,7 +429,8 @@ TEST_F(CompilerTest, FibRec) {
       return fib(8)
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(21)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(21)));
 }
 
 TEST_F(CompilerTest, FibIter) {
@@ -453,7 +454,8 @@ TEST_F(CompilerTest, FibIter) {
       return fib(8)
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(21)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(21)));
 }
 
 TEST_F(CompilerTest, PrintInt32) {
