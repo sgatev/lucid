@@ -240,11 +240,17 @@ class Arm64BinaryGenerator {
 }  // namespace
 
 void GenerateArmStartBinary(Arm64& arm) {
+  arm.Label("_start");
   arm.StpPreIndex(X(29), X(30), SP, Imm(-16));
   arm.Bl("main");
   arm.LdpPostIndex(X(29), X(30), SP, Imm(16));
   arm.Mov(X(16), Imm(1));
-  // arm.Bl("_exit");
+  arm.Svc(Imm(0));
+  arm.Label("_print_string");
+  arm.Mov(X(0), Imm(1));
+  arm.Mov(X(16), Imm(4));
+  arm.Svc(Imm(0));
+  arm.Ret();
 }
 
 void GenerateArmEndBinary(

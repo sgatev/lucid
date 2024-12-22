@@ -13,6 +13,11 @@
 namespace lucid::arm64 {
 namespace internal {
 
+// Returns the two's complement of `n` interpreted as 7-bit signed integer.
+inline std::uint16_t TwoCompl7(std::uint16_t n) {
+  return (~n & 0b0000000001111111) + 1;
+}
+
 // Represents an ARM64 register.
 class Reg {
  public:
@@ -44,22 +49,18 @@ static constexpr X SP = X(0b11111);
 // Represents an ARM64 immediate.
 class Imm {
  public:
-  explicit Imm(std::uint16_t value) : value(value) {
-    assert(value <= 0b111111111111);
-  }
+  explicit Imm(std::int16_t value) : value(value) {}
 
-  std::uint16_t operator*() const { return value; }
+  std::int16_t operator*() const { return value; }
 
  private:
-  std::uint16_t value;
+  std::int16_t value;
 };
 
 // Represents a basic ARM64 instruction.
 class BasicInst {
  public:
-  explicit BasicInst(std::uint32_t value) : value(value) {
-    assert(value <= 0b111111111111);
-  }
+  explicit BasicInst(std::uint32_t value) : value(value) {}
 
   std::uint32_t operator*() const { return value; }
 
@@ -99,17 +100,20 @@ class AdrInst {
 // Represents an ARM64 B instruction.
 class BInst {
  public:
-  explicit BInst(std::string_view label) : label_(label) {}
+  explicit BInst(std::size_t this_offset, std::string_view label)
+      : this_offset_(this_offset), label_(label) {}
 
   // Returns a binary representation of the instruction.
   std::uint32_t Encode(
       const std::unordered_map<std::string, std::size_t>& label_offsets) {
     std::size_t offset =
-        label_offsets.at(std::string(label_)) & 0b11111111111111111111111111;
+        (label_offsets.at(std::string(label_)) - this_offset_) &
+        0b11111111111111111111111111;
     return 0b00010100000000000000000000000000 | offset;
   }
 
  private:
+  std::size_t this_offset_;
   std::string label_;
 };
 
@@ -137,18 +141,21 @@ enum class Extend : std::uint8_t {
 // Represents an ARM64 B.cond instruction.
 class BCondInst {
  public:
-  BCondInst(Cond cond, std::string_view label) : cond_(cond), label_(label) {}
+  BCondInst(std::size_t this_offset, Cond cond, std::string_view label)
+      : this_offset_(this_offset), cond_(cond), label_(label) {}
 
   // Returns a binary representation of the instruction.
   std::uint32_t Encode(
       const std::unordered_map<std::string, std::size_t>& label_offsets) {
     std::size_t offset =
-        label_offsets.at(std::string(label_)) & 0b11111111111111111111111111;
+        (label_offsets.at(std::string(label_)) - this_offset_) &
+        0b11111111111111111111111111;
     return 0b01010100000000000000000000000000 |
            (offset << 5) << static_cast<std::uint8_t>(cond_);
   }
 
  private:
+  std::size_t this_offset_;
   Cond cond_;
   std::string label_;
 };
@@ -156,17 +163,20 @@ class BCondInst {
 // Represents an ARM64 BL instruction.
 class BlInst {
  public:
-  explicit BlInst(std::string_view label) : label_(label) {}
+  explicit BlInst(std::size_t this_offset, std::string_view label)
+      : this_offset_(this_offset), label_(label) {}
 
   // Returns a binary representation of the instruction.
   std::uint32_t Encode(
       const std::unordered_map<std::string, std::size_t>& label_offsets) {
     std::size_t offset =
-        label_offsets.at(std::string(label_)) & 0b11111111111111111111111111;
+        (label_offsets.at(std::string(label_)) - this_offset_) &
+        0b11111111111111111111111111;
     return 0b10010100000000000000000000000000 | offset;
   }
 
  private:
+  std::size_t this_offset_;
   std::string label_;
 };
 
@@ -300,9 +310,17 @@ class Arm64 {
   // RET {<Xn>}
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/RET--Return-from-subroutine-?lang=en
-  void Ret(X rn = X(0)) {
+  void Ret(X rn = X(30)) {
     insts_.push_back(
         BasicInst(0b11010110010111110000000000000000 | (*rn << 5)));
+  }
+
+  // SVC
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-09/Base-Instructions/SVC--Supervisor-call-?lang=en
+  void Svc(Imm imm) {
+    insts_.push_back(
+        BasicInst(0b11010100000000000000000000000001 | (*imm << 5)));
   }
 
   // STP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
@@ -462,19 +480,23 @@ class Arm64 {
   // B <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B--Branch-?lang=en
-  void B(std::string_view label) { insts_.push_back(BInst(label)); }
+  void B(std::string_view label) {
+    insts_.push_back(BInst(insts_.size(), label));
+  }
 
   // B.cond <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B-cond--Branch-conditionally-?lang=en
   void B(Cond cond, std::string_view label) {
-    insts_.push_back(BCondInst(cond, label));
+    insts_.push_back(BCondInst(insts_.size(), cond, label));
   }
 
   // BL <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
-  void Bl(std::string_view label) { insts_.push_back(BlInst(label)); }
+  void Bl(std::string_view label) {
+    insts_.push_back(BlInst(insts_.size(), label));
+  }
 
   // CMP <Wn|WSP>, #<imm>{, <shift>}
   //
@@ -541,8 +563,15 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   BasicInst StpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
                          internal::Reg rn, Imm imm) {
+    std::int16_t imme = *imm;
+    if (opc)
+      imme /= 8;
+    else
+      imme /= 4;
+    if (imme < 0) imme = internal::TwoCompl7(-imme);
+
     return BasicInst(0b00101000100000000000000000000000 | (opc << 31) |
-                     (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+                     (imme << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
   }
 
   // STP (Pre-index)
@@ -550,8 +579,15 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   BasicInst StpPreIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
                         internal::Reg rn, Imm imm) {
+    std::int16_t imme = *imm;
+    if (opc)
+      imme /= 8;
+    else
+      imme /= 4;
+    if (imme < 0) imme = internal::TwoCompl7(-imme);
+
     return BasicInst(0b00101001100000000000000000000000 | (opc << 31) |
-                     (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+                     (imme << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
   }
 
   // STP (Signed offset)
@@ -559,8 +595,15 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   BasicInst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
                             internal::Reg rn, Imm imm) {
+    std::int16_t imme = *imm;
+    if (opc)
+      imme /= 8;
+    else
+      imme /= 4;
+    if (imme < 0) imme = internal::TwoCompl7(-imme);
+
     return BasicInst(0b00101001000000000000000000000000 | (opc << 31) |
-                     (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+                     (imme << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
   }
 
   // STR (Post-index)
@@ -604,24 +647,45 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
   BasicInst LdpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2, X rn,
                          Imm imm) {
+    std::int16_t imme = *imm;
+    if (opc)
+      imme /= 8;
+    else
+      imme /= 4;
+    if (imme < 0) imme = internal::TwoCompl7(-imme);
+
     return BasicInst(0b00101000110000000000000000000000 | (opc << 31) |
-                     (*imm << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
+                     (imme << 15) | (*rt2 << 10) | (*rn << 5) | *rt1);
   }
 
   // LDR (Pre-index)
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
   BasicInst LdrPreIndex(bool opc, internal::Reg rt, X rn, Imm imm) {
+    std::int16_t imme = *imm;
+    if (opc)
+      imme /= 8;
+    else
+      imme /= 4;
+    if (imme < 0) imme = internal::TwoCompl7(-imme);
+
     return BasicInst(0b10111000010000000000110000000000 | (opc << 30) |
-                     (*imm << 12) | (*rn << 5) | *rt);
+                     (imme << 12) | (*rn << 5) | *rt);
   }
 
   // LDR (Unsigned offset)
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
   BasicInst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
+    std::int16_t imme = *imm;
+    if (opc)
+      imme /= 8;
+    else
+      imme /= 4;
+    if (imme < 0) imme = internal::TwoCompl7(-imme);
+
     return BasicInst(0b10111001010000000000000000000000 | (opc << 30) |
-                     (*imm << 10) | (*rn << 5) | *rt);
+                     (imme << 10) | (*rn << 5) | *rt);
   }
 
   // LDR (register)

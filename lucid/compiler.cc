@@ -184,11 +184,16 @@ int Run(CommandContext ctx) {
     return 1;
   }
 
+  auto output_flag_it = ctx.flags.find("output");
+  bool arm64_binary_gen = (output_flag_it != ctx.flags.end() &&
+                           output_flag_it->second == "machine");
+
   auto src_path = std::filesystem::absolute(ctx.args[0]);
   auto bin_path = std::filesystem::temp_directory_path() / src_path.filename();
   bin_path.replace_extension();
 
-  if (auto res = DoBuild(bin_path, src_path); res.HasError()) {
+  if (auto res = DoBuild(bin_path, src_path, arm64_binary_gen);
+      res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }
