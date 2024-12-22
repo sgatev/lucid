@@ -535,7 +535,7 @@ class Arm64 {
   // CMP <Xn>, <Xm>{, <shift> #<amount>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CMP--shifted-register---Compare--shifted-register---an-alias-of-SUBS--shifted-register--?lang=en
-  void Cmp(X rn, X rm) { insts_.push_back(Cmp(true, rn, rn)); }
+  void Cmp(X rn, X rm) { insts_.push_back(Cmp(true, rn, rm)); }
 
   // CSET <Wd>, <invcond>
   //

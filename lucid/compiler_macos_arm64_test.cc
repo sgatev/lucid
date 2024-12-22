@@ -630,7 +630,8 @@ TEST_F(CompilerTest, Int64Array) {
       return r
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(45)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(45)));
 }
 
 TEST_F(CompilerTest, BoolArray) {
