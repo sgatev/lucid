@@ -628,8 +628,14 @@ class Arm64 {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--immediate---Store-register--immediate--?lang=en
   BasicInst StrUnsignedOffset(bool opc, internal::Reg rt, internal::Reg rn,
                               Imm imm) {
+    std::uint32_t imme = *imm;
+    if (opc)
+      imme /= 8;
+    else
+      imme /= 4;
+
     return BasicInst(0b10111001000000000000000000000000 | (opc << 31) |
-                     (*imm << 10) | (*rn << 5) | *rt);
+                     (imme << 10) | (*rn << 5) | *rt);
   }
 
   // STR (register)

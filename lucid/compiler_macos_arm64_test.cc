@@ -337,7 +337,8 @@ TEST_F(CompilerTest, VarDecl) {
       return x + y
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(5)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(5)));
 }
 
 TEST_F(CompilerTest, VarDeclFromVar) {
@@ -348,7 +349,8 @@ TEST_F(CompilerTest, VarDeclFromVar) {
       return y
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(2)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(2)));
 }
 
 TEST_F(CompilerTest, VarAssign) {
@@ -362,7 +364,8 @@ TEST_F(CompilerTest, VarAssign) {
       return foo(2)
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(3)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(3)));
 }
 
 TEST_F(CompilerTest, FuncCallSingleArg) {
@@ -375,7 +378,8 @@ TEST_F(CompilerTest, FuncCallSingleArg) {
       return id(21)
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(21)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(21)));
 }
 
 TEST_F(CompilerTest, FuncCallArgsSameType) {
@@ -388,7 +392,8 @@ TEST_F(CompilerTest, FuncCallArgsSameType) {
       return sum(2, 3, 5)
     }
   )"));
-  ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
+  ASSERT_THAT(RunCompiler({"build", "--output=machine", FullPath("main"),
+                           FullPath("main.lu")}),
               ReturnsCode(Eq(0)));
   EXPECT_THAT(Run("main"), ReturnsCode(Eq(10)));
 }
@@ -407,7 +412,8 @@ TEST_F(CompilerTest, FactRec) {
       return fact(5)
     }
   )"));
-  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(120)));
+  EXPECT_THAT(RunCompiler({"run", "--output=machine", FullPath("main.lu")}),
+              ReturnsCode(Eq(120)));
 }
 
 TEST_F(CompilerTest, FibRec) {
