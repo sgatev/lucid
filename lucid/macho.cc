@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <ostream>
-#include <vector>
 
 #include "lucid/arm64.h"
 
@@ -124,15 +123,18 @@ struct nlist_64 {
   std::uint64_t n_value; /* value of this symbol (or stab offset) */
 };
 
+template <typename T>
+void WriteStruct(const T& obj, std::ostream& out) {
+  out.write(reinterpret_cast<const char*>(&obj), sizeof(T));
+}
+
 }  // namespace
 
 void AssembleMachObject(const arm64::Arm64& arm, std::ostream& out) {
-  const std::vector<std::uint8_t> insts = arm.Encode();
-
   std::uint32_t section_offset =
       sizeof(mach_header_64) + sizeof(segment_command_64) + sizeof(section_64) +
       sizeof(build_version_command) + sizeof(symtab_command);
-  std::uint32_t section_size = insts.size();
+  std::uint32_t section_size = arm.OutputBytesCount();
 
   std::uint32_t symtab_offset = section_offset + section_size;
   std::uint32_t symtab_size = sizeof(nlist_64);
@@ -197,16 +199,13 @@ void AssembleMachObject(const arm64::Arm64& arm, std::ostream& out) {
       .sizeofcmds = segment.cmdsize + build_version.cmdsize + sym_tab.cmdsize,
       .flags = 0,
   };
-  out.write(reinterpret_cast<const char*>(&header), sizeof(header));
-  out.write(reinterpret_cast<const char*>(&segment), sizeof(segment));
-  out.write(reinterpret_cast<const char*>(&section), sizeof(section));
-  out.write(reinterpret_cast<const char*>(&build_version),
-            sizeof(build_version));
-  out.write(reinterpret_cast<const char*>(&sym_tab), sizeof(sym_tab));
-  for (auto inst : insts) {
-    out.write(reinterpret_cast<const char*>(&inst), 1);
-  }
-  out.write(reinterpret_cast<const char*>(&sym), sizeof(sym));
+  WriteStruct(header, out);
+  WriteStruct(segment, out);
+  WriteStruct(section, out);
+  WriteStruct(build_version, out);
+  WriteStruct(sym_tab, out);
+  arm.WriteBytes(out);
+  WriteStruct(sym, out);
 
   out.write("\0", 1);
   out.write("_start", 6);

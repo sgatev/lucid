@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <ostream>
 #include <string_view>
 #include <unordered_map>
 #include <variant>
@@ -62,16 +63,14 @@ class BasicInst {
  public:
   explicit BasicInst(std::uint32_t value) : value(value) {}
 
-  std::uint32_t operator*() const { return value; }
+  // Returns the number of bytes produced by this instruction.
+  std::size_t OutputBytesCount() const { return 4; }
 
-  // Returns a binary representation of the instruction.
-  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
-              std::vector<std::uint8_t>& result) {
-    auto p = (uint8_t*)&value;
-    result.push_back(*p);
-    result.push_back(*(p + 1));
-    result.push_back(*(p + 2));
-    result.push_back(*(p + 3));
+  // Writes the bytes produced by this instruction.
+  void WriteBytes(
+      const std::unordered_map<std::string, std::size_t>& label_offsets,
+      std::ostream& out) const {
+    out.write(reinterpret_cast<const char*>(&value), 4);
   }
 
  private:
@@ -84,20 +83,21 @@ class AdrInst {
   AdrInst(std::size_t pos, X rd, std::string_view label)
       : pos_(pos), rd_(rd), label_(label) {}
 
-  // Returns a binary representation of the instruction.
-  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
-              std::vector<std::uint8_t>& result) {
+  // Returns the number of bytes produced by this instruction.
+  std::size_t OutputBytesCount() const { return 4; }
+
+  // Writes the bytes produced by this instruction.
+  void WriteBytes(
+      const std::unordered_map<std::string, std::size_t>& label_offsets,
+      std::ostream& out) const {
     std::size_t label_offset = label_offsets.at(std::string(label_));
     std::size_t offset = (label_offset - pos_) * 4;
     auto immlo = offset & 0b11;
     auto immhi = (offset >> 2) & 0b1111111111111111111;
     std::uint32_t res = 0b00010000000000000000000000000000 | (immlo << 29) |
                         (immhi << 5) | *rd_;
-    auto p = (uint8_t*)&res;
-    result.push_back(*p);
-    result.push_back(*(p + 1));
-    result.push_back(*(p + 2));
-    result.push_back(*(p + 3));
+
+    out.write(reinterpret_cast<const char*>(&res), 4);
   }
 
  private:
@@ -112,18 +112,19 @@ class BInst {
   explicit BInst(std::size_t this_offset, std::string_view label)
       : this_offset_(this_offset), label_(label) {}
 
-  // Returns a binary representation of the instruction.
-  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
-              std::vector<std::uint8_t>& result) {
+  // Returns the number of bytes produced by this instruction.
+  std::size_t OutputBytesCount() const { return 4; }
+
+  // Writes the bytes produced by this instruction.
+  void WriteBytes(
+      const std::unordered_map<std::string, std::size_t>& label_offsets,
+      std::ostream& out) const {
     std::size_t offset =
         (label_offsets.at(std::string(label_)) - this_offset_) &
         0b11111111111111111111111111;
     std::uint32_t res = 0b00010100000000000000000000000000 | offset;
-    auto p = (uint8_t*)&res;
-    result.push_back(*p);
-    result.push_back(*(p + 1));
-    result.push_back(*(p + 2));
-    result.push_back(*(p + 3));
+
+    out.write(reinterpret_cast<const char*>(&res), 4);
   }
 
  private:
@@ -158,19 +159,20 @@ class BCondInst {
   BCondInst(std::size_t this_offset, Cond cond, std::string_view label)
       : this_offset_(this_offset), cond_(cond), label_(label) {}
 
-  // Returns a binary representation of the instruction.
-  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
-              std::vector<std::uint8_t>& result) {
+  // Returns the number of bytes produced by this instruction.
+  std::size_t OutputBytesCount() const { return 4; }
+
+  // Writes the bytes produced by this instruction.
+  void WriteBytes(
+      const std::unordered_map<std::string, std::size_t>& label_offsets,
+      std::ostream& out) const {
     std::size_t offset =
         (label_offsets.at(std::string(label_)) - this_offset_) &
         0b11111111111111111111111111;
     std::uint32_t res = 0b01010100000000000000000000000000 |
                         (offset << 5) << static_cast<std::uint8_t>(cond_);
-    auto p = (uint8_t*)&res;
-    result.push_back(*p);
-    result.push_back(*(p + 1));
-    result.push_back(*(p + 2));
-    result.push_back(*(p + 3));
+
+    out.write(reinterpret_cast<const char*>(&res), 4);
   }
 
  private:
@@ -185,18 +187,19 @@ class BlInst {
   explicit BlInst(std::size_t this_offset, std::string_view label)
       : this_offset_(this_offset), label_(label) {}
 
-  // Returns a binary representation of the instruction.
-  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
-              std::vector<std::uint8_t>& result) {
+  // Returns the number of bytes produced by this instruction.
+  std::size_t OutputBytesCount() const { return 4; }
+
+  // Writes the bytes produced by this instruction.
+  void WriteBytes(
+      const std::unordered_map<std::string, std::size_t>& label_offsets,
+      std::ostream& out) const {
     std::size_t offset =
         (label_offsets.at(std::string(label_)) - this_offset_) &
         0b11111111111111111111111111;
     std::uint32_t res = 0b10010100000000000000000000000000 | offset;
-    auto p = (uint8_t*)&res;
-    result.push_back(*p);
-    result.push_back(*(p + 1));
-    result.push_back(*(p + 2));
-    result.push_back(*(p + 3));
+
+    out.write(reinterpret_cast<const char*>(&res), 4);
   }
 
  private:
@@ -208,19 +211,37 @@ class AscizInst {
  public:
   explicit AscizInst(std::string_view s) : s_(s) {}
 
-  // Returns a binary representation of the instruction.
-  void Encode(const std::unordered_map<std::string, std::size_t>& label_offsets,
-              std::vector<std::uint8_t>& result) {
+  // Returns the number of bytes produced by this instruction.
+  std::size_t OutputBytesCount() const {
+    std::size_t count = 0;
     for (std::size_t i = 1; i < s_.size() - 1; ++i) {
-      if (s_[i] == '\\' && s_[i + 1] == 'n')
-        result.push_back('\n');
-      else
-        result.push_back(s_[i]);
+      if (s_[i] == '\\' && s_[i + 1] == 'n') {
+        ++count;
+      } else {
+        ++count;
+      }
     }
-    result.push_back(0);
+    ++count;
+    count += 4 - ((s_.size() - 2 + 1) % 4);
+    return count;
+  }
+
+  // Writes the bytes produced by this instruction.
+  void WriteBytes(
+      const std::unordered_map<std::string, std::size_t>& label_offsets,
+      std::ostream& out) const {
+    for (std::size_t i = 1; i < s_.size() - 1; ++i) {
+      if (s_[i] == '\\' && s_[i + 1] == 'n') {
+        out.write(reinterpret_cast<const char*>("\n"), 1);
+      } else {
+        out.write(reinterpret_cast<const char*>(&s_[i]), 1);
+      }
+    }
+    out.write(reinterpret_cast<const char*>("\0"), 1);
 
     std::size_t c = 4 - ((s_.size() - 2 + 1) % 4);
-    for (std::size_t i = 0; i < c; ++i) result.push_back(0);
+    for (std::size_t i = 0; i < c; ++i)
+      out.write(reinterpret_cast<const char*>("\0"), 1);
   }
 
  private:
@@ -234,14 +255,16 @@ using Inst =
 // Builds a list of ARM64 instructions.
 class Arm64 {
  public:
-  // Returns a binary representation of the assembled instructions.
-  std::vector<std::uint8_t> Encode() const {
-    std::vector<std::uint8_t> result;
+  // Returns the number of bytes produced by the instructions.
+  std::size_t OutputBytesCount() const { return output_bytes_count_; }
+
+  // Writes the bytes produced by the instructions.
+  void WriteBytes(std::ostream& out) const {
     for (const Inst& inst : insts_) {
-      std::visit([&](auto inst) { return inst.Encode(label_offsets_, result); },
-                 inst);
+      std::visit(
+          [&](const auto& inst) { inst.WriteBytes(label_offsets_, out); },
+          inst);
     }
-    return result;
   }
 
   void Label(std::string label) { label_offsets_[label] = insts_.size(); }
@@ -250,337 +273,323 @@ class Arm64 {
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
   void Add(W rd, W rn, Imm imm, bool sh = false) {
-    insts_.push_back(Add(false, rd, rn, imm, sh));
+    AddInst(Add(false, rd, rn, imm, sh));
   }
 
   // ADD <Xd|SP>, <Xn|SP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
   void Add(X rd, X rn, Imm imm, bool sh = false) {
-    insts_.push_back(Add(true, rd, rn, imm, sh));
+    AddInst(Add(true, rd, rn, imm, sh));
   }
 
   // ADD <Wd>, <Wn>, <Wm>{, <shift> #<amount>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADD--shifted-register---Add--shifted-register--?lang=en
-  void Add(W rd, W rn, W rm) { insts_.push_back(Add(false, rd, rn, rm)); }
+  void Add(W rd, W rn, W rm) { AddInst(Add(false, rd, rn, rm)); }
 
   // ADD <Xd>, <Xn>, <Xm>{, <shift> #<amount>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADD--shifted-register---Add--shifted-register--?lang=en
-  void Add(X rd, X rn, X rm) { insts_.push_back(Add(true, rd, rn, rm)); }
+  void Add(X rd, X rn, X rm) { AddInst(Add(true, rd, rn, rm)); }
 
   // SUB <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--immediate---Subtract--immediate--?lang=en
   void Sub(W rd, W rn, Imm imm, bool sh = false) {
-    insts_.push_back(Sub(false, rd, rn, imm, sh));
+    AddInst(Sub(false, rd, rn, imm, sh));
   }
 
   // SUB <Xd|SP>, <Xn|SP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--immediate---Subtract--immediate--?lang=en
   void Sub(X rd, X rn, Imm imm, bool sh = false) {
-    insts_.push_back(Sub(true, rd, rn, imm, sh));
+    AddInst(Sub(true, rd, rn, imm, sh));
   }
 
   // SUB <Wd>, <Wn>, <Wm>{, <shift> #<amount>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--shifted-register---Subtract--shifted-register--?lang=en
-  void Sub(W rd, W rn, W rm) { insts_.push_back(Sub(false, rd, rn, rm)); }
+  void Sub(W rd, W rn, W rm) { AddInst(Sub(false, rd, rn, rm)); }
 
   // SUB <Xd>, <Xn>, <Xm>{, <shift> #<amount>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--shifted-register---Subtract--shifted-register--?lang=en
-  void Sub(X rd, X rn, X rm) { insts_.push_back(Sub(true, rd, rn, rm)); }
+  void Sub(X rd, X rn, X rm) { AddInst(Sub(true, rd, rn, rm)); }
 
   // MUL <Wd>, <Wn>, <Wm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MUL--Multiply--an-alias-of-MADD-?lang=en
-  void Mul(W rd, W rn, W rm) { insts_.push_back(Mul(false, rd, rn, rm)); }
+  void Mul(W rd, W rn, W rm) { AddInst(Mul(false, rd, rn, rm)); }
 
   // MUL <Xd>, <Xn>, <Xm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MUL--Multiply--an-alias-of-MADD-?lang=en
-  void Mul(X rd, X rn, X rm) { insts_.push_back(Mul(true, rd, rn, rm)); }
+  void Mul(X rd, X rn, X rm) { AddInst(Mul(true, rd, rn, rm)); }
 
   // UDIV <Wd>, <Wn>, <Wm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/UDIV--Unsigned-divide-?lang=en
-  void Udiv(W rd, W rn, W rm) { insts_.push_back(Udiv(false, rd, rn, rm)); }
+  void Udiv(W rd, W rn, W rm) { AddInst(Udiv(false, rd, rn, rm)); }
 
   // UDIV <Xd>, <Xn>, <Xm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/UDIV--Unsigned-divide-?lang=en
-  void Udiv(X rd, X rn, X rm) { insts_.push_back(Udiv(true, rd, rn, rm)); }
+  void Udiv(X rd, X rn, X rm) { AddInst(Udiv(true, rd, rn, rm)); }
 
   // MSUB <Wd>, <Wn>, <Wm>, <Wa>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MSUB--Multiply-subtract-?lang=en
-  void Msub(W rd, W rn, W rm, W ra) {
-    insts_.push_back(Msub(false, rd, rn, rm, ra));
-  }
+  void Msub(W rd, W rn, W rm, W ra) { AddInst(Msub(false, rd, rn, rm, ra)); }
 
   // MSUB <Xd>, <Xn>, <Xm>, <Xa>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MSUB--Multiply-subtract-?lang=en
-  void Msub(X rd, X rn, X rm, X ra) {
-    insts_.push_back(Msub(true, rd, rn, rm, ra));
-  }
+  void Msub(X rd, X rn, X rm, X ra) { AddInst(Msub(true, rd, rn, rm, ra)); }
 
   // ADR <Xd>, <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
   void Adr(X rd, std::string_view label) {
-    insts_.push_back(AdrInst(insts_.size(), rd, label));
+    AddInst(AdrInst(insts_.size(), rd, label));
   }
 
   // MOV <Wd>, <Wm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
-  void Mov(W rd, W rm) { insts_.push_back(Mov(false, rd, rm)); }
+  void Mov(W rd, W rm) { AddInst(Mov(false, rd, rm)); }
 
   // MOV <Xd>, <Xm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--register---Move--register---an-alias-of-ORR--shifted-register--?lang=en
-  void Mov(X rd, X rm) { insts_.push_back(Mov(true, rd, rm)); }
+  void Mov(X rd, X rm) { AddInst(Mov(true, rd, rm)); }
 
   // MOV <Wd>, #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
-  void Mov(W rd, Imm imm) { insts_.push_back(Mov(false, rd, imm)); }
+  void Mov(W rd, Imm imm) { AddInst(Mov(false, rd, imm)); }
 
   // MOV <Xd>, #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
-  void Mov(X rd, Imm imm) { insts_.push_back(Mov(true, rd, imm)); }
+  void Mov(X rd, Imm imm) { AddInst(Mov(true, rd, imm)); }
 
   // RET {<Xn>}
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/RET--Return-from-subroutine-?lang=en
   void Ret(X rn = X(30)) {
-    insts_.push_back(
-        BasicInst(0b11010110010111110000000000000000 | (*rn << 5)));
+    AddInst(BasicInst(0b11010110010111110000000000000000 | (*rn << 5)));
   }
 
   // SVC
   //
   // https://developer.arm.com/documentation/ddi0602/2024-09/Base-Instructions/SVC--Supervisor-call-?lang=en
   void Svc(Imm imm) {
-    insts_.push_back(
-        BasicInst(0b11010100000000000000000000000001 | (*imm << 5)));
+    AddInst(BasicInst(0b11010100000000000000000000000001 | (*imm << 5)));
   }
 
-  void Asciz(std::string s) { insts_.push_back(AscizInst(s)); }
+  void Asciz(std::string s) { AddInst(AscizInst(s)); }
 
   // STP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   void StpPostIndex(W rt1, W rt2, X rn, Imm imm) {
-    insts_.push_back(StpPostIndex(false, rt1, rt2, rn, imm));
+    AddInst(StpPostIndex(false, rt1, rt2, rn, imm));
   }
 
   // STP <Xt1>, <Xt2>, [<Xn|SP>], #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   void StpPostIndex(X rt1, X rt2, X rn, Imm imm) {
-    insts_.push_back(StpPostIndex(true, rt1, rt2, rn, imm));
+    AddInst(StpPostIndex(true, rt1, rt2, rn, imm));
   }
 
   // STP <Wt1>, <Wt2>, [<Xn|SP>, #<imm>]!
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   void StpPreIndex(W rt1, W rt2, X rn, Imm imm) {
-    insts_.push_back(StpPreIndex(false, rt1, rt2, rn, imm));
+    AddInst(StpPreIndex(false, rt1, rt2, rn, imm));
   }
 
   // STP <Xt1>, <Xt2>, [<Xn|SP>, #<imm>]!
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   void StpPreIndex(X rt1, X rt2, X rn, Imm imm) {
-    insts_.push_back(StpPreIndex(true, rt1, rt2, rn, imm));
+    AddInst(StpPreIndex(true, rt1, rt2, rn, imm));
   }
 
   // STP <Wt1>, <Wt2>, [<Xn|SP>{, #<imm>}]
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   void StpSignedOffset(W rt1, W rt2, X rn, Imm imm) {
-    insts_.push_back(StpSignedOffset(false, rt1, rt2, rn, imm));
+    AddInst(StpSignedOffset(false, rt1, rt2, rn, imm));
   }
 
   // STP <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/STP--Store-Pair-of-Registers-?lang=en#iclass_post_indexed
   void StpSignedOffset(X rt1, X rt2, X rn, Imm imm) {
-    insts_.push_back(StpSignedOffset(true, rt1, rt2, rn, imm));
+    AddInst(StpSignedOffset(true, rt1, rt2, rn, imm));
   }
 
   // STR <Wt>, [<Xn|SP>], #<simm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--immediate---Store-register--immediate--?lang=en
   void StrPostIndex(W rt, X rn, Imm imm) {
-    insts_.push_back(StrPostIndex(false, rt, rn, imm));
+    AddInst(StrPostIndex(false, rt, rn, imm));
   }
 
   // STR <Xt>, [<Xn|SP>], #<simm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--immediate---Store-register--immediate--?lang=en
   void StrPostIndex(X rt, X rn, Imm imm) {
-    insts_.push_back(StrPostIndex(true, rt, rn, imm));
+    AddInst(StrPostIndex(true, rt, rn, imm));
   }
 
   // STR <Wt>, [<Xn|SP>, #<simm>]!
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--immediate---Store-register--immediate--?lang=en
   void StrPreIndex(W rt, X rn, Imm imm) {
-    insts_.push_back(StrPreIndex(false, rt, rn, imm));
+    AddInst(StrPreIndex(false, rt, rn, imm));
   }
 
   // STR <Xt>, [<Xn|SP>, #<simm>]!
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--immediate---Store-register--immediate--?lang=en
   void StrPreIndex(X rt, X rn, Imm imm) {
-    insts_.push_back(StrPreIndex(true, rt, rn, imm));
+    AddInst(StrPreIndex(true, rt, rn, imm));
   }
 
   // STR <Wt>, [<Xn|SP>{, #<pimm>}]
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--immediate---Store-register--immediate--?lang=en
   void StrUnsignedOffset(W rt, X rn, Imm imm) {
-    insts_.push_back(StrUnsignedOffset(false, rt, rn, imm));
+    AddInst(StrUnsignedOffset(false, rt, rn, imm));
   }
 
   // STR <Xt>, [<Xn|SP>{, #<pimm>}]
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--immediate---Store-register--immediate--?lang=en
   void StrUnsignedOffset(X rt, X rn, Imm imm) {
-    insts_.push_back(StrUnsignedOffset(true, rt, rn, imm));
+    AddInst(StrUnsignedOffset(true, rt, rn, imm));
   }
 
   // STR <Wt>, [<Xn|SP>, (<Wm>|<Xm>){, <extend> {<amount>}}]
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--register---Store-register--register--?lang=en
   void Str(W rt, X rn, internal::Reg rm, Extend extend, Imm amount) {
-    insts_.push_back(Str(false, rt, rn, rm, extend, amount));
+    AddInst(Str(false, rt, rn, rm, extend, amount));
   }
 
   // STR <Xt>, [<Xn|SP>, (<Wm>|<Xm>){, <extend> {<amount>}}]
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--register---Store-register--register--?lang=en
   void Str(X rt, X rn, internal::Reg rm, Extend extend, Imm amount) {
-    insts_.push_back(Str(false, rt, rn, rm, extend, amount));
+    AddInst(Str(false, rt, rn, rm, extend, amount));
   }
 
   // LDP <Wt1>, <Wt2>, [<Xn|SP>], #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
   void LdpPostIndex(W rt1, W rt2, X rn, Imm imm) {
-    insts_.push_back(LdpPostIndex(false, rt1, rt2, rn, imm));
+    AddInst(LdpPostIndex(false, rt1, rt2, rn, imm));
   }
 
   // LDP <Xt1>, <Xt2>, [<Xn|SP>], #<imm>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDP--Load-pair-of-registers-?lang=en
   void LdpPostIndex(X rt1, X rt2, X rn, Imm imm) {
-    insts_.push_back(LdpPostIndex(true, rt1, rt2, rn, imm));
+    AddInst(LdpPostIndex(true, rt1, rt2, rn, imm));
   }
 
   // LDR <Wt>, [<Xn|SP>, #<simm>]!
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
   void LdrPreIndex(W rt, X rn, Imm imm) {
-    insts_.push_back(LdrPreIndex(false, rt, rn, imm));
+    AddInst(LdrPreIndex(false, rt, rn, imm));
   }
 
   // LDR <Xt>, [<Xn|SP>, #<simm>]!
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
   void LdrPreIndex(X rt, X rn, Imm imm) {
-    insts_.push_back(LdrPreIndex(true, rt, rn, imm));
+    AddInst(LdrPreIndex(true, rt, rn, imm));
   }
 
   // LDR <Wt>, [<Xn|SP>{, #<pimm>}]
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
   void LdrUnsignedOffset(W rt, X rn, Imm imm) {
-    insts_.push_back(LdrUnsignedOffset(false, rt, rn, imm));
+    AddInst(LdrUnsignedOffset(false, rt, rn, imm));
   }
 
   // LDR <Xt>, [<Xn|SP>{, #<pimm>}]
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en
   void LdrUnsignedOffset(X rt, X rn, Imm imm) {
-    insts_.push_back(LdrUnsignedOffset(true, rt, rn, imm));
+    AddInst(LdrUnsignedOffset(true, rt, rn, imm));
   }
 
   // LDR <Wt>, [<Xn|SP>, (<Wm>|<Xm>){, <extend> {<amount>}}]
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--register---Load-register--register--?lang=en
   void Ldr(W rt, X rn, internal::Reg rm, Extend extend, Imm amount = Imm(0)) {
-    insts_.push_back(Ldr(false, rt, rn, rm, extend, amount));
+    AddInst(Ldr(false, rt, rn, rm, extend, amount));
   }
 
   // LDR <Xt>, [<Xn|SP>, (<Wm>|<Xm>){, <extend> {<amount>}}]
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--register---Load-register--register--?lang=en
   void Ldr(X rt, X rn, internal::Reg rm, Extend extend, Imm amount = Imm(0)) {
-    insts_.push_back(Ldr(true, rt, rn, rm, extend, amount));
+    AddInst(Ldr(true, rt, rn, rm, extend, amount));
   }
 
   // B <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B--Branch-?lang=en
-  void B(std::string_view label) {
-    insts_.push_back(BInst(insts_.size(), label));
-  }
+  void B(std::string_view label) { AddInst(BInst(insts_.size(), label)); }
 
   // B.cond <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B-cond--Branch-conditionally-?lang=en
   void B(Cond cond, std::string_view label) {
-    insts_.push_back(BCondInst(insts_.size(), cond, label));
+    AddInst(BCondInst(insts_.size(), cond, label));
   }
 
   // BL <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
-  void Bl(std::string_view label) {
-    insts_.push_back(BlInst(insts_.size(), label));
-  }
+  void Bl(std::string_view label) { AddInst(BlInst(insts_.size(), label)); }
 
   // CMP <Wn|WSP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/100076/0100/A64-Instruction-Set-Reference/A64-General-Instructions/CMP--immediate-
-  void Cmp(W rn, Imm imm) { insts_.push_back(Cmp(false, rn, imm)); }
+  void Cmp(W rn, Imm imm) { AddInst(Cmp(false, rn, imm)); }
 
   // CMP <Xn|SP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/100076/0100/A64-Instruction-Set-Reference/A64-General-Instructions/CMP--immediate-
-  void Cmp(X rn, Imm imm) { insts_.push_back(Cmp(true, rn, imm)); }
+  void Cmp(X rn, Imm imm) { AddInst(Cmp(true, rn, imm)); }
 
   // CMP <Wn>, <Wm>{, <shift> #<amount>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CMP--shifted-register---Compare--shifted-register---an-alias-of-SUBS--shifted-register--?lang=en
-  void Cmp(W rn, W rm) { insts_.push_back(Cmp(false, rn, rm)); }
+  void Cmp(W rn, W rm) { AddInst(Cmp(false, rn, rm)); }
 
   // CMP <Xn>, <Xm>{, <shift> #<amount>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CMP--shifted-register---Compare--shifted-register---an-alias-of-SUBS--shifted-register--?lang=en
-  void Cmp(X rn, X rm) { insts_.push_back(Cmp(true, rn, rm)); }
+  void Cmp(X rn, X rm) { AddInst(Cmp(true, rn, rm)); }
 
   // CSET <Wd>, <invcond>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CSET--Conditional-set--an-alias-of-CSINC-?lang=en
-  void Cset(W rd, InvCond inv_cond) {
-    insts_.push_back(Cset(false, rd, inv_cond));
-  }
+  void Cset(W rd, InvCond inv_cond) { AddInst(Cset(false, rd, inv_cond)); }
 
   // CSET <Xd>, <invcond>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CSET--Conditional-set--an-alias-of-CSINC-?lang=en
-  void Cset(X rd, InvCond inv_cond) {
-    insts_.push_back(Cset(true, rd, inv_cond));
-  }
+  void Cset(X rd, InvCond inv_cond) { AddInst(Cset(true, rd, inv_cond)); }
 
  private:
   // ADD (immediate)
@@ -832,8 +841,15 @@ class Arm64 {
                      (*rm << 16) | (*ra << 10) | (*rn << 5) | *rd);
   }
 
+  void AddInst(Inst inst) {
+    output_bytes_count_ += std::visit(
+        [](const auto& inst) { return inst.OutputBytesCount(); }, inst);
+    insts_.push_back(std::move(inst));
+  }
+
   std::unordered_map<std::string, std::size_t> label_offsets_;
   std::vector<Inst> insts_;
+  std::size_t output_bytes_count_ = 0;
 };
 
 }  // namespace lucid::arm64
