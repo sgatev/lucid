@@ -8,39 +8,35 @@
 namespace lucid {
 namespace {
 
-using cpu_type_t = int;
+// Capability bits used in the definition of `CpuType`.
+enum CpuArch : int {
+  Abi64 = 0x01000000,
+};
 
-constexpr static cpu_type_t kCpuArchAbi64 = 0x01000000;
+// Machine types.
+enum class CpuType : int {
+  Arm = 12,
+  Arm64 = Arm | CpuArch::Abi64,
+};
 
-constexpr static cpu_type_t kCpuTypeArm = 12;
-constexpr static cpu_type_t kCpuTypeArm64 = kCpuTypeArm | kCpuArchAbi64;
+// Machine subtypes.
+enum class CpuSubType : int {
+  Arm64All = 0,
+};
 
-using cpu_subtype_t = int;
+// VM protection values.
+enum class VmProt : int {
+  Read = 0x01,
+  Write = 0x02,
+  Execute = 0x04,
+  ReadWriteExecute = Read | Write | Execute,
+};
 
-constexpr static cpu_subtype_t kCpuSubtypeArm64All = 0;
-
-using vm_prot_t = int;
-
-// Read permission.
-constexpr vm_prot_t kVmProtRead = 0x01;
-
-// Write permission.
-constexpr vm_prot_t kVmProtWrite = 0x02;
-
-// Execute permission.
-constexpr vm_prot_t kVmProtExecute = 0x04;
-
-// Constant for the magic field of the mach_header_64 (64-bit architectures)
-constexpr std::uint32_t kMhMagic64 = 0xfeedfacf;
-
-// Constants for the filetype field of the mach_header_64.
-constexpr std::uint32_t kMhObject = 0x1;
-
-// Constants for the cmd field of new load commands, the type.
-// 64-bit segment of this file to be mapped.
-constexpr std::uint32_t kLcSymTab = 0x2;
-constexpr std::uint32_t kLcSegment64 = 0x19;
-constexpr std::uint32_t kLcBuildVersion = 0x32;
+// Values for the `file_type` field of the `MachHeader64`.
+enum class FileType : std::uint32_t {
+  // Relocatable object file.
+  Object = 0x1,
+};
 
 // Constants for the section attributes part of the flags field of a section
 // structure.
@@ -50,55 +46,90 @@ constexpr std::uint32_t kAttrPureInstructions = 0x80000000;
 // Section contains some machine instructions.
 constexpr std::uint32_t kAttrSomeInstructions = 0x00000400;
 
-struct mach_header_64 {
-  std::uint32_t magic;
-  cpu_type_t cputype;
-  cpu_subtype_t cpusubtype;
-  std::uint32_t filetype;
+// A 64-bit mach header that appears at the beginning of object files for 64-bit
+// architectures.
+struct MachHeader64 {
+  struct {
+    std::uint32_t magic = 0xfeedfacf;
+  };
+  CpuType cpu_type;
+  CpuSubType cpu_sub_type;
+  FileType file_type;
   std::uint32_t ncmds;
   std::uint32_t sizeofcmds;
   std::uint32_t flags;
   std::uint32_t reserved;
 };
 
-struct load_command {
-  std::uint32_t cmd;
-  std::uint32_t cmdsize;
-};
-
-struct segment_command_64 {
-  std::uint32_t cmd;
+struct SegmentCommand64 {
+  struct {
+    std::uint32_t cmd = 0x19;
+  };
   std::uint32_t cmdsize;
   char segname[16];
   std::uint64_t vmaddr;
   std::uint64_t vmsize;
   std::uint64_t fileoff;
   std::uint64_t filesize;
-  vm_prot_t maxprot;
-  vm_prot_t initprot;
+  VmProt maxprot;
+  VmProt initprot;
   std::uint32_t nsects;
   std::uint32_t flags;
 };
 
-struct build_version_command {
-  std::uint32_t cmd;
+// Command that contains the min OS version on which this binary was built to
+// run for its platform. The list of known platforms and tool values following
+// it.
+struct BuildVersionCommand {
+  struct {
+    // Fixed identifier of the command.
+    std::uint32_t cmd = 0x32;
+  };
+
+  // Size of the command.
+  //
+  // Should be set to `sizeof(BuildVersionCommand) + ntools *
+  // sizeof(BuildToolVersion)`.
   std::uint32_t cmdsize;
+
+  // Platform.
   std::uint32_t platform;
+
+  // X.Y.Z is encoded in nibbles xxxx.yy.zz.
   std::uint32_t minos;
+
+  // X.Y.Z is encoded in nibbles xxxx.yy.zz.
   std::uint32_t sdk;
+
+  // Number of tool entries following this command.
   std::uint32_t ntools;
 };
 
-struct symtab_command {
-  std::uint32_t cmd;
-  std::uint32_t cmdsize;
+// Command that contains the offsets and sizes of the link-edit 4.3BSD "stab"
+// style symbol table information.
+struct SymTabCommand {
+  struct {
+    // Fixed identifier of the command.
+    std::uint32_t cmd = 0x2;
+
+    // Fixed size of the command.
+    std::uint32_t cmdsize = sizeof(SymTabCommand);
+  };
+
+  // Symbol table offset.
   std::uint32_t symoff;
+
+  // Number of symbol table entries.
   std::uint32_t nsyms;
+
+  // String table offset.
   std::uint32_t stroff;
+
+  // String table size in bytes.
   std::uint32_t strsize;
 };
 
-struct section_64 {
+struct Section64 {
   char sectname[16];
   char segname[16];
   std::uint64_t addr;
@@ -113,7 +144,7 @@ struct section_64 {
   std::uint32_t reserved3;
 };
 
-struct nlist_64 {
+struct NList64 {
   union {
     std::uint32_t n_strx; /* index into the string table */
   } n_un;
@@ -132,16 +163,16 @@ void WriteStruct(const T& obj, std::ostream& out) {
 
 void AssembleMachObject(const arm64::Arm64& arm, std::ostream& out) {
   std::uint32_t section_offset =
-      sizeof(mach_header_64) + sizeof(segment_command_64) + sizeof(section_64) +
-      sizeof(build_version_command) + sizeof(symtab_command);
+      sizeof(MachHeader64) + sizeof(SegmentCommand64) + sizeof(Section64) +
+      sizeof(BuildVersionCommand) + sizeof(SymTabCommand);
   std::uint32_t section_size = arm.OutputBytesCount();
 
   std::uint32_t symtab_offset = section_offset + section_size;
-  std::uint32_t symtab_size = sizeof(nlist_64);
+  std::uint32_t symtab_size = sizeof(NList64);
 
   std::uint32_t string_table_offset = symtab_offset + symtab_size;
 
-  const nlist_64 sym{
+  const NList64 sym{
       .n_un{
           .n_strx = 1,
       },
@@ -150,23 +181,20 @@ void AssembleMachObject(const arm64::Arm64& arm, std::ostream& out) {
       .n_desc = 0,
       .n_value = 0,
   };
-  const symtab_command sym_tab{
-      .cmd = kLcSymTab,
-      .cmdsize = 24,
+  const SymTabCommand sym_tab{
       .symoff = symtab_offset,
       .nsyms = 1,
       .stroff = string_table_offset,
       .strsize = 8,
   };
-  const build_version_command build_version{
-      .cmd = kLcBuildVersion,
+  const BuildVersionCommand build_version{
       .cmdsize = 24,
       .platform = 1,
       .minos = 0b00000000000011110000000000000000,
       .sdk = 0,
       .ntools = 0,
   };
-  const section_64 section{
+  const Section64 section{
       .sectname = "__text",
       .segname = "__TEXT",
       .addr = 0,
@@ -177,24 +205,22 @@ void AssembleMachObject(const arm64::Arm64& arm, std::ostream& out) {
       .nreloc = 0,
       .flags = kAttrPureInstructions | kAttrSomeInstructions,
   };
-  const segment_command_64 segment{
-      .cmd = kLcSegment64,
-      .cmdsize = sizeof(segment_command_64) + (sizeof(section_64) * 1),
+  const SegmentCommand64 segment{
+      .cmdsize = sizeof(SegmentCommand64) + (sizeof(Section64) * 1),
       .segname = "",
       .vmaddr = 0,
       .vmsize = section_size,
       .fileoff = section_offset,
       .filesize = section_size,
-      .maxprot = kVmProtRead | kVmProtWrite | kVmProtExecute,
-      .initprot = kVmProtRead | kVmProtWrite | kVmProtExecute,
+      .maxprot = VmProt::ReadWriteExecute,
+      .initprot = VmProt::ReadWriteExecute,
       .nsects = 1,
       .flags = 0,
   };
-  const mach_header_64 header = {
-      .magic = kMhMagic64,
-      .cputype = kCpuTypeArm64,
-      .cpusubtype = kCpuSubtypeArm64All,
-      .filetype = kMhObject,
+  const MachHeader64 header = {
+      .cpu_type = CpuType::Arm64,
+      .cpu_sub_type = CpuSubType::Arm64All,
+      .file_type = FileType::Object,
       .ncmds = 3,
       .sizeofcmds = segment.cmdsize + build_version.cmdsize + sym_tab.cmdsize,
       .flags = 0,
