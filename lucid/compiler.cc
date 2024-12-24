@@ -69,34 +69,29 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
 }
 
 Result<void, ReadFileError, ParserError, TypeError> DoCompile(
-    std::filesystem::path src_path, std::filesystem::path asm_path) {
-  // Read Lucid sources.
+    std::filesystem::path src_path, std::filesystem::path out_path) {
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (maybe_src.HasError()) return maybe_src.GetError();
   const auto& src = maybe_src.GetValue();
 
-  // Compile sources to assembly.
-  std::ofstream assembly_stream(asm_path, std::ios::out | std::ios::binary);
-  if (auto err = CompileSource(src, assembly_stream); err.HasError()) {
-    return err.GetError();
-  }
+  std::ofstream out(out_path, std::ios::out | std::ios::binary);
+  if (auto err = CompileSource(src, out); err.HasError()) return err.GetError();
 
   return {};
 }
 
 Result<void, ReadFileError, ParserError, TypeError> DoBuild(
     std::filesystem::path bin_path, std::filesystem::path src_path) {
-  auto asm_path = bin_path;
-  asm_path.replace_extension("o");
+  auto obj_path = bin_path;
+  obj_path.replace_extension("o");
 
-  if (auto res = DoCompile(src_path, asm_path); res.HasError()) {
+  if (auto res = DoCompile(src_path, obj_path); res.HasError()) {
     return res.GetError();
   }
 
-  // Link object code and create a binary.
-  const std::string ld_cmd = std::format("ld -o {} {}.o -e _start -arch arm64",
-                                         bin_path.c_str(), bin_path.c_str());
-  std::system(ld_cmd.data());
+  std::system(std::format("ld -o {} {}.o -e _start -arch arm64",
+                          bin_path.c_str(), bin_path.c_str())
+                  .data());
 
   return {};
 }
@@ -108,10 +103,10 @@ int Compile(CommandContext ctx) {
   }
 
   auto src_path = std::filesystem::absolute(ctx.args[0]);
-  auto asm_path = std::filesystem::current_path() / src_path.filename();
-  asm_path.replace_extension("a");
+  auto out_path = std::filesystem::current_path() / src_path.filename();
+  out_path.replace_extension("o");
 
-  if (auto res = DoCompile(src_path, asm_path); res.HasError()) {
+  if (auto res = DoCompile(src_path, out_path); res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }
