@@ -25,7 +25,7 @@ class Reg {
   constexpr explicit Reg(std::uint8_t id) : id_(id) { assert(id <= 0b11111); }
 
   // Returns the ID of the register.
-  std::uint8_t Id() const { return id_; }
+  operator std::uint8_t() const { return id_; }
 
  private:
   std::uint8_t id_;
@@ -54,7 +54,7 @@ class Imm {
   explicit Imm(std::int16_t value) : value_(value) {}
 
   // Returns the value of the immediate.
-  std::int16_t Value() const { return value_; }
+  operator std::uint16_t() const { return value_; }
 
  private:
   std::int16_t value_;
@@ -96,8 +96,8 @@ class AdrInst {
     std::size_t offset = (label_offset - pos_) * 4;
     auto immlo = offset & 0b11;
     auto immhi = (offset >> 2) & 0b1111111111111111111;
-    std::uint32_t res = 0b00010000000000000000000000000000 | (immlo << 29) |
-                        (immhi << 5) | rd_.Id();
+    std::uint32_t res =
+        0b00010000000000000000000000000000 | immlo << 29 | immhi << 5 | rd_;
 
     out.write(reinterpret_cast<const char*>(&res), 4);
   }
@@ -423,7 +423,7 @@ class Arm64 {
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/RET--Return-from-subroutine-?lang=en
   void Ret(X rn = X(30)) {
-    Insert(BasicInst(0b11010110010111110000000000000000 | (rn.Id() << 5)));
+    Insert(BasicInst(0b11010110010111110000000000000000 | rn << 5));
   }
 
   // Insert SVC instruction.
@@ -432,7 +432,7 @@ class Arm64 {
   //
   // https://developer.arm.com/documentation/ddi0602/2024-09/Base-Instructions/SVC--Supervisor-call-?lang=en
   void Svc(Imm imm) {
-    Insert(BasicInst(0b11010100000000000000000000000001 | (imm.Value() << 5)));
+    Insert(BasicInst(0b11010100000000000000000000000001 | imm << 5));
   }
 
   // Insert a null-terminated string.
@@ -704,191 +704,182 @@ class Arm64 {
  private:
   BasicInst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
                 bool sh = false) {
-    return BasicInst(0b10010001000000000000000000000000 | (sf << 31) |
-                     (sh << 22) | (imm.Value() << 10) | (rn.Id() << 5) |
-                     rd.Id());
+    return BasicInst(0b10010001000000000000000000000000 | sf << 31 | sh << 22 |
+                     imm << 10 | rn << 5 | rd);
   }
 
   BasicInst Mov(bool sf, internal::Reg rd, internal::Reg rm) {
-    return BasicInst(0b00101010000000000000001111100000 | (sf << 31) |
-                     (rm.Id() << 16) | rd.Id());
+    return BasicInst(0b00101010000000000000001111100000 | sf << 31 | rm << 16 |
+                     rd);
   }
 
   BasicInst Mov(bool sf, internal::Reg rd, Imm imm) {
-    return BasicInst(0b01010010100000000000000000000000 | (sf << 31) |
-                     (imm.Value() << 5) | rd.Id());
+    return BasicInst(0b01010010100000000000000000000000 | sf << 31 | imm << 5 |
+                     rd);
   }
 
   BasicInst StpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
                          internal::Reg rn, Imm imm) {
-    std::int16_t imme = imm.Value();
+    std::int16_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
     if (imme < 0) imme = internal::TwosComplement7(-imme);
 
-    return BasicInst(0b00101000100000000000000000000000 | (opc << 31) |
-                     (imme << 15) | (rt2.Id() << 10) | (rn.Id() << 5) |
-                     rt1.Id());
+    return BasicInst(0b00101000100000000000000000000000 | opc << 31 |
+                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
   BasicInst StpPreIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
                         internal::Reg rn, Imm imm) {
-    std::int16_t imme = imm.Value();
+    std::int16_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
     if (imme < 0) imme = internal::TwosComplement7(-imme);
 
-    return BasicInst(0b00101001100000000000000000000000 | (opc << 31) |
-                     (imme << 15) | (rt2.Id() << 10) | (rn.Id() << 5) |
-                     rt1.Id());
+    return BasicInst(0b00101001100000000000000000000000 | opc << 31 |
+                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
   BasicInst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
                             internal::Reg rn, Imm imm) {
-    std::int16_t imme = imm.Value();
+    std::int16_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
     if (imme < 0) imme = internal::TwosComplement7(-imme);
 
-    return BasicInst(0b00101001000000000000000000000000 | (opc << 31) |
-                     (imme << 15) | (rt2.Id() << 10) | (rn.Id() << 5) |
-                     rt1.Id());
+    return BasicInst(0b00101001000000000000000000000000 | opc << 31 |
+                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
   BasicInst StrPostIndex(bool opc, internal::Reg rt, internal::Reg rn,
                          Imm imm) {
-    return BasicInst(0b10111000000000000000010000000000 | (opc << 30) |
-                     (imm.Value() << 12) | (rn.Id() << 5) | rt.Id());
+    return BasicInst(0b10111000000000000000010000000000 | opc << 30 |
+                     imm << 12 | rn << 5 | rt);
   }
 
   BasicInst StrPreIndex(bool opc, internal::Reg rt, internal::Reg rn, Imm imm) {
     return BasicInst(0b10111000000000000000110000000000 | (opc << 30) |
-                     (imm.Value() << 12) | (rn.Id() << 5) | rt.Id());
+                     imm << 12 | rn << 5 | rt);
   }
 
   BasicInst StrUnsignedOffset(bool opc, internal::Reg rt, internal::Reg rn,
                               Imm imm) {
-    std::int16_t imme = imm.Value();
+    std::int16_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
 
-    return BasicInst(0b10111001000000000000000000000000 | (opc << 30) |
-                     (imme << 10) | (rn.Id() << 5) | rt.Id());
+    return BasicInst(0b10111001000000000000000000000000 | opc << 30 |
+                     imme << 10 | rn << 5 | rt);
   }
 
   BasicInst Str(bool opc, internal::Reg rt, X rn, internal::Reg rm,
                 Extend extend, Imm amount) {
-    return BasicInst(0b10111000001000000000100000000000 | (opc << 30) |
-                     (rm.Id() << 16) |
-                     (static_cast<std::uint8_t>(extend) << 13) |
-                     (amount.Value() << 12) | (rn.Id() << 5) | rt.Id());
+    return BasicInst(0b10111000001000000000100000000000 | opc << 30 | rm << 16 |
+                     static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
+                     rn << 5 | rt);
   }
 
   BasicInst LdpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2, X rn,
                          Imm imm) {
-    std::int16_t imme = imm.Value();
+    std::int16_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
     if (imme < 0) imme = internal::TwosComplement7(-imme);
 
-    return BasicInst(0b00101000110000000000000000000000 | (opc << 31) |
-                     (imme << 15) | (rt2.Id() << 10) | (rn.Id() << 5) |
-                     rt1.Id());
+    return BasicInst(0b00101000110000000000000000000000 | opc << 31 |
+                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
   BasicInst LdrPreIndex(bool opc, internal::Reg rt, X rn, Imm imm) {
-    std::int16_t imme = imm.Value();
+    std::int16_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
     if (imme < 0) imme = internal::TwosComplement7(-imme);
 
-    return BasicInst(0b10111000010000000000110000000000 | (opc << 30) |
-                     (imme << 12) | (rn.Id() << 5) | rt.Id());
+    return BasicInst(0b10111000010000000000110000000000 | opc << 30 |
+                     imme << 12 | rn << 5 | rt);
   }
 
   BasicInst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
-    std::int16_t imme = imm.Value();
+    std::int16_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
     if (imme < 0) imme = internal::TwosComplement7(-imme);
 
-    return BasicInst(0b10111001010000000000000000000000 | (opc << 30) |
-                     (imme << 10) | (rn.Id() << 5) | rt.Id());
+    return BasicInst(0b10111001010000000000000000000000 | opc << 30 |
+                     imme << 10 | rn << 5 | rt);
   }
 
   BasicInst Ldr(bool opc, internal::Reg rt, X rn, internal::Reg rm,
                 Extend extend, Imm amount) {
-    return BasicInst(0b10111000011000000000100000000000 | (opc << 30) |
-                     (rm.Id() << 16) |
-                     (static_cast<std::uint8_t>(extend) << 13) |
-                     (amount.Value() << 12) | (rn.Id() << 5) | rt.Id());
+    return BasicInst(0b10111000011000000000100000000000 | opc << 30 | rm << 16 |
+                     static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
+                     rn << 5 | rt);
   }
 
   BasicInst Cmp(bool opc, internal::Reg rn, Imm imm) {
-    return BasicInst(0b01110001000000000000000000011111 | (opc << 31) |
-                     (imm.Value() << 10) | (rn.Id() << 5));
+    return BasicInst(0b01110001000000000000000000011111 | opc << 31 |
+                     imm << 10 | rn << 5);
   }
 
   BasicInst Cmp(bool opc, internal::Reg rn, internal::Reg rm) {
-    return BasicInst(0b01101011000000000000000000011111 | (opc << 31) |
-                     (rm.Id() << 16) | (rn.Id() << 5));
+    return BasicInst(0b01101011000000000000000000011111 | opc << 31 | rm << 16 |
+                     rn << 5);
   }
 
   BasicInst Cset(bool opc, internal::Reg rd, InvCond inv_cond) {
-    return BasicInst(0b00011010100111110000011111100000 | (opc << 31) |
-                     (static_cast<std::uint8_t>(inv_cond) << 12) | rd.Id());
+    return BasicInst(0b00011010100111110000011111100000 | opc << 31 |
+                     static_cast<std::uint8_t>(inv_cond) << 12 | rd);
   }
 
   BasicInst Add(bool opc, internal::Reg rd, internal::Reg rn,
                 internal::Reg rm) {
-    return BasicInst(0b00001011000000000000000000000000 | (opc << 31) |
-                     (rm.Id() << 16) | (rn.Id() << 5) | rd.Id());
+    return BasicInst(0b00001011000000000000000000000000 | opc << 31 | rm << 16 |
+                     rn << 5 | rd);
   }
 
   BasicInst Sub(bool opc, internal::Reg rd, internal::Reg rn,
                 internal::Reg rm) {
-    return BasicInst(0b01001011000000000000000000000000 | (opc << 31) |
-                     (rm.Id() << 16) | (rn.Id() << 5) | rd.Id());
+    return BasicInst(0b01001011000000000000000000000000 | opc << 31 | rm << 16 |
+                     rn << 5 | rd);
   }
 
   BasicInst Sub(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
                 bool sh = false) {
-    return BasicInst(0b01010001000000000000000000000000 | (sf << 31) |
-                     (sh << 22) | (imm.Value() << 10) | (rn.Id() << 5) |
-                     rd.Id());
+    return BasicInst(0b01010001000000000000000000000000 | sf << 31 | sh << 22 |
+                     imm << 10 | rn << 5 | rd);
   }
 
   BasicInst Mul(bool opc, internal::Reg rd, internal::Reg rn,
                 internal::Reg rm) {
-    return BasicInst(0b00011011000000000111110000000000 | (opc << 31) |
-                     (rm.Id() << 16) | (rn.Id() << 5) | rd.Id());
+    return BasicInst(0b00011011000000000111110000000000 | opc << 31 | rm << 16 |
+                     rn << 5 | rd);
   }
 
   BasicInst Udiv(bool opc, internal::Reg rd, internal::Reg rn,
                  internal::Reg rm) {
-    return BasicInst(0b00011010110000000000100000000000 | (opc << 31) |
-                     (rm.Id() << 16) | (rn.Id() << 5) | rd.Id());
+    return BasicInst(0b00011010110000000000100000000000 | opc << 31 | rm << 16 |
+                     rn << 5 | rd);
   }
 
   BasicInst Msub(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm,
                  internal::Reg ra) {
-    return BasicInst(0b00011011000000001000000000000000 | (opc << 31) |
-                     (rm.Id() << 16) | (ra.Id() << 10) | (rn.Id() << 5) |
-                     rd.Id());
+    return BasicInst(0b00011011000000001000000000000000 | opc << 31 | rm << 16 |
+                     ra << 10 | rn << 5 | rd);
   }
 
   void Insert(Inst inst) {
