@@ -62,9 +62,9 @@ let main = () -> Int32 {
       }
 
       if buffer[col] == 0 {
-        do printString("  ", 3)
+        do printString(" ", 1)
       } else {
-        do printString("██", 3)
+        do printString("*", 1)
       }
 
       col = col + 1
