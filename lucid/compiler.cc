@@ -64,7 +64,7 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
     GenerateArmAssemblyBinary(state.func, arm);
   }
   GenerateArmEndBinary(state.strings, arm);
-  AssembleMachObject(arm, out);
+  WriteCompiledMachObject(arm, out);
   return {};
 }
 

@@ -161,7 +161,7 @@ void WriteStruct(const T& obj, std::ostream& out) {
 
 }  // namespace
 
-void AssembleMachObject(const arm64::Arm64& arm, std::ostream& out) {
+void WriteCompiledMachObject(const arm64::Arm64& arm, std::ostream& out) {
   std::uint32_t section_offset =
       sizeof(MachHeader64) + sizeof(SegmentCommand64) + sizeof(Section64) +
       sizeof(BuildVersionCommand) + sizeof(SymTabCommand);
