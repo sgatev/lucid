@@ -19,6 +19,11 @@ inline std::uint8_t TwosComplement7(std::uint8_t n) {
   return (~n & 0b01111111) + 1;
 }
 
+// Writes `n` to `out`.
+inline void WriteByte(std::uint8_t n, std::ostream& out) {
+  out.write(reinterpret_cast<const char*>(&n), 1);
+}
+
 // Represents an ARM64 register.
 class Reg {
  public:
@@ -215,35 +220,40 @@ class AscizInst {
 
   // Returns the number of bytes produced by this instruction.
   std::size_t OutputBytesCount() const {
-    std::size_t count = 0;
+    std::size_t out_count = 0;
     for (std::size_t i = 1; i < s_.size() - 1; ++i) {
       if (s_[i] == '\\' && s_[i + 1] == 'n') {
-        ++count;
+        ++out_count;
+        i += 1;
       } else {
-        ++count;
+        ++out_count;
       }
     }
-    ++count;
-    count += 4 - ((s_.size() - 2 + 1) % 4);
-    return count;
+    ++out_count;
+    out_count += 4 - (out_count % 4);
+    return out_count;
   }
 
   // Writes the bytes produced by this instruction.
   void WriteBytes(
       const std::unordered_map<std::string, std::size_t>& label_offsets,
       std::ostream& out) const {
+    std::size_t out_count = 0;
     for (std::size_t i = 1; i < s_.size() - 1; ++i) {
       if (s_[i] == '\\' && s_[i + 1] == 'n') {
-        out.write(reinterpret_cast<const char*>("\n"), 1);
+        internal::WriteByte('\n', out);
+        ++out_count;
+        i += 1;
       } else {
-        out.write(reinterpret_cast<const char*>(&s_[i]), 1);
+        internal::WriteByte(s_[i], out);
+        ++out_count;
       }
     }
-    out.write(reinterpret_cast<const char*>("\0"), 1);
+    internal::WriteByte(0, out);
+    ++out_count;
 
-    std::size_t c = 4 - ((s_.size() - 2 + 1) % 4);
-    for (std::size_t i = 0; i < c; ++i)
-      out.write(reinterpret_cast<const char*>("\0"), 1);
+    std::size_t c = 4 - (out_count % 4);
+    for (std::size_t i = 0; i < c; ++i) internal::WriteByte(0, out);
   }
 
  private:
