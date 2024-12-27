@@ -28,6 +28,16 @@ TEST_F(CompilerTest, EmptyMain) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(0)));
 }
 
+TEST_F(CompilerTest, Comment) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    # comment
+    let main = () -> Int32 {
+      return 21 # comment
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(Eq(21)));
+}
+
 TEST_F(CompilerTest, AddInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {

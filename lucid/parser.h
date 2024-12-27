@@ -663,16 +663,26 @@ class Parser {
   }
 
   void SkipSpace() {
-    if (Peek().kind == Token::Kind::Space) Read();
+    while (Peek().kind == Token::Kind::Space) Read();
   }
 
   std::string_view TokenString(Token token) const {
     return buffer_.substr(token.start_pos, token.end_pos - token.start_pos);
   }
 
-  Token Read() { return std::exchange(next_, lexer_.next()); }
+  Token Read() {
+    SkipComment();
+    return std::exchange(next_, lexer_.next());
+  }
 
-  const Token& Peek() const { return next_; }
+  const Token& Peek() {
+    SkipComment();
+    return next_;
+  }
+
+  void SkipComment() {
+    while (next_.kind == Token::Kind::Comment) next_ = lexer_.next();
+  }
 
   ParserError MakeError(ParserError::Kind kind, const Token& token) const {
     return ParserError(kind, FindLine(buffer_, token),

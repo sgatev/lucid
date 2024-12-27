@@ -79,6 +79,29 @@ TEST_F(ParserTest, ReturnIntLitExpr) {
               })));
 }
 
+TEST_F(ParserTest, Comment) {
+  std::string_view src = R"(
+    # comment
+    let main = () -> Int32 { # comment
+      return 0 # comment
+    } # comment
+    # comment
+  )";
+
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = "main",
+                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .body = {{
+                      MatchesReturnStmt({
+                          .value = MatchesIntLitExpr({
+                              .value = "0",
+                          }),
+                      }),
+                  }},
+              })));
+}
+
 TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
   std::string_view src = R"(
     let main = () -> Int32 {
