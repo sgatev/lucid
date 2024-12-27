@@ -222,7 +222,14 @@ class AscizInst {
   std::size_t OutputBytesCount() const {
     std::size_t out_count = 0;
     for (std::size_t i = 1; i < s_.size() - 1; ++i) {
-      if (s_[i] == '\\' && s_[i + 1] == 'n') {
+      if (i < s_.size() - 2 && s_[i] == '\\' && s_[i + 1] == '3' &&
+          s_[i + 1] == '3') {
+        ++out_count;
+        i += 2;
+      } else if (s_[i] == '\\' && s_[i + 1] == 'e') {
+        ++out_count;
+        i += 1;
+      } else if (s_[i] == '\\' && s_[i + 1] == 'n') {
         ++out_count;
         i += 1;
       } else {
@@ -240,7 +247,16 @@ class AscizInst {
       std::ostream& out) const {
     std::size_t out_count = 0;
     for (std::size_t i = 1; i < s_.size() - 1; ++i) {
-      if (s_[i] == '\\' && s_[i + 1] == 'n') {
+      if (i < s_.size() - 2 && s_[i] == '\\' && s_[i + 1] == '3' &&
+          s_[i + 1] == '3') {
+        internal::WriteByte('\33', out);
+        ++out_count;
+        i += 2;
+      } else if (s_[i] == '\\' && s_[i + 1] == 'e') {
+        internal::WriteByte('\n', out);
+        ++out_count;
+        i += 1;
+      } else if (s_[i] == '\\' && s_[i + 1] == 'n') {
         internal::WriteByte('\n', out);
         ++out_count;
         i += 1;
