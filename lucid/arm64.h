@@ -11,13 +11,10 @@
 #include <variant>
 #include <vector>
 
+#include "lucid/bits.h"
+
 namespace lucid::arm64 {
 namespace internal {
-
-// Returns the two's complement of `n` interpreted as 7-bit signed integer.
-inline std::uint8_t TwosComplement7(std::uint8_t n) {
-  return (~n & 0b01111111) + 1;
-}
 
 // Represents an ARM64 register.
 class Reg {
@@ -773,7 +770,7 @@ class Arm64 {
       imme /= 8;
     else
       imme /= 4;
-    if (imme < 0) imme = internal::TwosComplement7(-imme);
+    if (imme < 0) imme = TwosComplement7(-imme);
 
     return BasicInst(0b00101000100000000000000000000000 | opc << 31 |
                      imme << 15 | rt2 << 10 | rn << 5 | rt1);
@@ -786,7 +783,7 @@ class Arm64 {
       imme /= 8;
     else
       imme /= 4;
-    if (imme < 0) imme = internal::TwosComplement7(-imme);
+    if (imme < 0) imme = TwosComplement7(-imme);
 
     return BasicInst(0b00101001100000000000000000000000 | opc << 31 |
                      imme << 15 | rt2 << 10 | rn << 5 | rt1);
@@ -799,7 +796,7 @@ class Arm64 {
       imme /= 8;
     else
       imme /= 4;
-    if (imme < 0) imme = internal::TwosComplement7(-imme);
+    if (imme < 0) imme = TwosComplement7(-imme);
 
     return BasicInst(0b00101001000000000000000000000000 | opc << 31 |
                      imme << 15 | rt2 << 10 | rn << 5 | rt1);
@@ -842,7 +839,7 @@ class Arm64 {
       imme /= 8;
     else
       imme /= 4;
-    if (imme < 0) imme = internal::TwosComplement7(-imme);
+    if (imme < 0) imme = TwosComplement7(-imme);
 
     return BasicInst(0b00101000110000000000000000000000 | opc << 31 |
                      imme << 15 | rt2 << 10 | rn << 5 | rt1);
@@ -854,7 +851,7 @@ class Arm64 {
       imme /= 8;
     else
       imme /= 4;
-    if (imme < 0) imme = internal::TwosComplement7(-imme);
+    if (imme < 0) imme = TwosComplement7(-imme);
 
     return BasicInst(0b10111000010000000000110000000000 | opc << 30 |
                      imme << 12 | rn << 5 | rt);
@@ -866,7 +863,7 @@ class Arm64 {
       imme /= 8;
     else
       imme /= 4;
-    if (imme < 0) imme = internal::TwosComplement7(-imme);
+    if (imme < 0) imme = TwosComplement7(-imme);
 
     return BasicInst(0b10111001010000000000000000000000 | opc << 30 |
                      imme << 10 | rn << 5 | rt);
