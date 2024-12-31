@@ -308,11 +308,11 @@ void WriteCompiledMachObject(const arm64::Arm64& arm, std::ostream& out) {
   WriteStruct(def_sym, out);
   WriteStruct(undef_sym, out);
 
-  out.write("\0", 1);
+  out.put(0);
   out.write("_start", 6);
-  out.write("\0", 1);
+  out.put(0);
   out.write("_nanosleep", 10);
-  out.write("\0", 1);
+  out.put(0);
 }
 
 }  // namespace lucid

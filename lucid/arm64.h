@@ -19,11 +19,6 @@ inline std::uint8_t TwosComplement7(std::uint8_t n) {
   return (~n & 0b01111111) + 1;
 }
 
-// Writes `n` to `out`.
-inline void WriteByte(std::uint8_t n, std::ostream& out) {
-  out.write(reinterpret_cast<const char*>(&n), 1);
-}
-
 // Represents an ARM64 register.
 class Reg {
  public:
@@ -257,27 +252,27 @@ class AscizInst {
     for (std::size_t i = 1; i < s_.size() - 1; ++i) {
       if (i < s_.size() - 2 && s_[i] == '\\' && s_[i + 1] == '3' &&
           s_[i + 1] == '3') {
-        internal::WriteByte('\33', out);
+        out.put('\33');
         ++out_count;
         i += 2;
       } else if (s_[i] == '\\' && s_[i + 1] == 'e') {
-        internal::WriteByte('\n', out);
+        out.put('\e');
         ++out_count;
         i += 1;
       } else if (s_[i] == '\\' && s_[i + 1] == 'n') {
-        internal::WriteByte('\n', out);
+        out.put('\n');
         ++out_count;
         i += 1;
       } else {
-        internal::WriteByte(s_[i], out);
+        out.put(s_[i]);
         ++out_count;
       }
     }
-    internal::WriteByte(0, out);
+    out.put(0);
     ++out_count;
 
     std::size_t c = 4 - (out_count % 4);
-    for (std::size_t i = 0; i < c; ++i) internal::WriteByte(0, out);
+    for (std::size_t i = 0; i < c; ++i) out.put(0);
   }
 
  private:
