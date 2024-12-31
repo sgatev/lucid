@@ -252,7 +252,7 @@ void GenerateArmStartBinary(Arm64& arm) {
   arm.Ret();
   arm.Label("_sleep");
   arm.StpPreIndex(X(29), X(30), SP, Imm(-16));
-  arm.Mov(X(2), Imm(1));
+  arm.Mov(X(2), X(1));
   arm.Mov(X(3), Imm(0));
   arm.StpPreIndex(X(2), X(3), SP, Imm(-16));
   arm.Mov(X(0), SP);
