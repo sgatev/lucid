@@ -10,7 +10,7 @@ let main = () -> Int32 {
   let current: Int32[200] = 0
   let next: Int32[200] = 0
 
-  let i: Int32 = 0 
+  let i: Int32 = 0
   loop {
     if i == 10 {
       break
@@ -31,11 +31,11 @@ let main = () -> Int32 {
     i = i + 1
   }
 
-  current[21] = 1 
-  current[42] = 1 
-  current[43] = 1 
-  current[61] = 1 
-  current[62] = 1 
+  current[21] = 1
+  current[42] = 1
+  current[43] = 1
+  current[61] = 1
+  current[62] = 1
 
   let f: Int32 = 0
   loop {
@@ -128,7 +128,7 @@ let main = () -> Int32 {
       i = i + 1
     }
 
-    i = 0 
+    i = 0
     loop {
       if i == 10 {
         break
@@ -152,7 +152,7 @@ let main = () -> Int32 {
     do sleep(1)
 
     f = f + 1
-  } 
+  }
 
   return 0
 }
