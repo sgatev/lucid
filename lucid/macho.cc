@@ -129,6 +129,32 @@ struct SymTabCommand {
   std::uint32_t strsize;
 };
 
+struct DySymTabCommand {
+  struct {
+    std::uint32_t cmd = 0xb;
+    std::uint32_t cmdsize = sizeof(DySymTabCommand);
+  };
+
+  std::uint32_t ilocalsym;
+  std::uint32_t nlocalsym;
+  std::uint32_t iextdefsym;
+  std::uint32_t nextdefsym;
+  std::uint32_t iundefsym;
+  std::uint32_t nundefsym;
+  std::uint32_t tocoff;
+  std::uint32_t ntoc;
+  std::uint32_t modtaboff;
+  std::uint32_t nmodtab;
+  std::uint32_t extrefsymoff;
+  std::uint32_t nextrefsyms;
+  std::uint32_t indirectsymoff;
+  std::uint32_t nindirectsyms;
+  std::uint32_t extreloff;
+  std::uint32_t nextrel;
+  std::uint32_t locreloff;
+  std::uint32_t nlocrel;
+};
+
 struct Section64 {
   char sectname[16];
   char segname[16];
@@ -154,6 +180,12 @@ struct NList64 {
   std::uint64_t n_value; /* value of this symbol (or stab offset) */
 };
 
+struct RelocationInfo {
+  int32_t r_address;
+  uint32_t r_symbolnum : 24, r_pcrel : 1, r_length : 2, r_extern : 1,
+      r_type : 4;
+};
+
 template <typename T>
 void WriteStruct(const T& obj, std::ostream& out) {
   out.write(reinterpret_cast<const char*>(&obj), sizeof(T));
@@ -164,28 +196,59 @@ void WriteStruct(const T& obj, std::ostream& out) {
 void WriteCompiledMachObject(const arm64::Arm64& arm, std::ostream& out) {
   std::uint32_t section_offset =
       sizeof(MachHeader64) + sizeof(SegmentCommand64) + sizeof(Section64) +
-      sizeof(BuildVersionCommand) + sizeof(SymTabCommand);
+      sizeof(BuildVersionCommand) + sizeof(SymTabCommand) +
+      sizeof(DySymTabCommand);
   std::uint32_t section_size = arm.OutputBytesCount();
 
-  std::uint32_t symtab_offset = section_offset + section_size;
-  std::uint32_t symtab_size = sizeof(NList64);
+  std::uint32_t symtab_offset =
+      section_offset + section_size + sizeof(RelocationInfo);
+  std::uint32_t symtab_size = sizeof(NList64) * 2;
 
   std::uint32_t string_table_offset = symtab_offset + symtab_size;
 
-  const NList64 sym{
+  const NList64 undef_sym{
+      .n_un{
+          .n_strx = 8,
+      },
+      .n_type = 0x0 /*N_UNDF*/ | 0x01 /*N_EXT*/,
+      .n_sect = 0,
+      .n_desc = 0,
+      .n_value = 0,
+  };
+  const NList64 def_sym{
       .n_un{
           .n_strx = 1,
       },
-      .n_type = 0xe /*N_SECt*/ | 0x01 /*N_EXT*/,
+      .n_type = 0xe /*N_SECT*/ | 0x01 /*N_EXT*/,
       .n_sect = 1,
       .n_desc = 0,
       .n_value = 0,
   };
+  const DySymTabCommand dysym_tab{
+      .ilocalsym = 0,
+      .nlocalsym = 0,
+      .iextdefsym = 0,
+      .nextdefsym = 1,
+      .iundefsym = 1,
+      .nundefsym = 1,
+      .tocoff = 0,
+      .ntoc = 0,
+      .modtaboff = 0,
+      .nmodtab = 0,
+      .extrefsymoff = 0,
+      .nextrefsyms = 0,
+      .indirectsymoff = 0,
+      .nindirectsyms = 0,
+      .extreloff = 0,
+      .nextrel = 0,
+      .locreloff = 0,
+      .nlocrel = 0,
+  };
   const SymTabCommand sym_tab{
       .symoff = symtab_offset,
-      .nsyms = 1,
+      .nsyms = 2,
       .stroff = string_table_offset,
-      .strsize = 8,
+      .strsize = 19,
   };
   const BuildVersionCommand build_version{
       .cmdsize = 24,
@@ -194,6 +257,14 @@ void WriteCompiledMachObject(const arm64::Arm64& arm, std::ostream& out) {
       .sdk = 0,
       .ntools = 0,
   };
+  RelocationInfo relocation = {
+      .r_address = 60,   // after first byte address to someFuncExternal
+      .r_symbolnum = 1,  // second symbol
+      .r_pcrel = 1,      // relative call, PC counted
+      .r_length = 2,     // 4 bytes
+      .r_extern = 1,     // external
+      .r_type = 2 /*GENERIC_RELOC_SECTDIFF*/,
+  };
   const Section64 section{
       .sectname = "__text",
       .segname = "__TEXT",
@@ -201,8 +272,8 @@ void WriteCompiledMachObject(const arm64::Arm64& arm, std::ostream& out) {
       .size = section_size,
       .offset = section_offset,
       .align = 1 << 1,
-      .reloff = 0,
-      .nreloc = 0,
+      .reloff = section_offset + section_size,
+      .nreloc = 1,
       .flags = kAttrPureInstructions | kAttrSomeInstructions,
   };
   const SegmentCommand64 segment{
@@ -222,7 +293,8 @@ void WriteCompiledMachObject(const arm64::Arm64& arm, std::ostream& out) {
       .cpu_sub_type = CpuSubType::Arm64All,
       .file_type = FileType::Object,
       .ncmds = 3,
-      .sizeofcmds = segment.cmdsize + build_version.cmdsize + sym_tab.cmdsize,
+      .sizeofcmds = segment.cmdsize + build_version.cmdsize + sym_tab.cmdsize +
+                    dysym_tab.cmdsize,
       .flags = 0,
   };
   WriteStruct(header, out);
@@ -230,11 +302,16 @@ void WriteCompiledMachObject(const arm64::Arm64& arm, std::ostream& out) {
   WriteStruct(section, out);
   WriteStruct(build_version, out);
   WriteStruct(sym_tab, out);
+  WriteStruct(dysym_tab, out);
   arm.WriteBytes(out);
-  WriteStruct(sym, out);
+  WriteStruct(relocation, out);
+  WriteStruct(def_sym, out);
+  WriteStruct(undef_sym, out);
 
   out.write("\0", 1);
   out.write("_start", 6);
+  out.write("\0", 1);
+  out.write("_nanosleep", 10);
   out.write("\0", 1);
 }
 

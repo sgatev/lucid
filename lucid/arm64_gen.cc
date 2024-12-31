@@ -240,7 +240,6 @@ class Arm64BinaryGenerator {
 }  // namespace
 
 void GenerateArmStartBinary(Arm64& arm) {
-  arm.Label("_start");
   arm.StpPreIndex(X(29), X(30), SP, Imm(-16));
   arm.Bl("main");
   arm.LdpPostIndex(X(29), X(30), SP, Imm(16));
@@ -250,6 +249,17 @@ void GenerateArmStartBinary(Arm64& arm) {
   arm.Mov(X(0), Imm(1));
   arm.Mov(X(16), Imm(4));
   arm.Svc(Imm(0));
+  arm.Ret();
+  arm.Label("_sleep");
+  arm.StpPreIndex(X(29), X(30), SP, Imm(-16));
+  arm.Mov(X(2), Imm(1));
+  arm.Mov(X(3), Imm(0));
+  arm.StpPreIndex(X(2), X(3), SP, Imm(-16));
+  arm.Mov(X(0), SP);
+  arm.Mov(X(1), Imm(0));
+  arm.Bl("");  // reloc
+  arm.Add(SP, SP, Imm(16));
+  arm.LdpPostIndex(X(29), X(30), SP, Imm(16));
   arm.Ret();
 }
 

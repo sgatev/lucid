@@ -94,6 +94,16 @@ class AbstractMachineFunctionGenerator {
       });
       state_.func.instructions.push_back(Return{});
       return;
+    } else if (graph_.func_name == "sleep") {
+      state_.func.instructions.push_back(Jump{
+          .label = "_sleep",
+      });
+      state_.func.instructions.push_back(SetReg32{
+          .src_val = "0",
+          .dst_reg = 0,
+      });
+      state_.func.instructions.push_back(Return{});
+      return;
     }
 
     std::ptrdiff_t push_pos, pop_pos;

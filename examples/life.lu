@@ -2,6 +2,10 @@ let printString = (s: String, n: Int64) -> Int32 {
   return 0
 }
 
+let sleep = (n: Int32) -> Int32 {
+  return 0
+}
+
 let main = () -> Int32 {
   let current: Int32[200] = 0
   let next: Int32[200] = 0
@@ -38,6 +42,8 @@ let main = () -> Int32 {
     if f == 29 {
       break
     }
+
+    do printString("\33c", 3)
 
     i = 0 
     loop {
@@ -142,6 +148,8 @@ let main = () -> Int32 {
 
       i = i + 1
     }
+
+    do sleep(1)
 
     f = f + 1
   } 

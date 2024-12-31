@@ -50,8 +50,14 @@ class X : public internal::Reg {
   constexpr explicit X(std::uint8_t id) : Reg(id) {}
 };
 
+// Represents a 64-bit ARM64 stack pointer.
+class SP : public X {
+ public:
+  constexpr explicit SP() : X(0b11111) {}
+};
+
 // ARM64 stack pointer.
-static constexpr X SP = X(0b11111);
+static constexpr SP SP;
 
 // Represents an ARM64 immediate.
 class Imm {
@@ -201,9 +207,11 @@ class BlInst {
   void WriteBytes(
       const std::unordered_map<std::string, std::size_t>& label_offsets,
       std::ostream& out) const {
-    std::size_t offset =
-        (label_offsets.at(std::string(label_)) - this_offset_) &
-        0b11111111111111111111111111;
+    std::size_t offset = 0;
+    if (!label_.empty()) {
+      offset = (label_offsets.at(std::string(label_)) - this_offset_) &
+               0b11111111111111111111111111;
+    }
     std::uint32_t res = 0b10010100000000000000000000000000 | offset;
 
     out.write(reinterpret_cast<const char*>(&res), 4);
@@ -442,6 +450,20 @@ class Arm64 {
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en
   void Mov(X rd, Imm imm) { Insert(Mov(true, rd, imm)); }
+
+  // Insert MOV (to/from SP) instruction.
+  //
+  // MOV <Xd|SP>, <Xn|SP>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--to-from-SP---Move-between-register-and-stack-pointer--an-alias-of-ADD--immediate--?lang=en
+  void Mov(X rd, class SP rn) { Insert(MovSP(true, rd, rn)); }
+
+  // Insert MOV (to/from SP) instruction.
+  //
+  // MOV <Xd|SP>, <Xn|SP>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--to-from-SP---Move-between-register-and-stack-pointer--an-alias-of-ADD--immediate--?lang=en
+  void Mov(class SP rd, X rn) { Insert(MovSP(true, rd, rn)); }
 
   // Insert RET instruction.
   //
@@ -741,6 +763,11 @@ class Arm64 {
 
   BasicInst Mov(bool sf, internal::Reg rd, Imm imm) {
     return BasicInst(0b01010010100000000000000000000000 | sf << 31 | imm << 5 |
+                     rd);
+  }
+
+  BasicInst MovSP(bool sf, internal::Reg rd, internal::Reg rn) {
+    return BasicInst(0b00010001000000000000000000000000 | sf << 31 | rn << 5 |
                      rd);
   }
 

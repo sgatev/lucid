@@ -89,7 +89,7 @@ Result<void, ReadFileError, ParserError, TypeError> DoBuild(
     return res.GetError();
   }
 
-  std::system(std::format("ld -o {} {}.o -e _start -arch arm64",
+  std::system(std::format("ld -o {} {}.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` -e _start -arch arm64",
                           bin_path.c_str(), bin_path.c_str())
                   .data());
 
