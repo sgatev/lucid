@@ -68,35 +68,43 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
   return {};
 }
 
-Result<void, ReadFileError, ParserError, TypeError> DoCompile(
-    std::filesystem::path src_path, std::filesystem::path out_path) {
-  const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
+struct CompileConfig {
+  std::filesystem::path src_path;
+  std::filesystem::path out_path;
+};
+
+Result<void, ReadFileError, ParserError, TypeError> Compile(
+    CompileConfig config) {
+  const auto maybe_src = ReadFile(config.src_path, /*with_trailing_zero=*/true);
   if (maybe_src.HasError()) return maybe_src.GetError();
   const auto& src = maybe_src.GetValue();
 
-  std::ofstream out(out_path, std::ios::out | std::ios::binary);
-  if (auto err = CompileSource(src, out); err.HasError()) return err.GetError();
-
-  return {};
+  std::ofstream out(config.out_path, std::ios::out | std::ios::binary);
+  return CompileSource(src, out);
 }
 
-Result<void, ReadFileError, ParserError, TypeError> DoBuild(
-    std::filesystem::path bin_path, std::filesystem::path src_path) {
-  auto obj_path = bin_path;
+struct BuildConfig {
+  std::filesystem::path src_path;
+  std::filesystem::path out_path;
+};
+
+Result<void, ReadFileError, ParserError, TypeError> Build(BuildConfig config) {
+  auto obj_path = config.out_path;
   obj_path.replace_extension("o");
 
-  if (auto res = DoCompile(src_path, obj_path); res.HasError()) {
+  if (auto res = Compile({.src_path = config.src_path, .out_path = obj_path});
+      res.HasError()) {
     return res.GetError();
   }
 
-  std::system(std::format("ld -o {} {}.o -lSystem -syslibroot `xcrun -sdk macosx --show-sdk-path` -e _start -arch arm64",
-                          bin_path.c_str(), bin_path.c_str())
+  std::system(std::format("ld -o {} {} -lSystem -syslibroot `xcrun -sdk "
+                          "macosx --show-sdk-path` -e _start -arch arm64",
+                          config.out_path.c_str(), obj_path.c_str())
                   .data());
-
   return {};
 }
 
-int Compile(CommandContext ctx) {
+int HandleCompileCommand(CommandContext ctx) {
   if (ctx.args.size() != 1) {
     PrintError(ctx.err) << "'compile' command requires exactly 1 argument\n";
     return 1;
@@ -106,7 +114,8 @@ int Compile(CommandContext ctx) {
   auto out_path = std::filesystem::current_path() / src_path.filename();
   out_path.replace_extension("o");
 
-  if (auto res = DoCompile(src_path, out_path); res.HasError()) {
+  if (auto res = Compile({.src_path = src_path, .out_path = out_path});
+      res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }
@@ -114,7 +123,7 @@ int Compile(CommandContext ctx) {
   return 0;
 }
 
-int Build(CommandContext ctx) {
+int HandleBuildCommand(CommandContext ctx) {
   if (ctx.args.size() != 2) {
     PrintError(ctx.err) << "'build' command requires exactly 2 arguments\n";
     return 1;
@@ -123,7 +132,8 @@ int Build(CommandContext ctx) {
   auto src_path = std::filesystem::absolute(ctx.args[1]);
   auto bin_path = ctx.args[0];
 
-  if (auto res = DoBuild(bin_path, src_path); res.HasError()) {
+  if (auto res = Build({.src_path = src_path, .out_path = bin_path});
+      res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }
@@ -131,7 +141,7 @@ int Build(CommandContext ctx) {
   return 0;
 }
 
-int Run(CommandContext ctx) {
+int HandleRunCommand(CommandContext ctx) {
   if (ctx.args.size() != 1) {
     PrintError(ctx.err) << "'run' command requires exactly 1 argument\n";
     return 1;
@@ -141,17 +151,17 @@ int Run(CommandContext ctx) {
   auto bin_path = std::filesystem::temp_directory_path() / src_path.filename();
   bin_path.replace_extension();
 
-  if (auto res = DoBuild(bin_path, src_path); res.HasError()) {
+  if (auto res = Build({.src_path = src_path, .out_path = bin_path});
+      res.HasError()) {
     res.OutputError(PrintError(ctx.err));
     return 1;
   }
 
-  // Run the binary.
   int status = std::system(bin_path.c_str());
   return WEXITSTATUS(status);
 }
 
-int Parse(CommandContext ctx) {
+int HandleParseCommand(CommandContext ctx) {
   if (ctx.args.size() != 1) {
     PrintError(ctx.err) << "'parse' command requires exactly 1 argument\n";
     return 1;
@@ -175,7 +185,7 @@ int Parse(CommandContext ctx) {
   return 0;
 }
 
-int Version(CommandContext ctx) {
+int HandleVersionCommand(CommandContext ctx) {
   ctx.out << "Commit: " << kGitCommit << "\n";
 
   return 0;
@@ -190,28 +200,28 @@ int Main(std::vector<std::string_view> args) {
           {
               .name = "build",
               .help = "Compiles the specified target and builds a binary.",
-              .handler = Build,
+              .handler = HandleBuildCommand,
           },
           {
               .name = "compile",
               .help = "Compiles the specified target.",
-              .handler = Compile,
+              .handler = HandleCompileCommand,
           },
           {
               .name = "run",
               .help = "Compiles the specified target, builds a binary, and "
                       "runs it.",
-              .handler = Run,
+              .handler = HandleRunCommand,
           },
           {
               .name = "parse",
               .help = "Parses the specified target.",
-              .handler = Parse,
+              .handler = HandleParseCommand,
           },
           {
               .name = "version",
               .help = "Prints version information for lucid.",
-              .handler = Version,
+              .handler = HandleVersionCommand,
           },
       },
       {.args = args, .flags = {}, .out = std::cout, .err = std::cerr});
