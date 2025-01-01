@@ -63,10 +63,10 @@ class Imm {
   std::int16_t value_;
 };
 
-// Represents a basic ARM64 instruction.
-class BasicInst {
+// Represents a literal ARM64 instruction.
+class LitInst {
  public:
-  explicit BasicInst(std::uint32_t value) : value_(value) {}
+  explicit LitInst(std::uint32_t value) : value_(value) {}
 
   // Returns the number of bytes produced by this instruction.
   std::size_t OutputBytesCount() const { return 4; }
@@ -278,7 +278,7 @@ class AscizInst {
 
 // Represents an ARM64 instruction.
 using Inst =
-    std::variant<BasicInst, AdrInst, BInst, BCondInst, BlInst, AscizInst>;
+    std::variant<LitInst, AdrInst, BInst, BCondInst, BlInst, AscizInst>;
 
 // Builds a list of ARM64 instructions.
 class Assembler {
@@ -463,7 +463,7 @@ class Assembler {
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/RET--Return-from-subroutine-?lang=en
   void Ret(X rn = X(30)) {
-    Insert(BasicInst(0b11010110010111110000000000000000 | rn << 5));
+    Insert(LitInst(0b11010110010111110000000000000000 | rn << 5));
   }
 
   // Insert SVC instruction.
@@ -472,7 +472,7 @@ class Assembler {
   //
   // https://developer.arm.com/documentation/ddi0602/2024-09/Base-Instructions/SVC--Supervisor-call-?lang=en
   void Svc(Imm imm) {
-    Insert(BasicInst(0b11010100000000000000000000000001 | imm << 5));
+    Insert(LitInst(0b11010100000000000000000000000001 | imm << 5));
   }
 
   // Insert a null-terminated string.
@@ -742,29 +742,29 @@ class Assembler {
   void Cset(X rd, InvCond inv_cond) { Insert(Cset(true, rd, inv_cond)); }
 
  private:
-  BasicInst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
-                bool sh = false) {
-    return BasicInst(0b10010001000000000000000000000000 | sf << 31 | sh << 22 |
-                     imm << 10 | rn << 5 | rd);
+  LitInst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
+              bool sh = false) {
+    return LitInst(0b10010001000000000000000000000000 | sf << 31 | sh << 22 |
+                   imm << 10 | rn << 5 | rd);
   }
 
-  BasicInst Mov(bool sf, internal::Reg rd, internal::Reg rm) {
-    return BasicInst(0b00101010000000000000001111100000 | sf << 31 | rm << 16 |
-                     rd);
+  LitInst Mov(bool sf, internal::Reg rd, internal::Reg rm) {
+    return LitInst(0b00101010000000000000001111100000 | sf << 31 | rm << 16 |
+                   rd);
   }
 
-  BasicInst Mov(bool sf, internal::Reg rd, Imm imm) {
-    return BasicInst(0b01010010100000000000000000000000 | sf << 31 | imm << 5 |
-                     rd);
+  LitInst Mov(bool sf, internal::Reg rd, Imm imm) {
+    return LitInst(0b01010010100000000000000000000000 | sf << 31 | imm << 5 |
+                   rd);
   }
 
-  BasicInst MovSP(bool sf, internal::Reg rd, internal::Reg rn) {
-    return BasicInst(0b00010001000000000000000000000000 | sf << 31 | rn << 5 |
-                     rd);
+  LitInst MovSP(bool sf, internal::Reg rd, internal::Reg rn) {
+    return LitInst(0b00010001000000000000000000000000 | sf << 31 | rn << 5 |
+                   rd);
   }
 
-  BasicInst StpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
-                         internal::Reg rn, Imm imm) {
+  LitInst StpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
+                       internal::Reg rn, Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
@@ -772,12 +772,12 @@ class Assembler {
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return BasicInst(0b00101000100000000000000000000000 | opc << 31 |
-                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
+    return LitInst(0b00101000100000000000000000000000 | opc << 31 | imme << 15 |
+                   rt2 << 10 | rn << 5 | rt1);
   }
 
-  BasicInst StpPreIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
-                        internal::Reg rn, Imm imm) {
+  LitInst StpPreIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
+                      internal::Reg rn, Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
@@ -785,12 +785,12 @@ class Assembler {
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return BasicInst(0b00101001100000000000000000000000 | opc << 31 |
-                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
+    return LitInst(0b00101001100000000000000000000000 | opc << 31 | imme << 15 |
+                   rt2 << 10 | rn << 5 | rt1);
   }
 
-  BasicInst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
-                            internal::Reg rn, Imm imm) {
+  LitInst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
+                          internal::Reg rn, Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
@@ -798,54 +798,41 @@ class Assembler {
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return BasicInst(0b00101001000000000000000000000000 | opc << 31 |
-                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
+    return LitInst(0b00101001000000000000000000000000 | opc << 31 | imme << 15 |
+                   rt2 << 10 | rn << 5 | rt1);
   }
 
-  BasicInst StrPostIndex(bool opc, internal::Reg rt, internal::Reg rn,
-                         Imm imm) {
-    return BasicInst(0b10111000000000000000010000000000 | opc << 30 |
-                     imm << 12 | rn << 5 | rt);
+  LitInst StrPostIndex(bool opc, internal::Reg rt, internal::Reg rn, Imm imm) {
+    return LitInst(0b10111000000000000000010000000000 | opc << 30 | imm << 12 |
+                   rn << 5 | rt);
   }
 
-  BasicInst StrPreIndex(bool opc, internal::Reg rt, internal::Reg rn, Imm imm) {
-    return BasicInst(0b10111000000000000000110000000000 | (opc << 30) |
-                     imm << 12 | rn << 5 | rt);
+  LitInst StrPreIndex(bool opc, internal::Reg rt, internal::Reg rn, Imm imm) {
+    return LitInst(0b10111000000000000000110000000000 | (opc << 30) |
+                   imm << 12 | rn << 5 | rt);
   }
 
-  BasicInst StrUnsignedOffset(bool opc, internal::Reg rt, internal::Reg rn,
-                              Imm imm) {
+  LitInst StrUnsignedOffset(bool opc, internal::Reg rt, internal::Reg rn,
+                            Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
 
-    return BasicInst(0b10111001000000000000000000000000 | opc << 30 |
-                     imme << 10 | rn << 5 | rt);
+    return LitInst(0b10111001000000000000000000000000 | opc << 30 | imme << 10 |
+                   rn << 5 | rt);
   }
 
-  BasicInst Str(bool opc, internal::Reg rt, X rn, internal::Reg rm,
-                Extend extend, Imm amount) {
-    return BasicInst(0b10111000001000000000100000000000 | opc << 30 | rm << 16 |
-                     static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
-                     rn << 5 | rt);
+  LitInst Str(bool opc, internal::Reg rt, X rn, internal::Reg rm, Extend extend,
+              Imm amount) {
+    return LitInst(0b10111000001000000000100000000000 | opc << 30 | rm << 16 |
+                   static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
+                   rn << 5 | rt);
   }
 
-  BasicInst LdpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2, X rn,
-                         Imm imm) {
-    std::int16_t imme = imm;
-    if (opc)
-      imme /= 8;
-    else
-      imme /= 4;
-    if (imme < 0) imme = TwosComplement7(-imme);
-
-    return BasicInst(0b00101000110000000000000000000000 | opc << 31 |
-                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
-  }
-
-  BasicInst LdrPreIndex(bool opc, internal::Reg rt, X rn, Imm imm) {
+  LitInst LdpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2, X rn,
+                       Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
@@ -853,11 +840,11 @@ class Assembler {
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return BasicInst(0b10111000010000000000110000000000 | opc << 30 |
-                     imme << 12 | rn << 5 | rt);
+    return LitInst(0b00101000110000000000000000000000 | opc << 31 | imme << 15 |
+                   rt2 << 10 | rn << 5 | rt1);
   }
 
-  BasicInst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
+  LitInst LdrPreIndex(bool opc, internal::Reg rt, X rn, Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
@@ -865,66 +852,74 @@ class Assembler {
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return BasicInst(0b10111001010000000000000000000000 | opc << 30 |
-                     imme << 10 | rn << 5 | rt);
+    return LitInst(0b10111000010000000000110000000000 | opc << 30 | imme << 12 |
+                   rn << 5 | rt);
   }
 
-  BasicInst Ldr(bool opc, internal::Reg rt, X rn, internal::Reg rm,
-                Extend extend, Imm amount) {
-    return BasicInst(0b10111000011000000000100000000000 | opc << 30 | rm << 16 |
-                     static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
-                     rn << 5 | rt);
+  LitInst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
+    std::int16_t imme = imm;
+    if (opc)
+      imme /= 8;
+    else
+      imme /= 4;
+    if (imme < 0) imme = TwosComplement7(-imme);
+
+    return LitInst(0b10111001010000000000000000000000 | opc << 30 | imme << 10 |
+                   rn << 5 | rt);
   }
 
-  BasicInst Cmp(bool opc, internal::Reg rn, Imm imm) {
-    return BasicInst(0b01110001000000000000000000011111 | opc << 31 |
-                     imm << 10 | rn << 5);
+  LitInst Ldr(bool opc, internal::Reg rt, X rn, internal::Reg rm, Extend extend,
+              Imm amount) {
+    return LitInst(0b10111000011000000000100000000000 | opc << 30 | rm << 16 |
+                   static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
+                   rn << 5 | rt);
   }
 
-  BasicInst Cmp(bool opc, internal::Reg rn, internal::Reg rm) {
-    return BasicInst(0b01101011000000000000000000011111 | opc << 31 | rm << 16 |
-                     rn << 5);
+  LitInst Cmp(bool opc, internal::Reg rn, Imm imm) {
+    return LitInst(0b01110001000000000000000000011111 | opc << 31 | imm << 10 |
+                   rn << 5);
   }
 
-  BasicInst Cset(bool opc, internal::Reg rd, InvCond inv_cond) {
-    return BasicInst(0b00011010100111110000011111100000 | opc << 31 |
-                     static_cast<std::uint8_t>(inv_cond) << 12 | rd);
+  LitInst Cmp(bool opc, internal::Reg rn, internal::Reg rm) {
+    return LitInst(0b01101011000000000000000000011111 | opc << 31 | rm << 16 |
+                   rn << 5);
   }
 
-  BasicInst Add(bool opc, internal::Reg rd, internal::Reg rn,
-                internal::Reg rm) {
-    return BasicInst(0b00001011000000000000000000000000 | opc << 31 | rm << 16 |
-                     rn << 5 | rd);
+  LitInst Cset(bool opc, internal::Reg rd, InvCond inv_cond) {
+    return LitInst(0b00011010100111110000011111100000 | opc << 31 |
+                   static_cast<std::uint8_t>(inv_cond) << 12 | rd);
   }
 
-  BasicInst Sub(bool opc, internal::Reg rd, internal::Reg rn,
-                internal::Reg rm) {
-    return BasicInst(0b01001011000000000000000000000000 | opc << 31 | rm << 16 |
-                     rn << 5 | rd);
+  LitInst Add(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm) {
+    return LitInst(0b00001011000000000000000000000000 | opc << 31 | rm << 16 |
+                   rn << 5 | rd);
   }
 
-  BasicInst Sub(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
-                bool sh = false) {
-    return BasicInst(0b01010001000000000000000000000000 | sf << 31 | sh << 22 |
-                     imm << 10 | rn << 5 | rd);
+  LitInst Sub(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm) {
+    return LitInst(0b01001011000000000000000000000000 | opc << 31 | rm << 16 |
+                   rn << 5 | rd);
   }
 
-  BasicInst Mul(bool opc, internal::Reg rd, internal::Reg rn,
-                internal::Reg rm) {
-    return BasicInst(0b00011011000000000111110000000000 | opc << 31 | rm << 16 |
-                     rn << 5 | rd);
+  LitInst Sub(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
+              bool sh = false) {
+    return LitInst(0b01010001000000000000000000000000 | sf << 31 | sh << 22 |
+                   imm << 10 | rn << 5 | rd);
   }
 
-  BasicInst Udiv(bool opc, internal::Reg rd, internal::Reg rn,
-                 internal::Reg rm) {
-    return BasicInst(0b00011010110000000000100000000000 | opc << 31 | rm << 16 |
-                     rn << 5 | rd);
+  LitInst Mul(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm) {
+    return LitInst(0b00011011000000000111110000000000 | opc << 31 | rm << 16 |
+                   rn << 5 | rd);
   }
 
-  BasicInst Msub(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm,
-                 internal::Reg ra) {
-    return BasicInst(0b00011011000000001000000000000000 | opc << 31 | rm << 16 |
-                     ra << 10 | rn << 5 | rd);
+  LitInst Udiv(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm) {
+    return LitInst(0b00011010110000000000100000000000 | opc << 31 | rm << 16 |
+                   rn << 5 | rd);
+  }
+
+  LitInst Msub(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm,
+               internal::Reg ra) {
+    return LitInst(0b00011011000000001000000000000000 | opc << 31 | rm << 16 |
+                   ra << 10 | rn << 5 | rd);
   }
 
   void Insert(Inst inst) {
