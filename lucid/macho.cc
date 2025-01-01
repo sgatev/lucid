@@ -193,12 +193,13 @@ void WriteStruct(const T& obj, std::ostream& out) {
 
 }  // namespace
 
-void WriteCompiledMachObject(const arm64::Arm64& arm, std::ostream& out) {
+void WriteCompiledMachObject(const arm64::Assembler& assembler,
+                             std::ostream& out) {
   std::uint32_t section_offset =
       sizeof(MachHeader64) + sizeof(SegmentCommand64) + sizeof(Section64) +
       sizeof(BuildVersionCommand) + sizeof(SymTabCommand) +
       sizeof(DySymTabCommand);
-  std::uint32_t section_size = arm.OutputBytesCount();
+  std::uint32_t section_size = assembler.OutputBytesCount();
 
   std::uint32_t symtab_offset =
       section_offset + section_size + sizeof(RelocationInfo);
@@ -303,7 +304,7 @@ void WriteCompiledMachObject(const arm64::Arm64& arm, std::ostream& out) {
   WriteStruct(build_version, out);
   WriteStruct(sym_tab, out);
   WriteStruct(dysym_tab, out);
-  arm.WriteBytes(out);
+  assembler.WriteBytes(out);
   WriteStruct(relocation, out);
   WriteStruct(def_sym, out);
   WriteStruct(undef_sym, out);

@@ -281,7 +281,7 @@ using Inst =
     std::variant<BasicInst, AdrInst, BInst, BCondInst, BlInst, AscizInst>;
 
 // Builds a list of ARM64 instructions.
-class Arm64 {
+class Assembler {
  public:
   // Returns the number of bytes produced by the instructions.
   std::size_t OutputBytesCount() const { return output_bytes_count_; }

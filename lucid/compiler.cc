@@ -54,17 +54,17 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
   auto& func_defs = maybe_funcs.GetValue();
   auto func_types = ExtractFuncTypes(ctx, func_defs);
   AbstractMachineState state;
-  arm64::Arm64 arm;
-  GenerateArmStartBinary(arm);
+  arm64::Assembler assembler;
+  GenerateArmStartBinary(assembler);
   for (auto& func : func_defs) {
     if (auto err = InferExprTypes(ctx, func_types, func); err) return *err;
     auto graph = BuildControlFlowGraph(ctx, func);
     GenerateAbstractMachineFunction(ctx, graph, state);
     OptimizeAbstractMachineInstructions(state.func.instructions);
-    GenerateArmAssemblyBinary(state.func, arm);
+    GenerateArmAssemblyBinary(state.func, assembler);
   }
-  GenerateArmEndBinary(state.strings, arm);
-  WriteCompiledMachObject(arm, out);
+  GenerateArmEndBinary(state.strings, assembler);
+  WriteCompiledMachObject(assembler, out);
   return {};
 }
 
