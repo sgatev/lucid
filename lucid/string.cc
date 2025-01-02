@@ -38,10 +38,6 @@ static constexpr std::array<std::uint8_t, 256> kEscapeOctet = []() consteval {
 }  // namespace
 
 std::size_t EncodedStringLength(std::string_view s) {
-  // Remove quote marks at the beginning and end of the string.
-  s.remove_prefix(1);
-  s.remove_suffix(1);
-
   std::size_t count = 0;
 
   while (!s.empty()) {
@@ -81,10 +77,6 @@ std::size_t EncodedStringLength(std::string_view s) {
 }
 
 std::size_t WriteEncodedString(std::string_view s, std::ostream& out) {
-  // Remove quote marks at the beginning and end of the string.
-  s.remove_prefix(1);
-  s.remove_suffix(1);
-
   std::size_t count = 0;
 
   while (!s.empty()) {

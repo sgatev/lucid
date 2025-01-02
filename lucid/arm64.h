@@ -217,7 +217,11 @@ class BlInst {
 
 class AscizInst {
  public:
-  explicit AscizInst(std::string_view s) : s_(s) {}
+  explicit AscizInst(std::string_view s) : s_(s) {
+    // Remove quote marks at the beginning and end of the string.
+    s_.remove_prefix(1);
+    s_.remove_suffix(1);
+  }
 
   // Returns the number of bytes produced by this instruction.
   std::size_t OutputBytesCount() const {
