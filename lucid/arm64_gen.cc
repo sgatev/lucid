@@ -273,7 +273,7 @@ void GenerateArmStartBinary(Assembler& assembler) {
 void GenerateArmEndBinary(
     const std::unordered_map<std::uintptr_t, std::string>& strings,
     Assembler& assmebler) {
-  for (auto [k, v] : strings) {
+  for (const auto& [k, v] : strings) {
     assmebler.Label("str" + std::to_string(k));
     assmebler.Asciz(v);
   }

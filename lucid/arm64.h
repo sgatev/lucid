@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "lucid/bits.h"
+#include "lucid/string.h"
 
 namespace lucid::arm64 {
 namespace internal {
@@ -220,60 +221,21 @@ class AscizInst {
 
   // Returns the number of bytes produced by this instruction.
   std::size_t OutputBytesCount() const {
-    std::size_t out_count = 0;
-    for (std::size_t i = 1; i < s_.size() - 1; ++i) {
-      if (i < s_.size() - 2 && s_[i] == '\\' && s_[i + 1] == '3' &&
-          s_[i + 1] == '3') {
-        ++out_count;
-        i += 2;
-      } else if (s_[i] == '\\' && s_[i + 1] == 'e') {
-        ++out_count;
-        i += 1;
-      } else if (s_[i] == '\\' && s_[i + 1] == 'n') {
-        ++out_count;
-        i += 1;
-      } else {
-        ++out_count;
-      }
-    }
-    ++out_count;
-    out_count += 4 - (out_count % 4);
-    return out_count;
+    const std::size_t length = EncodedStringLength(s_);
+    return length + (4 - (length % 4));
   }
 
   // Writes the bytes produced by this instruction.
   void WriteBytes(
       const std::unordered_map<std::string, std::size_t>& label_offsets,
       std::ostream& out) const {
-    std::size_t out_count = 0;
-    for (std::size_t i = 1; i < s_.size() - 1; ++i) {
-      if (i < s_.size() - 2 && s_[i] == '\\' && s_[i + 1] == '3' &&
-          s_[i + 1] == '3') {
-        out.put('\33');
-        ++out_count;
-        i += 2;
-      } else if (s_[i] == '\\' && s_[i + 1] == 'e') {
-        out.put('\e');
-        ++out_count;
-        i += 1;
-      } else if (s_[i] == '\\' && s_[i + 1] == 'n') {
-        out.put('\n');
-        ++out_count;
-        i += 1;
-      } else {
-        out.put(s_[i]);
-        ++out_count;
-      }
-    }
-    out.put(0);
-    ++out_count;
-
-    std::size_t c = 4 - (out_count % 4);
-    for (std::size_t i = 0; i < c; ++i) out.put(0);
+    const std::size_t length = WriteEncodedString(s_, out);
+    std::size_t remainder = 4 - (length % 4);
+    for (; remainder > 0; --remainder) out.put(0);
   }
 
  private:
-  std::string s_;
+  std::string_view s_;
 };
 
 // Represents an ARM64 instruction.
@@ -476,7 +438,7 @@ class Assembler {
   }
 
   // Insert a null-terminated string.
-  void Asciz(std::string s) { Insert(AscizInst(std::move(s))); }
+  void Asciz(std::string_view s) { Insert(AscizInst(s)); }
 
   // Insert STP post-index instruction.
   //

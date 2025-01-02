@@ -70,6 +70,7 @@ cc_library(
     hdrs = ["arm64.h"],
     deps = [
         ":bits",
+        ":string",
     ],
 )
 
@@ -374,6 +375,21 @@ cc_test(
     srcs = ["result_test.cc"],
     deps = [
         ":result",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "string",
+    srcs = ["string.cc"],
+    hdrs = ["string.h"],
+)
+
+cc_test(
+    name = "string_test",
+    srcs = ["string_test.cc"],
+    deps = [
+        ":string",
         "@googletest//:gtest_main",
     ],
 )
