@@ -14,54 +14,13 @@ using ::testing::IsEmpty;
 using ::testing::Pair;
 using ::testing::UnorderedElementsAre;
 
-class ExtractFuncTypesTest : public testing::Test, public AstFixture {
- protected:
-  std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
-      const std::vector<FuncDefStmt>& func_defs) {
-    return ::lucid::ExtractFuncTypes(ctx_, func_defs);
-  }
-};
-
-TEST_F(ExtractFuncTypesTest, NoFuncDefs) {
-  EXPECT_THAT(ExtractFuncTypes({}), IsEmpty());
-}
-
-TEST_F(ExtractFuncTypesTest, MultipleFuncDefs) {
-  const std::vector<FuncDefStmt> func_defs = {
-      {
-          .name = "id",
-          .result_type = T(BasicType{.name = "Int32"}),
-          .params = ParamListOf({
-              P(FuncParam{
-                  .type = T(BasicType{.name = "Int32"}),
-              }),
-          }),
-      },
-      {
-          .name = "foo",
-          .result_type = T(BasicType{.name = "Int64"}),
-      },
-  };
-
-  EXPECT_THAT(ExtractFuncTypes(func_defs),
-              UnorderedElementsAre(Pair("id",
-                                        FuncType{
-                                            .result_type = "Int32",
-                                            .params = func_defs[0].params,
-                                        }),
-                                   Pair("foo", FuncType{
-                                                   .result_type = "Int64",
-                                               })));
-}
-
 MATCHER_P(HoldsFuncDef, match_stmt, "") { return match_stmt(arg); }
 
 class InferExprTypesTest : public testing::Test, public AstFixture {
  protected:
   std::optional<TypeError> InferExprTypes(
-      FuncDefStmt& stmt,
-      const std::unordered_map<std::string_view, FuncType>& func_types = {}) {
-    return ::lucid::InferExprTypes(ctx_, func_types, stmt);
+      FuncDefStmt& stmt, const std::vector<FuncDefStmt>& func_defs = {}) {
+    return ::lucid::InferExprTypes(ctx_, func_defs, stmt);
   }
 };
 
@@ -262,6 +221,17 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
 }
 
 TEST_F(InferExprTypesTest, FuncArgFromParamType) {
+  auto id_func = FuncDefStmt{
+      .name = "id",
+      .result_type = T(BasicType{.name = "Int32"}),
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = "x",
+              .type = T(BasicType{.name = "Int32"}),
+          }),
+      }),
+  };
+
   auto func = FuncDefStmt{
       .name = "foo",
       .result_type = T(BasicType{.name = "Int32"}),
@@ -279,16 +249,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
       }),
   };
 
-  auto id_func_type = FuncType{
-      .result_type = "Int32",
-      .params = ParamListOf({
-          P(FuncParam{
-              .type = T(BasicType{.name = "Int32"}),
-          }),
-      }),
-  };
-
-  EXPECT_EQ(InferExprTypes(func, {{"id", id_func_type}}), std::nullopt);
+  EXPECT_EQ(InferExprTypes(func, {id_func}), std::nullopt);
   EXPECT_THAT(
       func,
       HoldsFuncDef(MatchesFuncDefStmt({

@@ -18,11 +18,12 @@ namespace {
 
 class ExprTypeInferenceEngine {
  public:
-  ExprTypeInferenceEngine(
-      SyntaxContext& ctx,
-      const std::unordered_map<std::string_view, FuncType>& func_types,
-      FuncDefStmt& func_def)
-      : ctx_(ctx), func_types_(func_types), func_def_(func_def) {}
+  ExprTypeInferenceEngine(SyntaxContext& ctx,
+                          const std::vector<FuncDefStmt>& func_defs,
+                          FuncDefStmt& func_def)
+      : ctx_(ctx), func_def_(func_def) {
+    for (const auto& func : func_defs) func_defs_[func.name] = &func;
+  }
 
   std::optional<TypeError> InferTypes() {
     for (const auto& param_ref : func_def_.params) {
@@ -150,15 +151,18 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
-    const auto& func_type = func_types_.at(expr.func_name);
+    const auto& func_def = func_defs_.at(expr.func_name);
     for (std::uint32_t i = 0; i < expr.args.size(); ++i) {
-      const auto& param = ctx_.DerefParam(func_type.params[i]);
+      const auto& param = ctx_.DerefParam(func_def->params[i]);
       ExprRef arg = expr.args[i];
       RequireTypeForExpr(arg, param.type);
       AddPendingExpr(arg);
     }
-    RequireTypeForExpr(expr_ref,
-                       ctx_.Add(BasicType{.name = func_type.result_type}));
+    RequireTypeForExpr(
+        expr_ref,
+        ctx_.Add(BasicType{
+            .name = std::get<BasicType>(ctx_.DerefType(func_def->result_type))
+                        .name}));
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
@@ -293,7 +297,7 @@ class ExprTypeInferenceEngine {
   }
 
   SyntaxContext& ctx_;
-  const std::unordered_map<std::string_view, FuncType>& func_types_;
+  std::unordered_map<std::string_view, const FuncDefStmt*> func_defs_;
   FuncDefStmt& func_def_;
 
   std::unordered_map<ExprRef, ExprRef> expr_from_expr_;
@@ -310,25 +314,10 @@ class ExprTypeInferenceEngine {
 
 }  // namespace
 
-std::unordered_map<std::string_view, FuncType> ExtractFuncTypes(
-    const SyntaxContext& ctx, const std::vector<FuncDefStmt>& func_defs) {
-  std::unordered_map<std::string_view, FuncType> func_types;
-  for (const auto& func_def : func_defs) {
-    const auto& result_type =
-        std::get<BasicType>(ctx.DerefType(func_def.result_type));
-    func_types[func_def.name] = {
-        .result_type = result_type.name,
-        .params = func_def.params,
-    };
-  }
-  return func_types;
-}
-
 std::optional<TypeError> InferExprTypes(
-    SyntaxContext& ctx,
-    const std::unordered_map<std::string_view, FuncType>& func_types,
+    SyntaxContext& ctx, const std::vector<FuncDefStmt>& func_defs,
     FuncDefStmt& func_def) {
-  return ExprTypeInferenceEngine(ctx, func_types, func_def).InferTypes();
+  return ExprTypeInferenceEngine(ctx, func_defs, func_def).InferTypes();
 }
 
 }  // namespace lucid

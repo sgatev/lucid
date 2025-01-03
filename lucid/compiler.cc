@@ -52,12 +52,11 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
   auto maybe_funcs = ParseFuncDefs(src, ctx);
   if (maybe_funcs.HasError()) return maybe_funcs.GetError();
   auto& func_defs = maybe_funcs.GetValue();
-  auto func_types = ExtractFuncTypes(ctx, func_defs);
   AbstractMachineState state;
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
   for (auto& func : func_defs) {
-    if (auto err = InferExprTypes(ctx, func_types, func); err) return *err;
+    if (auto err = InferExprTypes(ctx, func_defs, func); err) return *err;
     auto graph = BuildControlFlowGraph(ctx, func);
     GenerateAbstractMachineFunction(ctx, graph, state);
     OptimizeAbstractMachineInstructions(state.func.instructions);
