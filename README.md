@@ -13,7 +13,7 @@ Lucid is an experimental programming language.
 To test all targets execute
 
 ```
-$ bazel test ...
+bazel test ...
 ```
 
 ## Build
@@ -21,7 +21,7 @@ $ bazel test ...
 To build the compiler execute
 
 ```
-$ bazel build -c opt //lucid:compiler
+bazel build -c opt //lucid:compiler
 ```
 
 ## Run
@@ -29,7 +29,7 @@ $ bazel build -c opt //lucid:compiler
 To compile and run code execute 
 
 ```
-$ bazel run -c opt //lucid:compiler -- run examples/main.lu
+bazel run -c opt //lucid:compiler -- run examples/main.lu
 ```
 
 ## Code
