@@ -2,6 +2,10 @@
 
 Lucid is an experimental programming language.
 
+## Overview
+
+* [Architecture](ARCHITECTURE.md)
+
 ## Requires
 
 * ARM64 macOS
