@@ -231,5 +231,5 @@ int Main(std::vector<std::string_view> args) {
 }  // namespace lucid
 
 int main(int argc, char* argv[]) {
-  return lucid::Main(std::vector<std::string_view>(argv + 1, argv + argc));
+  return lucid::Main({argv + 1, argv + argc});
 }
