@@ -56,7 +56,9 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
   for (auto& func : func_defs) {
-    if (auto err = InferExprTypes(ctx, func_defs, func); err) return *err;
+    if (auto res = InferExprTypes(ctx, func_defs, func); res.HasError()) {
+      return res.GetError();
+    }
     auto graph = BuildControlFlowGraph(ctx, func);
     GenerateAbstractMachineFunction(ctx, graph, state);
     OptimizeAbstractMachineInstructions(state.func.instructions);

@@ -6,7 +6,14 @@ namespace lucid {
 namespace {
 
 struct FooErr {};
+
 struct BarErr {};
+
+struct BazErr {
+  int code;
+
+  bool operator==(const BazErr&) const = default;
+};
 
 TEST(ResultTest, Value) {
   Result<int, FooErr, BarErr> e = 21;
@@ -17,12 +24,13 @@ TEST(ResultTest, Value) {
 }
 
 TEST(ResultTest, Error) {
-  Result<int, FooErr, BarErr> e = FooErr{};
+  Result<int, FooErr, BarErr, BazErr> e = BazErr{.code = 42};
 
   EXPECT_FALSE(e.HasValue());
   EXPECT_TRUE(e.HasError());
-  EXPECT_TRUE(e.HasError<FooErr>());
-  EXPECT_TRUE(e.GetError().Is<FooErr>());
+  EXPECT_TRUE(e.HasError<BazErr>());
+  EXPECT_TRUE(e.GetError().Is<BazErr>());
+  EXPECT_TRUE(e.GetError() == BazErr{.code = 42});
 }
 
 TEST(ResultTest, Void) {

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <optional>
 #include <ostream>
 #include <string>
 #include <utility>
 
 #include "lucid/ast.h"
+#include "lucid/result.h"
 
 namespace lucid {
 
@@ -32,7 +32,7 @@ class TypeError {
 // - `func_defs` must be associated with `ctx`.
 // - `stmt` must be associated with `ctx`.
 // - All functions called from `stmt` must be in `func_defs`.
-std::optional<TypeError> InferExprTypes(
+Result<void, TypeError> InferExprTypes(
     SyntaxContext& ctx, const std::vector<FuncDefStmt>& func_defs,
     FuncDefStmt& stmt);
 

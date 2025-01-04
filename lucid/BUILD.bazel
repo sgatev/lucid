@@ -415,6 +415,7 @@ cc_library(
     hdrs = ["type.h"],
     deps = [
         ":ast",
+        ":result",
     ],
 )
 
@@ -425,6 +426,7 @@ cc_test(
         ":arena",
         ":ast",
         ":ast_fixture",
+        ":result",
         ":type",
         "@googletest//:gtest_main",
     ],

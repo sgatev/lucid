@@ -17,6 +17,11 @@ class ErrorResult {
     return std::holds_alternative<E>(state_);
   }
 
+  template <typename E>
+  bool operator==(const E& e) const {
+    return Is<E>() && std::get<E>(state_) == e;
+  }
+
  private:
   template <typename V, typename... Ts>
   friend class Result;

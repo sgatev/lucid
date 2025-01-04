@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "lucid/ast.h"
+#include "lucid/result.h"
 
 namespace lucid {
 namespace {
@@ -25,7 +26,7 @@ class ExprTypeInferenceEngine {
     for (const auto& func : func_defs) func_defs_[func.name] = &func;
   }
 
-  std::optional<TypeError> InferTypes() {
+  Result<void, TypeError> InferTypes() {
     for (const auto& param_ref : func_def_.params) {
       const auto& param = ctx_.DerefParam(param_ref);
       SetIdentType(param.name, param.type);
@@ -65,7 +66,7 @@ class ExprTypeInferenceEngine {
       SetType(ctx_.DerefExpr(expr_ref), type);
     }
 
-    return std::nullopt;
+    return {};
   }
 
  private:
@@ -314,7 +315,7 @@ class ExprTypeInferenceEngine {
 
 }  // namespace
 
-std::optional<TypeError> InferExprTypes(
+Result<void, TypeError> InferExprTypes(
     SyntaxContext& ctx, const std::vector<FuncDefStmt>& func_defs,
     FuncDefStmt& func_def) {
   return ExprTypeInferenceEngine(ctx, func_defs, func_def).InferTypes();
