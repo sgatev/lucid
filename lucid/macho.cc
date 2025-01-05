@@ -1,7 +1,6 @@
 #include "lucid/macho.h"
 
 #include <cstdint>
-#include <iostream>
 #include <ostream>
 #include <vector>
 
@@ -197,25 +196,30 @@ void WriteStruct(const T& obj, std::ostream& out) {
 
 void WriteCompiledMachObject(const arm64::Assembler& assembler,
                              std::ostream& out) {
-  const NList64 def_sym{
-      .n_un{
-          .n_strx = 1,
-      },
-      .n_type = 0xe /*N_SECT*/ | 0x01 /*N_EXT*/,
-      .n_sect = 1,
-      .n_desc = 0,
-      .n_value = 0,
-  };
+  std::uint32_t sym_num = 0;
+  std::uint32_t sym_str_size = 1;
+
+  std::vector<NList64> ext_def_syms;
+  for (const auto& [label, _] : assembler.GlobalLabels()) {
+    ext_def_syms.push_back({
+        .n_un{
+            .n_strx = sym_str_size,
+        },
+        .n_type = 0xe /*N_SECT*/ | 0x01 /*N_EXT*/,
+        .n_sect = 1,
+        .n_desc = 0,
+        .n_value = 0,
+    });
+    ++sym_num;
+    sym_str_size += label.size() + 1;
+  }
+
   std::vector<NList64> undef_syms;
   std::vector<RelocationInfo> relocs;
-
-  std::uint32_t idx = 1;
-  std::uint32_t addr = 8;
-
   for (const auto& [label, positions] : assembler.ExternalLabels()) {
     undef_syms.push_back({
         .n_un{
-            .n_strx = addr,
+            .n_strx = sym_str_size,
         },
         .n_type = 0x0 /*N_UNDF*/ | 0x01 /*N_EXT*/,
         .n_sect = 0,
@@ -225,16 +229,16 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
     for (auto pos : positions) {
       relocs.push_back({
           .r_address = static_cast<std::int32_t>(
-              pos),            // after first byte address to someFuncExternal
-          .r_symbolnum = idx,  // second symbol
-          .r_pcrel = 1,        // relative call, PC counted
-          .r_length = 2,       // 4 bytes
-          .r_extern = 1,       // external
+              pos),  // after first byte address to someFuncExternal
+          .r_symbolnum = sym_num,  // second symbol
+          .r_pcrel = 1,            // relative call, PC counted
+          .r_length = 2,           // 4 bytes
+          .r_extern = 1,           // external
           .r_type = 2 /*GENERIC_RELOC_SECTDIFF*/,
       });
     }
-    ++idx;
-    addr += label.size() + 1;
+    ++sym_num;
+    sym_str_size += label.size() + 1;
   }
 
   std::uint32_t section_offset =
@@ -245,7 +249,8 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
 
   std::uint32_t symtab_offset =
       section_offset + section_size + sizeof(RelocationInfo) * relocs.size();
-  std::uint32_t symtab_size = sizeof(NList64) * (1 + undef_syms.size());
+  std::uint32_t symtab_size =
+      sizeof(NList64) * (ext_def_syms.size() + undef_syms.size());
 
   std::uint32_t string_table_offset = symtab_offset + symtab_size;
 
@@ -253,9 +258,9 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
       .ilocalsym = 0,
       .nlocalsym = 0,
       .iextdefsym = 0,
-      .nextdefsym = 1,
-      .iundefsym = 1,
-      .nundefsym = 2,
+      .nextdefsym = static_cast<std::uint32_t>(ext_def_syms.size()),
+      .iundefsym = static_cast<std::uint32_t>(ext_def_syms.size()),
+      .nundefsym = static_cast<std::uint32_t>(undef_syms.size()),
       .tocoff = 0,
       .ntoc = 0,
       .modtaboff = 0,
@@ -271,9 +276,10 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
   };
   const SymTabCommand sym_tab{
       .symoff = symtab_offset,
-      .nsyms = 3,
+      .nsyms =
+          static_cast<std::uint32_t>(ext_def_syms.size() + undef_syms.size()),
       .stroff = string_table_offset,
-      .strsize = 27,
+      .strsize = sym_str_size,
   };
   const BuildVersionCommand build_version{
       .cmdsize = 24,
@@ -323,12 +329,14 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
   WriteStruct(dysym_tab, out);
   assembler.WriteBytes(out);
   for (const auto& reloc : relocs) WriteStruct(reloc, out);
-  WriteStruct(def_sym, out);
+  for (const auto& sym : ext_def_syms) WriteStruct(sym, out);
   for (const auto& sym : undef_syms) WriteStruct(sym, out);
 
   out.put(0);
-  out.write("_start", 6);
-  out.put(0);
+  for (const auto& [label, _] : assembler.GlobalLabels()) {
+    out.write(label.data(), label.size());
+    out.put(0);
+  }
   for (const auto& [label, _] : assembler.ExternalLabels()) {
     out.write(label.data(), label.size());
     out.put(0);

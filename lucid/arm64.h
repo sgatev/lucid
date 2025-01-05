@@ -278,15 +278,25 @@ class Assembler {
     }
   }
 
+  // Returns all global labels that were inserted.
+  const std::unordered_map<std::string, std::size_t>& GlobalLabels() const {
+    return global_label_offsets_;
+  }
+
   // Returns all external labels that were created.
   const std::map<std::string, std::vector<std::size_t>>& ExternalLabels()
       const {
     return external_labels_;
   }
 
-  // Inserts `label` after the last instruction that was added.
+  // Inserts local `label` after the last instruction that was added.
   void Label(std::string label) {
     label_offsets_[std::move(label)] = insts_size_;
+  }
+
+  // Inserts global `label` after the last instruction that was added.
+  void Global(std::string label) {
+    global_label_offsets_[std::move(label)] = insts_size_;
   }
 
   // Creates an external label.
@@ -934,6 +944,7 @@ class Assembler {
   }
 
   std::unordered_map<std::string, std::size_t> label_offsets_;
+  std::unordered_map<std::string, std::size_t> global_label_offsets_;
   std::vector<Inst> insts_;
   std::size_t insts_size_ = 0;
   std::map<std::string, std::vector<std::size_t>> external_labels_;
