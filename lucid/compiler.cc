@@ -225,7 +225,7 @@ int Run(std::vector<std::string_view> args) {
               .handler = HandleVersionCommand,
           },
       },
-      {.args = args, .flags = {}, .out = std::cout, .err = std::cerr});
+      StandardRootCommandContext(args));
 }
 
 }  // namespace lucid

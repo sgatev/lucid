@@ -24,6 +24,9 @@ struct CommandContext {
   std::ostream& err;
 };
 
+// Returns an execution context for a root command.
+CommandContext StandardRootCommandContext(std::span<std::string_view> args);
+
 // A handler that runs a command within a given context.
 using CommandHandler = std::function<int(CommandContext)>;
 

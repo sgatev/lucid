@@ -3,11 +3,16 @@
 #include <algorithm>
 #include <initializer_list>
 #include <iomanip>
+#include <iostream>
 #include <span>
 #include <string_view>
 #include <unordered_map>
 
 namespace lucid {
+
+CommandContext StandardRootCommandContext(std::span<std::string_view> args) {
+  return {.args = args, .flags = {}, .out = std::cout, .err = std::cerr};
+}
 
 int RunCommand(std::string_view root_name,
                std::initializer_list<Command> commands, CommandContext ctx) {
