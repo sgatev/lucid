@@ -247,16 +247,19 @@ class Arm64BinaryGenerator {
 }  // namespace
 
 void GenerateArmStartBinary(Assembler& assembler) {
+  assembler.Label("_start");
   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));
   assembler.Bl("main");
   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));
   assembler.Ret();
+
   assembler.Label("_print_string");
   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));
   assembler.Mov(X(0), X(1));
   assembler.Bl(assembler.External("_printf"));
   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));
   assembler.Ret();
+
   assembler.Label("_sleep");
   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));
   assembler.Mov(X(2), X(1));
