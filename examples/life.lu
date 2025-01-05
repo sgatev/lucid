@@ -1,4 +1,4 @@
-let printString = (s: String, n: Int64) -> Int32 {
+let printString = (s: String) -> Int32 {
   return 0
 }
 
@@ -43,7 +43,7 @@ let main = () -> Int32 {
       break
     }
 
-    do printString("\33c", 3)
+    do printString("\33c")
 
     i = 0 
     loop {
@@ -59,14 +59,14 @@ let main = () -> Int32 {
 
         let y: Int32 = i * 20
         if current[y + j] == 1 {
-          do printString("*", 1)
+          do printString("*")
         } else {
-          do printString(" ", 1)
+          do printString(" ")
         }
 
         j = j + 1
       }
-      do printString("\n", 1)
+      do printString("\n")
 
       i = i + 1
     }

@@ -1,4 +1,4 @@
-let printString = (s: String, n: Int64) -> Int32 {
+let printString = (s: String) -> Int32 {
   return 0
 }
 
@@ -6,16 +6,16 @@ let printInt32 = (i: Int32) -> Int32 {
   if i > 9 { do printInt32(i / 10) }
 
   let j: Int32 = i % 10
-  if      j == 0 { do printString("0", 1) }
-  else if j == 1 { do printString("1", 1) }
-  else if j == 2 { do printString("2", 1) }
-  else if j == 3 { do printString("3", 1) }
-  else if j == 4 { do printString("4", 1) }
-  else if j == 5 { do printString("5", 1) }
-  else if j == 6 { do printString("6", 1) }
-  else if j == 7 { do printString("7", 1) }
-  else if j == 8 { do printString("8", 1) }
-  else if j == 9 { do printString("9", 1) }
+  if      j == 0 { do printString("0") }
+  else if j == 1 { do printString("1") }
+  else if j == 2 { do printString("2") }
+  else if j == 3 { do printString("3") }
+  else if j == 4 { do printString("4") }
+  else if j == 5 { do printString("5") }
+  else if j == 6 { do printString("6") }
+  else if j == 7 { do printString("7") }
+  else if j == 8 { do printString("8") }
+  else if j == 9 { do printString("9") }
   return 0
 }
 
@@ -27,15 +27,15 @@ let main = () -> Int32 {
     }
 
     if n % 15 == 0 {
-      do printString("fizzbuzz", 8)
+      do printString("fizzbuzz")
     } else if n % 3 == 0 {
-      do printString("fizz", 4)
+      do printString("fizz")
     } else if n % 5 == 0 {
-      do printString("buzz", 4)
+      do printString("buzz")
     } else {
       do printInt32(n)
     }
-    do printString("\n", 1)
+    do printString("\n")
 
     n = n + 1
   }

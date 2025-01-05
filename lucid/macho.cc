@@ -202,14 +202,23 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
   std::uint32_t section_size = assembler.OutputBytesCount();
 
   std::uint32_t symtab_offset =
-      section_offset + section_size + sizeof(RelocationInfo);
-  std::uint32_t symtab_size = sizeof(NList64) * 2;
+      section_offset + section_size + sizeof(RelocationInfo) * 2;
+  std::uint32_t symtab_size = sizeof(NList64) * 3;
 
   std::uint32_t string_table_offset = symtab_offset + symtab_size;
 
-  const NList64 undef_sym{
+  const NList64 printf_undef_sym{
       .n_un{
           .n_strx = 8,
+      },
+      .n_type = 0x0 /*N_UNDF*/ | 0x01 /*N_EXT*/,
+      .n_sect = 0,
+      .n_desc = 0,
+      .n_value = 0,
+  };
+  const NList64 sleep_undef_sym{
+      .n_un{
+          .n_strx = 16,
       },
       .n_type = 0x0 /*N_UNDF*/ | 0x01 /*N_EXT*/,
       .n_sect = 0,
@@ -231,7 +240,7 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
       .iextdefsym = 0,
       .nextdefsym = 1,
       .iundefsym = 1,
-      .nundefsym = 1,
+      .nundefsym = 2,
       .tocoff = 0,
       .ntoc = 0,
       .modtaboff = 0,
@@ -247,9 +256,9 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
   };
   const SymTabCommand sym_tab{
       .symoff = symtab_offset,
-      .nsyms = 2,
+      .nsyms = 3,
       .stroff = string_table_offset,
-      .strsize = 19,
+      .strsize = 27,
   };
   const BuildVersionCommand build_version{
       .cmdsize = 24,
@@ -258,9 +267,17 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
       .sdk = 0,
       .ntools = 0,
   };
-  RelocationInfo relocation = {
-      .r_address = 60,   // after first byte address to someFuncExternal
+  RelocationInfo printf_reloc = {
+      .r_address = 24,   // after first byte address to someFuncExternal
       .r_symbolnum = 1,  // second symbol
+      .r_pcrel = 1,      // relative call, PC counted
+      .r_length = 2,     // 4 bytes
+      .r_extern = 1,     // external
+      .r_type = 2 /*GENERIC_RELOC_SECTDIFF*/,
+  };
+  RelocationInfo sleep_reloc = {
+      .r_address = 60,   // after first byte address to someFuncExternal
+      .r_symbolnum = 2,  // second symbol
       .r_pcrel = 1,      // relative call, PC counted
       .r_length = 2,     // 4 bytes
       .r_extern = 1,     // external
@@ -274,7 +291,7 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
       .offset = section_offset,
       .align = 1 << 1,
       .reloff = section_offset + section_size,
-      .nreloc = 1,
+      .nreloc = 2,
       .flags = kAttrPureInstructions | kAttrSomeInstructions,
   };
   const SegmentCommand64 segment{
@@ -305,12 +322,16 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
   WriteStruct(sym_tab, out);
   WriteStruct(dysym_tab, out);
   assembler.WriteBytes(out);
-  WriteStruct(relocation, out);
+  WriteStruct(printf_reloc, out);
+  WriteStruct(sleep_reloc, out);
   WriteStruct(def_sym, out);
-  WriteStruct(undef_sym, out);
+  WriteStruct(printf_undef_sym, out);
+  WriteStruct(sleep_undef_sym, out);
 
   out.put(0);
   out.write("_start", 6);
+  out.put(0);
+  out.write("_printf", 7);
   out.put(0);
   out.write("_nanosleep", 10);
   out.put(0);
