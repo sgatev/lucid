@@ -9,7 +9,7 @@ Lucid is an experimental programming language.
 ## Requires
 
 * ARM64 macOS
-* Xcode 15.3+
+* [Xcode](https://developer.apple.com/xcode) 15.3+
 * [Bazel](https://bazel.build)
 
 ## Test
