@@ -1,16 +1,16 @@
 # luc✦d
 
-Lucid is an experimental programming language.
+Lucid is an experimental programming language and toolchain developed from scratch.
 
 ## Overview
 
-* [Architecture](ARCHITECTURE.md)
+- [Architecture](ARCHITECTURE.md)
 
 ## Requires
 
-* ARM64 macOS
-* [Xcode](https://developer.apple.com/xcode) 15.3+
-* [Bazel](https://bazel.build)
+- ARM64 macOS
+- [Xcode](https://developer.apple.com/xcode) 15.3+
+- [Bazel](https://bazel.build)
 
 ## Test
 
@@ -30,7 +30,7 @@ bazel build -c opt //lucid:compiler
 
 ## Run
 
-To compile and run code execute 
+To compile and run code execute
 
 ```
 bazel run -c opt //lucid:compiler -- run examples/main.lu
@@ -40,5 +40,5 @@ bazel run -c opt //lucid:compiler -- run examples/main.lu
 
 To enable syntax highlighting in your editor install
 
-* [neovim-lucid](https://github.com/sgatev/nvim-lucid/tree/main) plugin for [Neovim](https://neovim.io)
-* [tree-sitter-lucid](https://github.com/sgatev/tree-sitter-lucid/tree/main) grammar for [Tree-sitter](https://tree-sitter.github.io/tree-sitter)
+- [neovim-lucid](https://github.com/sgatev/nvim-lucid/tree/main) plugin for [Neovim](https://neovim.io)
+- [tree-sitter-lucid](https://github.com/sgatev/tree-sitter-lucid/tree/main) grammar for [Tree-sitter](https://tree-sitter.github.io/tree-sitter)
