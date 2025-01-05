@@ -194,7 +194,7 @@ int HandleVersionCommand(CommandContext ctx) {
 
 }  // namespace
 
-int Main(std::vector<std::string_view> args) {
+int Run(std::vector<std::string_view> args) {
   return RunCommand(
       "lucid",
       {
@@ -230,6 +230,4 @@ int Main(std::vector<std::string_view> args) {
 
 }  // namespace lucid
 
-int main(int argc, char* argv[]) {
-  return lucid::Main({argv + 1, argv + argc});
-}
+int main(int argc, char* argv[]) { return lucid::Run({argv + 1, argv + argc}); }
