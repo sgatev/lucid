@@ -97,7 +97,7 @@ class AdrInst {
       const std::unordered_map<std::string, std::size_t>& label_offsets,
       std::ostream& out) const {
     std::size_t label_offset = label_offsets.at(std::string(label_));
-    std::size_t offset = (label_offset - pos_) * 4;
+    std::size_t offset = label_offset - pos_;
     auto immlo = offset & 0b11;
     auto immhi = (offset >> 2) & 0b1111111111111111111;
     std::uint32_t res =
@@ -126,7 +126,7 @@ class BInst {
       const std::unordered_map<std::string, std::size_t>& label_offsets,
       std::ostream& out) const {
     std::size_t offset =
-        (label_offsets.at(std::string(label_)) - this_offset_) &
+        ((label_offsets.at(std::string(label_)) - this_offset_) / 4) &
         0b11111111111111111111111111;
     std::uint32_t res = 0b00010100000000000000000000000000 | offset;
 
@@ -173,7 +173,7 @@ class BCondInst {
       const std::unordered_map<std::string, std::size_t>& label_offsets,
       std::ostream& out) const {
     std::size_t offset =
-        (label_offsets.at(std::string(label_)) - this_offset_) &
+        ((label_offsets.at(std::string(label_)) - this_offset_) / 4) &
         0b11111111111111111111111111;
     std::uint32_t res = 0b01010100000000000000000000000000 |
                         (offset << 5) << static_cast<std::uint8_t>(cond_);
@@ -202,7 +202,7 @@ class BlInst {
       std::ostream& out) const {
     std::size_t offset = 0;
     if (!label_.empty()) {
-      offset = (label_offsets.at(std::string(label_)) - this_offset_) &
+      offset = ((label_offsets.at(std::string(label_)) - this_offset_) / 4) &
                0b11111111111111111111111111;
     }
     std::uint32_t res = 0b10010100000000000000000000000000 | offset;
@@ -250,7 +250,7 @@ using Inst =
 class Assembler {
  public:
   // Returns the number of bytes produced by the instructions.
-  std::size_t OutputBytesCount() const { return output_bytes_count_; }
+  std::size_t OutputBytesCount() const { return insts_size_; }
 
   // Writes the bytes produced by the instructions.
   void WriteBytes(std::ostream& out) const {
@@ -263,7 +263,7 @@ class Assembler {
 
   // Inserts `label` after the last instruction that was added.
   void Label(std::string label) {
-    label_offsets_[std::move(label)] = insts_.size();
+    label_offsets_[std::move(label)] = insts_size_;
   }
 
   // Inserts ADD (immediate) instruction.
@@ -378,7 +378,7 @@ class Assembler {
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
   void Adr(X rd, std::string_view label) {
-    Insert(AdrInst(insts_.size(), rd, label));
+    Insert(AdrInst(insts_size_, rd, label));
   }
 
   // Inserts MOV (register) instruction.
@@ -647,7 +647,7 @@ class Assembler {
   // B <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B--Branch-?lang=en
-  void B(std::string_view label) { Insert(BInst(insts_.size(), label)); }
+  void B(std::string_view label) { Insert(BInst(insts_size_, label)); }
 
   // Insert B.cond instruction.
   //
@@ -655,7 +655,7 @@ class Assembler {
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B-cond--Branch-conditionally-?lang=en
   void B(Cond cond, std::string_view label) {
-    Insert(BCondInst(insts_.size(), cond, label));
+    Insert(BCondInst(insts_size_, cond, label));
   }
 
   // Insert BL instruction.
@@ -663,7 +663,7 @@ class Assembler {
   // BL <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
-  void Bl(std::string_view label) { Insert(BlInst(insts_.size(), label)); }
+  void Bl(std::string_view label) { Insert(BlInst(insts_size_, label)); }
 
   // Insert CMP (immediate) instruction.
   //
@@ -889,14 +889,14 @@ class Assembler {
   }
 
   void Insert(Inst inst) {
-    output_bytes_count_ += std::visit(
+    insts_size_ += std::visit(
         [](const auto& inst) { return inst.OutputBytesCount(); }, inst);
     insts_.push_back(std::move(inst));
   }
 
   std::unordered_map<std::string, std::size_t> label_offsets_;
   std::vector<Inst> insts_;
-  std::size_t output_bytes_count_ = 0;
+  std::size_t insts_size_ = 0;
 };
 
 }  // namespace lucid::arm64
