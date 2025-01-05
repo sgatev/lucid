@@ -1,7 +1,9 @@
 #include "lucid/macho.h"
 
 #include <cstdint>
+#include <iostream>
 #include <ostream>
+#include <vector>
 
 #include "lucid/arm64.h"
 
@@ -195,36 +197,6 @@ void WriteStruct(const T& obj, std::ostream& out) {
 
 void WriteCompiledMachObject(const arm64::Assembler& assembler,
                              std::ostream& out) {
-  std::uint32_t section_offset =
-      sizeof(MachHeader64) + sizeof(SegmentCommand64) + sizeof(Section64) +
-      sizeof(BuildVersionCommand) + sizeof(SymTabCommand) +
-      sizeof(DySymTabCommand);
-  std::uint32_t section_size = assembler.OutputBytesCount();
-
-  std::uint32_t symtab_offset =
-      section_offset + section_size + sizeof(RelocationInfo) * 2;
-  std::uint32_t symtab_size = sizeof(NList64) * 3;
-
-  std::uint32_t string_table_offset = symtab_offset + symtab_size;
-
-  const NList64 printf_undef_sym{
-      .n_un{
-          .n_strx = 8,
-      },
-      .n_type = 0x0 /*N_UNDF*/ | 0x01 /*N_EXT*/,
-      .n_sect = 0,
-      .n_desc = 0,
-      .n_value = 0,
-  };
-  const NList64 sleep_undef_sym{
-      .n_un{
-          .n_strx = 16,
-      },
-      .n_type = 0x0 /*N_UNDF*/ | 0x01 /*N_EXT*/,
-      .n_sect = 0,
-      .n_desc = 0,
-      .n_value = 0,
-  };
   const NList64 def_sym{
       .n_un{
           .n_strx = 1,
@@ -234,6 +206,49 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
       .n_desc = 0,
       .n_value = 0,
   };
+  std::vector<NList64> undef_syms;
+  std::vector<RelocationInfo> relocs;
+
+  std::uint32_t idx = 1;
+  std::uint32_t addr = 8;
+
+  for (const auto& [label, positions] : assembler.ExternalLabels()) {
+    undef_syms.push_back({
+        .n_un{
+            .n_strx = addr,
+        },
+        .n_type = 0x0 /*N_UNDF*/ | 0x01 /*N_EXT*/,
+        .n_sect = 0,
+        .n_desc = 0,
+        .n_value = 0,
+    });
+    for (auto pos : positions) {
+      relocs.push_back({
+          .r_address = static_cast<std::int32_t>(
+              pos),            // after first byte address to someFuncExternal
+          .r_symbolnum = idx,  // second symbol
+          .r_pcrel = 1,        // relative call, PC counted
+          .r_length = 2,       // 4 bytes
+          .r_extern = 1,       // external
+          .r_type = 2 /*GENERIC_RELOC_SECTDIFF*/,
+      });
+    }
+    ++idx;
+    addr += label.size() + 1;
+  }
+
+  std::uint32_t section_offset =
+      sizeof(MachHeader64) + sizeof(SegmentCommand64) + sizeof(Section64) +
+      sizeof(BuildVersionCommand) + sizeof(SymTabCommand) +
+      sizeof(DySymTabCommand);
+  std::uint32_t section_size = assembler.OutputBytesCount();
+
+  std::uint32_t symtab_offset =
+      section_offset + section_size + sizeof(RelocationInfo) * relocs.size();
+  std::uint32_t symtab_size = sizeof(NList64) * (1 + undef_syms.size());
+
+  std::uint32_t string_table_offset = symtab_offset + symtab_size;
+
   const DySymTabCommand dysym_tab{
       .ilocalsym = 0,
       .nlocalsym = 0,
@@ -267,22 +282,7 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
       .sdk = 0,
       .ntools = 0,
   };
-  RelocationInfo printf_reloc = {
-      .r_address = 24,   // after first byte address to someFuncExternal
-      .r_symbolnum = 1,  // second symbol
-      .r_pcrel = 1,      // relative call, PC counted
-      .r_length = 2,     // 4 bytes
-      .r_extern = 1,     // external
-      .r_type = 2 /*GENERIC_RELOC_SECTDIFF*/,
-  };
-  RelocationInfo sleep_reloc = {
-      .r_address = 60,   // after first byte address to someFuncExternal
-      .r_symbolnum = 2,  // second symbol
-      .r_pcrel = 1,      // relative call, PC counted
-      .r_length = 2,     // 4 bytes
-      .r_extern = 1,     // external
-      .r_type = 2 /*GENERIC_RELOC_SECTDIFF*/,
-  };
+
   const Section64 section{
       .sectname = "__text",
       .segname = "__TEXT",
@@ -322,19 +322,17 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
   WriteStruct(sym_tab, out);
   WriteStruct(dysym_tab, out);
   assembler.WriteBytes(out);
-  WriteStruct(printf_reloc, out);
-  WriteStruct(sleep_reloc, out);
+  for (const auto& reloc : relocs) WriteStruct(reloc, out);
   WriteStruct(def_sym, out);
-  WriteStruct(printf_undef_sym, out);
-  WriteStruct(sleep_undef_sym, out);
+  for (const auto& sym : undef_syms) WriteStruct(sym, out);
 
   out.put(0);
   out.write("_start", 6);
   out.put(0);
-  out.write("_printf", 7);
-  out.put(0);
-  out.write("_nanosleep", 10);
-  out.put(0);
+  for (const auto& [label, _] : assembler.ExternalLabels()) {
+    out.write(label.data(), label.size());
+    out.put(0);
+  }
 }
 
 }  // namespace lucid

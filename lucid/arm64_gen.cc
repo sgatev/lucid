@@ -2,7 +2,6 @@
 
 #include <charconv>
 #include <cstdint>
-#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -255,7 +254,7 @@ void GenerateArmStartBinary(Assembler& assembler) {
   assembler.Label("_print_string");
   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));
   assembler.Mov(X(0), X(1));
-  assembler.Bl("");  // reloc
+  assembler.Bl(assembler.External("_printf"));
   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));
   assembler.Ret();
   assembler.Label("_sleep");
@@ -265,7 +264,7 @@ void GenerateArmStartBinary(Assembler& assembler) {
   assembler.StpPreIndex(X(2), X(3), SP, Imm(-16));
   assembler.Mov(X(0), SP);
   assembler.Mov(X(1), Imm(0));
-  assembler.Bl("");  // reloc
+  assembler.Bl(assembler.External("_nanosleep"));
   assembler.Add(SP, SP, Imm(16));
   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));
   assembler.Ret();

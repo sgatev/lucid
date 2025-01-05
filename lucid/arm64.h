@@ -5,7 +5,9 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <ostream>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <variant>
@@ -51,6 +53,21 @@ class SP : public X {
 
 // ARM64 stack pointer.
 static constexpr SP SP;
+
+// An external label.
+class ExternalLabel {
+ public:
+  ExternalLabel() = default;
+
+  constexpr explicit ExternalLabel(std::string label)
+      : label_(std::move(label)) {}
+
+  // Returns the value of the label.
+  operator std::string() const { return label_; }
+
+ private:
+  std::string label_;
+};
 
 // Represents an ARM64 immediate.
 class Imm {
@@ -261,9 +278,21 @@ class Assembler {
     }
   }
 
+  // Returns all external labels that were created.
+  const std::map<std::string, std::vector<std::size_t>>& ExternalLabels()
+      const {
+    return external_labels_;
+  }
+
   // Inserts `label` after the last instruction that was added.
   void Label(std::string label) {
     label_offsets_[std::move(label)] = insts_size_;
+  }
+
+  // Creates an external label.
+  ExternalLabel External(std::string label) {
+    external_labels_.try_emplace(label);
+    return ExternalLabel(std::move(label));
   }
 
   // Inserts ADD (immediate) instruction.
@@ -665,6 +694,16 @@ class Assembler {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
   void Bl(std::string_view label) { Insert(BlInst(insts_size_, label)); }
 
+  // Insert BL instruction.
+  //
+  // BL <label>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
+  void Bl(ExternalLabel label) {
+    external_labels_[label].push_back(insts_size_);
+    Bl("");
+  }
+
   // Insert CMP (immediate) instruction.
   //
   // CMP <Wn|WSP>, #<imm>{, <shift>}
@@ -897,6 +936,7 @@ class Assembler {
   std::unordered_map<std::string, std::size_t> label_offsets_;
   std::vector<Inst> insts_;
   std::size_t insts_size_ = 0;
+  std::map<std::string, std::vector<std::size_t>> external_labels_;
 };
 
 }  // namespace lucid::arm64
