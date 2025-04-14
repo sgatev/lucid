@@ -210,26 +210,26 @@ struct ArrayTypePattern {
 class AstFixture {
  protected:
   // Allocates the statement `stmt` on an arena.
-  template <typename S>
-  StmtRef S(S stmt) {
+  template <typename X>
+  StmtRef S(X stmt) {
     return ctx_.Add(stmt);
   }
 
   // Allocates the expression `expr` on an arena.
-  template <typename E>
-  ExprRef E(E expr) {
+  template <typename X>
+  ExprRef E(X expr) {
     return ctx_.Add(expr);
   }
 
   // Allocates the type `type` on an arena.
-  template <typename T>
-  TypeRef T(T type) {
+  template <typename X>
+  TypeRef T(X type) {
     return ctx_.Add(type);
   }
 
   // Allocates the type `param` on an arena.
-  template <typename P>
-  ParamRef P(P param) {
+  template <typename X>
+  ParamRef P(X param) {
     return ctx_.Add(param);
   }
 
