@@ -194,14 +194,10 @@ cc_binary(
 )
 
 cc_test(
-    name = "compiler_macos_arm64_test",
-    srcs = ["compiler_macos_arm64_test.cc"],
+    name = "compiler_test",
+    srcs = ["compiler_test.cc"],
     data = [
         ":compiler",
-    ],
-    target_compatible_with = [
-        "@platforms//os:macos",
-        "@platforms//cpu:arm64",
     ],
     deps = [
         ":cli",
@@ -212,10 +208,14 @@ cc_test(
 )
 
 cc_test(
-    name = "compiler_error_test",
-    srcs = ["compiler_error_test.cc"],
+    name = "compiler_macos_arm64_test",
+    srcs = ["compiler_macos_arm64_test.cc"],
     data = [
         ":compiler",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
     ],
     deps = [
         ":cli",

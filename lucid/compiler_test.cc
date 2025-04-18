@@ -10,15 +10,12 @@ using ::testing::EndsWith;
 using ::testing::Eq;
 using ::testing::StartsWith;
 
-// Matches a formatted error string.
-MATCHER_P(FormattedError, matcher, "") {
-  return ExplainMatchResult(
-      matcher,
-      std::string_view(arg).substr(sizeof("\033[31mERROR:\033[0m ") - 1),
-      result_listener);
+TEST_F(CompilerTest, VersionIncludesCommitLine) {
+  ASSERT_THAT(RunCompiler({"version"}),
+              AllOf(ReturnsCode(Eq(0)), Prints(StartsWith("Commit:"))));
 }
 
-TEST_F(CompilerTest, MissingArguments) {
+TEST_F(CompilerTest, NoCommand) {
   ASSERT_THAT(RunCompiler({}),
               AllOf(ReturnsCode(Eq(0)), Prints(Eq(R"(Usage: lucid <command> ...
 
@@ -31,6 +28,14 @@ Available commands:
 )"))));
 }
 
+// Matches a formatted error string.
+MATCHER_P(FormattedError, matcher, "") {
+  return ExplainMatchResult(
+      matcher,
+      std::string_view(arg).substr(sizeof("\033[31mERROR:\033[0m ") - 1),
+      result_listener);
+}
+
 TEST_F(CompilerTest, UnknownCommand) {
   ASSERT_THAT(
       RunCompiler({"foo"}),
@@ -38,7 +43,7 @@ TEST_F(CompilerTest, UnknownCommand) {
             PrintsError(FormattedError(Eq("unknown command 'foo'\n")))));
 }
 
-TEST_F(CompilerTest, MissingBuildArguments) {
+TEST_F(CompilerTest, NoBuildArguments) {
   ASSERT_THAT(RunCompiler({"build"}),
               AllOf(ReturnsCode(Eq(1)),
                     PrintsError(FormattedError(Eq(
@@ -75,11 +80,6 @@ TEST_F(CompilerTest, TypeError) {
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
               AllOf(ReturnsCode(Eq(1)),
                     PrintsError(FormattedError(Eq("expected type Int32\n")))));
-}
-
-TEST_F(CompilerTest, VersionIncludesCommitLine) {
-  ASSERT_THAT(RunCompiler({"version"}),
-              AllOf(ReturnsCode(Eq(0)), Prints(StartsWith("Commit:"))));
 }
 
 }  // namespace
