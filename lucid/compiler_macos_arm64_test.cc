@@ -15,7 +15,7 @@ TEST_F(CompilerTest, Build) {
   )"));
   ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(0));
-  EXPECT_THAT(Run("main"), ReturnsCode(0));
+  EXPECT_THAT(Run(FullPath("main")), ReturnsCode(0));
 }
 
 TEST_F(CompilerTest, EmptyMain) {

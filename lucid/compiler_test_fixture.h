@@ -51,33 +51,31 @@ MATCHER_P(PrintsError, matcher, "") {
 // A fixture that can be used to test both the compiler and the compiled binary,
 class CompilerTest : public testing::Test {
  protected:
-  // Creates a file with name `src_file_name` and sets its content  to `src`.
-  bool CreateFile(std::string_view src_file_name, std::string_view src) {
-    const std::string src_path = FullPath(src_file_name);
-    std::ofstream src_stream(src_path);
-    src_stream << src;
+  // Creates a file with the given `name` and `content`.
+  bool CreateFile(std::string_view name, std::string_view content) {
+    std::ofstream(FullPath(name)) << content;
     return true;
   }
 
-  // Runs the compiler binary with the given `args`.
+  // Returns the full path of the file with the given `name`.
+  std::string FullPath(std::string_view name) { return temp_dir_ / name; }
+
+  // Runs the compiler binary, passing it the given `args`.
   CommandResult RunCompiler(std::initializer_list<std::string_view> args) {
-    std::string cmd = runtime_dir_ / "lucid/compiler";
+    return Run(std::string(runtime_dir_ / "lucid/compiler"), args);
+  }
+
+  // Runs the binary with the given `binary_path`, passing it the given `args`.
+  CommandResult Run(std::string_view binary_path,
+                    std::initializer_list<std::string_view> args = {}) {
+    std::string cmd = std::string(binary_path);
     for (auto arg : args) cmd += " " + std::string(arg);
-    return ExecCommand(cmd);
-  }
-
-  // Runs a binary with the given `binary_name`.
-  CommandResult Run(std::string_view binary_name) {
-    return ExecCommand(FullPath(binary_name));
-  }
-
-  // Returns the full path of the file with the given `file_name`.
-  std::string FullPath(std::string_view file_name) {
-    return temp_dir_ / file_name;
+    return RunCommand(cmd);
   }
 
  private:
-  CommandResult ExecCommand(std::string_view command) {
+  // Runs the given `command`.
+  CommandResult RunCommand(std::string_view command) {
     const std::string out_path = FullPath("stdout");
     const std::string err_path = FullPath("stderr");
     std::string c = std::string(command) + " > " + out_path + " 2> " + err_path;
