@@ -58,22 +58,22 @@ TEST_F(CompilerTest, UnknownFile) {
 
 TEST_F(CompilerTest, ParseError) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = ( -> Int32 {
-        return 0
-      }
-    )"));
+    let main = ( -> Int32 {
+      return 0
+    }
+  )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
               AllOf(ReturnsCode(1), PrintsError(FormattedError(
                                         "expected closing parenthesis or "
-                                        "parameter at line 2, column 19\n"))));
+                                        "parameter at line 2, column 17\n"))));
 }
 
 TEST_F(CompilerTest, TypeError) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-      let main = () -> Int32 {
-        return true
-      }
-    )"));
+    let main = () -> Int32 {
+      return true
+    }
+  )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
               AllOf(ReturnsCode(1),
                     PrintsError(FormattedError("expected type Int32\n"))));
