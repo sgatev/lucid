@@ -24,7 +24,8 @@ class AbstractMachineFunctionGenerator {
     for (const auto& param_ref : graph.func_params) {
       const auto& param = ctx_.DerefParam(param_ref);
       // TODO: Handle `ArrayType`.
-      const auto& param_type = std::get<BasicType>(ctx_.DerefType(param.type));
+      const auto& param_type =
+          std::get<BasicType>(ctx_.DerefType(param.type_constraint));
       if (param_type.name == "Int32") {
         state_.func.stack_slots.push_back(4);
       } else if (param_type.name == "Int64") {
@@ -38,10 +39,10 @@ class AbstractMachineFunctionGenerator {
         if (seq.stmt.has_value()) {
           const auto& stmt = ctx_.DerefStmt(*seq.stmt);
           if (auto* var_decl = std::get_if<VarDeclStmt>(&stmt)) {
-            if (auto* array_type =
-                    std::get_if<ArrayType>(&ctx_.DerefType(var_decl->type))) {
-              const auto& var_decl_type =
-                  std::get<BasicType>(ctx_.DerefType(array_type->element_type));
+            if (auto* array_type = std::get_if<ArrayType>(
+                    &ctx_.DerefType(var_decl->type_constraint))) {
+              const auto& var_decl_type = std::get<BasicType>(
+                  ctx_.DerefType(array_type->element_type_constraint));
               auto size = std::atoi(array_type->size.value.data());
               for (int i = 0; i < size; ++i) {
                 if (var_decl_type.name == "Int32" ||
@@ -52,8 +53,8 @@ class AbstractMachineFunctionGenerator {
                 }
               }
             } else {
-              const auto& var_decl_type =
-                  std::get<BasicType>(ctx_.DerefType(var_decl->type));
+              const auto& var_decl_type = std::get<BasicType>(
+                  ctx_.DerefType(var_decl->type_constraint));
               if (var_decl_type.name == "Int32") {
                 state_.func.stack_slots.push_back(4);
               } else if (var_decl_type.name == "Int64") {
@@ -113,7 +114,8 @@ class AbstractMachineFunctionGenerator {
         state_.func.instructions.end() - state_.func.instructions.begin();
     for (RegId i = 0; i < graph_.func_params.size(); ++i) {
       const auto& param = ctx_.DerefParam(graph_.func_params[i]);
-      const auto& param_type = std::get<BasicType>(ctx_.DerefType(param.type));
+      const auto& param_type =
+          std::get<BasicType>(ctx_.DerefType(param.type_constraint));
       if (param_type.name == "Int32") {
         state_.func.instructions.push_back(StoreStack32{
             .offset = stack_offset_,
@@ -295,8 +297,10 @@ class AbstractMachineFunctionGenerator {
   }
 
   void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {
-    if (std::holds_alternative<ArrayType>(ctx_.DerefType(stmt.type))) {
-      auto array_type = std::get<ArrayType>(ctx_.DerefType(stmt.type));
+    if (std::holds_alternative<ArrayType>(
+            ctx_.DerefType(stmt.type_constraint))) {
+      auto array_type =
+          std::get<ArrayType>(ctx_.DerefType(stmt.type_constraint));
       auto size = std::atoi(array_type.size.value.data());
       var_stack_[stmt.name] = stack_offset_;
       for (int i = 0; i < size; ++i) {
@@ -307,7 +311,7 @@ class AbstractMachineFunctionGenerator {
 
     if (!stmt.init.has_value()) return;
 
-    auto stmt_type = std::get<BasicType>(ctx_.DerefType(stmt.type));
+    auto stmt_type = std::get<BasicType>(ctx_.DerefType(stmt.type_constraint));
     if (stmt_type.name == "Int32") {
       state_.func.instructions.push_back(StoreStack32{
           .offset = stack_offset_,

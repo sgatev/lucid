@@ -29,7 +29,7 @@ class ExprTypeInferenceEngine {
   Result<void, TypeError> InferTypes() {
     for (const auto& param_ref : func_def_.params) {
       const auto& param = ctx_.DerefParam(param_ref);
-      SetIdentType(param.name, param.type);
+      SetIdentType(param.name, param.type_constraint);
     }
 
     AddPendingStmts(std::ranges::reverse_view(func_def_.stmts));
@@ -109,13 +109,13 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingStmt(StmtRef stmt_ref, const VarDeclStmt& stmt) {
-    SetIdentType(stmt.name, stmt.type);
+    SetIdentType(stmt.name, stmt.type_constraint);
     if (stmt.init.has_value()) {
       if (auto* array_type =
-              std::get_if<ArrayType>(&ctx_.DerefType(stmt.type))) {
-        RequireTypeForExpr(*stmt.init, array_type->element_type);
+              std::get_if<ArrayType>(&ctx_.DerefType(stmt.type_constraint))) {
+        RequireTypeForExpr(*stmt.init, array_type->element_type_constraint);
       } else {
-        RequireTypeForExpr(*stmt.init, stmt.type);
+        RequireTypeForExpr(*stmt.init, stmt.type_constraint);
       }
       AddPendingExpr(*stmt.init);
     }
@@ -156,7 +156,7 @@ class ExprTypeInferenceEngine {
     for (std::uint32_t i = 0; i < expr.args.size(); ++i) {
       const auto& param = ctx_.DerefParam(func_def->params[i]);
       ExprRef arg = expr.args[i];
-      RequireTypeForExpr(arg, param.type);
+      RequireTypeForExpr(arg, param.type_constraint);
       AddPendingExpr(arg);
     }
     RequireTypeForExpr(
@@ -238,7 +238,8 @@ class ExprTypeInferenceEngine {
     if (std::holds_alternative<ArrayType>(lhs_type)) {
       const auto& lhs = std::get<ArrayType>(lhs_type);
       const auto& rhs = std::get<ArrayType>(rhs_type);
-      return TypesEqual(lhs.element_type, rhs.element_type) &&
+      return TypesEqual(lhs.element_type_constraint,
+                        rhs.element_type_constraint) &&
              lhs.size.value == rhs.size.value;
     }
 
@@ -275,7 +276,7 @@ class ExprTypeInferenceEngine {
             it != expr_from_type_.end()) {
           const auto& array_type =
               std::get<ArrayType>(ctx_.DerefType(it->second));
-          expr_from_type_[element] = array_type.element_type;
+          expr_from_type_[element] = array_type.element_type_constraint;
         }
       }
 

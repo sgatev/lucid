@@ -188,7 +188,7 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
       .args = EmptyList<Expr>(),
   });
   auto var_decl_stmt = S(VarDeclStmt{
-      .type = T(BasicType{.name = "Int32"}),
+      .type_constraint = T(BasicType{.name = "Int32"}),
       .name = "x",
       .init = func_call_stmt_ref,
   });
@@ -397,7 +397,7 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   });
   auto var_decl_stmt = S(VarDeclStmt{
       .name = "x",
-      .type = T(BasicType{.name = "Int32"}),
+      .type_constraint = T(BasicType{.name = "Int32"}),
       .init = int_lit,
   });
   auto return_stmt = S(ReturnStmt{
@@ -497,7 +497,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   auto break_stmt = S(BreakStmt{});
   auto return_value_ref = E(IdentExpr{.name = "n"});
   auto var_decl_stmt = S(VarDeclStmt{
-      .type = T(BasicType{.name = "Int32"}),
+      .type_constraint = T(BasicType{.name = "Int32"}),
       .name = "n",
       .init = n_var_init_ref,
   });

@@ -162,7 +162,7 @@ class Parser {
 
     const auto maybe_type = ParseType();
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
-    param.type = std::get<TypeRef>(maybe_type);
+    param.type_constraint = std::get<TypeRef>(maybe_type);
 
     return std::move(param);
   }
@@ -321,7 +321,7 @@ class Parser {
     if (IsError(init)) return std::get<ParserError>(init);
 
     return VarDeclStmt{
-        .type = std::get<TypeRef>(maybe_type),
+        .type_constraint = std::get<TypeRef>(maybe_type),
         .name = std::get<std::string_view>(maybe_name),
         .init = ctx_.Add(std::get<Expr>(init)),
     };
@@ -631,7 +631,7 @@ class Parser {
       }
 
       return ctx_.Add(ArrayType{
-          .element_type = ctx_.Add(BasicType{
+          .element_type_constraint = ctx_.Add(BasicType{
               .name = std::get<std::string_view>(maybe_type),
           }),
           .size = std::get<IntLitExpr>(maybe_size),

@@ -150,7 +150,7 @@ struct FuncParam {
   std::string_view name;
 
   // Type of the parameter.
-  TypeRef type;
+  TypeRef type_constraint;
 
   bool operator==(const FuncParam&) const = default;
 };
@@ -216,7 +216,7 @@ struct VarDeclStmt {
   std::string_view name;
 
   // Type of the variable.
-  TypeRef type;
+  TypeRef type_constraint;
 
   // Initializer expression.
   std::optional<ExprRef> init;
@@ -333,7 +333,7 @@ struct BasicType {
 // An array type in the Lucid language.
 struct ArrayType {
   // Type of the elements of the array.
-  TypeRef element_type;
+  TypeRef element_type_constraint;
 
   // Number of elements in the array.
   IntLitExpr size;

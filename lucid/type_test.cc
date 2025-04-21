@@ -60,7 +60,7 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = "x",
-              .type = T(BasicType{.name = "Int64"}),
+              .type_constraint = T(BasicType{.name = "Int64"}),
               .init = E(IntLitExpr{
                   .value = "21",
               }),
@@ -69,20 +69,21 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
   };
 
   EXPECT_TRUE(InferExprTypes(func).HasValue());
-  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
-                        .name = "foo",
-                        .result_type = MatchesBasicType({.name = "Void"}),
-                        .body = {{
-                            MatchesVarDeclStmt({
-                                .name = "x",
-                                .type = MatchesBasicType({.name = "Int64"}),
-                                .init = MatchesIntLitExpr({
-                                    .type = MatchesBasicType({.name = "Int64"}),
-                                    .value = "21",
-                                }),
-                            }),
-                        }},
-                    })));
+  EXPECT_THAT(
+      func, HoldsFuncDef(MatchesFuncDefStmt({
+                .name = "foo",
+                .result_type = MatchesBasicType({.name = "Void"}),
+                .body = {{
+                    MatchesVarDeclStmt({
+                        .name = "x",
+                        .type_constraint = MatchesBasicType({.name = "Int64"}),
+                        .init = MatchesIntLitExpr({
+                            .type = MatchesBasicType({.name = "Int64"}),
+                            .value = "21",
+                        }),
+                    }),
+                }},
+            })));
 }
 
 TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
@@ -92,7 +93,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
       .params = ParamListOf({
           P(FuncParam{
               .name = "x",
-              .type = T(BasicType{.name = "Int64"}),
+              .type_constraint = T(BasicType{.name = "Int64"}),
           }),
       }),
       .stmts = StmtListOf({
@@ -106,26 +107,28 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
   };
 
   EXPECT_TRUE(InferExprTypes(func).HasValue());
-  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
-                        .name = "foo",
-                        .result_type = MatchesBasicType({.name = "Void"}),
-                        .params =
-                            {
-                                MatchesFuncParam({
-                                    .name = "x",
-                                    .type = MatchesBasicType({.name = "Int64"}),
-                                }),
-                            },
-                        .body = {{
-                            MatchesVarAssignStmt({
-                                .name = "x",
-                                .expr = MatchesIntLitExpr({
-                                    .type = MatchesBasicType({.name = "Int64"}),
-                                    .value = "21",
-                                }),
-                            }),
-                        }},
-                    })));
+  EXPECT_THAT(
+      func,
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "foo",
+          .result_type = MatchesBasicType({.name = "Void"}),
+          .params =
+              {
+                  MatchesFuncParam({
+                      .name = "x",
+                      .type_constraint = MatchesBasicType({.name = "Int64"}),
+                  }),
+              },
+          .body = {{
+              MatchesVarAssignStmt({
+                  .name = "x",
+                  .expr = MatchesIntLitExpr({
+                      .type = MatchesBasicType({.name = "Int64"}),
+                      .value = "21",
+                  }),
+              }),
+          }},
+      })));
 }
 
 TEST_F(InferExprTypesTest, IfStmtCond) {
@@ -135,7 +138,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
       .params = ParamListOf({
           P(FuncParam{
               .name = "n",
-              .type = T(BasicType{.name = "Int32"}),
+              .type_constraint = T(BasicType{.name = "Int32"}),
           }),
       }),
       .stmts = StmtListOf({
@@ -151,27 +154,29 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
   };
 
   EXPECT_TRUE(InferExprTypes(func).HasValue());
-  EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
-                        .name = "fact",
-                        .result_type = MatchesBasicType({.name = "Void"}),
-                        .params =
-                            {
-                                MatchesFuncParam({
-                                    .name = "n",
-                                    .type = MatchesBasicType({.name = "Int32"}),
-                                }),
-                            },
-                        .body = {{{
-                            MatchesIfStmt({
-                                .cond = MatchesBinaryOpExpr({
-                                    .type = MatchesBasicType({.name = "Bool"}),
-                                    .op = BinaryOp::Eq,
-                                    .lhs = MatchesAnyExpr(),
-                                    .rhs = MatchesAnyExpr(),
-                                }),
-                            }),
-                        }}},
-                    })));
+  EXPECT_THAT(
+      func,
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = "fact",
+          .result_type = MatchesBasicType({.name = "Void"}),
+          .params =
+              {
+                  MatchesFuncParam({
+                      .name = "n",
+                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                  }),
+              },
+          .body = {{{
+              MatchesIfStmt({
+                  .cond = MatchesBinaryOpExpr({
+                      .type = MatchesBasicType({.name = "Bool"}),
+                      .op = BinaryOp::Eq,
+                      .lhs = MatchesAnyExpr(),
+                      .rhs = MatchesAnyExpr(),
+                  }),
+              }),
+          }}},
+      })));
 }
 
 TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
@@ -181,7 +186,7 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = "x",
-              .type = T(BasicType{.name = "Int64"}),
+              .type_constraint = T(BasicType{.name = "Int64"}),
               .init = E(BinaryOpExpr{
                   .op = BinaryOp::Add,
                   .lhs = E(IntLitExpr{
@@ -196,29 +201,29 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
   };
 
   EXPECT_TRUE(InferExprTypes(func).HasValue());
-  EXPECT_THAT(func,
-              HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "foo",
-                  .result_type = MatchesBasicType({.name = "Void"}),
-                  .body = {{
-                      MatchesVarDeclStmt({
-                          .name = "x",
-                          .type = MatchesBasicType({.name = "Int64"}),
-                          .init = MatchesBinaryOpExpr({
-                              .op = BinaryOp::Add,
-                              .type = MatchesBasicType({.name = "Int64"}),
-                              .lhs = MatchesIntLitExpr({
-                                  .type = MatchesBasicType({.name = "Int64"}),
-                                  .value = "2",
-                              }),
-                              .rhs = MatchesIntLitExpr({
-                                  .type = MatchesBasicType({.name = "Int64"}),
-                                  .value = "3",
-                              }),
-                          }),
-                      }),
-                  }},
-              })));
+  EXPECT_THAT(
+      func, HoldsFuncDef(MatchesFuncDefStmt({
+                .name = "foo",
+                .result_type = MatchesBasicType({.name = "Void"}),
+                .body = {{
+                    MatchesVarDeclStmt({
+                        .name = "x",
+                        .type_constraint = MatchesBasicType({.name = "Int64"}),
+                        .init = MatchesBinaryOpExpr({
+                            .op = BinaryOp::Add,
+                            .type = MatchesBasicType({.name = "Int64"}),
+                            .lhs = MatchesIntLitExpr({
+                                .type = MatchesBasicType({.name = "Int64"}),
+                                .value = "2",
+                            }),
+                            .rhs = MatchesIntLitExpr({
+                                .type = MatchesBasicType({.name = "Int64"}),
+                                .value = "3",
+                            }),
+                        }),
+                    }),
+                }},
+            })));
 }
 
 TEST_F(InferExprTypesTest, FuncArgFromParamType) {
@@ -228,7 +233,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
       .params = ParamListOf({
           P(FuncParam{
               .name = "x",
-              .type = T(BasicType{.name = "Int32"}),
+              .type_constraint = T(BasicType{.name = "Int32"}),
           }),
       }),
   };
@@ -317,57 +322,58 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
 }
 
 TEST_F(InferExprTypesTest, ArrayIndex) {
-  auto func =
-      FuncDefStmt{.name = "foo",
-                  .result_type = T(BasicType{.name = "Int32"}),
-                  .stmts = StmtListOf({
-                      S(VarDeclStmt{
-                          .name = "a",
-                          .type = T(ArrayType{
-                              .element_type = T(BasicType{.name = "Int32"}),
-                              .size = IntLitExpr{.value = "10"},
-                          }),
-                      }),
-                      S(ReturnStmt{
-                          .value = E(IndexExpr{
-                              .base = E(IdentExpr{.name = "a"}),
-                              .index = E(IntLitExpr{.value = "2"}),
-                          }),
-                      }),
-                  })};
+  auto func = FuncDefStmt{
+      .name = "foo",
+      .result_type = T(BasicType{.name = "Int32"}),
+      .stmts = StmtListOf({
+          S(VarDeclStmt{
+              .name = "a",
+              .type_constraint = T(ArrayType{
+                  .element_type_constraint = T(BasicType{.name = "Int32"}),
+                  .size = IntLitExpr{.value = "10"},
+              }),
+          }),
+          S(ReturnStmt{
+              .value = E(IndexExpr{
+                  .base = E(IdentExpr{.name = "a"}),
+                  .index = E(IntLitExpr{.value = "2"}),
+              }),
+          }),
+      })};
 
   EXPECT_TRUE(InferExprTypes(func).HasValue());
-  EXPECT_THAT(
-      func, HoldsFuncDef(MatchesFuncDefStmt({
-                .name = "foo",
-                .result_type = MatchesBasicType({.name = "Int32"}),
-                .body = {{
-                    MatchesVarDeclStmt({
-                        .name = "a",
-                        .type = MatchesArrayType({
-                            .element_type = MatchesBasicType({.name = "Int32"}),
-                            .size = {.value = "10"},
-                        }),
-                    }),
-                    MatchesReturnStmt({
-                        .value = MatchesIndexExpr({
-                            .base = MatchesIdentExpr({
-                                .name = "a",
-                                .type = MatchesArrayType({
-                                    .element_type =
-                                        MatchesBasicType({.name = "Int32"}),
-                                    .size = {.value = "10"},
-                                }),
-                            }),
-                            .index = MatchesIntLitExpr({
-                                .value = "2",
-                                .type = MatchesBasicType({.name = "Int32"}),
-                            }),
-                            .type = MatchesBasicType({.name = "Int32"}),
-                        }),
-                    }),
-                }},
-            })));
+  EXPECT_THAT(func,
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = "foo",
+                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .body = {{
+                      MatchesVarDeclStmt({
+                          .name = "a",
+                          .type_constraint = MatchesArrayType({
+                              .element_type_constraint =
+                                  MatchesBasicType({.name = "Int32"}),
+                              .size = {.value = "10"},
+                          }),
+                      }),
+                      MatchesReturnStmt({
+                          .value = MatchesIndexExpr({
+                              .base = MatchesIdentExpr({
+                                  .name = "a",
+                                  .type = MatchesArrayType({
+                                      .element_type_constraint =
+                                          MatchesBasicType({.name = "Int32"}),
+                                      .size = {.value = "10"},
+                                  }),
+                              }),
+                              .index = MatchesIntLitExpr({
+                                  .value = "2",
+                                  .type = MatchesBasicType({.name = "Int32"}),
+                              }),
+                              .type = MatchesBasicType({.name = "Int32"}),
+                          }),
+                      }),
+                  }},
+              })));
 }
 
 TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
@@ -377,7 +383,7 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = "x",
-              .type = T(BasicType{.name = "Int32"}),
+              .type_constraint = T(BasicType{.name = "Int32"}),
               .init = E(BoolLitExpr{
                   .value = "true",
               }),
@@ -397,14 +403,14 @@ TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = "x",
-              .type = T(BasicType{.name = "Int32"}),
+              .type_constraint = T(BasicType{.name = "Int32"}),
               .init = E(IntLitExpr{
                   .value = "2",
               }),
           }),
           S(VarDeclStmt{
               .name = "y",
-              .type = T(BasicType{.name = "Int64"}),
+              .type_constraint = T(BasicType{.name = "Int64"}),
               .init = E(IdentExpr{
                   .name = "x",
               }),

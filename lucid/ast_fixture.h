@@ -42,10 +42,12 @@ inline bool AllMatch(List<T> real, const std::vector<P>& patterns) {
 
 struct FuncParamPattern {
   std::string_view name;
-  TypeRefMatcher type;
+  TypeRefMatcher type_constraint;
 
   bool operator()(const FuncParam& param) const {
-    if (type != nullptr && !type(param.type)) return false;
+    if (type_constraint != nullptr && !type_constraint(param.type_constraint)) {
+      return false;
+    }
     return name == param.name;
   }
 };
@@ -169,12 +171,14 @@ struct FuncCallExprPattern {
 };
 
 struct VarDeclStmtPattern {
-  TypeRefMatcher type;
+  TypeRefMatcher type_constraint;
   std::string_view name;
   ExprRefMatcher init;
 
   bool operator()(const VarDeclStmt& stmt) const {
-    if (type != nullptr && !type(stmt.type)) return false;
+    if (type_constraint != nullptr && !type_constraint(stmt.type_constraint)) {
+      return false;
+    }
     if (init != nullptr) {
       if (!stmt.init.has_value()) return false;
       if (init != nullptr && !init(*stmt.init)) return false;
@@ -199,11 +203,12 @@ struct BasicTypePattern {
 };
 
 struct ArrayTypePattern {
-  TypeRefMatcher element_type;
+  TypeRefMatcher element_type_constraint;
   IntLitExprPattern size;
 
   bool operator()(const ArrayType& type) const {
-    return element_type(type.element_type) && size(type.size);
+    return element_type_constraint(type.element_type_constraint) &&
+           size(type.size);
   }
 };
 
