@@ -56,6 +56,12 @@ using TypeRef = ArenaRef<Type>;
 
 using ParamRef = ArenaRef<FuncParam>;
 
+// A common base of all expressions.
+struct ExprBase {
+  // Type of the expression.
+  TypeRef type;
+};
+
 // A list of references.
 template <typename T>
 class List {
@@ -178,37 +184,25 @@ struct DoStmt {
 };
 
 // An expression that represents an integer literal.
-struct IntLitExpr {
-  // Type of the expression.
-  TypeRef type;
-
+struct IntLitExpr : public ExprBase {
   // Value of the integer.
   std::string_view value;
 };
 
 // An expression that represents a boolean literal.
-struct BoolLitExpr {
-  // Type of the expression.
-  TypeRef type;
-
+struct BoolLitExpr : public ExprBase {
   // Value of the boolean.
   std::string_view value;
 };
 
 // An expression that represents a string literal.
-struct StringLitExpr {
-  // Type of the expression.
-  TypeRef type;
-
+struct StringLitExpr : public ExprBase {
   // Value of the string.
   std::string_view value;
 };
 
 // An expression that represents a function call.
-struct FuncCallExpr {
-  // Type of the expression.
-  TypeRef type;
-
+struct FuncCallExpr : public ExprBase {
   // Name of the function.
   std::string_view func_name;
 
@@ -250,19 +244,13 @@ struct ArrayAssignStmt {
 };
 
 // An expression that represents an identifier.
-struct IdentExpr {
-  // Type of the expression.
-  TypeRef type;
-
+struct IdentExpr : public ExprBase {
   // Name of the identifier.
   std::string_view name;
 };
 
 // An expression that represents an indexing operation.
-struct IndexExpr {
-  // Type of the expression.
-  TypeRef type;
-
+struct IndexExpr : public ExprBase {
   // Base of the indexing operation.
   ExprRef base;
 
@@ -302,10 +290,7 @@ enum class BinaryOp {
 
 // An expression that represents a binary operation over the values of two
 // sub-expressions.
-struct BinaryOpExpr {
-  // Type of the expression.
-  TypeRef type;
-
+struct BinaryOpExpr : public ExprBase {
   // Binary operation kind.
   BinaryOp op;
 
