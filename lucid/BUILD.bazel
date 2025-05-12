@@ -380,6 +380,28 @@ cc_test(
 )
 
 cc_library(
+    name = "static",
+    srcs = ["static.cc"],
+    hdrs = ["static.h"],
+    deps = [
+        ":ast",
+        ":cfg",
+        ":result",
+    ],
+)
+
+cc_test(
+    name = "static_test",
+    srcs = ["static_test.cc"],
+    deps = [
+        ":ast",
+        ":ast_fixture",
+        ":static",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "string",
     srcs = ["string.cc"],
     hdrs = ["string.h"],

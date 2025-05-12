@@ -60,6 +60,10 @@ using ParamRef = ArenaRef<FuncParam>;
 struct ExprBase {
   // Type of the expression.
   TypeRef type;
+
+  // Indicates whether the expression can be evaluated statically during
+  // compilation.
+  bool is_static;
 };
 
 // A list of references.
