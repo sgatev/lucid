@@ -44,5 +44,66 @@ TEST_F(InferStaticExprsTest, IntLitExpr) {
   EXPECT_TRUE(std::get<IntLitExpr>(ctx_.DerefExpr(expr)).is_static);
 }
 
+TEST_F(InferStaticExprsTest, StaticBinaryOpExpr) {
+  auto expr = E(BinaryOpExpr{
+      .op = BinaryOp::Add,
+      .lhs = E(IntLitExpr{}),
+      .rhs = E(BinaryOpExpr{
+          .op = BinaryOp::Mul,
+          .lhs = E(IntLitExpr{}),
+          .rhs = E(IntLitExpr{}),
+      }),
+  });
+
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
+      .name = "foo",
+      .result_type = T(BasicType{.name = "Void"}),
+      .stmts = StmtListOf({
+          S(DoStmt{.expr = expr}),
+      }),
+  });
+
+  ASSERT_TRUE(InferStaticExprs(ctx_, graph).HasValue());
+  EXPECT_TRUE(std::get<BinaryOpExpr>(ctx_.DerefExpr(expr)).is_static);
+}
+
+TEST_F(InferStaticExprsTest, BinaryOpExprNonStaticLhs) {
+  auto expr = E(BinaryOpExpr{
+      .op = BinaryOp::Add,
+      .lhs = E(IdentExpr{}),
+      .rhs = E(IntLitExpr{}),
+  });
+
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
+      .name = "foo",
+      .result_type = T(BasicType{.name = "Void"}),
+      .stmts = StmtListOf({
+          S(DoStmt{.expr = expr}),
+      }),
+  });
+
+  ASSERT_TRUE(InferStaticExprs(ctx_, graph).HasValue());
+  EXPECT_FALSE(std::get<BinaryOpExpr>(ctx_.DerefExpr(expr)).is_static);
+}
+
+TEST_F(InferStaticExprsTest, BinaryOpExprNonStaticRhs) {
+  auto expr = E(BinaryOpExpr{
+      .op = BinaryOp::Add,
+      .lhs = E(IntLitExpr{}),
+      .rhs = E(IdentExpr{}),
+  });
+
+  auto graph = BuildControlFlowGraph(FuncDefStmt{
+      .name = "foo",
+      .result_type = T(BasicType{.name = "Void"}),
+      .stmts = StmtListOf({
+          S(DoStmt{.expr = expr}),
+      }),
+  });
+
+  ASSERT_TRUE(InferStaticExprs(ctx_, graph).HasValue());
+  EXPECT_FALSE(std::get<BinaryOpExpr>(ctx_.DerefExpr(expr)).is_static);
+}
+
 }  // namespace
 }  // namespace lucid

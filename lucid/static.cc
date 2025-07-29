@@ -2,6 +2,7 @@
 
 #include <variant>
 
+#include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/result.h"
 
@@ -35,8 +36,15 @@ class StaticExprInferenceEngine {
       int_lit_expr->is_static = true;
     } else if (auto* _ = std::get_if<IdentExpr>(&expr)) {
     } else if (auto* _ = std::get_if<IndexExpr>(&expr)) {
-    } else if (auto* _ = std::get_if<BinaryOpExpr>(&expr)) {
+    } else if (auto* binary_op_expr = std::get_if<BinaryOpExpr>(&expr)) {
+      binary_op_expr->is_static =
+          IsStatic(binary_op_expr->lhs) && IsStatic(binary_op_expr->rhs);
     }
+  }
+
+  bool IsStatic(ExprRef ref) const {
+    return std::visit([](auto& expr) { return expr.is_static; },
+                      ctx_.DerefExpr(ref));
   }
 
   SyntaxContext& ctx_;
