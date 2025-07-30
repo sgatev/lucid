@@ -188,6 +188,7 @@ cc_binary(
         ":macho",
         ":opt",
         ":parser",
+        ":static",
         ":type",
         ":version",
     ],

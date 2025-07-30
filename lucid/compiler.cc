@@ -20,6 +20,7 @@
 #include "lucid/opt.h"
 #include "lucid/parser.h"
 #include "lucid/result.h"
+#include "lucid/static.h"
 #include "lucid/type.h"
 #include "lucid/version.h"
 
@@ -46,8 +47,8 @@ Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
   return func_defs;
 }
 
-Result<void, ParserError, TypeError> CompileSource(std::string_view src,
-                                                   std::ostream& out) {
+Result<void, ParserError, TypeError, StaticError> CompileSource(
+    std::string_view src, std::ostream& out) {
   SyntaxContext ctx;
   auto maybe_funcs = ParseFuncDefs(src, ctx);
   if (maybe_funcs.HasError()) return maybe_funcs.GetError();
@@ -60,6 +61,9 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
       return res.GetError();
     }
     auto graph = BuildControlFlowGraph(ctx, func);
+    if (auto res = InferStaticExprs(ctx, graph); res.HasError()) {
+      return res.GetError();
+    }
     GenerateAbstractMachineFunction(ctx, graph, state);
     OptimizeAbstractMachineInstructions(state.func.instructions);
     GenerateArmAssemblyBinary(state.func, assembler);
@@ -74,7 +78,7 @@ struct CompileConfig {
   std::filesystem::path out_path;
 };
 
-Result<void, ReadFileError, ParserError, TypeError> Compile(
+Result<void, ReadFileError, ParserError, TypeError, StaticError> Compile(
     CompileConfig config) {
   const auto maybe_src = ReadFile(config.src_path, /*with_trailing_zero=*/true);
   if (maybe_src.HasError()) return maybe_src.GetError();
@@ -89,7 +93,8 @@ struct BuildConfig {
   std::filesystem::path out_path;
 };
 
-Result<void, ReadFileError, ParserError, TypeError> Build(BuildConfig config) {
+Result<void, ReadFileError, ParserError, TypeError, StaticError> Build(
+    BuildConfig config) {
   auto obj_path = config.out_path;
   obj_path.replace_extension("o");
 
