@@ -67,9 +67,9 @@ TEST(LexerTest, Ident) {
       ElementsAre(Tok(Kind::Ident, "_foo_bar"), Tok(Kind::Space, "  ")));
   EXPECT_THAT(ReadTokens("Foo21  "),
               ElementsAre(Tok(Kind::Ident, "Foo21"), Tok(Kind::Space, "  ")));
-  EXPECT_THAT(
-      ReadTokens("foo# bar\n"),
-      ElementsAre(Tok(Kind::Ident, "foo"), Tok(Kind::Comment, "# bar\n")));
+  EXPECT_THAT(ReadTokens("foo# bar\n"),
+              ElementsAre(Tok(Kind::Ident, "foo"), Tok(Kind::Comment, "# bar"),
+                          Tok(Kind::Space, "\n")));
   EXPECT_THAT(ReadTokens("foo("),
               ElementsAre(Tok(Kind::Ident, "foo"), Tok(Kind::OpenParen, "(")));
 }
@@ -106,8 +106,9 @@ TEST(LexerTest, Space) {
 }
 
 TEST(LexerTest, Comment) {
-  EXPECT_THAT(ReadTokens("# comment\n"),
-              ElementsAre(Tok(Kind::Comment, "# comment\n")));
+  EXPECT_THAT(
+      ReadTokens("# comment\n"),
+      ElementsAre(Tok(Kind::Comment, "# comment"), Tok(Kind::Space, "\n")));
 }
 
 TEST(LexerTest, Error) {

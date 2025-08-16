@@ -31,15 +31,17 @@ class Lexer {
     if (sym_class > 4) [[unlikely]] {
       // Ident, number, or whitespace.
       while (kClassMap[buffer_[pos_]] % sym_class < 2) ++pos_;
-    } else if (sym_class == 4) [[unlikely]] {
-      // String or comment.
-      const char* pos = std::char_traits<char>::find(
-          buffer_ + pos_, size_ - pos_ - 1, sym == '"' ? '"' : '\n');
-      if (pos == nullptr) [[unlikely]] {
-        pos_ = size_;
-        return Token(Token::Kind::Error, start_pos, pos_);
+    } else if (sym == '"') {
+      // String.
+      while (true) {
+        if (pos_ == size_) return Token(Token::Kind::Error, start_pos, pos_);
+        if (buffer_[pos_] == '"') break;
+        ++pos_;
       }
-      pos_ = pos - buffer_ + 1;
+      ++pos_;
+    } else if (sym == '#') {
+      // Comment.
+      while (pos_ != size_ && buffer_[pos_] != '\n') ++pos_;
     }
     return Token(kTokenKindMap[sym], start_pos, pos_);
   }
