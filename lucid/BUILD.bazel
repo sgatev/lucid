@@ -136,6 +136,24 @@ cc_test(
 )
 
 cc_library(
+    name = "buffered_lexer",
+    srcs = ["buffered_lexer.h"],
+    deps = [
+        ":token",
+    ],
+)
+
+cc_test(
+    name = "buffered_lexer_test",
+    srcs = ["buffered_lexer_test.cc"],
+    deps = [
+        ":lexer",
+        ":buffered_lexer",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "cfg",
     srcs = ["cfg.cc"],
     hdrs = ["cfg.h"],
@@ -181,6 +199,7 @@ cc_binary(
         ":arm64",
         ":arm64_gen",
         ":ast",
+        ":buffered_lexer",
         ":cfg",
         ":cli",
         ":file",
@@ -359,6 +378,7 @@ cc_binary(
     deps = [
         ":arena",
         ":ast",
+        ":buffered_lexer",
         ":lexer",
         ":parser",
         ":token",

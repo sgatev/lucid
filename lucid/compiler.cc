@@ -12,6 +12,7 @@
 #include "lucid/arm64.h"
 #include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
+#include "lucid/buffered_lexer.h"
 #include "lucid/cfg.h"
 #include "lucid/cli.h"
 #include "lucid/file.h"
@@ -30,7 +31,7 @@ namespace {
 Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
     std::string_view src, SyntaxContext& ctx) {
   std::vector<FuncDefStmt> func_defs;
-  Lexer lexer(src);
+  BufferedLexer<Lexer, 1000> lexer(Lexer{src});
   Parser parser(ctx, src, lexer);
   while (true) {
     auto maybe_func_def = parser.ParseFuncDef();

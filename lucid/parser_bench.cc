@@ -1,10 +1,10 @@
 #include <cstddef>
 #include <string>
 #include <string_view>
-#include <variant>
 
 #include "benchmark/benchmark.h"
 #include "lucid/ast.h"
+#include "lucid/buffered_lexer.h"
 #include "lucid/lexer.h"
 #include "lucid/parser.h"
 
@@ -17,7 +17,7 @@ void Benchmark(benchmark::State &state, std::string_view snippet) {
     state.PauseTiming();
     {
       lucid::SyntaxContext ctx;
-      lucid::Lexer lexer(code);
+      lucid::BufferedLexer<lucid::Lexer, 1000> lexer(lucid::Lexer{code});
       lucid::Parser parser(ctx, code, lexer);
 
       state.ResumeTiming();
