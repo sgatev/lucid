@@ -122,8 +122,7 @@ class Parser {
 
       auto maybe_param = ParseParam();
       if (IsError(maybe_param)) return std::get<ParserError>(maybe_param);
-      auto param = ctx_.Add(std::move(std::get<FuncParam>(maybe_param)));
-      if (params_size == 0) first_param = param;
+      if (params_size == 0) first_param = std::get<ParamRef>(maybe_param);
       ++params_size;
     }
     stmt.params = List<ParamRef>(params_size, first_param);
@@ -149,12 +148,9 @@ class Parser {
   }
 
  private:
-  std::variant<FuncParam, ParserError> ParseParam() {
-    FuncParam param;
-
+  std::variant<ParamRef, ParserError> ParseParam() {
     const auto maybe_name = ParseIdent();
     if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
-    param.name = std::get<std::string_view>(maybe_name);
 
     if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) return *r;
 
@@ -162,14 +158,18 @@ class Parser {
 
     const auto maybe_type = ParseType();
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
-    param.type_constraint = std::get<TypeRef>(maybe_type);
 
-    return std::move(param);
+    return ctx_.Add(FuncParam{
+        .name = std::get<std::string_view>(maybe_name),
+        .type_constraint = std::get<TypeRef>(maybe_type),
+    });
   }
 
   std::variant<std::string_view, ParserError> ParseIdent() {
     Token token = Read();
-    if (token.kind == Token::Kind::Ident) return TokenString(token);
+    if (token.kind == Token::Kind::Ident) [[likely]] {
+      return TokenString(token);
+    }
     return MakeError(ParserError::Kind::ExpectedIdent, token);
   }
 
@@ -589,7 +589,7 @@ class Parser {
 
   std::variant<IntLitExpr, ParserError> ParseIntLitExpr() {
     Token token = Read();
-    if (token.kind != Token::Kind::Number) {
+    if (token.kind != Token::Kind::Number) [[unlikely]] {
       return MakeError(ParserError::Kind::ExpectedNumber, token);
     }
     return IntLitExpr{
@@ -599,16 +599,18 @@ class Parser {
 
   std::variant<Expr, ParserError> ParseNumber() {
     const auto maybe_int_lit = ParseIntLitExpr();
-    if (IsError(maybe_int_lit)) return std::get<ParserError>(maybe_int_lit);
+    if (IsError(maybe_int_lit)) [[unlikely]] {
+      return std::get<ParserError>(maybe_int_lit);
+    }
     return std::get<IntLitExpr>(maybe_int_lit);
   }
 
   std::variant<Expr, ParserError> ParseString() {
     Token token = Read();
-    if (token.kind == Token::Kind::Error) {
+    if (token.kind == Token::Kind::Error) [[unlikely]] {
       return MakeError(ParserError::Kind::IncompleteStringLiteral, token);
     }
-    if (token.kind != Token::Kind::String) {
+    if (token.kind != Token::Kind::String) [[unlikely]] {
       return MakeError(ParserError::Kind::ExpectedString, token);
     }
     return StringLitExpr{
@@ -649,14 +651,17 @@ class Parser {
 
   std::optional<ParserError> ExpectToken(Token::Kind kind) {
     Token token = Read();
-    if (token.kind == kind) return std::nullopt;
+    if (token.kind == kind) [[likely]] {
+      return std::nullopt;
+    }
     return MakeError(ParserError::Kind::UnexpectedToken, token);
   }
 
   std::optional<ParserError> ExpectIdent(std::string_view text,
                                          ParserError::Kind error_kind) {
     Token token = Read();
-    if (token.kind != Token::Kind::Ident || TokenString(token) != text) {
+    if (token.kind != Token::Kind::Ident || TokenString(token) != text)
+        [[unlikely]] {
       return MakeError(error_kind, token);
     }
     return std::nullopt;
