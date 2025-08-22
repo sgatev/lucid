@@ -12,6 +12,7 @@
 #include "lucid/arm64.h"
 #include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
+#include "lucid/ast_printer.h"
 #include "lucid/buffered_lexer.h"
 #include "lucid/cfg.h"
 #include "lucid/cli.h"
@@ -192,6 +193,33 @@ int HandleParseCommand(CommandContext ctx) {
   return 0;
 }
 
+int HandlePrintAstCommand(CommandContext ctx) {
+  if (ctx.args.size() != 1) {
+    PrintError(ctx.err) << "'print-ast' command requires exactly 1 argument\n";
+    return 1;
+  }
+
+  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
+  if (maybe_src.HasError()) {
+    maybe_src.OutputError(PrintError(ctx.err));
+    return 1;
+  }
+  const auto& src = maybe_src.GetValue();
+
+  SyntaxContext sctx;
+  auto maybe_funcs = ParseFuncDefs(src, sctx);
+  if (maybe_funcs.HasError()) {
+    maybe_funcs.OutputError(PrintError(ctx.err));
+    return 1;
+  }
+  const auto& func_defs = maybe_funcs.GetValue();
+
+  for (const auto& func_def : func_defs) Print(sctx, func_def);
+
+  return 0;
+}
+
 int HandleVersionCommand(CommandContext ctx) {
   ctx.out << "Commit: " << kGitCommit << "\n";
 
@@ -224,6 +252,11 @@ int Run(std::vector<std::string_view> args) {
               .name = "parse",
               .help = "Parses the specified target.",
               .handler = HandleParseCommand,
+          },
+          {
+              .name = "print-ast",
+              .help = "Parses the specified target and prints the AST.",
+              .handler = HandlePrintAstCommand,
           },
           {
               .name = "version",

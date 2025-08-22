@@ -20,7 +20,7 @@ int RunCommand(std::string_view root_name,
     ctx.out << "Usage: " << root_name << " <command> ...\n\n"
             << "Available commands:\n";
     for (const auto& command : commands) {
-      ctx.out << std::left << "  " << std::setw(8) << command.name << " "
+      ctx.out << std::left << "  " << std::setw(10) << command.name << " "
               << command.help << "\n";
     }
     return 0;

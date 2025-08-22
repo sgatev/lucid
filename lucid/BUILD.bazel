@@ -111,6 +111,15 @@ cc_test(
 )
 
 cc_library(
+    name = "ast_printer",
+    hdrs = ["ast_printer.h"],
+    srcs = ["ast_printer.cc"],
+    deps = [
+        ":ast",
+    ],
+)
+
+cc_library(
     name = "ast_fixture",
     testonly = True,
     hdrs = ["ast_fixture.h"],
@@ -199,6 +208,7 @@ cc_binary(
         ":arm64",
         ":arm64_gen",
         ":ast",
+        ":ast_printer",
         ":buffered_lexer",
         ":cfg",
         ":cli",

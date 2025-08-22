@@ -19,11 +19,12 @@ TEST_F(CompilerTest, NoCommand) {
               AllOf(ReturnsCode(0), Prints(R"(Usage: lucid <command> ...
 
 Available commands:
-  build    Compiles the specified target and builds a binary.
-  compile  Compiles the specified target.
-  run      Compiles the specified target, builds a binary, and runs it.
-  parse    Parses the specified target.
-  version  Prints version information for lucid.
+  build      Compiles the specified target and builds a binary.
+  compile    Compiles the specified target.
+  run        Compiles the specified target, builds a binary, and runs it.
+  parse      Parses the specified target.
+  print-ast  Parses the specified target and prints the AST.
+  version    Prints version information for lucid.
 )")));
 }
 

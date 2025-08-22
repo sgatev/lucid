@@ -7,6 +7,28 @@ namespace {
 
 using ::testing::AllOf;
 
+TEST_F(CompilerTest, PrintAst) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int32 {
+      return 0
+    }
+  )"));
+  ASSERT_THAT(RunCompiler({"print-ast", FullPath("main.lu")}),
+              AllOf(ReturnsCode(0), Prints(R"(FuncDefStmt {
+  .name = "main"
+  .stmts = [
+    ReturnStmt {
+      .value = {
+        IntLitExpr {
+          .value = 0
+        }
+      }
+    }
+  ]
+}
+)")));
+}
+
 TEST_F(CompilerTest, Build) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {
