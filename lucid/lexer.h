@@ -33,11 +33,8 @@ class Lexer {
       while (kClassMap[buffer_[pos_]] % sym_class < 2) ++pos_;
     } else if (sym == '"') {
       // String.
-      while (true) {
-        if (pos_ == size_) return Token(Token::Kind::Error, start_pos, pos_);
-        if (buffer_[pos_] == '"') break;
-        ++pos_;
-      }
+      while (pos_ != size_ && buffer_[pos_] != '"') ++pos_;
+      if (pos_ == size_) return Token(Token::Kind::Error, start_pos, pos_);
       ++pos_;
     } else if (sym == '#') {
       // Comment.
