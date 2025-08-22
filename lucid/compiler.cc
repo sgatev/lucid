@@ -194,8 +194,9 @@ int HandleParseCommand(CommandContext ctx) {
 }
 
 int HandlePrintAstCommand(CommandContext ctx) {
-  if (ctx.args.size() != 1) {
-    PrintError(ctx.err) << "'print-ast' command requires exactly 1 argument\n";
+  if (ctx.args.size() < 1 || ctx.args.size() > 2) {
+    PrintError(ctx.err)
+        << "'print-ast' command requires either 1 or 2 arguments\n";
     return 1;
   }
 
@@ -215,7 +216,22 @@ int HandlePrintAstCommand(CommandContext ctx) {
   }
   const auto& func_defs = maybe_funcs.GetValue();
 
-  for (const auto& func_def : func_defs) Print(sctx, func_def);
+  if (ctx.args.size() == 2) {
+    std::string_view id = ctx.args[1];
+    if (id[0] == 'S') {
+      id.remove_prefix(1);
+      PrintStmt(sctx, std::stoi(std::string(id)));
+    } else if (id[0] == 'E') {
+      id.remove_prefix(1);
+      PrintExpr(sctx, std::stoi(std::string(id)));
+    } else {
+      PrintError(ctx.err) << "second argument to 'print-ast' command must be "
+                             "either 'S<index>' or 'E<index>'\n";
+      return 1;
+    }
+  } else {
+    for (const auto& func_def : func_defs) Print(sctx, func_def);
+  }
 
   return 0;
 }

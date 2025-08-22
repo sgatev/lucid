@@ -17,14 +17,27 @@ TEST_F(CompilerTest, PrintAst) {
               AllOf(ReturnsCode(0), Prints(R"(FuncDefStmt {
   .name = "main"
   .stmts = [
-    ReturnStmt {
+    <S0> ReturnStmt {
       .value = {
-        IntLitExpr {
+        <E0> IntLitExpr {
           .value = 0
         }
       }
     }
   ]
+}
+)")));
+}
+
+TEST_F(CompilerTest, PrintAstNode) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int32 {
+      return 0
+    }
+  )"));
+  ASSERT_THAT(RunCompiler({"print-ast", FullPath("main.lu"), "E0"}),
+              AllOf(ReturnsCode(0), Prints(R"(<E0> IntLitExpr {
+  .value = 0
 }
 )")));
 }

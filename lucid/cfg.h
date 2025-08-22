@@ -43,7 +43,7 @@ struct ControlFlowGraph {
 
     // Condition expression that determines the block in `next` that follows
     // this block.
-    ExprRef branch_cond = kNullBlockRef;
+    ExprRef branch_cond = Arena<Expr>::kNullRef;
   };
 
   // Adds `block` to the control flow graph and returns a reference to it.
