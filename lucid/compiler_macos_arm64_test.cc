@@ -17,9 +17,9 @@ TEST_F(CompilerTest, PrintAst) {
               AllOf(ReturnsCode(0), Prints(R"(FuncDefStmt {
   .name = "main"
   .stmts = [
-    [34mS0:[0m ReturnStmt {
+[34m    S0:[0m ReturnStmt {
       .value = {
-        [34mE0:[0m IntLitExpr {
+[34m        E0:[0m IntLitExpr {
           .value = 0
         }
       }
