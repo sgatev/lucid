@@ -17,9 +17,9 @@ TEST_F(CompilerTest, PrintAst) {
               AllOf(ReturnsCode(0), Prints(R"(FuncDefStmt {
   .name = "main"
   .stmts = [
-    <S0> ReturnStmt {
+    [34mS0:[0m ReturnStmt {
       .value = {
-        <E0> IntLitExpr {
+        [34mE0:[0m IntLitExpr {
           .value = 0
         }
       }
@@ -36,7 +36,7 @@ TEST_F(CompilerTest, PrintAstNode) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-ast", FullPath("main.lu"), "E0"}),
-              AllOf(ReturnsCode(0), Prints(R"(<E0> IntLitExpr {
+              AllOf(ReturnsCode(0), Prints(R"([34mE0:[0m IntLitExpr {
   .value = 0
 }
 )")));

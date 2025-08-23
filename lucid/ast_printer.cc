@@ -45,7 +45,7 @@ class AstPrinter {
   void PrintStmt(StmtRef ref) {
     std::visit(
         [&](const auto& stmt) {
-          Out() << "<S" << ref << "> ";
+          Out() << "\033[34m" << "S" << ref << ":" << "\033[0m ";
           Print(stmt);
         },
         ctx_.DerefStmt(ref));
@@ -54,7 +54,7 @@ class AstPrinter {
   void PrintExpr(ExprRef ref) {
     std::visit(
         [&](const auto& expr) {
-          Out() << "<E" << ref << "> ";
+          Out() << "\033[34m" << "E" << ref << ":" << "\033[0m ";
           Print(expr);
         },
         ctx_.DerefExpr(ref));
