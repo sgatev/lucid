@@ -3,7 +3,9 @@
 #include <functional>
 #include <iostream>
 #include <ostream>
+#include <string_view>
 #include <variant>
+#include <vector>
 
 #include "lucid/ast.h"
 
@@ -15,37 +17,37 @@ class AstPrinter {
   explicit AstPrinter(const SyntaxContext& ctx) : ctx_(ctx) {}
 
   void Print(const FuncDefStmt& stmt) {
-    OutFmt() << "FuncDefStmt {" << std::endl;
+    Out() << Indent() << "FuncDefStmt {" << std::endl;
     Nested([&] {
-      OutFmt() << ".name = \"" << stmt.name << "\"" << std::endl;
+      Out() << Indent() << ".name = \"" << stmt.name << "\"" << std::endl;
 
       if (stmt.params.size() > 0) {
-        OutFmt() << ".params = [" << std::endl;
+        Out() << Indent() << ".params = [" << std::endl;
         Nested([&] {
           for (ParamRef param_ref : stmt.params) {
             Print(ctx_.DerefParam(param_ref));
           }
         });
-        OutFmt() << "]" << std::endl;
+        Out() << Indent() << "]" << std::endl;
       }
 
       if (stmt.stmts.size() > 0) {
-        OutFmt() << ".stmts = [" << std::endl;
+        Out() << Indent() << ".stmts = [" << std::endl;
         Nested([&] {
           for (StmtRef stmt_ref : stmt.stmts) {
             PrintStmt(stmt_ref);
           }
         });
-        OutFmt() << "]" << std::endl;
+        Out() << Indent() << "]" << std::endl;
       }
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void PrintStmt(StmtRef ref) {
     std::visit(
         [&](const auto& stmt) {
-          Blue([&] { OutFmt() << "S" << ref << ":"; });
+          Blue([&] { Out() << Indent() << "S" << ref << ":"; });
           Print(stmt);
         },
         ctx_.DerefStmt(ref));
@@ -54,7 +56,7 @@ class AstPrinter {
   void PrintExpr(ExprRef ref) {
     std::visit(
         [&](const auto& expr) {
-          Blue([&] { OutFmt() << "E" << ref << ":"; });
+          Blue([&] { Out() << Indent() << "E" << ref << ":"; });
           Print(expr);
         },
         ctx_.DerefExpr(ref));
@@ -62,108 +64,109 @@ class AstPrinter {
 
  private:
   void Print(const FuncParam& param) {
-    OutFmt() << "FuncParam {" << std::endl;
-    Nested(
-        [&] { OutFmt() << ".name = \"" << param.name << "\"" << std::endl; });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "FuncParam {" << std::endl;
+    Nested([&] {
+      Out() << Indent() << ".name = \"" << param.name << "\"" << std::endl;
+    });
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const VarDeclStmt& stmt) {
     Out() << "VarDeclStmt {" << std::endl;
     Nested([&] {
-      OutFmt() << ".name = \"" << stmt.name << "\"" << std::endl;
+      Out() << Indent() << ".name = \"" << stmt.name << "\"" << std::endl;
 
       if (stmt.init.has_value()) {
-        OutFmt() << ".init = {" << std::endl;
+        Out() << Indent() << ".init = {" << std::endl;
         Nested([&] { PrintExpr(*stmt.init); });
-        OutFmt() << "}" << std::endl;
+        Out() << Indent() << "}" << std::endl;
       }
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const VarAssignStmt& stmt) {
     Out() << "VarAssignStmt {" << std::endl;
     Nested([&] {
-      OutFmt() << ".name = \"" << stmt.name << "\"" << std::endl;
+      Out() << Indent() << ".name = \"" << stmt.name << "\"" << std::endl;
 
-      OutFmt() << ".expr = {" << std::endl;
+      Out() << Indent() << ".expr = {" << std::endl;
       Nested([&] { PrintExpr(stmt.expr); });
-      OutFmt() << "}" << std::endl;
+      Out() << Indent() << "}" << std::endl;
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const ArrayAssignStmt& stmt) {
     Out() << "ArrayAssignStmt {" << std::endl;
     Nested([&] {
-      OutFmt() << ".name = \"" << stmt.name << "\"" << std::endl;
+      Out() << Indent() << ".name = \"" << stmt.name << "\"" << std::endl;
 
-      OutFmt() << ".index = {" << std::endl;
+      Out() << Indent() << ".index = {" << std::endl;
       Nested([&] { PrintExpr(stmt.index); });
-      OutFmt() << "}" << std::endl;
+      Out() << Indent() << "}" << std::endl;
 
-      OutFmt() << ".expr = {" << std::endl;
+      Out() << Indent() << ".expr = {" << std::endl;
       Nested([&] { PrintExpr(stmt.expr); });
-      OutFmt() << "}" << std::endl;
+      Out() << Indent() << "}" << std::endl;
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const ReturnStmt& stmt) {
     Out() << "ReturnStmt {" << std::endl;
     Nested([&] {
-      OutFmt() << ".value = {" << std::endl;
+      Out() << Indent() << ".value = {" << std::endl;
       Nested([&] { PrintExpr(stmt.value); });
-      OutFmt() << "}" << std::endl;
+      Out() << Indent() << "}" << std::endl;
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const DoStmt& stmt) {
     Out() << "DoStmt {" << std::endl;
     Nested([&] {
-      OutFmt() << ".expr = {" << std::endl;
+      Out() << Indent() << ".expr = {" << std::endl;
       Nested([&] { PrintExpr(stmt.expr); });
-      OutFmt() << "}" << std::endl;
+      Out() << Indent() << "}" << std::endl;
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const IfStmt& stmt) {
     Out() << "IfStmt {" << std::endl;
     Nested([&] {
-      OutFmt() << ".cond = {" << std::endl;
+      Out() << Indent() << ".cond = {" << std::endl;
       Nested([&] { PrintExpr(stmt.cond); });
-      OutFmt() << "}" << std::endl;
+      Out() << Indent() << "}" << std::endl;
 
       if (stmt.then_stmts.size() > 0) {
-        OutFmt() << ".then_stmts = [" << std::endl;
+        Out() << Indent() << ".then_stmts = [" << std::endl;
         Nested([&] {
           for (StmtRef stmt_ref : stmt.then_stmts) {
             PrintExpr(stmt_ref);
           }
         });
-        OutFmt() << "]" << std::endl;
+        Out() << Indent() << "]" << std::endl;
       }
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const LoopStmt& stmt) {
     Out() << "LoopStmt {" << std::endl;
     Nested([&] {
       if (stmt.stmts.size() > 0) {
-        OutFmt() << ".stmts = [" << std::endl;
+        Out() << Indent() << ".stmts = [" << std::endl;
         Nested([&] {
           for (StmtRef stmt : stmt.stmts) {
             PrintStmt(stmt);
           }
         });
-        OutFmt() << "]" << std::endl;
+        Out() << Indent() << "]" << std::endl;
       }
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const BreakStmt& stmt) { Out() << "BreakStmt {}" << std::endl; }
@@ -171,58 +174,64 @@ class AstPrinter {
   void Print(const FuncCallExpr& expr) {
     Out() << "FuncCallExpr {" << std::endl;
     Nested([&] {
-      OutFmt() << ".func_name = \"" << expr.func_name << "\"" << std::endl;
+      Out() << Indent() << ".func_name = \"" << expr.func_name << "\""
+            << std::endl;
 
       if (expr.args.size() > 0) {
-        OutFmt() << ".args = [" << std::endl;
+        Out() << Indent() << ".args = [" << std::endl;
         Nested([&] {
           for (ExprRef arg : expr.args) {
             PrintExpr(arg);
           }
         });
-        OutFmt() << "]" << std::endl;
+        Out() << Indent() << "]" << std::endl;
       }
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const IntLitExpr& expr) {
     Out() << "IntLitExpr {" << std::endl;
-    Nested([&] { OutFmt() << ".value = " << expr.value << std::endl; });
-    OutFmt() << "}" << std::endl;
+    Nested(
+        [&] { Out() << Indent() << ".value = " << expr.value << std::endl; });
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const BoolLitExpr& expr) {
     Out() << "BoolLitExpr {" << std::endl;
-    Nested([&] { OutFmt() << ".value = " << expr.value << std::endl; });
-    OutFmt() << "}" << std::endl;
+    Nested(
+        [&] { Out() << Indent() << ".value = " << expr.value << std::endl; });
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const StringLitExpr& expr) {
     Out() << "StringLitExpr {" << std::endl;
-    Nested(
-        [&] { OutFmt() << ".value = \"" << expr.value << "\"" << std::endl; });
-    OutFmt() << "}" << std::endl;
+    Nested([&] {
+      Out() << Indent() << ".value = \"" << expr.value << "\"" << std::endl;
+    });
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const IdentExpr& expr) {
     Out() << "IdentExpr {" << std::endl;
-    Nested([&] { OutFmt() << ".name = \"" << expr.name << "\"" << std::endl; });
-    OutFmt() << "}" << std::endl;
+    Nested([&] {
+      Out() << Indent() << ".name = \"" << expr.name << "\"" << std::endl;
+    });
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const IndexExpr& expr) {
     Out() << "IndexExpr {" << std::endl;
     Nested([&] {
-      OutFmt() << ".base = {" << std::endl;
+      Out() << Indent() << ".base = {" << std::endl;
       Nested([&] { PrintExpr(expr.base); });
-      OutFmt() << "}" << std::endl;
+      Out() << Indent() << "}" << std::endl;
 
-      OutFmt() << ".index = {" << std::endl;
+      Out() << Indent() << ".index = {" << std::endl;
       Nested([&] { PrintExpr(expr.index); });
-      OutFmt() << "}" << std::endl;
+      Out() << Indent() << "}" << std::endl;
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Print(const BinaryOpExpr& expr) {
@@ -230,49 +239,51 @@ class AstPrinter {
     Nested([&] {
       switch (expr.op) {
         case BinaryOp::Add:
-          OutFmt() << ".op = Add" << std::endl;
+          Out() << Indent() << ".op = Add" << std::endl;
           break;
         case BinaryOp::Sub:
-          OutFmt() << ".op = Sub" << std::endl;
+          Out() << Indent() << ".op = Sub" << std::endl;
           break;
         case BinaryOp::Mul:
-          OutFmt() << ".op = Mul" << std::endl;
+          Out() << Indent() << ".op = Mul" << std::endl;
           break;
         case BinaryOp::Div:
-          OutFmt() << ".op = Div" << std::endl;
+          Out() << Indent() << ".op = Div" << std::endl;
           break;
         case BinaryOp::Mod:
-          OutFmt() << ".op = Mod" << std::endl;
+          Out() << Indent() << ".op = Mod" << std::endl;
           break;
         case BinaryOp::Gt:
-          OutFmt() << ".op = Gt" << std::endl;
+          Out() << Indent() << ".op = Gt" << std::endl;
           break;
         case BinaryOp::Lt:
-          OutFmt() << ".op = Lt" << std::endl;
+          Out() << Indent() << ".op = Lt" << std::endl;
           break;
         case BinaryOp::Eq:
-          OutFmt() << ".op = Eq" << std::endl;
+          Out() << Indent() << ".op = Eq" << std::endl;
           break;
         case BinaryOp::NotEq:
-          OutFmt() << ".op = NotEq" << std::endl;
+          Out() << Indent() << ".op = NotEq" << std::endl;
           break;
       }
 
-      OutFmt() << ".lhs = {" << std::endl;
+      Out() << Indent() << ".lhs = {" << std::endl;
       Nested([&] { PrintExpr(expr.lhs); });
-      OutFmt() << "}" << std::endl;
+      Out() << Indent() << "}" << std::endl;
 
-      OutFmt() << ".rhs = {" << std::endl;
+      Out() << Indent() << ".rhs = {" << std::endl;
       Nested([&] { PrintExpr(expr.rhs); });
-      OutFmt() << "}" << std::endl;
+      Out() << Indent() << "}" << std::endl;
     });
-    OutFmt() << "}" << std::endl;
+    Out() << Indent() << "}" << std::endl;
   }
 
   void Nested(std::function<void()> f) {
-    indent_ += 2;
+    indent_.push_back(' ');
+    indent_.push_back(' ');
     std::invoke(f);
-    indent_ -= 2;
+    indent_.pop_back();
+    indent_.pop_back();
   }
 
   void Blue(std::function<void()> f) {
@@ -281,15 +292,14 @@ class AstPrinter {
     Out() << "\033[0m ";
   }
 
-  std::ostream& OutFmt() {
-    for (int i = 0; i < indent_; ++i) std::cout << " ";
-    return std::cout;
+  std::string_view Indent() {
+    return std::string_view(indent_.data(), indent_.size());
   }
 
   std::ostream& Out() { return std::cout; }
 
   const SyntaxContext ctx_;
-  int indent_ = 0;
+  std::vector<char> indent_;
 };
 
 }  // namespace
