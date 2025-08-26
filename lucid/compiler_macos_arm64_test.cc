@@ -42,6 +42,57 @@ TEST_F(CompilerTest, PrintAstNode) {
 )")));
 }
 
+TEST_F(CompilerTest, PrintCfg) {
+  ASSERT_TRUE(CreateFile("max.lu", R"(
+    let max = (a: Int32, b: Int32) -> Int32 {
+      if a > b {
+        return a
+      } else {
+        return b
+      }
+    }
+  )"));
+  ASSERT_THAT(RunCompiler({"print-cfg", FullPath("max.lu")}),
+              AllOf(ReturnsCode(0), Prints(R"(max:
+  B0 {
+    .sequences = [
+      E0: IdentExpr
+      E1: IdentExpr
+      E2: BinaryOpExpr
+    ]
+    .next = [
+      B3
+      B4
+    ]
+  }
+  B1 {
+  }
+  B2 {
+    .next = [
+      B1
+    ]
+  }
+  B3 {
+    .sequences = [
+      E3: IdentExpr
+      S0: ReturnStmt
+    ]
+    .next = [
+      B1
+    ]
+  }
+  B4 {
+    .sequences = [
+      E4: IdentExpr
+      S1: ReturnStmt
+    ]
+    .next = [
+      B1
+    ]
+  }
+)")));
+}
+
 TEST_F(CompilerTest, Build) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {

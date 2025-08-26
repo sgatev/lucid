@@ -24,6 +24,7 @@ Available commands:
   run        Compiles the specified target, builds a binary, and runs it.
   parse      Parses the specified target.
   print-ast  Parses the specified target and prints the AST.
+  print-cfg  Parses the specified target and prints the CFG.
   version    Prints version information for lucid.
 )")));
 }

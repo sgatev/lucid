@@ -15,6 +15,7 @@
 #include "lucid/ast_printer.h"
 #include "lucid/buffered_lexer.h"
 #include "lucid/cfg.h"
+#include "lucid/cfg_printer.h"
 #include "lucid/cli.h"
 #include "lucid/file.h"
 #include "lucid/lexer.h"
@@ -236,6 +237,36 @@ int HandlePrintAstCommand(CommandContext ctx) {
   return 0;
 }
 
+int HandlePrintCfgCommand(CommandContext ctx) {
+  if (ctx.args.size() < 1) {
+    PrintError(ctx.err) << "'print-cfg' command requires 1 argument\n";
+    return 1;
+  }
+
+  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
+  if (maybe_src.HasError()) {
+    maybe_src.OutputError(PrintError(ctx.err));
+    return 1;
+  }
+  const auto& src = maybe_src.GetValue();
+
+  SyntaxContext sctx;
+  auto maybe_funcs = ParseFuncDefs(src, sctx);
+  if (maybe_funcs.HasError()) {
+    maybe_funcs.OutputError(PrintError(ctx.err));
+    return 1;
+  }
+  const auto& func_defs = maybe_funcs.GetValue();
+
+  for (const auto& func_def : func_defs) {
+    auto graph = BuildControlFlowGraph(sctx, func_def);
+    Print(sctx, graph);
+  }
+
+  return 0;
+}
+
 int HandleVersionCommand(CommandContext ctx) {
   ctx.out << "Commit: " << kGitCommit << "\n";
 
@@ -273,6 +304,11 @@ int Run(std::vector<std::string_view> args) {
               .name = "print-ast",
               .help = "Parses the specified target and prints the AST.",
               .handler = HandlePrintAstCommand,
+          },
+          {
+              .name = "print-cfg",
+              .help = "Parses the specified target and prints the CFG.",
+              .handler = HandlePrintCfgCommand,
           },
           {
               .name = "version",

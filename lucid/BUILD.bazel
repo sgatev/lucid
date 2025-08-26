@@ -185,6 +185,16 @@ cc_test(
 )
 
 cc_library(
+    name = "cfg_printer",
+    hdrs = ["cfg_printer.h"],
+    srcs = ["cfg_printer.cc"],
+    deps = [
+        ":ast",
+        ":cfg",
+    ],
+)
+
+cc_library(
     name = "cli",
     srcs = ["cli.cc"],
     hdrs = ["cli.h"],
@@ -211,6 +221,7 @@ cc_binary(
         ":ast_printer",
         ":buffered_lexer",
         ":cfg",
+        ":cfg_printer",
         ":cli",
         ":file",
         ":lexer",
