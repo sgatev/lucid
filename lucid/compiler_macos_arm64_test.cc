@@ -17,9 +17,9 @@ TEST_F(CompilerTest, PrintAst) {
               AllOf(ReturnsCode(0), Prints(R"(FuncDefStmt {
   .name = "main"
   .stmts = [
-[34m    S0:[0m ReturnStmt {
+[34m    S0: [0mReturnStmt {
       .value = {
-[34m        E0:[0m IntLitExpr {
+[34m        E0: [0mIntLitExpr {
           .value = 0
         }
       }
@@ -36,7 +36,7 @@ TEST_F(CompilerTest, PrintAstNode) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-ast", FullPath("main.lu"), "E0"}),
-              AllOf(ReturnsCode(0), Prints(R"([34mE0:[0m IntLitExpr {
+              AllOf(ReturnsCode(0), Prints(R"([34mE0: [0mIntLitExpr {
   .value = 0
 }
 )")));
@@ -53,43 +53,44 @@ TEST_F(CompilerTest, PrintCfg) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-cfg", FullPath("max.lu")}),
-              AllOf(ReturnsCode(0), Prints(R"(max:
-  B0 {
+              AllOf(ReturnsCode(0), Prints(R"([34mmax:
+[0m[34m  B0: [0m{
     .sequences = [
-      E0: IdentExpr
-      E1: IdentExpr
-      E2: BinaryOpExpr
+[34m      E0: [0mIdentExpr
+[34m      E1: [0mIdentExpr
+[34m      E2: [0mBinaryOpExpr
     ]
     .next = [
-      B3
-      B4
-    ]
+[34m      B3
+[0m[34m      B4
+[0m    ]
   }
-  B1 {
+[34m  B1: [0m{
   }
-  B2 {
+[34m  B2: [0m{
     .next = [
-      B1
-    ]
+[34m      B1
+[0m    ]
   }
-  B3 {
+[34m  B3: [0m{
     .sequences = [
-      E3: IdentExpr
-      S0: ReturnStmt
+[34m      E3: [0mIdentExpr
+[34m      S0: [0mReturnStmt
     ]
     .next = [
-      B1
-    ]
+[34m      B1
+[0m    ]
   }
-  B4 {
+[34m  B4: [0m{
     .sequences = [
-      E4: IdentExpr
-      S1: ReturnStmt
+[34m      E4: [0mIdentExpr
+[34m      S1: [0mReturnStmt
     ]
     .next = [
-      B1
-    ]
+[34m      B1
+[0m    ]
   }
+
 )")));
 }
 

@@ -47,7 +47,7 @@ class AstPrinter {
   void PrintStmt(StmtRef ref) {
     std::visit(
         [&](const auto& stmt) {
-          Blue([&] { Out() << Indent() << "S" << ref << ":"; });
+          Blue([&] { Out() << Indent() << "S" << ref << ": "; });
           Print(stmt);
         },
         ctx_.DerefStmt(ref));
@@ -56,7 +56,7 @@ class AstPrinter {
   void PrintExpr(ExprRef ref) {
     std::visit(
         [&](const auto& expr) {
-          Blue([&] { Out() << Indent() << "E" << ref << ":"; });
+          Blue([&] { Out() << Indent() << "E" << ref << ": "; });
           Print(expr);
         },
         ctx_.DerefExpr(ref));
@@ -289,7 +289,7 @@ class AstPrinter {
   void Blue(std::function<void()> f) {
     Out() << "\033[34m";
     std::invoke(f);
-    Out() << "\033[0m ";
+    Out() << "\033[0m";
   }
 
   std::string_view Indent() {

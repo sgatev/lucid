@@ -1,5 +1,6 @@
 #include "lucid/cfg_printer.h"
 
+#include <functional>
 #include <iostream>
 #include <variant>
 
@@ -8,16 +9,23 @@
 
 namespace lucid {
 
+void Blue(std::function<void()> f) {
+  std::cout << "\033[34m";
+  std::invoke(f);
+  std::cout << "\033[0m";
+}
+
 void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
-  std::cout << graph.func_name << ":" << std::endl;
+  Blue([&] { std::cout << graph.func_name << ":" << std::endl; });
   for (const auto& block : graph.blocks()) {
-    std::cout << "  B" << block.id << " {" << std::endl;
+    Blue([&] { std::cout << "  B" << block.id << ": "; });
+    std::cout << "{" << std::endl;
 
     if (!block.sequences.empty()) {
       std::cout << "    .sequences = [" << std::endl;
       for (const auto& seq : block.sequences) {
         for (const auto& expr_ref : seq.expressions) {
-          std::cout << "      E" << expr_ref << ": ";
+          Blue([&] { std::cout << "      E" << expr_ref << ": "; });
 
           const auto& expr = ctx.DerefExpr(expr_ref);
           if (std::holds_alternative<FuncCallExpr>(expr)) {
@@ -39,7 +47,7 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
           std::cout << std::endl;
         }
         if (seq.stmt.has_value()) {
-          std::cout << "      S" << *seq.stmt << ": ";
+          Blue([&] { std::cout << "      S" << *seq.stmt << ": "; });
 
           const auto& stmt = ctx.DerefStmt(*seq.stmt);
           if (std::holds_alternative<VarDeclStmt>(stmt)) {
@@ -67,13 +75,14 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
     if (!block.next.empty()) {
       std::cout << "    .next = [" << std::endl;
       for (const auto& next : block.next) {
-        std::cout << "      B" << next << std::endl;
+        Blue([&] { std::cout << "      B" << next << std::endl; });
       }
       std::cout << "    ]" << std::endl;
     }
 
     std::cout << "  }" << std::endl;
   }
+  std::cout << std::endl;
 }
 
 }  // namespace lucid
