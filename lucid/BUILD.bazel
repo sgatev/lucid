@@ -278,6 +278,27 @@ cc_library(
 )
 
 cc_library(
+    name = "dominators",
+    hdrs = ["dominators.h"],
+    srcs = ["dominators.cc"],
+    deps = [
+        ":cfg",
+    ],
+)
+
+cc_test(
+    name = "dominators_test",
+    srcs = ["dominators_test.cc"],
+    deps = [
+        ":ast",
+        ":ast_fixture",
+        ":cfg",
+        ":dominators",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "file",
     srcs = ["file.cc"],
     hdrs = ["file.h"],

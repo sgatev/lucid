@@ -35,11 +35,14 @@ struct ControlFlowGraph {
     // A list of sequences in evaluation order.
     std::vector<Sequence> sequences;
 
-    // Reference to the subsequent blocks.
+    // References to the subsequent blocks.
     //
     // In the case of an `IfStmt` the first block in `next` will represent the
     // "then" branch and the second block will represent the "else" branch.
     std::vector<BlockRef> next;
+
+    // References to the previous blocks.
+    std::vector<BlockRef> preds;
 
     // Condition expression that determines the block in `next` that follows
     // this block.

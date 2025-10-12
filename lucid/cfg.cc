@@ -46,6 +46,7 @@ class ControlFlowGraphBuilder {
         auto loop_block = AddBlock();
         BuildBlock(loop_stmt->stmts, loop_block, loop_block);
         graph_.get(block).next.push_back(loop_block);
+        graph_.get(loop_block).preds.push_back(block);
 
         post_loop_blocks_.pop();
 
@@ -58,13 +59,16 @@ class ControlFlowGraphBuilder {
         auto then_block = AddBlock();
         BuildBlock(if_stmt->then_stmts, then_block, post_if_block);
         graph_.get(block).next.push_back(then_block);
+        graph_.get(then_block).preds.push_back(block);
 
         if (if_stmt->else_stmts.size() == 0) {
           graph_.get(block).next.push_back(post_if_block);
+          graph_.get(post_if_block).preds.push_back(block);
         } else {
           auto else_block = AddBlock();
           BuildBlock(if_stmt->else_stmts, else_block, post_if_block);
           graph_.get(block).next.push_back(else_block);
+          graph_.get(else_block).preds.push_back(block);
         }
 
         pending_sub_exprs_.push(if_stmt->cond);
@@ -83,17 +87,20 @@ class ControlFlowGraphBuilder {
 
         if (std::holds_alternative<ReturnStmt>(ctx_.DerefStmt(stmt_ref))) {
           graph_.get(block).next.push_back(graph_.last);
+          graph_.get(graph_.last).preds.push_back(block);
           return;
         }
 
         if (std::holds_alternative<BreakStmt>(ctx_.DerefStmt(stmt_ref))) {
           graph_.get(block).next.push_back(post_loop_blocks_.top());
+          graph_.get(post_loop_blocks_.top()).preds.push_back(block);
           return;
         }
       }
     }
 
     graph_.get(block).next.push_back(end);
+    graph_.get(end).preds.push_back(block);
   }
 
   void FlushSubExprs(Sequence& seq, BlockRef block, BlockRef end) {
