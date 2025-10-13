@@ -51,8 +51,8 @@ std::vector<BlockRef> ComputeImmediateDominators(const ControlFlowGraph& cfg) {
     block_order[reverse_post_order[i]] = i;
   }
 
-  std::vector<BlockRef> doms(cfg.blocks().Size(), kNullBlockRef);
-  doms[cfg.first] = cfg.first;
+  std::vector<BlockRef> idoms(cfg.blocks().Size(), kNullBlockRef);
+  idoms[cfg.first] = cfg.first;
 
   bool changed = true;
   while (changed) {
@@ -63,30 +63,46 @@ std::vector<BlockRef> ComputeImmediateDominators(const ControlFlowGraph& cfg) {
 
       auto new_idom = kNullBlockRef;
       for (auto pred : cfg.get(block).preds) {
-        if (doms[pred] == kNullBlockRef) continue;
+        if (idoms[pred] == kNullBlockRef) continue;
 
         if (new_idom == kNullBlockRef) {
           new_idom = pred;
         } else {
           while (new_idom != pred) {
             while (block_order[new_idom] > block_order[pred]) {
-              new_idom = doms[new_idom];
+              new_idom = idoms[new_idom];
             }
             while (block_order[pred] > block_order[new_idom]) {
-              pred = doms[pred];
+              pred = idoms[pred];
             }
           }
         }
       }
 
-      if (doms[block] != new_idom) {
-        doms[block] = new_idom;
+      if (idoms[block] != new_idom) {
+        idoms[block] = new_idom;
         changed = true;
       }
     }
   }
 
-  return doms;
+  return idoms;
+}
+
+std::unordered_map<BlockRef, std::unordered_set<BlockRef>>
+ComputeDominanceFrontiers(const ControlFlowGraph& cfg,
+                          const std::vector<BlockRef>& idoms) {
+  std::unordered_map<BlockRef, std::unordered_set<BlockRef>> dom_fronts;
+  for (const auto& front_block : cfg.blocks()) {
+    if (front_block.preds.size() < 2) continue;
+
+    for (BlockRef pred : front_block.preds) {
+      for (; pred != idoms[front_block.id]; pred = idoms[pred]) {
+        dom_fronts[pred].insert(front_block.id);
+      }
+    }
+  }
+  return dom_fronts;
 }
 
 }  // namespace lucid
