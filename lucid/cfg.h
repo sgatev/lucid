@@ -32,6 +32,10 @@ struct ControlFlowGraph {
     // Id of the basic block.
     std::size_t id;
 
+    // Phi functions that represent variable definition join points when the
+    // graph is converted to Static Single Assignment (SSA) form.
+    std::vector<std::string_view> phis;
+
     // A list of sequences in evaluation order.
     std::vector<Sequence> sequences;
 

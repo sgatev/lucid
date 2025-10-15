@@ -443,6 +443,29 @@ cc_test(
 )
 
 cc_library(
+    name = "ssa",
+    srcs = ["ssa.cc"],
+    hdrs = ["ssa.h"],
+    deps = [
+        ":ast",
+        ":cfg",
+        ":dominators",
+    ],
+)
+
+cc_test(
+    name = "ssa_test",
+    srcs = ["ssa_test.cc"],
+    deps = [
+        ":ast",
+        ":ast_fixture",
+        ":cfg",
+        ":ssa",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "static",
     srcs = ["static.cc"],
     hdrs = ["static.h"],
