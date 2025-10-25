@@ -24,7 +24,12 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
     if (!block.phis.empty()) {
       std::cout << "    .phis = [" << std::endl;
       for (const auto& phi : block.phis) {
-        std::cout << "      '" << phi << "'" << std::endl;
+        std::cout << "      " << phi.name << " = φ(";
+        for (int i = 0; i < phi.args.size(); ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << phi.args[i];
+        }
+        std::cout << ")" << std::endl;
       }
       std::cout << "    ]" << std::endl;
     }

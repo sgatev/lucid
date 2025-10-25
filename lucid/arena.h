@@ -48,9 +48,11 @@ class Arena {
   std::size_t Size() const { return values_.size(); }
 
   // Returns an iterator to the first value in the arena.
+  auto begin() { return values_.begin(); }
   auto begin() const { return values_.begin(); }
 
   // Returns an iterator following the last value in the arena.
+  auto end() { return values_.end(); }
   auto end() const { return values_.end(); }
 
  private:

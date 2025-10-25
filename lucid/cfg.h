@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <ostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -28,6 +29,27 @@ struct ControlFlowGraph {
     std::optional<StmtRef> stmt;
   };
 
+  // Phi functions that represent variable definition join points when the
+  // graph is converted to Static Single Assignment (SSA) form.
+  struct Phi {
+    // Name of the new variable defined by the Phi function.
+    std::string name;
+
+    // Arguments to the Phi function, i.e. variables from previous blocks.
+    std::vector<std::string> args;
+
+    bool operator==(const Phi&) const = default;
+
+    friend void PrintTo(const Phi& phi, std::ostream* os) {
+      *os << "Phi{name='" << phi.name << "', args=[";
+      for (int i = 0; i < phi.args.size(); ++i) {
+        if (i > 0) *os << ", ";
+        *os << "'" << phi.args[i] << "'";
+      }
+      *os << "] }";
+    }
+  };
+
   // Represents a basic block in the control flow graph of a function.
   struct Block {
     // Id of the basic block.
@@ -35,7 +57,7 @@ struct ControlFlowGraph {
 
     // Phi functions that represent variable definition join points when the
     // graph is converted to Static Single Assignment (SSA) form.
-    std::vector<std::string> phis;
+    std::vector<Phi> phis;
 
     // A list of sequences in evaluation order.
     std::vector<Sequence> sequences;

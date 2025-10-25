@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 #include "lucid/ast.h"
 #include "lucid/ast_fixture.h"
+#include "lucid/cfg.h"
 
 namespace lucid {
 namespace {
@@ -15,6 +16,7 @@ using ::testing::Test;
 using ::testing::UnorderedElementsAre;
 
 using BlockRef = ControlFlowGraph::BlockRef;
+using Phi = ControlFlowGraph::Phi;
 
 class ConvertToStaticSingleAssignmentTest : public Test, public AstFixture {
  protected:
@@ -71,7 +73,10 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
   EXPECT_THAT(last_block.phis, IsEmpty());
 
   const auto& post_if_block = graph.blocks().Get(2);
-  EXPECT_THAT(post_if_block.phis, ElementsAre("x2"));
+  EXPECT_THAT(post_if_block.phis, ElementsAre(Phi{
+                                      .name = "x2",
+                                      .args = {"x1", "x3"},
+                                  }));
 
   const auto& then_block = graph.blocks().Get(3);
   EXPECT_THAT(then_block.phis, IsEmpty());
@@ -143,13 +148,19 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
   EXPECT_THAT(last_block.phis, IsEmpty());
 
   const auto& post_if_block = graph.blocks().Get(2);
-  EXPECT_THAT(post_if_block.phis, ElementsAre("x3"));
+  EXPECT_THAT(post_if_block.phis, ElementsAre(Phi{
+                                      .name = "x3",
+                                      .args = {"x2", "x5"},
+                                  }));
 
   const auto& then_block = graph.blocks().Get(3);
   EXPECT_THAT(then_block.phis, IsEmpty());
 
   const auto& nested_post_if_block = graph.blocks().Get(4);
-  EXPECT_THAT(nested_post_if_block.phis, ElementsAre("x2"));
+  EXPECT_THAT(nested_post_if_block.phis, ElementsAre(Phi{
+                                             .name = "x2",
+                                             .args = {"x1", "x4"},
+                                         }));
 
   const auto& nested_then_block = graph.blocks().Get(5);
   EXPECT_THAT(nested_then_block.phis, IsEmpty());
@@ -214,7 +225,15 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
   EXPECT_THAT(last_block.phis, IsEmpty());
 
   const auto& post_if_block = graph.blocks().Get(2);
-  EXPECT_THAT(post_if_block.phis, ElementsAre("y3", "x4"));
+  EXPECT_THAT(post_if_block.phis, ElementsAre(
+                                      Phi{
+                                          .name = "y3",
+                                          .args = {"y1", "y5"},
+                                      },
+                                      Phi{
+                                          .name = "x4",
+                                          .args = {"x2", "x0"},
+                                      }));
 
   const auto& then_block = graph.blocks().Get(3);
   EXPECT_THAT(then_block.phis, IsEmpty());
@@ -271,7 +290,10 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
   EXPECT_THAT(loop_block.phis, IsEmpty());
 
   const auto& post_loop_block = graph.blocks().Get(3);
-  EXPECT_THAT(post_loop_block.phis, ElementsAre("x1"));
+  EXPECT_THAT(post_loop_block.phis, ElementsAre(Phi{
+                                        .name = "x1",
+                                        .args = {"x2", "x0"},
+                                    }));
 
   const auto& post_if_block = graph.blocks().Get(4);
   EXPECT_THAT(post_if_block.phis, IsEmpty());

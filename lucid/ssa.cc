@@ -17,6 +17,7 @@ namespace lucid {
 namespace {
 
 using BlockRef = ControlFlowGraph::BlockRef;
+using Phi = ControlFlowGraph::Phi;
 
 std::unordered_map<std::string_view, std::unordered_set<BlockRef>>
 CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
@@ -57,7 +58,16 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
       for (auto y : dom_front_it->second) {
         if (visited.contains(y)) continue;
 
-        cfg.get(y).phis.push_back(std::string(var));
+        auto& yb = cfg.get(y);
+
+        Phi phi = {
+            .name = std::string(var),
+        };
+        for (const auto& _ : yb.preds) {
+          phi.args.push_back(std::string(var));
+        }
+
+        yb.phis.push_back(std::move(phi));
         visited.insert(y);
 
         if (!def_blocks.contains(y)) pending.insert(y);
@@ -100,10 +110,10 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
       }
     }
 
-    for (size_t i = 0; i < block.phis.size(); ++i) {
-      std::string new_name = block.phis[i] + std::to_string(counter++);
-      reaching_defs[block.phis[i]] = new_name;
-      block.phis[i] = new_name;
+    for (auto& phi : block.phis) {
+      std::string new_name = phi.name + std::to_string(counter++);
+      reaching_defs[phi.name] = new_name;
+      phi.name = new_name;
     }
 
     for (auto& seq : block.sequences) {
@@ -133,6 +143,14 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
 
     for (int i = block.next.size() - 1; i >= 0; --i) {
       if (!visited[block.next[i]]) pending.push(block.next[i]);
+    }
+  }
+
+  for (ControlFlowGraph::Block& block : cfg.blocks()) {
+    for (auto& phi : block.phis) {
+      for (int j = 0; j < phi.args.size(); ++j) {
+        phi.args[j] = block_defs[block.preds[j]][phi.args[j]];
+      }
     }
   }
 }
