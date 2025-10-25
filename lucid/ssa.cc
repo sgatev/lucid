@@ -19,18 +19,27 @@ namespace {
 using BlockRef = ControlFlowGraph::BlockRef;
 using Phi = ControlFlowGraph::Phi;
 
-std::unordered_map<std::string_view, std::unordered_set<BlockRef>>
+std::unordered_map<std::string_view,
+                   std::pair<TypeRef, std::unordered_set<BlockRef>>>
 CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
-  std::unordered_map<std::string_view, std::unordered_set<BlockRef>> defs;
+  std::unordered_map<std::string_view,
+                     std::pair<TypeRef, std::unordered_set<BlockRef>>>
+      defs;
+  for (auto param_ref : cfg.func_params) {
+    const auto& param = ctx.DerefParam(param_ref);
+    defs[param.name].first = param.type_constraint;
+    defs[param.name].second.insert(cfg.first);
+  }
   for (const auto& block : cfg.blocks()) {
     for (const auto& seq : block.sequences) {
       if (!seq.stmt.has_value()) continue;
 
       const auto& stmt = ctx.DerefStmt(*seq.stmt);
       if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-        defs[var_decl_stmt->name].insert(block.id);
+        defs[var_decl_stmt->name].first = var_decl_stmt->type_constraint;
+        defs[var_decl_stmt->name].second.insert(block.id);
       } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-        defs[var_assign_stmt->name].insert(block.id);
+        defs[var_assign_stmt->name].second.insert(block.id);
       }
     }
   }
@@ -41,10 +50,15 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
   const std::vector<BlockRef> idoms = ComputeImmediateDominators(cfg);
   const std::unordered_map<BlockRef, std::unordered_set<BlockRef>> dom_fronts =
       ComputeDominanceFrontiers(cfg, idoms);
-  const std::unordered_map<std::string_view, std::unordered_set<BlockRef>>
+  const std::unordered_map<std::string_view,
+                           std::pair<TypeRef, std::unordered_set<BlockRef>>>
       var_defs = CollectVarDefs(ctx, cfg);
 
-  for (const auto& [var, def_blocks] : var_defs) {
+  for (const auto& [var, add] : var_defs) {
+    const auto& [type, def_blocks] = add;
+
+    if (def_blocks.size() < 2) continue;
+
     std::unordered_set<BlockRef> visited;
     std::unordered_set<BlockRef> pending = def_blocks;
 
@@ -62,6 +76,7 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
 
         Phi phi = {
             .name = std::string(var),
+            .type_constraint = type,
         };
         for (const auto& _ : yb.preds) {
           phi.args.push_back(std::string(var));
@@ -136,7 +151,11 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
           std::string new_name =
               std::string(var_assign_stmt->name) + std::to_string(counter++);
           reaching_defs[var_assign_stmt->name] = new_name;
-          var_assign_stmt->name = new_name;
+          seq.stmt = ctx.Add(VarDeclStmt{
+              .name = new_name,
+              .type_constraint = GetType(ctx.DerefExpr(var_assign_stmt->expr)),
+              .init = var_assign_stmt->expr,
+          });
         }
       }
     }
@@ -161,6 +180,42 @@ void ConvertToStaticSingleAssignment(SyntaxContext& ctx,
                                      ControlFlowGraph& cfg) {
   InitPhiFunctions(ctx, cfg);
   RenameVariables(ctx, cfg);
+}
+
+void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
+  const std::vector<BlockRef> idoms = ComputeImmediateDominators(cfg);
+
+  for (auto& block : cfg.blocks()) {
+    if (block.phis.empty()) continue;
+
+    auto& dom = cfg.get(idoms[block.id]);
+    for (const auto& phi : block.phis) {
+      auto& seq = dom.sequences.emplace_back();
+      auto init_expr = ctx.Add(IntLitExpr{.value = "0"});
+      seq.expressions.push_back(init_expr);
+      seq.stmt = ctx.Add(VarDeclStmt{
+          .name = phi.name,
+          .type_constraint = phi.type_constraint,
+          .init = init_expr,
+      });
+
+      for (int i = 0; i < block.preds.size(); ++i) {
+        auto& pred = cfg.get(block.preds[i]);
+        auto& seq = pred.sequences.emplace_back();
+        auto assign_expr = IdentExpr{
+            .name = phi.args[i],
+        };
+        assign_expr.type = phi.type_constraint;
+        auto assign_expr_ref = ctx.Add(assign_expr);
+        seq.expressions.push_back(assign_expr_ref);
+        seq.stmt = ctx.Add(VarAssignStmt{
+            .name = phi.name,
+            .expr = assign_expr_ref,
+        });
+      }
+    }
+    block.phis.clear();
+  }
 }
 
 }  // namespace lucid

@@ -68,6 +68,8 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     if (auto res = InferStaticExprs(ctx, graph); res.HasError()) {
       return res.GetError();
     }
+    ConvertToStaticSingleAssignment(ctx, graph);
+    DestroyStaticSingleAssignment(ctx, graph);
     GenerateAbstractMachineFunction(ctx, graph, state);
     OptimizeAbstractMachineInstructions(state.func.instructions);
     GenerateArmAssemblyBinary(state.func, assembler);
@@ -262,8 +264,11 @@ int HandlePrintCfgCommand(CommandContext ctx) {
 
   for (const auto& func_def : func_defs) {
     auto graph = BuildControlFlowGraph(sctx, func_def);
-    if (ctx.flags.contains("ssa")) {
+    if (ctx.flags["ssa"] == "after-init") {
       ConvertToStaticSingleAssignment(sctx, graph);
+    } else if (ctx.flags["ssa"] == "after-deinit") {
+      ConvertToStaticSingleAssignment(sctx, graph);
+      DestroyStaticSingleAssignment(sctx, graph);
     }
     Print(sctx, graph);
   }

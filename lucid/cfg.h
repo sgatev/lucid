@@ -35,10 +35,15 @@ struct ControlFlowGraph {
     // Name of the new variable defined by the Phi function.
     std::string name;
 
+    // Type of the variable defined by the Phi function.
+    TypeRef type_constraint;
+
     // Arguments to the Phi function, i.e. variables from previous blocks.
     std::vector<std::string> args;
 
-    bool operator==(const Phi&) const = default;
+    bool operator==(const Phi& other) const {
+      return name == other.name && args == other.args;
+    }
 
     friend void PrintTo(const Phi& phi, std::ostream* os) {
       *os << "Phi{name='" << phi.name << "', args=[";

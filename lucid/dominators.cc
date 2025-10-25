@@ -97,7 +97,8 @@ ComputeDominanceFrontiers(const ControlFlowGraph& cfg,
     if (front_block.preds.size() < 2) continue;
 
     for (BlockRef pred : front_block.preds) {
-      for (; pred != idoms[front_block.id]; pred = idoms[pred]) {
+      for (; pred != kNullBlockRef && pred != idoms[front_block.id];
+           pred = idoms[pred]) {
         dom_fronts[pred].insert(front_block.id);
       }
     }
