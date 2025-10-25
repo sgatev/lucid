@@ -71,7 +71,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
   EXPECT_THAT(last_block.phis, IsEmpty());
 
   const auto& post_if_block = graph.blocks().Get(2);
-  EXPECT_THAT(post_if_block.phis, ElementsAre("x3"));
+  EXPECT_THAT(post_if_block.phis, ElementsAre("x2"));
 
   const auto& then_block = graph.blocks().Get(3);
   EXPECT_THAT(then_block.phis, IsEmpty());
@@ -143,13 +143,13 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
   EXPECT_THAT(last_block.phis, IsEmpty());
 
   const auto& post_if_block = graph.blocks().Get(2);
-  EXPECT_THAT(post_if_block.phis, ElementsAre("x5"));
+  EXPECT_THAT(post_if_block.phis, ElementsAre("x3"));
 
   const auto& then_block = graph.blocks().Get(3);
   EXPECT_THAT(then_block.phis, IsEmpty());
 
   const auto& nested_post_if_block = graph.blocks().Get(4);
-  EXPECT_THAT(nested_post_if_block.phis, ElementsAre("x4"));
+  EXPECT_THAT(nested_post_if_block.phis, ElementsAre("x2"));
 
   const auto& nested_then_block = graph.blocks().Get(5);
   EXPECT_THAT(nested_then_block.phis, IsEmpty());
@@ -214,7 +214,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
   EXPECT_THAT(last_block.phis, IsEmpty());
 
   const auto& post_if_block = graph.blocks().Get(2);
-  EXPECT_THAT(post_if_block.phis, ElementsAre("y4", "x5"));
+  EXPECT_THAT(post_if_block.phis, ElementsAre("y3", "x4"));
 
   const auto& then_block = graph.blocks().Get(3);
   EXPECT_THAT(then_block.phis, IsEmpty());

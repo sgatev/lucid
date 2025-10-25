@@ -69,8 +69,16 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
 void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
   int counter = 0;
 
-  std::vector<std::unordered_map<std::string_view, std::string>> block_defs(
+  std::vector<std::unordered_map<std::string, std::string>> block_defs(
       cfg.blocks().Size());
+
+  for (auto param_ref : cfg.func_params) {
+    auto& param = ctx.DerefParam(param_ref);
+    std::string new_name = param.name + std::to_string(counter++);
+    block_defs[cfg.first][param.name] = new_name;
+    param.name = new_name;
+  }
+
   std::vector<bool> visited(cfg.blocks().Size(), false);
 
   std::stack<BlockRef> pending;
@@ -86,7 +94,11 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
     auto& block = cfg.blocks().Get(block_ref);
 
     auto& reaching_defs = block_defs[block_ref];
-    for (auto pred : block.preds) reaching_defs.merge(block_defs[pred]);
+    for (auto pred : block.preds) {
+      for (const auto& [k, v] : block_defs[pred]) {
+        reaching_defs[k] = v;
+      }
+    }
 
     for (size_t i = 0; i < block.phis.size(); ++i) {
       std::string new_name = block.phis[i] + std::to_string(counter++);
@@ -103,17 +115,19 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
         ident_expr->name = reaching_defs[ident_expr->name];
       }
 
-      auto& stmt = ctx.DerefStmt(*seq.stmt);
-      if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-        std::string new_name =
-            std::string(var_decl_stmt->name) + std::to_string(counter++);
-        reaching_defs[var_decl_stmt->name] = new_name;
-        var_decl_stmt->name = new_name;
-      } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-        std::string new_name =
-            std::string(var_assign_stmt->name) + std::to_string(counter++);
-        reaching_defs[var_assign_stmt->name] = new_name;
-        var_assign_stmt->name = new_name;
+      if (seq.stmt.has_value()) {
+        auto& stmt = ctx.DerefStmt(*seq.stmt);
+        if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
+          std::string new_name =
+              std::string(var_decl_stmt->name) + std::to_string(counter++);
+          reaching_defs[var_decl_stmt->name] = new_name;
+          var_decl_stmt->name = new_name;
+        } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
+          std::string new_name =
+              std::string(var_assign_stmt->name) + std::to_string(counter++);
+          reaching_defs[var_assign_stmt->name] = new_name;
+          var_assign_stmt->name = new_name;
+        }
       }
     }
 

@@ -152,7 +152,7 @@ static_assert(std::bidirectional_iterator<List<StmtRef>::iterator>);
 // A function parameter.
 struct FuncParam {
   // Name of the parameter.
-  std::string_view name;
+  std::string name;
 
   // Type of the parameter.
   TypeRef type_constraint;

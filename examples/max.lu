@@ -1,0 +1,11 @@
+let max = (a: Int32, b: Int32) -> Int32 {
+  let m: Int32 = a
+  if b > m {
+    m = b
+  }
+  return m
+}
+
+let main = () -> Int32 {
+  return max(105, 252)
+}
