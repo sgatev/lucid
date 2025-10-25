@@ -56,8 +56,8 @@ TEST_F(CompilerTest, PrintCfg) {
               AllOf(ReturnsCode(0), Prints(R"([34mmax:
 [0m[34m  B0: [0m{
     .sequences = [
-[34m      E0: [0mIdentExpr
-[34m      E1: [0mIdentExpr
+[34m      E0: [0mIdentExpr { .name = 'a' }
+[34m      E1: [0mIdentExpr { .name = 'b' }
 [34m      E2: [0mBinaryOpExpr
     ]
     .next = [
@@ -66,6 +66,11 @@ TEST_F(CompilerTest, PrintCfg) {
 [0m    ]
   }
 [34m  B1: [0m{
+    .preds = [
+[34m      B3
+[0m[34m      B4
+[0m[34m      B2
+[0m    ]
   }
 [34m  B2: [0m{
     .next = [
@@ -74,20 +79,26 @@ TEST_F(CompilerTest, PrintCfg) {
   }
 [34m  B3: [0m{
     .sequences = [
-[34m      E3: [0mIdentExpr
+[34m      E3: [0mIdentExpr { .name = 'a' }
 [34m      S0: [0mReturnStmt
     ]
     .next = [
 [34m      B1
 [0m    ]
+    .preds = [
+[34m      B0
+[0m    ]
   }
 [34m  B4: [0m{
     .sequences = [
-[34m      E4: [0mIdentExpr
+[34m      E4: [0mIdentExpr { .name = 'b' }
 [34m      S1: [0mReturnStmt
     ]
     .next = [
 [34m      B1
+[0m    ]
+    .preds = [
+[34m      B0
 [0m    ]
   }
 

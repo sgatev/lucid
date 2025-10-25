@@ -21,6 +21,14 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
     Blue([&] { std::cout << "  B" << block.id << ": "; });
     std::cout << "{" << std::endl;
 
+    if (!block.phis.empty()) {
+      std::cout << "    .phis = [" << std::endl;
+      for (const auto& phi : block.phis) {
+        std::cout << "      '" << phi << "'" << std::endl;
+      }
+      std::cout << "    ]" << std::endl;
+    }
+
     if (!block.sequences.empty()) {
       std::cout << "    .sequences = [" << std::endl;
       for (const auto& seq : block.sequences) {
@@ -36,8 +44,8 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
             std::cout << "BoolLitExpr";
           } else if (std::holds_alternative<StringLitExpr>(expr)) {
             std::cout << "StringLitExpr";
-          } else if (std::holds_alternative<IdentExpr>(expr)) {
-            std::cout << "IdentExpr";
+          } else if (auto* e = std::get_if<IdentExpr>(&expr)) {
+            std::cout << "IdentExpr { .name = '" << e->name << "' }";
           } else if (std::holds_alternative<IndexExpr>(expr)) {
             std::cout << "IndexExpr";
           } else if (std::holds_alternative<BinaryOpExpr>(expr)) {
@@ -50,10 +58,10 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
           Blue([&] { std::cout << "      S" << *seq.stmt << ": "; });
 
           const auto& stmt = ctx.DerefStmt(*seq.stmt);
-          if (std::holds_alternative<VarDeclStmt>(stmt)) {
-            std::cout << "VarDeclStmt";
-          } else if (std::holds_alternative<VarAssignStmt>(stmt)) {
-            std::cout << "VarAssignStmt";
+          if (auto* s = std::get_if<VarDeclStmt>(&stmt)) {
+            std::cout << "VarDeclStmt { .name = '" << s->name << "' }";
+          } else if (auto* s = std::get_if<VarAssignStmt>(&stmt)) {
+            std::cout << "VarAssignStmt { .name = '" << s->name << "' }";
           } else if (std::holds_alternative<ArrayAssignStmt>(stmt)) {
             std::cout << "ArrayAssignStmt";
           } else if (std::holds_alternative<FuncDefStmt>(stmt)) {
@@ -76,6 +84,14 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
       std::cout << "    .next = [" << std::endl;
       for (const auto& next : block.next) {
         Blue([&] { std::cout << "      B" << next << std::endl; });
+      }
+      std::cout << "    ]" << std::endl;
+    }
+
+    if (!block.preds.empty()) {
+      std::cout << "    .preds = [" << std::endl;
+      for (const auto& pred : block.preds) {
+        Blue([&] { std::cout << "      B" << pred << std::endl; });
       }
       std::cout << "    ]" << std::endl;
     }

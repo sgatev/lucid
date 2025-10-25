@@ -23,6 +23,7 @@
 #include "lucid/opt.h"
 #include "lucid/parser.h"
 #include "lucid/result.h"
+#include "lucid/ssa.h"
 #include "lucid/static.h"
 #include "lucid/type.h"
 #include "lucid/version.h"
@@ -261,6 +262,9 @@ int HandlePrintCfgCommand(CommandContext ctx) {
 
   for (const auto& func_def : func_defs) {
     auto graph = BuildControlFlowGraph(sctx, func_def);
+    if (ctx.flags.contains("ssa")) {
+      ConvertToStaticSingleAssignment(sctx, graph);
+    }
     Print(sctx, graph);
   }
 
