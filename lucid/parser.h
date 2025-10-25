@@ -6,6 +6,7 @@
 #include <functional>
 #include <optional>
 #include <ostream>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <variant>
@@ -322,7 +323,7 @@ class Parser {
 
     return VarDeclStmt{
         .type_constraint = std::get<TypeRef>(maybe_type),
-        .name = std::get<std::string_view>(maybe_name),
+        .name = std::string(std::get<std::string_view>(maybe_name)),
         .init = ctx_.Add(std::get<Expr>(init)),
     };
   }
@@ -377,7 +378,7 @@ class Parser {
       if (IsError(expr)) return std::get<ParserError>(expr);
 
       return VarAssignStmt{
-          .name = ident,
+          .name = std::string(ident),
           .expr = ctx_.Add(std::get<Expr>(expr)),
       };
     }
@@ -583,7 +584,7 @@ class Parser {
     }
 
     return IdentExpr{
-        .name = ident,
+        .name = std::string(ident),
     };
   }
 

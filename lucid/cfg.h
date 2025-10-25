@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -34,7 +35,7 @@ struct ControlFlowGraph {
 
     // Phi functions that represent variable definition join points when the
     // graph is converted to Static Single Assignment (SSA) form.
-    std::vector<std::string_view> phis;
+    std::vector<std::string> phis;
 
     // A list of sequences in evaluation order.
     std::vector<Sequence> sequences;
@@ -67,6 +68,7 @@ struct ControlFlowGraph {
   const Block& get(BlockRef ref) const { return blocks_.Get(ref); }
 
   // Returns an arena with all blocks that were added to the graph.
+  Arena<Block>& blocks() { return blocks_; }
   const Arena<Block>& blocks() const { return blocks_; }
 
   // Name of the function.

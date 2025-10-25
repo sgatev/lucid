@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iterator>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <variant>
 
@@ -217,7 +218,7 @@ struct FuncCallExpr : public ExprBase {
 // A statement that represents a variable declaration.
 struct VarDeclStmt {
   // Name of the variable.
-  std::string_view name;
+  std::string name;
 
   // Type of the variable.
   TypeRef type_constraint;
@@ -229,7 +230,7 @@ struct VarDeclStmt {
 // A statement that represents assignment of an expression to a variable.
 struct VarAssignStmt {
   // Name of the variable.
-  std::string_view name;
+  std::string name;
 
   // Assigned expression.
   ExprRef expr;
@@ -250,7 +251,7 @@ struct ArrayAssignStmt {
 // An expression that represents an identifier.
 struct IdentExpr : public ExprBase {
   // Name of the identifier.
-  std::string_view name;
+  std::string name;
 };
 
 // An expression that represents an indexing operation.
