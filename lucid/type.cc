@@ -5,7 +5,6 @@
 #include <ranges>
 #include <string>
 #include <string_view>
-#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -129,10 +128,6 @@ class ExprTypeInferenceEngine {
   void ProcessPendingStmt(StmtRef stmt_ref, const ArrayAssignStmt& stmt) {
     AddPendingExpr(stmt.index);
     AddPendingExpr(stmt.expr);
-  }
-
-  void ProcessPendingStmt(StmtRef stmt_ref, const Expr& stmt) {
-    AddPendingExpr(stmt_ref);
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const Expr& expr) {
