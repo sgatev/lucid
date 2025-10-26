@@ -144,7 +144,7 @@ class AstPrinter {
         Out() << Indent() << ".then_stmts = [" << std::endl;
         Nested([&] {
           for (StmtRef stmt_ref : stmt.then_stmts) {
-            PrintExpr(stmt_ref);
+            PrintStmt(stmt_ref);
           }
         });
         Out() << Indent() << "]" << std::endl;
