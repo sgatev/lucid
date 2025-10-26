@@ -1,4 +1,4 @@
-#include "lucid/dominators.h"
+#include "lucid/dom.h"
 
 #include <algorithm>
 #include <stack>

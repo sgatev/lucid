@@ -1,4 +1,4 @@
-#include "lucid/dominators.h"
+#include "lucid/dom.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

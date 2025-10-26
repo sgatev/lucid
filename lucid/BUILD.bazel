@@ -279,22 +279,22 @@ cc_library(
 )
 
 cc_library(
-    name = "dominators",
-    hdrs = ["dominators.h"],
-    srcs = ["dominators.cc"],
+    name = "dom",
+    hdrs = ["dom.h"],
+    srcs = ["dom.cc"],
     deps = [
         ":cfg",
     ],
 )
 
 cc_test(
-    name = "dominators_test",
-    srcs = ["dominators_test.cc"],
+    name = "dom_test",
+    srcs = ["dom_test.cc"],
     deps = [
         ":ast",
         ":ast_fixture",
         ":cfg",
-        ":dominators",
+        ":dom",
         "@googletest//:gtest_main",
     ],
 )
@@ -450,7 +450,7 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
-        ":dominators",
+        ":dom",
     ],
 )
 

@@ -11,7 +11,7 @@
 
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
-#include "lucid/dominators.h"
+#include "lucid/dom.h"
 
 namespace lucid {
 namespace {
