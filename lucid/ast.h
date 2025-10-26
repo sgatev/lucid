@@ -1,14 +1,13 @@
 #pragma once
 
 #include <cstddef>
-#include <cstdint>
-#include <iterator>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <variant>
 
 #include "lucid/arena.h"
+#include "lucid/successive_list.h"
 
 namespace lucid {
 
@@ -67,88 +66,6 @@ struct ExprBase {
   bool is_static;
 };
 
-// A list of references.
-template <typename T>
-class List {
- public:
-  class iterator {
-   public:
-    using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = T;
-    using difference_type = int;
-
-    iterator() : expr_(0) {}
-
-    explicit iterator(T expr) : expr_(expr) {}
-
-    iterator(const iterator& other) = default;
-    iterator(iterator&& other) = default;
-    iterator& operator=(const iterator& other) = default;
-    iterator& operator=(iterator&& other) = default;
-
-    iterator& operator++() {
-      ++expr_;
-      return *this;
-    }
-
-    iterator operator++(int) {
-      iterator prev = *this;
-      ++*this;
-      return prev;
-    }
-
-    iterator& operator--() {
-      --expr_;
-      return *this;
-    }
-
-    iterator operator--(int) {
-      iterator prev = *this;
-      --*this;
-      return prev;
-    }
-
-    bool operator==(const iterator& other) const {
-      return expr_ == other.expr_;
-    }
-
-    bool operator!=(const iterator& other) const { return !(*this == other); }
-
-    value_type operator*() const { return expr_; }
-
-   private:
-    T expr_;
-  };
-
-  List() : size_(0), first_(0) {}
-
-  List(const List& other) = default;
-  List(List&& other) = default;
-
-  List& operator=(const List& other) = default;
-  List& operator=(List&& other) = default;
-
-  List(std::uint32_t size, T first) : size_(size), first_(first) {}
-
-  // Returns the reference at the given index.
-  T operator[](std::uint8_t i) const { return first_ + i; }
-
-  // Returns the size of the list.
-  std::uint32_t size() const { return size_; }
-
-  // Returns an iterator to the first reference of the list.
-  auto begin() const { return iterator(first_); }
-
-  // Returns an iterator to the value following the last reference of the list.
-  auto end() const { return iterator(first_ + size_); }
-
- private:
-  std::uint32_t size_;
-  T first_;
-};
-
-static_assert(std::bidirectional_iterator<List<StmtRef>::iterator>);
-
 // A function parameter.
 struct FuncParam {
   // Name of the parameter.
@@ -166,13 +83,13 @@ struct FuncDefStmt {
   std::string_view name;
 
   // Parameters of the function.
-  List<ParamRef> params;
+  SuccessiveList<ParamRef> params;
 
   // Type of the result of the function.
   TypeRef result_type;
 
   // Body of the function.
-  List<StmtRef> stmts;
+  SuccessiveList<StmtRef> stmts;
 };
 
 // A statement that represents a return point in a function.
@@ -212,7 +129,7 @@ struct FuncCallExpr : public ExprBase {
   std::string_view func_name;
 
   // Arguments to the function call.
-  List<ExprRef> args;
+  SuccessiveList<ExprRef> args;
 };
 
 // A statement that represents a variable declaration.
@@ -312,16 +229,16 @@ struct IfStmt {
   ExprRef cond;
 
   // Body of the branch where the condition is true.
-  List<StmtRef> then_stmts;
+  SuccessiveList<StmtRef> then_stmts;
 
   // Body of the branch where the condition is false.
-  List<StmtRef> else_stmts;
+  SuccessiveList<StmtRef> else_stmts;
 };
 
 // A statement that represents loop execution.
 struct LoopStmt {
   // Body of the loop.
-  List<StmtRef> stmts;
+  SuccessiveList<StmtRef> stmts;
 };
 
 // A statement that breaks from the inner-most loop execution.

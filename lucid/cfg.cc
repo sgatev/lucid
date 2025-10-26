@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "lucid/ast.h"
+#include "lucid/successive_list.h"
 
 namespace lucid {
 namespace {
@@ -36,7 +37,8 @@ class ControlFlowGraphBuilder {
     return graph_.add(std::move(block));
   }
 
-  void BuildBlock(const List<StmtRef>& stmts, BlockRef block, BlockRef end) {
+  void BuildBlock(const SuccessiveList<StmtRef>& stmts, BlockRef block,
+                  BlockRef end) {
     for (StmtRef stmt_ref : stmts) {
       if (auto* loop_stmt = std::get_if<LoopStmt>(&ctx_.DerefStmt(stmt_ref))) {
         auto post_loop_block = AddBlock();

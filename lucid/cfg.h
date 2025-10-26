@@ -9,6 +9,7 @@
 
 #include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/successive_list.h"
 
 namespace lucid {
 
@@ -102,7 +103,7 @@ struct ControlFlowGraph {
   std::string_view func_name;
 
   // Parameters of the function.
-  List<ParamRef> func_params;
+  SuccessiveList<ParamRef> func_params;
 
   // The first block in the control flow graph.
   BlockRef first = kNullBlockRef;

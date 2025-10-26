@@ -14,6 +14,7 @@
 #include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/fixed_map.h"
+#include "lucid/successive_list.h"
 #include "lucid/token.h"
 
 namespace lucid {
@@ -126,7 +127,7 @@ class Parser {
       if (params_size == 0) first_param = std::get<ParamRef>(maybe_param);
       ++params_size;
     }
-    stmt.params = List<ParamRef>(params_size, first_param);
+    stmt.params = SuccessiveList<ParamRef>(params_size, first_param);
 
     SkipSpace();
 
@@ -143,7 +144,7 @@ class Parser {
 
     auto maybe_body = ParseCompoundStmt();
     if (IsError(maybe_body)) return std::get<ParserError>(maybe_body);
-    stmt.stmts = std::get<List<StmtRef>>(std::move(maybe_body));
+    stmt.stmts = std::get<SuccessiveList<StmtRef>>(std::move(maybe_body));
 
     return stmt;
   }
@@ -174,7 +175,7 @@ class Parser {
     return MakeError(ParserError::Kind::ExpectedIdent, token);
   }
 
-  std::variant<List<StmtRef>, ParserError> ParseCompoundStmt() {
+  std::variant<SuccessiveList<StmtRef>, ParserError> ParseCompoundStmt() {
     SkipSpace();
 
     if (auto r = ExpectToken(Token::Kind::OpenBrace); IsError(r)) return *r;
@@ -204,7 +205,7 @@ class Parser {
       pending_stmts_.pop_back();
     }
 
-    return List<StmtRef>(args_size, args_first);
+    return SuccessiveList<StmtRef>(args_size, args_first);
   }
 
   std::variant<Stmt, ParserError> ParseStmt() {
@@ -257,7 +258,7 @@ class Parser {
     if (IsError(body)) return std::get<ParserError>(body);
 
     return LoopStmt{
-        .stmts = std::get<List<StmtRef>>(body),
+        .stmts = std::get<SuccessiveList<StmtRef>>(body),
     };
   }
 
@@ -274,7 +275,7 @@ class Parser {
 
     auto then_body = ParseCompoundStmt();
     if (IsError(then_body)) return std::get<ParserError>(then_body);
-    if_stmt.then_stmts = std::get<List<StmtRef>>(then_body);
+    if_stmt.then_stmts = std::get<SuccessiveList<StmtRef>>(then_body);
 
     SkipSpace();
 
@@ -286,11 +287,12 @@ class Parser {
       if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
         const auto stmt = ParseStmt();
         if (IsError(stmt)) return std::get<ParserError>(stmt);
-        if_stmt.else_stmts = List<StmtRef>(1, ctx_.Add(std::get<Stmt>(stmt)));
+        if_stmt.else_stmts =
+            SuccessiveList<StmtRef>(1, ctx_.Add(std::get<Stmt>(stmt)));
       } else {
         auto else_body = ParseCompoundStmt();
         if (IsError(else_body)) return std::get<ParserError>(else_body);
-        if_stmt.else_stmts = std::get<List<StmtRef>>(else_body);
+        if_stmt.else_stmts = std::get<SuccessiveList<StmtRef>>(else_body);
       }
     }
 
@@ -573,7 +575,7 @@ class Parser {
 
       return FuncCallExpr{
           .func_name = ident,
-          .args = List<ExprRef>(args_size, args_first),
+          .args = SuccessiveList<ExprRef>(args_size, args_first),
       };
     }
 

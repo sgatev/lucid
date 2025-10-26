@@ -11,6 +11,7 @@
 #include "gmock/gmock.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/successive_list.h"
 
 namespace lucid {
 
@@ -32,7 +33,7 @@ bool AllMatch(const std::vector<T>& real, const std::vector<P>& patterns) {
 }
 
 template <typename T, typename P>
-inline bool AllMatch(List<T> real, const std::vector<P>& patterns) {
+inline bool AllMatch(SuccessiveList<T> real, const std::vector<P>& patterns) {
   if (real.size() != patterns.size()) return false;
   for (int i = 0; i < real.size(); ++i) {
     if (!patterns[i](real[i])) return false;
@@ -240,38 +241,38 @@ class AstFixture {
 
   // Returns an empty list.
   template <typename T>
-  List<typename Arena<T>::Ref> EmptyList() {
-    return List<typename Arena<T>::Ref>(0, Arena<T>::kNullRef);
+  SuccessiveList<typename Arena<T>::Ref> EmptyList() {
+    return SuccessiveList<typename Arena<T>::Ref>(0, Arena<T>::kNullRef);
   }
 
   // Creates a list of the given expression references.
-  List<ExprRef> ExprListOf(std::initializer_list<ExprRef> exprs) {
+  SuccessiveList<ExprRef> ExprListOf(std::initializer_list<ExprRef> exprs) {
     if (std::empty(exprs)) return EmptyList<Expr>();
     auto it = exprs.begin();
     auto first_expr = ctx_.AliasExpr(*it);
     ++it;
     for (; it != exprs.end(); ++it) ctx_.AliasExpr(*it);
-    return List<StmtRef>(exprs.size(), first_expr);
+    return SuccessiveList<StmtRef>(exprs.size(), first_expr);
   }
 
   // Creates a list of the given statement references.
-  List<StmtRef> StmtListOf(std::initializer_list<StmtRef> stmts) {
+  SuccessiveList<StmtRef> StmtListOf(std::initializer_list<StmtRef> stmts) {
     if (std::empty(stmts)) return EmptyList<Stmt>();
     auto it = stmts.begin();
     auto first_stmt = ctx_.AliasStmt(*it);
     ++it;
     for (; it != stmts.end(); ++it) ctx_.AliasStmt(*it);
-    return List<StmtRef>(stmts.size(), first_stmt);
+    return SuccessiveList<StmtRef>(stmts.size(), first_stmt);
   }
 
   // Creates a list of the given parameter references.
-  List<ParamRef> ParamListOf(std::initializer_list<ParamRef> params) {
+  SuccessiveList<ParamRef> ParamListOf(std::initializer_list<ParamRef> params) {
     if (std::empty(params)) return EmptyList<ParamRef>();
     auto it = params.begin();
     auto first_stmt = ctx_.AliasParam(*it);
     ++it;
     for (; it != params.end(); ++it) ctx_.AliasParam(*it);
-    return List<ParamRef>(params.size(), first_stmt);
+    return SuccessiveList<ParamRef>(params.size(), first_stmt);
   }
 
   // Returns a matcher that is satisfied if the argument is a statement
