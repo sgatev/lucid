@@ -33,8 +33,9 @@ class ControlFlowGraphBuilder {
  private:
   BlockRef AddBlock() {
     ControlFlowGraph::Block block;
-    block.ref = graph_.blocks().Size();
-    return graph_.add(std::move(block));
+    auto ref = graph_.add(std::move(block));
+    graph_.get(ref).ref = ref;
+    return ref;
   }
 
   void BuildBlock(const SuccessiveList<StmtRef>& stmts, BlockRef block,
