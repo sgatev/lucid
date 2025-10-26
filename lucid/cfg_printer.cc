@@ -18,7 +18,7 @@ void Blue(std::function<void()> f) {
 void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
   Blue([&] { std::cout << graph.func_name << ":" << std::endl; });
   for (const auto& block : graph.blocks()) {
-    Blue([&] { std::cout << "  B" << block.id << ": "; });
+    Blue([&] { std::cout << "  B" << block.ref << ": "; });
     std::cout << "{" << std::endl;
 
     if (!block.phis.empty()) {

@@ -33,7 +33,7 @@ class ControlFlowGraphBuilder {
  private:
   BlockRef AddBlock() {
     ControlFlowGraph::Block block;
-    block.id = graph_.blocks().Size();
+    block.ref = graph_.blocks().Size();
     return graph_.add(std::move(block));
   }
 

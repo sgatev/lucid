@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <iostream>
 #include <map>
 #include <string_view>
 #include <variant>
@@ -139,10 +138,10 @@ class AbstractMachineFunctionGenerator {
       next_reg_ = 1;
 
       state_.func.instructions.push_back(Label{
-          .id = block.id,
+          .id = block.ref,
       });
 
-      if (block.id == graph_.get(graph_.last).id) {
+      if (block.ref == graph_.get(graph_.last).ref) {
         pop_pos =
             state_.func.instructions.end() - state_.func.instructions.begin();
         state_.func.instructions.push_back(Return{});
@@ -160,12 +159,12 @@ class AbstractMachineFunctionGenerator {
       if (block.branch_cond != ControlFlowGraph::kNullBlockRef) {
         state_.func.instructions.push_back(CondJump{
             .cond_reg = state_.out_reg[block.branch_cond],
-            .then_label = graph_.get(block.next[0]).id,
-            .else_label = graph_.get(block.next[1]).id,
+            .then_label = graph_.get(block.next[0]).ref,
+            .else_label = graph_.get(block.next[1]).ref,
         });
       } else if (block.next.size() == 1) {
         state_.func.instructions.push_back(UncondJump{
-            .label = graph_.get(block.next[0]).id,
+            .label = graph_.get(block.next[0]).ref,
         });
       }
     }

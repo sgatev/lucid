@@ -37,9 +37,9 @@ CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
       const auto& stmt = ctx.DerefStmt(*seq.stmt);
       if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
         defs[var_decl_stmt->name].first = var_decl_stmt->type_constraint;
-        defs[var_decl_stmt->name].second.insert(block.id);
+        defs[var_decl_stmt->name].second.insert(block.ref);
       } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-        defs[var_assign_stmt->name].second.insert(block.id);
+        defs[var_assign_stmt->name].second.insert(block.ref);
       }
     }
   }
@@ -188,7 +188,7 @@ void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
   for (auto& block : cfg.blocks()) {
     if (block.phis.empty()) continue;
 
-    auto& dom = cfg.get(idoms[block.id]);
+    auto& dom = cfg.get(idoms[block.ref]);
     for (const auto& phi : block.phis) {
       auto& seq = dom.sequences.emplace_back();
       auto init_expr = ctx.Add(IntLitExpr{.value = "0"});

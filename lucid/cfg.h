@@ -58,8 +58,8 @@ struct ControlFlowGraph {
 
   // Represents a basic block in the control flow graph of a function.
   struct Block {
-    // Id of the basic block.
-    std::size_t id;
+    // Ref of the basic block.
+    BlockRef ref;
 
     // Phi functions that represent variable definition join points when the
     // graph is converted to Static Single Assignment (SSA) form.

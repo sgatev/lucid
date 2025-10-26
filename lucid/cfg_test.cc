@@ -40,16 +40,16 @@ TEST_F(ControlFlowGraphTest, EmptyFunction) {
   const auto& first_block = graph.blocks().Get(0);
   const auto& last_block = graph.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  EXPECT_THAT(first_block.next, ElementsAre(last_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   EXPECT_THAT(first_block.sequences, IsEmpty());
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.id));
+  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
@@ -71,9 +71,9 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   const auto& first_block = graph.blocks().Get(0);
   const auto& last_block = graph.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  EXPECT_THAT(first_block.next, ElementsAre(last_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_EQ(first_block.sequences.size(), 1);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
@@ -81,10 +81,10 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
                                                     }));
   EXPECT_THAT(first_block.sequences[0].stmt, Optional(StmtEquivTo(do_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.id));
+  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
@@ -132,9 +132,9 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   const auto& first_block = graph.blocks().Get(0);
   const auto& last_block = graph.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  EXPECT_THAT(first_block.next, ElementsAre(last_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_EQ(first_block.sequences.size(), 1);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
@@ -148,10 +148,10 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
                                                     }));
   EXPECT_THAT(first_block.sequences[0].stmt, Optional(StmtEquivTo(do_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.id));
+  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
@@ -178,9 +178,9 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   const auto& first_block = graph.blocks().Get(0);
   const auto& last_block = graph.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  EXPECT_THAT(first_block.next, ElementsAre(last_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_EQ(first_block.sequences.size(), 1);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
@@ -190,10 +190,10 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   EXPECT_THAT(first_block.sequences[0].stmt,
               Optional(StmtEquivTo(return_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.id));
+  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
@@ -217,9 +217,9 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
   const auto& first_block = graph.blocks().Get(0);
   const auto& last_block = graph.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  EXPECT_THAT(first_block.next, ElementsAre(last_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_EQ(first_block.sequences.size(), 1);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
@@ -228,10 +228,10 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
   EXPECT_THAT(first_block.sequences[0].stmt,
               Optional(StmtEquivTo(var_decl_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.id));
+  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
@@ -254,9 +254,9 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
   const auto& first_block = graph.blocks().Get(0);
   const auto& last_block = graph.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  EXPECT_THAT(first_block.next, ElementsAre(last_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_EQ(first_block.sequences.size(), 1);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
@@ -266,10 +266,10 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
                                                     }));
   EXPECT_THAT(first_block.sequences[0].stmt, Optional(StmtEquivTo(do_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.id));
+  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
@@ -310,9 +310,9 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
   const auto& post_if_block = graph.blocks().Get(2);
   const auto& then_block = graph.blocks().Get(3);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  EXPECT_THAT(first_block.next, ElementsAre(then_block.id, post_if_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  EXPECT_THAT(first_block.next, ElementsAre(then_block.ref, post_if_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_THAT(first_block.sequences.size(), 1);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
@@ -320,11 +320,11 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
                                                     }));
   EXPECT_EQ(first_block.branch_cond, cond_expr);
 
-  EXPECT_EQ(then_block.id, 3);
-  EXPECT_THAT(then_block.next, ElementsAre(post_if_block.id));
-  EXPECT_THAT(then_block.preds, ElementsAre(first_block.id));
+  EXPECT_EQ(then_block.ref, 3);
+  EXPECT_THAT(then_block.next, ElementsAre(post_if_block.ref));
+  EXPECT_THAT(then_block.preds, ElementsAre(first_block.ref));
 
-  EXPECT_EQ(post_if_block.id, 2);
+  EXPECT_EQ(post_if_block.ref, 2);
   ASSERT_THAT(post_if_block.sequences.size(), 1);
   EXPECT_THAT(post_if_block.sequences[0].expressions, ElementsAreArray({
                                                           mul_lhs_expr,
@@ -333,13 +333,13 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
                                                       }));
   EXPECT_THAT(post_if_block.sequences[0].stmt,
               Optional(StmtEquivTo(do_mul_stmt)));
-  EXPECT_THAT(post_if_block.next, ElementsAre(last_block.id));
-  EXPECT_THAT(post_if_block.preds, ElementsAre(then_block.id, graph.first));
+  EXPECT_THAT(post_if_block.next, ElementsAre(last_block.ref));
+  EXPECT_THAT(post_if_block.preds, ElementsAre(then_block.ref, graph.first));
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(post_if_block.id));
+  EXPECT_THAT(last_block.preds, ElementsAre(post_if_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
@@ -380,9 +380,9 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
   const auto& then_block = graph.blocks().Get(3);
   const auto& else_block = graph.blocks().Get(4);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  EXPECT_THAT(first_block.next, ElementsAre(then_block.id, else_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  EXPECT_THAT(first_block.next, ElementsAre(then_block.ref, else_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_THAT(first_block.sequences.size(), 1);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
@@ -390,9 +390,9 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
                                                     }));
   EXPECT_EQ(first_block.branch_cond, cond_expr);
 
-  EXPECT_EQ(then_block.id, 3);
-  EXPECT_THAT(then_block.next, ElementsAre(post_if_block.id));
-  EXPECT_THAT(then_block.preds, ElementsAre(first_block.id));
+  EXPECT_EQ(then_block.ref, 3);
+  EXPECT_THAT(then_block.next, ElementsAre(post_if_block.ref));
+  EXPECT_THAT(then_block.preds, ElementsAre(first_block.ref));
   ASSERT_THAT(then_block.sequences.size(), 1);
   EXPECT_THAT(then_block.sequences[0].expressions, ElementsAreArray({
                                                        add_lhs_expr,
@@ -401,9 +401,9 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
                                                    }));
   EXPECT_THAT(then_block.sequences[0].stmt, Optional(StmtEquivTo(do_add_stmt)));
 
-  EXPECT_EQ(else_block.id, 4);
-  EXPECT_THAT(else_block.next, ElementsAre(post_if_block.id));
-  EXPECT_THAT(else_block.preds, ElementsAre(first_block.id));
+  EXPECT_EQ(else_block.ref, 4);
+  EXPECT_THAT(else_block.next, ElementsAre(post_if_block.ref));
+  EXPECT_THAT(else_block.preds, ElementsAre(first_block.ref));
   ASSERT_THAT(then_block.sequences.size(), 1);
   EXPECT_THAT(else_block.sequences[0].expressions, ElementsAreArray({
                                                        mul_lhs_expr,
@@ -412,15 +412,15 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
                                                    }));
   EXPECT_THAT(else_block.sequences[0].stmt, Optional(StmtEquivTo(do_mul_stmt)));
 
-  EXPECT_EQ(post_if_block.id, 2);
+  EXPECT_EQ(post_if_block.ref, 2);
   EXPECT_THAT(post_if_block.sequences.size(), 0);
-  EXPECT_THAT(post_if_block.next, ElementsAre(last_block.id));
-  EXPECT_THAT(post_if_block.preds, ElementsAre(then_block.id, else_block.id));
+  EXPECT_THAT(post_if_block.next, ElementsAre(last_block.ref));
+  EXPECT_THAT(post_if_block.preds, ElementsAre(then_block.ref, else_block.ref));
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(post_if_block.id));
+  EXPECT_THAT(last_block.preds, ElementsAre(post_if_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
@@ -449,9 +449,9 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   const auto& first_block = graph.blocks().Get(0);
   const auto& last_block = graph.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  EXPECT_THAT(first_block.next, ElementsAre(last_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_THAT(first_block.sequences.size(), 2);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
@@ -465,10 +465,10 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   EXPECT_THAT(first_block.sequences[1].stmt,
               Optional(StmtEquivTo(return_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.id));
+  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
@@ -497,15 +497,15 @@ TEST_F(ControlFlowGraphTest, Loop) {
   const auto& post_loop_block = graph.blocks().Get(2);
   const auto& loop_block = graph.blocks().Get(3);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  EXPECT_THAT(first_block.next, ElementsAre(loop_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  EXPECT_THAT(first_block.next, ElementsAre(loop_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   EXPECT_THAT(first_block.sequences, IsEmpty());
 
-  EXPECT_EQ(loop_block.id, 3);
-  EXPECT_THAT(loop_block.next, ElementsAre(loop_block.id));
-  EXPECT_THAT(loop_block.preds, ElementsAre(loop_block.id, first_block.id));
+  EXPECT_EQ(loop_block.ref, 3);
+  EXPECT_THAT(loop_block.next, ElementsAre(loop_block.ref));
+  EXPECT_THAT(loop_block.preds, ElementsAre(loop_block.ref, first_block.ref));
   ASSERT_THAT(loop_block.sequences.size(), 1);
   EXPECT_THAT(loop_block.sequences[0].expressions, ElementsAreArray({
                                                        add_lhs_expr,
@@ -514,15 +514,15 @@ TEST_F(ControlFlowGraphTest, Loop) {
                                                    }));
   EXPECT_THAT(loop_block.sequences[0].stmt, Optional(StmtEquivTo(do_add_stmt)));
 
-  EXPECT_EQ(post_loop_block.id, 2);
-  EXPECT_THAT(post_loop_block.next, ElementsAre(last_block.id));
+  EXPECT_EQ(post_loop_block.ref, 2);
+  EXPECT_THAT(post_loop_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(post_loop_block.preds, IsEmpty());
   EXPECT_THAT(post_loop_block.sequences, IsEmpty());
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(loop_block.preds, ElementsAre(loop_block.id, first_block.id));
+  EXPECT_THAT(loop_block.preds, ElementsAre(loop_block.ref, first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
@@ -584,9 +584,9 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   const auto& post_if_block = graph.blocks().Get(4);
   const auto& then_block = graph.blocks().Get(5);
 
-  EXPECT_EQ(graph.first, first_block.id);
-  EXPECT_EQ(first_block.id, 0);
-  ASSERT_THAT(first_block.next, ElementsAre(loop_block.id));
+  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(first_block.ref, 0);
+  ASSERT_THAT(first_block.next, ElementsAre(loop_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_THAT(first_block.sequences.size(), 1);
   EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
@@ -595,9 +595,10 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   EXPECT_THAT(first_block.sequences[0].stmt,
               Optional(StmtEquivTo(var_decl_stmt)));
 
-  EXPECT_EQ(loop_block.id, 3);
-  EXPECT_THAT(loop_block.next, ElementsAre(then_block.id, post_if_block.id));
-  EXPECT_THAT(loop_block.preds, ElementsAre(post_if_block.id, first_block.id));
+  EXPECT_EQ(loop_block.ref, 3);
+  EXPECT_THAT(loop_block.next, ElementsAre(then_block.ref, post_if_block.ref));
+  EXPECT_THAT(loop_block.preds,
+              ElementsAre(post_if_block.ref, first_block.ref));
   ASSERT_THAT(loop_block.sequences.size(), 1);
   EXPECT_THAT(loop_block.sequences[0].expressions, ElementsAreArray({
                                                        if_cond_lhs_ref,
@@ -605,15 +606,15 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
                                                        if_cond_ref,
                                                    }));
 
-  EXPECT_EQ(then_block.id, 5);
-  EXPECT_THAT(then_block.next, ElementsAre(post_loop_block.id));
-  EXPECT_THAT(then_block.preds, ElementsAre(loop_block.id));
+  EXPECT_EQ(then_block.ref, 5);
+  EXPECT_THAT(then_block.next, ElementsAre(post_loop_block.ref));
+  EXPECT_THAT(then_block.preds, ElementsAre(loop_block.ref));
   ASSERT_THAT(then_block.sequences.size(), 1);
   EXPECT_THAT(then_block.sequences[0].stmt, Optional(StmtEquivTo(break_stmt)));
 
-  EXPECT_EQ(post_if_block.id, 4);
-  EXPECT_THAT(post_if_block.next, ElementsAre(loop_block.id));
-  EXPECT_THAT(post_if_block.preds, ElementsAre(loop_block.id));
+  EXPECT_EQ(post_if_block.ref, 4);
+  EXPECT_THAT(post_if_block.next, ElementsAre(loop_block.ref));
+  EXPECT_THAT(post_if_block.preds, ElementsAre(loop_block.ref));
   ASSERT_THAT(post_if_block.sequences.size(), 1);
   EXPECT_THAT(post_if_block.sequences[0].expressions, ElementsAreArray({
                                                           var_assign_lhs_ref,
@@ -623,9 +624,9 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   EXPECT_THAT(post_if_block.sequences[0].stmt,
               Optional(StmtEquivTo(var_assign_stmt)));
 
-  EXPECT_EQ(post_loop_block.id, 2);
-  EXPECT_THAT(post_loop_block.next, ElementsAre(last_block.id));
-  EXPECT_THAT(post_loop_block.preds, ElementsAre(then_block.id));
+  EXPECT_EQ(post_loop_block.ref, 2);
+  EXPECT_THAT(post_loop_block.next, ElementsAre(last_block.ref));
+  EXPECT_THAT(post_loop_block.preds, ElementsAre(then_block.ref));
   ASSERT_THAT(post_loop_block.sequences.size(), 1);
   EXPECT_THAT(post_loop_block.sequences[0].expressions, ElementsAreArray({
                                                             return_value_ref,
@@ -633,10 +634,10 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   EXPECT_THAT(post_loop_block.sequences[0].stmt,
               Optional(StmtEquivTo(return_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.id);
-  EXPECT_EQ(last_block.id, 1);
+  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(post_loop_block.id));
+  EXPECT_THAT(last_block.preds, ElementsAre(post_loop_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
