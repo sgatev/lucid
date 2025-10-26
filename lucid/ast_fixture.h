@@ -252,7 +252,7 @@ class AstFixture {
     auto first_expr = ctx_.AliasExpr(*it);
     ++it;
     for (; it != exprs.end(); ++it) ctx_.AliasExpr(*it);
-    return SuccessiveList<StmtRef>(exprs.size(), first_expr);
+    return SuccessiveList<ExprRef>(exprs.size(), first_expr);
   }
 
   // Creates a list of the given statement references.
@@ -267,7 +267,7 @@ class AstFixture {
 
   // Creates a list of the given parameter references.
   SuccessiveList<ParamRef> ParamListOf(std::initializer_list<ParamRef> params) {
-    if (std::empty(params)) return EmptyList<ParamRef>();
+    if (std::empty(params)) return EmptyList<FuncParam>();
     auto it = params.begin();
     auto first_stmt = ctx_.AliasParam(*it);
     ++it;
