@@ -47,7 +47,7 @@ TEST(ArenaTest, StoresValues) {
   Arena<int> arena;
 
   Arena<int>::Ref three = arena.Add(3);
-  ArenaRef<int> five = arena.Add(5);
+  Arena<int>::Ref five = arena.Add(5);
 
   EXPECT_EQ(arena.Get(three), 3);
   EXPECT_EQ(arena.Get(five), 5);

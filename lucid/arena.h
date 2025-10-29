@@ -95,8 +95,4 @@ class Arena {
   std::vector<T> values_;
 };
 
-// A reference in an arena of type `Arena<T>`.
-template <typename T>
-using ArenaRef = typename Arena<T>::Ref;
-
 }  // namespace lucid

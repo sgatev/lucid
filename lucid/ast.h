@@ -45,16 +45,16 @@ using Stmt =
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
-using StmtRef = ArenaRef<Stmt>;
+using StmtRef = Arena<Stmt>::Ref;
 
 // A reference to an expression that can be dereferenced using an `Arena<Expr>`
 // object.
-using ExprRef = ArenaRef<Expr>;
+using ExprRef = Arena<Expr>::Ref;
 
 // A reference to a type that can be dereferenced using an `Arena<Type>` object.
-using TypeRef = ArenaRef<Type>;
+using TypeRef = Arena<Type>::Ref;
 
-using ParamRef = ArenaRef<FuncParam>;
+using ParamRef = Arena<FuncParam>::Ref;
 
 // A common base of all expressions.
 struct ExprBase {
