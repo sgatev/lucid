@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <ostream>
 #include <utility>
 #include <vector>
 
@@ -14,10 +15,42 @@ template <typename T>
 class Arena {
  public:
   // The type of references for values in the arena.
-  using Ref = std::uint32_t;
+  struct Ref {
+   public:
+    constexpr Ref(std::uint32_t id) : id_(id) {}
+
+    constexpr Ref() : Ref(std::numeric_limits<std::uint32_t>::max()) {}
+
+    bool operator==(const Ref& other) const { return id_ == other.id_; }
+
+    bool operator!=(const Ref& other) const { return id_ != other.id_; }
+
+    Ref operator+(std::uint32_t offset) const { return Ref(id_ + offset); }
+
+    Ref operator-(std::uint32_t offset) const { return Ref(id_ - offset); }
+
+    Ref& operator++() {
+      ++id_;
+      return *this;
+    }
+
+    Ref& operator--() {
+      --id_;
+      return *this;
+    }
+
+    std::uint32_t id() const { return id_; }
+
+    friend std::ostream& operator<<(std::ostream& os, const Ref& ref) {
+      return os << ref.id_;
+    }
+
+   private:
+    std::uint32_t id_;
+  };
 
   // The null arena reference.
-  static constexpr Ref kNullRef = std::numeric_limits<Ref>::max();
+  static constexpr Ref kNullRef;
 
   // Adds `value` to the arena and returns a reference that can be used to
   // retrieve it.
@@ -30,7 +63,7 @@ class Arena {
 
   // Adds another reference for the value that `ref` refers to.
   Ref Alias(Ref ref) {
-    indices_.push_back(indices_[ref]);
+    indices_.push_back(indices_[ref.id()]);
     return indices_.size() - 1;
   }
 
@@ -38,11 +71,13 @@ class Arena {
   //
   // Requires:
   // - `ref` must not be `kNullRef`.
-  const T& Get(Ref ref) const { return values_[indices_[ref]]; }
-  T& Get(Ref ref) { return values_[indices_[ref]]; }
+  const T& Get(Ref ref) const { return values_[indices_[ref.id()]]; }
+  T& Get(Ref ref) { return values_[indices_[ref.id()]]; }
 
   // Returns true iff `lhs` and `rhs` refer to the same value.
-  bool Equiv(Ref lhs, Ref rhs) const { return indices_[lhs] == indices_[rhs]; }
+  bool Equiv(Ref lhs, Ref rhs) const {
+    return indices_[lhs.id()] == indices_[rhs.id()];
+  }
 
   // Returns the number of values that were added to the arena.
   std::size_t Size() const { return values_.size(); }

@@ -25,14 +25,14 @@ std::vector<BlockRef> ComputeReversePostOrder(const ControlFlowGraph& cfg) {
     auto block = pending.top();
     pending.pop();
 
-    if (visited[block]) {
+    if (visited[block.id()]) {
       reverse_post_order.push_back(block);
     } else {
       pending.push(block);
       for (auto next_block : cfg.get(block).next) {
-        if (!visited[next_block]) pending.push(next_block);
+        if (!visited[next_block.id()]) pending.push(next_block);
       }
-      visited[block] = true;
+      visited[block.id()] = true;
     }
   }
 
@@ -48,11 +48,11 @@ std::vector<BlockRef> ComputeImmediateDominators(const ControlFlowGraph& cfg) {
 
   std::vector<int> block_order(cfg.blocks().Size(), -1);
   for (int i = 0; i < reverse_post_order.size(); ++i) {
-    block_order[reverse_post_order[i]] = i;
+    block_order[reverse_post_order[i].id()] = i;
   }
 
   std::vector<BlockRef> idoms(cfg.blocks().Size(), kNullBlockRef);
-  idoms[cfg.first] = cfg.first;
+  idoms[cfg.first.id()] = cfg.first;
 
   bool changed = true;
   while (changed) {
@@ -63,24 +63,24 @@ std::vector<BlockRef> ComputeImmediateDominators(const ControlFlowGraph& cfg) {
 
       auto new_idom = kNullBlockRef;
       for (auto pred : cfg.get(block).preds) {
-        if (idoms[pred] == kNullBlockRef) continue;
+        if (idoms[pred.id()] == kNullBlockRef) continue;
 
         if (new_idom == kNullBlockRef) {
           new_idom = pred;
         } else {
           while (new_idom != pred) {
-            while (block_order[new_idom] > block_order[pred]) {
-              new_idom = idoms[new_idom];
+            while (block_order[new_idom.id()] > block_order[pred.id()]) {
+              new_idom = idoms[new_idom.id()];
             }
-            while (block_order[pred] > block_order[new_idom]) {
-              pred = idoms[pred];
+            while (block_order[pred.id()] > block_order[new_idom.id()]) {
+              pred = idoms[pred.id()];
             }
           }
         }
       }
 
-      if (idoms[block] != new_idom) {
-        idoms[block] = new_idom;
+      if (idoms[block.id()] != new_idom) {
+        idoms[block.id()] = new_idom;
         changed = true;
       }
     }
@@ -97,8 +97,8 @@ ComputeDominanceFrontiers(const ControlFlowGraph& cfg,
     if (front_block.preds.size() < 2) continue;
 
     for (BlockRef pred : front_block.preds) {
-      for (; pred != kNullBlockRef && pred != idoms[front_block.ref];
-           pred = idoms[pred]) {
+      for (; pred != kNullBlockRef && pred != idoms[front_block.ref.id()];
+           pred = idoms[pred.id()]) {
         dom_fronts[pred].insert(front_block.ref);
       }
     }

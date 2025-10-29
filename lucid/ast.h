@@ -327,3 +327,35 @@ class SyntaxContext {
 };
 
 }  // namespace lucid
+
+namespace std {
+
+template <>
+struct hash<typename lucid::ExprRef> {
+  size_t operator()(const lucid::ExprRef& ref) const {
+    return hash<uint32_t>()(ref.id());
+  }
+};
+
+template <>
+struct hash<typename lucid::StmtRef> {
+  size_t operator()(const lucid::StmtRef& ref) const {
+    return hash<uint32_t>()(ref.id());
+  }
+};
+
+template <>
+struct hash<typename lucid::TypeRef> {
+  size_t operator()(const lucid::TypeRef& ref) const {
+    return hash<uint32_t>()(ref.id());
+  }
+};
+
+template <>
+struct hash<typename lucid::ParamRef> {
+  size_t operator()(const lucid::ParamRef& ref) const {
+    return hash<uint32_t>()(ref.id());
+  }
+};
+
+}  // namespace std

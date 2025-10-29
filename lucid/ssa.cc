@@ -19,10 +19,10 @@ namespace {
 using BlockRef = ControlFlowGraph::BlockRef;
 using Phi = ControlFlowGraph::Phi;
 
-std::unordered_map<std::string_view,
+std::unordered_map<std::string,
                    std::pair<TypeRef, std::unordered_set<BlockRef>>>
 CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
-  std::unordered_map<std::string_view,
+  std::unordered_map<std::string,
                      std::pair<TypeRef, std::unordered_set<BlockRef>>>
       defs;
   for (auto param_ref : cfg.func_params) {
@@ -50,7 +50,7 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
   const std::vector<BlockRef> idoms = ComputeImmediateDominators(cfg);
   const std::unordered_map<BlockRef, std::unordered_set<BlockRef>> dom_fronts =
       ComputeDominanceFrontiers(cfg, idoms);
-  const std::unordered_map<std::string_view,
+  const std::unordered_map<std::string,
                            std::pair<TypeRef, std::unordered_set<BlockRef>>>
       var_defs = CollectVarDefs(ctx, cfg);
 
@@ -100,7 +100,7 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
   for (auto param_ref : cfg.func_params) {
     auto& param = ctx.DerefParam(param_ref);
     std::string new_name = param.name + std::to_string(counter++);
-    block_defs[cfg.first][param.name] = new_name;
+    block_defs[cfg.first.id()][param.name] = new_name;
     param.name = new_name;
   }
 
@@ -113,14 +113,14 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
     auto block_ref = pending.top();
     pending.pop();
 
-    if (visited[block_ref]) continue;
-    visited[block_ref] = true;
+    if (visited[block_ref.id()]) continue;
+    visited[block_ref.id()] = true;
 
     auto& block = cfg.blocks().Get(block_ref);
 
-    auto& reaching_defs = block_defs[block_ref];
+    auto& reaching_defs = block_defs[block_ref.id()];
     for (auto pred : block.preds) {
-      for (const auto& [k, v] : block_defs[pred]) {
+      for (const auto& [k, v] : block_defs[pred.id()]) {
         reaching_defs[k] = v;
       }
     }
@@ -161,14 +161,14 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
     }
 
     for (int i = block.next.size() - 1; i >= 0; --i) {
-      if (!visited[block.next[i]]) pending.push(block.next[i]);
+      if (!visited[block.next[i].id()]) pending.push(block.next[i]);
     }
   }
 
   for (ControlFlowGraph::Block& block : cfg.blocks()) {
     for (auto& phi : block.phis) {
       for (int j = 0; j < phi.args.size(); ++j) {
-        phi.args[j] = block_defs[block.preds[j]][phi.args[j]];
+        phi.args[j] = block_defs[block.preds[j].id()][phi.args[j]];
       }
     }
   }
@@ -188,15 +188,17 @@ void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
   for (auto& block : cfg.blocks()) {
     if (block.phis.empty()) continue;
 
-    auto& dom = cfg.get(idoms[block.ref]);
+    auto& dom = cfg.get(idoms[block.ref.id()]);
     for (const auto& phi : block.phis) {
       auto& seq = dom.sequences.emplace_back();
-      auto init_expr = ctx.Add(IntLitExpr{.value = "0"});
-      seq.expressions.push_back(init_expr);
+      auto init_expr = IntLitExpr{.value = "0"};
+      init_expr.type = phi.type_constraint;
+      auto init_expr_ref = ctx.Add(init_expr);
+      seq.expressions.push_back(init_expr_ref);
       seq.stmt = ctx.Add(VarDeclStmt{
           .name = phi.name,
           .type_constraint = phi.type_constraint,
-          .init = init_expr,
+          .init = init_expr_ref,
       });
 
       for (int i = 0; i < block.preds.size(); ++i) {

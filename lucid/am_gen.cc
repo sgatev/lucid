@@ -138,7 +138,7 @@ class AbstractMachineFunctionGenerator {
       next_reg_ = 1;
 
       state_.func.instructions.push_back(Label{
-          .id = block.ref,
+          .id = block.ref.id(),
       });
 
       if (block.ref == graph_.get(graph_.last).ref) {
@@ -156,15 +156,15 @@ class AbstractMachineFunctionGenerator {
         }
       }
 
-      if (block.branch_cond != ControlFlowGraph::kNullBlockRef) {
+      if (block.branch_cond != Arena<Expr>::kNullRef) {
         state_.func.instructions.push_back(CondJump{
-            .cond_reg = state_.out_reg[block.branch_cond],
-            .then_label = graph_.get(block.next[0]).ref,
-            .else_label = graph_.get(block.next[1]).ref,
+            .cond_reg = state_.out_reg[block.branch_cond.id()],
+            .then_label = graph_.get(block.next[0]).ref.id(),
+            .else_label = graph_.get(block.next[1]).ref.id(),
         });
       } else if (block.next.size() == 1) {
         state_.func.instructions.push_back(UncondJump{
-            .label = graph_.get(block.next[0]).ref,
+            .label = graph_.get(block.next[0]).ref.id(),
         });
       }
     }
@@ -204,12 +204,12 @@ class AbstractMachineFunctionGenerator {
         ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.value))));
     if (type.name == "Int32" || type.name == "Bool") {
       state_.func.instructions.push_back(MoveReg32{
-          .src_reg = state_.out_reg[stmt.value],
+          .src_reg = state_.out_reg[stmt.value.id()],
           .dst_reg = 0,
       });
     } else if (type.name == "Int64") {
       state_.func.instructions.push_back(MoveReg64{
-          .src_reg = state_.out_reg[stmt.value],
+          .src_reg = state_.out_reg[stmt.value.id()],
           .dst_reg = 0,
       });
     }
@@ -217,7 +217,7 @@ class AbstractMachineFunctionGenerator {
 
   void Process(StmtRef ref, const DoStmt& stmt) {}
 
-  void Process(StmtRef ref, const Expr& expr) {
+  void Process(ExprRef ref, const Expr& expr) {
     std::visit([this, ref](auto&& expr) { ProcessExpr(ref, expr); }, expr);
   }
 
@@ -235,7 +235,7 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = reg,
       });
     }
-    state_.out_reg[ref] = reg;
+    state_.out_reg[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const BoolLitExpr& expr) {
@@ -244,7 +244,7 @@ class AbstractMachineFunctionGenerator {
         .src_val = expr.value == "true" ? "1" : "0",
         .dst_reg = reg,
     });
-    state_.out_reg[ref] = reg;
+    state_.out_reg[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const StringLitExpr& expr) {
@@ -256,7 +256,7 @@ class AbstractMachineFunctionGenerator {
         .src_val = string_id,
         .dst_reg = reg,
     });
-    state_.out_reg[ref] = reg;
+    state_.out_reg[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const FuncCallExpr& expr) {
@@ -267,12 +267,12 @@ class AbstractMachineFunctionGenerator {
       auto arg_type = std::get<BasicType>(ctx_.DerefType(GetType(arg_expr)));
       if (arg_type.name == "Int32") {
         state_.func.instructions.push_back(MoveReg32{
-            .src_reg = state_.out_reg[arg],
+            .src_reg = state_.out_reg[arg.id()],
             .dst_reg = i++,
         });
       } else if (arg_type.name == "Int64" || arg_type.name == "String") {
         state_.func.instructions.push_back(MoveReg64{
-            .src_reg = state_.out_reg[arg],
+            .src_reg = state_.out_reg[arg.id()],
             .dst_reg = i++,
         });
       }
@@ -292,7 +292,7 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = reg,
       });
     }
-    state_.out_reg[ref] = reg;
+    state_.out_reg[ref.id()] = reg;
   }
 
   void Process(StmtRef stmt_ref, const VarDeclStmt& stmt) {
@@ -314,14 +314,14 @@ class AbstractMachineFunctionGenerator {
     if (stmt_type.name == "Int32") {
       state_.func.instructions.push_back(StoreStack32{
           .offset = stack_offset_,
-          .src_reg = state_.out_reg[*stmt.init],
+          .src_reg = state_.out_reg[stmt.init->id()],
       });
       var_stack_[stmt.name] = stack_offset_;
       ++stack_offset_;
     } else if (stmt_type.name == "Int64") {
       state_.func.instructions.push_back(StoreStack64{
           .offset = stack_offset_,
-          .src_reg = state_.out_reg[*stmt.init],
+          .src_reg = state_.out_reg[stmt.init->id()],
       });
       var_stack_[stmt.name] = stack_offset_;
       ++stack_offset_;
@@ -334,12 +334,12 @@ class AbstractMachineFunctionGenerator {
     if (expr_type.name == "Int32") {
       state_.func.instructions.push_back(StoreStack32{
           .offset = var_stack_[stmt.name],
-          .src_reg = state_.out_reg[stmt.expr],
+          .src_reg = state_.out_reg[stmt.expr.id()],
       });
     } else if (expr_type.name == "Int64") {
       state_.func.instructions.push_back(StoreStack64{
           .offset = var_stack_[stmt.name],
-          .src_reg = state_.out_reg[stmt.expr],
+          .src_reg = state_.out_reg[stmt.expr.id()],
       });
     }
   }
@@ -356,13 +356,13 @@ class AbstractMachineFunctionGenerator {
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[stmt.index],
+          .rhs_reg = state_.out_reg[stmt.index.id()],
       });
 
       state_.func.instructions.push_back(StoreStackReg32{
           .offset = var_stack_[stmt.name],
           .offset_reg = offset_reg,
-          .src_reg = state_.out_reg[stmt.expr],
+          .src_reg = state_.out_reg[stmt.expr.id()],
       });
     } else if (expr_type.name == "Int64") {
       RegId offset_reg = next_reg_++;
@@ -373,13 +373,13 @@ class AbstractMachineFunctionGenerator {
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[stmt.index],
+          .rhs_reg = state_.out_reg[stmt.index.id()],
       });
 
       state_.func.instructions.push_back(StoreStackReg64{
           .offset = var_stack_[stmt.name],
           .offset_reg = offset_reg,
-          .src_reg = state_.out_reg[stmt.expr],
+          .src_reg = state_.out_reg[stmt.expr.id()],
       });
     } else if (expr_type.name == "Bool") {
       RegId offset_reg = next_reg_++;
@@ -390,13 +390,13 @@ class AbstractMachineFunctionGenerator {
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[stmt.index],
+          .rhs_reg = state_.out_reg[stmt.index.id()],
       });
 
       state_.func.instructions.push_back(StoreStackReg32{
           .offset = var_stack_[stmt.name],
           .offset_reg = offset_reg,
-          .src_reg = state_.out_reg[stmt.expr],
+          .src_reg = state_.out_reg[stmt.expr.id()],
       });
     }
   }
@@ -418,7 +418,7 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = reg,
       });
     }
-    state_.out_reg[ref] = reg;
+    state_.out_reg[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const IndexExpr& expr) {
@@ -434,7 +434,7 @@ class AbstractMachineFunctionGenerator {
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[expr.index],
+          .rhs_reg = state_.out_reg[expr.index.id()],
       });
 
       state_.func.instructions.push_back(LoadStackReg32{
@@ -451,7 +451,7 @@ class AbstractMachineFunctionGenerator {
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[expr.index],
+          .rhs_reg = state_.out_reg[expr.index.id()],
       });
 
       state_.func.instructions.push_back(LoadStackReg64{
@@ -468,7 +468,7 @@ class AbstractMachineFunctionGenerator {
       state_.func.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[expr.index],
+          .rhs_reg = state_.out_reg[expr.index.id()],
       });
 
       state_.func.instructions.push_back(LoadStackReg32{
@@ -477,7 +477,7 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = reg,
       });
     }
-    state_.out_reg[ref] = reg;
+    state_.out_reg[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr) {
@@ -489,14 +489,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type.name == "Int32") {
           state_.func.instructions.push_back(AddReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         } else if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(AddReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         }
         break;
@@ -504,14 +504,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(SubReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         } else {
           state_.func.instructions.push_back(SubReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         }
         break;
@@ -519,14 +519,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type.name == "Int32") {
           state_.func.instructions.push_back(MulReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         } else if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(MulReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         }
         break;
@@ -534,14 +534,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type.name == "Int32") {
           state_.func.instructions.push_back(DivReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         } else if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(DivReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         }
         break;
@@ -549,14 +549,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type.name == "Int32") {
           state_.func.instructions.push_back(ModReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         } else if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(ModReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         }
         break;
@@ -564,14 +564,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(GtReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         } else {
           state_.func.instructions.push_back(GtReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         }
         break;
@@ -579,14 +579,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(LtReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         } else {
           state_.func.instructions.push_back(LtReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         }
         break;
@@ -594,14 +594,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(EqReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         } else {
           state_.func.instructions.push_back(EqReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         }
         break;
@@ -609,19 +609,19 @@ class AbstractMachineFunctionGenerator {
         if (expr_type.name == "Int64") {
           state_.func.instructions.push_back(NotEqReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         } else {
           state_.func.instructions.push_back(NotEqReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs],
-              .rhs_reg = state_.out_reg[expr.rhs],
+              .lhs_reg = state_.out_reg[expr.lhs.id()],
+              .rhs_reg = state_.out_reg[expr.rhs.id()],
           });
         }
         break;
     }
-    state_.out_reg[ref] = reg;
+    state_.out_reg[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const Type& expr) {

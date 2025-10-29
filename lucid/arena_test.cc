@@ -1,5 +1,6 @@
 #include "lucid/arena.h"
 
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -11,7 +12,36 @@ namespace {
 
 using ::testing::ElementsAre;
 
+TEST(ArenaRefTest, Default) {
+  EXPECT_TRUE(Arena<int>::Ref() == Arena<int>::kNullRef);
+}
+
 TEST(ArenaRefTest, Size) { EXPECT_EQ(sizeof(Arena<int>::Ref), 4); }
+
+TEST(ArenaRefTest, Unconvertible) {
+  EXPECT_FALSE((std::is_convertible_v<Arena<int>::Ref, Arena<double>::Ref>));
+}
+
+TEST(ArenaRefTest, Equality) {
+  EXPECT_TRUE(Arena<int>::Ref(2) == Arena<int>::Ref(2));
+  EXPECT_TRUE(Arena<int>::Ref(2) != Arena<int>::Ref(3));
+}
+
+TEST(ArenaRefTest, Id) { EXPECT_EQ(Arena<int>::Ref(2).id(), 2); }
+
+TEST(ArenaRefTest, Increments) {
+  Arena<int>::Ref ref(2);
+  ++ref;
+  EXPECT_EQ(ref.id(), 3);
+  --ref;
+  EXPECT_EQ(ref.id(), 2);
+}
+
+TEST(ArenaRefTest, Offsets) {
+  Arena<int>::Ref ref(5);
+  EXPECT_EQ((ref + 3).id(), 8);
+  EXPECT_EQ((ref - 2).id(), 3);
+}
 
 TEST(ArenaTest, StoresValues) {
   Arena<int> arena;

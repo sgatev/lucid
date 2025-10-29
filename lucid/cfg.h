@@ -127,3 +127,14 @@ ControlFlowGraph BuildControlFlowGraph(const SyntaxContext& ctx,
                                        const FuncDefStmt& func);
 
 }  // namespace lucid
+
+namespace std {
+
+template <>
+struct hash<typename lucid::ControlFlowGraph::BlockRef> {
+  size_t operator()(const lucid::ControlFlowGraph::BlockRef& ref) const {
+    return hash<uint32_t>()(ref.id());
+  }
+};
+
+}  // namespace std
