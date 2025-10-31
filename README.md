@@ -1,4 +1,4 @@
-# luc✦d
+# 𝓵𝓾𝓬𝓲𝓭
 
 Lucid is an experimental programming language and toolchain developed from scratch.
 
