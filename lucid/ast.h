@@ -7,6 +7,7 @@
 #include <variant>
 
 #include "lucid/arena.h"
+#include "lucid/string_index.h"
 #include "lucid/successive_list.h"
 
 namespace lucid {
@@ -69,7 +70,7 @@ struct ExprBase {
 // A function parameter.
 struct FuncParam {
   // Name of the parameter.
-  std::string name;
+  StringIndex::Ref name;
 
   // Type of the parameter.
   TypeRef type_constraint;
@@ -286,6 +287,11 @@ class SyntaxContext {
   // Adds `param` to the context.
   ParamRef Add(FuncParam param) { return params_.Add(std::move(param)); }
 
+  // Adds `ident` to the context.
+  StringIndex::Ref AddIdent(std::string_view ident) {
+    return idents_.ref(ident);
+  }
+
   // Creates an alias of `ref` in the context.
   StmtRef AliasStmt(StmtRef ref) { return stmts_.Alias(ref); }
 
@@ -307,8 +313,14 @@ class SyntaxContext {
   Type& DerefType(TypeRef ref) { return types_.Get(ref); }
   const Type& DerefType(TypeRef ref) const { return types_.Get(ref); }
 
+  // Returns the parameter that `ref` refers to.
   FuncParam& DerefParam(ParamRef ref) { return params_.Get(ref); }
   const FuncParam& DerefParam(ParamRef ref) const { return params_.Get(ref); }
+
+  // Returns the identifier that `ref` refers to.
+  std::string_view DerefIdent(StringIndex::Ref ref) const {
+    return idents_.deref(ref);
+  }
 
   // Returns true if and only if `lhs` and `rhs` refer to equivalent statements.
   bool EquivStmts(StmtRef lhs, StmtRef rhs) const {
@@ -324,6 +336,7 @@ class SyntaxContext {
   Arena<Expr> exprs_;
   Arena<Type> types_;
   Arena<FuncParam> params_;
+  StringIndex idents_;
 };
 
 }  // namespace lucid

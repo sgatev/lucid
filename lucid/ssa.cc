@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <stack>
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <variant>
@@ -27,8 +26,10 @@ CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
       defs;
   for (auto param_ref : cfg.func_params) {
     const auto& param = ctx.DerefParam(param_ref);
-    defs[param.name].first = param.type_constraint;
-    defs[param.name].second.insert(cfg.first);
+    // TODO: Do not deref
+    defs[std::string(ctx.DerefIdent(param.name))].first = param.type_constraint;
+    // TODO: Do not deref
+    defs[std::string(ctx.DerefIdent(param.name))].second.insert(cfg.first);
   }
   for (const auto& block : cfg.blocks()) {
     for (const auto& seq : block.sequences) {
@@ -99,9 +100,13 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
 
   for (auto param_ref : cfg.func_params) {
     auto& param = ctx.DerefParam(param_ref);
-    std::string new_name = param.name + std::to_string(counter++);
-    block_defs[cfg.first.id()][param.name] = new_name;
-    param.name = new_name;
+    // TODO: Do not deref
+    std::string new_name =
+        std::string(ctx.DerefIdent(param.name)) + std::to_string(counter++);
+    // TODO: Do not deref
+    block_defs[cfg.first.id()][std::string(ctx.DerefIdent(param.name))] =
+        new_name;
+    param.name = ctx.AddIdent(new_name);
   }
 
   std::vector<bool> visited(cfg.blocks().Size(), false);

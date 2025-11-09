@@ -66,7 +66,8 @@ class AstPrinter {
   void Print(const FuncParam& param) {
     Out() << Indent() << "FuncParam {" << std::endl;
     Nested([&] {
-      Out() << Indent() << ".name = \"" << param.name << "\"" << std::endl;
+      Out() << Indent() << ".name = \"" << ctx_.DerefIdent(param.name) << "\""
+            << std::endl;
     });
     Out() << Indent() << "}" << std::endl;
   }

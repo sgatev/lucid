@@ -120,14 +120,16 @@ class AbstractMachineFunctionGenerator {
             .offset = stack_offset_,
             .src_reg = static_cast<RegId>(i + 1),
         });
-        var_stack_[param.name] = stack_offset_;
+        // TODO: Do not deref
+        var_stack_[ctx_.DerefIdent(param.name)] = stack_offset_;
         ++stack_offset_;
       } else if (param_type.name == "Int64") {
         state_.func.instructions.push_back(StoreStack64{
             .offset = stack_offset_,
             .src_reg = static_cast<RegId>(i + 1),
         });
-        var_stack_[param.name] = stack_offset_;
+        // TODO: Do not deref
+        var_stack_[ctx_.DerefIdent(param.name)] = stack_offset_;
         ++stack_offset_;
       }
     }

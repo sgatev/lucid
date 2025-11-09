@@ -98,6 +98,7 @@ cc_library(
     hdrs = ["ast.h"],
     deps = [
         ":arena",
+        ":string_index",
         ":successive_list",
     ],
 )
@@ -127,6 +128,7 @@ cc_library(
     deps = [
         ":arena",
         ":ast",
+        ":string_index",
         ":successive_list",
         "@googletest//:gtest",
     ],
@@ -557,6 +559,7 @@ cc_library(
     deps = [
         ":ast",
         ":result",
+        ":string_index",
     ],
 )
 

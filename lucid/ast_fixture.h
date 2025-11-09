@@ -11,6 +11,7 @@
 #include "gmock/gmock.h"
 #include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/string_index.h"
 #include "lucid/successive_list.h"
 
 namespace lucid {
@@ -42,7 +43,7 @@ inline bool AllMatch(SuccessiveList<T> real, const std::vector<P>& patterns) {
 }
 
 struct FuncParamPattern {
-  std::string_view name;
+  StringIndex::Ref name;
   TypeRefMatcher type_constraint;
 
   bool operator()(const FuncParam& param) const {
@@ -238,6 +239,9 @@ class AstFixture {
   ParamRef P(X param) {
     return ctx_.Add(param);
   }
+
+  // Allocates the `ident`.
+  StringIndex::Ref I(std::string_view ident) { return ctx_.AddIdent(ident); }
 
   // Returns an empty list.
   template <typename T>

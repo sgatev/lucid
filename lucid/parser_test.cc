@@ -270,7 +270,7 @@ TEST_F(ParserTest, SingleFuncParam) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "x",
+                      .name = I("x"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -297,15 +297,15 @@ TEST_F(ParserTest, MultipleFuncParams) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "a",
+                      .name = I("a"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
                   MatchesFuncParam({
-                      .name = "b",
+                      .name = I("b"),
                       .type_constraint = MatchesBasicType({.name = "Double"}),
                   }),
                   MatchesFuncParam({
-                      .name = "c",
+                      .name = I("c"),
                       .type_constraint = MatchesBasicType({.name = "Bool"}),
                   }),
               },
@@ -564,7 +564,7 @@ TEST_F(ParserTest, IfElseIfElseStmt) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "x",
+                      .name = I("x"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -619,11 +619,11 @@ TEST_F(ParserTest, GtInts) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "x",
+                      .name = I("x"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
                   MatchesFuncParam({
-                      .name = "y",
+                      .name = I("y"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -653,11 +653,11 @@ TEST_F(ParserTest, LtInts) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "x",
+                      .name = I("x"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
                   MatchesFuncParam({
-                      .name = "y",
+                      .name = I("y"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -687,11 +687,11 @@ TEST_F(ParserTest, EqInts) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "x",
+                      .name = I("x"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
                   MatchesFuncParam({
-                      .name = "y",
+                      .name = I("y"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -721,11 +721,11 @@ TEST_F(ParserTest, NotEqInts) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "x",
+                      .name = I("x"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
                   MatchesFuncParam({
-                      .name = "y",
+                      .name = I("y"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -756,7 +756,7 @@ TEST_F(ParserTest, VarDecl) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "n",
+                      .name = I("n"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -791,7 +791,7 @@ TEST_F(ParserTest, VarAssignment) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "n",
+                      .name = I("n"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -846,11 +846,11 @@ TEST_F(ParserTest, EqOverMod) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "a",
+                      .name = I("a"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
                   MatchesFuncParam({
-                      .name = "b",
+                      .name = I("b"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -901,11 +901,11 @@ TEST_F(ParserTest, NotEqOverAdd) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "a",
+                      .name = I("a"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
                   MatchesFuncParam({
-                      .name = "b",
+                      .name = I("b"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -956,11 +956,11 @@ TEST_F(ParserTest, GtOverMul) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "a",
+                      .name = I("a"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
                   MatchesFuncParam({
-                      .name = "b",
+                      .name = I("b"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -1011,11 +1011,11 @@ TEST_F(ParserTest, LtOverSub) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "a",
+                      .name = I("a"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
                   MatchesFuncParam({
-                      .name = "b",
+                      .name = I("b"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -1062,7 +1062,7 @@ TEST_F(ParserTest, ArrayParam) {
                   .params =
                       {
                           MatchesFuncParam({
-                              .name = "a",
+                              .name = I("a"),
                               .type_constraint = MatchesArrayType({
                                   .element_type_constraint =
                                       MatchesBasicType({.name = "Int32"}),

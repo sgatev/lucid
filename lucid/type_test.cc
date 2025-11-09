@@ -92,7 +92,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
       .result_type = T(BasicType{.name = "Void"}),
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int64"}),
           }),
       }),
@@ -115,7 +115,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "x",
+                      .name = I("x"),
                       .type_constraint = MatchesBasicType({.name = "Int64"}),
                   }),
               },
@@ -137,7 +137,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
       .result_type = T(BasicType{.name = "Void"}),
       .params = ParamListOf({
           P(FuncParam{
-              .name = "n",
+              .name = I("n"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
       }),
@@ -162,7 +162,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
           .params =
               {
                   MatchesFuncParam({
-                      .name = "n",
+                      .name = I("n"),
                       .type_constraint = MatchesBasicType({.name = "Int32"}),
                   }),
               },
@@ -232,7 +232,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
       .result_type = T(BasicType{.name = "Int32"}),
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
       }),

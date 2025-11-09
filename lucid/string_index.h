@@ -35,7 +35,7 @@ class StringIndex {
   }
 
   // Returns the string identified by the given reference.
-  std::string_view deref(Ref ref) {
+  std::string_view deref(Ref ref) const {
     return std::string_view(data_.data() + ref.begin_, ref.size_);
   }
 

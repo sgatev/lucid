@@ -162,7 +162,7 @@ class Parser {
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
 
     return ctx_.Add(FuncParam{
-        .name = std::string(std::get<std::string_view>(maybe_name)),
+        .name = ctx_.AddIdent(std::get<std::string_view>(maybe_name)),
         .type_constraint = std::get<TypeRef>(maybe_type),
     });
   }

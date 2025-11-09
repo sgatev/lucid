@@ -12,6 +12,7 @@
 
 #include "lucid/ast.h"
 #include "lucid/result.h"
+#include "lucid/string_index.h"
 
 namespace lucid {
 namespace {
@@ -217,6 +218,11 @@ class ExprTypeInferenceEngine {
     expr_from_array_[element] = array;
   }
 
+  void SetIdentType(StringIndex::Ref ident, TypeRef type_ref) {
+    ident_from_type_[ctx_.DerefIdent(ident)] = type_ref;
+  }
+
+  // TODO: Remove
   void SetIdentType(std::string_view name, TypeRef type_ref) {
     ident_from_type_[name] = type_ref;
   }

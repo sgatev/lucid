@@ -98,7 +98,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
       .result_type = T(BasicType{.name = "Int32"}),
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
       }),
@@ -253,7 +253,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
       .result_type = T(BasicType{.name = "Int64"}),
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int64"}),
           }),
       }),
@@ -1094,11 +1094,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
       .name = "foo",
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
           P(FuncParam{
-              .name = "y",
+              .name = I("y"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
       }),
@@ -1157,11 +1157,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
       .name = "foo",
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int64"}),
           }),
           P(FuncParam{
-              .name = "y",
+              .name = I("y"),
               .type_constraint = T(BasicType{.name = "Int64"}),
           }),
       }),
@@ -1266,11 +1266,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
       .result_type = T(BasicType{.name = "Bool"}),
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
           P(FuncParam{
-              .name = "y",
+              .name = I("y"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
       }),
@@ -1329,11 +1329,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
       .result_type = T(BasicType{.name = "Bool"}),
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int64"}),
           }),
           P(FuncParam{
-              .name = "y",
+              .name = I("y"),
               .type_constraint = T(BasicType{.name = "Int64"}),
           }),
       }),
@@ -1392,11 +1392,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
       .result_type = T(BasicType{.name = "Bool"}),
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
           P(FuncParam{
-              .name = "y",
+              .name = I("y"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
       }),
@@ -1455,11 +1455,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
       .result_type = T(BasicType{.name = "Bool"}),
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int64"}),
           }),
           P(FuncParam{
-              .name = "y",
+              .name = I("y"),
               .type_constraint = T(BasicType{.name = "Int64"}),
           }),
       }),
@@ -1518,11 +1518,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
       .result_type = T(BasicType{.name = "Bool"}),
       .params = ParamListOf({
           P(FuncParam{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
           P(FuncParam{
-              .name = "y",
+              .name = I("y"),
               .type_constraint = T(BasicType{.name = "Int32"}),
           }),
       }),
@@ -1581,11 +1581,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
       .params = ParamListOf({
           P(FuncParam{
               .type_constraint = T(BasicType{.name = "Int64"}),
-              .name = "x",
+              .name = I("x"),
           }),
           P(FuncParam{
               .type_constraint = T(BasicType{.name = "Int64"}),
-              .name = "y",
+              .name = I("y"),
           }),
       }),
       .result_type = T(BasicType{.name = "Bool"}),
@@ -1820,7 +1820,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
       .params = ParamListOf({
           P(FuncParam{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "x",
+              .name = I("x"),
           }),
       }),
       .result_type = T(BasicType{.name = "Void"}),
@@ -1863,7 +1863,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
       .params = ParamListOf({
           P(FuncParam{
               .type_constraint = T(BasicType{.name = "Int64"}),
-              .name = "x",
+              .name = I("x"),
           }),
       }),
       .result_type = T(BasicType{.name = "Void"}),
