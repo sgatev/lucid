@@ -508,6 +508,20 @@ cc_test(
 )
 
 cc_library(
+    name = "string_index",
+    hdrs = ["string_index.h"],
+)
+
+cc_test(
+    name = "string_index_test",
+    srcs = ["string_index_test.cc"],
+    deps = [
+        ":string_index",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "successive_list",
     hdrs = ["successive_list.h"],
 )
