@@ -19,7 +19,8 @@ class AstPrinter {
   void Print(const FuncDefStmt& stmt) {
     Out() << Indent() << "FuncDefStmt {" << std::endl;
     Nested([&] {
-      Out() << Indent() << ".name = \"" << stmt.name << "\"" << std::endl;
+      Out() << Indent() << ".name = \"" << ctx_.DerefIdent(stmt.name) << "\""
+            << std::endl;
 
       if (stmt.params.size() > 0) {
         Out() << Indent() << ".params = [" << std::endl;

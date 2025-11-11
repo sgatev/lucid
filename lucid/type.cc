@@ -148,7 +148,8 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
-    const auto& func_def = func_defs_.at(expr.func_name);
+    // TODO: Remove AddIdent call
+    const auto& func_def = func_defs_.at(ctx_.AddIdent(expr.func_name));
     for (std::uint32_t i = 0; i < expr.args.size(); ++i) {
       const auto& param = ctx_.DerefParam(func_def->params[i]);
       ExprRef arg = expr.args[i];
@@ -300,7 +301,7 @@ class ExprTypeInferenceEngine {
   }
 
   SyntaxContext& ctx_;
-  std::unordered_map<std::string_view, const FuncDefStmt*> func_defs_;
+  std::unordered_map<StringIndex::Ref, const FuncDefStmt*> func_defs_;
   FuncDefStmt& func_def_;
 
   std::unordered_map<ExprRef, ExprRef> expr_from_expr_;

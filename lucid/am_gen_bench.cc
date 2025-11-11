@@ -22,7 +22,12 @@ void Benchmark(benchmark::State& state, std::string_view code) {
   auto func_def = std::get<std::optional<lucid::FuncDefStmt>>(
       lucid::Parser(ctx, code, lucid::Lexer(code)).ParseFuncDef());
   auto graph = BuildControlFlowGraph(ctx, func_def.value());
-  lucid::AbstractMachineState am_state;
+  lucid::AbstractMachineState am_state = {
+      .func =
+          {
+              .name = func_def->name,
+          },
+  };
 
   for (auto _ : state) {
     benchmark::DoNotOptimize(CountInstructions(ctx, graph, am_state));

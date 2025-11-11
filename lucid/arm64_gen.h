@@ -6,6 +6,7 @@
 
 #include "lucid/am.h"
 #include "lucid/arm64.h"
+#include "lucid/ast.h"
 
 namespace lucid {
 
@@ -18,7 +19,7 @@ void GenerateArmEndBinary(
     arm64::Assembler& Assembler);
 
 // Generates 64-bit ARM machine code for `func`.
-void GenerateArmAssemblyBinary(const Function& func,
-                               arm64::Assembler& Assembler);
+void GenerateArmAssemblyBinary(const SyntaxContext& ctx, const Function& func,
+                               arm64::Assembler& assembler);
 
 }  // namespace lucid

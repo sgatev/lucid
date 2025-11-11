@@ -3,6 +3,7 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -57,10 +58,19 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
   auto maybe_funcs = ParseFuncDefs(src, ctx);
   if (maybe_funcs.HasError()) return maybe_funcs.GetError();
   auto& func_defs = maybe_funcs.GetValue();
-  AbstractMachineState state;
+  // TODO: Avoid optional state here
+  std::optional<AbstractMachineState> state;
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
   for (auto& func : func_defs) {
+    if (!state.has_value()) {
+      state.emplace(AbstractMachineState{
+          .func =
+              {
+                  .name = func.name,
+              },
+      });
+    }
     if (auto res = InferExprTypes(ctx, func_defs, func); res.HasError()) {
       return res.GetError();
     }
@@ -70,11 +80,11 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     }
     ConvertToStaticSingleAssignment(ctx, graph);
     DestroyStaticSingleAssignment(ctx, graph);
-    GenerateAbstractMachineFunction(ctx, graph, state);
-    OptimizeAbstractMachineInstructions(state.func.instructions);
-    GenerateArmAssemblyBinary(state.func, assembler);
+    GenerateAbstractMachineFunction(ctx, graph, *state);
+    OptimizeAbstractMachineInstructions(state->func.instructions);
+    GenerateArmAssemblyBinary(ctx, state->func, assembler);
   }
-  GenerateArmEndBinary(state.strings, assembler);
+  GenerateArmEndBinary(state->strings, assembler);
   WriteCompiledMachObject(assembler, out);
   return {};
 }

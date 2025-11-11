@@ -85,7 +85,7 @@ class AbstractMachineFunctionGenerator {
     state_.func.instructions.clear();
     state_.func.instructions.reserve(instructions_count * 2);
 
-    if (graph_.func_name == "printString") {
+    if (ctx_.DerefIdent(graph_.func_name) == "printString") {
       state_.func.instructions.push_back(Jump{
           .label = "_print_string",
       });
@@ -95,7 +95,7 @@ class AbstractMachineFunctionGenerator {
       });
       state_.func.instructions.push_back(Return{});
       return;
-    } else if (graph_.func_name == "sleep") {
+    } else if (ctx_.DerefIdent(graph_.func_name) == "sleep") {
       state_.func.instructions.push_back(Jump{
           .label = "_sleep",
       });

@@ -19,8 +19,7 @@ class ControlFlowGraphBuilder {
 
  public:
   ControlFlowGraphBuilder(const SyntaxContext& ctx, const FuncDefStmt& func_def)
-      : ctx_(ctx) {
-    graph_.func_name = func_def.name;
+      : ctx_(ctx), graph_(func_def.name) {
     graph_.func_params = func_def.params;
     graph_.first = AddBlock();
     graph_.last = AddBlock();

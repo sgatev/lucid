@@ -23,16 +23,16 @@ class ControlFlowGraphTest : public testing::Test, public AstFixture {
 
 TEST_F(ControlFlowGraphTest, FunctionName) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
   });
 
-  EXPECT_EQ(graph.func_name, "foo");
+  EXPECT_EQ(graph.func_name, I("foo"));
 }
 
 TEST_F(ControlFlowGraphTest, EmptyFunction) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
   });
 
@@ -60,7 +60,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   }));
   auto do_stmt = S(DoStmt{.expr = func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           do_stmt,
@@ -121,7 +121,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   }));
   auto do_stmt = S(DoStmt{.expr = bar_func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           do_stmt,
@@ -169,7 +169,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
       .value = func_call_expr,
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({return_stmt}),
   });
@@ -208,7 +208,7 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
       .init = func_call_stmt_ref,
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .stmts = StmtListOf({var_decl_stmt}),
       .result_type = T(BasicType{.name = "Void"}),
   });
@@ -245,7 +245,7 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
   });
   auto do_stmt = S(DoStmt{.expr = add_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .stmts = StmtListOf({do_stmt}),
       .result_type = T(BasicType{.name = "Int32"}),
   });
@@ -291,7 +291,7 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
   auto cond_expr = E(BoolLitExpr{.value = "true"});
   auto do_mul_stmt = S(DoStmt{.expr = mul_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .stmts = StmtListOf({
           S(IfStmt{
               .cond = cond_expr,
@@ -362,7 +362,7 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
   auto do_add_stmt = S(DoStmt{.expr = add_expr});
   auto do_mul_stmt = S(DoStmt{.expr = mul_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .stmts = StmtListOf({
           S(IfStmt{
               .cond = cond_expr,
@@ -440,7 +440,7 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
       .value = ident_expr,
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({var_decl_stmt, return_stmt}),
   });
@@ -482,7 +482,7 @@ TEST_F(ControlFlowGraphTest, Loop) {
   });
   auto do_add_stmt = S(DoStmt{.expr = add_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .stmts = StmtListOf({
           S(LoopStmt{
               .stmts = StmtListOf({do_add_stmt}),
@@ -559,7 +559,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
       .value = return_value_ref,
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .stmts = StmtListOf({
           var_decl_stmt,
           S(LoopStmt{

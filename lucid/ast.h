@@ -81,7 +81,7 @@ struct FuncParam {
 // A statement that represents a function definition.
 struct FuncDefStmt {
   // Name of the function.
-  std::string_view name;
+  StringIndex::Ref name;
 
   // Parameters of the function.
   SuccessiveList<ParamRef> params;

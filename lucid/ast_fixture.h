@@ -59,7 +59,7 @@ struct CompoundStmtPattern {
 };
 
 struct FuncDefStmtPattern {
-  std::string_view name;
+  StringIndex::Ref name;
   std::vector<ParamRefMatcher> params;
   TypeRefMatcher result_type;
   CompoundStmtPattern body;

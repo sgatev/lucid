@@ -53,7 +53,7 @@ TEST_F(ParserTest, EmptyFuncDefStmt) {
     }
   )";
   EXPECT_THAT(Parse(src), HoldsFuncDef(MatchesFuncDefStmt({
-                              .name = "main",
+                              .name = I("main"),
                               .result_type = MatchesBasicType({.name = "Void"}),
                           })));
 }
@@ -67,7 +67,7 @@ TEST_F(ParserTest, ReturnIntLitExpr) {
 
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "main",
+                  .name = I("main"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesReturnStmt({
@@ -90,7 +90,7 @@ TEST_F(ParserTest, Comment) {
 
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "main",
+                  .name = I("main"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesReturnStmt({
@@ -110,7 +110,7 @@ TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "main",
+                  .name = I("main"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesReturnStmt({
@@ -136,7 +136,7 @@ TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "main",
+                  .name = I("main"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesReturnStmt({
@@ -162,7 +162,7 @@ TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "main",
+                  .name = I("main"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesReturnStmt({
@@ -188,7 +188,7 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "main",
+                  .name = I("main"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesReturnStmt({
@@ -214,7 +214,7 @@ TEST_F(ParserTest, ReturnModBinaryOpExpr) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "main",
+                  .name = I("main"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesReturnStmt({
@@ -239,7 +239,7 @@ TEST_F(ParserTest, ReturnGtBinaryOpExpr) {
     }
   )";
   EXPECT_THAT(Parse(src), HoldsFuncDef(MatchesFuncDefStmt({
-                              .name = "foo",
+                              .name = I("foo"),
                               .result_type = MatchesBasicType({.name = "Bool"}),
                               .body = {{
                                   MatchesReturnStmt({
@@ -266,7 +266,7 @@ TEST_F(ParserTest, SingleFuncParam) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "id",
+          .name = I("id"),
           .params =
               {
                   MatchesFuncParam({
@@ -293,7 +293,7 @@ TEST_F(ParserTest, MultipleFuncParams) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .params =
               {
                   MatchesFuncParam({
@@ -321,7 +321,7 @@ TEST_F(ParserTest, FuncCallExprIntLitArg) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "foo",
+                  .name = I("foo"),
                   .result_type = MatchesBasicType({.name = "Void"}),
                   .body = {{
                       MatchesDoStmt({
@@ -346,7 +346,7 @@ TEST_F(ParserTest, FuncCallExprStringLitArg) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .result_type = MatchesBasicType({.name = "Void"}),
           .body = {{
               MatchesDoStmt({
@@ -371,7 +371,7 @@ TEST_F(ParserTest, FuncCallExprNestedArg) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .result_type = MatchesBasicType({.name = "Void"}),
           .body = {{
               MatchesDoStmt({
@@ -410,7 +410,7 @@ TEST_F(ParserTest, ReturnFuncCallExpr) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "main",
+                  .name = I("main"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesReturnStmt({
@@ -433,7 +433,7 @@ TEST_F(ParserTest, ReturnTrueBoolLit) {
     }
   )";
   EXPECT_THAT(Parse(src), HoldsFuncDef(MatchesFuncDefStmt({
-                              .name = "truth",
+                              .name = I("truth"),
                               .result_type = MatchesBasicType({.name = "Bool"}),
                               .body = {{
                                   MatchesReturnStmt({
@@ -452,7 +452,7 @@ TEST_F(ParserTest, ReturnFalseBoolLit) {
     }
   )";
   EXPECT_THAT(Parse(src), HoldsFuncDef(MatchesFuncDefStmt({
-                              .name = "falsity",
+                              .name = I("falsity"),
                               .result_type = MatchesBasicType({.name = "Bool"}),
                               .body = {{
                                   MatchesReturnStmt({
@@ -475,7 +475,7 @@ TEST_F(ParserTest, IfStmt) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "foo",
+                  .name = I("foo"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesIfStmt({
@@ -515,7 +515,7 @@ TEST_F(ParserTest, IfElseStmt) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "foo",
+                  .name = I("foo"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesIfStmt({
@@ -560,7 +560,7 @@ TEST_F(ParserTest, IfElseIfElseStmt) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .params =
               {
                   MatchesFuncParam({
@@ -614,7 +614,7 @@ TEST_F(ParserTest, GtInts) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "gt",
+          .name = I("gt"),
           .result_type = MatchesBasicType({.name = "Bool"}),
           .params =
               {
@@ -648,7 +648,7 @@ TEST_F(ParserTest, LtInts) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "lt",
+          .name = I("lt"),
           .result_type = MatchesBasicType({.name = "Bool"}),
           .params =
               {
@@ -682,7 +682,7 @@ TEST_F(ParserTest, EqInts) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "eq",
+          .name = I("eq"),
           .result_type = MatchesBasicType({.name = "Bool"}),
           .params =
               {
@@ -716,7 +716,7 @@ TEST_F(ParserTest, NotEqInts) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "neq",
+          .name = I("neq"),
           .result_type = MatchesBasicType({.name = "Bool"}),
           .params =
               {
@@ -751,7 +751,7 @@ TEST_F(ParserTest, VarDecl) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "inc",
+          .name = I("inc"),
           .result_type = MatchesBasicType({.name = "Int32"}),
           .params =
               {
@@ -786,7 +786,7 @@ TEST_F(ParserTest, VarAssignment) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .result_type = MatchesBasicType({.name = "Void"}),
           .params =
               {
@@ -815,7 +815,7 @@ TEST_F(ParserTest, LoopAndBreakStmt) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "foo",
+                  .name = I("foo"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesLoopStmt({
@@ -842,7 +842,7 @@ TEST_F(ParserTest, EqOverMod) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .params =
               {
                   MatchesFuncParam({
@@ -897,7 +897,7 @@ TEST_F(ParserTest, NotEqOverAdd) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .params =
               {
                   MatchesFuncParam({
@@ -952,7 +952,7 @@ TEST_F(ParserTest, GtOverMul) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .params =
               {
                   MatchesFuncParam({
@@ -1007,7 +1007,7 @@ TEST_F(ParserTest, LtOverSub) {
   EXPECT_THAT(
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .params =
               {
                   MatchesFuncParam({
@@ -1058,7 +1058,7 @@ TEST_F(ParserTest, ArrayParam) {
   )";
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "len",
+                  .name = I("len"),
                   .params =
                       {
                           MatchesFuncParam({

@@ -25,7 +25,7 @@ class ComputeImmediateDominatorsTest : public Test, public AstFixture {
 
 TEST_F(ComputeImmediateDominatorsTest, Simple) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
   });
 
@@ -34,7 +34,7 @@ TEST_F(ComputeImmediateDominatorsTest, Simple) {
 
 TEST_F(ComputeImmediateDominatorsTest, Branching) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
@@ -70,7 +70,7 @@ TEST_F(ComputeImmediateDominatorsTest, Branching) {
 
 TEST_F(ComputeImmediateDominatorsTest, NestedBranching) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
@@ -117,7 +117,7 @@ class ComputeDominanceFrontiersTest : public Test, public AstFixture {
 
 TEST_F(ComputeDominanceFrontiersTest, Simple) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
   });
 
@@ -126,7 +126,7 @@ TEST_F(ComputeDominanceFrontiersTest, Simple) {
 
 TEST_F(ComputeDominanceFrontiersTest, Branching) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
@@ -164,7 +164,7 @@ TEST_F(ComputeDominanceFrontiersTest, Branching) {
 
 TEST_F(ComputeDominanceFrontiersTest, NestedBranching) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{

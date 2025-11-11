@@ -1,6 +1,9 @@
 cc_library(
     name = "am",
     hdrs = ["am.h"],
+    deps = [
+        ":string_index",
+    ],
 )
 
 cc_test(
@@ -89,6 +92,7 @@ cc_library(
     hdrs = ["arm64_gen.h"],
     deps = [
         ":am",
+        ":ast",
         ":arm64",
     ],
 )

@@ -9,6 +9,7 @@
 
 #include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/string_index.h"
 #include "lucid/successive_list.h"
 
 namespace lucid {
@@ -82,6 +83,9 @@ struct ControlFlowGraph {
     ExprRef branch_cond = Arena<Expr>::kNullRef;
   };
 
+  explicit ControlFlowGraph(StringIndex::Ref func_name)
+      : func_name(func_name) {}
+
   // Adds `block` to the control flow graph and returns a reference to it.
   BlockRef add(Block block) { return blocks_.Add(std::move(block)); }
 
@@ -100,7 +104,7 @@ struct ControlFlowGraph {
   const Arena<Block>& blocks() const { return blocks_; }
 
   // Name of the function.
-  std::string_view func_name;
+  StringIndex::Ref func_name;
 
   // Parameters of the function.
   SuccessiveList<ParamRef> func_params;

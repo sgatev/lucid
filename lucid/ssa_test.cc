@@ -27,7 +27,7 @@ class ConvertToStaticSingleAssignmentTest : public Test, public AstFixture {
 
 TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
@@ -87,7 +87,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
 
 TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
@@ -174,7 +174,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
 
 TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
@@ -244,7 +244,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
 
 TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{

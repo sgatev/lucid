@@ -6,6 +6,7 @@
 #include <string_view>
 #include <variant>
 #include <vector>
+#include "lucid/string_index.h"
 
 namespace lucid {
 
@@ -693,7 +694,7 @@ using Instruction =
 // Abstract machine function definition.
 struct Function {
   // Name of the function.
-  std::string_view name;
+  StringIndex::Ref name;
 
   // Abstract machine stack slots.
   std::vector<std::size_t> stack_slots;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -17,6 +18,7 @@ class StringIndex {
 
    private:
     friend class StringIndex;
+    friend struct std::hash<Ref>;
 
     Ref(std::uint32_t begin, std::uint32_t size) : begin_(begin), size_(size) {}
 
@@ -44,3 +46,16 @@ class StringIndex {
 };
 
 }  // namespace lucid
+
+namespace std {
+
+template <>
+struct hash<lucid::StringIndex::Ref> {
+  size_t operator()(const lucid::StringIndex::Ref& ref) const {
+    std::size_t h1 = hash<uint32_t>()(ref.begin_);
+    std::size_t h2 = hash<uint32_t>()(ref.size_);
+    return h1 ^ (h2 << 1);
+  }
+};
+
+}  // namespace std

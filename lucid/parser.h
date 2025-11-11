@@ -85,8 +85,6 @@ class Parser {
 
     if (Peek().kind == Token::Kind::End) return std::nullopt;
 
-    FuncDefStmt stmt;
-
     if (auto r = ExpectIdent("let", ParserError::Kind::ExpectedLetKeyword);
         IsError(r)) {
       return *r;
@@ -96,7 +94,10 @@ class Parser {
 
     const auto maybe_name = ParseIdent();
     if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
-    stmt.name = std::get<std::string_view>(maybe_name);
+
+    FuncDefStmt stmt = {
+        .name = ctx_.AddIdent(std::get<std::string_view>(maybe_name)),
+    };
 
     SkipSpace();
 

@@ -1,7 +1,5 @@
 #include "lucid/type.h"
 
-#include <optional>
-
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "lucid/ast.h"
@@ -27,7 +25,7 @@ class InferExprTypesTest : public testing::Test, public AstFixture {
 
 TEST_F(InferExprTypesTest, ReturnValueFromResultType) {
   auto func = FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -40,7 +38,7 @@ TEST_F(InferExprTypesTest, ReturnValueFromResultType) {
 
   EXPECT_TRUE(InferExprTypes(func).HasValue());
   EXPECT_THAT(func, HoldsFuncDef(MatchesFuncDefStmt({
-                        .name = "foo",
+                        .name = I("foo"),
                         .result_type = MatchesBasicType({.name = "Int32"}),
                         .body = {{
                             MatchesReturnStmt({
@@ -55,7 +53,7 @@ TEST_F(InferExprTypesTest, ReturnValueFromResultType) {
 
 TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
   auto func = FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
@@ -71,7 +69,7 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
   EXPECT_TRUE(InferExprTypes(func).HasValue());
   EXPECT_THAT(
       func, HoldsFuncDef(MatchesFuncDefStmt({
-                .name = "foo",
+                .name = I("foo"),
                 .result_type = MatchesBasicType({.name = "Void"}),
                 .body = {{
                     MatchesVarDeclStmt({
@@ -88,7 +86,7 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
 
 TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
   auto func = FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
       .params = ParamListOf({
           P(FuncParam{
@@ -110,7 +108,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
   EXPECT_THAT(
       func,
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .result_type = MatchesBasicType({.name = "Void"}),
           .params =
               {
@@ -133,7 +131,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
 
 TEST_F(InferExprTypesTest, IfStmtCond) {
   auto func = FuncDefStmt{
-      .name = "fact",
+      .name = I("fact"),
       .result_type = T(BasicType{.name = "Void"}),
       .params = ParamListOf({
           P(FuncParam{
@@ -157,7 +155,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
   EXPECT_THAT(
       func,
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "fact",
+          .name = I("fact"),
           .result_type = MatchesBasicType({.name = "Void"}),
           .params =
               {
@@ -181,7 +179,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
 
 TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
   auto func = FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
@@ -203,7 +201,7 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
   EXPECT_TRUE(InferExprTypes(func).HasValue());
   EXPECT_THAT(
       func, HoldsFuncDef(MatchesFuncDefStmt({
-                .name = "foo",
+                .name = I("foo"),
                 .result_type = MatchesBasicType({.name = "Void"}),
                 .body = {{
                     MatchesVarDeclStmt({
@@ -228,7 +226,7 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
 
 TEST_F(InferExprTypesTest, FuncArgFromParamType) {
   auto id_func = FuncDefStmt{
-      .name = "id",
+      .name = I("id"),
       .result_type = T(BasicType{.name = "Int32"}),
       .params = ParamListOf({
           P(FuncParam{
@@ -239,7 +237,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
   };
 
   auto func = FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(ReturnStmt{
@@ -259,7 +257,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
   EXPECT_THAT(
       func,
       HoldsFuncDef(MatchesFuncDefStmt({
-          .name = "foo",
+          .name = I("foo"),
           .result_type = MatchesBasicType({.name = "Int32"}),
           .body = {{
               MatchesReturnStmt({
@@ -280,7 +278,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
 
 TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
   auto func = FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(IfStmt{
@@ -300,7 +298,7 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
   EXPECT_TRUE(InferExprTypes(func).HasValue());
   EXPECT_THAT(func,
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "foo",
+                  .name = I("foo"),
                   .result_type = MatchesBasicType({.name = "Void"}),
                   .body = {{
                       MatchesIfStmt({
@@ -323,7 +321,7 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
 
 TEST_F(InferExprTypesTest, ArrayIndex) {
   auto func = FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
@@ -344,7 +342,7 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
   EXPECT_TRUE(InferExprTypes(func).HasValue());
   EXPECT_THAT(func,
               HoldsFuncDef(MatchesFuncDefStmt({
-                  .name = "foo",
+                  .name = I("foo"),
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesVarDeclStmt({
@@ -378,7 +376,7 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
 
 TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
   auto func = FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
@@ -398,7 +396,7 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
 
 TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
   auto func = FuncDefStmt{
-      .name = "foo",
+      .name = I("foo"),
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
