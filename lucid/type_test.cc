@@ -242,7 +242,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(FuncCallExpr{
-                  .func_name = "id",
+                  .func_name = I("id"),
                   .args = ExprListOf({
                       E(IntLitExpr{
                           .value = "21",
@@ -263,7 +263,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
               MatchesReturnStmt({
                   .value = MatchesFuncCallExpr(
                       {.type = MatchesBasicType({.name = "Int32"}),
-                       .func_name = "id",
+                       .func_name = I("id"),
                        .args =
                            {
                                MatchesIntLitExpr({

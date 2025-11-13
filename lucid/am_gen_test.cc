@@ -115,7 +115,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(FuncCallExpr{
-                  .func_name = "id",
+                  .func_name = I("id"),
                   .args = ExprListOf({
                       E(IntLitExpr{.value = "21"}),
                   }),
@@ -270,7 +270,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(FuncCallExpr{
-                  .func_name = "id",
+                  .func_name = I("id"),
                   .args = ExprListOf({
                       E(IntLitExpr{.value = "21"}),
                   }),

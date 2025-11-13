@@ -127,7 +127,7 @@ struct StringLitExpr : public ExprBase {
 // An expression that represents a function call.
 struct FuncCallExpr : public ExprBase {
   // Name of the function.
-  std::string_view func_name;
+  StringIndex::Ref func_name;
 
   // Arguments to the function call.
   SuccessiveList<ExprRef> args;

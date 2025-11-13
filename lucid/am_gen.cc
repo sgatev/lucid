@@ -280,7 +280,7 @@ class AbstractMachineFunctionGenerator {
       }
     }
     state_.func.instructions.push_back(Jump{
-        .label = expr.func_name,
+        .label = ctx_.DerefIdent(expr.func_name),
     });
     auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
     if (expr_type.name == "Int32") {

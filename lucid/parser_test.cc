@@ -326,7 +326,7 @@ TEST_F(ParserTest, FuncCallExprIntLitArg) {
                   .body = {{
                       MatchesDoStmt({
                           .expr = MatchesFuncCallExpr({
-                              .func_name = "bar",
+                              .func_name = I("bar"),
                               .args =
                                   {
                                       MatchesIntLitExpr({.value = "3"}),
@@ -351,7 +351,7 @@ TEST_F(ParserTest, FuncCallExprStringLitArg) {
           .body = {{
               MatchesDoStmt({
                   .expr = MatchesFuncCallExpr({
-                      .func_name = "bar",
+                      .func_name = I("bar"),
                       .args =
                           {
                               MatchesStringLitExpr({.value = R"("foo")"}),
@@ -376,11 +376,11 @@ TEST_F(ParserTest, FuncCallExprNestedArg) {
           .body = {{
               MatchesDoStmt({
                   .expr = MatchesFuncCallExpr({
-                      .func_name = "bar",
+                      .func_name = I("bar"),
                       .args =
                           {
                               MatchesFuncCallExpr({
-                                  .func_name = "baz",
+                                  .func_name = I("baz"),
                                   .args =
                                       {
                                           MatchesIntLitExpr({.value = "1"}),
@@ -388,7 +388,7 @@ TEST_F(ParserTest, FuncCallExprNestedArg) {
                                       },
                               }),
                               MatchesFuncCallExpr({
-                                  .func_name = "qux",
+                                  .func_name = I("qux"),
                                   .args =
                                       {
                                           MatchesIntLitExpr({.value = "3"}),
@@ -415,7 +415,7 @@ TEST_F(ParserTest, ReturnFuncCallExpr) {
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesFuncCallExpr({
-                              .func_name = "id",
+                              .func_name = I("id"),
                               .args =
                                   {
                                       MatchesIntLitExpr({.value = "21"}),

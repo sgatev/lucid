@@ -176,8 +176,8 @@ class AstPrinter {
   void Print(const FuncCallExpr& expr) {
     Out() << "FuncCallExpr {" << std::endl;
     Nested([&] {
-      Out() << Indent() << ".func_name = \"" << expr.func_name << "\""
-            << std::endl;
+      Out() << Indent() << ".func_name = \"" << ctx_.DerefIdent(expr.func_name)
+            << "\"" << std::endl;
 
       if (expr.args.size() > 0) {
         Out() << Indent() << ".args = [" << std::endl;

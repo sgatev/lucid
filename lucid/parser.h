@@ -455,18 +455,18 @@ class Parser {
   }
 
   std::variant<Expr, ParserError> ParseExprInternal() {
-    std::variant<Expr, ParserError> maybe_expr;
-    if (Peek().kind == Token::Kind::Ident) {
-      auto ident = std::get<std::string_view>(ParseIdent());
-      maybe_expr = ParseExprStartingWithIdent(ident);
-    } else if (Peek().kind == Token::Kind::Number) {
-      maybe_expr = ParseNumber();
-    } else if (Peek().kind == Token::Kind::String ||
-               Peek().kind == Token::Kind::Error) {
-      maybe_expr = ParseString();
-    } else {
-      maybe_expr = MakeError(ParserError::Kind::UnexpectedToken, Peek());
-    }
+    auto maybe_expr = [&]() -> std::variant<Expr, ParserError> {
+      if (Peek().kind == Token::Kind::Ident) {
+        auto ident = std::get<std::string_view>(ParseIdent());
+        return ParseExprStartingWithIdent(ident);
+      } else if (Peek().kind == Token::Kind::Number) {
+        return ParseNumber();
+      } else if (Peek().kind == Token::Kind::String ||
+                 Peek().kind == Token::Kind::Error) {
+        return ParseString();
+      }
+      return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+    }();
     if (IsError(maybe_expr)) return std::get<ParserError>(maybe_expr);
 
     SkipSpace();
@@ -575,7 +575,7 @@ class Parser {
       }
 
       return FuncCallExpr{
-          .func_name = ident,
+          .func_name = ctx_.AddIdent(ident),
           .args = SuccessiveList<ExprRef>(args_size, args_first),
       };
     }

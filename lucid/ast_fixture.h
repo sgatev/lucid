@@ -163,7 +163,7 @@ struct IndexExprPattern {
 
 struct FuncCallExprPattern {
   TypeRefMatcher type;
-  std::string_view func_name;
+  StringIndex::Ref func_name;
   std::vector<ExprRefMatcher> args;
 
   bool operator()(const FuncCallExpr& expr) const {
