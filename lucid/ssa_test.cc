@@ -39,7 +39,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
               .cond = E(BoolLitExpr{.value = "true"}),
               .then_stmts = StmtListOf({
                   S(VarAssignStmt{
-                      .name = "x",
+                      .name = I("x"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Mul,
                           .lhs = E(IdentExpr{.name = "x"}),
@@ -49,7 +49,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
               }),
               .else_stmts = StmtListOf({
                   S(VarAssignStmt{
-                      .name = "x",
+                      .name = I("x"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
                           .lhs = E(IdentExpr{.name = "x"}),
@@ -102,7 +102,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
                       .cond = E(BoolLitExpr{.value = "true"}),
                       .then_stmts = StmtListOf({
                           S(VarAssignStmt{
-                              .name = "x",
+                              .name = I("x"),
                               .expr = E(BinaryOpExpr{
                                   .op = BinaryOp::Mul,
                                   .lhs = E(IdentExpr{.name = "x"}),
@@ -112,7 +112,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
                       }),
                       .else_stmts = StmtListOf({
                           S(VarAssignStmt{
-                              .name = "x",
+                              .name = I("x"),
                               .expr = E(BinaryOpExpr{
                                   .op = BinaryOp::Add,
                                   .lhs = E(IdentExpr{.name = "x"}),
@@ -124,7 +124,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
               }),
               .else_stmts = StmtListOf({
                   S(VarAssignStmt{
-                      .name = "x",
+                      .name = I("x"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Sub,
                           .lhs = E(IdentExpr{.name = "x"}),
@@ -191,7 +191,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
               .cond = E(BoolLitExpr{.value = "true"}),
               .then_stmts = StmtListOf({
                   S(VarAssignStmt{
-                      .name = "x",
+                      .name = I("x"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Mul,
                           .lhs = E(IdentExpr{.name = "x"}),
@@ -201,7 +201,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
               }),
               .else_stmts = StmtListOf({
                   S(VarAssignStmt{
-                      .name = "y",
+                      .name = I("y"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
                           .lhs = E(IdentExpr{.name = "x"}),
@@ -258,7 +258,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
                       .cond = E(BoolLitExpr{.value = "true"}),
                       .then_stmts = StmtListOf({
                           S(VarAssignStmt{
-                              .name = "x",
+                              .name = I("x"),
                               .expr = E(BinaryOpExpr{
                                   .op = BinaryOp::Mul,
                                   .lhs = E(IdentExpr{.name = "x"}),

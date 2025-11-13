@@ -381,7 +381,7 @@ class Parser {
       if (IsError(expr)) return std::get<ParserError>(expr);
 
       return VarAssignStmt{
-          .name = std::string(ident),
+          .name = ctx_.AddIdent(ident),
           .expr = ctx_.Add(std::get<Expr>(expr)),
       };
     }

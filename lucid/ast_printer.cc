@@ -91,7 +91,8 @@ class AstPrinter {
   void Print(const VarAssignStmt& stmt) {
     Out() << "VarAssignStmt {" << std::endl;
     Nested([&] {
-      Out() << Indent() << ".name = \"" << stmt.name << "\"" << std::endl;
+      Out() << Indent() << ".name = \"" << ctx_.DerefIdent(stmt.name) << "\""
+            << std::endl;
 
       Out() << Indent() << ".expr = {" << std::endl;
       Nested([&] { PrintExpr(stmt.expr); });

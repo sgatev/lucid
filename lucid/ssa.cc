@@ -44,7 +44,9 @@ CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
         defs[std::string(ctx.DerefIdent(var_decl_stmt->name))].second.insert(
             block.ref);
       } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-        defs[var_assign_stmt->name].second.insert(block.ref);
+        // TODO: Do not deref
+        defs[std::string(ctx.DerefIdent(var_assign_stmt->name))].second.insert(
+            block.ref);
       }
     }
   }
@@ -160,8 +162,10 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
           var_decl_stmt->name = ctx.AddIdent(new_name);
         } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
           std::string new_name =
-              std::string(var_assign_stmt->name) + std::to_string(counter++);
-          reaching_defs[var_assign_stmt->name] = new_name;
+              std::string(ctx.DerefIdent(var_assign_stmt->name)) +
+              std::to_string(counter++);
+          reaching_defs[std::string(ctx.DerefIdent(var_assign_stmt->name))] =
+              new_name;
           seq.stmt = ctx.Add(VarDeclStmt{
               .name = ctx.AddIdent(new_name),
               .type_constraint = GetType(ctx.DerefExpr(var_assign_stmt->expr)),
@@ -223,7 +227,7 @@ void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
         auto assign_expr_ref = ctx.Add(assign_expr);
         seq.expressions.push_back(assign_expr_ref);
         seq.stmt = ctx.Add(VarAssignStmt{
-            .name = phi.name,
+            .name = ctx.AddIdent(phi.name),
             .expr = assign_expr_ref,
         });
       }

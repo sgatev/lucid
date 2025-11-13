@@ -1831,7 +1831,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarAssignStmt{
-              .name = "x",
+              .name = I("x"),
               .expr = E(IntLitExpr{.value = "2"}),
           }),
       }),
@@ -1874,7 +1874,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarAssignStmt{
-              .name = "x",
+              .name = I("x"),
               .expr = E(IntLitExpr{.value = "2"}),
           }),
       }),
@@ -1987,7 +1987,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                       .then_stmts = StmtListOf({S(BreakStmt{})}),
                   }),
                   S(VarAssignStmt{
-                      .name = "n",
+                      .name = I("n"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
                           .lhs = E(IdentExpr{.name = "n"}),

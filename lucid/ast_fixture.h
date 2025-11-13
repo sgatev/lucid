@@ -190,7 +190,7 @@ struct VarDeclStmtPattern {
 };
 
 struct VarAssignStmtPattern {
-  std::string_view name;
+  StringIndex::Ref name;
   ExprRefMatcher expr;
 
   bool operator()(const VarAssignStmt& stmt) const {

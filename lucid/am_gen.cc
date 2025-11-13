@@ -335,12 +335,12 @@ class AbstractMachineFunctionGenerator {
         std::get<BasicType>(ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.expr))));
     if (expr_type.name == "Int32") {
       state_.func.instructions.push_back(StoreStack32{
-          .offset = var_stack_[stmt.name],
+          .offset = var_stack_[ctx_.DerefIdent(stmt.name)],
           .src_reg = state_.out_reg[stmt.expr.id()],
       });
     } else if (expr_type.name == "Int64") {
       state_.func.instructions.push_back(StoreStack64{
-          .offset = var_stack_[stmt.name],
+          .offset = var_stack_[ctx_.DerefIdent(stmt.name)],
           .src_reg = state_.out_reg[stmt.expr.id()],
       });
     }

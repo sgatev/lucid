@@ -552,7 +552,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
       .init = n_var_init_ref,
   });
   auto var_assign_stmt = S(VarAssignStmt{
-      .name = "n",
+      .name = I("n"),
       .expr = binary_op_expr_ref,
   });
   auto return_stmt = S(ReturnStmt{

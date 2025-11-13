@@ -96,7 +96,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
       }),
       .stmts = StmtListOf({
           S(VarAssignStmt{
-              .name = "x",
+              .name = I("x"),
               .expr = E(IntLitExpr{
                   .value = "21",
               }),
@@ -119,7 +119,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
               },
           .body = {{
               MatchesVarAssignStmt({
-                  .name = "x",
+                  .name = I("x"),
                   .expr = MatchesIntLitExpr({
                       .type = MatchesBasicType({.name = "Int64"}),
                       .value = "21",

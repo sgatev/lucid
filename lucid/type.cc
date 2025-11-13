@@ -227,6 +227,11 @@ class ExprTypeInferenceEngine {
     ident_from_type_[name] = type_ref;
   }
 
+  TypeRef GetIdentType(StringIndex::Ref name) const {
+    return ident_from_type_.at(ctx_.DerefIdent(name));
+  }
+
+  // TODO: Remove
   TypeRef GetIdentType(std::string_view name) const {
     return ident_from_type_.at(name);
   }

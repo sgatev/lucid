@@ -797,7 +797,7 @@ TEST_F(ParserTest, VarAssignment) {
               },
           .body = {{
               MatchesVarAssignStmt({
-                  .name = "n",
+                  .name = I("n"),
                   .expr = MatchesIntLitExpr({.value = "3"}),
               }),
           }},

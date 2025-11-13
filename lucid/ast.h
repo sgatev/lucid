@@ -148,7 +148,7 @@ struct VarDeclStmt {
 // A statement that represents assignment of an expression to a variable.
 struct VarAssignStmt {
   // Name of the variable.
-  std::string name;
+  StringIndex::Ref name;
 
   // Assigned expression.
   ExprRef expr;

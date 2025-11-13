@@ -69,7 +69,8 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
             std::cout << "VarDeclStmt { .name = '" << ctx.DerefIdent(s->name)
                       << "' }";
           } else if (auto* s = std::get_if<VarAssignStmt>(&stmt)) {
-            std::cout << "VarAssignStmt { .name = '" << s->name << "' }";
+            std::cout << "VarAssignStmt { .name = '" << ctx.DerefIdent(s->name)
+                      << "' }";
           } else if (std::holds_alternative<ArrayAssignStmt>(stmt)) {
             std::cout << "ArrayAssignStmt";
           } else if (std::holds_alternative<FuncDefStmt>(stmt)) {
