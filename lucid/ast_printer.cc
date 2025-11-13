@@ -76,7 +76,8 @@ class AstPrinter {
   void Print(const VarDeclStmt& stmt) {
     Out() << "VarDeclStmt {" << std::endl;
     Nested([&] {
-      Out() << Indent() << ".name = \"" << stmt.name << "\"" << std::endl;
+      Out() << Indent() << ".name = \"" << ctx_.DerefIdent(stmt.name) << "\""
+            << std::endl;
 
       if (stmt.init.has_value()) {
         Out() << Indent() << ".init = {" << std::endl;

@@ -174,7 +174,7 @@ struct FuncCallExprPattern {
 
 struct VarDeclStmtPattern {
   TypeRefMatcher type_constraint;
-  std::string_view name;
+  StringIndex::Ref name;
   ExprRefMatcher init;
 
   bool operator()(const VarDeclStmt& stmt) const {

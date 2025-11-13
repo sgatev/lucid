@@ -1650,7 +1650,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "x",
+              .name = I("x"),
               .init = E(IntLitExpr{.value = "2"}),
           }),
           S(ReturnStmt{
@@ -1697,7 +1697,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int64"}),
-              .name = "x",
+              .name = I("x"),
               .init = E(IntLitExpr{.value = "2"}),
           }),
           S(ReturnStmt{
@@ -1747,7 +1747,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
                   .element_type_constraint = T(BasicType{.name = "Int32"}),
                   .size = IntLitExpr{.value = "10"},
               }),
-              .name = "x",
+              .name = I("x"),
           }),
           S(ReturnStmt{
               .value = E(IntLitExpr{
@@ -1788,7 +1788,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
                   .element_type_constraint = T(BasicType{.name = "Int64"}),
                   .size = IntLitExpr{.value = "10"},
               }),
-              .name = "x",
+              .name = I("x"),
           }),
           S(ReturnStmt{
               .value = E(IntLitExpr{
@@ -1971,7 +1971,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "n",
+              .name = I("n"),
               .init = E(IntLitExpr{
                   .value = "0",
               }),

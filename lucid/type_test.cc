@@ -57,7 +57,7 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int64"}),
               .init = E(IntLitExpr{
                   .value = "21",
@@ -73,7 +73,7 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
                 .result_type = MatchesBasicType({.name = "Void"}),
                 .body = {{
                     MatchesVarDeclStmt({
-                        .name = "x",
+                        .name = I("x"),
                         .type_constraint = MatchesBasicType({.name = "Int64"}),
                         .init = MatchesIntLitExpr({
                             .type = MatchesBasicType({.name = "Int64"}),
@@ -183,7 +183,7 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int64"}),
               .init = E(BinaryOpExpr{
                   .op = BinaryOp::Add,
@@ -205,7 +205,7 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
                 .result_type = MatchesBasicType({.name = "Void"}),
                 .body = {{
                     MatchesVarDeclStmt({
-                        .name = "x",
+                        .name = I("x"),
                         .type_constraint = MatchesBasicType({.name = "Int64"}),
                         .init = MatchesBinaryOpExpr({
                             .op = BinaryOp::Add,
@@ -325,7 +325,7 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
       .result_type = T(BasicType{.name = "Int32"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .name = "a",
+              .name = I("a"),
               .type_constraint = T(ArrayType{
                   .element_type_constraint = T(BasicType{.name = "Int32"}),
                   .size = IntLitExpr{.value = "10"},
@@ -346,7 +346,7 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
                   .result_type = MatchesBasicType({.name = "Int32"}),
                   .body = {{
                       MatchesVarDeclStmt({
-                          .name = "a",
+                          .name = I("a"),
                           .type_constraint = MatchesArrayType({
                               .element_type_constraint =
                                   MatchesBasicType({.name = "Int32"}),
@@ -380,7 +380,7 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int32"}),
               .init = E(BoolLitExpr{
                   .value = "true",
@@ -400,14 +400,14 @@ TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
       .result_type = T(BasicType{.name = "Void"}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .name = "x",
+              .name = I("x"),
               .type_constraint = T(BasicType{.name = "Int32"}),
               .init = E(IntLitExpr{
                   .value = "2",
               }),
           }),
           S(VarDeclStmt{
-              .name = "y",
+              .name = I("y"),
               .type_constraint = T(BasicType{.name = "Int64"}),
               .init = E(IdentExpr{
                   .name = "x",

@@ -326,7 +326,7 @@ class Parser {
 
     return VarDeclStmt{
         .type_constraint = std::get<TypeRef>(maybe_type),
-        .name = std::string(std::get<std::string_view>(maybe_name)),
+        .name = ctx_.AddIdent(std::get<std::string_view>(maybe_name)),
         .init = ctx_.Add(std::get<Expr>(init)),
     };
   }

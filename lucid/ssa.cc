@@ -37,8 +37,12 @@ CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
 
       const auto& stmt = ctx.DerefStmt(*seq.stmt);
       if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-        defs[var_decl_stmt->name].first = var_decl_stmt->type_constraint;
-        defs[var_decl_stmt->name].second.insert(block.ref);
+        // TODO: Do not deref
+        defs[std::string(ctx.DerefIdent(var_decl_stmt->name))].first =
+            var_decl_stmt->type_constraint;
+        // TODO: Do not deref
+        defs[std::string(ctx.DerefIdent(var_decl_stmt->name))].second.insert(
+            block.ref);
       } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
         defs[var_assign_stmt->name].second.insert(block.ref);
       }
@@ -149,15 +153,17 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
         auto& stmt = ctx.DerefStmt(*seq.stmt);
         if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
           std::string new_name =
-              std::string(var_decl_stmt->name) + std::to_string(counter++);
-          reaching_defs[var_decl_stmt->name] = new_name;
-          var_decl_stmt->name = new_name;
+              std::string(ctx.DerefIdent(var_decl_stmt->name)) +
+              std::to_string(counter++);
+          reaching_defs[std::string(ctx.DerefIdent(var_decl_stmt->name))] =
+              new_name;
+          var_decl_stmt->name = ctx.AddIdent(new_name);
         } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
           std::string new_name =
               std::string(var_assign_stmt->name) + std::to_string(counter++);
           reaching_defs[var_assign_stmt->name] = new_name;
           seq.stmt = ctx.Add(VarDeclStmt{
-              .name = new_name,
+              .name = ctx.AddIdent(new_name),
               .type_constraint = GetType(ctx.DerefExpr(var_assign_stmt->expr)),
               .init = var_assign_stmt->expr,
           });
@@ -201,7 +207,8 @@ void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
       auto init_expr_ref = ctx.Add(init_expr);
       seq.expressions.push_back(init_expr_ref);
       seq.stmt = ctx.Add(VarDeclStmt{
-          .name = phi.name,
+          // TODO: Remove AddIdent
+          .name = ctx.AddIdent(phi.name),
           .type_constraint = phi.type_constraint,
           .init = init_expr_ref,
       });

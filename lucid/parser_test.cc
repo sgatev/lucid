@@ -762,7 +762,7 @@ TEST_F(ParserTest, VarDecl) {
               },
           .body = {{
               MatchesVarDeclStmt({
-                  .name = "m",
+                  .name = I("m"),
                   .type_constraint = MatchesBasicType({.name = "Int32"}),
                   .init = MatchesIntLitExpr({.value = "1"}),
               }),

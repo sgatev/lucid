@@ -32,7 +32,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "x",
+              .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
           S(IfStmt{
@@ -92,7 +92,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "x",
+              .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
           S(IfStmt{
@@ -179,12 +179,12 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "x",
+              .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "y",
+              .name = I("y"),
               .init = E(IntLitExpr{.value = "2"}),
           }),
           S(IfStmt{
@@ -249,7 +249,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "x",
+              .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
           S(LoopStmt{

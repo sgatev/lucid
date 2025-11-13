@@ -136,7 +136,7 @@ struct FuncCallExpr : public ExprBase {
 // A statement that represents a variable declaration.
 struct VarDeclStmt {
   // Name of the variable.
-  std::string name;
+  StringIndex::Ref name;
 
   // Type of the variable.
   TypeRef type_constraint;

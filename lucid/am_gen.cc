@@ -303,7 +303,7 @@ class AbstractMachineFunctionGenerator {
       auto array_type =
           std::get<ArrayType>(ctx_.DerefType(stmt.type_constraint));
       auto size = std::atoi(array_type.size.value.data());
-      var_stack_[stmt.name] = stack_offset_;
+      var_stack_[ctx_.DerefIdent(stmt.name)] = stack_offset_;
       for (int i = 0; i < size; ++i) {
         ++stack_offset_;
       }
@@ -318,14 +318,14 @@ class AbstractMachineFunctionGenerator {
           .offset = stack_offset_,
           .src_reg = state_.out_reg[stmt.init->id()],
       });
-      var_stack_[stmt.name] = stack_offset_;
+      var_stack_[ctx_.DerefIdent(stmt.name)] = stack_offset_;
       ++stack_offset_;
     } else if (stmt_type.name == "Int64") {
       state_.func.instructions.push_back(StoreStack64{
           .offset = stack_offset_,
           .src_reg = state_.out_reg[stmt.init->id()],
       });
-      var_stack_[stmt.name] = stack_offset_;
+      var_stack_[ctx_.DerefIdent(stmt.name)] = stack_offset_;
       ++stack_offset_;
     }
   }

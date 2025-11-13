@@ -39,7 +39,7 @@ TEST_F(ComputeImmediateDominatorsTest, Branching) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "x",
+              .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
           S(IfStmt{
@@ -75,7 +75,7 @@ TEST_F(ComputeImmediateDominatorsTest, NestedBranching) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "x",
+              .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
           S(LoopStmt{
@@ -131,7 +131,7 @@ TEST_F(ComputeDominanceFrontiersTest, Branching) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "x",
+              .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
           S(IfStmt{
@@ -169,7 +169,7 @@ TEST_F(ComputeDominanceFrontiersTest, NestedBranching) {
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = "Int32"}),
-              .name = "x",
+              .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
           S(LoopStmt{
