@@ -11,6 +11,7 @@
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/dom.h"
+#include "lucid/string_index.h"
 
 namespace lucid {
 namespace {
@@ -18,18 +19,16 @@ namespace {
 using BlockRef = ControlFlowGraph::BlockRef;
 using Phi = ControlFlowGraph::Phi;
 
-std::unordered_map<std::string,
+std::unordered_map<StringIndex::Ref,
                    std::pair<TypeRef, std::unordered_set<BlockRef>>>
 CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
-  std::unordered_map<std::string,
+  std::unordered_map<StringIndex::Ref,
                      std::pair<TypeRef, std::unordered_set<BlockRef>>>
       defs;
   for (auto param_ref : cfg.func_params) {
     const auto& param = ctx.DerefParam(param_ref);
-    // TODO: Do not deref
-    defs[std::string(ctx.DerefIdent(param.name))].first = param.type_constraint;
-    // TODO: Do not deref
-    defs[std::string(ctx.DerefIdent(param.name))].second.insert(cfg.first);
+    defs[param.name].first = param.type_constraint;
+    defs[param.name].second.insert(cfg.first);
   }
   for (const auto& block : cfg.blocks()) {
     for (const auto& seq : block.sequences) {
@@ -37,16 +36,10 @@ CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
 
       const auto& stmt = ctx.DerefStmt(*seq.stmt);
       if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-        // TODO: Do not deref
-        defs[std::string(ctx.DerefIdent(var_decl_stmt->name))].first =
-            var_decl_stmt->type_constraint;
-        // TODO: Do not deref
-        defs[std::string(ctx.DerefIdent(var_decl_stmt->name))].second.insert(
-            block.ref);
+        defs[var_decl_stmt->name].first = var_decl_stmt->type_constraint;
+        defs[var_decl_stmt->name].second.insert(block.ref);
       } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-        // TODO: Do not deref
-        defs[std::string(ctx.DerefIdent(var_assign_stmt->name))].second.insert(
-            block.ref);
+        defs[var_assign_stmt->name].second.insert(block.ref);
       }
     }
   }
@@ -57,7 +50,7 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
   const std::vector<BlockRef> idoms = ComputeImmediateDominators(cfg);
   const std::unordered_map<BlockRef, std::unordered_set<BlockRef>> dom_fronts =
       ComputeDominanceFrontiers(cfg, idoms);
-  const std::unordered_map<std::string,
+  const std::unordered_map<StringIndex::Ref,
                            std::pair<TypeRef, std::unordered_set<BlockRef>>>
       var_defs = CollectVarDefs(ctx, cfg);
 
@@ -82,11 +75,13 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
         auto& yb = cfg.get(y);
 
         Phi phi = {
-            .name = std::string(var),
+            // TODO: Remove DerefIdent
+            .name = std::string(ctx.DerefIdent(var)),
             .type_constraint = type,
         };
         for (const auto& _ : yb.preds) {
-          phi.args.push_back(std::string(var));
+          // TODO: Remove DerefIdent
+          phi.args.push_back(std::string(ctx.DerefIdent(var)));
         }
 
         yb.phis.push_back(std::move(phi));
@@ -228,6 +223,7 @@ void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
         auto assign_expr_ref = ctx.Add(assign_expr);
         seq.expressions.push_back(assign_expr_ref);
         seq.stmt = ctx.Add(VarAssignStmt{
+            // TODO: Remove AddIdent
             .name = ctx.AddIdent(phi.name),
             .expr = assign_expr_ref,
         });
