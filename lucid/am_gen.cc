@@ -3,13 +3,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <map>
 #include <string_view>
+#include <unordered_map>
 #include <variant>
 
 #include "lucid/am.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/string_index.h"
 
 namespace lucid {
 namespace {
@@ -120,16 +121,14 @@ class AbstractMachineFunctionGenerator {
             .offset = stack_offset_,
             .src_reg = static_cast<RegId>(i + 1),
         });
-        // TODO: Do not deref
-        var_stack_[ctx_.DerefIdent(param.name)] = stack_offset_;
+        var_stack_[param.name] = stack_offset_;
         ++stack_offset_;
       } else if (param_type.name == "Int64") {
         state_.func.instructions.push_back(StoreStack64{
             .offset = stack_offset_,
             .src_reg = static_cast<RegId>(i + 1),
         });
-        // TODO: Do not deref
-        var_stack_[ctx_.DerefIdent(param.name)] = stack_offset_;
+        var_stack_[param.name] = stack_offset_;
         ++stack_offset_;
       }
     }
@@ -303,7 +302,7 @@ class AbstractMachineFunctionGenerator {
       auto array_type =
           std::get<ArrayType>(ctx_.DerefType(stmt.type_constraint));
       auto size = std::atoi(array_type.size.value.data());
-      var_stack_[ctx_.DerefIdent(stmt.name)] = stack_offset_;
+      var_stack_[stmt.name] = stack_offset_;
       for (int i = 0; i < size; ++i) {
         ++stack_offset_;
       }
@@ -318,14 +317,14 @@ class AbstractMachineFunctionGenerator {
           .offset = stack_offset_,
           .src_reg = state_.out_reg[stmt.init->id()],
       });
-      var_stack_[ctx_.DerefIdent(stmt.name)] = stack_offset_;
+      var_stack_[stmt.name] = stack_offset_;
       ++stack_offset_;
     } else if (stmt_type.name == "Int64") {
       state_.func.instructions.push_back(StoreStack64{
           .offset = stack_offset_,
           .src_reg = state_.out_reg[stmt.init->id()],
       });
-      var_stack_[ctx_.DerefIdent(stmt.name)] = stack_offset_;
+      var_stack_[stmt.name] = stack_offset_;
       ++stack_offset_;
     }
   }
@@ -335,12 +334,12 @@ class AbstractMachineFunctionGenerator {
         std::get<BasicType>(ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.expr))));
     if (expr_type.name == "Int32") {
       state_.func.instructions.push_back(StoreStack32{
-          .offset = var_stack_[ctx_.DerefIdent(stmt.name)],
+          .offset = var_stack_[stmt.name],
           .src_reg = state_.out_reg[stmt.expr.id()],
       });
     } else if (expr_type.name == "Int64") {
       state_.func.instructions.push_back(StoreStack64{
-          .offset = var_stack_[ctx_.DerefIdent(stmt.name)],
+          .offset = var_stack_[stmt.name],
           .src_reg = state_.out_reg[stmt.expr.id()],
       });
     }
@@ -362,7 +361,7 @@ class AbstractMachineFunctionGenerator {
       });
 
       state_.func.instructions.push_back(StoreStackReg32{
-          .offset = var_stack_[std::string(ctx_.DerefIdent(stmt.name))],
+          .offset = var_stack_[stmt.name],
           .offset_reg = offset_reg,
           .src_reg = state_.out_reg[stmt.expr.id()],
       });
@@ -379,7 +378,7 @@ class AbstractMachineFunctionGenerator {
       });
 
       state_.func.instructions.push_back(StoreStackReg64{
-          .offset = var_stack_[std::string(ctx_.DerefIdent(stmt.name))],
+          .offset = var_stack_[stmt.name],
           .offset_reg = offset_reg,
           .src_reg = state_.out_reg[stmt.expr.id()],
       });
@@ -396,7 +395,7 @@ class AbstractMachineFunctionGenerator {
       });
 
       state_.func.instructions.push_back(StoreStackReg32{
-          .offset = var_stack_[std::string(ctx_.DerefIdent(stmt.name))],
+          .offset = var_stack_[stmt.name],
           .offset_reg = offset_reg,
           .src_reg = state_.out_reg[stmt.expr.id()],
       });
@@ -411,12 +410,12 @@ class AbstractMachineFunctionGenerator {
     RegId reg = next_reg_++;
     if (expr_type.name == "Int32") {
       state_.func.instructions.push_back(LoadStack32{
-          .offset = var_stack_[ctx_.DerefIdent(expr.name)],
+          .offset = var_stack_[expr.name],
           .dst_reg = reg,
       });
     } else if (expr_type.name == "Int64") {
       state_.func.instructions.push_back(LoadStack64{
-          .offset = var_stack_[std::string(ctx_.DerefIdent(expr.name))],
+          .offset = var_stack_[expr.name],
           .dst_reg = reg,
       });
     }
@@ -632,7 +631,7 @@ class AbstractMachineFunctionGenerator {
 
   std::size_t GetStackOffset(ExprRef expr_ref) {
     const auto& expr = std::get<IdentExpr>(ctx_.DerefExpr(expr_ref));
-    return var_stack_[ctx_.DerefIdent(expr.name)];
+    return var_stack_[expr.name];
   }
 
   const SyntaxContext& ctx_;
@@ -640,7 +639,7 @@ class AbstractMachineFunctionGenerator {
   AbstractMachineState& state_;
   RegId next_reg_ = 1;
   std::size_t stack_offset_ = 0;
-  std::map<std::string_view, std::size_t> var_stack_;
+  std::unordered_map<StringIndex::Ref, std::size_t> var_stack_;
 };
 
 }  // namespace
