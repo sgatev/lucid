@@ -4,7 +4,6 @@
 #include <optional>
 #include <ostream>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "lucid/arena.h"

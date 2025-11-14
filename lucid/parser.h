@@ -361,7 +361,7 @@ class Parser {
         if (IsError(expr)) return std::get<ParserError>(expr);
 
         return ArrayAssignStmt{
-            .name = ident,
+            .name = ctx_.AddIdent(ident),
             .index = ctx_.Add(std::get<Expr>(maybe_size)),
             .expr = ctx_.Add(std::get<Expr>(expr)),
         };

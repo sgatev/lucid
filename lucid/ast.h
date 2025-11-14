@@ -156,7 +156,7 @@ struct VarAssignStmt {
 // A statement that represents assignment of an expression to an array element.
 struct ArrayAssignStmt {
   // Name of the array.
-  std::string_view name;
+  StringIndex::Ref name;
 
   // Index in the array.
   ExprRef index;

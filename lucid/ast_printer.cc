@@ -104,7 +104,8 @@ class AstPrinter {
   void Print(const ArrayAssignStmt& stmt) {
     Out() << "ArrayAssignStmt {" << std::endl;
     Nested([&] {
-      Out() << Indent() << ".name = \"" << stmt.name << "\"" << std::endl;
+      Out() << Indent() << ".name = \"" << ctx_.DerefIdent(stmt.name) << "\""
+            << std::endl;
 
       Out() << Indent() << ".index = {" << std::endl;
       Nested([&] { PrintExpr(stmt.index); });

@@ -362,7 +362,7 @@ class AbstractMachineFunctionGenerator {
       });
 
       state_.func.instructions.push_back(StoreStackReg32{
-          .offset = var_stack_[stmt.name],
+          .offset = var_stack_[std::string(ctx_.DerefIdent(stmt.name))],
           .offset_reg = offset_reg,
           .src_reg = state_.out_reg[stmt.expr.id()],
       });
@@ -379,7 +379,7 @@ class AbstractMachineFunctionGenerator {
       });
 
       state_.func.instructions.push_back(StoreStackReg64{
-          .offset = var_stack_[stmt.name],
+          .offset = var_stack_[std::string(ctx_.DerefIdent(stmt.name))],
           .offset_reg = offset_reg,
           .src_reg = state_.out_reg[stmt.expr.id()],
       });
@@ -396,7 +396,7 @@ class AbstractMachineFunctionGenerator {
       });
 
       state_.func.instructions.push_back(StoreStackReg32{
-          .offset = var_stack_[stmt.name],
+          .offset = var_stack_[std::string(ctx_.DerefIdent(stmt.name))],
           .offset_reg = offset_reg,
           .src_reg = state_.out_reg[stmt.expr.id()],
       });
