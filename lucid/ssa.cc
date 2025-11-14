@@ -2,7 +2,6 @@
 
 #include <cstddef>
 #include <stack>
-#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <variant>
@@ -75,13 +74,11 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
         auto& yb = cfg.get(y);
 
         Phi phi = {
-            // TODO: Remove DerefIdent
-            .name = std::string(ctx.DerefIdent(var)),
+            .name = var,
             .type_constraint = type,
         };
         for (const auto& _ : yb.preds) {
-          // TODO: Remove DerefIdent
-          phi.args.push_back(std::string(ctx.DerefIdent(var)));
+          phi.args.push_back(var);
         }
 
         yb.phis.push_back(std::move(phi));
@@ -94,20 +91,14 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
 }
 
 void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
-  int counter = 0;
-
-  std::vector<std::unordered_map<std::string, std::string>> block_defs(
-      cfg.blocks().Size());
+  std::vector<std::unordered_map<StringIndex::Ref, StringIndex::Ref>>
+      block_defs(cfg.blocks().Size());
 
   for (auto param_ref : cfg.func_params) {
     auto& param = ctx.DerefParam(param_ref);
-    // TODO: Do not deref
-    std::string new_name =
-        std::string(ctx.DerefIdent(param.name)) + std::to_string(counter++);
-    // TODO: Do not deref
-    block_defs[cfg.first.id()][std::string(ctx.DerefIdent(param.name))] =
-        new_name;
-    param.name = ctx.AddIdent(new_name);
+    StringIndex::Ref new_name = ctx.AddUniqueIdent();
+    block_defs[cfg.first.id()].insert_or_assign(param.name, new_name);
+    param.name = new_name;
   }
 
   std::vector<bool> visited(cfg.blocks().Size(), false);
@@ -127,13 +118,13 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
     auto& reaching_defs = block_defs[block_ref.id()];
     for (auto pred : block.preds) {
       for (const auto& [k, v] : block_defs[pred.id()]) {
-        reaching_defs[k] = v;
+        reaching_defs.insert_or_assign(k, v);
       }
     }
 
     for (auto& phi : block.phis) {
-      std::string new_name = phi.name + std::to_string(counter++);
-      reaching_defs[phi.name] = new_name;
+      StringIndex::Ref new_name = ctx.AddUniqueIdent();
+      reaching_defs.insert_or_assign(phi.name, new_name);
       phi.name = new_name;
     }
 
@@ -143,27 +134,20 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
         auto* ident_expr = std::get_if<IdentExpr>(&expr);
         if (ident_expr == nullptr) continue;
 
-        ident_expr->name = ctx.AddIdent(
-            reaching_defs[std::string(ctx.DerefIdent(ident_expr->name))]);
+        ident_expr->name = reaching_defs.at(ident_expr->name);
       }
 
       if (seq.stmt.has_value()) {
         auto& stmt = ctx.DerefStmt(*seq.stmt);
         if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-          std::string new_name =
-              std::string(ctx.DerefIdent(var_decl_stmt->name)) +
-              std::to_string(counter++);
-          reaching_defs[std::string(ctx.DerefIdent(var_decl_stmt->name))] =
-              new_name;
-          var_decl_stmt->name = ctx.AddIdent(new_name);
+          StringIndex::Ref new_name = ctx.AddUniqueIdent();
+          reaching_defs.insert_or_assign(var_decl_stmt->name, new_name);
+          var_decl_stmt->name = new_name;
         } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-          std::string new_name =
-              std::string(ctx.DerefIdent(var_assign_stmt->name)) +
-              std::to_string(counter++);
-          reaching_defs[std::string(ctx.DerefIdent(var_assign_stmt->name))] =
-              new_name;
+          StringIndex::Ref new_name = ctx.AddUniqueIdent();
+          reaching_defs.insert_or_assign(var_assign_stmt->name, new_name);
           seq.stmt = ctx.Add(VarDeclStmt{
-              .name = ctx.AddIdent(new_name),
+              .name = new_name,
               .type_constraint = GetType(ctx.DerefExpr(var_assign_stmt->expr)),
               .init = var_assign_stmt->expr,
           });
@@ -179,7 +163,7 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
   for (ControlFlowGraph::Block& block : cfg.blocks()) {
     for (auto& phi : block.phis) {
       for (int j = 0; j < phi.args.size(); ++j) {
-        phi.args[j] = block_defs[block.preds[j].id()][phi.args[j]];
+        phi.args[j] = block_defs[block.preds[j].id()].at(phi.args[j]);
       }
     }
   }
@@ -207,8 +191,7 @@ void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
       auto init_expr_ref = ctx.Add(init_expr);
       seq.expressions.push_back(init_expr_ref);
       seq.stmt = ctx.Add(VarDeclStmt{
-          // TODO: Remove AddIdent
-          .name = ctx.AddIdent(phi.name),
+          .name = phi.name,
           .type_constraint = phi.type_constraint,
           .init = init_expr_ref,
       });
@@ -217,14 +200,13 @@ void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
         auto& pred = cfg.get(block.preds[i]);
         auto& seq = pred.sequences.emplace_back();
         auto assign_expr = IdentExpr{
-            .name = ctx.AddIdent(phi.args[i]),
+            .name = phi.args[i],
         };
         assign_expr.type = phi.type_constraint;
         auto assign_expr_ref = ctx.Add(assign_expr);
         seq.expressions.push_back(assign_expr_ref);
         seq.stmt = ctx.Add(VarAssignStmt{
-            // TODO: Remove AddIdent
-            .name = ctx.AddIdent(phi.name),
+            .name = phi.name,
             .expr = assign_expr_ref,
         });
       }

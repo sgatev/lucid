@@ -291,6 +291,9 @@ class SyntaxContext {
     return idents_.ref(ident);
   }
 
+  // Adds a unique ident to the context.
+  StringIndex::Ref AddUniqueIdent() { return idents_.ref(); }
+
   // Creates an alias of `ref` in the context.
   StmtRef AliasStmt(StmtRef ref) { return stmts_.Alias(ref); }
 

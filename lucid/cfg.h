@@ -34,25 +34,16 @@ struct ControlFlowGraph {
   // graph is converted to Static Single Assignment (SSA) form.
   struct Phi {
     // Name of the new variable defined by the Phi function.
-    std::string name;
+    StringIndex::Ref name;
 
     // Type of the variable defined by the Phi function.
     TypeRef type_constraint;
 
     // Arguments to the Phi function, i.e. variables from previous blocks.
-    std::vector<std::string> args;
+    std::vector<StringIndex::Ref> args;
 
     bool operator==(const Phi& other) const {
       return name == other.name && args == other.args;
-    }
-
-    friend void PrintTo(const Phi& phi, std::ostream* os) {
-      *os << "Phi{name='" << phi.name << "', args=[";
-      for (int i = 0; i < phi.args.size(); ++i) {
-        if (i > 0) *os << ", ";
-        *os << "'" << phi.args[i] << "'";
-      }
-      *os << "] }";
     }
   };
 

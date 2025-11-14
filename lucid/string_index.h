@@ -36,6 +36,13 @@ class StringIndex {
     return Ref(pos, s.size());
   }
 
+  // Returns a unique reference.
+  Ref ref() {
+    auto pos = data_.size();
+    data_.append("x");
+    return Ref(pos, 1);
+  }
+
   // Returns the string identified by the given reference.
   std::string_view deref(Ref ref) const {
     return std::string_view(data_.data() + ref.begin_, ref.size_);
