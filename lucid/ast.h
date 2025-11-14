@@ -2,7 +2,6 @@
 
 #include <cstddef>
 #include <optional>
-#include <string>
 #include <string_view>
 #include <variant>
 
@@ -169,7 +168,7 @@ struct ArrayAssignStmt {
 // An expression that represents an identifier.
 struct IdentExpr : public ExprBase {
   // Name of the identifier.
-  std::string name;
+  StringIndex::Ref name;
 };
 
 // An expression that represents an indexing operation.

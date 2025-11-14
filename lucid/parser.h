@@ -587,7 +587,7 @@ class Parser {
     }
 
     return IdentExpr{
-        .name = std::string(ident),
+        .name = ctx_.AddIdent(ident),
     };
   }
 

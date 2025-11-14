@@ -429,7 +429,7 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
       .value = "3",
   });
   auto ident_expr = E(IdentExpr{
-      .name = "x",
+      .name = I("x"),
   });
   auto var_decl_stmt = S(VarDeclStmt{
       .name = I("x"),
@@ -530,14 +530,14 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   auto n_var_init_ref = E(IntLitExpr{
       .value = "0",
   });
-  auto if_cond_lhs_ref = E(IdentExpr{.name = "n"});
+  auto if_cond_lhs_ref = E(IdentExpr{.name = I("n")});
   auto if_cond_rhs_ref = E(IntLitExpr{.value = "3"});
   auto if_cond_ref = E(BinaryOpExpr{
       .op = BinaryOp::Gt,
       .lhs = if_cond_lhs_ref,
       .rhs = if_cond_rhs_ref,
   });
-  auto var_assign_lhs_ref = E(IdentExpr{.name = "n"});
+  auto var_assign_lhs_ref = E(IdentExpr{.name = I("n")});
   auto var_assign_rhs_ref = E(IntLitExpr{.value = "1"});
   auto binary_op_expr_ref = E(BinaryOpExpr{
       .op = BinaryOp::Add,
@@ -545,7 +545,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
       .rhs = var_assign_rhs_ref,
   });
   auto break_stmt = S(BreakStmt{});
-  auto return_value_ref = E(IdentExpr{.name = "n"});
+  auto return_value_ref = E(IdentExpr{.name = I("n")});
   auto var_decl_stmt = S(VarDeclStmt{
       .type_constraint = T(BasicType{.name = "Int32"}),
       .name = I("n"),

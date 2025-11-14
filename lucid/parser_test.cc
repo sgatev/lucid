@@ -278,7 +278,7 @@ TEST_F(ParserTest, SingleFuncParam) {
           .body = {{
               MatchesReturnStmt({
                   .value = MatchesIdentExpr({
-                      .name = "x",
+                      .name = I("x"),
                   }),
               }),
           }},
@@ -573,7 +573,7 @@ TEST_F(ParserTest, IfElseIfElseStmt) {
               MatchesIfStmt({
                   .cond = MatchesBinaryOpExpr({
                       .op = BinaryOp::Gt,
-                      .lhs = MatchesIdentExpr({.name = "x"}),
+                      .lhs = MatchesIdentExpr({.name = I("x")}),
                       .rhs = MatchesIntLitExpr({.value = "0"}),
                   }),
                   .then_body = {{
@@ -585,7 +585,7 @@ TEST_F(ParserTest, IfElseIfElseStmt) {
                       MatchesIfStmt({
                           .cond = MatchesBinaryOpExpr({
                               .op = BinaryOp::Lt,
-                              .lhs = MatchesIdentExpr({.name = "x"}),
+                              .lhs = MatchesIdentExpr({.name = I("x")}),
                               .rhs = MatchesIntLitExpr({.value = "0"}),
                           }),
                           .then_body = {{
@@ -631,8 +631,8 @@ TEST_F(ParserTest, GtInts) {
               MatchesReturnStmt({
                   .value = MatchesBinaryOpExpr({
                       .op = BinaryOp::Gt,
-                      .lhs = MatchesIdentExpr({.name = "x"}),
-                      .rhs = MatchesIdentExpr({.name = "y"}),
+                      .lhs = MatchesIdentExpr({.name = I("x")}),
+                      .rhs = MatchesIdentExpr({.name = I("y")}),
                   }),
               }),
           }},
@@ -665,8 +665,8 @@ TEST_F(ParserTest, LtInts) {
               MatchesReturnStmt({
                   .value = MatchesBinaryOpExpr({
                       .op = BinaryOp::Lt,
-                      .lhs = MatchesIdentExpr({.name = "x"}),
-                      .rhs = MatchesIdentExpr({.name = "y"}),
+                      .lhs = MatchesIdentExpr({.name = I("x")}),
+                      .rhs = MatchesIdentExpr({.name = I("y")}),
                   }),
               }),
           }},
@@ -699,8 +699,8 @@ TEST_F(ParserTest, EqInts) {
               MatchesReturnStmt({
                   .value = MatchesBinaryOpExpr({
                       .op = BinaryOp::Eq,
-                      .lhs = MatchesIdentExpr({.name = "x"}),
-                      .rhs = MatchesIdentExpr({.name = "y"}),
+                      .lhs = MatchesIdentExpr({.name = I("x")}),
+                      .rhs = MatchesIdentExpr({.name = I("y")}),
                   }),
               }),
           }},
@@ -733,8 +733,8 @@ TEST_F(ParserTest, NotEqInts) {
               MatchesReturnStmt({
                   .value = MatchesBinaryOpExpr({
                       .op = BinaryOp::NotEq,
-                      .lhs = MatchesIdentExpr({.name = "x"}),
-                      .rhs = MatchesIdentExpr({.name = "y"}),
+                      .lhs = MatchesIdentExpr({.name = I("x")}),
+                      .rhs = MatchesIdentExpr({.name = I("y")}),
                   }),
               }),
           }},
@@ -769,8 +769,8 @@ TEST_F(ParserTest, VarDecl) {
               MatchesReturnStmt({
                   .value = MatchesBinaryOpExpr({
                       .op = BinaryOp::Add,
-                      .lhs = MatchesIdentExpr({.name = "n"}),
-                      .rhs = MatchesIdentExpr({.name = "m"}),
+                      .lhs = MatchesIdentExpr({.name = I("n")}),
+                      .rhs = MatchesIdentExpr({.name = I("m")}),
                   }),
               }),
           }},
@@ -862,10 +862,10 @@ TEST_F(ParserTest, EqOverMod) {
                       .lhs = MatchesBinaryOpExpr({
                           .op = BinaryOp::Mod,
                           .lhs = MatchesIdentExpr({
-                              .name = "a",
+                              .name = I("a"),
                           }),
                           .rhs = MatchesIdentExpr({
-                              .name = "b",
+                              .name = I("b"),
                           }),
                       }),
                       .rhs = MatchesIntLitExpr({
@@ -917,10 +917,10 @@ TEST_F(ParserTest, NotEqOverAdd) {
                       .lhs = MatchesBinaryOpExpr({
                           .op = BinaryOp::Add,
                           .lhs = MatchesIdentExpr({
-                              .name = "a",
+                              .name = I("a"),
                           }),
                           .rhs = MatchesIdentExpr({
-                              .name = "b",
+                              .name = I("b"),
                           }),
                       }),
                       .rhs = MatchesIntLitExpr({
@@ -972,10 +972,10 @@ TEST_F(ParserTest, GtOverMul) {
                       .lhs = MatchesBinaryOpExpr({
                           .op = BinaryOp::Mul,
                           .lhs = MatchesIdentExpr({
-                              .name = "a",
+                              .name = I("a"),
                           }),
                           .rhs = MatchesIdentExpr({
-                              .name = "b",
+                              .name = I("b"),
                           }),
                       }),
                       .rhs = MatchesIntLitExpr({
@@ -1027,10 +1027,10 @@ TEST_F(ParserTest, LtOverSub) {
                       .lhs = MatchesBinaryOpExpr({
                           .op = BinaryOp::Sub,
                           .lhs = MatchesIdentExpr({
-                              .name = "a",
+                              .name = I("a"),
                           }),
                           .rhs = MatchesIdentExpr({
-                              .name = "b",
+                              .name = I("b"),
                           }),
                       }),
                       .rhs = MatchesIntLitExpr({
@@ -1074,7 +1074,7 @@ TEST_F(ParserTest, ArrayParam) {
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesIndexExpr({
-                              .base = MatchesIdentExpr({.name = "a"}),
+                              .base = MatchesIdentExpr({.name = I("a")}),
                               .index = MatchesIntLitExpr({.value = "2"}),
                           }),
                       }),

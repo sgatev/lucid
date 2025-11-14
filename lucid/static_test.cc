@@ -70,7 +70,7 @@ TEST_F(InferStaticExprsTest, StaticBinaryOpExpr) {
 TEST_F(InferStaticExprsTest, BinaryOpExprNonStaticLhs) {
   auto expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
-      .lhs = E(IdentExpr{}),
+      .lhs = E(IdentExpr{.name = I("x")}),
       .rhs = E(IntLitExpr{}),
   });
 
@@ -90,7 +90,7 @@ TEST_F(InferStaticExprsTest, BinaryOpExprNonStaticRhs) {
   auto expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = E(IntLitExpr{}),
-      .rhs = E(IdentExpr{}),
+      .rhs = E(IdentExpr{.name = I("x")}),
   });
 
   auto graph = BuildControlFlowGraph(FuncDefStmt{

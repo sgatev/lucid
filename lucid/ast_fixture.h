@@ -142,7 +142,7 @@ struct BinaryOpExprPattern {
 
 struct IdentExprPattern {
   TypeRefMatcher type;
-  std::string_view name;
+  StringIndex::Ref name;
 
   bool operator()(const IdentExpr& expr) const {
     if (type != nullptr && !type(expr.type)) return false;

@@ -143,7 +143,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
           S(IfStmt{
               .cond = E(BinaryOpExpr{
                   .op = BinaryOp::Eq,
-                  .lhs = E(IdentExpr{.name = "n"}),
+                  .lhs = E(IdentExpr{.name = I("n")}),
                   .rhs = E(IntLitExpr{.value = "1"}),
               }),
 
@@ -333,7 +333,7 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
           }),
           S(ReturnStmt{
               .value = E(IndexExpr{
-                  .base = E(IdentExpr{.name = "a"}),
+                  .base = E(IdentExpr{.name = I("a")}),
                   .index = E(IntLitExpr{.value = "2"}),
               }),
           }),
@@ -356,7 +356,7 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
                       MatchesReturnStmt({
                           .value = MatchesIndexExpr({
                               .base = MatchesIdentExpr({
-                                  .name = "a",
+                                  .name = I("a"),
                                   .type = MatchesArrayType({
                                       .element_type_constraint =
                                           MatchesBasicType({.name = "Int32"}),
@@ -410,7 +410,7 @@ TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
               .name = I("y"),
               .type_constraint = T(BasicType{.name = "Int64"}),
               .init = E(IdentExpr{
-                  .name = "x",
+                  .name = I("x"),
               }),
           }),
       }),

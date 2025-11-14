@@ -52,7 +52,8 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
           } else if (std::holds_alternative<StringLitExpr>(expr)) {
             std::cout << "StringLitExpr";
           } else if (auto* e = std::get_if<IdentExpr>(&expr)) {
-            std::cout << "IdentExpr { .name = '" << e->name << "' }";
+            std::cout << "IdentExpr { .name = '" << ctx.DerefIdent(e->name)
+                      << "' }";
           } else if (std::holds_alternative<IndexExpr>(expr)) {
             std::cout << "IndexExpr";
           } else if (std::holds_alternative<BinaryOpExpr>(expr)) {

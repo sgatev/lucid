@@ -48,7 +48,7 @@ TEST_F(ComputeImmediateDominatorsTest, Branching) {
                   S(VarAssignStmt{.name = I("x"),
                                   .expr = E(BinaryOpExpr{
                                       .op = BinaryOp::Mul,
-                                      .lhs = E(IdentExpr{.name = "x"}),
+                                      .lhs = E(IdentExpr{.name = I("x")}),
                                       .rhs = E(IntLitExpr{.value = "2"}),
                                   })}),
               }),
@@ -56,12 +56,12 @@ TEST_F(ComputeImmediateDominatorsTest, Branching) {
                   S(VarAssignStmt{.name = I("x"),
                                   .expr = E(BinaryOpExpr{
                                       .op = BinaryOp::Add,
-                                      .lhs = E(IdentExpr{.name = "x"}),
+                                      .lhs = E(IdentExpr{.name = I("x")}),
                                       .rhs = E(IntLitExpr{.value = "1"}),
                                   })}),
               }),
           }),
-          S(ReturnStmt{.value = E(IdentExpr{.name = "x"})}),
+          S(ReturnStmt{.value = E(IdentExpr{.name = I("x")})}),
       }),
   });
 
@@ -85,7 +85,7 @@ TEST_F(ComputeImmediateDominatorsTest, NestedBranching) {
                       S(VarAssignStmt{.name = I("x"),
                                       .expr = E(BinaryOpExpr{
                                           .op = BinaryOp::Mul,
-                                          .lhs = E(IdentExpr{.name = "x"}),
+                                          .lhs = E(IdentExpr{.name = I("x")}),
                                           .rhs = E(IntLitExpr{.value = "2"}),
                                       })}),
                   }),
@@ -94,7 +94,7 @@ TEST_F(ComputeImmediateDominatorsTest, NestedBranching) {
                   }),
               })}),
           }),
-          S(ReturnStmt{.value = E(IdentExpr{.name = "x"})}),
+          S(ReturnStmt{.value = E(IdentExpr{.name = I("x")})}),
       }),
   });
 
@@ -140,7 +140,7 @@ TEST_F(ComputeDominanceFrontiersTest, Branching) {
                   S(VarAssignStmt{.name = I("x"),
                                   .expr = E(BinaryOpExpr{
                                       .op = BinaryOp::Mul,
-                                      .lhs = E(IdentExpr{.name = "x"}),
+                                      .lhs = E(IdentExpr{.name = I("x")}),
                                       .rhs = E(IntLitExpr{.value = "2"}),
                                   })}),
               }),
@@ -148,12 +148,12 @@ TEST_F(ComputeDominanceFrontiersTest, Branching) {
                   S(VarAssignStmt{.name = I("x"),
                                   .expr = E(BinaryOpExpr{
                                       .op = BinaryOp::Add,
-                                      .lhs = E(IdentExpr{.name = "x"}),
+                                      .lhs = E(IdentExpr{.name = I("x")}),
                                       .rhs = E(IntLitExpr{.value = "1"}),
                                   })}),
               }),
           }),
-          S(ReturnStmt{.value = E(IdentExpr{.name = "x"})}),
+          S(ReturnStmt{.value = E(IdentExpr{.name = I("x")})}),
       }),
   });
 
@@ -179,7 +179,7 @@ TEST_F(ComputeDominanceFrontiersTest, NestedBranching) {
                       S(VarAssignStmt{.name = I("x"),
                                       .expr = E(BinaryOpExpr{
                                           .op = BinaryOp::Mul,
-                                          .lhs = E(IdentExpr{.name = "x"}),
+                                          .lhs = E(IdentExpr{.name = I("x")}),
                                           .rhs = E(IntLitExpr{.value = "2"}),
                                       })}),
                   }),
@@ -188,7 +188,7 @@ TEST_F(ComputeDominanceFrontiersTest, NestedBranching) {
                   }),
               })}),
           }),
-          S(ReturnStmt{.value = E(IdentExpr{.name = "x"})}),
+          S(ReturnStmt{.value = E(IdentExpr{.name = I("x")})}),
       }),
   });
 

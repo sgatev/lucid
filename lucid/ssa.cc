@@ -148,7 +148,8 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
         auto* ident_expr = std::get_if<IdentExpr>(&expr);
         if (ident_expr == nullptr) continue;
 
-        ident_expr->name = reaching_defs[ident_expr->name];
+        ident_expr->name = ctx.AddIdent(
+            reaching_defs[std::string(ctx.DerefIdent(ident_expr->name))]);
       }
 
       if (seq.stmt.has_value()) {
@@ -221,7 +222,7 @@ void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
         auto& pred = cfg.get(block.preds[i]);
         auto& seq = pred.sequences.emplace_back();
         auto assign_expr = IdentExpr{
-            .name = phi.args[i],
+            .name = ctx.AddIdent(phi.args[i]),
         };
         assign_expr.type = phi.type_constraint;
         auto assign_expr_ref = ctx.Add(assign_expr);

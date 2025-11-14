@@ -1112,8 +1112,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Gt,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+                  .lhs = E(IdentExpr{.name = I("x")}),
+                  .rhs = E(IdentExpr{.name = I("y")}),
               }),
           }),
       }),
@@ -1175,8 +1175,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Gt,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+                  .lhs = E(IdentExpr{.name = I("x")}),
+                  .rhs = E(IdentExpr{.name = I("y")}),
               }),
           }),
       }),
@@ -1283,8 +1283,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Lt,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+                  .lhs = E(IdentExpr{.name = I("x")}),
+                  .rhs = E(IdentExpr{.name = I("y")}),
               }),
           }),
       }),
@@ -1346,8 +1346,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Lt,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+                  .lhs = E(IdentExpr{.name = I("x")}),
+                  .rhs = E(IdentExpr{.name = I("y")}),
               }),
           }),
       }),
@@ -1409,8 +1409,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Eq,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+                  .lhs = E(IdentExpr{.name = I("x")}),
+                  .rhs = E(IdentExpr{.name = I("y")}),
               }),
           }),
       }),
@@ -1472,8 +1472,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Eq,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+                  .lhs = E(IdentExpr{.name = I("x")}),
+                  .rhs = E(IdentExpr{.name = I("y")}),
               }),
           }),
       }),
@@ -1535,8 +1535,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::NotEq,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+                  .lhs = E(IdentExpr{.name = I("x")}),
+                  .rhs = E(IdentExpr{.name = I("y")}),
               }),
           }),
       }),
@@ -1598,8 +1598,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::NotEq,
-                  .lhs = E(IdentExpr{.name = "x"}),
-                  .rhs = E(IdentExpr{.name = "y"}),
+                  .lhs = E(IdentExpr{.name = I("x")}),
+                  .rhs = E(IdentExpr{.name = I("y")}),
               }),
           }),
       }),
@@ -1655,7 +1655,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
           }),
           S(ReturnStmt{
               .value = E(IdentExpr{
-                  .name = "x",
+                  .name = I("x"),
               }),
           }),
       }),
@@ -1702,7 +1702,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
           }),
           S(ReturnStmt{
               .value = E(IdentExpr{
-                  .name = "x",
+                  .name = I("x"),
               }),
           }),
       }),
@@ -1981,7 +1981,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                   S(IfStmt{
                       .cond = E(BinaryOpExpr{
                           .op = BinaryOp::Gt,
-                          .lhs = E(IdentExpr{.name = "n"}),
+                          .lhs = E(IdentExpr{.name = I("n")}),
                           .rhs = E(IntLitExpr{.value = "3"}),
                       }),
                       .then_stmts = StmtListOf({S(BreakStmt{})}),
@@ -1990,14 +1990,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                       .name = I("n"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
-                          .lhs = E(IdentExpr{.name = "n"}),
+                          .lhs = E(IdentExpr{.name = I("n")}),
                           .rhs = E(IntLitExpr{.value = "1"}),
                       }),
                   }),
               }),
           }),
           S(ReturnStmt{
-              .value = E(IdentExpr{.name = "n"}),
+              .value = E(IdentExpr{.name = I("n")}),
           }),
       }),
   };

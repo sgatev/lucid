@@ -411,12 +411,12 @@ class AbstractMachineFunctionGenerator {
     RegId reg = next_reg_++;
     if (expr_type.name == "Int32") {
       state_.func.instructions.push_back(LoadStack32{
-          .offset = var_stack_[expr.name],
+          .offset = var_stack_[ctx_.DerefIdent(expr.name)],
           .dst_reg = reg,
       });
     } else if (expr_type.name == "Int64") {
       state_.func.instructions.push_back(LoadStack64{
-          .offset = var_stack_[expr.name],
+          .offset = var_stack_[std::string(ctx_.DerefIdent(expr.name))],
           .dst_reg = reg,
       });
     }
@@ -632,7 +632,7 @@ class AbstractMachineFunctionGenerator {
 
   std::size_t GetStackOffset(ExprRef expr_ref) {
     const auto& expr = std::get<IdentExpr>(ctx_.DerefExpr(expr_ref));
-    return var_stack_[expr.name];
+    return var_stack_[ctx_.DerefIdent(expr.name)];
   }
 
   const SyntaxContext& ctx_;

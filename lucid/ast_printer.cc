@@ -219,7 +219,8 @@ class AstPrinter {
   void Print(const IdentExpr& expr) {
     Out() << "IdentExpr {" << std::endl;
     Nested([&] {
-      Out() << Indent() << ".name = \"" << expr.name << "\"" << std::endl;
+      Out() << Indent() << ".name = \"" << ctx_.DerefIdent(expr.name) << "\""
+            << std::endl;
     });
     Out() << Indent() << "}" << std::endl;
   }

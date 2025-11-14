@@ -42,7 +42,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
                       .name = I("x"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Mul,
-                          .lhs = E(IdentExpr{.name = "x"}),
+                          .lhs = E(IdentExpr{.name = I("x")}),
                           .rhs = E(IntLitExpr{.value = "2"}),
                       }),
                   }),
@@ -52,13 +52,13 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
                       .name = I("x"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
-                          .lhs = E(IdentExpr{.name = "x"}),
+                          .lhs = E(IdentExpr{.name = I("x")}),
                           .rhs = E(IntLitExpr{.value = "1"}),
                       }),
                   }),
               }),
           }),
-          S(ReturnStmt{.value = E(IdentExpr{.name = "x"})}),
+          S(ReturnStmt{.value = E(IdentExpr{.name = I("x")})}),
       }),
   });
 
@@ -105,7 +105,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
                               .name = I("x"),
                               .expr = E(BinaryOpExpr{
                                   .op = BinaryOp::Mul,
-                                  .lhs = E(IdentExpr{.name = "x"}),
+                                  .lhs = E(IdentExpr{.name = I("x")}),
                                   .rhs = E(IntLitExpr{.value = "2"}),
                               }),
                           }),
@@ -115,7 +115,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
                               .name = I("x"),
                               .expr = E(BinaryOpExpr{
                                   .op = BinaryOp::Add,
-                                  .lhs = E(IdentExpr{.name = "x"}),
+                                  .lhs = E(IdentExpr{.name = I("x")}),
                                   .rhs = E(IntLitExpr{.value = "1"}),
                               }),
                           }),
@@ -127,13 +127,13 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
                       .name = I("x"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Sub,
-                          .lhs = E(IdentExpr{.name = "x"}),
+                          .lhs = E(IdentExpr{.name = I("x")}),
                           .rhs = E(IntLitExpr{.value = "3"}),
                       }),
                   }),
               }),
           }),
-          S(ReturnStmt{.value = E(IdentExpr{.name = "x"})}),
+          S(ReturnStmt{.value = E(IdentExpr{.name = I("x")})}),
       }),
   });
 
@@ -194,7 +194,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
                       .name = I("x"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Mul,
-                          .lhs = E(IdentExpr{.name = "x"}),
+                          .lhs = E(IdentExpr{.name = I("x")}),
                           .rhs = E(IntLitExpr{.value = "2"}),
                       }),
                   }),
@@ -204,13 +204,13 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
                       .name = I("y"),
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
-                          .lhs = E(IdentExpr{.name = "x"}),
+                          .lhs = E(IdentExpr{.name = I("x")}),
                           .rhs = E(IntLitExpr{.value = "1"}),
                       }),
                   }),
               }),
           }),
-          S(ReturnStmt{.value = E(IdentExpr{.name = "x"})}),
+          S(ReturnStmt{.value = E(IdentExpr{.name = I("x")})}),
       }),
   });
 
@@ -261,7 +261,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
                               .name = I("x"),
                               .expr = E(BinaryOpExpr{
                                   .op = BinaryOp::Mul,
-                                  .lhs = E(IdentExpr{.name = "x"}),
+                                  .lhs = E(IdentExpr{.name = I("x")}),
                                   .rhs = E(IntLitExpr{.value = "2"}),
                               }),
                           }),
@@ -272,7 +272,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
                   }),
               }),
           }),
-          S(ReturnStmt{.value = E(IdentExpr{.name = "x"})}),
+          S(ReturnStmt{.value = E(IdentExpr{.name = I("x")})}),
       }),
   });
 
