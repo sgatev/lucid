@@ -4,7 +4,6 @@
 #include <optional>
 #include <ranges>
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <variant>
@@ -219,20 +218,10 @@ class ExprTypeInferenceEngine {
   }
 
   void SetIdentType(StringIndex::Ref ident, TypeRef type_ref) {
-    ident_from_type_[ctx_.DerefIdent(ident)] = type_ref;
-  }
-
-  // TODO: Remove
-  void SetIdentType(std::string_view name, TypeRef type_ref) {
-    ident_from_type_[name] = type_ref;
+    ident_from_type_[ident] = type_ref;
   }
 
   TypeRef GetIdentType(StringIndex::Ref name) const {
-    return ident_from_type_.at(ctx_.DerefIdent(name));
-  }
-
-  // TODO: Remove
-  TypeRef GetIdentType(std::string_view name) const {
     return ident_from_type_.at(name);
   }
 
@@ -310,7 +299,7 @@ class ExprTypeInferenceEngine {
 
   std::unordered_map<ExprRef, ExprRef> expr_from_expr_;
   std::unordered_map<ExprRef, TypeRef> expr_from_type_;
-  std::unordered_map<std::string_view, TypeRef> ident_from_type_;
+  std::unordered_map<StringIndex::Ref, TypeRef> ident_from_type_;
   std::unordered_map<ExprRef, ExprRef> expr_from_array_;
 
   std::vector<StmtRef> pending_stmts_;
