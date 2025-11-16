@@ -5,6 +5,12 @@
 namespace lucid {
 namespace {
 
+TEST(StringIndexTest, RefSize) {
+  StringIndex index;
+  auto foo = index.ref("foo");
+  EXPECT_EQ(sizeof(foo), 8);
+}
+
 TEST(StringIndexTest, SameStringRef) {
   StringIndex index;
   auto foo1 = index.ref("foo");
@@ -26,17 +32,24 @@ TEST(StringIndexTest, DifferentStringRef) {
   EXPECT_NE(foo, bar);
 }
 
-TEST(StringIndexTest, Deref) {
+TEST(StringIndexTest, PrefixDeref) {
   StringIndex index;
   index.ref("foobar");
   auto foo = index.ref("foo");
   EXPECT_EQ(index.deref(foo), "foo");
 }
 
-TEST(StringIndexTest, RefSize) {
+TEST(StringIndexTest, UniqueRef) {
   StringIndex index;
-  auto foo = index.ref("foo");
-  EXPECT_EQ(sizeof(foo), 8);
+  auto r1 = index.ref();
+  auto r2 = index.ref();
+  EXPECT_NE(r1, r2);
+}
+
+TEST(StringIndexTest, UniqueDeref) {
+  StringIndex index;
+  auto r = index.ref();
+  EXPECT_EQ(index.deref(r), "<unique>");
 }
 
 }  // namespace
