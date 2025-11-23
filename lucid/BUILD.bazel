@@ -441,6 +441,14 @@ cc_binary(
 )
 
 cc_library(
+    name = "reg",
+    hdrs = ["reg.h"],
+    deps = [
+        ":string_index",
+    ],
+)
+
+cc_library(
     name = "result",
     hdrs = ["result.h"],
 )
