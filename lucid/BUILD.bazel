@@ -289,6 +289,27 @@ cc_library(
 )
 
 cc_library(
+    name = "dataflow",
+    hdrs = ["dataflow.h"],
+    deps = [
+        ":cfg",
+    ],
+)
+
+cc_test(
+    name = "dataflow_test",
+    srcs = ["dataflow_test.cc"],
+    deps = [
+        ":ast",
+        ":cfg",
+        ":dataflow",
+        ":lexer",
+        ":parser",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "dom",
     hdrs = ["dom.h"],
     srcs = ["dom.cc"],
