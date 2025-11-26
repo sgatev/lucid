@@ -195,6 +195,15 @@ cc_test(
 )
 
 cc_library(
+    name = "cfg_order",
+    hdrs = ["cfg_order.h"],
+    srcs = ["cfg_order.cc"],
+    deps = [
+        ":cfg",
+    ],
+)
+
+cc_library(
     name = "cfg_printer",
     hdrs = ["cfg_printer.h"],
     srcs = ["cfg_printer.cc"],
@@ -293,6 +302,7 @@ cc_library(
     hdrs = ["dataflow.h"],
     deps = [
         ":cfg",
+        ":cfg_order",
     ],
 )
 
@@ -315,6 +325,7 @@ cc_library(
     srcs = ["dom.cc"],
     deps = [
         ":cfg",
+        ":cfg_order",
     ],
 )
 

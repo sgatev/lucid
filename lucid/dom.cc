@@ -1,47 +1,15 @@
 #include "lucid/dom.h"
 
-#include <algorithm>
-#include <stack>
 #include <vector>
 
 #include "lucid/cfg.h"
+#include "lucid/cfg_order.h"
 
 namespace lucid {
-namespace {
 
 using BlockRef = ControlFlowGraph::BlockRef;
 
 static constexpr auto kNullBlockRef = ControlFlowGraph::kNullBlockRef;
-
-std::vector<BlockRef> ComputeReversePostOrder(const ControlFlowGraph& cfg) {
-  std::vector<BlockRef> reverse_post_order;
-  reverse_post_order.reserve(cfg.blocks().Size());
-
-  std::stack<BlockRef> pending;
-  std::vector<bool> visited(cfg.blocks().Size(), false);
-
-  pending.push(cfg.first);
-  while (!pending.empty()) {
-    auto block = pending.top();
-    pending.pop();
-
-    if (visited[block.id()]) {
-      reverse_post_order.push_back(block);
-    } else {
-      pending.push(block);
-      for (auto next_block : cfg.get(block).next) {
-        if (!visited[next_block.id()]) pending.push(next_block);
-      }
-      visited[block.id()] = true;
-    }
-  }
-
-  std::reverse(reverse_post_order.begin(), reverse_post_order.end());
-
-  return reverse_post_order;
-}
-
-}  // namespace
 
 std::vector<BlockRef> ComputeImmediateDominators(const ControlFlowGraph& cfg) {
   const std::vector<BlockRef> reverse_post_order = ComputeReversePostOrder(cfg);
