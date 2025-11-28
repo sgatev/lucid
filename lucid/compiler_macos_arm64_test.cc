@@ -45,20 +45,24 @@ TEST_F(CompilerTest, PrintAstNode) {
 TEST_F(CompilerTest, PrintCfg) {
   ASSERT_TRUE(CreateFile("max.lu", R"(
     let max = (a: Int32, b: Int32) -> Int32 {
+      let c: Int32 = 0
       if a > b {
-        return a
+        c = a
       } else {
-        return b
+        c = b
       }
+      return c
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-cfg", FullPath("max.lu")}),
               AllOf(ReturnsCode(0), Prints(R"([34mmax:
 [0m[34m  B0: [0m{
     .sequences = [
-[34m      E0: [0mIdentExpr { .name = 'a' }
-[34m      E1: [0mIdentExpr { .name = 'b' }
-[34m      E2: [0mBinaryOpExpr
+[34m      E0: [0mIntLitExpr
+[34m      S2: [0mVarDeclStmt { .name = 'c' }
+[34m      E1: [0mIdentExpr { .name = 'a' }
+[34m      E2: [0mIdentExpr { .name = 'b' }
+[34m      E3: [0mBinaryOpExpr
     ]
     .next = [
 [34m      B3
@@ -67,23 +71,29 @@ TEST_F(CompilerTest, PrintCfg) {
   }
 [34m  B1: [0m{
     .preds = [
-[34m      B3
-[0m[34m      B4
-[0m[34m      B2
+[34m      B2
 [0m    ]
   }
 [34m  B2: [0m{
+    .sequences = [
+[34m      E6: [0mIdentExpr { .name = 'c' }
+[34m      S4: [0mReturnStmt
+    ]
     .next = [
 [34m      B1
+[0m    ]
+    .preds = [
+[34m      B3
+[0m[34m      B4
 [0m    ]
   }
 [34m  B3: [0m{
     .sequences = [
-[34m      E3: [0mIdentExpr { .name = 'a' }
-[34m      S0: [0mReturnStmt
+[34m      E4: [0mIdentExpr { .name = 'a' }
+[34m      S0: [0mVarAssignStmt { .name = 'c' }
     ]
     .next = [
-[34m      B1
+[34m      B2
 [0m    ]
     .preds = [
 [34m      B0
@@ -91,11 +101,11 @@ TEST_F(CompilerTest, PrintCfg) {
   }
 [34m  B4: [0m{
     .sequences = [
-[34m      E4: [0mIdentExpr { .name = 'b' }
-[34m      S1: [0mReturnStmt
+[34m      E5: [0mIdentExpr { .name = 'b' }
+[34m      S1: [0mVarAssignStmt { .name = 'c' }
     ]
     .next = [
-[34m      B1
+[34m      B2
 [0m    ]
     .preds = [
 [34m      B0

@@ -37,8 +37,9 @@ class ControlFlowGraphBuilder {
     return ref;
   }
 
-  void BuildBlock(const SuccessiveList<StmtRef>& stmts, BlockRef block,
+  bool BuildBlock(const SuccessiveList<StmtRef>& stmts, BlockRef block,
                   BlockRef end) {
+    bool should_connect = true;
     for (StmtRef stmt_ref : stmts) {
       if (auto* loop_stmt = std::get_if<LoopStmt>(&ctx_.DerefStmt(stmt_ref))) {
         auto post_loop_block = AddBlock();
@@ -46,7 +47,7 @@ class ControlFlowGraphBuilder {
         post_loop_blocks_.push(post_loop_block);
 
         auto loop_block = AddBlock();
-        BuildBlock(loop_stmt->stmts, loop_block, loop_block);
+        should_connect = BuildBlock(loop_stmt->stmts, loop_block, loop_block);
         graph_.get(block).next.push_back(loop_block);
         graph_.get(loop_block).preds.push_back(block);
 
@@ -59,7 +60,8 @@ class ControlFlowGraphBuilder {
         auto post_if_block = AddBlock();
 
         auto then_block = AddBlock();
-        BuildBlock(if_stmt->then_stmts, then_block, post_if_block);
+        bool then_continues =
+            BuildBlock(if_stmt->then_stmts, then_block, post_if_block);
         graph_.get(block).next.push_back(then_block);
         graph_.get(then_block).preds.push_back(block);
 
@@ -68,9 +70,12 @@ class ControlFlowGraphBuilder {
           graph_.get(post_if_block).preds.push_back(block);
         } else {
           auto else_block = AddBlock();
-          BuildBlock(if_stmt->else_stmts, else_block, post_if_block);
+          bool else_continues =
+              BuildBlock(if_stmt->else_stmts, else_block, post_if_block);
           graph_.get(block).next.push_back(else_block);
           graph_.get(else_block).preds.push_back(block);
+
+          should_connect = then_continues || else_continues;
         }
 
         pending_sub_exprs_.push(if_stmt->cond);
@@ -90,19 +95,23 @@ class ControlFlowGraphBuilder {
         if (std::holds_alternative<ReturnStmt>(ctx_.DerefStmt(stmt_ref))) {
           graph_.get(block).next.push_back(graph_.last);
           graph_.get(graph_.last).preds.push_back(block);
-          return;
+          return false;
         }
 
         if (std::holds_alternative<BreakStmt>(ctx_.DerefStmt(stmt_ref))) {
           graph_.get(block).next.push_back(post_loop_blocks_.top());
           graph_.get(post_loop_blocks_.top()).preds.push_back(block);
-          return;
+          return false;
         }
       }
     }
 
-    graph_.get(block).next.push_back(end);
-    graph_.get(end).preds.push_back(block);
+    if (should_connect) {
+      graph_.get(block).next.push_back(end);
+      graph_.get(end).preds.push_back(block);
+    }
+
+    return true;
   }
 
   void FlushSubExprs(Sequence& seq, BlockRef block, BlockRef end) {

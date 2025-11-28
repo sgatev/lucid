@@ -998,9 +998,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           Label{
                                               .id = 2,
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           Label{
                                               .id = 3,
                                           },
