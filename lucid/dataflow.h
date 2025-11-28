@@ -23,7 +23,7 @@ concept BoundedJoinSemiLattice = requires(L l1, L l2) {
 
 // A dataflow analysis.
 //
-// Require:
+// Requires:
 // - `State` sub-type that models a bounded join-semilattice.
 // - `MakeInitial` member that constructs an initial state.
 // - `Transfer` member that transfers a state given a sequence.
@@ -35,19 +35,6 @@ concept DataflowAnalysis = requires(A a, A::State s1, A::State s2,
   { a.MakeInitial() } -> std::same_as<typename A::State>;
   { a.Transfer(s1, seq) } -> std::same_as<typename A::State>;
   { a.Join(s1, s2) } -> std::same_as<typename A::State>;
-};
-
-// Function object for performing block order comparisons.
-struct CompareBlockOrder {
-  explicit CompareBlockOrder(std::vector<int> block_order)
-      : block_order_(std::move(block_order)) {}
-
-  bool operator()(const ControlFlowGraph::BlockRef& lhs,
-                  const ControlFlowGraph::BlockRef& rhs) const {
-    return block_order_[lhs.id()] < block_order_[rhs.id()];
-  }
-
-  std::vector<int> block_order_;
 };
 
 // A worklist of elements of type `T` ordered using comparator of type `C`. An
@@ -104,7 +91,7 @@ std::vector<std::optional<typename AnalysisT::State>> RunBackwardDataflow(
   auto block_to_state = [&](BlockRef ref) { return *block_states[ref.id()]; };
 
   Worklist<BlockRef, CompareBlockOrder> worklist(
-      CompareBlockOrder(ComputeReversePreOrder(cfg)));
+      CompareBlockOrder(ComputeReversePostOrder(cfg)));
   worklist.push(cfg.last);
 
   while (!worklist.empty()) {

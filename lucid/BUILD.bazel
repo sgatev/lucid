@@ -203,6 +203,19 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "cfg_order_test",
+    srcs = ["cfg_order_test.cc"],
+    deps = [
+        ":ast",
+        ":cfg",
+        ":cfg_order",
+        ":lexer",
+        ":parser",
+        "@googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "cfg_printer",
     hdrs = ["cfg_printer.h"],

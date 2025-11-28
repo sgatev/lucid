@@ -1,5 +1,6 @@
 #include "lucid/dom.h"
 
+#include <algorithm>
 #include <vector>
 
 #include "lucid/cfg.h"
@@ -12,12 +13,11 @@ using BlockRef = ControlFlowGraph::BlockRef;
 static constexpr auto kNullBlockRef = ControlFlowGraph::kNullBlockRef;
 
 std::vector<BlockRef> ComputeImmediateDominators(const ControlFlowGraph& cfg) {
-  const std::vector<BlockRef> reverse_post_order = ComputeReversePostOrder(cfg);
+  const CompareBlockOrder compare(ComputeReversePostOrder(cfg));
 
-  std::vector<int> block_order(cfg.blocks().Size(), -1);
-  for (int i = 0; i < reverse_post_order.size(); ++i) {
-    block_order[reverse_post_order[i].id()] = i;
-  }
+  std::vector<BlockRef> blocks;
+  for (const auto& block : cfg.blocks()) blocks.push_back(block.ref.id());
+  std::sort(blocks.begin(), blocks.end(), compare);
 
   std::vector<BlockRef> idoms(cfg.blocks().Size(), kNullBlockRef);
   idoms[cfg.first.id()] = cfg.first;
@@ -26,7 +26,7 @@ std::vector<BlockRef> ComputeImmediateDominators(const ControlFlowGraph& cfg) {
   while (changed) {
     changed = false;
 
-    for (auto block : reverse_post_order) {
+    for (auto block : blocks) {
       if (block == cfg.first) continue;
 
       auto new_idom = kNullBlockRef;
@@ -37,10 +37,10 @@ std::vector<BlockRef> ComputeImmediateDominators(const ControlFlowGraph& cfg) {
           new_idom = pred;
         } else {
           while (new_idom != pred) {
-            while (block_order[new_idom.id()] > block_order[pred.id()]) {
+            while (compare(pred, new_idom)) {
               new_idom = idoms[new_idom.id()];
             }
-            while (block_order[pred.id()] > block_order[new_idom.id()]) {
+            while (compare(new_idom, pred)) {
               pred = idoms[pred.id()];
             }
           }

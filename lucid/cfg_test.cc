@@ -404,7 +404,7 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
   EXPECT_EQ(else_block.ref, 4);
   EXPECT_THAT(else_block.next, ElementsAre(post_if_block.ref));
   EXPECT_THAT(else_block.preds, ElementsAre(first_block.ref));
-  ASSERT_THAT(then_block.sequences.size(), 1);
+  ASSERT_THAT(else_block.sequences.size(), 1);
   EXPECT_THAT(else_block.sequences[0].expressions, ElementsAreArray({
                                                        mul_lhs_expr,
                                                        mul_rhs_expr,
@@ -522,7 +522,7 @@ TEST_F(ControlFlowGraphTest, Loop) {
   EXPECT_EQ(graph.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
-  EXPECT_THAT(loop_block.preds, ElementsAre(loop_block.ref, first_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsAre(post_loop_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
