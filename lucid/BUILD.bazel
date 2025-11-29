@@ -316,6 +316,7 @@ cc_library(
     deps = [
         ":cfg",
         ":cfg_order",
+        ":worklist",
     ],
 )
 
@@ -650,4 +651,18 @@ genrule(
       sed -e 's/%GIT_COMMIT%/'$$commit'/' < $< > $@
     """,
     stamp = 1,
+)
+
+cc_library(
+    name = "worklist",
+    hdrs = ["worklist.h"],
+)
+
+cc_test(
+    name = "worklist_test",
+    srcs = ["worklist_test.cc"],
+    deps = [
+        ":worklist",
+        "@googletest//:gtest_main",
+    ],
 )
