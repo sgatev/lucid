@@ -28,7 +28,7 @@ std::string StringWithNull(std::string_view s) {
   return s_with_null;
 }
 
-TEST(RunBackwardDataflowTest, Simple) {
+TEST(ComputeReversePostOrderTest, Simple) {
   std::string code = StringWithNull(R"(
     let foo = () -> Int32 {
       return 21
@@ -44,7 +44,7 @@ TEST(RunBackwardDataflowTest, Simple) {
   EXPECT_THAT(ComputeReversePostOrder(cfg), ElementsAre(0, 1));
 }
 
-TEST(RunBackwardDataflowTest, Conditional) {
+TEST(ComputeReversePostOrderTest, Conditional) {
   std::string code = StringWithNull(R"(
     let foo = (c: Bool) -> Int32 {
       let res: Int32 = 0
@@ -66,7 +66,7 @@ TEST(RunBackwardDataflowTest, Conditional) {
   EXPECT_THAT(ComputeReversePostOrder(cfg), ElementsAre(0, 4, 3, 1, 2));
 }
 
-TEST(RunBackwardDataflowTest, Loop) {
+TEST(ComputeReversePostOrderTest, Loop) {
   std::string code = StringWithNull(R"(
     let foo = () -> Int32 {
       let res: Int32 = 0
