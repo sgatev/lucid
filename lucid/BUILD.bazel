@@ -666,3 +666,12 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+cc_binary(
+    name = "worklist_bench",
+    srcs = ["worklist_bench.cc"],
+    deps = [
+        ":worklist",
+        "@google_benchmark//:benchmark",
+    ],
+)
