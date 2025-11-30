@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <concepts>
+#include <cstddef>
 #include <functional>
 #include <optional>
 #include <ranges>
@@ -36,6 +37,20 @@ concept DataflowAnalysis = requires(A a, A::State s1, A::State s2,
   { a.Join(s1, s2) } -> std::same_as<typename A::State>;
 };
 
+// A finite domain of blocks in a control-flow graph.
+class BlockDomain {
+ public:
+  explicit BlockDomain(const ControlFlowGraph& cfg)
+      : blocks_count_(cfg.blocks().Size()) {}
+
+  std::size_t size() const { return blocks_count_; }
+
+  std::size_t id(ControlFlowGraph::BlockRef ref) const { return ref.id(); }
+
+ private:
+  std::size_t blocks_count_;
+};
+
 // Performs backward dataflow analysis and returns a mapping from basic block
 // IDs to dataflow analysis states that model the respective basic blocks.
 //
@@ -51,8 +66,8 @@ std::vector<std::optional<typename AnalysisT::State>> RunBackwardDataflow(
   std::vector<std::optional<State>> block_states(cfg.blocks().Size());
   auto block_to_state = [&](BlockRef ref) { return *block_states[ref.id()]; };
 
-  Worklist<BlockRef, CompareBlockOrder> worklist(
-      CompareBlockOrder(ComputeReversePostOrder(cfg)));
+  Worklist<BlockRef, BlockDomain, CompareBlockOrder> worklist(
+      BlockDomain(cfg), CompareBlockOrder(ComputeReversePostOrder(cfg)));
   worklist.push(cfg.last);
 
   while (!worklist.empty()) {

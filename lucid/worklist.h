@@ -1,18 +1,34 @@
 #pragma once
 
+#include <cstddef>
 #include <queue>
-#include <ranges>
-#include <unordered_set>
+#include <utility>
 #include <vector>
 
 namespace lucid {
 
+// Models a finite set of elements.
+template <typename D, typename E>
+concept FiniteDomain = requires(D d, E e) {
+  { d.size() } -> std::same_as<std::size_t>;
+  { d.id(e) } -> std::same_as<std::size_t>;
+};
+
+// Models an ordering relation between elements.
+template <typename O, typename E>
+concept OrderedBefore = requires(O o, E e1, E e2) {
+  { o(e1, e2) } -> std::same_as<bool>;
+};
+
 // A worklist of elements of type `T` ordered using comparator of type `C`. An
 // element can appear at most once in the worklist.
-template <typename T, typename C>
+template <typename T, FiniteDomain<T> D, OrderedBefore<T> O>
 class Worklist {
  public:
-  explicit Worklist(C comp) : queue_(std::move(comp)) {}
+  explicit Worklist(D domain, O ordered_before)
+      : domain_(std::move(domain)),
+        queue_(std::move(ordered_before)),
+        present_(domain.size(), false) {}
 
   // Returns whether the worklist is empty.
   bool empty() const { return queue_.empty(); }
@@ -21,28 +37,28 @@ class Worklist {
   T pop() {
     T top = queue_.top();
     queue_.pop();
-    inserted_.erase(top);
+    present_[domain_.id(top)] = false;
     return top;
   }
 
   // Inserts and sorts the element in the worklist if it's not already present.
   void push(T t) {
-    if (inserted_.insert(t).second) queue_.push(t);
+    if (present_[domain_.id(t)]) return;
+    present_[domain_.id(t)] = true;
+    queue_.push(t);
   }
 
   // Inserts and sorts the elements from the range that are not already present
   // in the worklist.
   template <typename R>
   void push_range(R&& rg) {
-    queue_.push_range(rg | std::views::filter([&](const T& t) {
-                        return !inserted_.contains(t);
-                      }));
-    inserted_.insert_range(rg);
+    for (const auto& t : rg) push(t);
   }
 
  private:
-  std::priority_queue<T, std::vector<T>, C> queue_;
-  std::unordered_set<T> inserted_;
+  D domain_;
+  std::priority_queue<T, std::vector<T>, O> queue_;
+  std::vector<bool> present_;
 };
 
 }  // namespace lucid

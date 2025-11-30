@@ -1,5 +1,6 @@
 #include "lucid/worklist.h"
 
+#include <cstddef>
 #include <functional>
 
 #include "gtest/gtest.h"
@@ -7,14 +8,28 @@
 namespace lucid {
 namespace {
 
+class BoundedNatDomain {
+ public:
+  explicit BoundedNatDomain(std::size_t size) : size_(size) {}
+
+  std::size_t size() const { return size_; }
+
+  std::size_t id(int i) const { return i; }
+
+ private:
+  std::size_t size_;
+};
+
 TEST(WorklistTest, Empty) {
-  Worklist<int, std::less<>> worklist(std::less<>{});
+  Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(6),
+                                                        std::less());
 
   EXPECT_TRUE(worklist.empty());
 }
 
 TEST(WorklistTest, Ordered) {
-  Worklist<int, std::less<>> worklist(std::less<>{});
+  Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(6),
+                                                        std::less());
 
   worklist.push(5);
   worklist.push(1);
@@ -41,7 +56,8 @@ TEST(WorklistTest, Ordered) {
 }
 
 TEST(WorklistTest, NoDuplicates) {
-  Worklist<int, std::less<>> worklist(std::less<>{});
+  Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(6),
+                                                        std::less());
 
   worklist.push(2);
   worklist.push(1);
@@ -62,7 +78,8 @@ TEST(WorklistTest, NoDuplicates) {
 }
 
 TEST(WorklistTest, PushRange) {
-  Worklist<int, std::less<>> worklist(std::less<>{});
+  Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(6),
+                                                        std::less());
 
   worklist.push_range(std::vector<int>{5, 1, 4});
   worklist.push_range(std::vector<int>{3, 2});
