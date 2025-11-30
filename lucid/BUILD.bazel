@@ -405,6 +405,32 @@ cc_binary(
 )
 
 cc_library(
+    name = "liveness",
+    hdrs = ["liveness.h"],
+    srcs = ["liveness.cc"],
+    deps = [
+        ":ast",
+        ":cfg",
+        ":string_index",
+    ],
+)
+
+cc_test(
+    name = "liveness_test",
+    srcs = ["liveness_test.cc"],
+    deps = [
+        ":liveness",
+        ":ast",
+        ":cfg",
+        ":string_index",
+        ":dataflow",
+        ":lexer",
+        ":parser",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "opt",
     srcs = ["opt.cc"],
     hdrs = ["opt.h"],
