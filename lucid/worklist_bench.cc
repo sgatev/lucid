@@ -31,7 +31,7 @@ static void BM_Push(benchmark::State &state) {
   for (auto _ : state) worklist.push(inputs[i++]);
   benchmark::DoNotOptimize(worklist.empty());
 }
-BENCHMARK(BM_Push)->Range(2 << 2, 2 << 24);
+BENCHMARK(BM_Push);
 
 static void BM_Pop(benchmark::State &state) {
   lucid::Worklist<int, BoundedNatDomain, std::less<>> worklist(
@@ -44,7 +44,7 @@ static void BM_Pop(benchmark::State &state) {
   for (auto _ : state) worklist.pop();
   benchmark::DoNotOptimize(worklist.empty());
 }
-BENCHMARK(BM_Pop)->Range(2 << 2, 2 << 24);
+BENCHMARK(BM_Pop);
 
 static void BM_PushPop(benchmark::State &state) {
   lucid::Worklist<int, BoundedNatDomain, std::less<>> worklist(
@@ -62,6 +62,6 @@ static void BM_PushPop(benchmark::State &state) {
   }
   benchmark::DoNotOptimize(worklist.empty());
 }
-BENCHMARK(BM_PushPop)->Range(2 << 2, 2 << 24);
+BENCHMARK(BM_PushPop);
 
 BENCHMARK_MAIN();
