@@ -93,8 +93,8 @@ cc_library(
     hdrs = ["arm64_gen.h"],
     deps = [
         ":am",
-        ":ast",
         ":arm64",
+        ":ast",
     ],
 )
 
@@ -119,8 +119,8 @@ cc_test(
 
 cc_library(
     name = "ast_printer",
-    hdrs = ["ast_printer.h"],
     srcs = ["ast_printer.cc"],
+    hdrs = ["ast_printer.h"],
     deps = [
         ":ast",
     ],
@@ -165,8 +165,8 @@ cc_test(
     name = "buffered_lexer_test",
     srcs = ["buffered_lexer_test.cc"],
     deps = [
-        ":lexer",
         ":buffered_lexer",
+        ":lexer",
         "@googletest//:gtest_main",
     ],
 )
@@ -196,8 +196,8 @@ cc_test(
 
 cc_library(
     name = "cfg_order",
-    hdrs = ["cfg_order.h"],
     srcs = ["cfg_order.cc"],
+    hdrs = ["cfg_order.h"],
     deps = [
         ":cfg",
     ],
@@ -218,8 +218,8 @@ cc_test(
 
 cc_library(
     name = "cfg_printer",
-    hdrs = ["cfg_printer.h"],
     srcs = ["cfg_printer.cc"],
+    hdrs = ["cfg_printer.h"],
     deps = [
         ":ast",
         ":cfg",
@@ -335,8 +335,8 @@ cc_test(
 
 cc_library(
     name = "dom",
-    hdrs = ["dom.h"],
     srcs = ["dom.cc"],
+    hdrs = ["dom.h"],
     deps = [
         ":cfg",
         ":cfg_order",
@@ -406,8 +406,8 @@ cc_binary(
 
 cc_library(
     name = "liveness",
-    hdrs = ["liveness.h"],
     srcs = ["liveness.cc"],
+    hdrs = ["liveness.h"],
     deps = [
         ":ast",
         ":cfg",
@@ -419,13 +419,13 @@ cc_test(
     name = "liveness_test",
     srcs = ["liveness_test.cc"],
     deps = [
-        ":liveness",
         ":ast",
         ":cfg",
-        ":string_index",
         ":dataflow",
         ":lexer",
+        ":liveness",
         ":parser",
+        ":string_index",
         "@googletest//:gtest_main",
     ],
 )
