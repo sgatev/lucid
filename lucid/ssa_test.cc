@@ -28,10 +28,10 @@ class ConvertToStaticSingleAssignmentTest : public Test, public AstFixture {
 TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .type_constraint = T(BasicType{.name = "Int32"}),
+              .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
@@ -85,10 +85,10 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
 TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .type_constraint = T(BasicType{.name = "Int32"}),
+              .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
@@ -166,15 +166,15 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
 TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .type_constraint = T(BasicType{.name = "Int32"}),
+              .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),
           S(VarDeclStmt{
-              .type_constraint = T(BasicType{.name = "Int32"}),
+              .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("y"),
               .init = E(IntLitExpr{.value = "2"}),
           }),
@@ -228,10 +228,10 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
 TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .type_constraint = T(BasicType{.name = "Int32"}),
+              .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
               .init = E(IntLitExpr{.value = "21"}),
           }),

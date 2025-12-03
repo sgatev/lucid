@@ -54,7 +54,7 @@ TEST_F(ParserTest, EmptyFuncDefStmt) {
   )";
   EXPECT_THAT(Parse(src), HoldsFuncDef(MatchesFuncDefStmt({
                               .name = I("main"),
-                              .result_type = MatchesBasicType({.name = "Void"}),
+                              .result_type = MatchesBasicType({.name = I("Void")}),
                           })));
 }
 
@@ -68,7 +68,7 @@ TEST_F(ParserTest, ReturnIntLitExpr) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("main"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesIntLitExpr({
@@ -91,7 +91,7 @@ TEST_F(ParserTest, Comment) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("main"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesIntLitExpr({
@@ -111,7 +111,7 @@ TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("main"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesBinaryOpExpr({
@@ -137,7 +137,7 @@ TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("main"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesBinaryOpExpr({
@@ -163,7 +163,7 @@ TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("main"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesBinaryOpExpr({
@@ -189,7 +189,7 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("main"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesBinaryOpExpr({
@@ -215,7 +215,7 @@ TEST_F(ParserTest, ReturnModBinaryOpExpr) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("main"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesBinaryOpExpr({
@@ -240,7 +240,7 @@ TEST_F(ParserTest, ReturnGtBinaryOpExpr) {
   )";
   EXPECT_THAT(Parse(src), HoldsFuncDef(MatchesFuncDefStmt({
                               .name = I("foo"),
-                              .result_type = MatchesBasicType({.name = "Bool"}),
+                              .result_type = MatchesBasicType({.name = I("Bool")}),
                               .body = {{
                                   MatchesReturnStmt({
                                       .value = MatchesBinaryOpExpr({
@@ -271,10 +271,10 @@ TEST_F(ParserTest, SingleFuncParam) {
               {
                   MatchesFuncParam({
                       .name = I("x"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
-          .result_type = MatchesBasicType({.name = "Int32"}),
+          .result_type = MatchesBasicType({.name = I("Int32")}),
           .body = {{
               MatchesReturnStmt({
                   .value = MatchesIdentExpr({
@@ -298,18 +298,18 @@ TEST_F(ParserTest, MultipleFuncParams) {
               {
                   MatchesFuncParam({
                       .name = I("a"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
                   MatchesFuncParam({
                       .name = I("b"),
-                      .type_constraint = MatchesBasicType({.name = "Double"}),
+                      .type_constraint = MatchesBasicType({.name = I("Double")}),
                   }),
                   MatchesFuncParam({
                       .name = I("c"),
-                      .type_constraint = MatchesBasicType({.name = "Bool"}),
+                      .type_constraint = MatchesBasicType({.name = I("Bool")}),
                   }),
               },
-          .result_type = MatchesBasicType({.name = "Void"}),
+          .result_type = MatchesBasicType({.name = I("Void")}),
       })));
 }
 
@@ -322,7 +322,7 @@ TEST_F(ParserTest, FuncCallExprIntLitArg) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("foo"),
-                  .result_type = MatchesBasicType({.name = "Void"}),
+                  .result_type = MatchesBasicType({.name = I("Void")}),
                   .body = {{
                       MatchesDoStmt({
                           .expr = MatchesFuncCallExpr({
@@ -347,7 +347,7 @@ TEST_F(ParserTest, FuncCallExprStringLitArg) {
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
           .name = I("foo"),
-          .result_type = MatchesBasicType({.name = "Void"}),
+          .result_type = MatchesBasicType({.name = I("Void")}),
           .body = {{
               MatchesDoStmt({
                   .expr = MatchesFuncCallExpr({
@@ -372,7 +372,7 @@ TEST_F(ParserTest, FuncCallExprNestedArg) {
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
           .name = I("foo"),
-          .result_type = MatchesBasicType({.name = "Void"}),
+          .result_type = MatchesBasicType({.name = I("Void")}),
           .body = {{
               MatchesDoStmt({
                   .expr = MatchesFuncCallExpr({
@@ -411,7 +411,7 @@ TEST_F(ParserTest, ReturnFuncCallExpr) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("main"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesFuncCallExpr({
@@ -434,7 +434,7 @@ TEST_F(ParserTest, ReturnTrueBoolLit) {
   )";
   EXPECT_THAT(Parse(src), HoldsFuncDef(MatchesFuncDefStmt({
                               .name = I("truth"),
-                              .result_type = MatchesBasicType({.name = "Bool"}),
+                              .result_type = MatchesBasicType({.name = I("Bool")}),
                               .body = {{
                                   MatchesReturnStmt({
                                       .value = MatchesBoolLitExpr({
@@ -453,7 +453,7 @@ TEST_F(ParserTest, ReturnFalseBoolLit) {
   )";
   EXPECT_THAT(Parse(src), HoldsFuncDef(MatchesFuncDefStmt({
                               .name = I("falsity"),
-                              .result_type = MatchesBasicType({.name = "Bool"}),
+                              .result_type = MatchesBasicType({.name = I("Bool")}),
                               .body = {{
                                   MatchesReturnStmt({
                                       .value = MatchesBoolLitExpr({
@@ -476,7 +476,7 @@ TEST_F(ParserTest, IfStmt) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("foo"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesIfStmt({
                           .cond = MatchesBoolLitExpr({
@@ -516,7 +516,7 @@ TEST_F(ParserTest, IfElseStmt) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("foo"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesIfStmt({
                           .cond = MatchesBoolLitExpr({
@@ -565,10 +565,10 @@ TEST_F(ParserTest, IfElseIfElseStmt) {
               {
                   MatchesFuncParam({
                       .name = I("x"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
-          .result_type = MatchesBasicType({.name = "Int32"}),
+          .result_type = MatchesBasicType({.name = I("Int32")}),
           .body = {{
               MatchesIfStmt({
                   .cond = MatchesBinaryOpExpr({
@@ -615,16 +615,16 @@ TEST_F(ParserTest, GtInts) {
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
           .name = I("gt"),
-          .result_type = MatchesBasicType({.name = "Bool"}),
+          .result_type = MatchesBasicType({.name = I("Bool")}),
           .params =
               {
                   MatchesFuncParam({
                       .name = I("x"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
                   MatchesFuncParam({
                       .name = I("y"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
           .body = {{
@@ -649,16 +649,16 @@ TEST_F(ParserTest, LtInts) {
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
           .name = I("lt"),
-          .result_type = MatchesBasicType({.name = "Bool"}),
+          .result_type = MatchesBasicType({.name = I("Bool")}),
           .params =
               {
                   MatchesFuncParam({
                       .name = I("x"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
                   MatchesFuncParam({
                       .name = I("y"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
           .body = {{
@@ -683,16 +683,16 @@ TEST_F(ParserTest, EqInts) {
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
           .name = I("eq"),
-          .result_type = MatchesBasicType({.name = "Bool"}),
+          .result_type = MatchesBasicType({.name = I("Bool")}),
           .params =
               {
                   MatchesFuncParam({
                       .name = I("x"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
                   MatchesFuncParam({
                       .name = I("y"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
           .body = {{
@@ -717,16 +717,16 @@ TEST_F(ParserTest, NotEqInts) {
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
           .name = I("neq"),
-          .result_type = MatchesBasicType({.name = "Bool"}),
+          .result_type = MatchesBasicType({.name = I("Bool")}),
           .params =
               {
                   MatchesFuncParam({
                       .name = I("x"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
                   MatchesFuncParam({
                       .name = I("y"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
           .body = {{
@@ -752,18 +752,18 @@ TEST_F(ParserTest, VarDecl) {
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
           .name = I("inc"),
-          .result_type = MatchesBasicType({.name = "Int32"}),
+          .result_type = MatchesBasicType({.name = I("Int32")}),
           .params =
               {
                   MatchesFuncParam({
                       .name = I("n"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
           .body = {{
               MatchesVarDeclStmt({
                   .name = I("m"),
-                  .type_constraint = MatchesBasicType({.name = "Int32"}),
+                  .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   .init = MatchesIntLitExpr({.value = "1"}),
               }),
               MatchesReturnStmt({
@@ -787,12 +787,12 @@ TEST_F(ParserTest, VarAssignment) {
       Parse(src),
       HoldsFuncDef(MatchesFuncDefStmt({
           .name = I("foo"),
-          .result_type = MatchesBasicType({.name = "Void"}),
+          .result_type = MatchesBasicType({.name = I("Void")}),
           .params =
               {
                   MatchesFuncParam({
                       .name = I("n"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
           .body = {{
@@ -816,7 +816,7 @@ TEST_F(ParserTest, LoopAndBreakStmt) {
   EXPECT_THAT(Parse(src),
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("foo"),
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesLoopStmt({
                           .body = {{
@@ -847,14 +847,14 @@ TEST_F(ParserTest, EqOverMod) {
               {
                   MatchesFuncParam({
                       .name = I("a"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
                   MatchesFuncParam({
                       .name = I("b"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
-          .result_type = MatchesBasicType({.name = "Int32"}),
+          .result_type = MatchesBasicType({.name = I("Int32")}),
           .body = {{
               MatchesIfStmt({
                   .cond = MatchesBinaryOpExpr({
@@ -902,14 +902,14 @@ TEST_F(ParserTest, NotEqOverAdd) {
               {
                   MatchesFuncParam({
                       .name = I("a"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
                   MatchesFuncParam({
                       .name = I("b"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
-          .result_type = MatchesBasicType({.name = "Int32"}),
+          .result_type = MatchesBasicType({.name = I("Int32")}),
           .body = {{
               MatchesIfStmt({
                   .cond = MatchesBinaryOpExpr({
@@ -957,14 +957,14 @@ TEST_F(ParserTest, GtOverMul) {
               {
                   MatchesFuncParam({
                       .name = I("a"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
                   MatchesFuncParam({
                       .name = I("b"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
-          .result_type = MatchesBasicType({.name = "Int32"}),
+          .result_type = MatchesBasicType({.name = I("Int32")}),
           .body = {{
               MatchesIfStmt({
                   .cond = MatchesBinaryOpExpr({
@@ -1012,14 +1012,14 @@ TEST_F(ParserTest, LtOverSub) {
               {
                   MatchesFuncParam({
                       .name = I("a"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
                   MatchesFuncParam({
                       .name = I("b"),
-                      .type_constraint = MatchesBasicType({.name = "Int32"}),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
-          .result_type = MatchesBasicType({.name = "Int32"}),
+          .result_type = MatchesBasicType({.name = I("Int32")}),
           .body = {{
               MatchesIfStmt({
                   .cond = MatchesBinaryOpExpr({
@@ -1065,12 +1065,12 @@ TEST_F(ParserTest, ArrayParam) {
                               .name = I("a"),
                               .type_constraint = MatchesArrayType({
                                   .element_type_constraint =
-                                      MatchesBasicType({.name = "Int32"}),
+                                      MatchesBasicType({.name = I("Int32")}),
                                   .size = {.value = "10"},
                               }),
                           }),
                       },
-                  .result_type = MatchesBasicType({.name = "Int32"}),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesIndexExpr({

@@ -57,7 +57,9 @@ class ExprTypeInferenceEngine {
 
     for (auto int_lit_expr : int_lit_exprs_) {
       if (expr_from_type_.find(int_lit_expr) == expr_from_type_.end()) {
-        expr_from_type_[int_lit_expr] = ctx_.Add(BasicType{.name = "Int32"});
+        expr_from_type_[int_lit_expr] = ctx_.Add(BasicType{
+            .name = ctx_.AddIdent("Int32"),
+        });
       }
     }
 
@@ -94,7 +96,9 @@ class ExprTypeInferenceEngine {
   void ProcessPendingStmt(StmtRef stmt_ref, const IfStmt& stmt) {
     AddPendingStmts(std::ranges::reverse_view(stmt.else_stmts));
     AddPendingStmts(std::ranges::reverse_view(stmt.then_stmts));
-    RequireTypeForExpr(stmt.cond, ctx_.Add(BasicType{.name = "Bool"}));
+    RequireTypeForExpr(stmt.cond, ctx_.Add(BasicType{
+                                      .name = ctx_.AddIdent("Bool"),
+                                  }));
     AddPendingExpr(stmt.cond);
   }
 
@@ -162,7 +166,9 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
-    RequireTypeForExpr(expr_ref, ctx_.Add(BasicType{.name = "Bool"}));
+    RequireTypeForExpr(expr_ref, ctx_.Add(BasicType{
+                                     .name = ctx_.AddIdent("Bool"),
+                                 }));
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const IntLitExpr& expr) {
@@ -184,7 +190,9 @@ class ExprTypeInferenceEngine {
         expr.op == BinaryOp::Gt || expr.op == BinaryOp::NotEq) {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr.lhs, expr.rhs);
-      RequireTypeForExpr(expr_ref, ctx_.Add(BasicType{.name = "Bool"}));
+      RequireTypeForExpr(expr_ref, ctx_.Add(BasicType{
+                                       .name = ctx_.AddIdent("Bool"),
+                                   }));
     } else {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr_ref, expr.rhs);
@@ -203,7 +211,7 @@ class ExprTypeInferenceEngine {
       } else {
         const auto& it_type = std::get<BasicType>(ctx_.DerefType(it->second));
         errors_.push_back(std::string("expected type ") +
-                          std::string(it_type.name));
+                          std::string(ctx_.DerefIdent(it_type.name)));
       }
     }
     expr_from_type_[expr_ref] = type_ref;

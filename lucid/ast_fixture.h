@@ -199,7 +199,7 @@ struct VarAssignStmtPattern {
 };
 
 struct BasicTypePattern {
-  std::string_view name;
+  StringIndex::Ref name;
 
   bool operator()(const BasicType& type) const { return name == type.name; }
 };

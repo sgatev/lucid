@@ -24,7 +24,7 @@ class ControlFlowGraphTest : public testing::Test, public AstFixture {
 TEST_F(ControlFlowGraphTest, FunctionName) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
   });
 
   EXPECT_EQ(graph.func_name, I("foo"));
@@ -33,7 +33,7 @@ TEST_F(ControlFlowGraphTest, FunctionName) {
 TEST_F(ControlFlowGraphTest, EmptyFunction) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
   });
 
   ASSERT_EQ(graph.blocks().Size(), 2);
@@ -61,7 +61,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
   auto do_stmt = S(DoStmt{.expr = func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
           do_stmt,
       }),
@@ -122,7 +122,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   auto do_stmt = S(DoStmt{.expr = bar_func_call_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
           do_stmt,
       }),
@@ -170,7 +170,7 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({return_stmt}),
   });
 
@@ -203,14 +203,14 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
       .args = EmptyList<Expr>(),
   });
   auto var_decl_stmt = S(VarDeclStmt{
-      .type_constraint = T(BasicType{.name = "Int32"}),
+      .type_constraint = T(BasicType{.name = I("Int32")}),
       .name = I("x"),
       .init = func_call_stmt_ref,
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .stmts = StmtListOf({var_decl_stmt}),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
   });
 
   ASSERT_EQ(graph.blocks().Size(), 2);
@@ -247,7 +247,7 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .stmts = StmtListOf({do_stmt}),
-      .result_type = T(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = I("Int32")}),
   });
 
   ASSERT_EQ(graph.blocks().Size(), 2);
@@ -301,7 +301,7 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
           }),
           do_mul_stmt,
       }),
-      .result_type = T(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = I("Int32")}),
   });
 
   ASSERT_EQ(graph.blocks().Size(), 4);
@@ -370,7 +370,7 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
               .else_stmts = StmtListOf({do_mul_stmt}),
           }),
       }),
-      .result_type = T(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = I("Int32")}),
   });
 
   ASSERT_EQ(graph.blocks().Size(), 5);
@@ -433,7 +433,7 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   });
   auto var_decl_stmt = S(VarDeclStmt{
       .name = I("x"),
-      .type_constraint = T(BasicType{.name = "Int32"}),
+      .type_constraint = T(BasicType{.name = I("Int32")}),
       .init = int_lit,
   });
   auto return_stmt = S(ReturnStmt{
@@ -441,7 +441,7 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   });
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({var_decl_stmt, return_stmt}),
   });
 
@@ -488,7 +488,7 @@ TEST_F(ControlFlowGraphTest, Loop) {
               .stmts = StmtListOf({do_add_stmt}),
           }),
       }),
-      .result_type = T(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = I("Int32")}),
   });
 
   ASSERT_EQ(graph.blocks().Size(), 4);
@@ -547,7 +547,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   auto break_stmt = S(BreakStmt{});
   auto return_value_ref = E(IdentExpr{.name = I("n")});
   auto var_decl_stmt = S(VarDeclStmt{
-      .type_constraint = T(BasicType{.name = "Int32"}),
+      .type_constraint = T(BasicType{.name = I("Int32")}),
       .name = I("n"),
       .init = n_var_init_ref,
   });
@@ -573,7 +573,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
           }),
           return_stmt,
       }),
-      .result_type = T(BasicType{.name = "Int32"}),
+      .result_type = T(BasicType{.name = I("Int32")}),
   });
 
   ASSERT_EQ(graph.blocks().Size(), 6);

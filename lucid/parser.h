@@ -637,14 +637,14 @@ class Parser {
 
       return ctx_.Add(ArrayType{
           .element_type_constraint = ctx_.Add(BasicType{
-              .name = std::get<std::string_view>(maybe_type),
+              .name = ctx_.AddIdent(std::get<std::string_view>(maybe_type)),
           }),
           .size = std::get<IntLitExpr>(maybe_size),
       });
     }
 
     return ctx_.Add(BasicType{
-        .name = std::get<std::string_view>(maybe_type),
+        .name = ctx_.AddIdent(std::get<std::string_view>(maybe_type)),
     });
   }
 

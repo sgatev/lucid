@@ -247,7 +247,7 @@ struct BreakStmt {};
 // Basic type in the Lucid language.
 struct BasicType {
   // Name of the basic type.
-  std::string_view name;
+  StringIndex::Ref name;
 
   bool operator==(const BasicType&) const = default;
 };

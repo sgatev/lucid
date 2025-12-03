@@ -19,7 +19,7 @@ TEST_F(InferStaticExprsTest, BoolLitExpr) {
 
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
           S(DoStmt{.expr = expr}),
       }),
@@ -34,7 +34,7 @@ TEST_F(InferStaticExprsTest, IntLitExpr) {
 
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
           S(DoStmt{.expr = expr}),
       }),
@@ -57,7 +57,7 @@ TEST_F(InferStaticExprsTest, StaticBinaryOpExpr) {
 
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
           S(DoStmt{.expr = expr}),
       }),
@@ -76,7 +76,7 @@ TEST_F(InferStaticExprsTest, BinaryOpExprNonStaticLhs) {
 
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
           S(DoStmt{.expr = expr}),
       }),
@@ -95,7 +95,7 @@ TEST_F(InferStaticExprsTest, BinaryOpExprNonStaticRhs) {
 
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = "Void"}),
+      .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
           S(DoStmt{.expr = expr}),
       }),
