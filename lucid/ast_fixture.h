@@ -113,7 +113,7 @@ struct IntLitExprPattern {
 };
 
 struct BoolLitExprPattern {
-  std::string_view value;
+  StringIndex::Ref value;
 
   bool operator()(const BoolLitExpr& expr) const { return value == expr.value; }
 };

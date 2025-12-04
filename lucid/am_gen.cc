@@ -250,7 +250,7 @@ class AbstractMachineFunctionGenerator {
   void ProcessExpr(ExprRef ref, const BoolLitExpr& expr) {
     RegId reg = next_reg_++;
     state_.func.instructions.push_back(SetReg32{
-        .src_val = expr.value == "true" ? "1" : "0",
+        .src_val = ctx_.DerefIdent(expr.value) == "true" ? "1" : "0",
         .dst_reg = reg,
     });
     state_.out_reg[ref.id()] = reg;

@@ -288,7 +288,7 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
       .lhs = mul_lhs_expr,
       .rhs = mul_rhs_expr,
   });
-  auto cond_expr = E(BoolLitExpr{.value = "true"});
+  auto cond_expr = E(BoolLitExpr{.value = I("true")});
   auto do_mul_stmt = S(DoStmt{.expr = mul_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
@@ -358,7 +358,7 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
       .lhs = mul_lhs_expr,
       .rhs = mul_rhs_expr,
   });
-  auto cond_expr = E(BoolLitExpr{.value = "true"});
+  auto cond_expr = E(BoolLitExpr{.value = I("true")});
   auto do_add_stmt = S(DoStmt{.expr = add_expr});
   auto do_mul_stmt = S(DoStmt{.expr = mul_expr});
   auto graph = BuildControlFlowGraph(FuncDefStmt{

@@ -863,7 +863,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(IfStmt{
-              .cond = E(BoolLitExpr{.value = "true"}),
+              .cond = E(BoolLitExpr{.value = I("true")}),
               .then_stmts = StmtListOf({
                   S(ReturnStmt{
                       .value = E(BinaryOpExpr{
@@ -955,7 +955,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(IfStmt{
-              .cond = E(BoolLitExpr{.value = "true"}),
+              .cond = E(BoolLitExpr{.value = I("true")}),
               .then_stmts = StmtListOf({
                   S(ReturnStmt{
                       .value = E(BinaryOpExpr{

@@ -581,7 +581,7 @@ class Parser {
 
     if (ident == "true" || ident == "false") {
       return BoolLitExpr{
-          .value = ident,
+          .value = ctx_.AddIdent(ident),
       };
     }
 

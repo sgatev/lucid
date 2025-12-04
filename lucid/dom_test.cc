@@ -43,7 +43,7 @@ TEST_F(ComputeImmediateDominatorsTest, Branching) {
               .init = E(IntLitExpr{.value = I("21")}),
           }),
           S(IfStmt{
-              .cond = E(BoolLitExpr{.value = "true"}),
+              .cond = E(BoolLitExpr{.value = I("true")}),
               .then_stmts = StmtListOf({
                   S(VarAssignStmt{.name = I("x"),
                                   .expr = E(BinaryOpExpr{
@@ -80,7 +80,7 @@ TEST_F(ComputeImmediateDominatorsTest, NestedBranching) {
           }),
           S(LoopStmt{
               .stmts = StmtListOf({S(IfStmt{
-                  .cond = E(BoolLitExpr{.value = "true"}),
+                  .cond = E(BoolLitExpr{.value = I("true")}),
                   .then_stmts = StmtListOf({
                       S(VarAssignStmt{.name = I("x"),
                                       .expr = E(BinaryOpExpr{
@@ -135,7 +135,7 @@ TEST_F(ComputeDominanceFrontiersTest, Branching) {
               .init = E(IntLitExpr{.value = I("21")}),
           }),
           S(IfStmt{
-              .cond = E(BoolLitExpr{.value = "true"}),
+              .cond = E(BoolLitExpr{.value = I("true")}),
               .then_stmts = StmtListOf({
                   S(VarAssignStmt{.name = I("x"),
                                   .expr = E(BinaryOpExpr{
@@ -174,7 +174,7 @@ TEST_F(ComputeDominanceFrontiersTest, NestedBranching) {
           }),
           S(LoopStmt{
               .stmts = StmtListOf({S(IfStmt{
-                  .cond = E(BoolLitExpr{.value = "true"}),
+                  .cond = E(BoolLitExpr{.value = I("true")}),
                   .then_stmts = StmtListOf({
                       S(VarAssignStmt{.name = I("x"),
                                       .expr = E(BinaryOpExpr{

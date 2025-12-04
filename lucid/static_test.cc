@@ -15,7 +15,9 @@ class InferStaticExprsTest : public testing::Test, public AstFixture {
 };
 
 TEST_F(InferStaticExprsTest, BoolLitExpr) {
-  auto expr = E(BoolLitExpr{});
+  auto expr = E(BoolLitExpr{
+      .value = I("true"),
+  });
 
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),

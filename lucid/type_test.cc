@@ -390,7 +390,7 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
               .init = E(BoolLitExpr{
-                  .value = "true",
+                  .value = I("true"),
               }),
           }),
       }),
