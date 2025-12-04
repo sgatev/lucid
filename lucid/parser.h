@@ -617,7 +617,7 @@ class Parser {
       return MakeError(ParserError::Kind::ExpectedString, token);
     }
     return StringLitExpr{
-        .value = TokenString(token),
+        .value = ctx_.AddIdent(TokenString(token)),
     };
   }
 

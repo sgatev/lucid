@@ -120,7 +120,7 @@ struct BoolLitExprPattern {
 
 struct StringLitExprPattern {
   TypeRefMatcher type;
-  std::string_view value;
+  StringIndex::Ref value;
 
   bool operator()(const StringLitExpr& expr) const {
     if (type != nullptr && !type(expr.type)) return false;

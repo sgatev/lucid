@@ -1,13 +1,13 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "lucid/am.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/string_index.h"
 
 namespace lucid {
 
@@ -22,7 +22,7 @@ struct AbstractMachineState {
   std::vector<RegId> out_reg;
 
   // Strings used in `func`.
-  std::unordered_map<std::uintptr_t, std::string> strings;
+  std::unordered_map<std::uintptr_t, StringIndex::Ref> strings;
 };
 
 // Generates abstract machine instructions for `graph`.

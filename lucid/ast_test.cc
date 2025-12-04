@@ -7,7 +7,7 @@ namespace {
 
 TEST(TypeTest, Size) { EXPECT_EQ(sizeof(Type), 24); }
 
-TEST(ExprTest, Size) { EXPECT_EQ(sizeof(Expr), 32); }
+TEST(ExprTest, Size) { EXPECT_EQ(sizeof(Expr), 28); }
 
 TEST(StmtTest, Size) { EXPECT_EQ(sizeof(Stmt), 32); }
 

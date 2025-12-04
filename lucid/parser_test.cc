@@ -354,7 +354,7 @@ TEST_F(ParserTest, FuncCallExprStringLitArg) {
                       .func_name = I("bar"),
                       .args =
                           {
-                              MatchesStringLitExpr({.value = R"("foo")"}),
+                              MatchesStringLitExpr({.value = I(R"("foo")")}),
                           },
                   }),
               }),

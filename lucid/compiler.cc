@@ -84,7 +84,7 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     OptimizeAbstractMachineInstructions(state->func.instructions);
     GenerateArmAssemblyBinary(ctx, state->func, assembler);
   }
-  GenerateArmEndBinary(state->strings, assembler);
+  GenerateArmEndBinary(ctx, state->strings, assembler);
   WriteCompiledMachObject(assembler, out);
   return {};
 }

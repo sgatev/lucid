@@ -257,8 +257,8 @@ class AbstractMachineFunctionGenerator {
   }
 
   void ProcessExpr(ExprRef ref, const StringLitExpr& expr) {
-    auto string_id = reinterpret_cast<std::uintptr_t>(expr.value.data());
-    state_.strings[string_id] = expr.value;
+    auto string_id = reinterpret_cast<std::uintptr_t>(ctx_.DerefIdent(expr.value).data());
+    state_.strings.insert({string_id, expr.value});
 
     RegId reg = next_reg_++;
     state_.func.instructions.push_back(SetStr{

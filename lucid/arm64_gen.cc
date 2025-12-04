@@ -8,6 +8,7 @@
 
 #include "lucid/am.h"
 #include "lucid/arm64.h"
+#include "lucid/string_index.h"
 
 namespace lucid {
 namespace {
@@ -278,11 +279,12 @@ void GenerateArmStartBinary(Assembler& assembler) {
 }
 
 void GenerateArmEndBinary(
-    const std::unordered_map<std::uintptr_t, std::string>& strings,
+    const SyntaxContext& ctx,
+    const std::unordered_map<std::uintptr_t, StringIndex::Ref>& strings,
     Assembler& assmebler) {
   for (const auto& [k, v] : strings) {
     assmebler.Label("str" + std::to_string(k));
-    assmebler.Asciz(v);
+    assmebler.Asciz(ctx.DerefIdent(v));
   }
 }
 

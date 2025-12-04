@@ -216,7 +216,8 @@ class AstPrinter {
   void Print(const StringLitExpr& expr) {
     Out() << "StringLitExpr {" << std::endl;
     Nested([&] {
-      Out() << Indent() << ".value = \"" << expr.value << "\"" << std::endl;
+      Out() << Indent() << ".value = \"" << ctx_.DerefIdent(expr.value) << "\""
+            << std::endl;
     });
     Out() << Indent() << "}" << std::endl;
   }

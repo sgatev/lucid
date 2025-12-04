@@ -1,12 +1,12 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
 #include <unordered_map>
 
 #include "lucid/am.h"
 #include "lucid/arm64.h"
 #include "lucid/ast.h"
+#include "lucid/string_index.h"
 
 namespace lucid {
 
@@ -15,7 +15,8 @@ void GenerateArmStartBinary(arm64::Assembler& Assembler);
 
 // Generates the end sequence for 64-bit ARM machine code.
 void GenerateArmEndBinary(
-    const std::unordered_map<std::uintptr_t, std::string>& strings,
+    const SyntaxContext& ctx,
+    const std::unordered_map<std::uintptr_t, StringIndex::Ref>& strings,
     arm64::Assembler& Assembler);
 
 // Generates 64-bit ARM machine code for `func`.

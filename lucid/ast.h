@@ -120,7 +120,7 @@ struct BoolLitExpr : public ExprBase {
 // An expression that represents a string literal.
 struct StringLitExpr : public ExprBase {
   // Value of the string.
-  std::string_view value;
+  StringIndex::Ref value;
 };
 
 // An expression that represents a function call.
