@@ -30,7 +30,9 @@ TEST_F(InferStaticExprsTest, BoolLitExpr) {
 }
 
 TEST_F(InferStaticExprsTest, IntLitExpr) {
-  auto expr = E(IntLitExpr{});
+  auto expr = E(IntLitExpr{
+      .value = I("21"),
+  });
 
   auto graph = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
@@ -47,11 +49,17 @@ TEST_F(InferStaticExprsTest, IntLitExpr) {
 TEST_F(InferStaticExprsTest, StaticBinaryOpExpr) {
   auto expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
-      .lhs = E(IntLitExpr{}),
+      .lhs = E(IntLitExpr{
+          .value = I("21"),
+      }),
       .rhs = E(BinaryOpExpr{
           .op = BinaryOp::Mul,
-          .lhs = E(IntLitExpr{}),
-          .rhs = E(IntLitExpr{}),
+          .lhs = E(IntLitExpr{
+              .value = I("2"),
+          }),
+          .rhs = E(IntLitExpr{
+              .value = I("3"),
+          }),
       }),
   });
 
@@ -71,7 +79,9 @@ TEST_F(InferStaticExprsTest, BinaryOpExprNonStaticLhs) {
   auto expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = E(IdentExpr{.name = I("x")}),
-      .rhs = E(IntLitExpr{}),
+      .rhs = E(IntLitExpr{
+          .value = I("21"),
+      }),
   });
 
   auto graph = BuildControlFlowGraph(FuncDefStmt{
@@ -89,7 +99,9 @@ TEST_F(InferStaticExprsTest, BinaryOpExprNonStaticLhs) {
 TEST_F(InferStaticExprsTest, BinaryOpExprNonStaticRhs) {
   auto expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
-      .lhs = E(IntLitExpr{}),
+      .lhs = E(IntLitExpr{
+          .value = I("21"),
+      }),
       .rhs = E(IdentExpr{.name = I("x")}),
   });
 

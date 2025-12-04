@@ -186,7 +186,7 @@ void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
     auto& dom = cfg.get(idoms[block.ref.id()]);
     for (const auto& phi : block.phis) {
       auto& seq = dom.sequences.emplace_back();
-      auto init_expr = IntLitExpr{.value = "0"};
+      auto init_expr = IntLitExpr{.value = ctx.AddIdent("0")};
       init_expr.type = phi.type_constraint;
       auto init_expr_ref = ctx.Add(init_expr);
       seq.expressions.push_back(init_expr_ref);

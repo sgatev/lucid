@@ -40,7 +40,7 @@ TEST_F(ComputeImmediateDominatorsTest, Branching) {
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
-              .init = E(IntLitExpr{.value = "21"}),
+              .init = E(IntLitExpr{.value = I("21")}),
           }),
           S(IfStmt{
               .cond = E(BoolLitExpr{.value = "true"}),
@@ -49,7 +49,7 @@ TEST_F(ComputeImmediateDominatorsTest, Branching) {
                                   .expr = E(BinaryOpExpr{
                                       .op = BinaryOp::Mul,
                                       .lhs = E(IdentExpr{.name = I("x")}),
-                                      .rhs = E(IntLitExpr{.value = "2"}),
+                                      .rhs = E(IntLitExpr{.value = I("2")}),
                                   })}),
               }),
               .else_stmts = StmtListOf({
@@ -57,7 +57,7 @@ TEST_F(ComputeImmediateDominatorsTest, Branching) {
                                   .expr = E(BinaryOpExpr{
                                       .op = BinaryOp::Add,
                                       .lhs = E(IdentExpr{.name = I("x")}),
-                                      .rhs = E(IntLitExpr{.value = "1"}),
+                                      .rhs = E(IntLitExpr{.value = I("1")}),
                                   })}),
               }),
           }),
@@ -76,7 +76,7 @@ TEST_F(ComputeImmediateDominatorsTest, NestedBranching) {
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
-              .init = E(IntLitExpr{.value = "21"}),
+              .init = E(IntLitExpr{.value = I("21")}),
           }),
           S(LoopStmt{
               .stmts = StmtListOf({S(IfStmt{
@@ -86,7 +86,7 @@ TEST_F(ComputeImmediateDominatorsTest, NestedBranching) {
                                       .expr = E(BinaryOpExpr{
                                           .op = BinaryOp::Mul,
                                           .lhs = E(IdentExpr{.name = I("x")}),
-                                          .rhs = E(IntLitExpr{.value = "2"}),
+                                          .rhs = E(IntLitExpr{.value = I("2")}),
                                       })}),
                   }),
                   .else_stmts = StmtListOf({
@@ -132,7 +132,7 @@ TEST_F(ComputeDominanceFrontiersTest, Branching) {
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
-              .init = E(IntLitExpr{.value = "21"}),
+              .init = E(IntLitExpr{.value = I("21")}),
           }),
           S(IfStmt{
               .cond = E(BoolLitExpr{.value = "true"}),
@@ -141,7 +141,7 @@ TEST_F(ComputeDominanceFrontiersTest, Branching) {
                                   .expr = E(BinaryOpExpr{
                                       .op = BinaryOp::Mul,
                                       .lhs = E(IdentExpr{.name = I("x")}),
-                                      .rhs = E(IntLitExpr{.value = "2"}),
+                                      .rhs = E(IntLitExpr{.value = I("2")}),
                                   })}),
               }),
               .else_stmts = StmtListOf({
@@ -149,7 +149,7 @@ TEST_F(ComputeDominanceFrontiersTest, Branching) {
                                   .expr = E(BinaryOpExpr{
                                       .op = BinaryOp::Add,
                                       .lhs = E(IdentExpr{.name = I("x")}),
-                                      .rhs = E(IntLitExpr{.value = "1"}),
+                                      .rhs = E(IntLitExpr{.value = I("1")}),
                                   })}),
               }),
           }),
@@ -170,7 +170,7 @@ TEST_F(ComputeDominanceFrontiersTest, NestedBranching) {
           S(VarDeclStmt{
               .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
-              .init = E(IntLitExpr{.value = "21"}),
+              .init = E(IntLitExpr{.value = I("21")}),
           }),
           S(LoopStmt{
               .stmts = StmtListOf({S(IfStmt{
@@ -180,7 +180,7 @@ TEST_F(ComputeDominanceFrontiersTest, NestedBranching) {
                                       .expr = E(BinaryOpExpr{
                                           .op = BinaryOp::Mul,
                                           .lhs = E(IdentExpr{.name = I("x")}),
-                                          .rhs = E(IntLitExpr{.value = "2"}),
+                                          .rhs = E(IntLitExpr{.value = I("2")}),
                                       })}),
                   }),
                   .else_stmts = StmtListOf({

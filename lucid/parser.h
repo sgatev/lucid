@@ -596,7 +596,7 @@ class Parser {
       return MakeError(ParserError::Kind::ExpectedNumber, token);
     }
     return IntLitExpr{
-        .value = TokenString(token),
+        .value = ctx_.AddIdent(TokenString(token)),
     };
   }
 

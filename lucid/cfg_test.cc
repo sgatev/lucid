@@ -90,10 +90,10 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
 
 TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   auto baz_arg1_expr = IntLitExpr{
-      .value = "3",
+      .value = I("3"),
   };
   auto baz_arg2_expr = IntLitExpr{
-      .value = "7",
+      .value = I("7"),
   };
   auto baz_func_call_args = ExprListOf({E(baz_arg1_expr), E(baz_arg2_expr)});
   auto baz_func_call_expr = FuncCallExpr({
@@ -102,10 +102,10 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
   });
 
   auto qux_arg1_expr = IntLitExpr{
-      .value = "9",
+      .value = I("9"),
   };
   auto qux_arg2_expr = IntLitExpr{
-      .value = "21",
+      .value = I("21"),
   };
   auto qux_func_call_args = ExprListOf({E(qux_arg1_expr), E(qux_arg2_expr)});
   auto qux_func_call_expr = FuncCallExpr({
@@ -158,7 +158,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
 TEST_F(ControlFlowGraphTest, ReturnStmt) {
   auto func_call_args = ExprListOf({
       E(IntLitExpr{
-          .value = "3",
+          .value = I("3"),
       }),
   });
   auto func_call_expr = E(FuncCallExpr({
@@ -236,8 +236,8 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
 }
 
 TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
-  auto lhs_expr = E(IntLitExpr{.value = "2"});
-  auto rhs_expr = E(IntLitExpr{.value = "3"});
+  auto lhs_expr = E(IntLitExpr{.value = I("2")});
+  auto rhs_expr = E(IntLitExpr{.value = I("3")});
   auto add_expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = lhs_expr,
@@ -274,15 +274,15 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
 }
 
 TEST_F(ControlFlowGraphTest, IfStmt) {
-  auto add_lhs_expr = E(IntLitExpr{.value = "2"});
-  auto add_rhs_expr = E(IntLitExpr{.value = "3"});
+  auto add_lhs_expr = E(IntLitExpr{.value = I("2")});
+  auto add_rhs_expr = E(IntLitExpr{.value = I("3")});
   auto add_expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = add_lhs_expr,
       .rhs = add_rhs_expr,
   });
-  auto mul_lhs_expr = E(IntLitExpr{.value = "4"});
-  auto mul_rhs_expr = E(IntLitExpr{.value = "5"});
+  auto mul_lhs_expr = E(IntLitExpr{.value = I("4")});
+  auto mul_rhs_expr = E(IntLitExpr{.value = I("5")});
   auto mul_expr = E(BinaryOpExpr{
       .op = BinaryOp::Mul,
       .lhs = mul_lhs_expr,
@@ -344,15 +344,15 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
 }
 
 TEST_F(ControlFlowGraphTest, IfElseStmt) {
-  auto add_lhs_expr = E(IntLitExpr{.value = "2"});
-  auto add_rhs_expr = E(IntLitExpr{.value = "3"});
+  auto add_lhs_expr = E(IntLitExpr{.value = I("2")});
+  auto add_rhs_expr = E(IntLitExpr{.value = I("3")});
   auto add_expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = add_lhs_expr,
       .rhs = add_rhs_expr,
   });
-  auto mul_lhs_expr = E(IntLitExpr{.value = "4"});
-  auto mul_rhs_expr = E(IntLitExpr{.value = "5"});
+  auto mul_lhs_expr = E(IntLitExpr{.value = I("4")});
+  auto mul_rhs_expr = E(IntLitExpr{.value = I("5")});
   auto mul_expr = E(BinaryOpExpr{
       .op = BinaryOp::Mul,
       .lhs = mul_lhs_expr,
@@ -426,7 +426,7 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
 
 TEST_F(ControlFlowGraphTest, VarDecl) {
   auto int_lit = E(IntLitExpr{
-      .value = "3",
+      .value = I("3"),
   });
   auto ident_expr = E(IdentExpr{
       .name = I("x"),
@@ -473,8 +473,8 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
 }
 
 TEST_F(ControlFlowGraphTest, Loop) {
-  auto add_lhs_expr = E(IntLitExpr{.value = "2"});
-  auto add_rhs_expr = E(IntLitExpr{.value = "3"});
+  auto add_lhs_expr = E(IntLitExpr{.value = I("2")});
+  auto add_rhs_expr = E(IntLitExpr{.value = I("3")});
   auto add_expr = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = add_lhs_expr,
@@ -528,17 +528,17 @@ TEST_F(ControlFlowGraphTest, Loop) {
 
 TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   auto n_var_init_ref = E(IntLitExpr{
-      .value = "0",
+      .value = I("0"),
   });
   auto if_cond_lhs_ref = E(IdentExpr{.name = I("n")});
-  auto if_cond_rhs_ref = E(IntLitExpr{.value = "3"});
+  auto if_cond_rhs_ref = E(IntLitExpr{.value = I("3")});
   auto if_cond_ref = E(BinaryOpExpr{
       .op = BinaryOp::Gt,
       .lhs = if_cond_lhs_ref,
       .rhs = if_cond_rhs_ref,
   });
   auto var_assign_lhs_ref = E(IdentExpr{.name = I("n")});
-  auto var_assign_rhs_ref = E(IntLitExpr{.value = "1"});
+  auto var_assign_rhs_ref = E(IntLitExpr{.value = I("1")});
   auto binary_op_expr_ref = E(BinaryOpExpr{
       .op = BinaryOp::Add,
       .lhs = var_assign_lhs_ref,

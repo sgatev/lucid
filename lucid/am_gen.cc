@@ -46,7 +46,7 @@ class AbstractMachineFunctionGenerator {
                   ctx_.DerefType(array_type->element_type_constraint));
               std::string_view var_decl_type_name =
                   ctx.DerefIdent(var_decl_type.name);
-              auto size = std::atoi(array_type->size.value.data());
+              auto size = std::atoi(ctx_.DerefIdent(array_type->size.value).data());
               for (int i = 0; i < size; ++i) {
                 if (var_decl_type_name == "Int32" ||
                     var_decl_type_name == "Bool") {
@@ -235,12 +235,12 @@ class AbstractMachineFunctionGenerator {
     RegId reg = next_reg_++;
     if (expr_type_name == "Int64") {
       state_.func.instructions.push_back(SetReg64{
-          .src_val = expr.value,
+          .src_val = ctx_.DerefIdent(expr.value),
           .dst_reg = reg,
       });
     } else if (expr_type_name == "Int32") {
       state_.func.instructions.push_back(SetReg32{
-          .src_val = expr.value,
+          .src_val = ctx_.DerefIdent(expr.value),
           .dst_reg = reg,
       });
     }
@@ -311,7 +311,7 @@ class AbstractMachineFunctionGenerator {
             ctx_.DerefType(stmt.type_constraint))) {
       auto array_type =
           std::get<ArrayType>(ctx_.DerefType(stmt.type_constraint));
-      auto size = std::atoi(array_type.size.value.data());
+      auto size = std::atoi(ctx_.DerefIdent(array_type.size.value).data());
       var_stack_[stmt.name] = stack_offset_;
       for (int i = 0; i < size; ++i) {
         ++stack_offset_;

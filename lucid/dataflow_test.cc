@@ -53,7 +53,7 @@ class TestResultUnionAnalysis {
         std::get_if<IntLitExpr>(&ctx_.DerefExpr(return_stmt->value));
     if (return_val_expr == nullptr) return state;
 
-    state.results.insert(return_val_expr->value);
+    state.results.insert(ctx_.DerefIdent(return_val_expr->value));
 
     return state;
   }
