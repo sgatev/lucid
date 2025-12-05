@@ -13,6 +13,7 @@
 #include "lucid/arena.h"
 #include "lucid/ast.h"
 #include "lucid/fixed_map.h"
+#include "lucid/string_index.h"
 #include "lucid/successive_list.h"
 #include "lucid/token.h"
 
@@ -95,7 +96,7 @@ class Parser {
     if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
 
     FuncDefStmt stmt = {
-        .name = ctx_.AddIdent(std::get<std::string_view>(maybe_name)),
+        .name = std::get<StringIndex::Ref>(maybe_name),
     };
 
     SkipSpace();
@@ -162,15 +163,15 @@ class Parser {
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
 
     return ctx_.Add(FuncParam{
-        .name = ctx_.AddIdent(std::get<std::string_view>(maybe_name)),
+        .name = std::get<StringIndex::Ref>(maybe_name),
         .type_constraint = std::get<TypeRef>(maybe_type),
     });
   }
 
-  std::variant<std::string_view, ParserError> ParseIdent() {
+  std::variant<StringIndex::Ref, ParserError> ParseIdent() {
     Token token = Read();
     if (token.kind == Token::Kind::Ident) [[likely]] {
-      return TokenString(token);
+      return ctx_.AddIdent(TokenString(token));
     }
     return MakeError(ParserError::Kind::ExpectedIdent, token);
   }
@@ -325,7 +326,7 @@ class Parser {
 
     return VarDeclStmt{
         .type_constraint = std::get<TypeRef>(maybe_type),
-        .name = ctx_.AddIdent(std::get<std::string_view>(maybe_name)),
+        .name = std::get<StringIndex::Ref>(maybe_name),
         .init = ctx_.Add(std::get<Expr>(init)),
     };
   }
@@ -337,7 +338,7 @@ class Parser {
   }
 
   std::variant<Stmt, ParserError> ParseAssignStmt() {
-    auto ident = std::get<std::string_view>(ParseIdent());
+    auto ident = std::get<StringIndex::Ref>(ParseIdent());
 
     if (Peek().kind == Token::Kind::OpenBracket) {
       Read();
@@ -360,7 +361,7 @@ class Parser {
         if (IsError(expr)) return std::get<ParserError>(expr);
 
         return ArrayAssignStmt{
-            .name = ctx_.AddIdent(ident),
+            .name = ident,
             .index = ctx_.Add(std::get<Expr>(maybe_size)),
             .expr = ctx_.Add(std::get<Expr>(expr)),
         };
@@ -380,7 +381,7 @@ class Parser {
       if (IsError(expr)) return std::get<ParserError>(expr);
 
       return VarAssignStmt{
-          .name = ctx_.AddIdent(ident),
+          .name = ident,
           .expr = ctx_.Add(std::get<Expr>(expr)),
       };
     }
@@ -456,7 +457,7 @@ class Parser {
   std::variant<Expr, ParserError> ParseExprInternal() {
     auto maybe_expr = [&]() -> std::variant<Expr, ParserError> {
       if (Peek().kind == Token::Kind::Ident) {
-        auto ident = std::get<std::string_view>(ParseIdent());
+        auto ident = std::get<StringIndex::Ref>(ParseIdent());
         return ParseExprStartingWithIdent(ident);
       } else if (Peek().kind == Token::Kind::Number) {
         return ParseNumber();
@@ -547,7 +548,7 @@ class Parser {
   }
 
   std::variant<Expr, ParserError> ParseExprStartingWithIdent(
-      std::string_view ident) {
+      StringIndex::Ref ident) {
     if (Peek().kind == Token::Kind::OpenParen) {
       Read();
 
@@ -574,19 +575,19 @@ class Parser {
       }
 
       return FuncCallExpr{
-          .func_name = ctx_.AddIdent(ident),
+          .func_name = ident,
           .args = SuccessiveList<ExprRef>(args_size, args_first),
       };
     }
 
-    if (ident == "true" || ident == "false") {
+    if (ident == ctx_.AddIdent("true") || ident == ctx_.AddIdent("false")) {
       return BoolLitExpr{
-          .value = ctx_.AddIdent(ident),
+          .value = ident,
       };
     }
 
     return IdentExpr{
-        .name = ctx_.AddIdent(ident),
+        .name = ident,
     };
   }
 
@@ -637,14 +638,14 @@ class Parser {
 
       return ctx_.Add(ArrayType{
           .element_type_constraint = ctx_.Add(BasicType{
-              .name = ctx_.AddIdent(std::get<std::string_view>(maybe_type)),
+              .name = std::get<StringIndex::Ref>(maybe_type),
           }),
           .size = std::get<IntLitExpr>(maybe_size),
       });
     }
 
     return ctx_.Add(BasicType{
-        .name = ctx_.AddIdent(std::get<std::string_view>(maybe_type)),
+        .name = std::get<StringIndex::Ref>(maybe_type),
     });
   }
 

@@ -482,6 +482,7 @@ cc_library(
         ":fixed_map",
         ":lexer",
         ":successive_list",
+        ":string_index",
         ":token",
     ],
 )
