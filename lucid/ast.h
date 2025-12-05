@@ -73,8 +73,6 @@ struct FuncParam {
 
   // Type of the parameter.
   TypeRef type_constraint;
-
-  bool operator==(const FuncParam&) const = default;
 };
 
 // A statement that represents a function definition.
