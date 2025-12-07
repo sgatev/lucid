@@ -28,7 +28,7 @@ class Lexer {
     const char sym = buffer_[pos_];
     const std::uint8_t sym_class = kClassMap[sym];
     const std::uint32_t start_pos = pos_++;
-    if (sym_class > 4) [[unlikely]] {
+    if (sym_class > 4) {
       // Ident, number, or whitespace.
       while (kClassMap[buffer_[pos_]] % sym_class < 2) ++pos_;
     } else if (sym == '"') {
