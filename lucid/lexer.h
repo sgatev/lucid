@@ -28,9 +28,9 @@ class Lexer {
     const char sym = buffer_[pos_];
     const std::uint8_t sym_class = kClassMap[sym];
     const std::uint32_t start_pos = pos_++;
-    if (sym_class > 4) {
+    if (sym_class < kOtherClass) {
       // Ident, number, or whitespace.
-      while (kClassMap[buffer_[pos_]] % sym_class < 2) ++pos_;
+      while ((sym_class | kClassMap[buffer_[pos_]]) == sym_class) ++pos_;
     } else if (sym == '"') {
       // String.
       while (pos_ != size_ && buffer_[pos_] != '"') ++pos_;
@@ -44,19 +44,12 @@ class Lexer {
   }
 
  private:
-  static constexpr std::array<std::uint8_t, 256> kClassMap = []() consteval {
-    // The class values have the following properties:
-    // - kAlphaClass mod kAlphaClass = 0
-    // - kNumClass mod kAlphaClass = 1
-    // - kNumClass mod kNumClass = 0
-    // - kSpaceClass mod kSpaceClass = 0
-    // - X mod Y > 1 for every other pair of classes where Y > 4
-    constexpr std::uint8_t kNumClass = 255;
-    constexpr std::uint8_t kAlphaClass = 254;
-    constexpr std::uint8_t kSpaceClass = 252;
-    constexpr std::uint8_t kStringCommentClass = 4;
-    constexpr std::uint8_t kOtherClass = 3;
+  static constexpr std::uint8_t kNumClass = 0b1;
+  static constexpr std::uint8_t kAlphaClass = 0b11;
+  static constexpr std::uint8_t kSpaceClass = 0b100;
+  static constexpr std::uint8_t kOtherClass = 0b1000;
 
+  static constexpr std::array<std::uint8_t, 256> kClassMap = []() consteval {
     std::array<std::uint8_t, 256> map;
     map.fill(kOtherClass);
     map['_'] = kAlphaClass;
@@ -66,8 +59,6 @@ class Lexer {
     map[' '] = kSpaceClass;
     map['\n'] = kSpaceClass;
     map['\t'] = kSpaceClass;
-    map['"'] = kStringCommentClass;
-    map['#'] = kStringCommentClass;
     return map;
   }();
 

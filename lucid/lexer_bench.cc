@@ -12,11 +12,7 @@ using namespace std::string_literals;
 std::size_t CountTokens(std::string_view code) {
   std::size_t count = 0;
   lucid::Lexer lexer(code);
-  while (true) {
-    const lucid::Token token = lexer.next();
-    if (token.kind == lucid::Token::Kind::End) break;
-    ++count;
-  }
+  while (lexer.next().kind != lucid::Token::Kind::End) ++count;
   return count;
 }
 
