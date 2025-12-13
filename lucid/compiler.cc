@@ -35,7 +35,7 @@ namespace {
 Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
     std::string_view src, SyntaxContext& ctx) {
   std::vector<FuncDefStmt> func_defs;
-  BufferedLexer<Lexer, 1000> lexer(Lexer{src});
+  BufferedLexer<Lexer> lexer(Lexer{src});
   Parser parser(ctx, src, lexer);
   while (true) {
     auto maybe_func_def = parser.ParseFuncDef();

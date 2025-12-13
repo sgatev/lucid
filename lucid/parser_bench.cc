@@ -8,25 +8,27 @@
 #include "lucid/lexer.h"
 #include "lucid/parser.h"
 
+using namespace std::string_literals;
+
 void Benchmark(benchmark::State &state, std::string_view snippet) {
+  static constexpr int kSnippetRepetitions = 10000;
   std::string code;
-  code.reserve(snippet.size() * 1000);
-  for (int i = 0; i < 1000; i++) code.append(snippet);
+  code.reserve(snippet.size() * kSnippetRepetitions + 1);
+  for (int i = 0; i < kSnippetRepetitions; ++i) code.append(snippet);
+  code.append("\0"s);
+
+  lucid::SyntaxContext ctx;
+  lucid::BufferedLexer<lucid::Lexer> lexer(lucid::Lexer{code});
 
   for (auto _ : state) {
-    state.PauseTiming();
-    {
-      lucid::SyntaxContext ctx;
-      lucid::BufferedLexer<lucid::Lexer, 1000> lexer(lucid::Lexer{code});
-      lucid::Parser parser(ctx, code, lexer);
+    lexer.Reset();
 
-      state.ResumeTiming();
-      std::size_t cnt = 0;
-      for (int i = 0; i < 1000; ++i) cnt += parser.ParseFuncDef().index();
-      benchmark::DoNotOptimize(cnt);
-      state.PauseTiming();
+    lucid::Parser parser(ctx, code, lexer);
+    std::size_t count = 0;
+    for (int i = 0; i < kSnippetRepetitions; ++i) {
+      count += parser.ParseFuncDef().index();
     }
-    state.ResumeTiming();
+    benchmark::DoNotOptimize(count);
   }
   state.SetBytesProcessed(std::int64_t(state.iterations()) *
                           std::int64_t(code.size()));

@@ -16,21 +16,17 @@ std::size_t CountTokens(std::string_view code) {
   return count;
 }
 
-void Benchmark(benchmark::State &state, std::string_view code) {
-  static constexpr int kCodeRepetitions = 10000;
-  std::string repeated_code_with_null;
-  repeated_code_with_null.reserve(code.size() * kCodeRepetitions + 1);
-  for (int i = 0; i < kCodeRepetitions; ++i) {
-    repeated_code_with_null.append(code);
-  }
-  repeated_code_with_null.append("\0"s);
+void Benchmark(benchmark::State &state, std::string_view snippet) {
+  static constexpr int kSnippetRepetitions = 10000;
+  std::string code;
+  code.reserve(snippet.size() * kSnippetRepetitions + 1);
+  for (int i = 0; i < kSnippetRepetitions; ++i) code.append(snippet);
+  code.append("\0"s);
 
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(CountTokens(repeated_code_with_null));
-  }
+  for (auto _ : state) benchmark::DoNotOptimize(CountTokens(code));
 
   state.SetBytesProcessed(std::int64_t(state.iterations()) *
-                          std::int64_t(repeated_code_with_null.size()));
+                          std::int64_t(code.size()));
 }
 
 static void BM_Function(benchmark::State &state) {
