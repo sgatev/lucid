@@ -378,6 +378,20 @@ cc_test(
 )
 
 cc_library(
+    name = "hash_map",
+    hdrs = ["hash_map.h"],
+)
+
+cc_test(
+    name = "hash_map_test",
+    srcs = ["hash_map_test.cc"],
+    deps = [
+        ":hash_map",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "lexer",
     hdrs = ["lexer.h"],
     deps = [
@@ -481,8 +495,8 @@ cc_library(
         ":ast",
         ":fixed_map",
         ":lexer",
-        ":successive_list",
         ":string_index",
+        ":successive_list",
         ":token",
     ],
 )
