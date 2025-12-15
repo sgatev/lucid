@@ -391,6 +391,15 @@ cc_test(
     ],
 )
 
+cc_binary(
+    name = "hash_map_bench",
+    srcs = ["hash_map_bench.cc"],
+    deps = [
+        ":hash_map",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
 cc_library(
     name = "lexer",
     hdrs = ["lexer.h"],
