@@ -12,10 +12,15 @@ namespace lucid {
 
 // Returns a hash of the given argument.
 template <typename T>
-std::size_t Hash(const T&);
+std::size_t Hash(T);
 
 template <>
-std::size_t Hash<int>(const int& i) {
+std::size_t Hash<int>(int i) {
+  i = (i ^ 61) ^ (i >> 16);
+  i = i + (i << 3);
+  i = i ^ (i >> 4);
+  i = i * 0x27d4eb2d;
+  i = i ^ (i >> 15);
   return i;
 }
 
