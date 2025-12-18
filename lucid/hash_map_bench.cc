@@ -8,34 +8,31 @@ static void BM_InsertUnique(benchmark::State& state) {
 BENCHMARK(BM_InsertUnique);
 
 static void BM_InsertDuplicate(benchmark::State& state) {
+  static constexpr int kItemsCount = 100'000;
   lucid::HashMap<int, int> map;
-  map.Insert(0, 0);
-  for (auto _ : state) map.Insert(0, 0);
+  for (int i = 0; i < kItemsCount; ++i) map.Insert(i, 0);
+  int i = 0;
+  for (auto _ : state) map.Insert(i++ % kItemsCount, 0);
 }
 BENCHMARK(BM_InsertDuplicate);
 
 static void BM_FindPresent(benchmark::State& state) {
+  static constexpr int kItemsCount = 100'000;
   lucid::HashMap<int, int> map;
-  map.Insert(0, 0);
-  for (auto _ : state) benchmark::DoNotOptimize(map.Find(0));
+  for (int i = 0; i < kItemsCount; ++i) map.Insert(i, 0);
+  for (int i = 0; auto _ : state) {
+    benchmark::DoNotOptimize(map.Find(i++ % kItemsCount));
+  }
 }
 BENCHMARK(BM_FindPresent);
 
 static void BM_FindMissing(benchmark::State& state) {
-  lucid::HashMap<int, int> map;
-  for (auto _ : state) benchmark::DoNotOptimize(map.Find(0));
-}
-BENCHMARK(BM_FindMissing);
-
-static void BM_FindMany(benchmark::State& state) {
   static constexpr int kItemsCount = 100'000;
   lucid::HashMap<int, int> map;
   for (int i = 0; i < kItemsCount; ++i) map.Insert(i, 0);
-  for (auto _ : state) {
-    for (int i = 0; i < kItemsCount; ++i) benchmark::DoNotOptimize(map.Find(i));
-  }
-  state.SetItemsProcessed(kItemsCount);
+  int i = kItemsCount;
+  for (auto _ : state) benchmark::DoNotOptimize(map.Find(i++));
 }
-BENCHMARK(BM_FindMany);
+BENCHMARK(BM_FindMissing);
 
 BENCHMARK_MAIN();
