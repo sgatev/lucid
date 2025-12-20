@@ -28,72 +28,72 @@ std::size_t Hash<int>(int i) {
 template <typename K, typename V>
 class HashMap {
  public:
-  HashMap() : capacity_(16), size_(0) {
-    storage_ = static_cast<std::uint8_t*>(
-        std::malloc(capacity_ + capacity_ * sizeof(std::pair<K, V>)));
-    std::fill(Metadata(), Metadata() + capacity_, 0);
+  HashMap() : capacity_sub_one_(63), size_(0) {
+    storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
+        64, Capacity() + Capacity() * sizeof(std::pair<K, V>)));
+    std::fill(meta(), meta() + Capacity(), 0);
   }
 
   ~HashMap() { std::free(storage_); }
 
   // Returns the value that corresponds to the given `key` or nullopt.
   inline std::optional<V> Find(K key) const {
-    std::size_t key_hash = Hash(key);
-    std::uint8_t key_meta = 0b10000000 | (key_hash & 0b01111111);
-
-    std::size_t pos = key_hash % capacity_;
-    while (true) {
-      std::uint8_t pos_meta = *(Metadata() + pos);
-      if (pos_meta == 0) break;
+    const std::size_t key_hash = Hash(key);
+    const std::uint8_t key_meta = key_hash | 0b10000000;
+    for (std::size_t pos = key_hash;; ++pos) {
+      const std::uint8_t pos_meta = *(meta() + (pos & capacity_sub_one_));
+      if (pos_meta == 0) return std::nullopt;
 
       if (pos_meta == key_meta) {
-        const std::pair<K, V>* entry = Slots() + pos;
-        if (entry->first == key) return entry->second;
+        const std::pair<K, V>* entry = slots() + (pos & capacity_sub_one_);
+        if (entry->first == key) [[likely]] {
+          return entry->second;
+        }
       }
-
-      pos = (pos + 1) % capacity_;
     }
-
-    return std::nullopt;
   }
 
   // Inserts the given `key` and `value` pair and returns true if `key` is not
   // already inserted. Otherwise returns false.
   inline bool Insert(K key, V value) {
-    if ((size_ << 1) > capacity_) Resize();
-
-    std::size_t key_hash = Hash(key);
-    std::uint8_t key_meta = 0b10000000 | (key_hash & 0b01111111);
-
-    std::size_t pos = key_hash % capacity_;
-    while (true) {
-      std::uint8_t pos_meta = *(Metadata() + pos);
-      if (pos_meta == 0) break;
-      if (pos_meta == key_meta && (Slots() + pos)->first == key) return false;
-      pos = (pos + 1) % capacity_;
+    if (size_ > (capacity_sub_one_ / 4 * 3)) [[unlikely]] {
+      Resize();
     }
 
-    *(Metadata() + pos) = key_meta;
-    *(Slots() + pos) = {key, value};
-    ++size_;
-    return true;
+    const std::size_t key_hash = Hash(key);
+    const std::uint8_t key_meta = key_hash | 0b10000000;
+
+    std::size_t pos = key_hash & capacity_sub_one_;
+    while (true) {
+      const std::uint8_t pos_meta = *(meta() + pos);
+      if (pos_meta == 0) {
+        *(meta() + pos) = key_meta;
+        *(slots() + pos) = std::make_pair(key, value);
+        ++size_;
+        return true;
+      }
+      if (pos_meta == key_meta && (slots() + pos)->first == key) return false;
+      pos = (pos + 1) & capacity_sub_one_;
+    }
   }
 
   // Returns the number of key-value pairs inserted so far.
   inline std::size_t Size() const { return size_; }
 
  private:
+  inline std::size_t Capacity() const { return capacity_sub_one_ + 1; }
+
   inline void Resize() {
-    std::size_t old_capacity = capacity_;
+    const std::size_t old_capacity = Capacity();
     std::uint8_t* old_storage = storage_;
-    std::pair<K, V>* old_slots =
+    const auto* old_slots =
         reinterpret_cast<std::pair<K, V>*>(old_storage + old_capacity);
 
-    capacity_ <<= 1;
-    storage_ = static_cast<std::uint8_t*>(
-        std::malloc(capacity_ + capacity_ * sizeof(std::pair<K, V>)));
-    std::fill(Metadata(), Metadata() + capacity_, 0);
+    capacity_sub_one_ = (old_capacity << 1) - 1;
     size_ = 0;
+    storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
+        64, Capacity() + Capacity() * sizeof(std::pair<K, V>)));
+    std::fill(meta(), meta() + Capacity(), 0);
 
     for (std::size_t pos = 0; pos < old_capacity; ++pos) {
       if (*(old_storage + pos) > 0) {
@@ -104,13 +104,13 @@ class HashMap {
     std::free(old_storage);
   }
 
-  inline std::uint8_t* Metadata() const { return storage_; }
+  inline std::uint8_t* meta() const { return storage_; }
 
-  inline std::pair<K, V>* Slots() const {
-    return reinterpret_cast<std::pair<K, V>*>(storage_ + capacity_);
+  inline std::pair<K, V>* slots() const {
+    return reinterpret_cast<std::pair<K, V>*>(storage_ + Capacity());
   }
 
-  std::size_t capacity_;
+  std::size_t capacity_sub_one_;
   std::size_t size_;
   std::uint8_t* storage_;
 };
