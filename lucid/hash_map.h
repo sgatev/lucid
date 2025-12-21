@@ -40,12 +40,14 @@ class HashMap {
   inline std::optional<V> Find(K key) const {
     const std::size_t key_hash = Hash(key);
     const std::uint8_t key_meta = key_hash | 0b10000000;
-    for (std::size_t pos = key_hash;; ++pos) {
-      const std::uint8_t pos_meta = *(meta() + (pos & capacity_mask_));
+    for (std::size_t i = 0;; ++i) {
+      const std::size_t pos = probe(key_hash, i);
+
+      const std::uint8_t pos_meta = *(meta() + pos);
       if (pos_meta == 0) return std::nullopt;
 
       if (pos_meta == key_meta) {
-        const std::pair<K, V>* entry = slots() + (pos & capacity_mask_);
+        const std::pair<K, V>* entry = slots() + pos;
         if (entry->first == key) [[likely]] {
           return entry->second;
         }
@@ -63,8 +65,9 @@ class HashMap {
     const std::size_t key_hash = Hash(key);
     const std::uint8_t key_meta = key_hash | 0b10000000;
 
-    std::size_t pos = key_hash & capacity_mask_;
-    while (true) {
+    for (std::size_t i = 0;; ++i) {
+      const std::size_t pos = probe(key_hash, i);
+
       const std::uint8_t pos_meta = *(meta() + pos);
       if (pos_meta == 0) {
         *(meta() + pos) = key_meta;
@@ -73,7 +76,6 @@ class HashMap {
         return true;
       }
       if (pos_meta == key_meta && (slots() + pos)->first == key) return false;
-      pos = (pos + 1) & capacity_mask_;
     }
   }
 
@@ -108,6 +110,10 @@ class HashMap {
 
   inline std::pair<K, V>* slots() const {
     return reinterpret_cast<std::pair<K, V>*>(storage_ + Capacity());
+  }
+
+  inline std::size_t probe(std::size_t hash, std::size_t i) const {
+    return (hash + (i >> 1) + ((i * i) >> 1)) & capacity_mask_;
   }
 
   std::size_t capacity_mask_;
