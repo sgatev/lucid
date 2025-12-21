@@ -64,6 +64,19 @@ TEST(HashMap, Scaling) {
   }
 }
 
+TEST(HashMap, Copy) {
+  HashMap<std::int32_t, int> map;
+
+  EXPECT_TRUE(map.Insert(21, 42));
+  EXPECT_TRUE(map.Insert(13, 26));
+
+  HashMap<std::int32_t, int> map_copy = map;
+
+  EXPECT_EQ(map_copy.Size(), 2);
+  EXPECT_THAT(map_copy.Find(21), Optional(42));
+  EXPECT_THAT(map_copy.Find(13), Optional(26));
+}
+
 TEST(HashMap, Int32) {
   HashMap<std::int32_t, int> map;
 

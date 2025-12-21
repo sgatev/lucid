@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <numeric>
 #include <optional>
 #include <string_view>
 #include <utility>
@@ -16,7 +17,7 @@ template <typename T>
 std::size_t Hash(T);
 
 template <>
-std::size_t Hash<std::uint32_t>(std::uint32_t v) {
+inline std::size_t Hash<std::uint32_t>(std::uint32_t v) {
   v ^= v >> 16;
   v *= 0x21f0aaadU;
   v ^= v >> 15;
@@ -26,7 +27,7 @@ std::size_t Hash<std::uint32_t>(std::uint32_t v) {
 }
 
 template <>
-std::size_t Hash<std::int32_t>(std::int32_t v) {
+inline std::size_t Hash<std::int32_t>(std::int32_t v) {
   v ^= v >> 16;
   v *= 0x21f0aaadU;
   v ^= v >> 15;
@@ -36,9 +37,10 @@ std::size_t Hash<std::int32_t>(std::int32_t v) {
 }
 
 template <>
-std::size_t Hash<std::string_view>(std::string_view v) {
+inline std::size_t Hash<std::string_view>(std::string_view v) {
   // TODO: Find a better hash function.
-  return reinterpret_cast<std::size_t>(v.data()) + v.size();
+  return std::reduce(v.begin(), v.end(), 0,
+                     [](std::size_t h, char c) { return h = (h << 1) + c; });
 }
 
 // A hash table that maps keys of type `K` to values of type `V`.
@@ -51,7 +53,23 @@ class HashMap {
     std::fill(meta(), meta() + Capacity(), 0);
   }
 
-  ~HashMap() { std::free(storage_); }
+  HashMap(const HashMap& other) {
+    capacity_mask_ = other.capacity_mask_;
+    size_ = 0;
+    storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
+        64, Capacity() + Capacity() * sizeof(std::pair<K, V>)));
+    std::fill(meta(), meta() + Capacity(), 0);
+
+    for (std::size_t pos = 0; pos < other.Capacity(); ++pos) {
+      if (*(other.meta() + pos) > 0) {
+        Insert((other.slots() + pos)->first, (other.slots() + pos)->second);
+      }
+    }
+  }
+
+  ~HashMap() {
+    if (storage_ != nullptr) std::free(storage_);
+  }
 
   // Returns the value that corresponds to the given `key` or nullopt.
   inline std::optional<V> Find(K key) const {
@@ -135,7 +153,7 @@ class HashMap {
 
   std::size_t capacity_mask_;
   std::size_t size_;
-  std::uint8_t* storage_;
+  std::uint8_t* storage_ = nullptr;
 };
 
 }  // namespace lucid
