@@ -18,22 +18,19 @@ std::size_t Hash(T);
 
 template <>
 inline std::size_t Hash<std::uint32_t>(std::uint32_t v) {
+  // Low bias 32-bit hash function discovered by
+  // https://github.com/skeeto/hash-prospector.
   v ^= v >> 16;
-  v *= 0x21f0aaadU;
+  v *= 0x7feb352d;
   v ^= v >> 15;
-  v *= 0x735a2d97U;
-  v ^= v >> 15;
+  v *= 0x846ca68b;
+  v ^= v >> 16;
   return v;
 }
 
 template <>
 inline std::size_t Hash<std::int32_t>(std::int32_t v) {
-  v ^= v >> 16;
-  v *= 0x21f0aaadU;
-  v ^= v >> 15;
-  v *= 0x735a2d97U;
-  v ^= v >> 15;
-  return v;
+  return Hash<std::uint32_t>(v);
 }
 
 template <>

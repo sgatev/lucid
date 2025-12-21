@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -33,7 +34,7 @@ class StringIndex {
 
   // Returns a reference that identifies the given string.
   Ref ref(std::string_view s) {
-    auto res = string_to_ref_.Find(s);
+    std::optional<Ref> res = string_to_ref_.Find(s);
     if (res.has_value()) return *res;
 
     Ref ref(ref_to_string_.Size(), static_cast<std::int32_t>(s.size()));
