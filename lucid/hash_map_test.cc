@@ -1,6 +1,8 @@
 #include "lucid/hash_map.h"
 
+#include <cstdint>
 #include <optional>
+#include <string_view>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -60,6 +62,39 @@ TEST(HashMap, Scaling) {
   for (int i = 1; i <= 10000; ++i) {
     EXPECT_THAT(map.Find(i), Optional(i * 2));
   }
+}
+
+TEST(HashMap, Int32) {
+  HashMap<std::int32_t, int> map;
+
+  EXPECT_TRUE(map.Insert(21, 42));
+  EXPECT_TRUE(map.Insert(13, 26));
+  EXPECT_FALSE(map.Insert(21, 21));
+
+  EXPECT_THAT(map.Find(21), Optional(42));
+  EXPECT_THAT(map.Find(13), Optional(26));
+}
+
+TEST(HashMap, Uint32) {
+  HashMap<std::uint32_t, int> map;
+
+  EXPECT_TRUE(map.Insert(21, 42));
+  EXPECT_TRUE(map.Insert(13, 26));
+  EXPECT_FALSE(map.Insert(21, 21));
+
+  EXPECT_THAT(map.Find(21), Optional(42));
+  EXPECT_THAT(map.Find(13), Optional(26));
+}
+
+TEST(HashMap, StringView) {
+  HashMap<std::string_view, int> map;
+
+  EXPECT_TRUE(map.Insert("foo", 42));
+  EXPECT_TRUE(map.Insert("bar", 26));
+  EXPECT_FALSE(map.Insert("foo", 21));
+
+  EXPECT_THAT(map.Find("foo"), Optional(42));
+  EXPECT_THAT(map.Find("bar"), Optional(26));
 }
 
 }  // namespace

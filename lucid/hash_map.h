@@ -6,22 +6,39 @@
 #include <cstdlib>
 #include <cstring>
 #include <optional>
+#include <string_view>
 #include <utility>
 
 namespace lucid {
 
-// Returns a hash of the given argument.
+// Returns a hash of the given value.
 template <typename T>
 std::size_t Hash(T);
 
 template <>
-std::size_t Hash<int>(int i) {
-  i ^= i >> 16;
-  i *= 0x21f0aaadU;
-  i ^= i >> 15;
-  i *= 0x735a2d97U;
-  i ^= i >> 15;
-  return i;
+std::size_t Hash<std::uint32_t>(std::uint32_t v) {
+  v ^= v >> 16;
+  v *= 0x21f0aaadU;
+  v ^= v >> 15;
+  v *= 0x735a2d97U;
+  v ^= v >> 15;
+  return v;
+}
+
+template <>
+std::size_t Hash<std::int32_t>(std::int32_t v) {
+  v ^= v >> 16;
+  v *= 0x21f0aaadU;
+  v ^= v >> 15;
+  v *= 0x735a2d97U;
+  v ^= v >> 15;
+  return v;
+}
+
+template <>
+std::size_t Hash<std::string_view>(std::string_view v) {
+  // TODO: Find a better hash function.
+  return reinterpret_cast<std::size_t>(v.data()) + v.size();
 }
 
 // A hash table that maps keys of type `K` to values of type `V`.
