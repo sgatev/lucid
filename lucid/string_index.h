@@ -5,6 +5,8 @@
 #include <string>
 #include <string_view>
 
+#include "lucid/hash_map.h"
+
 namespace lucid {
 
 // Maps strings to small references that can be used to identify them.
@@ -20,6 +22,9 @@ class StringIndex {
     friend class StringIndex;
     friend struct std::hash<Ref>;
 
+    template <typename T>
+    friend std::size_t Hash(T);
+
     Ref(std::uint32_t begin, std::int32_t size) : begin_(begin), size_(size) {}
 
     std::uint32_t begin_;
@@ -28,12 +33,14 @@ class StringIndex {
 
   // Returns a reference that identifies the given string.
   Ref ref(std::string_view s) {
-    auto pos = data_.find(s);
-    if (pos == std::string::npos) {
-      pos = data_.size();
-      data_.append(s);
-    }
-    return Ref(pos, static_cast<std::int32_t>(s.size()));
+    auto res = string_to_ref_.Find(s);
+    if (res.has_value()) return *res;
+
+    Ref ref(ref_to_string_.Size(), static_cast<std::int32_t>(s.size()));
+    ref_to_string_.Insert(ref, s);
+    string_to_ref_.Insert(s, ref);
+
+    return ref;
   }
 
   // Returns a unique reference.
@@ -42,13 +49,19 @@ class StringIndex {
   // Returns the string identified by the given reference.
   std::string_view deref(Ref ref) const {
     if (ref.size_ < 0) return "<unique>";
-    return std::string_view(data_.data() + ref.begin_, ref.size_);
+    return ref_to_string_.Find(ref).value();
   }
 
  private:
-  std::string data_;
+  HashMap<std::string_view, Ref> string_to_ref_;
+  HashMap<Ref, std::string_view> ref_to_string_;
   std::uint32_t unique_ident_ = 0;
 };
+
+template <>
+inline std::size_t Hash<StringIndex::Ref>(StringIndex::Ref v) {
+  return (Hash(v.begin_) << 32) | Hash(v.size_);
+}
 
 }  // namespace lucid
 

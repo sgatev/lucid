@@ -623,6 +623,9 @@ cc_test(
 cc_library(
     name = "string_index",
     hdrs = ["string_index.h"],
+    deps = [
+        ":hash_map",
+    ],
 )
 
 cc_test(
