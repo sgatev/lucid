@@ -1,16 +1,21 @@
 #pragma once
 
 #include <algorithm>
+#include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <numeric>
 #include <optional>
 #include <string_view>
 #include <utility>
 
 namespace lucid {
+
+// Returns a combination of two given hashes.
+inline std::size_t HashCombine(std::size_t h1, std::size_t h2) {
+  return std::rotl(h1, 7) ^ h2;
+}
 
 // Returns a hash of the given value.
 template <typename T>
@@ -35,9 +40,16 @@ inline std::size_t Hash<std::int32_t>(std::int32_t v) {
 
 template <>
 inline std::size_t Hash<std::string_view>(std::string_view v) {
-  // TODO: Find a better hash function.
-  return std::reduce(v.begin(), v.end(), 0,
-                     [](std::size_t h, char c) { return h = (h << 1) + c; });
+  std::size_t h = Hash<std::uint32_t>(0);
+  const std::size_t words_end = (v.size() >> 2) << 2;
+  std::size_t i = 0;
+  for (; i < words_end; i += 4) {
+    const std::uint32_t word =
+        (v[i] << 16) | (v[i + 1] << 8) | (v[i + 2] << 4) | v[i + 3];
+    h = HashCombine(h, Hash(word));
+  }
+  for (; i < v.size(); ++i) h = HashCombine(h, Hash<std::uint32_t>(v[i]));
+  return h;
 }
 
 // A hash table that maps keys of type `K` to values of type `V`.
