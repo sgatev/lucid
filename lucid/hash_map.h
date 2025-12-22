@@ -84,17 +84,16 @@ class HashMap {
   inline std::optional<V> Find(K key) const {
     const std::size_t key_hash = Hash(key);
     const std::uint8_t key_meta = key_hash | 0b10000000;
+    std::size_t offset = key_hash;
     for (std::size_t i = 0;; ++i) {
-      const std::size_t pos = probe(key_hash, i);
+      offset = (offset + i) & capacity_mask_;
 
-      const std::uint8_t pos_meta = *(meta() + pos);
+      const std::uint8_t pos_meta = *(meta() + offset);
       if (pos_meta == 0) return std::nullopt;
 
       if (pos_meta == key_meta) {
-        const std::pair<K, V>* entry = slots() + pos;
-        if (entry->first == key) [[likely]] {
-          return entry->second;
-        }
+        const std::pair<K, V>* entry = slots() + offset;
+        if (entry->first == key) return entry->second;
       }
     }
   }
@@ -102,24 +101,23 @@ class HashMap {
   // Inserts the given `key` and `value` pair and returns true if `key` is not
   // already inserted. Otherwise returns false.
   inline bool Insert(K key, V value) {
-    if (size_ > (capacity_mask_ / 4 * 3)) [[unlikely]] {
-      Resize();
-    }
+    if (size_ > (capacity_mask_ >> 1)) Resize();
 
     const std::size_t key_hash = Hash(key);
     const std::uint8_t key_meta = key_hash | 0b10000000;
-
+    std::size_t offset = key_hash;
     for (std::size_t i = 0;; ++i) {
-      const std::size_t pos = probe(key_hash, i);
+      offset = (offset + i) & capacity_mask_;
 
-      const std::uint8_t pos_meta = *(meta() + pos);
+      const std::uint8_t pos_meta = *(meta() + offset);
       if (pos_meta == 0) {
-        *(meta() + pos) = key_meta;
-        *(slots() + pos) = std::make_pair(key, value);
+        *(meta() + offset) = key_meta;
+        *(slots() + offset) = std::make_pair(key, value);
         ++size_;
         return true;
       }
-      if (pos_meta == key_meta && (slots() + pos)->first == key) return false;
+      if (pos_meta == key_meta && (slots() + offset)->first == key)
+        return false;
     }
   }
 
@@ -154,10 +152,6 @@ class HashMap {
 
   inline std::pair<K, V>* slots() const {
     return reinterpret_cast<std::pair<K, V>*>(storage_ + Capacity());
-  }
-
-  inline std::size_t probe(std::size_t hash, std::size_t i) const {
-    return (hash + (i >> 1) + ((i * i) >> 1)) & capacity_mask_;
   }
 
   std::size_t capacity_mask_;
