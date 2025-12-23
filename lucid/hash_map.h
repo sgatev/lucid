@@ -58,18 +58,18 @@ class HashMap {
  public:
   HashMap() : capacity_mask_(63), size_(0) {
     storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
-        64, Capacity() + Capacity() * sizeof(std::pair<K, V>)));
-    std::fill(meta(), meta() + Capacity(), 0);
+        64, capacity() + capacity() * sizeof(std::pair<K, V>)));
+    std::fill(meta(), meta() + capacity(), 0);
   }
 
   HashMap(const HashMap& other) {
     capacity_mask_ = other.capacity_mask_;
     size_ = 0;
     storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
-        64, Capacity() + Capacity() * sizeof(std::pair<K, V>)));
-    std::fill(meta(), meta() + Capacity(), 0);
+        64, capacity() + capacity() * sizeof(std::pair<K, V>)));
+    std::fill(meta(), meta() + capacity(), 0);
 
-    for (std::size_t pos = 0; pos < other.Capacity(); ++pos) {
+    for (std::size_t pos = 0; pos < other.capacity(); ++pos) {
       if (*(other.meta() + pos) > 0) {
         Insert((other.slots() + pos)->first, (other.slots() + pos)->second);
       }
@@ -89,12 +89,11 @@ class HashMap {
       offset = (offset + i) & capacity_mask_;
 
       const std::uint8_t pos_meta = *(meta() + offset);
-      if (pos_meta == 0) return std::nullopt;
-
       if (pos_meta == key_meta) {
         const std::pair<K, V>* entry = slots() + offset;
         if (entry->first == key) return entry->second;
       }
+      if (pos_meta == 0) return std::nullopt;
     }
   }
 
@@ -116,8 +115,9 @@ class HashMap {
         ++size_;
         return true;
       }
-      if (pos_meta == key_meta && (slots() + offset)->first == key)
+      if (pos_meta == key_meta && (slots() + offset)->first == key) {
         return false;
+      }
     }
   }
 
@@ -125,33 +125,32 @@ class HashMap {
   inline std::size_t Size() const { return size_; }
 
  private:
-  inline std::size_t Capacity() const { return capacity_mask_ + 1; }
+  inline std::size_t capacity() const { return capacity_mask_ + 1; }
 
   inline void Resize() {
-    const std::size_t old_capacity = Capacity();
-    std::uint8_t* old_storage = storage_;
-    const auto* old_slots =
-        reinterpret_cast<std::pair<K, V>*>(old_storage + old_capacity);
+    const std::size_t old_capacity = capacity();
+    std::uint8_t* old_meta = meta();
+    const std::pair<K, V>* old_slots = slots();
 
     capacity_mask_ = (old_capacity << 1) - 1;
     size_ = 0;
     storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
-        64, Capacity() + Capacity() * sizeof(std::pair<K, V>)));
-    std::fill(meta(), meta() + Capacity(), 0);
+        64, capacity() + capacity() * sizeof(std::pair<K, V>)));
+    std::fill(meta(), meta() + capacity(), 0);
 
     for (std::size_t pos = 0; pos < old_capacity; ++pos) {
-      if (*(old_storage + pos) > 0) {
+      if (*(old_meta + pos) > 0) {
         Insert((old_slots + pos)->first, (old_slots + pos)->second);
       }
     }
 
-    std::free(old_storage);
+    std::free(old_meta);
   }
 
   inline std::uint8_t* meta() const { return storage_; }
 
   inline std::pair<K, V>* slots() const {
-    return reinterpret_cast<std::pair<K, V>*>(storage_ + Capacity());
+    return reinterpret_cast<std::pair<K, V>*>(storage_ + capacity());
   }
 
   std::size_t capacity_mask_;
