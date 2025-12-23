@@ -88,12 +88,12 @@ class HashMap {
     for (std::size_t i = 0;; ++i) {
       offset = (offset + i) & capacity_mask_;
 
-      const std::uint8_t pos_meta = *(meta() + offset);
-      if (pos_meta == key_meta) {
+      const std::uint8_t offset_meta = *(meta() + offset);
+      if (offset_meta == key_meta) {
         const std::pair<K, V>* entry = slots() + offset;
         if (entry->first == key) return entry->second;
       }
-      if (pos_meta == 0) return std::nullopt;
+      if (offset_meta == 0) return std::nullopt;
     }
   }
 
@@ -108,8 +108,8 @@ class HashMap {
     for (std::size_t i = 0;; ++i) {
       offset = (offset + i) & capacity_mask_;
 
-      const std::uint8_t pos_meta = *(meta() + offset);
-      if (pos_meta == 0) {
+      const std::uint8_t offset_meta = *(meta() + offset);
+      if (offset_meta == 0) {
         *(meta() + offset) = key_meta;
         *(slots() + offset) = std::make_pair(key, value);
         ++size_;
