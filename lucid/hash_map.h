@@ -115,9 +115,7 @@ class HashMap {
         ++size_;
         return true;
       }
-      if (pos_meta == key_meta && (slots() + offset)->first == key) {
-        return false;
-      }
+      if ((slots() + offset)->first == key) return false;
     }
   }
 
