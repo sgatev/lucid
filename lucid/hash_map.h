@@ -13,44 +13,67 @@
 namespace lucid {
 
 // Returns a combination of two given hashes.
-inline std::size_t HashCombine(std::size_t h1, std::size_t h2) {
-  return std::rotl(h1, 7) ^ h2;
+template <typename... Hs>
+inline std::size_t HashCombine(Hs&&... hs) {
+  return (std::rotl(hs, 7) ^ ...);
 }
 
 // Returns a hash of the given value.
 template <typename T>
-std::size_t Hash(T);
+struct Hasher;
 
 template <>
-inline std::size_t Hash<std::uint32_t>(std::uint32_t v) {
-  // Low bias 32-bit hash function discovered by
-  // https://github.com/skeeto/hash-prospector.
-  v ^= v >> 16;
-  v *= 0x7feb352d;
-  v ^= v >> 15;
-  v *= 0x846ca68b;
-  v ^= v >> 16;
-  return v;
-}
-
-template <>
-inline std::size_t Hash<std::int32_t>(std::int32_t v) {
-  return Hash<std::uint32_t>(v);
-}
-
-template <>
-inline std::size_t Hash<std::string_view>(std::string_view v) {
-  std::size_t h = Hash<std::uint32_t>(0);
-  const std::size_t words_end = (v.size() >> 2) << 2;
-  std::size_t i = 0;
-  for (; i < words_end; i += 4) {
-    const std::uint32_t word =
-        (v[i] << 16) | (v[i + 1] << 8) | (v[i + 2] << 4) | v[i + 3];
-    h = HashCombine(h, Hash(word));
+struct Hasher<std::uint32_t> {
+  static std::size_t Hash(std::uint32_t v) {
+    // Low bias 32-bit hash function discovered by
+    // https://github.com/skeeto/hash-prospector.
+    v ^= v >> 16;
+    v *= 0x7feb352d;
+    v ^= v >> 15;
+    v *= 0x846ca68b;
+    v ^= v >> 16;
+    return v;
   }
-  for (; i < v.size(); ++i) h = HashCombine(h, Hash<std::uint32_t>(v[i]));
-  return h;
-}
+};
+
+template <>
+struct Hasher<std::int32_t> {
+  static std::size_t Hash(std::uint32_t v) {
+    return Hasher<std::uint32_t>::Hash(v);
+  }
+};
+
+template <>
+struct Hasher<std::uint8_t> {
+  static std::size_t Hash(std::uint32_t v) {
+    return Hasher<std::uint32_t>::Hash(v);
+  }
+};
+
+template <>
+struct Hasher<std::uint16_t> {
+  static std::size_t Hash(std::uint32_t v) {
+    return Hasher<std::uint32_t>::Hash(v);
+  }
+};
+
+template <>
+struct Hasher<std::string_view> {
+  static std::size_t Hash(std::string_view v) {
+    std::size_t h = Hasher<std::uint32_t>::Hash(0);
+    const std::size_t words_end = (v.size() >> 2) << 2;
+    std::size_t i = 0;
+    for (; i < words_end; i += 4) {
+      const std::uint32_t word =
+          (v[i] << 16) | (v[i + 1] << 8) | (v[i + 2] << 4) | v[i + 3];
+      h = HashCombine(h, Hasher<std::uint32_t>::Hash(word));
+    }
+    for (; i < v.size(); ++i) {
+      h = HashCombine(h, Hasher<std::uint8_t>::Hash(v[i]));
+    }
+    return h;
+  }
+};
 
 // A hash table that maps keys of type `K` to values of type `V`.
 template <typename K, typename V>
@@ -82,7 +105,7 @@ class HashMap {
 
   // Returns the value that corresponds to the given `key` or nullopt.
   inline std::optional<V> Find(K key) const {
-    const std::size_t key_hash = Hash(key);
+    const std::size_t key_hash = Hasher<K>::Hash(key);
     const std::uint8_t key_meta = key_hash | 0b10000000;
     std::size_t offset = key_hash;
     for (std::size_t i = 0;; ++i) {
@@ -102,7 +125,7 @@ class HashMap {
   inline bool Insert(K key, V value) {
     if (size_ > (capacity_mask_ >> 1)) Resize();
 
-    const std::size_t key_hash = Hash(key);
+    const std::size_t key_hash = Hasher<K>::Hash(key);
     const std::uint8_t key_meta = key_hash | 0b10000000;
     std::size_t offset = key_hash;
     for (std::size_t i = 0;; ++i) {

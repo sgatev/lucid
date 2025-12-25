@@ -8,6 +8,24 @@
 #include "gtest/gtest.h"
 
 namespace lucid {
+
+struct CustomKey {
+  std::uint8_t a;
+  std::uint32_t b;
+  std::uint16_t c;
+
+  bool operator==(const CustomKey&) const = default;
+};
+
+template <>
+struct Hasher<CustomKey> {
+  static std::size_t Hash(const CustomKey& v) {
+    return HashCombine(Hasher<std::uint8_t>::Hash(v.a),
+                       Hasher<std::uint32_t>::Hash(v.b),
+                       Hasher<std::uint16_t>::Hash(v.c));
+  }
+};
+
 namespace {
 
 using ::testing::Optional;
@@ -108,6 +126,17 @@ TEST(HashMap, StringView) {
 
   EXPECT_THAT(map.Find("foo"), Optional(42));
   EXPECT_THAT(map.Find("bar"), Optional(26));
+}
+
+TEST(HashMap, CustomKey) {
+  HashMap<CustomKey, int> map;
+
+  EXPECT_TRUE(map.Insert(CustomKey{.a = 1, .b = 10, .c = 100}, 42));
+  EXPECT_TRUE(map.Insert(CustomKey{.a = 2, .b = 20, .c = 200}, 26));
+  EXPECT_FALSE(map.Insert(CustomKey{.a = 1, .b = 10, .c = 100}, 21));
+
+  EXPECT_THAT(map.Find(CustomKey{.a = 1, .b = 10, .c = 100}), Optional(42));
+  EXPECT_THAT(map.Find(CustomKey{.a = 2, .b = 20, .c = 200}), Optional(26));
 }
 
 }  // namespace

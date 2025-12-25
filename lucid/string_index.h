@@ -21,9 +21,7 @@ class StringIndex {
    private:
     friend class StringIndex;
     friend struct std::hash<Ref>;
-
-    template <typename T>
-    friend std::size_t Hash(T);
+    friend struct Hasher<Ref>;
 
     Ref(std::uint32_t begin, std::int32_t size) : begin_(begin), size_(size) {}
 
@@ -59,9 +57,12 @@ class StringIndex {
 };
 
 template <>
-inline std::size_t Hash<StringIndex::Ref>(StringIndex::Ref v) {
-  return (Hash(v.begin_) << 32) | Hash(v.size_);
-}
+struct Hasher<lucid::StringIndex::Ref> {
+  static std::size_t Hash(const lucid::StringIndex::Ref& v) {
+    return HashCombine(Hasher<std::uint32_t>::Hash(v.begin_),
+                       Hasher<std::int32_t>::Hash(v.size_));
+  }
+};
 
 }  // namespace lucid
 
