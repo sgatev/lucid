@@ -79,9 +79,10 @@ struct Hasher<std::string_view> {
 template <typename K, typename V>
 class HashMap {
  public:
-  HashMap() : capacity_mask_(63), size_(0) {
-    storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
-        64, capacity() + capacity() * sizeof(std::pair<K, V>)));
+  HashMap() : capacity_mask_(initial_capacity() - 1), size_(0) {
+    storage_ = static_cast<std::uint8_t*>(
+        std::aligned_alloc(alignof(std::max_align_t),
+                           capacity() + capacity() * sizeof(std::pair<K, V>)));
     std::fill(meta(), meta() + capacity(), 0);
   }
 
@@ -146,6 +147,11 @@ class HashMap {
   inline std::size_t Size() const { return size_; }
 
  private:
+  static constexpr std::size_t initial_capacity() {
+    static constexpr std::size_t max_align = alignof(std::max_align_t);
+    return ((64 + max_align - 1) / max_align) * max_align;
+  }
+
   inline std::size_t capacity() const { return capacity_mask_ + 1; }
 
   inline void Resize() {
