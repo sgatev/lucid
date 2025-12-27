@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <optional>
 #include <string_view>
+#include <utility>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -104,6 +105,19 @@ TEST(HashMap, Copy) {
   EXPECT_EQ(map_copy.Size(), 2);
   EXPECT_THAT(map_copy.Find(21), Optional(42));
   EXPECT_THAT(map_copy.Find(13), Optional(26));
+}
+
+TEST(HashMap, Move) {
+  HashMap<std::int32_t, int> map;
+
+  EXPECT_TRUE(map.Insert(21, 42));
+  EXPECT_TRUE(map.Insert(13, 26));
+
+  HashMap<std::int32_t, int> map_move = std::move(map);
+
+  EXPECT_EQ(map_move.Size(), 2);
+  EXPECT_THAT(map_move.Find(21), Optional(42));
+  EXPECT_THAT(map_move.Find(13), Optional(26));
 }
 
 TEST(HashMap, Int32) {

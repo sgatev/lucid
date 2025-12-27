@@ -24,6 +24,12 @@ class HashMap {
     std::fill(meta(), meta() + capacity(), 0);
   }
 
+  HashMap(HashMap&& other) {
+    capacity_mask_ = other.capacity_mask_;
+    size_ = other.size_;
+    storage_ = std::exchange(other.storage_, nullptr);
+  }
+
   HashMap(const HashMap& other) {
     capacity_mask_ = other.capacity_mask_;
     size_ = 0;
