@@ -17,14 +17,9 @@ struct CustomKey {
   bool operator==(const CustomKey&) const = default;
 };
 
-template <>
-struct Hasher<CustomKey> {
-  static std::size_t Hash(const CustomKey& v) {
-    return HashCombine(Hasher<std::uint8_t>::Hash(v.a),
-                       Hasher<std::uint32_t>::Hash(v.b),
-                       Hasher<std::uint16_t>::Hash(v.c));
-  }
-};
+inline std::size_t Hash(const CustomKey& v) {
+  return HashCombine(Hash(v.a), Hash(v.b), Hash(v.c));
+}
 
 struct MoveOnly {
   std::uint32_t v;
@@ -40,12 +35,7 @@ struct MoveOnly {
   bool operator==(const MoveOnly&) const = default;
 };
 
-template <>
-struct Hasher<MoveOnly> {
-  static std::size_t Hash(const MoveOnly& v) {
-    return Hasher<std::uint32_t>::Hash(v.v);
-  }
-};
+inline std::size_t Hash(const MoveOnly& v) { return Hash(v.v); }
 
 namespace {
 

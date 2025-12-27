@@ -22,7 +22,7 @@ class StringIndex {
    private:
     friend class StringIndex;
     friend struct std::hash<Ref>;
-    friend struct Hasher<Ref>;
+    friend std::size_t Hash(const Ref&);
 
     Ref(std::uint32_t begin, std::int32_t size) : begin_(begin), size_(size) {}
 
@@ -59,13 +59,9 @@ class StringIndex {
   std::uint32_t unique_ident_ = 0;
 };
 
-template <>
-struct Hasher<lucid::StringIndex::Ref> {
-  static std::size_t Hash(const lucid::StringIndex::Ref& v) {
-    return HashCombine(Hasher<std::uint32_t>::Hash(v.begin_),
-                       Hasher<std::int32_t>::Hash(v.size_));
-  }
-};
+inline std::size_t Hash(const lucid::StringIndex::Ref& v) {
+  return HashCombine(Hash(v.begin_), Hash(v.size_));
+}
 
 }  // namespace lucid
 
