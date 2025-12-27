@@ -99,15 +99,16 @@ class HashMap {
 
     capacity_mask_ = (old_capacity << 1) - 1;
     size_ = 0;
-    storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
-        64, capacity() + capacity() * sizeof(std::pair<K, V>)));
+    storage_ = static_cast<std::uint8_t*>(
+        std::aligned_alloc(alignof(std::max_align_t),
+                           capacity() + capacity() * sizeof(std::pair<K, V>)));
     std::fill(meta(), meta() + capacity(), 0);
 
     for (std::size_t pos = 0; pos < old_capacity; ++pos) {
-      if (*(old_meta + pos) > 0) {
-        Insert(std::move((old_slots + pos)->first),
-               std::move((old_slots + pos)->second));
-      }
+      if (*(old_meta + pos) == 0) continue;
+
+      Insert(std::move((old_slots + pos)->first),
+             std::move((old_slots + pos)->second));
     }
 
     std::free(old_meta);
