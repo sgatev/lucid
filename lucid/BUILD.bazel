@@ -378,9 +378,15 @@ cc_test(
 )
 
 cc_library(
+    name = "hash",
+    hdrs = ["hash.h"],
+)
+
+cc_library(
     name = "hash_map",
     hdrs = ["hash_map.h"],
     deps = [
+        ":hash",
         ":optional_ref",
     ],
 )
