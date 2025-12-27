@@ -26,6 +26,27 @@ struct Hasher<CustomKey> {
   }
 };
 
+struct MoveOnly {
+  std::uint32_t v;
+
+  explicit MoveOnly(std::uint32_t v) : v(v) {}
+
+  MoveOnly(MoveOnly&&) = default;
+  MoveOnly& operator=(MoveOnly&&) = default;
+
+  MoveOnly(const MoveOnly&) = delete;
+  MoveOnly& operator=(const MoveOnly&) = delete;
+
+  bool operator==(const MoveOnly&) const = default;
+};
+
+template <>
+struct Hasher<MoveOnly> {
+  static std::size_t Hash(const MoveOnly& v) {
+    return Hasher<std::uint32_t>::Hash(v.v);
+  }
+};
+
 namespace {
 
 using ::testing::Optional;
@@ -137,6 +158,17 @@ TEST(HashMap, CustomKey) {
 
   EXPECT_THAT(map.Find(CustomKey{.a = 1, .b = 10, .c = 100}), Optional(42));
   EXPECT_THAT(map.Find(CustomKey{.a = 2, .b = 20, .c = 200}), Optional(26));
+}
+
+TEST(HashMap, MoveOnly) {
+  HashMap<MoveOnly, MoveOnly> map;
+
+  EXPECT_TRUE(map.Insert(MoveOnly(1), MoveOnly(42)));
+  EXPECT_TRUE(map.Insert(MoveOnly(2), MoveOnly(26)));
+  EXPECT_FALSE(map.Insert(MoveOnly(1), MoveOnly(21)));
+
+  EXPECT_EQ(map.Find(MoveOnly(1)), MoveOnly(42));
+  EXPECT_EQ(map.Find(MoveOnly(2)), MoveOnly(26));
 }
 
 }  // namespace

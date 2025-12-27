@@ -10,6 +10,8 @@
 #include <string_view>
 #include <utility>
 
+#include "lucid/optional_ref.h"
+
 namespace lucid {
 
 // Returns a combination of two given hashes.
@@ -105,7 +107,7 @@ class HashMap {
   }
 
   // Returns the value that corresponds to the given `key` or nullopt.
-  inline std::optional<V> Find(K key) const {
+  inline OptionalRef<V> Find(K key) const {
     const std::size_t key_hash = Hasher<K>::Hash(key);
     const std::uint8_t key_meta = key_hash | 0b10000000;
     std::size_t offset = key_hash;
@@ -114,7 +116,7 @@ class HashMap {
 
       const std::uint8_t offset_meta = *(meta() + offset);
       if (offset_meta == key_meta) {
-        const std::pair<K, V>* entry = slots() + offset;
+        std::pair<K, V>* entry = slots() + offset;
         if (entry->first == key) return entry->second;
       }
       if (offset_meta == 0) return std::nullopt;
@@ -124,7 +126,7 @@ class HashMap {
   // Inserts the given `key` and `value` pair and returns true if `key` is not
   // already inserted. Otherwise returns false.
   inline bool Insert(K key, V value) {
-    if (size_ > (capacity_mask_ >> 1)) Resize();
+    if (size_ > (capacity() >> 1)) Resize();
 
     const std::size_t key_hash = Hasher<K>::Hash(key);
     const std::uint8_t key_meta = key_hash | 0b10000000;
@@ -135,7 +137,7 @@ class HashMap {
       const std::uint8_t offset_meta = *(meta() + offset);
       if (offset_meta == 0) {
         *(meta() + offset) = key_meta;
-        *(slots() + offset) = std::make_pair(key, value);
+        *(slots() + offset) = std::make_pair(std::move(key), std::move(value));
         ++size_;
         return true;
       }
@@ -157,7 +159,7 @@ class HashMap {
   inline void Resize() {
     const std::size_t old_capacity = capacity();
     std::uint8_t* old_meta = meta();
-    const std::pair<K, V>* old_slots = slots();
+    std::pair<K, V>* old_slots = slots();
 
     capacity_mask_ = (old_capacity << 1) - 1;
     size_ = 0;
@@ -167,7 +169,8 @@ class HashMap {
 
     for (std::size_t pos = 0; pos < old_capacity; ++pos) {
       if (*(old_meta + pos) > 0) {
-        Insert((old_slots + pos)->first, (old_slots + pos)->second);
+        Insert(std::move((old_slots + pos)->first),
+               std::move((old_slots + pos)->second));
       }
     }
 

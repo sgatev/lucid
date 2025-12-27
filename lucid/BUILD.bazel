@@ -380,6 +380,9 @@ cc_test(
 cc_library(
     name = "hash_map",
     hdrs = ["hash_map.h"],
+    deps = [
+        ":optional_ref",
+    ],
 )
 
 cc_test(
@@ -493,6 +496,20 @@ cc_library(
     hdrs = ["macho.h"],
     deps = [
         ":arm64",
+    ],
+)
+
+cc_library(
+    name = "optional_ref",
+    hdrs = ["optional_ref.h"],
+)
+
+cc_test(
+    name = "optional_ref_test",
+    srcs = ["optional_ref_test.cc"],
+    deps = [
+        ":optional_ref",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -625,6 +642,7 @@ cc_library(
     hdrs = ["string_index.h"],
     deps = [
         ":hash_map",
+        ":optional_ref",
     ],
 )
 
