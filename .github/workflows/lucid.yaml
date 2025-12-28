@@ -18,6 +18,7 @@ jobs:
       - name: Run benchmarks
         run: |
           bazel run -c opt //lucid:hash_map_bench
+          bazel run -c opt //lucid:hash_set_bench
           bazel run -c opt //lucid:lexer_bench
           bazel run -c opt //lucid:parser_bench
           bazel run -c opt //lucid:worklist_bench
