@@ -51,19 +51,9 @@ class HashTable {
 
   // Returns the value that corresponds to the given projection or nullopt.
   inline OptionalRef<V> Find(const P& proj) const {
-    const std::size_t proj_hash = Hash(proj);
-    const std::uint8_t proj_meta = proj_hash | 0b10000000;
-
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
-
-      const std::uint8_t offset_meta = *(meta() + offset);
-      if (offset_meta == proj_meta) {
-        if (V* value = slots() + offset; Project(*value) == proj) return *value;
-      }
-      if (offset_meta == 0) return std::nullopt;
-    }
+    auto [offset, proj_meta] = Locate(proj);
+    if (proj_meta == 0) return *(slots() + offset);
+    return std::nullopt;
   }
 
   // Inserts the given `value` and returns true if `Project(value)` is not
@@ -71,20 +61,27 @@ class HashTable {
   inline bool Insert(V value) {
     if (size_ > (capacity() >> 1)) Resize();
 
-    const std::size_t proj_hash = Hash(Project(value));
-    const std::uint8_t proj_meta = proj_hash | 0b10000000;
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
+    auto [offset, proj_meta] = Locate(Project(value));
+    if (proj_meta == 0) return false;
 
-      if (std::uint8_t offset_meta = *(meta() + offset); offset_meta == 0) {
-        *(meta() + offset) = proj_meta;
-        *(slots() + offset) = std::move(value);
-        ++size_;
-        return true;
-      }
-      if (Project(*(slots() + offset)) == Project(value)) return false;
-    }
+    *(meta() + offset) = proj_meta;
+    *(slots() + offset) = std::move(value);
+    ++size_;
+    return true;
+  }
+
+  // Inserts the given `value` and returns true if `Project(value)` is not
+  // already inserted. Otherwise overrides the value and returns false.
+  inline bool Set(V value) {
+    if (size_ > (capacity() >> 1)) Resize();
+
+    auto [offset, proj_meta] = Locate(Project(value));
+    *(slots() + offset) = std::move(value);
+    if (proj_meta == 0) return false;
+
+    *(meta() + offset) = proj_meta;
+    ++size_;
+    return true;
   }
 
   // Returns the number of unique values inserted so far.
@@ -97,6 +94,25 @@ class HashTable {
   }();
 
   inline std::size_t capacity() const { return capacity_mask_ + 1; }
+
+  // Returns [offset, 0] if `proj` is present in the table at the respective
+  // offset. Otherwise returns [offset, proj_meta], with the offset at which
+  // `proj` will be inserted and its respective metadata.
+  inline std::pair<std::size_t, std::uint8_t> Locate(const P& proj) const {
+    const std::size_t proj_hash = Hash(proj);
+    const std::uint8_t proj_meta = proj_hash | 0b10000000;
+
+    std::size_t offset = proj_hash;
+    for (std::size_t i = 0;; ++i) {
+      offset = (offset + i) & capacity_mask_;
+
+      const std::uint8_t offset_meta = *(meta() + offset);
+      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
+        return std::make_pair(offset, 0);
+      }
+      if (offset_meta == 0) return std::make_pair(offset, proj_meta);
+    }
+  }
 
   inline void Resize() {
     const std::size_t old_capacity = capacity();

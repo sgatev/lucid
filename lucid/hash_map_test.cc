@@ -80,6 +80,28 @@ TEST(HashMap, InsertDifferentKey) {
   EXPECT_THAT(map.Find(13), Optional(26));
 }
 
+TEST(HashMap, SetSameKey) {
+  HashMap<int, int> map;
+
+  EXPECT_TRUE(map.Insert(21, 42));
+  EXPECT_FALSE(map.Set(21, 84));
+
+  EXPECT_EQ(map.Size(), 1);
+  EXPECT_THAT(map.Find(21), Optional(84));
+  EXPECT_EQ(map.Find(84), std::nullopt);
+}
+
+TEST(HashMap, SetDifferentKey) {
+  HashMap<int, int> map;
+
+  EXPECT_TRUE(map.Insert(21, 42));
+  EXPECT_TRUE(map.Set(13, 26));
+
+  EXPECT_EQ(map.Size(), 2);
+  EXPECT_THAT(map.Find(21), Optional(42));
+  EXPECT_THAT(map.Find(13), Optional(26));
+}
+
 TEST(HashMap, Scaling) {
   HashMap<int, int> map;
 

@@ -18,6 +18,20 @@ static void BM_InsertDuplicate(benchmark::State& state) {
 }
 BENCHMARK(BM_InsertDuplicate);
 
+static void BM_SetUnique(benchmark::State& state) {
+  lucid::HashMap<int, int> map;
+  for (int i = 0; auto _ : state) map.Set(i++, 0);
+}
+BENCHMARK(BM_SetUnique);
+
+static void BM_SetDuplicate(benchmark::State& state) {
+  static constexpr int kCount = 1'000'000;
+  lucid::HashMap<int, int> map;
+  for (int i = 0; i < kCount; ++i) map.Set(i, 0);
+  for (int i = 0; auto _ : state) map.Set(i++ % kCount, 0);
+}
+BENCHMARK(BM_SetDuplicate);
+
 static void BM_FindPresent(benchmark::State& state) {
   static constexpr int kCount = 1'000'000;
   lucid::HashMap<int, int> map;

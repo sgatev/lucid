@@ -23,6 +23,12 @@ class HashMap {
     return table_.Insert(std::make_pair(std::move(key), std::move(value)));
   }
 
+  // Inserts the given `key` and `value` pair and returns true if `key` is not
+  // already inserted. Otherwise overrides the value and returns false.
+  inline bool Set(K key, V value) {
+    return table_.Set(std::make_pair(std::move(key), std::move(value)));
+  }
+
   // Returns the number of unique keys inserted so far.
   inline std::size_t Size() const { return table_.Size(); }
 
