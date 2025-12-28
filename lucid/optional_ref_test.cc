@@ -1,6 +1,7 @@
 #include "lucid/optional_ref.h"
 
 #include <optional>
+#include <string>
 #include <utility>
 
 #include "gtest/gtest.h"
@@ -86,6 +87,21 @@ TEST(OptionalRef, Move) {
 
   EXPECT_NE(o2, OptionalRef<int>());
   EXPECT_NE(o2, std::nullopt);
+}
+
+TEST(OptionalRef, Transform) {
+  struct Foo {
+    std::string bar;
+  };
+
+  Foo foo{.bar = "foobar"};
+  OptionalRef<Foo> o1 = foo;
+
+  OptionalRef<std::string> o2 = o1.transform<std::string>(
+      [](Foo& foo) -> std::string& { return foo.bar; });
+
+  ASSERT_TRUE(o2.has_value());
+  EXPECT_EQ(*o2, "foobar");
 }
 
 }  // namespace

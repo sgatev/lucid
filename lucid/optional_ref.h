@@ -42,6 +42,13 @@ class OptionalRef {
   // Returns true if the value contains a reference to an object.
   bool has_value() const { return value_ != nullptr; }
 
+  // Returns the result of applying `f` to the contained reference if any or
+  // nullopt.
+  template <typename U>
+  OptionalRef<U> transform(U& (*f)(T&)) {
+    return value_ == nullptr ? std::nullopt : OptionalRef<U>(f(*value_));
+  }
+
  private:
   T* value_ = nullptr;
 };

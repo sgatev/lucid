@@ -387,6 +387,7 @@ cc_library(
     hdrs = ["hash_map.h"],
     deps = [
         ":hash",
+        ":hash_table",
         ":optional_ref",
     ],
 )
@@ -406,6 +407,43 @@ cc_binary(
     deps = [
         ":hash_map",
         "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_library(
+    name = "hash_set",
+    hdrs = ["hash_set.h"],
+    deps = [
+        ":hash",
+        ":hash_table",
+        ":optional_ref",
+    ],
+)
+
+cc_test(
+    name = "hash_set_test",
+    srcs = ["hash_set_test.cc"],
+    deps = [
+        ":hash_set",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "hash_set_bench",
+    srcs = ["hash_set_bench.cc"],
+    deps = [
+        ":hash_set",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_library(
+    name = "hash_table",
+    hdrs = ["hash_table.h"],
+    deps = [
+        ":hash",
+        ":optional_ref",
     ],
 )
 
