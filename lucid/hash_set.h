@@ -10,6 +10,8 @@ namespace lucid {
 template <typename V>
 class HashSet {
  public:
+  bool operator==(const HashSet&) const noexcept = default;
+
   // Returns true iff the table contains `value`.
   inline bool Contains(V value) const { return table_.Find(value).has_value(); }
 

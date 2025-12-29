@@ -11,6 +11,8 @@ namespace lucid {
 template <typename K, typename V>
 class HashMap {
  public:
+  bool operator==(const HashMap&) const noexcept = default;
+
   // Returns the value that corresponds to the given `key` if the table contains
   // it. Otherwise returns nullopt.
   inline OptionalRef<V> Find(const K& key) const {

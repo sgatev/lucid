@@ -130,6 +130,41 @@ TEST(HashSet, Move) {
   EXPECT_TRUE(set_move.Contains(13));
 }
 
+TEST(HashSet, Equal) {
+  HashSet<int> set1;
+  set1.Insert(21);
+  set1.Insert(13);
+
+  HashSet<int> set2;
+  set2.Insert(13);
+  set2.Insert(21);
+
+  EXPECT_TRUE(set1 == set2);
+}
+
+TEST(HashSet, NotEqualSameSize) {
+  HashSet<int> set1;
+  set1.Insert(21);
+  set1.Insert(13);
+
+  HashSet<int> set2;
+  set2.Insert(13);
+  set2.Insert(42);
+
+  EXPECT_TRUE(set1 != set2);
+}
+
+TEST(HashSet, NotEqualDifferentSize) {
+  HashSet<int> set1;
+  set1.Insert(21);
+
+  HashSet<int> set2;
+  set2.Insert(13);
+  set2.Insert(21);
+
+  EXPECT_TRUE(set1 != set2);
+}
+
 TEST(HashSet, Int32) {
   HashSet<std::int32_t> set;
 

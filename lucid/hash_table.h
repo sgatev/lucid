@@ -42,6 +42,18 @@ class HashTable {
     if (storage_ != nullptr) std::free(storage_);
   }
 
+  bool operator==(const HashTable& other) const noexcept {
+    if (size_ != other.size_) return false;
+    for (std::uint8_t offset = 0; offset < other.capacity(); ++offset) {
+      if (!full(*(other.meta() + offset))) continue;
+
+      const V& other_value = *(other.slots() + offset);
+      OptionalRef<V> value = Find(Project(other_value));
+      if (value != other_value) return false;
+    }
+    return true;
+  }
+
   // Returns the value that corresponds to the given projection or nullopt.
   inline OptionalRef<V> Find(const P& proj) const {
     const std::size_t proj_hash = Hash(proj);
@@ -160,7 +172,7 @@ class HashTable {
   inline std::size_t capacity() const noexcept { return capacity_mask_ + 1; }
 
   void resize() noexcept {
-    HashTable<V, P, Project> old = std::move(*this);
+    HashTable old = std::move(*this);
 
     capacity_mask_ = (old.capacity_mask_ << 1) + 1;
     storage_ = alloc_storage(capacity());

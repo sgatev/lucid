@@ -153,6 +153,53 @@ TEST(HashMap, Move) {
   EXPECT_THAT(map_move.Find(13), Optional(26));
 }
 
+TEST(HashMap, Equal) {
+  HashMap<int, int> map1;
+  map1.Insert(21, 1);
+  map1.Insert(13, 2);
+
+  HashMap<int, int> map2;
+  map2.Insert(13, 2);
+  map2.Insert(21, 1);
+
+  EXPECT_TRUE(map1 == map2);
+}
+
+TEST(HashMap, NotEqualDifferentValues) {
+  HashMap<int, int> map1;
+  map1.Insert(21, 1);
+  map1.Insert(13, 2);
+
+  HashMap<int, int> map2;
+  map2.Insert(13, 3);
+  map2.Insert(21, 4);
+
+  EXPECT_TRUE(map1 != map2);
+}
+
+TEST(HashMap, NotEqualSameSize) {
+  HashMap<int, int> map1;
+  map1.Insert(21, 1);
+  map1.Insert(13, 2);
+
+  HashMap<int, int> map2;
+  map2.Insert(13, 2);
+  map2.Insert(42, 1);
+
+  EXPECT_TRUE(map1 != map2);
+}
+
+TEST(HashMap, NotEqualDifferentSize) {
+  HashMap<int, int> map1;
+  map1.Insert(21, 1);
+
+  HashMap<int, int> map2;
+  map2.Insert(13, 2);
+  map2.Insert(21, 1);
+
+  EXPECT_TRUE(map1 != map2);
+}
+
 TEST(HashMap, Int32) {
   HashMap<std::int32_t, int> map;
 
