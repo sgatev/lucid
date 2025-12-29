@@ -29,6 +29,10 @@ class HashMap {
     return table_.Set(std::make_pair(std::move(key), std::move(value)));
   }
 
+  // Removes the given `key` and its corresponding value from the map and
+  // returns true if present. Otherwise returns false.
+  inline bool Remove(const K& key) { return table_.Remove(key); }
+
   // Returns the number of unique keys inserted so far.
   inline std::size_t Size() const { return table_.Size(); }
 

@@ -79,6 +79,17 @@ TEST(HashSet, InsertDifferent) {
   EXPECT_TRUE(set.Contains(13));
 }
 
+TEST(HashSet, Remove) {
+  HashSet<int> set;
+
+  EXPECT_TRUE(set.Insert(21));
+  EXPECT_TRUE(set.Remove(21));
+  EXPECT_FALSE(set.Remove(42));
+
+  EXPECT_EQ(set.Size(), 0);
+  EXPECT_FALSE(set.Contains(21));
+}
+
 TEST(HashSet, Scaling) {
   HashSet<int> set;
 

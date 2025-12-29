@@ -38,6 +38,12 @@ static void BM_FindMissing(benchmark::State& state) {
 }
 BENCHMARK(BM_FindMissing);
 
+static void BM_RemoveMissing(benchmark::State& state) {
+  lucid::HashSet<int> set;
+  for (int i = 0; auto _ : state) set.Remove(i++);
+}
+BENCHMARK(BM_RemoveMissing);
+
 static void BM_Random(benchmark::State& state) {
   static constexpr int kCount = 1'000'000;
   lucid::HashSet<int> set;

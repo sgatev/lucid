@@ -17,6 +17,10 @@ class HashSet {
   // table. Otherwise returns false.
   inline bool Insert(V value) { return table_.Insert(std::move(value)); }
 
+  // Removes the given `value` from the set and returns true if present.
+  // Otherwise returns false.
+  inline bool Remove(const V& value) { return table_.Remove(value); }
+
   // Returns the number of unique values inserted so far.
   inline std::size_t Size() const { return table_.Size(); }
 

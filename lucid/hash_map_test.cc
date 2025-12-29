@@ -102,6 +102,17 @@ TEST(HashMap, SetDifferentKey) {
   EXPECT_THAT(map.Find(13), Optional(26));
 }
 
+TEST(HashMap, Remove) {
+  HashMap<int, int> map;
+
+  EXPECT_TRUE(map.Insert(21, 42));
+  EXPECT_TRUE(map.Remove(21));
+  EXPECT_FALSE(map.Remove(42));
+
+  EXPECT_EQ(map.Size(), 0);
+  EXPECT_EQ(map.Find(21), std::nullopt);
+}
+
 TEST(HashMap, Scaling) {
   HashMap<int, int> map;
 

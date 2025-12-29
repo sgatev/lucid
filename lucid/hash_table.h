@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 #include <utility>
 
 #include "lucid/hash.h"
@@ -21,27 +22,22 @@ const T& Identity(const T& i) noexcept {
 template <typename V, typename P = V, const P& (*Project)(const V&) = &Identity>
 class HashTable {
  public:
-  HashTable() : capacity_mask_(kInitialCapacity - 1), size_(0) {
-    storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
-        alignof(std::max_align_t), capacity() + capacity() * sizeof(V)));
-    std::fill(meta(), meta() + capacity(), 0);
-  }
+  HashTable()
+      : capacity_mask_(kInitialCapacity - 1),
+        size_(0),
+        storage_(alloc_storage(capacity())) {}
 
-  HashTable(HashTable&& other) {
-    capacity_mask_ = other.capacity_mask_;
-    size_ = other.size_;
-    storage_ = std::exchange(other.storage_, nullptr);
-  }
+  HashTable(HashTable&& other)
+      : capacity_mask_(other.capacity_mask_),
+        size_(other.size_),
+        storage_(std::exchange(other.storage_, nullptr)) {}
 
-  HashTable(const HashTable& other) {
-    capacity_mask_ = other.capacity_mask_;
-    size_ = 0;
-    storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
-        alignof(std::max_align_t), capacity() + capacity() * sizeof(V)));
-    std::fill(meta(), meta() + capacity(), 0);
-
+  HashTable(const HashTable& other)
+      : capacity_mask_(other.capacity_mask_),
+        size_(0),
+        storage_(alloc_storage(capacity())) {
     for (std::size_t pos = 0; pos < other.capacity(); ++pos) {
-      if (*(other.meta() + pos) != 0) Insert(*(other.slots() + pos));
+      if (full(*(other.meta() + pos))) Insert(*(other.slots() + pos));
     }
   }
 
@@ -51,37 +47,93 @@ class HashTable {
 
   // Returns the value that corresponds to the given projection or nullopt.
   inline OptionalRef<V> Find(const P& proj) const {
-    auto [offset, proj_meta] = Locate(proj);
-    if (proj_meta == 0) return *(slots() + offset);
-    return std::nullopt;
+    const std::size_t proj_hash = Hash(proj);
+    const std::uint8_t proj_meta = proj_hash & 0b01111111;
+
+    std::size_t offset = proj_hash;
+    for (std::size_t i = 0;; ++i) {
+      offset = (offset + i) & capacity_mask_;
+
+      const std::uint8_t offset_meta = *(meta() + offset);
+      if (offset_meta == proj_meta) {
+        V& value = *(slots() + offset);
+        if (Project(value) == proj) return value;
+      }
+      if (empty(offset_meta)) return std::nullopt;
+    }
   }
 
   // Inserts the given `value` and returns true if `Project(value)` is not
   // already inserted. Otherwise returns false.
   inline bool Insert(V value) {
-    if (size_ > (capacity() >> 1)) Resize();
+    if (size_ > (capacity() >> 1)) resize();
 
-    auto [offset, proj_meta] = Locate(Project(value));
-    if (proj_meta == 0) return false;
+    const P& proj = Project(value);
+    const std::size_t proj_hash = Hash(proj);
+    const std::uint8_t proj_meta = proj_hash & 0b01111111;
 
-    *(meta() + offset) = proj_meta;
-    *(slots() + offset) = std::move(value);
-    ++size_;
-    return true;
+    std::size_t offset = proj_hash;
+    for (std::size_t i = 0;; ++i) {
+      offset = (offset + i) & capacity_mask_;
+
+      const std::uint8_t offset_meta = *(meta() + offset);
+      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
+        return false;
+      }
+      if (!full(offset_meta)) {
+        *(meta() + offset) = proj_meta;
+        *(slots() + offset) = std::move(value);
+        ++size_;
+        return true;
+      }
+    }
   }
 
   // Inserts the given `value` and returns true if `Project(value)` is not
   // already inserted. Otherwise overrides the value and returns false.
   inline bool Set(V value) {
-    if (size_ > (capacity() >> 1)) Resize();
+    if (size_ > (capacity() >> 1)) resize();
 
-    auto [offset, proj_meta] = Locate(Project(value));
-    *(slots() + offset) = std::move(value);
-    if (proj_meta == 0) return false;
+    const P& proj = Project(value);
+    const std::size_t proj_hash = Hash(proj);
+    const std::uint8_t proj_meta = proj_hash & 0b01111111;
 
-    *(meta() + offset) = proj_meta;
-    ++size_;
-    return true;
+    std::size_t offset = proj_hash;
+    for (std::size_t i = 0;; ++i) {
+      offset = (offset + i) & capacity_mask_;
+
+      const std::uint8_t offset_meta = *(meta() + offset);
+      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
+        *(slots() + offset) = std::move(value);
+        return false;
+      }
+      if (!full(offset_meta)) {
+        *(meta() + offset) = proj_meta;
+        *(slots() + offset) = std::move(value);
+        ++size_;
+        return true;
+      }
+    }
+  }
+
+  // Removes the value that corresponds to the given projection and returns true
+  // if present. Otherwise returns false.
+  inline bool Remove(const P& proj) {
+    const std::size_t proj_hash = Hash(proj);
+    const std::uint8_t proj_meta = proj_hash & 0b01111111;
+
+    std::size_t offset = proj_hash;
+    for (std::size_t i = 0;; ++i) {
+      offset = (offset + i) & capacity_mask_;
+
+      const std::uint8_t offset_meta = *(meta() + offset);
+      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
+        *(meta() + offset) = 0b11111110;
+        --size_;
+        return true;
+      }
+      if (empty(offset_meta)) return false;
+    }
   }
 
   // Returns the number of unique values inserted so far.
@@ -93,43 +145,31 @@ class HashTable {
     return ((64 + max_align - 1) / max_align) * max_align;
   }();
 
-  inline std::size_t capacity() const { return capacity_mask_ + 1; }
-
-  // Returns [offset, 0] if `proj` is present in the table at the respective
-  // offset. Otherwise returns [offset, proj_meta], with the offset at which
-  // `proj` will be inserted and its respective metadata.
-  inline std::pair<std::size_t, std::uint8_t> Locate(const P& proj) const {
-    const std::size_t proj_hash = Hash(proj);
-    const std::uint8_t proj_meta = proj_hash | 0b10000000;
-
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
-
-      const std::uint8_t offset_meta = *(meta() + offset);
-      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
-        return std::make_pair(offset, 0);
-      }
-      if (offset_meta == 0) return std::make_pair(offset, proj_meta);
-    }
+  static constexpr std::uint8_t* alloc_storage(std::size_t size) {
+    std::uint8_t* storage = static_cast<std::uint8_t*>(
+        std::aligned_alloc(alignof(std::max_align_t), size + size * sizeof(V)));
+    std::fill(storage, storage + size, 0b10000000);
+    return storage;
   }
 
-  inline void Resize() {
-    const std::size_t old_capacity = capacity();
-    std::uint8_t* old_meta = meta();
-    V* old_slots = slots();
+  static constexpr bool full(std::uint8_t meta) {
+    return (meta & 0b10000000) == 0;
+  }
 
-    capacity_mask_ = (old_capacity << 1) - 1;
+  static constexpr bool empty(std::uint8_t meta) { return meta == 0b10000000; }
+
+  inline std::size_t capacity() const { return capacity_mask_ + 1; }
+
+  inline void resize() {
+    HashTable<V, P, Project> old = std::move(*this);
+
+    capacity_mask_ = (old.capacity_mask_ << 1) + 1;
     size_ = 0;
-    storage_ = static_cast<std::uint8_t*>(std::aligned_alloc(
-        alignof(std::max_align_t), capacity() + capacity() * sizeof(V)));
-    std::fill(meta(), meta() + capacity(), 0);
+    storage_ = alloc_storage(capacity());
 
-    for (std::size_t pos = 0; pos < old_capacity; ++pos) {
-      if (*(old_meta + pos) != 0) Insert(std::move(*(old_slots + pos)));
+    for (std::size_t pos = 0; pos < old.capacity(); ++pos) {
+      if (full(*(old.meta() + pos))) Insert(std::move(*(old.slots() + pos)));
     }
-
-    std::free(old_meta);
   }
 
   inline std::uint8_t* meta() const { return storage_; }
@@ -140,7 +180,7 @@ class HashTable {
 
   std::size_t capacity_mask_;
   std::size_t size_;
-  std::uint8_t* storage_ = nullptr;
+  std::uint8_t* storage_;
 };
 
 }  // namespace lucid
