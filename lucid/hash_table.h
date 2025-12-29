@@ -34,11 +34,8 @@ class HashTable {
 
   HashTable(const HashTable& other)
       : capacity_mask_(other.capacity_mask_),
-        size_(0),
         storage_(alloc_storage(capacity())) {
-    for (std::size_t pos = 0; pos < other.capacity(); ++pos) {
-      if (full(*(other.meta() + pos))) Insert(*(other.slots() + pos));
-    }
+    fill_from(other);
   }
 
   ~HashTable() {
@@ -137,7 +134,7 @@ class HashTable {
   }
 
   // Returns the number of unique values inserted so far.
-  inline std::size_t Size() const { return size_; }
+  inline std::size_t Size() const noexcept { return size_; }
 
  private:
   static constexpr std::size_t kInitialCapacity = [] {
@@ -145,36 +142,60 @@ class HashTable {
     return ((64 + max_align - 1) / max_align) * max_align;
   }();
 
-  static constexpr std::uint8_t* alloc_storage(std::size_t size) {
-    std::uint8_t* storage = static_cast<std::uint8_t*>(
-        std::aligned_alloc(alignof(std::max_align_t), size + size * sizeof(V)));
-    std::fill(storage, storage + size, 0b10000000);
+  static constexpr std::uint8_t* alloc_storage(std::size_t size) noexcept {
+    auto* storage =
+        static_cast<std::uint8_t*>(std::malloc(size + size * sizeof(V)));
+    std::fill_n(storage, size, 0b10000000);
     return storage;
   }
 
-  static constexpr bool full(std::uint8_t meta) {
+  static constexpr bool full(std::uint8_t meta) noexcept {
     return (meta & 0b10000000) == 0;
   }
 
-  static constexpr bool empty(std::uint8_t meta) { return meta == 0b10000000; }
+  static constexpr bool empty(std::uint8_t meta) noexcept {
+    return meta == 0b10000000;
+  }
 
-  inline std::size_t capacity() const { return capacity_mask_ + 1; }
+  inline std::size_t capacity() const noexcept { return capacity_mask_ + 1; }
 
-  inline void resize() {
+  void resize() noexcept {
     HashTable<V, P, Project> old = std::move(*this);
 
     capacity_mask_ = (old.capacity_mask_ << 1) + 1;
-    size_ = 0;
     storage_ = alloc_storage(capacity());
 
-    for (std::size_t pos = 0; pos < old.capacity(); ++pos) {
-      if (full(*(old.meta() + pos))) Insert(std::move(*(old.slots() + pos)));
+    fill_from(std::move(old));
+  }
+
+  template <typename T>
+  inline void fill_from(T&& other) noexcept {
+    size_ = other.size_;
+
+    for (std::size_t pos = 0; pos < other.capacity(); ++pos) {
+      const std::uint8_t proj_meta = *(other.meta() + pos);
+      if (!full(proj_meta)) continue;
+
+      V& value = *(other.slots() + pos);
+      const P& proj = Project(value);
+      const std::size_t proj_hash = Hash(proj);
+
+      std::size_t offset = proj_hash;
+      for (std::size_t i = 0;; ++i) {
+        offset = (offset + i) & capacity_mask_;
+
+        if (full(*(meta() + offset))) continue;
+
+        *(meta() + offset) = proj_meta;
+        *(slots() + offset) = std::move(value);
+        break;
+      }
     }
   }
 
-  inline std::uint8_t* meta() const { return storage_; }
+  inline std::uint8_t* meta() const noexcept { return storage_; }
 
-  inline V* slots() const {
+  inline V* slots() const noexcept {
     return reinterpret_cast<V*>(storage_ + capacity());
   }
 
