@@ -22,10 +22,12 @@ const T& Identity(const T& i) noexcept {
 template <typename V, typename P = V, const P& (*Project)(const V&) = &Identity>
 class HashTable {
  public:
-  HashTable()
-      : capacity_mask_(kInitialCapacity - 1),
+  HashTable() : HashTable(kInitialCapacity) {}
+
+  HashTable(std::size_t capacity)
+      : capacity_mask_(capacity - 1),
         size_(0),
-        storage_(alloc_storage(capacity())) {}
+        storage_(alloc_storage(capacity)) {}
 
   HashTable(HashTable&& other)
       : capacity_mask_(other.capacity_mask_),
@@ -45,7 +47,7 @@ class HashTable {
   HashTable& operator=(HashTable other) {
     capacity_mask_ = other.capacity_mask_;
     size_ = other.size_;
-    storage_ = std::exchange(other.storage_, nullptr);
+    std::swap(storage_, other.storage_);
     return *this;
   }
 
@@ -179,20 +181,11 @@ class HashTable {
   inline std::size_t capacity() const noexcept { return capacity_mask_ + 1; }
 
   void resize() noexcept {
-    HashTable old = std::move(*this);
-
-    capacity_mask_ = (old.capacity_mask_ << 1) + 1;
-    storage_ = alloc_storage(capacity());
-
-    fill_from(std::move(old));
+    *this = std::move(HashTable(capacity() << 1).fill_from(*this));
   }
 
-  
-
   template <typename T>
-  inline void fill_from(T&& other) noexcept {
-    size_ = other.size_;
-
+  inline HashTable& fill_from(T&& other) noexcept {
     for (std::size_t pos = 0; pos < other.capacity(); ++pos) {
       const std::uint8_t proj_meta = *(other.meta() + pos);
       if (!full(proj_meta)) continue;
@@ -212,6 +205,8 @@ class HashTable {
         break;
       }
     }
+    size_ = other.size_;
+    return *this;
   }
 
   inline std::uint8_t* meta() const noexcept { return storage_; }
