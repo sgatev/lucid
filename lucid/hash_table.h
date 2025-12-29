@@ -42,6 +42,13 @@ class HashTable {
     if (storage_ != nullptr) std::free(storage_);
   }
 
+  HashTable& operator=(HashTable other) {
+    capacity_mask_ = other.capacity_mask_;
+    size_ = other.size_;
+    storage_ = std::exchange(other.storage_, nullptr);
+    return *this;
+  }
+
   bool operator==(const HashTable& other) const noexcept {
     if (size_ != other.size_) return false;
     for (std::uint8_t offset = 0; offset < other.capacity(); ++offset) {
@@ -179,6 +186,8 @@ class HashTable {
 
     fill_from(std::move(old));
   }
+
+  
 
   template <typename T>
   inline void fill_from(T&& other) noexcept {

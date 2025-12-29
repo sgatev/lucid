@@ -127,7 +127,7 @@ TEST(HashMap, Scaling) {
   }
 }
 
-TEST(HashMap, Copy) {
+TEST(HashMap, CopyConstruct) {
   HashMap<std::int32_t, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
@@ -140,17 +140,45 @@ TEST(HashMap, Copy) {
   EXPECT_THAT(map_copy.Find(13), Optional(26));
 }
 
-TEST(HashMap, Move) {
+TEST(HashMap, CopyAssign) {
   HashMap<std::int32_t, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_TRUE(map.Insert(13, 26));
 
-  HashMap<std::int32_t, int> map_move = std::move(map);
+  HashMap<std::int32_t, int> map_copy;
+  map_copy = map;
+
+  EXPECT_EQ(map_copy.Size(), 2);
+  EXPECT_THAT(map_copy.Find(21), Optional(42));
+  EXPECT_THAT(map_copy.Find(13), Optional(26));
+}
+
+TEST(HashMap, MoveConstruct) {
+  HashMap<MoveOnly, int> map;
+
+  EXPECT_TRUE(map.Insert(MoveOnly(21), 42));
+  EXPECT_TRUE(map.Insert(MoveOnly(13), 26));
+
+  HashMap<MoveOnly, int> map_move = std::move(map);
 
   EXPECT_EQ(map_move.Size(), 2);
-  EXPECT_THAT(map_move.Find(21), Optional(42));
-  EXPECT_THAT(map_move.Find(13), Optional(26));
+  EXPECT_THAT(map_move.Find(MoveOnly(21)), Optional(42));
+  EXPECT_THAT(map_move.Find(MoveOnly(13)), Optional(26));
+}
+
+TEST(HashMap, MoveAssign) {
+  HashMap<MoveOnly, int> map;
+
+  EXPECT_TRUE(map.Insert(MoveOnly(21), 42));
+  EXPECT_TRUE(map.Insert(MoveOnly(13), 26));
+
+  HashMap<MoveOnly, int> map_move;
+  map_move = std::move(map);
+
+  EXPECT_EQ(map_move.Size(), 2);
+  EXPECT_THAT(map_move.Find(MoveOnly(21)), Optional(42));
+  EXPECT_THAT(map_move.Find(MoveOnly(13)), Optional(26));
 }
 
 TEST(HashMap, Equal) {

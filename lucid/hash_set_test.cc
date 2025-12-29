@@ -104,7 +104,7 @@ TEST(HashSet, Scaling) {
   }
 }
 
-TEST(HashSet, Copy) {
+TEST(HashSet, CopyConstruct) {
   HashSet<int> set;
 
   EXPECT_TRUE(set.Insert(21));
@@ -117,17 +117,45 @@ TEST(HashSet, Copy) {
   EXPECT_TRUE(set_copy.Contains(13));
 }
 
-TEST(HashSet, Move) {
+TEST(HashSet, CopyAssign) {
   HashSet<int> set;
 
   EXPECT_TRUE(set.Insert(21));
   EXPECT_TRUE(set.Insert(13));
 
-  HashSet<int> set_move = std::move(set);
+  HashSet<int> set_copy;
+  set_copy = set;
+
+  EXPECT_EQ(set_copy.Size(), 2);
+  EXPECT_TRUE(set_copy.Contains(21));
+  EXPECT_TRUE(set_copy.Contains(13));
+}
+
+TEST(HashSet, MoveConstruct) {
+  HashSet<MoveOnly> set;
+
+  EXPECT_TRUE(set.Insert(MoveOnly(21)));
+  EXPECT_TRUE(set.Insert(MoveOnly(13)));
+
+  HashSet<MoveOnly> set_move = std::move(set);
 
   EXPECT_EQ(set_move.Size(), 2);
-  EXPECT_TRUE(set_move.Contains(21));
-  EXPECT_TRUE(set_move.Contains(13));
+  EXPECT_TRUE(set_move.Contains(MoveOnly(21)));
+  EXPECT_TRUE(set_move.Contains(MoveOnly(13)));
+}
+
+TEST(HashSet, MoveAssign) {
+  HashSet<MoveOnly> set;
+
+  EXPECT_TRUE(set.Insert(MoveOnly(21)));
+  EXPECT_TRUE(set.Insert(MoveOnly(13)));
+
+  HashSet<MoveOnly> set_move;
+  set_move = std::move(set);
+
+  EXPECT_EQ(set_move.Size(), 2);
+  EXPECT_TRUE(set_move.Contains(MoveOnly(21)));
+  EXPECT_TRUE(set_move.Contains(MoveOnly(13)));
 }
 
 TEST(HashSet, Equal) {
