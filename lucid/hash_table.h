@@ -34,7 +34,7 @@ class HashTable {
   HashTable(const HashTable& other)
       : capacity_mask_(other.capacity_mask_),
         storage_(alloc_storage(capacity())) {
-    fill_from(other);
+    with_content_from(other);
   }
 
   ~HashTable() {
@@ -178,11 +178,11 @@ class HashTable {
   inline std::size_t capacity() const noexcept { return capacity_mask_ + 1; }
 
   void resize() noexcept {
-    *this = std::move(HashTable(capacity() << 1).fill_from(*this));
+    *this = std::move(HashTable(capacity() << 1).with_content_from(*this));
   }
 
   template <typename T>
-  inline HashTable& fill_from(T&& other) noexcept {
+  inline HashTable& with_content_from(T&& other) noexcept {
     for (std::size_t pos = 0; pos < other.capacity(); ++pos) {
       const std::uint8_t proj_meta = *(other.meta() + pos);
       if (!full(proj_meta)) continue;
