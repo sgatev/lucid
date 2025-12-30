@@ -8,18 +8,15 @@
 #include <optional>
 #include <utility>
 
+#include "lucid/functional.h"
 #include "lucid/hash.h"
 #include "lucid/optional_ref.h"
 
 namespace lucid {
 
-template <typename T>
-const T& Identity(const T& i) noexcept {
-  return i;
-}
-
 // A hash table that contains values of type `V`.
-template <typename V, typename P = V, const P& (*Project)(const V&) = &Identity>
+template <typename V, typename P = V,
+          const P& (*Project)(const V&) = &identity<const V&>>
 class HashTable {
  public:
   HashTable() : HashTable(kInitialCapacity) {}

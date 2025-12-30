@@ -378,6 +378,20 @@ cc_test(
 )
 
 cc_library(
+    name = "functional",
+    hdrs = ["functional.h"],
+)
+
+cc_test(
+    name = "functional_test",
+    srcs = ["functional_test.cc"],
+    deps = [
+        ":functional",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "hash",
     hdrs = ["hash.h"],
 )
@@ -442,6 +456,7 @@ cc_library(
     name = "hash_table",
     hdrs = ["hash_table.h"],
     deps = [
+        ":functional",
         ":hash",
         ":optional_ref",
     ],
