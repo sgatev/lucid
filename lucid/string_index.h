@@ -35,7 +35,7 @@ class StringIndex {
     OptionalRef<Ref> res = string_to_ref_.Find(s);
     if (res.has_value()) return *res;
 
-    Ref ref(ref_to_string_.Size(), static_cast<std::int32_t>(s.size()));
+    Ref ref(ref_to_string_.size(), static_cast<std::int32_t>(s.size()));
     ref_to_string_.Insert(ref, s);
     string_to_ref_.Insert(s, ref);
 

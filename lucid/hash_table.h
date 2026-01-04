@@ -183,7 +183,7 @@ class HashTable {
   }
 
   // Returns the number of unique values inserted so far.
-  inline std::size_t Size() const noexcept { return size_; }
+  inline std::size_t size() const noexcept { return size_; }
 
   // Returns a const iterator referring to the first value in the table or
   // `end()`, if there isn't one.

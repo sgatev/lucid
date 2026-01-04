@@ -45,7 +45,7 @@ using ::testing::UnorderedElementsAre;
 TEST(HashSet, Empty) {
   HashSet<int> set;
 
-  EXPECT_EQ(set.Size(), 0);
+  EXPECT_EQ(set.size(), 0);
   EXPECT_FALSE(set.Contains(21));
 }
 
@@ -54,7 +54,7 @@ TEST(HashSet, Insert) {
 
   EXPECT_TRUE(set.Insert(21));
 
-  EXPECT_EQ(set.Size(), 1);
+  EXPECT_EQ(set.size(), 1);
   EXPECT_TRUE(set.Contains(21));
   EXPECT_FALSE(set.Contains(42));
 }
@@ -65,7 +65,7 @@ TEST(HashSet, InsertSame) {
   EXPECT_TRUE(set.Insert(21));
   EXPECT_FALSE(set.Insert(21));
 
-  EXPECT_EQ(set.Size(), 1);
+  EXPECT_EQ(set.size(), 1);
   EXPECT_TRUE(set.Contains(21));
 }
 
@@ -75,7 +75,7 @@ TEST(HashSet, InsertDifferent) {
   EXPECT_TRUE(set.Insert(21));
   EXPECT_TRUE(set.Insert(13));
 
-  EXPECT_EQ(set.Size(), 2);
+  EXPECT_EQ(set.size(), 2);
   EXPECT_TRUE(set.Contains(21));
   EXPECT_TRUE(set.Contains(13));
 }
@@ -87,7 +87,7 @@ TEST(HashSet, Remove) {
   EXPECT_TRUE(set.Remove(21));
   EXPECT_FALSE(set.Remove(42));
 
-  EXPECT_EQ(set.Size(), 0);
+  EXPECT_EQ(set.size(), 0);
   EXPECT_FALSE(set.Contains(21));
 }
 
@@ -98,7 +98,7 @@ TEST(HashSet, Scaling) {
     EXPECT_TRUE(set.Insert(i));
   }
 
-  EXPECT_EQ(set.Size(), 10000);
+  EXPECT_EQ(set.size(), 10000);
 
   for (int i = 1; i <= 10000; ++i) {
     EXPECT_TRUE(set.Contains(i));
@@ -113,7 +113,7 @@ TEST(HashSet, CopyConstruct) {
 
   HashSet<int> set_copy = set;
 
-  EXPECT_EQ(set_copy.Size(), 2);
+  EXPECT_EQ(set_copy.size(), 2);
   EXPECT_TRUE(set_copy.Contains(21));
   EXPECT_TRUE(set_copy.Contains(13));
 }
@@ -127,7 +127,7 @@ TEST(HashSet, CopyAssign) {
   HashSet<int> set_copy;
   set_copy = set;
 
-  EXPECT_EQ(set_copy.Size(), 2);
+  EXPECT_EQ(set_copy.size(), 2);
   EXPECT_TRUE(set_copy.Contains(21));
   EXPECT_TRUE(set_copy.Contains(13));
 }
@@ -140,7 +140,7 @@ TEST(HashSet, MoveConstruct) {
 
   HashSet<MoveOnly> set_move = std::move(set);
 
-  EXPECT_EQ(set_move.Size(), 2);
+  EXPECT_EQ(set_move.size(), 2);
   EXPECT_TRUE(set_move.Contains(MoveOnly(21)));
   EXPECT_TRUE(set_move.Contains(MoveOnly(13)));
 }
@@ -154,7 +154,7 @@ TEST(HashSet, MoveAssign) {
   HashSet<MoveOnly> set_move;
   set_move = std::move(set);
 
-  EXPECT_EQ(set_move.Size(), 2);
+  EXPECT_EQ(set_move.size(), 2);
   EXPECT_TRUE(set_move.Contains(MoveOnly(21)));
   EXPECT_TRUE(set_move.Contains(MoveOnly(13)));
 }

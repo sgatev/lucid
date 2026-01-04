@@ -497,6 +497,7 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
+        ":hash_set",
         ":string_index",
     ],
 )

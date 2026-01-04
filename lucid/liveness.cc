@@ -1,7 +1,6 @@
 #include "lucid/liveness.h"
 
 #include <ranges>
-#include <unordered_set>
 #include <variant>
 
 #include "lucid/ast.h"
@@ -19,16 +18,16 @@ State LivenessAnalysis::Transfer(State state,
                                  const ControlFlowGraph::Sequence& seq) {
   for (auto expr : seq.expressions | std::views::reverse) {
     if (auto* ident = std::get_if<IdentExpr>(&ctx_.DerefExpr(expr))) {
-      state.live_in.insert(ident->name);
+      state.live_in.Insert(ident->name);
     }
   }
   if (seq.stmt.has_value()) {
     if (auto* var_assign =
             std::get_if<VarAssignStmt>(&ctx_.DerefStmt(*seq.stmt))) {
-      state.live_in.erase(var_assign->name);
+      state.live_in.Remove(var_assign->name);
     } else if (auto* var_decl =
                    std::get_if<VarDeclStmt>(&ctx_.DerefStmt(*seq.stmt))) {
-      state.live_in.erase(var_decl->name);
+      state.live_in.Remove(var_decl->name);
     }
   }
   return state;
@@ -36,8 +35,8 @@ State LivenessAnalysis::Transfer(State state,
 
 State LivenessAnalysis::Join(State left, State right) {
   State state;
-  state.live_out.insert(left.live_in.begin(), left.live_in.end());
-  state.live_out.insert(right.live_in.begin(), right.live_in.end());
+  for (StringIndex::Ref ref : left.live_in) state.live_out.Insert(ref);
+  for (StringIndex::Ref ref : right.live_in) state.live_out.Insert(ref);
   state.live_in = state.live_out;
   return state;
 }

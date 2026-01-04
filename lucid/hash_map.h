@@ -40,7 +40,10 @@ class HashMap {
   inline bool Remove(const K& key) { return table_.Remove(key); }
 
   // Returns the number of unique keys inserted so far.
-  inline std::size_t Size() const { return table_.Size(); }
+  inline std::size_t size() const { return table_.size(); }
+
+  // Returns true iff there are no key-value pairs in the map.
+  inline bool empty() const { return size() == 0; }
 
   // Returns a const iterator referring to the first key-value pair in the map
   // or `end()`, if there isn't one.

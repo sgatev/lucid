@@ -28,7 +28,10 @@ class HashSet {
   inline bool Remove(const V& value) { return table_.Remove(value); }
 
   // Returns the number of unique values inserted so far.
-  inline std::size_t Size() const { return table_.Size(); }
+  inline std::size_t size() const { return table_.size(); }
+
+  // Returns true iff there are no values in the set.
+  inline bool empty() const { return size() == 0; }
 
   // Returns a const iterator referring to the first value in the set or
   // `end()`, if there isn't one.

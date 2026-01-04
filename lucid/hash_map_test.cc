@@ -47,7 +47,7 @@ using ::testing::UnorderedElementsAre;
 TEST(HashMap, FindMiss) {
   HashMap<int, int> map;
 
-  EXPECT_EQ(map.Size(), 0);
+  EXPECT_EQ(map.size(), 0);
   EXPECT_EQ(map.Find(21), std::nullopt);
 }
 
@@ -56,7 +56,7 @@ TEST(HashMap, Insert) {
 
   EXPECT_TRUE(map.Insert(21, 42));
 
-  EXPECT_EQ(map.Size(), 1);
+  EXPECT_EQ(map.size(), 1);
   EXPECT_THAT(map.Find(21), Optional(42));
   EXPECT_EQ(map.Find(42), std::nullopt);
 }
@@ -67,7 +67,7 @@ TEST(HashMap, InsertSameKey) {
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_FALSE(map.Insert(21, 84));
 
-  EXPECT_EQ(map.Size(), 1);
+  EXPECT_EQ(map.size(), 1);
   EXPECT_THAT(map.Find(21), Optional(42));
 }
 
@@ -77,7 +77,7 @@ TEST(HashMap, InsertDifferentKey) {
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_TRUE(map.Insert(13, 26));
 
-  EXPECT_EQ(map.Size(), 2);
+  EXPECT_EQ(map.size(), 2);
   EXPECT_THAT(map.Find(21), Optional(42));
   EXPECT_THAT(map.Find(13), Optional(26));
 }
@@ -88,7 +88,7 @@ TEST(HashMap, SetSameKey) {
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_FALSE(map.Set(21, 84));
 
-  EXPECT_EQ(map.Size(), 1);
+  EXPECT_EQ(map.size(), 1);
   EXPECT_THAT(map.Find(21), Optional(84));
   EXPECT_EQ(map.Find(84), std::nullopt);
 }
@@ -99,7 +99,7 @@ TEST(HashMap, SetDifferentKey) {
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_TRUE(map.Set(13, 26));
 
-  EXPECT_EQ(map.Size(), 2);
+  EXPECT_EQ(map.size(), 2);
   EXPECT_THAT(map.Find(21), Optional(42));
   EXPECT_THAT(map.Find(13), Optional(26));
 }
@@ -111,7 +111,7 @@ TEST(HashMap, Remove) {
   EXPECT_TRUE(map.Remove(21));
   EXPECT_FALSE(map.Remove(42));
 
-  EXPECT_EQ(map.Size(), 0);
+  EXPECT_EQ(map.size(), 0);
   EXPECT_EQ(map.Find(21), std::nullopt);
 }
 
@@ -122,7 +122,7 @@ TEST(HashMap, Scaling) {
     EXPECT_TRUE(map.Insert(i, i * 2));
   }
 
-  EXPECT_EQ(map.Size(), 10000);
+  EXPECT_EQ(map.size(), 10000);
 
   for (int i = 1; i <= 10000; ++i) {
     EXPECT_THAT(map.Find(i), Optional(i * 2));
@@ -137,7 +137,7 @@ TEST(HashMap, CopyConstruct) {
 
   HashMap<std::int32_t, int> map_copy = map;
 
-  EXPECT_EQ(map_copy.Size(), 2);
+  EXPECT_EQ(map_copy.size(), 2);
   EXPECT_THAT(map_copy.Find(21), Optional(42));
   EXPECT_THAT(map_copy.Find(13), Optional(26));
 }
@@ -151,7 +151,7 @@ TEST(HashMap, CopyAssign) {
   HashMap<std::int32_t, int> map_copy;
   map_copy = map;
 
-  EXPECT_EQ(map_copy.Size(), 2);
+  EXPECT_EQ(map_copy.size(), 2);
   EXPECT_THAT(map_copy.Find(21), Optional(42));
   EXPECT_THAT(map_copy.Find(13), Optional(26));
 }
@@ -164,7 +164,7 @@ TEST(HashMap, MoveConstruct) {
 
   HashMap<MoveOnly, int> map_move = std::move(map);
 
-  EXPECT_EQ(map_move.Size(), 2);
+  EXPECT_EQ(map_move.size(), 2);
   EXPECT_THAT(map_move.Find(MoveOnly(21)), Optional(42));
   EXPECT_THAT(map_move.Find(MoveOnly(13)), Optional(26));
 }
@@ -178,7 +178,7 @@ TEST(HashMap, MoveAssign) {
   HashMap<MoveOnly, int> map_move;
   map_move = std::move(map);
 
-  EXPECT_EQ(map_move.Size(), 2);
+  EXPECT_EQ(map_move.size(), 2);
   EXPECT_THAT(map_move.Find(MoveOnly(21)), Optional(42));
   EXPECT_THAT(map_move.Find(MoveOnly(13)), Optional(26));
 }

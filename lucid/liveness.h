@@ -1,9 +1,8 @@
 #pragma once
 
-#include <unordered_set>
-
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/hash_set.h"
 #include "lucid/string_index.h"
 
 namespace lucid {
@@ -16,11 +15,11 @@ class LivenessAnalysis {
 
     // References of variables that are live before entering the block modeled
     // by this state.
-    std::unordered_set<StringIndex::Ref> live_in;
+    HashSet<StringIndex::Ref> live_in;
 
     // References of variables that are live after exiting the block modeled by
     // this state.
-    std::unordered_set<StringIndex::Ref> live_out;
+    HashSet<StringIndex::Ref> live_out;
   };
 
   explicit LivenessAnalysis(const SyntaxContext& ctx);
