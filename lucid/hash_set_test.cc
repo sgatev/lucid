@@ -40,6 +40,7 @@ inline std::size_t Hash(const MoveOnly& v) { return Hash(v.v); }
 namespace {
 
 using ::testing::Optional;
+using ::testing::UnorderedElementsAre;
 
 TEST(HashSet, Empty) {
   HashSet<int> set;
@@ -246,6 +247,49 @@ TEST(HashSet, MoveOnly) {
   EXPECT_TRUE(set.Contains(MoveOnly(1)));
   EXPECT_TRUE(set.Contains(MoveOnly(2)));
   EXPECT_FALSE(set.Contains(MoveOnly(3)));
+}
+
+TEST(HashSet, IteratorCompareDifferentSets) {
+  HashSet<int> set1;
+  set1.Insert(21);
+
+  HashSet<int> set2;
+  set2.Insert(21);
+
+  EXPECT_NE(set1.begin(), set2.begin());
+  EXPECT_NE(set1.end(), set2.end());
+}
+
+TEST(HashSet, IteratorCompareEmpty) {
+  HashSet<int> set;
+
+  EXPECT_EQ(set.begin(), set.begin());
+  EXPECT_EQ(set.end(), set.end());
+  EXPECT_EQ(set.begin(), set.end());
+}
+
+TEST(HashSet, IteratorCompareNonEmpty) {
+  HashSet<int> set;
+  set.Insert(21);
+
+  EXPECT_EQ(set.begin(), set.begin());
+  EXPECT_EQ(set.end(), set.end());
+  EXPECT_EQ(++set.begin(), set.end());
+}
+
+TEST(HashSet, IteratorDeref) {
+  HashSet<int> set;
+  set.Insert(21);
+
+  EXPECT_EQ(*set.begin(), 21);
+}
+
+TEST(HashSet, IteratorRange) {
+  HashSet<int> set;
+  set.Insert(21);
+  set.Insert(13);
+
+  EXPECT_THAT(set, UnorderedElementsAre(13, 21));
 }
 
 }  // namespace

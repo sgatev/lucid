@@ -41,6 +41,8 @@ inline std::size_t Hash(const MoveOnly& v) { return Hash(v.v); }
 namespace {
 
 using ::testing::Optional;
+using ::testing::Pair;
+using ::testing::UnorderedElementsAre;
 
 TEST(HashMap, FindMiss) {
   HashMap<int, int> map;
@@ -281,6 +283,49 @@ TEST(HashMap, MoveOnly) {
 
   EXPECT_EQ(map.Find(MoveOnly(1)), MoveOnly(42));
   EXPECT_EQ(map.Find(MoveOnly(2)), MoveOnly(26));
+}
+
+TEST(HashMap, IteratorCompareDifferentMaps) {
+  HashMap<int, int> map1;
+  map1.Insert(21, 42);
+
+  HashMap<int, int> map2;
+  map2.Insert(21, 42);
+
+  EXPECT_NE(map1.begin(), map2.begin());
+  EXPECT_NE(map1.end(), map2.end());
+}
+
+TEST(HashMap, IteratorCompareEmpty) {
+  HashMap<int, int> map;
+
+  EXPECT_EQ(map.begin(), map.begin());
+  EXPECT_EQ(map.end(), map.end());
+  EXPECT_EQ(map.begin(), map.end());
+}
+
+TEST(HashMap, IteratorCompareNonEmpty) {
+  HashMap<int, int> map;
+  map.Insert(21, 42);
+
+  EXPECT_EQ(map.begin(), map.begin());
+  EXPECT_EQ(map.end(), map.end());
+  EXPECT_EQ(++map.begin(), map.end());
+}
+
+TEST(HashMap, IteratorDeref) {
+  HashMap<int, int> map;
+  map.Insert(21, 42);
+
+  EXPECT_THAT(*map.begin(), Pair(21, 42));
+}
+
+TEST(HashMap, IteratorRange) {
+  HashMap<int, int> map;
+  map.Insert(21, 42);
+  map.Insert(13, 26);
+
+  EXPECT_THAT(map, UnorderedElementsAre(Pair(13, 26), Pair(21, 42)));
 }
 
 }  // namespace

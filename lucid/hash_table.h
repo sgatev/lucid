@@ -19,6 +19,37 @@ template <typename V, typename P = V,
           const P& (*Project)(const V&) = &identity<const V&>>
 class HashTable {
  public:
+  class ConstIterator {
+   public:
+    using value_type = const V;
+
+    bool operator==(const ConstIterator&) const = default;
+
+    const V& operator*() const { return *(table_->slots() + pos_); }
+
+    const V* operator->() const { return table_->slots() + pos_; }
+
+    ConstIterator& operator++() {
+      pos_ = table_->next_full(pos_ + 1);
+      return *this;
+    }
+
+    ConstIterator operator++(int) {
+      ConstIterator it(*this);
+      ++(*this);
+      return it;
+    }
+
+   private:
+    friend class HashTable;
+
+    ConstIterator(const HashTable& table, std::size_t pos)
+        : table_(&table), pos_(pos) {}
+
+    const HashTable* table_;
+    std::size_t pos_;
+  };
+
   HashTable() : HashTable(kInitialCapacity) {}
 
   HashTable(std::size_t capacity)
@@ -154,6 +185,17 @@ class HashTable {
   // Returns the number of unique values inserted so far.
   inline std::size_t Size() const noexcept { return size_; }
 
+  // Returns a const iterator referring to the first value in the table or
+  // `end()`, if there isn't one.
+  ConstIterator begin() const noexcept {
+    return ConstIterator(*this, next_full(0));
+  }
+
+  // Returns a const iterator past the last value in the table.
+  ConstIterator end() const noexcept {
+    return ConstIterator(*this, capacity());
+  }
+
  private:
   static constexpr std::size_t kInitialCapacity = [] {
     static constexpr std::size_t max_align = alignof(std::max_align_t);
@@ -176,6 +218,11 @@ class HashTable {
   }
 
   inline std::size_t capacity() const noexcept { return capacity_mask_ + 1; }
+
+  inline std::size_t next_full(std::size_t pos) const noexcept {
+    while (pos < capacity() && !full(*(meta() + pos))) ++pos;
+    return pos;
+  }
 
   void resize() noexcept {
     *this = std::move(HashTable(capacity() << 1).with_content_from(*this));

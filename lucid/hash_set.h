@@ -9,7 +9,11 @@ namespace lucid {
 // A hash table that contains values of type `V`.
 template <typename V>
 class HashSet {
+  using HashTableT = HashTable<V>;
+
  public:
+  using value_type = V;
+
   bool operator==(const HashSet&) const noexcept = default;
 
   // Returns true iff the table contains `value`.
@@ -26,8 +30,15 @@ class HashSet {
   // Returns the number of unique values inserted so far.
   inline std::size_t Size() const { return table_.Size(); }
 
+  // Returns a const iterator referring to the first value in the set or
+  // `end()`, if there isn't one.
+  inline HashTableT::ConstIterator begin() const { return table_.begin(); }
+
+  // Returns a const iterator past the last value in the set.
+  inline HashTableT::ConstIterator end() const { return table_.end(); }
+
  private:
-  HashTable<V> table_;
+  HashTableT table_;
 };
 
 }  // namespace lucid

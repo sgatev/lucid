@@ -10,7 +10,11 @@ namespace lucid {
 // A hash table that maps keys of type `K` to values of type `V`.
 template <typename K, typename V>
 class HashMap {
+  using HashTableT = HashTable<std::pair<K, V>, K, &std::get<0, K, V>>;
+
  public:
+  using value_type = std::pair<K, V>;
+
   bool operator==(const HashMap&) const noexcept = default;
 
   // Returns the value that corresponds to the given `key` if the table contains
@@ -38,8 +42,15 @@ class HashMap {
   // Returns the number of unique keys inserted so far.
   inline std::size_t Size() const { return table_.Size(); }
 
+  // Returns a const iterator referring to the first key-value pair in the map
+  // or `end()`, if there isn't one.
+  inline HashTableT::ConstIterator begin() const { return table_.begin(); }
+
+  // Returns a const iterator past the last key-value pair in the map.
+  inline HashTableT::ConstIterator end() const { return table_.end(); }
+
  private:
-  HashTable<std::pair<K, V>, K, &std::get<0, K, V>> table_;
+  HashTableT table_;
 };
 
 }  // namespace lucid
