@@ -625,6 +625,7 @@ cc_library(
         ":ast",
         ":cfg",
         ":dataflow",
+        ":dom",
         ":hash_map",
         ":hash_set",
         ":liveness",

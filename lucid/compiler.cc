@@ -84,6 +84,8 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     ConvertToStaticSingleAssignment(ctx, cfg);
     HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>> ig =
         BuildInterferenceGraph(ctx, cfg);
+    HashMap<StringIndex::Ref, int> ig_colors =
+        ColorInterferenceGraph(ctx, cfg, ig, 10);
     DestroyStaticSingleAssignment(ctx, cfg);
     GenerateAbstractMachineFunction(ctx, cfg, *state);
     OptimizeAbstractMachineInstructions(state->func.instructions);
