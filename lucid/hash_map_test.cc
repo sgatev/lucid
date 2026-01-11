@@ -38,6 +38,22 @@ struct MoveOnly {
 
 inline std::size_t Hash(const MoveOnly& v) { return Hash(v.v); }
 
+struct ConstructOnly {
+  std::uint32_t v;
+
+  explicit ConstructOnly(std::uint32_t v) : v(v) {}
+
+  ConstructOnly(ConstructOnly&&) = default;
+  ConstructOnly& operator=(ConstructOnly&&) = delete;
+
+  ConstructOnly(const ConstructOnly&) = delete;
+  ConstructOnly& operator=(const ConstructOnly&) = delete;
+
+  bool operator==(const ConstructOnly&) const = default;
+};
+
+inline std::size_t Hash(const ConstructOnly& v) { return Hash(v.v); }
+
 namespace {
 
 using ::testing::Optional;
@@ -283,6 +299,17 @@ TEST(HashMap, MoveOnly) {
 
   EXPECT_EQ(map.Find(MoveOnly(1)), MoveOnly(42));
   EXPECT_EQ(map.Find(MoveOnly(2)), MoveOnly(26));
+}
+
+TEST(HashMap, ConstructOnly) {
+  HashMap<ConstructOnly, ConstructOnly> map;
+
+  EXPECT_TRUE(map.Insert(ConstructOnly(1), ConstructOnly(42)));
+  EXPECT_TRUE(map.Insert(ConstructOnly(2), ConstructOnly(26)));
+  EXPECT_FALSE(map.Insert(ConstructOnly(1), ConstructOnly(21)));
+
+  EXPECT_EQ(map.Find(ConstructOnly(1)), ConstructOnly(42));
+  EXPECT_EQ(map.Find(ConstructOnly(2)), ConstructOnly(26));
 }
 
 TEST(HashMap, IteratorCompareDifferentMaps) {

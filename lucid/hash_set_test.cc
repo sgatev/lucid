@@ -37,6 +37,22 @@ struct MoveOnly {
 
 inline std::size_t Hash(const MoveOnly& v) { return Hash(v.v); }
 
+struct ConstructOnly {
+  std::uint32_t v;
+
+  explicit ConstructOnly(std::uint32_t v) : v(v) {}
+
+  ConstructOnly(ConstructOnly&&) = default;
+  ConstructOnly& operator=(ConstructOnly&&) = delete;
+
+  ConstructOnly(const ConstructOnly&) = delete;
+  ConstructOnly& operator=(const ConstructOnly&) = delete;
+
+  bool operator==(const ConstructOnly&) const = default;
+};
+
+inline std::size_t Hash(const ConstructOnly& v) { return Hash(v.v); }
+
 namespace {
 
 using ::testing::Optional;
@@ -247,6 +263,20 @@ TEST(HashSet, MoveOnly) {
   EXPECT_TRUE(set.Contains(MoveOnly(1)));
   EXPECT_TRUE(set.Contains(MoveOnly(2)));
   EXPECT_FALSE(set.Contains(MoveOnly(3)));
+}
+
+TEST(HashSet, ConstructOnly) {
+  HashSet<ConstructOnly> set;
+
+  EXPECT_TRUE(set.Insert(ConstructOnly(21)));
+  EXPECT_TRUE(set.Insert(ConstructOnly(13)));
+
+  HashSet<ConstructOnly> set_move;
+  set_move = std::move(set);
+
+  EXPECT_EQ(set_move.size(), 2);
+  EXPECT_TRUE(set_move.Contains(ConstructOnly(21)));
+  EXPECT_TRUE(set_move.Contains(ConstructOnly(13)));
 }
 
 TEST(HashSet, IteratorCompareDifferentSets) {
