@@ -59,23 +59,21 @@ class BlockDomain {
 template <DataflowAnalysis AnalysisT>
 std::vector<std::optional<typename AnalysisT::State>> RunBackwardDataflow(
     const ControlFlowGraph& cfg, AnalysisT& analysis) {
-  using Block = ControlFlowGraph::Block;
-  using BlockRef = ControlFlowGraph::BlockRef;
   using State = typename AnalysisT::State;
 
   std::vector<std::optional<State>> block_states(cfg.blocks().Size());
-  auto block_to_state = [&](BlockRef ref) {
-    return block_states[ref.id()].value_or(State());
-  };
+  auto has_state = [&](auto ref) { return block_states[ref.id()].has_value(); };
+  auto to_state = [&](auto ref) { return *block_states[ref.id()]; };
 
-  Worklist<BlockRef, BlockDomain, CompareBlockOrder> worklist(
+  Worklist<ControlFlowGraph::BlockRef, BlockDomain, CompareBlockOrder> worklist(
       BlockDomain(cfg), CompareBlockOrder(ComputeReversePostOrder(cfg)));
   worklist.push(cfg.last);
 
   while (!worklist.empty()) {
-    const Block& block = cfg.get(worklist.pop());
+    const ControlFlowGraph::Block& block = cfg.get(worklist.pop());
     State prior_state = std::ranges::fold_left(
-        block.next | std::views::transform(block_to_state),
+        block.next | std::views::filter(has_state) |
+            std::views::transform(to_state),
         analysis.MakeInitial(), std::bind_front(&AnalysisT::Join, &analysis));
     State new_state = std::ranges::fold_left(
         block.sequences | std::views::reverse, std::move(prior_state),
