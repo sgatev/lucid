@@ -64,7 +64,9 @@ std::vector<std::optional<typename AnalysisT::State>> RunBackwardDataflow(
   using State = typename AnalysisT::State;
 
   std::vector<std::optional<State>> block_states(cfg.blocks().Size());
-  auto block_to_state = [&](BlockRef ref) { return *block_states[ref.id()]; };
+  auto block_to_state = [&](BlockRef ref) {
+    return block_states[ref.id()].value_or(State());
+  };
 
   Worklist<BlockRef, BlockDomain, CompareBlockOrder> worklist(
       BlockDomain(cfg), CompareBlockOrder(ComputeReversePostOrder(cfg)));

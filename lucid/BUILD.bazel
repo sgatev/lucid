@@ -257,10 +257,13 @@ cc_binary(
         ":cfg_printer",
         ":cli",
         ":file",
+        ":hash_map",
+        ":hash_set",
         ":lexer",
         ":macho",
         ":opt",
         ":parser",
+        ":reg",
         ":ssa",
         ":static",
         ":type",
@@ -616,9 +619,30 @@ cc_binary(
 
 cc_library(
     name = "reg",
+    srcs = ["reg.cc"],
     hdrs = ["reg.h"],
     deps = [
+        ":ast",
+        ":cfg",
+        ":dataflow",
+        ":hash_map",
+        ":hash_set",
+        ":liveness",
         ":string_index",
+    ],
+)
+
+cc_test(
+    name = "reg_test",
+    srcs = ["reg_test.cc"],
+    deps = [
+        ":ast",
+        ":cfg",
+        ":lexer",
+        ":parser",
+        ":reg",
+        ":string_index",
+        "@googletest//:gtest_main",
     ],
 )
 

@@ -19,10 +19,13 @@
 #include "lucid/cfg_printer.h"
 #include "lucid/cli.h"
 #include "lucid/file.h"
+#include "lucid/hash_map.h"
+#include "lucid/hash_set.h"
 #include "lucid/lexer.h"
 #include "lucid/macho.h"
 #include "lucid/opt.h"
 #include "lucid/parser.h"
+#include "lucid/reg.h"
 #include "lucid/result.h"
 #include "lucid/ssa.h"
 #include "lucid/static.h"
@@ -74,13 +77,15 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     if (auto res = InferExprTypes(ctx, func_defs, func); res.HasError()) {
       return res.GetError();
     }
-    auto graph = BuildControlFlowGraph(ctx, func);
-    if (auto res = InferStaticExprs(ctx, graph); res.HasError()) {
+    ControlFlowGraph cfg = BuildControlFlowGraph(ctx, func);
+    if (auto res = InferStaticExprs(ctx, cfg); res.HasError()) {
       return res.GetError();
     }
-    ConvertToStaticSingleAssignment(ctx, graph);
-    DestroyStaticSingleAssignment(ctx, graph);
-    GenerateAbstractMachineFunction(ctx, graph, *state);
+    ConvertToStaticSingleAssignment(ctx, cfg);
+    HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>> ig =
+        BuildInterferenceGraph(ctx, cfg);
+    DestroyStaticSingleAssignment(ctx, cfg);
+    GenerateAbstractMachineFunction(ctx, cfg, *state);
     OptimizeAbstractMachineInstructions(state->func.instructions);
     GenerateArmAssemblyBinary(ctx, state->func, assembler);
   }

@@ -149,10 +149,16 @@ TEST(RunBackwardDataflowTest, Conditional) {
 
 TEST(RunBackwardDataflowTest, Loop) {
   std::string code = StringWithNull(R"(
-    let foo = (c: Bool) -> Int32 {
+    let factors = (n: Int32) -> Int32 {
+      let i: Int32 = 0
       loop {
-        return 1
+        if i == n {
+          break
+        }
+
+        i = i + 1
       }
+      return 0
     }
   )");
 
@@ -166,22 +172,32 @@ TEST(RunBackwardDataflowTest, Loop) {
   std::vector<std::optional<TestResultUnionAnalysis::State>> block_states =
       RunBackwardDataflow(cfg, analysis);
 
-  ASSERT_THAT(block_states, SizeIs(4));
+  ASSERT_THAT(block_states, SizeIs(6));
 
   auto first = cfg.first;
   EXPECT_THAT(block_states[first.id()],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre("1"))));
+                             UnorderedElementsAre("0"))));
 
   auto loop_branch = cfg.get(first).next[0];
   EXPECT_THAT(block_states[loop_branch.id()],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre("1"))));
+                             UnorderedElementsAre("0"))));
 
-  auto post_loop = cfg.get(loop_branch).next[0];
-  EXPECT_THAT(
-      block_states[post_loop.id()],
-      Optional(Field(&TestResultUnionAnalysis::State::results, IsEmpty())));
+  auto then_branch = cfg.get(loop_branch).next[0];
+  EXPECT_THAT(block_states[then_branch.id()],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre("0"))));
+
+  auto else_branch = cfg.get(loop_branch).next[1];
+  EXPECT_THAT(block_states[else_branch.id()],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre("0"))));
+
+  auto post_loop = cfg.get(then_branch).next[0];
+  EXPECT_THAT(block_states[post_loop.id()],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre("0"))));
 
   auto last = cfg.last;
   EXPECT_THAT(
