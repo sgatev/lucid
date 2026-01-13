@@ -68,7 +68,6 @@ std::vector<std::optional<typename AnalysisT::State>> RunBackwardDataflow(
   Worklist<ControlFlowGraph::BlockRef, BlockDomain, CompareBlockOrder> worklist(
       BlockDomain(cfg), CompareBlockOrder(ComputeReversePostOrder(cfg)));
   worklist.push(cfg.last);
-
   while (!worklist.empty()) {
     const ControlFlowGraph::Block& block = cfg.get(worklist.pop());
     State prior_state = std::ranges::fold_left(
@@ -78,8 +77,7 @@ std::vector<std::optional<typename AnalysisT::State>> RunBackwardDataflow(
     State new_state = std::ranges::fold_left(
         block.sequences | std::views::reverse, std::move(prior_state),
         std::bind_front(&AnalysisT::Transfer, &analysis));
-    auto& state = block_states[block.ref.id()];
-    if (new_state != state) {
+    if (auto& state = block_states[block.ref.id()]; new_state != state) {
       state = std::move(new_state);
       worklist.push_range(block.preds);
     }
