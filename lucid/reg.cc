@@ -40,7 +40,7 @@ HashMap<std::uint32_t, HashSet<std::uint32_t>> BuildDominatorTree(
 
 HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>> BuildInterferenceGraph(
     const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
-  LivenessAnalysis liveness_analysis(ctx);
+  ControlFlowGraphAnalysis<LivenessAnalysis> liveness_analysis(cfg, ctx);
   std::vector<std::optional<LivenessAnalysis::State>> liveness_block_states =
       RunBackwardDataflow(cfg, liveness_analysis);
 

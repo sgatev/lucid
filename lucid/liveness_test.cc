@@ -48,7 +48,7 @@ TEST(LivenessAnalysisTest, Conditional) {
   auto func_def = std::get<std::optional<FuncDefStmt>>(parser.ParseFuncDef());
   auto cfg = BuildControlFlowGraph(ctx, *func_def);
 
-  LivenessAnalysis analysis(ctx);
+  ControlFlowGraphAnalysis<LivenessAnalysis> analysis(cfg, ctx);
   std::vector<std::optional<LivenessAnalysis::State>> block_states =
       RunBackwardDataflow(cfg, analysis);
 

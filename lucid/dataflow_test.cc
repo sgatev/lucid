@@ -81,7 +81,7 @@ TEST(RunBackwardDataflowTest, Simple) {
   auto func_def = std::get<std::optional<FuncDefStmt>>(parser.ParseFuncDef());
   auto cfg = BuildControlFlowGraph(ctx, *func_def);
 
-  TestResultUnionAnalysis analysis(ctx);
+  ControlFlowGraphAnalysis<TestResultUnionAnalysis> analysis(cfg, ctx);
   std::vector<std::optional<TestResultUnionAnalysis::State>> block_states =
       RunBackwardDataflow(cfg, analysis);
 
@@ -115,7 +115,7 @@ TEST(RunBackwardDataflowTest, Conditional) {
   auto func_def = std::get<std::optional<FuncDefStmt>>(parser.ParseFuncDef());
   auto cfg = BuildControlFlowGraph(ctx, *func_def);
 
-  TestResultUnionAnalysis analysis(ctx);
+  ControlFlowGraphAnalysis<TestResultUnionAnalysis> analysis(cfg, ctx);
   std::vector<std::optional<TestResultUnionAnalysis::State>> block_states =
       RunBackwardDataflow(cfg, analysis);
 
@@ -168,7 +168,7 @@ TEST(RunBackwardDataflowTest, Loop) {
   auto func_def = std::get<std::optional<FuncDefStmt>>(parser.ParseFuncDef());
   auto cfg = BuildControlFlowGraph(ctx, *func_def);
 
-  TestResultUnionAnalysis analysis(ctx);
+  ControlFlowGraphAnalysis<TestResultUnionAnalysis> analysis(cfg, ctx);
   std::vector<std::optional<TestResultUnionAnalysis::State>> block_states =
       RunBackwardDataflow(cfg, analysis);
 

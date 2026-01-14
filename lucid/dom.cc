@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "lucid/cfg.h"
-#include "lucid/cfg_order.h"
+#include "lucid/graph_order.h"
 
 namespace lucid {
 
@@ -13,7 +13,8 @@ using BlockRef = ControlFlowGraph::BlockRef;
 static constexpr auto kNullBlockRef = ControlFlowGraph::kNullBlockRef;
 
 std::vector<BlockRef> ComputeImmediateDominators(const ControlFlowGraph& cfg) {
-  const CompareBlockOrder compare(ComputeReversePostOrder(cfg));
+  const CompareVertexOrder<ControlFlowGraph> compare(
+      ComputeReversePostOrder(cfg));
 
   std::vector<BlockRef> blocks;
   for (const auto& block : cfg.blocks()) blocks.push_back(block.ref.id());

@@ -196,28 +196,6 @@ cc_test(
 )
 
 cc_library(
-    name = "cfg_order",
-    srcs = ["cfg_order.cc"],
-    hdrs = ["cfg_order.h"],
-    deps = [
-        ":cfg",
-    ],
-)
-
-cc_test(
-    name = "cfg_order_test",
-    srcs = ["cfg_order_test.cc"],
-    deps = [
-        ":ast",
-        ":cfg",
-        ":cfg_order",
-        ":lexer",
-        ":parser",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "cfg_printer",
     srcs = ["cfg_printer.cc"],
     hdrs = ["cfg_printer.h"],
@@ -318,8 +296,7 @@ cc_library(
     name = "dataflow",
     hdrs = ["dataflow.h"],
     deps = [
-        ":cfg",
-        ":cfg_order",
+        ":graph_order",
         ":worklist",
     ],
 )
@@ -343,7 +320,7 @@ cc_library(
     hdrs = ["dom.h"],
     deps = [
         ":cfg",
-        ":cfg_order",
+        ":graph_order",
     ],
 )
 
@@ -390,6 +367,32 @@ cc_test(
     srcs = ["functional_test.cc"],
     deps = [
         ":functional",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "graph",
+    hdrs = ["graph.h"],
+)
+
+cc_library(
+    name = "graph_order",
+    hdrs = ["graph_order.h"],
+    deps = [
+        ":graph",
+    ],
+)
+
+cc_test(
+    name = "graph_order_test",
+    srcs = ["graph_order_test.cc"],
+    deps = [
+        ":ast",
+        ":cfg",
+        ":graph_order",
+        ":lexer",
+        ":parser",
         "@googletest//:gtest_main",
     ],
 )

@@ -1,7 +1,10 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <optional>
+#include <ranges>
 #include <vector>
 
 #include "lucid/arena.h"
@@ -15,6 +18,7 @@ namespace lucid {
 struct ControlFlowGraph {
   struct Block;
   using BlockRef = Arena<Block>::Ref;
+  using vertex_type = BlockRef;
 
   // A null block reference.
   static constexpr BlockRef kNullBlockRef = Arena<Block>::kNullRef;
@@ -111,12 +115,58 @@ struct ControlFlowGraph {
   Arena<Block> blocks_;
 };
 
+inline std::size_t VertexCount(const ControlFlowGraph& cfg) {
+  return cfg.blocks().Size();
+}
+
+inline ControlFlowGraph::BlockRef SourceVertex(const ControlFlowGraph& cfg) {
+  return cfg.first;
+}
+
+inline ControlFlowGraph::BlockRef SinkVertex(const ControlFlowGraph& cfg) {
+  return cfg.last;
+}
+
+inline std::vector<ControlFlowGraph::BlockRef> NextVertices(
+    const ControlFlowGraph& cfg, ControlFlowGraph::BlockRef block) {
+  return cfg.get(block).next;
+}
+
+inline std::vector<ControlFlowGraph::BlockRef> PrevVertices(
+    const ControlFlowGraph& cfg, ControlFlowGraph::BlockRef block) {
+  return cfg.get(block).preds;
+}
+
 // Returns the control flow graph of `func`.
 //
 // Requires:
 // - `func` must be associated with `ctx`.
 ControlFlowGraph BuildControlFlowGraph(const SyntaxContext& ctx,
                                        const FuncDefStmt& func);
+
+template <typename T>
+class ControlFlowGraphAnalysis {
+ public:
+  using State = T::State;
+
+  explicit ControlFlowGraphAnalysis(const ControlFlowGraph& cfg,
+                                    const SyntaxContext& ctx)
+      : cfg_(cfg), t_(ctx) {}
+
+  State MakeInitial() { return t_.MakeInitial(); }
+
+  State Transfer(State state, const ControlFlowGraph::BlockRef& block) {
+    return std::ranges::fold_left(
+        cfg_.get(block).sequences | std::views::reverse, state,
+        std::bind_front(&T::Transfer, &t_));
+  }
+
+  State Join(State left, State right) { return t_.Join(left, right); }
+
+ private:
+  const ControlFlowGraph& cfg_;
+  T t_;
+};
 
 }  // namespace lucid
 
