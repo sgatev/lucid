@@ -320,6 +320,7 @@ cc_library(
     hdrs = ["dom.h"],
     deps = [
         ":cfg",
+        ":graph",
         ":graph_order",
     ],
 )

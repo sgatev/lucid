@@ -24,10 +24,12 @@ namespace {
 HashMap<std::uint32_t, HashSet<std::uint32_t>> BuildDominatorTree(
     const ControlFlowGraph& cfg) {
   HashMap<std::uint32_t, HashSet<std::uint32_t>> dom_tree;
-  std::vector<ControlFlowGraph::BlockRef> idoms =
+  std::vector<std::optional<ControlFlowGraph::BlockRef>> idoms =
       ComputeImmediateDominators(cfg);
   for (int i = 0; i < idoms.size(); ++i) {
-    std::uint32_t from = idoms[i].id();
+    if (!idoms[i].has_value()) continue;
+
+    std::uint32_t from = idoms[i]->id();
     std::uint32_t to = i;
 
     dom_tree.Insert(from, {});

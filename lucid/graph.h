@@ -1,3 +1,5 @@
+#pragma once
+
 #include <concepts>
 #include <cstddef>
 #include <vector>
@@ -8,6 +10,7 @@ namespace lucid {
 template <typename G>
 concept Graph = requires(G g, G::vertex_type v) {
   { VertexCount(g) } -> std::same_as<std::size_t>;
+  { Vertices(g) } -> std::same_as<std::vector<typename G::vertex_type>>;
   { SourceVertex(g) } -> std::same_as<typename G::vertex_type>;
   { SinkVertex(g) } -> std::same_as<typename G::vertex_type>;
   { NextVertices(g, v) } -> std::same_as<std::vector<typename G::vertex_type>>;

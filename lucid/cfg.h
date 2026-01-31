@@ -119,6 +119,13 @@ inline std::size_t VertexCount(const ControlFlowGraph& cfg) {
   return cfg.blocks().Size();
 }
 
+inline std::vector<ControlFlowGraph::BlockRef> Vertices(
+    const ControlFlowGraph& cfg) {
+  std::vector<ControlFlowGraph::BlockRef> blocks;
+  for (const auto& block : cfg.blocks()) blocks.push_back(block.ref);
+  return blocks;
+}
+
 inline ControlFlowGraph::BlockRef SourceVertex(const ControlFlowGraph& cfg) {
   return cfg.first;
 }

@@ -46,7 +46,7 @@ CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
 }
 
 void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
-  const std::vector<BlockRef> idoms = ComputeImmediateDominators(cfg);
+  const std::vector<std::optional<BlockRef>> idoms = ComputeImmediateDominators(cfg);
   const std::unordered_map<BlockRef, std::unordered_set<BlockRef>> dom_fronts =
       ComputeDominanceFrontiers(cfg, idoms);
   const std::unordered_map<StringIndex::Ref,
@@ -178,12 +178,13 @@ void ConvertToStaticSingleAssignment(SyntaxContext& ctx,
 }
 
 void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
-  const std::vector<BlockRef> idoms = ComputeImmediateDominators(cfg);
+  const std::vector<std::optional<BlockRef>> idoms = ComputeImmediateDominators(cfg);
 
   for (auto& block : cfg.blocks()) {
     if (block.phis.empty()) continue;
 
-    auto& dom = cfg.get(idoms[block.ref.id()]);
+    assert(idoms[block.ref.id()].has_value());
+    auto& dom = cfg.get(*idoms[block.ref.id()]);
     for (const auto& phi : block.phis) {
       auto& seq = dom.sequences.emplace_back();
       auto init_expr = IntLitExpr{.value = ctx.AddIdent("0")};
