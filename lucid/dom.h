@@ -1,12 +1,12 @@
 #pragma once
 
 #include <algorithm>
+#include <cassert>
 #include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include "lucid/cfg.h"
 #include "lucid/graph.h"
 #include "lucid/graph_order.h"
 
@@ -16,7 +16,7 @@ namespace lucid {
 // respective immediate dominators of the vertices, i.e. their parent nodes in
 // the dominator tree induced by `graph`.
 template <Graph GraphT>
-inline std::vector<std::optional<typename GraphT::vertex_type>>
+std::vector<std::optional<typename GraphT::vertex_type>>
 ComputeImmediateDominators(const GraphT& graph) {
   const CompareVertexOrder<GraphT> compare(ComputeReversePostOrder(graph));
 
@@ -67,16 +67,36 @@ ComputeImmediateDominators(const GraphT& graph) {
   return idoms;
 }
 
-// Returns a map from basic blocks in `cfg` to their respective dominance
-// frontiers. Only blocks with non-empty dominance frontiers are represented in
-// the map.
+// Returns a map from vertices in `graph` to their respective dominance
+// frontiers. Only vertices with non-empty dominance frontiers are represented
+// in the map.
 //
 // Requires:
-// - `idoms` must be the immediate dominators computed from `cfg`.
-std::unordered_map<ControlFlowGraph::BlockRef,
-                   std::unordered_set<ControlFlowGraph::BlockRef>>
+// - `idoms` must be the immediate dominators computed from `graph`.
+template <Graph GraphT>
+std::unordered_map<typename GraphT::vertex_type,
+                   std::unordered_set<typename GraphT::vertex_type>>
 ComputeDominanceFrontiers(
-    const ControlFlowGraph& cfg,
-    const std::vector<std::optional<ControlFlowGraph::BlockRef>>& idoms);
+    const GraphT& graph,
+    const std::vector<std::optional<typename GraphT::vertex_type>>& idoms) {
+  std::unordered_map<typename GraphT::vertex_type,
+                     std::unordered_set<typename GraphT::vertex_type>>
+      dom_fronts;
+  for (const auto& front_vertex : Vertices(graph)) {
+    auto prev_vertices = PrevVertices(graph, front_vertex);
+    if (prev_vertices.size() < 2) continue;
+
+    for (auto prev_vertex : prev_vertices) {
+      while (prev_vertex != idoms[front_vertex.id()]) {
+        dom_fronts[prev_vertex].insert(front_vertex);
+
+        if (!idoms[prev_vertex.id()].has_value()) break;
+
+        prev_vertex = *idoms[prev_vertex.id()];
+      }
+    }
+  }
+  return dom_fronts;
+}
 
 }  // namespace lucid

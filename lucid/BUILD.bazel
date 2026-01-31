@@ -316,10 +316,8 @@ cc_test(
 
 cc_library(
     name = "dom",
-    srcs = ["dom.cc"],
     hdrs = ["dom.h"],
     deps = [
-        ":cfg",
         ":graph",
         ":graph_order",
     ],

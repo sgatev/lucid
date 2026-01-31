@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 #include "lucid/ast.h"
 #include "lucid/ast_fixture.h"
+#include "lucid/cfg.h"
 
 namespace lucid {
 namespace {
