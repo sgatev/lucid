@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "lucid/am_cfg.h"
 #include "lucid/am_gen.h"
 #include "lucid/arm64.h"
 #include "lucid/arm64_gen.h"
@@ -18,6 +19,7 @@
 #include "lucid/cfg.h"
 #include "lucid/cfg_printer.h"
 #include "lucid/cli.h"
+#include "lucid/dom.h"
 #include "lucid/file.h"
 #include "lucid/hash_map.h"
 #include "lucid/hash_set.h"
@@ -89,6 +91,10 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     DestroyStaticSingleAssignment(ctx, cfg);
     GenerateAbstractMachineFunction(ctx, cfg, *state);
     OptimizeAbstractMachineInstructions(state->func.instructions);
+    AbstractMachineControlFlowGraph am_cfg =
+        BuildAbstractMachineControlFlowGraph(state->func.instructions);
+    std::vector<std::optional<AbstractMachineControlFlowGraph::BlockRef>>
+        am_cfg_idoms = ComputeImmediateDominators(am_cfg);
     GenerateArmAssemblyBinary(ctx, state->func, assembler);
   }
   GenerateArmEndBinary(ctx, state->strings, assembler);

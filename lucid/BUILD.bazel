@@ -20,6 +20,17 @@ cc_test(
 )
 
 cc_library(
+    name = "am_cfg",
+    srcs = ["am_cfg.cc"],
+    hdrs = ["am_cfg.h"],
+    deps = [
+        ":am",
+        ":hash_map",
+        ":hash_set",
+    ],
+)
+
+cc_library(
     name = "am_gen",
     srcs = ["am_gen.cc"],
     hdrs = ["am_gen.h"],
@@ -228,6 +239,7 @@ cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
     deps = [
+        ":am_cfg",
         ":am_gen",
         ":arena",
         ":arm64",
@@ -238,6 +250,7 @@ cc_binary(
         ":cfg",
         ":cfg_printer",
         ":cli",
+        ":dom",
         ":file",
         ":hash_map",
         ":hash_set",
@@ -324,6 +337,8 @@ cc_library(
     deps = [
         ":graph",
         ":graph_order",
+        ":hash_map",
+        ":hash_set",
     ],
 )
 
