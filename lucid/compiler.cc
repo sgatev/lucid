@@ -90,7 +90,7 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
         BuildAbstractMachineControlFlowGraph(state->func.instructions);
     HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
     HashMap<RegId, int> am_ig_colors =
-        ColorInterferenceGraph(am_cfg, am_ig, 10);
+        ColorInterferenceGraph(am_cfg, am_ig, 14);
     GenerateArmAssemblyBinary(ctx, state->func, assembler);
   }
   GenerateArmEndBinary(ctx, state->strings, assembler);

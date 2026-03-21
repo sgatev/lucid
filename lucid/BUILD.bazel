@@ -30,6 +30,16 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "am_cfg_test",
+    srcs = ["am_cfg_test.cc"],
+    deps = [
+        ":am",
+        ":am_cfg",
+        "@googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "am_gen",
     srcs = ["am_gen.cc"],
