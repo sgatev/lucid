@@ -62,6 +62,8 @@ class AbstractMachineControlFlowGraph {
   AbstractMachineControlFlowGraph(HashMap<std::uint32_t, Block> blocks)
       : blocks_(std::move(blocks)) {}
 
+  OptionalRef<Block> Get(BlockRef ref) const { return blocks_.Find(ref.id()); }
+
  private:
   friend std::size_t VertexCount(const AbstractMachineControlFlowGraph&);
   friend std::vector<BlockRef> Vertices(const AbstractMachineControlFlowGraph&);

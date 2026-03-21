@@ -76,9 +76,7 @@ cc_library(
     hdrs = ["am_liveness.h"],
     deps = [
         ":am_cfg",
-        ":ast",
         ":hash_set",
-        ":string_index",
     ],
 )
 
