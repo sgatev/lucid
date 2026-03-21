@@ -1,5 +1,10 @@
 #include "lucid/am_cfg.h"
 
+#include <span>
+
+#include "lucid/am.h"
+#include "lucid/hash_map.h"
+
 namespace lucid {
 
 AbstractMachineControlFlowGraph BuildAbstractMachineControlFlowGraph(
@@ -20,9 +25,16 @@ AbstractMachineControlFlowGraph BuildAbstractMachineControlFlowGraph(
   }
 
   std::uint32_t current_block_id = 0;
+  std::uint32_t current_inst_start = 0;
   for (std::size_t i = 0; i < instructions.size(); ++i) {
     if (auto* label = std::get_if<Label>(&instructions[i])) {
+      blocks.Find(current_block_id)->instructions_ =
+          std::span<const Instruction>(
+              instructions.begin() + current_inst_start,
+              i - current_inst_start);
+
       current_block_id = *block_ids.Find(label->id);
+      current_inst_start = i + 1;
     } else if (auto* jump = std::get_if<CondJump>(&instructions[i])) {
       std::uint32_t then_block_id = *block_ids.Find(jump->then_label);
       std::uint32_t else_block_id = *block_ids.Find(jump->else_label);
@@ -56,6 +68,9 @@ AbstractMachineControlFlowGraph BuildAbstractMachineControlFlowGraph(
           AbstractMachineControlFlowGraph::BlockRef(current_block_id));
     }
   }
+  blocks.Find(current_block_id)->instructions_ =
+      std::span<const Instruction>(instructions.begin() + current_inst_start,
+                                   instructions.size() - current_inst_start);
 
   return AbstractMachineControlFlowGraph(std::move(blocks));
 }

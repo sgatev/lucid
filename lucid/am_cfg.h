@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <span>
 #include <utility>
 #include <vector>
 
@@ -43,11 +44,15 @@ class AbstractMachineControlFlowGraph {
     // flow graph.
     const HashSet<BlockRef>& PreviousBlocks() const { return previous_blocks_; }
 
+    // Returns the instructions of the basic block.
+    std::span<const Instruction> Instructions() const { return instructions_; }
+
    private:
     friend AbstractMachineControlFlowGraph BuildAbstractMachineControlFlowGraph(
         const std::vector<Instruction>&);
 
     std::uint32_t id_;
+    std::span<const Instruction> instructions_;
     HashSet<BlockRef> next_blocks_;
     HashSet<BlockRef> previous_blocks_;
   };
