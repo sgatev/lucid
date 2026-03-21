@@ -103,17 +103,16 @@ ComputeDominanceFrontiers(
 
 // Returns the dominator tree induced by `graph`.
 template <Graph GraphT>
-HashMap<std::uint32_t, HashSet<std::uint32_t>> BuildDominatorTree(
-    const GraphT& graph) {
-  HashMap<std::uint32_t, HashSet<std::uint32_t>> dom_tree;
-  std::vector<std::optional<typename GraphT::vertex_type>> idoms =
+HashMap<typename GraphT::vertex_type, HashSet<typename GraphT::vertex_type>>
+BuildDominatorTree(const GraphT& graph) {
+  using vertex_type = typename GraphT::vertex_type;
+
+  HashMap<vertex_type, HashSet<vertex_type>> dom_tree;
+  std::vector<std::optional<vertex_type>> idoms =
       ComputeImmediateDominators(graph);
-  for (int i = 0; i < idoms.size(); ++i) {
-    if (!idoms[i].has_value()) continue;
-
-    std::uint32_t from = idoms[i]->id();
-    std::uint32_t to = i;
-
+  for (vertex_type to : Vertices(graph)) {
+    if (!idoms[to.id()].has_value()) continue;
+    vertex_type from = *idoms[to.id()];
     dom_tree.Insert(from, {});
     dom_tree.Find(from)->Insert(to);
   }

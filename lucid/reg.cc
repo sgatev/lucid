@@ -3,49 +3,36 @@
 #include <unistd.h>
 
 #include <cassert>
-#include <cstdint>
 #include <optional>
 #include <ranges>
 #include <stack>
 #include <vector>
 
-#include "lucid/ast.h"
-#include "lucid/cfg.h"
+#include "lucid/am.h"
+#include "lucid/am_cfg.h"
+#include "lucid/am_liveness.h"
 #include "lucid/dataflow.h"
 #include "lucid/dom.h"
 #include "lucid/hash_map.h"
 #include "lucid/hash_set.h"
-#include "lucid/liveness.h"
-#include "lucid/string_index.h"
 
 namespace lucid {
 
-HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>> BuildInterferenceGraph(
-    const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
-  ControlFlowGraphAnalysis<LivenessAnalysis> liveness_analysis(cfg, ctx);
-  std::vector<std::optional<LivenessAnalysis::State>> liveness_block_states =
-      RunBackwardDataflow(cfg, liveness_analysis);
+HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
+    const AbstractMachineControlFlowGraph& am_cfg) {
+  AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
+  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
+      liveness_block_states = RunBackwardDataflow(am_cfg, liveness_analysis);
 
-  HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>> interference_graph;
-  for (int i = 0; i < cfg.blocks().Size(); ++i) {
-    const auto& state = liveness_block_states[i];
+  HashMap<RegId, HashSet<RegId>> interference_graph;
+  for (auto block : Vertices(am_cfg)) {
+    const auto& state = liveness_block_states[block.id()];
     if (!state.has_value()) continue;
 
     auto vars = state->live_in;
-    for (const auto& seq : cfg.get(i).sequences) {
-      const auto& stmt_ref = seq.stmt;
-      if (!stmt_ref.has_value()) continue;
-      const auto& stmt = ctx.DerefStmt(*stmt_ref);
-
-      auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt);
-      if (var_decl_stmt == nullptr) continue;
-
-      vars.Insert(var_decl_stmt->name);
-    }
-
-    for (StringIndex::Ref from : vars) {
+    for (RegId from : vars) {
       interference_graph.Insert(from, {});
-      for (StringIndex::Ref to : vars) {
+      for (RegId to : vars) {
         if (from == to) continue;
 
         interference_graph.Find(from)->Insert(to);
@@ -55,38 +42,90 @@ HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>> BuildInterferenceGraph(
   return interference_graph;
 }
 
-HashMap<StringIndex::Ref, int> ColorInterferenceGraph(
-    const SyntaxContext& ctx, const ControlFlowGraph& cfg,
-    const HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>>& ig,
-    int colors_count) {
-  HashMap<StringIndex::Ref, int> ig_colors;
+HashMap<RegId, int> ColorInterferenceGraph(
+    const AbstractMachineControlFlowGraph& am_cfg,
+    const HashMap<RegId, HashSet<RegId>>& ig, int colors_count) {
+  HashMap<RegId, int> ig_colors;
 
-  HashMap<std::uint32_t, HashSet<std::uint32_t>> dom_tree =
-      BuildDominatorTree(cfg);
+  HashMap<AbstractMachineControlFlowGraph::BlockRef,
+          HashSet<AbstractMachineControlFlowGraph::BlockRef>>
+      dom_tree = BuildDominatorTree(am_cfg);
 
-  std::stack<std::uint32_t> pending;
-  std::vector<int> visited(cfg.blocks().Size(), 0);
+  std::stack<AbstractMachineControlFlowGraph::BlockRef> pending;
+  std::vector<int> visited(VertexCount(am_cfg), 0);
 
-  pending.push(cfg.first.id());
-  visited[cfg.first.id()] = 1;
+  pending.push(SourceVertex(am_cfg));
+  visited[SourceVertex(am_cfg).id()] = 1;
 
   while (!pending.empty()) {
     auto block = pending.top();
     pending.pop();
 
-    if (visited[block] == 2) {
+    if (visited[block.id()] == 2) {
       HashSet<int> colors;
       for (int i = 0; i < colors_count; ++i) colors.Insert(i);
 
-      for (const auto& seq : cfg.get(block).sequences | std::views::reverse) {
-        const auto& stmt_ref = seq.stmt;
-        if (!stmt_ref.has_value()) continue;
-        const auto& stmt = ctx.DerefStmt(*stmt_ref);
+      for (const auto& inst :
+           am_cfg.Get(block)->Instructions() | std::views::reverse) {
+        std::optional<RegId> dst_reg;
+        if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
+          dst_reg = cinst->dst_reg;
+        } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
+          dst_reg = cinst->dst_reg;
+        } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
+          dst_reg = cinst->dst_reg;
+        } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
+          dst_reg = cinst->dst_reg;
+        } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
+          dst_reg = cinst->dst_reg;
+        } else if (auto* cinst = std::get_if<AddReg32>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<AddReg64>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<SubReg32>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<SubReg64>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<MulReg32>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<MulReg64>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<DivReg32>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<DivReg64>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<ModReg32>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<LtReg64>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
+          dst_reg = cinst->res_reg;
+        } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
+          dst_reg = cinst->dst_reg;
+        } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
+          dst_reg = cinst->dst_reg;
+        } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
+          dst_reg = cinst->dst_reg;
+        } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
+          dst_reg = cinst->dst_reg;
+        }
+        if (!dst_reg.has_value()) continue;
 
-        auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt);
-        if (var_decl_stmt == nullptr) continue;
-
-        if (const auto& neighbours = ig.Find(var_decl_stmt->name);
+        if (const auto& neighbours = ig.Find(*dst_reg);
             neighbours.has_value()) {
           for (const auto& neighbour : *neighbours) {
             const auto& neighbour_color = ig_colors.Find(neighbour);
@@ -95,18 +134,18 @@ HashMap<StringIndex::Ref, int> ColorInterferenceGraph(
         }
 
         assert(colors.begin() != colors.end());
-        ig_colors.Insert(var_decl_stmt->name, *colors.begin());
+        ig_colors.Insert(*dst_reg, *colors.begin());
       }
     } else {
       pending.push(block);
-      visited[block] = 2;
+      visited[block.id()] = 2;
 
       if (dom_tree.Find(block).has_value()) {
         for (auto next_block : *dom_tree.Find(block)) {
-          if (visited[next_block] != 0) continue;
+          if (visited[next_block.id()] != 0) continue;
 
           pending.push(next_block);
-          visited[next_block] = 1;
+          visited[next_block.id()] = 1;
         }
       }
     }

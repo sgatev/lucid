@@ -19,7 +19,6 @@
 #include "lucid/cfg.h"
 #include "lucid/cfg_printer.h"
 #include "lucid/cli.h"
-#include "lucid/dom.h"
 #include "lucid/file.h"
 #include "lucid/hash_map.h"
 #include "lucid/hash_set.h"
@@ -84,17 +83,14 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
       return res.GetError();
     }
     ConvertToStaticSingleAssignment(ctx, cfg);
-    HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>> ig =
-        BuildInterferenceGraph(ctx, cfg);
-    HashMap<StringIndex::Ref, int> ig_colors =
-        ColorInterferenceGraph(ctx, cfg, ig, 10);
     DestroyStaticSingleAssignment(ctx, cfg);
     GenerateAbstractMachineFunction(ctx, cfg, *state);
     OptimizeAbstractMachineInstructions(state->func.instructions);
     AbstractMachineControlFlowGraph am_cfg =
         BuildAbstractMachineControlFlowGraph(state->func.instructions);
-    std::vector<std::optional<AbstractMachineControlFlowGraph::BlockRef>>
-        am_cfg_idoms = ComputeImmediateDominators(am_cfg);
+    HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
+    HashMap<RegId, int> am_ig_colors =
+        ColorInterferenceGraph(am_cfg, am_ig, 10);
     GenerateArmAssemblyBinary(ctx, state->func, assembler);
   }
   GenerateArmEndBinary(ctx, state->strings, assembler);

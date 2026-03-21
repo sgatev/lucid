@@ -1,19 +1,17 @@
 #pragma once
 
-#include "lucid/ast.h"
-#include "lucid/cfg.h"
+#include "lucid/am.h"
+#include "lucid/am_cfg.h"
 #include "lucid/hash_map.h"
 #include "lucid/hash_set.h"
-#include "lucid/string_index.h"
 
 namespace lucid {
 
-HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>> BuildInterferenceGraph(
-    const SyntaxContext& ctx, const ControlFlowGraph& cfg);
+HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
+    const AbstractMachineControlFlowGraph& am_cfg);
 
-HashMap<StringIndex::Ref, int> ColorInterferenceGraph(
-    const SyntaxContext& ctx, const ControlFlowGraph& cfg,
-    const HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>>& ig,
-    int colors_count);
+HashMap<RegId, int> ColorInterferenceGraph(
+    const AbstractMachineControlFlowGraph& am_cfg,
+    const HashMap<RegId, HashSet<RegId>>& ig, int colors_count);
 
 }  // namespace lucid
