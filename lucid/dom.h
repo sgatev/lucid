@@ -9,6 +9,8 @@
 
 #include "lucid/graph.h"
 #include "lucid/graph_order.h"
+#include "lucid/hash_map.h"
+#include "lucid/hash_set.h"
 
 namespace lucid {
 
@@ -97,6 +99,25 @@ ComputeDominanceFrontiers(
     }
   }
   return dom_fronts;
+}
+
+// Returns the dominator tree induced by `graph`.
+template <Graph GraphT>
+HashMap<std::uint32_t, HashSet<std::uint32_t>> BuildDominatorTree(
+    const GraphT& graph) {
+  HashMap<std::uint32_t, HashSet<std::uint32_t>> dom_tree;
+  std::vector<std::optional<typename GraphT::vertex_type>> idoms =
+      ComputeImmediateDominators(graph);
+  for (int i = 0; i < idoms.size(); ++i) {
+    if (!idoms[i].has_value()) continue;
+
+    std::uint32_t from = idoms[i]->id();
+    std::uint32_t to = i;
+
+    dom_tree.Insert(from, {});
+    dom_tree.Find(from)->Insert(to);
+  }
+  return dom_tree;
 }
 
 }  // namespace lucid

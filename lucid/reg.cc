@@ -19,26 +19,6 @@
 #include "lucid/string_index.h"
 
 namespace lucid {
-namespace {
-
-HashMap<std::uint32_t, HashSet<std::uint32_t>> BuildDominatorTree(
-    const ControlFlowGraph& cfg) {
-  HashMap<std::uint32_t, HashSet<std::uint32_t>> dom_tree;
-  std::vector<std::optional<ControlFlowGraph::BlockRef>> idoms =
-      ComputeImmediateDominators(cfg);
-  for (int i = 0; i < idoms.size(); ++i) {
-    if (!idoms[i].has_value()) continue;
-
-    std::uint32_t from = idoms[i]->id();
-    std::uint32_t to = i;
-
-    dom_tree.Insert(from, {});
-    dom_tree.Find(from)->Insert(to);
-  }
-  return dom_tree;
-}
-
-}  // namespace
 
 HashMap<StringIndex::Ref, HashSet<StringIndex::Ref>> BuildInterferenceGraph(
     const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
