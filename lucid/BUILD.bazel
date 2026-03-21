@@ -71,6 +71,33 @@ cc_binary(
 )
 
 cc_library(
+    name = "am_liveness",
+    srcs = ["am_liveness.cc"],
+    hdrs = ["am_liveness.h"],
+    deps = [
+        ":am_cfg",
+        ":ast",
+        ":hash_set",
+        ":string_index",
+    ],
+)
+
+cc_test(
+    name = "am_liveness_test",
+    srcs = ["am_liveness_test.cc"],
+    deps = [
+        ":am_cfg",
+        ":am_liveness",
+        ":ast",
+        ":dataflow",
+        ":lexer",
+        ":parser",
+        ":string_index",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "arena",
     hdrs = ["arena.h"],
 )
