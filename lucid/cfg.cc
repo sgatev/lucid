@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "lucid/ast.h"
-#include "lucid/successive_list.h"
+#include "lucid/core/container/successive_list.h"
 
 namespace lucid {
 namespace {

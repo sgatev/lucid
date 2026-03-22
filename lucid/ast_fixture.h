@@ -11,8 +11,8 @@
 #include "gmock/gmock.h"
 #include "lucid/ast.h"
 #include "lucid/core/container/arena.h"
+#include "lucid/core/container/successive_list.h"
 #include "lucid/string_index.h"
-#include "lucid/successive_list.h"
 
 namespace lucid {
 

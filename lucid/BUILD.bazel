@@ -147,8 +147,8 @@ cc_library(
     hdrs = ["ast.h"],
     deps = [
         ":string_index",
-        ":successive_list",
         "//lucid/core/container:arena",
+        "//lucid/core/container:successive_list",
     ],
 )
 
@@ -177,8 +177,8 @@ cc_library(
     deps = [
         ":ast",
         ":string_index",
-        ":successive_list",
         "//lucid/core/container:arena",
+        "//lucid/core/container:successive_list",
         "@googletest//:gtest",
     ],
 )
@@ -221,8 +221,8 @@ cc_library(
     hdrs = ["cfg.h"],
     deps = [
         ":ast",
-        ":successive_list",
         "//lucid/core/container:arena",
+        "//lucid/core/container:successive_list",
     ],
 )
 
@@ -617,10 +617,10 @@ cc_library(
         ":ast",
         ":lexer",
         ":string_index",
-        ":successive_list",
         ":token",
         "//lucid/core/container:arena",
         "//lucid/core/container:fixed_map",
+        "//lucid/core/container:successive_list",
     ],
 )
 
@@ -764,20 +764,6 @@ cc_test(
     srcs = ["string_index_test.cc"],
     deps = [
         ":string_index",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "successive_list",
-    hdrs = ["successive_list.h"],
-)
-
-cc_test(
-    name = "successive_list_test",
-    srcs = ["successive_list_test.cc"],
-    deps = [
-        ":successive_list",
         "@googletest//:gtest_main",
     ],
 )
