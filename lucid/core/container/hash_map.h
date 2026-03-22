@@ -2,8 +2,8 @@
 
 #include <utility>
 
-#include "lucid/hash_table.h"
-#include "lucid/optional_ref.h"
+#include "lucid/core/container/hash_table.h"
+#include "lucid/core/container/optional_ref.h"
 
 namespace lucid {
 

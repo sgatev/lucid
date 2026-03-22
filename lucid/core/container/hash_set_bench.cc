@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
-#include "lucid/hash_set.h"
+#include "lucid/core/container/hash_set.h"
 
 static void BM_InsertUnique(benchmark::State& state) {
   lucid::HashSet<int> set;

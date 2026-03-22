@@ -7,10 +7,10 @@
 #include <unordered_set>
 #include <vector>
 
+#include "lucid/core/container/hash_map.h"
+#include "lucid/core/container/hash_set.h"
 #include "lucid/graph.h"
 #include "lucid/graph_order.h"
-#include "lucid/hash_map.h"
-#include "lucid/hash_set.h"
 
 namespace lucid {
 

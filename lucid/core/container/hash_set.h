@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "lucid/hash_table.h"
+#include "lucid/core/container/hash_table.h"
 
 namespace lucid {
 

@@ -2,7 +2,7 @@
 
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
-#include "lucid/hash_set.h"
+#include "lucid/core/container/hash_set.h"
 #include "lucid/string_index.h"
 
 namespace lucid {

@@ -3,7 +3,7 @@
 #include <span>
 
 #include "lucid/am.h"
-#include "lucid/hash_map.h"
+#include "lucid/core/container/hash_map.h"
 
 namespace lucid {
 

@@ -25,8 +25,8 @@ cc_library(
     hdrs = ["am_cfg.h"],
     deps = [
         ":am",
-        ":hash_map",
-        ":hash_set",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
     ],
 )
 
@@ -84,7 +84,7 @@ cc_library(
     hdrs = ["am_liveness.h"],
     deps = [
         ":am_cfg",
-        ":hash_set",
+        "//lucid/core/container:hash_set",
     ],
 )
 
@@ -279,8 +279,6 @@ cc_binary(
         ":cfg_printer",
         ":cli",
         ":file",
-        ":hash_map",
-        ":hash_set",
         ":lexer",
         ":macho",
         ":opt",
@@ -290,6 +288,8 @@ cc_binary(
         ":static",
         ":type",
         ":version",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
     ],
 )
 
@@ -364,8 +364,8 @@ cc_library(
     deps = [
         ":graph",
         ":graph_order",
-        ":hash_map",
-        ":hash_set",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
     ],
 )
 
@@ -403,20 +403,6 @@ cc_test(
 )
 
 cc_library(
-    name = "functional",
-    hdrs = ["functional.h"],
-)
-
-cc_test(
-    name = "functional_test",
-    srcs = ["functional_test.cc"],
-    deps = [
-        ":functional",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "graph",
     hdrs = ["graph.h"],
 )
@@ -439,77 +425,6 @@ cc_test(
         ":lexer",
         ":parser",
         "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "hash",
-    hdrs = ["hash.h"],
-)
-
-cc_library(
-    name = "hash_map",
-    hdrs = ["hash_map.h"],
-    deps = [
-        ":hash",
-        ":hash_table",
-        ":optional_ref",
-    ],
-)
-
-cc_test(
-    name = "hash_map_test",
-    srcs = ["hash_map_test.cc"],
-    deps = [
-        ":hash_map",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_binary(
-    name = "hash_map_bench",
-    srcs = ["hash_map_bench.cc"],
-    deps = [
-        ":hash_map",
-        "@google_benchmark//:benchmark",
-    ],
-)
-
-cc_library(
-    name = "hash_set",
-    hdrs = ["hash_set.h"],
-    deps = [
-        ":hash",
-        ":hash_table",
-        ":optional_ref",
-    ],
-)
-
-cc_test(
-    name = "hash_set_test",
-    srcs = ["hash_set_test.cc"],
-    deps = [
-        ":hash_set",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_binary(
-    name = "hash_set_bench",
-    srcs = ["hash_set_bench.cc"],
-    deps = [
-        ":hash_set",
-        "@google_benchmark//:benchmark",
-    ],
-)
-
-cc_library(
-    name = "hash_table",
-    hdrs = ["hash_table.h"],
-    deps = [
-        ":functional",
-        ":hash",
-        ":optional_ref",
     ],
 )
 
@@ -548,8 +463,8 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
-        ":hash_set",
         ":string_index",
+        "//lucid/core/container:hash_set",
     ],
 )
 
@@ -593,20 +508,6 @@ cc_library(
     hdrs = ["macho.h"],
     deps = [
         ":arm64",
-    ],
-)
-
-cc_library(
-    name = "optional_ref",
-    hdrs = ["optional_ref.h"],
-)
-
-cc_test(
-    name = "optional_ref_test",
-    srcs = ["optional_ref_test.cc"],
-    deps = [
-        ":optional_ref",
-        "@googletest//:gtest_main",
     ],
 )
 
@@ -658,8 +559,8 @@ cc_library(
         ":am_liveness",
         ":dataflow",
         ":dom",
-        ":hash_map",
-        ":hash_set",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
     ],
 )
 
@@ -754,8 +655,8 @@ cc_library(
     name = "string_index",
     hdrs = ["string_index.h"],
     deps = [
-        ":hash_map",
-        ":optional_ref",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:optional_ref",
     ],
 )
 

@@ -1,4 +1,4 @@
-#include "lucid/functional.h"
+#include "lucid/core/functional/identity.h"
 
 #include <string>
 #include <utility>

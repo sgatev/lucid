@@ -8,9 +8,9 @@
 #include <optional>
 #include <utility>
 
-#include "lucid/functional.h"
-#include "lucid/hash.h"
-#include "lucid/optional_ref.h"
+#include "lucid/core/container/optional_ref.h"
+#include "lucid/core/functional/identity.h"
+#include "lucid/core/hash/hash.h"
 
 namespace lucid {
 

@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
-#include "lucid/hash_map.h"
+#include "lucid/core/container/hash_map.h"
 
 static void BM_InsertUnique(benchmark::State& state) {
   lucid::HashMap<int, int> map;

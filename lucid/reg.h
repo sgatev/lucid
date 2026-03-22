@@ -2,8 +2,8 @@
 
 #include "lucid/am.h"
 #include "lucid/am_cfg.h"
-#include "lucid/hash_map.h"
-#include "lucid/hash_set.h"
+#include "lucid/core/container/hash_map.h"
+#include "lucid/core/container/hash_set.h"
 
 namespace lucid {
 

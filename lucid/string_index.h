@@ -7,8 +7,8 @@
 #include <string>
 #include <string_view>
 
-#include "lucid/hash_map.h"
-#include "lucid/optional_ref.h"
+#include "lucid/core/container/hash_map.h"
+#include "lucid/core/container/optional_ref.h"
 
 namespace lucid {
 

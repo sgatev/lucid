@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lucid/am_cfg.h"
-#include "lucid/hash_set.h"
+#include "lucid/core/container/hash_set.h"
 
 namespace lucid {
 
