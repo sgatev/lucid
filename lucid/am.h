@@ -6,6 +6,7 @@
 #include <string_view>
 #include <variant>
 #include <vector>
+
 #include "lucid/string_index.h"
 
 namespace lucid {
@@ -18,7 +19,7 @@ struct Nop {
   bool operator==(const Nop&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const Nop& inst) {
-    return os << "{}";
+    return os << "Nop {}";
   }
 };
 
@@ -33,8 +34,8 @@ struct MoveReg32 {
   bool operator==(const MoveReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const MoveReg32& inst) {
-    return os << "{.src_reg=" << inst.src_reg << ", .dst_reg=" << inst.dst_reg
-              << "}";
+    return os << "MoveReg32 { .src_reg=" << inst.src_reg
+              << ", .dst_reg=" << inst.dst_reg << " }";
   }
 };
 
@@ -49,8 +50,8 @@ struct MoveReg64 {
   bool operator==(const MoveReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const MoveReg64& inst) {
-    return os << "{.src_reg=" << inst.src_reg << ", .dst_reg=" << inst.dst_reg
-              << "}";
+    return os << "MoveReg64 { .src_reg=" << inst.src_reg
+              << ", .dst_reg=" << inst.dst_reg << " }";
   }
 };
 
@@ -65,8 +66,8 @@ struct SetReg32 {
   bool operator==(const SetReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const SetReg32& inst) {
-    return os << "{.src_val=\"" << inst.src_val
-              << "\", .dst_reg=" << inst.dst_reg << "}";
+    return os << "SetReg32 { .src_val=\"" << inst.src_val
+              << "\", .dst_reg=" << inst.dst_reg << " }";
   }
 };
 
@@ -81,8 +82,8 @@ struct SetReg64 {
   bool operator==(const SetReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const SetReg64& inst) {
-    return os << "{.src_val=\"" << inst.src_val
-              << "\", .dst_reg=" << inst.dst_reg << "}";
+    return os << "SetReg64 { .src_val=\"" << inst.src_val
+              << "\", .dst_reg=" << inst.dst_reg << " }";
   }
 };
 
@@ -97,8 +98,8 @@ struct SetStr {
   bool operator==(const SetStr&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const SetStr& inst) {
-    return os << "{.src_val=\"" << inst.src_val
-              << "\", .dst_reg=" << inst.dst_reg << "}";
+    return os << "SetStr { .src_val=\"" << inst.src_val
+              << "\", .dst_reg=" << inst.dst_reg << " }";
   }
 };
 
@@ -110,7 +111,7 @@ struct Jump {
   bool operator==(const Jump&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const Jump& inst) {
-    return os << "{.label=\"" << inst.label << "\"}";
+    return os << "Jump { .label=\"" << inst.label << "\" }";
   }
 };
 
@@ -122,7 +123,7 @@ struct UncondJump {
   bool operator==(const UncondJump&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const UncondJump& inst) {
-    return os << "{.label=\"" << inst.label << "\"}";
+    return os << "UncondJump { .label=\"" << inst.label << "\" }";
   }
 };
 
@@ -140,9 +141,9 @@ struct CondJump {
   bool operator==(const CondJump&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const CondJump& inst) {
-    return os << "{.cond_reg=" << inst.cond_reg
+    return os << "CondJump { .cond_reg=" << inst.cond_reg
               << ", .then_label=" << inst.then_label
-              << ", .else_label=" << inst.else_label << "}";
+              << ", .else_label=" << inst.else_label << " }";
   }
 };
 
@@ -154,7 +155,7 @@ struct Label {
   bool operator==(const Label&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const Label& inst) {
-    return os << "{.id=" << inst.id << "}";
+    return os << "Label { .id=" << inst.id << " }";
   }
 };
 
@@ -163,7 +164,7 @@ struct Return {
   bool operator==(const Return&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const Return& inst) {
-    return os << "{}";
+    return os << "Return {}";
   }
 };
 
@@ -181,8 +182,9 @@ struct AddReg32 {
   bool operator==(const AddReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const AddReg32& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "AddReg32 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -200,8 +202,9 @@ struct AddReg64 {
   bool operator==(const AddReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const AddReg64& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "AddReg64 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -219,8 +222,9 @@ struct SubReg32 {
   bool operator==(const SubReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const SubReg32& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "SubReg32 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -238,8 +242,9 @@ struct SubReg64 {
   bool operator==(const SubReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const SubReg64& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "SubReg64 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -257,8 +262,9 @@ struct MulReg32 {
   bool operator==(const MulReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const MulReg32& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "MulReg32 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -276,8 +282,9 @@ struct MulReg64 {
   bool operator==(const MulReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const MulReg64& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "MulReg64 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -295,8 +302,9 @@ struct DivReg32 {
   bool operator==(const DivReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const DivReg32& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "DivReg32 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -314,8 +322,9 @@ struct DivReg64 {
   bool operator==(const DivReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const DivReg64& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "DivReg64 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -334,8 +343,9 @@ struct ModReg32 {
   bool operator==(const ModReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const ModReg32& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "ModReg32 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -354,8 +364,9 @@ struct ModReg64 {
   bool operator==(const ModReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const ModReg64& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "ModReg64 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -373,8 +384,9 @@ struct GtReg32 {
   bool operator==(const GtReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const GtReg32& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "GtReg32 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -392,8 +404,9 @@ struct GtReg64 {
   bool operator==(const GtReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const GtReg64& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "GtReg64 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -411,8 +424,9 @@ struct LtReg32 {
   bool operator==(const LtReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const LtReg32& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "LtReg32 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -430,8 +444,9 @@ struct LtReg64 {
   bool operator==(const LtReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const LtReg64& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "LtReg64 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -449,8 +464,9 @@ struct EqReg32 {
   bool operator==(const EqReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const EqReg32& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "EqReg32 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -468,8 +484,9 @@ struct EqReg64 {
   bool operator==(const EqReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const EqReg64& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "EqReg64 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -487,8 +504,9 @@ struct NotEqReg32 {
   bool operator==(const NotEqReg32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const NotEqReg32& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "NotEqReg32 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -506,8 +524,9 @@ struct NotEqReg64 {
   bool operator==(const NotEqReg64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const NotEqReg64& inst) {
-    return os << "{.res_reg=" << inst.res_reg << ", .lhs_reg=" << inst.lhs_reg
-              << ", .rhs_reg=" << inst.rhs_reg << "}";
+    return os << "NotEqReg64 { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
   }
 };
 
@@ -516,7 +535,7 @@ struct PushStack {
   bool operator==(const PushStack&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const PushStack& inst) {
-    return os << "{}";
+    return os << "PushStack {}";
   }
 };
 
@@ -525,7 +544,7 @@ struct PopStack {
   bool operator==(const PopStack&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const PopStack& inst) {
-    return os << "{}";
+    return os << "PopStack {}";
   }
 };
 
@@ -540,8 +559,8 @@ struct StoreStack32 {
   bool operator==(const StoreStack32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const StoreStack32& inst) {
-    return os << "{.offset=" << inst.offset << ", .src_reg=" << inst.src_reg
-              << "}";
+    return os << "StoreStack32 { .offset=" << inst.offset
+              << ", .src_reg=" << inst.src_reg << " }";
   }
 };
 
@@ -561,9 +580,9 @@ struct StoreStackReg32 {
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const StoreStackReg32& inst) {
-    return os << "{.offset=" << inst.offset_reg
+    return os << "StoreStackReg32 { .offset=" << inst.offset_reg
               << ", .offset_reg=" << inst.offset_reg
-              << ", .src_reg=" << inst.src_reg << "}";
+              << ", .src_reg=" << inst.src_reg << " }";
   }
 };
 
@@ -578,8 +597,8 @@ struct StoreStack64 {
   bool operator==(const StoreStack64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const StoreStack64& inst) {
-    return os << "{.offset=" << inst.offset << ", .src_reg=" << inst.src_reg
-              << "}";
+    return os << "StoreStack64 { .offset=" << inst.offset
+              << ", .src_reg=" << inst.src_reg << " }";
   }
 };
 
@@ -599,9 +618,9 @@ struct StoreStackReg64 {
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const StoreStackReg64& inst) {
-    return os << "{.offset=" << inst.offset_reg
+    return os << "StoreStackReg64 { .offset=" << inst.offset_reg
               << ", .offset_reg=" << inst.offset_reg
-              << ", .src_reg=" << inst.src_reg << "}";
+              << ", .src_reg=" << inst.src_reg << " }";
   }
 };
 
@@ -616,8 +635,8 @@ struct LoadStack32 {
   bool operator==(const LoadStack32&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const LoadStack32& inst) {
-    return os << "{.offset=" << inst.offset << ", .dst_reg=" << inst.dst_reg
-              << "}";
+    return os << "LoadStack32 { .offset=" << inst.offset
+              << ", .dst_reg=" << inst.dst_reg << " }";
   }
 };
 
@@ -637,9 +656,9 @@ struct LoadStackReg32 {
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const LoadStackReg32& inst) {
-    return os << "{.offset=" << inst.offset_reg
+    return os << "LoadStackReg32 { .offset=" << inst.offset_reg
               << ", .offset_reg=" << inst.offset_reg
-              << ", .dst_reg=" << inst.dst_reg << "}";
+              << ", .dst_reg=" << inst.dst_reg << " }";
   }
 };
 
@@ -654,8 +673,8 @@ struct LoadStack64 {
   bool operator==(const LoadStack64&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const LoadStack64& inst) {
-    return os << "{.offset=" << inst.offset << ", .dst_reg=" << inst.dst_reg
-              << "}";
+    return os << "LoadStack64 { .offset=" << inst.offset
+              << ", .dst_reg=" << inst.dst_reg << " }";
   }
 };
 
@@ -675,9 +694,9 @@ struct LoadStackReg64 {
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const LoadStackReg64& inst) {
-    return os << "{.offset=" << inst.offset
+    return os << "LoadStackReg64 { .offset=" << inst.offset
               << ", .offset_reg=" << inst.offset_reg
-              << ", .dst_reg=" << inst.dst_reg << "}";
+              << ", .dst_reg=" << inst.dst_reg << " }";
   }
 };
 

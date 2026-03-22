@@ -8,12 +8,15 @@
 #include "lucid/cfg.h"
 
 namespace lucid {
+namespace {
 
 void Blue(std::function<void()> f) {
   std::cout << "\033[34m";
   std::invoke(f);
   std::cout << "\033[0m";
 }
+
+}  // namespace
 
 void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
   Blue([&] {
