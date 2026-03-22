@@ -10,6 +10,7 @@
 #include "lucid/am.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
+#include "lucid/graph_order.h"
 #include "lucid/string_index.h"
 
 namespace lucid {
@@ -46,7 +47,8 @@ class AbstractMachineFunctionGenerator {
                   ctx_.DerefType(array_type->element_type_constraint));
               std::string_view var_decl_type_name =
                   ctx.DerefIdent(var_decl_type.name);
-              auto size = std::atoi(ctx_.DerefIdent(array_type->size.value).data());
+              auto size =
+                  std::atoi(ctx_.DerefIdent(array_type->size.value).data());
               for (int i = 0; i < size; ++i) {
                 if (var_decl_type_name == "Int32" ||
                     var_decl_type_name == "Bool") {
@@ -139,8 +141,16 @@ class AbstractMachineFunctionGenerator {
       }
     }
 
+    const CompareVertexOrder<ControlFlowGraph> compare(
+        ComputeReversePostOrder(graph_));
+
+    std::vector<ControlFlowGraph::BlockRef> block_refs = Vertices(graph_);
+    std::sort(block_refs.begin(), block_refs.end(), compare);
+
     RegId highest_reg = 1;
-    for (const auto& block : graph_.blocks()) {
+    for (const auto& block_ref : block_refs) {
+      const auto& block = graph_.get(block_ref);
+
       if (next_reg_ > highest_reg) highest_reg = next_reg_;
       next_reg_ = 1;
 
@@ -257,7 +267,8 @@ class AbstractMachineFunctionGenerator {
   }
 
   void ProcessExpr(ExprRef ref, const StringLitExpr& expr) {
-    auto string_id = reinterpret_cast<std::uintptr_t>(ctx_.DerefIdent(expr.value).data());
+    auto string_id =
+        reinterpret_cast<std::uintptr_t>(ctx_.DerefIdent(expr.value).data());
     state_.strings.insert({string_id, expr.value});
 
     RegId reg = next_reg_++;

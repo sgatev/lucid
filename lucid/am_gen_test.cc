@@ -898,9 +898,28 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                               .else_label = 2,
                                           },
                                           Label{
-                                              .id = 1,
+                                              .id = 3,
                                           },
-                                          PopStack{}, Return{},
+                                          SetReg32{
+                                              .src_val = "2",
+                                              .dst_reg = 1,
+                                          },
+                                          SetReg32{
+                                              .src_val = "3",
+                                              .dst_reg = 2,
+                                          },
+                                          AddReg32{
+                                              .res_reg = 3,
+                                              .lhs_reg = 1,
+                                              .rhs_reg = 2,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 3,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
                                           Label{
                                               .id = 2,
                                           },
@@ -925,28 +944,9 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                               .label = 1,
                                           },
                                           Label{
-                                              .id = 3,
+                                              .id = 1,
                                           },
-                                          SetReg32{
-                                              .src_val = "2",
-                                              .dst_reg = 1,
-                                          },
-                                          SetReg32{
-                                              .src_val = "3",
-                                              .dst_reg = 2,
-                                          },
-                                          AddReg32{
-                                              .res_reg = 3,
-                                              .lhs_reg = 1,
-                                              .rhs_reg = 2,
-                                          },
-                                          MoveReg32{
-                                              .src_reg = 3,
-                                              .dst_reg = 0,
-                                          },
-                                          UncondJump{
-                                              .label = 1,
-                                          }));
+                                          PopStack{}, Return{}));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
@@ -990,13 +990,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                               .cond_reg = 1,
                                               .then_label = 3,
                                               .else_label = 4,
-                                          },
-                                          Label{
-                                              .id = 1,
-                                          },
-                                          PopStack{}, Return{},
-                                          Label{
-                                              .id = 2,
                                           },
                                           Label{
                                               .id = 3,
@@ -1043,6 +1036,13 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           },
                                           UncondJump{
                                               .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          PopStack{}, Return{},
+                                          Label{
+                                              .id = 2,
                                           }));
 }
 
@@ -1928,14 +1928,10 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                               .label = 3,
                                           },
                                           Label{
-                                              .id = 1,
-                                          },
-                                          PopStack{}, Return{},
-                                          Label{
-                                              .id = 2,
+                                              .id = 3,
                                           },
                                           SetReg32{
-                                              .src_val = "2",
+                                              .src_val = "1",
                                               .dst_reg = 1,
                                           },
                                           MoveReg32{
@@ -1946,10 +1942,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                               .label = 1,
                                           },
                                           Label{
-                                              .id = 3,
+                                              .id = 1,
+                                          },
+                                          PopStack{}, Return{},
+                                          Label{
+                                              .id = 2,
                                           },
                                           SetReg32{
-                                              .src_val = "1",
+                                              .src_val = "2",
                                               .dst_reg = 1,
                                           },
                                           MoveReg32{
@@ -2015,24 +2015,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .label = 3,
                                           },
                                           Label{
-                                              .id = 1,
-                                          },
-                                          PopStack{}, Return{},
-                                          Label{
-                                              .id = 2,
-                                          },
-                                          LoadStack32{
-                                              .offset = 0,
-                                              .dst_reg = 1,
-                                          },
-                                          MoveReg32{
-                                              .src_reg = 1,
-                                              .dst_reg = 0,
-                                          },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
-                                          Label{
                                               .id = 3,
                                           },
                                           LoadStack32{
@@ -2053,6 +2035,30 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .then_label = 5,
                                               .else_label = 4,
                                           },
+                                          Label{
+                                              .id = 5,
+                                          },
+                                          UncondJump{
+                                              .label = 2,
+                                          },
+                                          Label{
+                                              .id = 2,
+                                          },
+                                          LoadStack32{
+                                              .offset = 0,
+                                              .dst_reg = 1,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 1,
+                                              .dst_reg = 0,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 1,
+                                          },
+                                          PopStack{}, Return{},
                                           Label{
                                               .id = 4,
                                           },
@@ -2075,12 +2081,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           },
                                           UncondJump{
                                               .label = 3,
-                                          },
-                                          Label{
-                                              .id = 5,
-                                          },
-                                          UncondJump{
-                                              .label = 2,
                                           }));
 }
 
