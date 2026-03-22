@@ -11,6 +11,7 @@
 
 #include "lucid/am_cfg.h"
 #include "lucid/am_gen.h"
+#include "lucid/ami_printer.h"
 #include "lucid/arm64.h"
 #include "lucid/arm64_gen.h"
 #include "lucid/ast.h"
@@ -295,6 +296,55 @@ int HandlePrintCfgCommand(CommandContext ctx) {
   return 0;
 }
 
+int HandlePrintAmiCommand(CommandContext ctx) {
+  if (ctx.args.size() < 1) {
+    PrintError(ctx.err) << "'print-ami' command requires 1 argument\n";
+    return 1;
+  }
+
+  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
+  if (maybe_src.HasError()) {
+    maybe_src.OutputError(PrintError(ctx.err));
+    return 1;
+  }
+  const auto& src = maybe_src.GetValue();
+
+  SyntaxContext sctx;
+  auto maybe_funcs = ParseFuncDefs(src, sctx);
+  if (maybe_funcs.HasError()) {
+    maybe_funcs.OutputError(PrintError(ctx.err));
+    return 1;
+  }
+  auto& func_defs = maybe_funcs.GetValue();
+
+  for (auto& func_def : func_defs) {
+    if (auto res = InferExprTypes(sctx, func_defs, func_def); res.HasError()) {
+      res.OutputError(PrintError(ctx.err));
+      return 1;
+    }
+    auto cfg = BuildControlFlowGraph(sctx, func_def);
+    if (ctx.flags["ssa"] == "after-init") {
+      ConvertToStaticSingleAssignment(sctx, cfg);
+    } else if (ctx.flags["ssa"] == "after-deinit") {
+      ConvertToStaticSingleAssignment(sctx, cfg);
+      DestroyStaticSingleAssignment(sctx, cfg);
+    }
+
+    AbstractMachineState state = {
+        .func =
+            {
+                .name = func_def.name,
+            },
+    };
+    GenerateAbstractMachineFunction(sctx, cfg, state);
+    OptimizeAbstractMachineInstructions(state.func.instructions);
+    Print(sctx.DerefIdent(state.func.name), state.func.instructions);
+  }
+
+  return 0;
+}
+
 int HandleVersionCommand(CommandContext ctx) {
   ctx.out << "Commit: " << kGitCommit << "\n";
 
@@ -337,6 +387,11 @@ int Run(std::vector<std::string_view> args) {
               .name = "print-cfg",
               .help = "Parses the specified target and prints the CFG.",
               .handler = HandlePrintCfgCommand,
+          },
+          {
+              .name = "print-ami",
+              .help = "Parses the specified target and prints the AMI.",
+              .handler = HandlePrintAmiCommand,
           },
           {
               .name = "version",

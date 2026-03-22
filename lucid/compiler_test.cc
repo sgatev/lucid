@@ -25,6 +25,7 @@ Available commands:
   parse      Parses the specified target.
   print-ast  Parses the specified target and prints the AST.
   print-cfg  Parses the specified target and prints the CFG.
+  print-ami  Parses the specified target and prints the AMI.
   version    Prints version information for lucid.
 )")));
 }
