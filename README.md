@@ -42,3 +42,23 @@ To enable syntax highlighting in your editor install
 
 - [neovim-lucid](https://github.com/sgatev/nvim-lucid/tree/main) plugin for [Neovim](https://neovim.io)
 - [tree-sitter-lucid](https://github.com/sgatev/tree-sitter-lucid/tree/main) grammar for [Tree-sitter](https://tree-sitter.github.io/tree-sitter)
+
+## Debug
+
+To print the abstract syntax tree derived from code execute
+
+```
+bazel run -c opt //lucid:compiler -- print-ast examples/main.lu
+```
+
+To print the control-flow graph derived from code execute
+
+```
+bazel run -c opt //lucid:compiler -- print-cfg examples/main.lu
+```
+
+To print the abstract machine instructions derived from code execute
+
+```
+bazel run -c opt //lucid:compiler -- print-ami examples/main.lu
+```
