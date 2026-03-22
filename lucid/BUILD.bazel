@@ -341,7 +341,7 @@ cc_library(
     hdrs = ["dataflow.h"],
     deps = [
         ":graph_order",
-        ":worklist",
+        "//lucid/core/dataflow:worklist",
     ],
 )
 
@@ -722,27 +722,4 @@ genrule(
       sed -e 's/%GIT_COMMIT%/'$$commit'/' < $< > $@
     """,
     stamp = 1,
-)
-
-cc_library(
-    name = "worklist",
-    hdrs = ["worklist.h"],
-)
-
-cc_test(
-    name = "worklist_test",
-    srcs = ["worklist_test.cc"],
-    deps = [
-        ":worklist",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_binary(
-    name = "worklist_bench",
-    srcs = ["worklist_bench.cc"],
-    deps = [
-        ":worklist",
-        "@google_benchmark//:benchmark",
-    ],
 )

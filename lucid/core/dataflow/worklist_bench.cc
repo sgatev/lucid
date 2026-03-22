@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
-#include "lucid/worklist.h"
+#include "lucid/core/dataflow/worklist.h"
 
 class BoundedNatDomain {
  public:

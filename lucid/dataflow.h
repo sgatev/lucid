@@ -9,8 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include "lucid/core/dataflow/worklist.h"
 #include "lucid/graph_order.h"
-#include "lucid/worklist.h"
 
 namespace lucid {
 

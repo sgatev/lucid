@@ -1,4 +1,4 @@
-#include "lucid/worklist.h"
+#include "lucid/core/dataflow/worklist.h"
 
 #include <cstddef>
 #include <functional>
