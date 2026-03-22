@@ -48,8 +48,8 @@ cc_library(
         ":am",
         ":ast",
         ":cfg",
-        ":graph_order",
         ":string_index",
+        "//lucid/core/container/graph:order",
     ],
 )
 
@@ -95,10 +95,10 @@ cc_test(
         ":am_cfg",
         ":am_liveness",
         ":ast",
-        ":dataflow",
         ":lexer",
         ":parser",
         ":string_index",
+        "//lucid/core/dataflow",
         "@googletest//:gtest_main",
     ],
 )
@@ -337,35 +337,13 @@ cc_library(
 )
 
 cc_library(
-    name = "dataflow",
-    hdrs = ["dataflow.h"],
-    deps = [
-        ":graph_order",
-        "//lucid/core/dataflow:worklist",
-    ],
-)
-
-cc_test(
-    name = "dataflow_test",
-    srcs = ["dataflow_test.cc"],
-    deps = [
-        ":ast",
-        ":cfg",
-        ":dataflow",
-        ":lexer",
-        ":parser",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "dom",
     hdrs = ["dom.h"],
     deps = [
-        ":graph",
-        ":graph_order",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
+        "//lucid/core/container/graph",
+        "//lucid/core/container/graph:order",
     ],
 )
 
@@ -398,32 +376,6 @@ cc_test(
     ],
     deps = [
         ":file",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "graph",
-    hdrs = ["graph.h"],
-)
-
-cc_library(
-    name = "graph_order",
-    hdrs = ["graph_order.h"],
-    deps = [
-        ":graph",
-    ],
-)
-
-cc_test(
-    name = "graph_order_test",
-    srcs = ["graph_order_test.cc"],
-    deps = [
-        ":ast",
-        ":cfg",
-        ":graph_order",
-        ":lexer",
-        ":parser",
         "@googletest//:gtest_main",
     ],
 )
@@ -474,11 +426,11 @@ cc_test(
     deps = [
         ":ast",
         ":cfg",
-        ":dataflow",
         ":lexer",
         ":liveness",
         ":parser",
         ":string_index",
+        "//lucid/core/dataflow",
         "@googletest//:gtest_main",
     ],
 )
@@ -557,10 +509,10 @@ cc_library(
     deps = [
         ":am_cfg",
         ":am_liveness",
-        ":dataflow",
         ":dom",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
+        "//lucid/core/dataflow",
     ],
 )
 

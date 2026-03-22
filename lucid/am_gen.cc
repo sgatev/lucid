@@ -10,7 +10,7 @@
 #include "lucid/am.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
-#include "lucid/graph_order.h"
+#include "lucid/core/container/graph/order.h"
 #include "lucid/string_index.h"
 
 namespace lucid {
@@ -142,7 +142,7 @@ class AbstractMachineFunctionGenerator {
     }
 
     const CompareVertexOrder<ControlFlowGraph> compare(
-        ComputeReversePostOrder(graph_));
+        graph_, ComputeReversePostOrder(graph_));
 
     std::vector<ControlFlowGraph::BlockRef> block_refs = Vertices(graph_);
     std::sort(block_refs.begin(), block_refs.end(), compare);

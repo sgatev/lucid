@@ -1,0 +1,39 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_library(
+    name = "graph",
+    hdrs = ["graph.h"],
+    visibility = ["//lucid:__subpackages__"],
+)
+
+cc_library(
+    name = "order",
+    hdrs = ["order.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":graph",
+    ],
+)
+
+cc_test(
+    name = "order_test",
+    srcs = ["order_test.cc"],
+    deps = [
+        ":graph",
+        ":order",
+        ":test_graph",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "test_graph",
+    testonly = True,
+    hdrs = ["test_graph.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
+    ],
+)

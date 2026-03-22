@@ -126,6 +126,11 @@ inline std::vector<AbstractMachineControlFlowGraph::BlockRef> PrevVertices(
   return previous_blocks;
 }
 
+inline std::uint32_t VertexId(const AbstractMachineControlFlowGraph&,
+                              AbstractMachineControlFlowGraph::BlockRef block) {
+  return block.id();
+}
+
 // Builds a graph that represents the control flow of a abstract machine
 // instructions.
 AbstractMachineControlFlowGraph BuildAbstractMachineControlFlowGraph(

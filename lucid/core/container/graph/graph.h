@@ -16,7 +16,7 @@ concept Graph = requires(G g, G::vertex_type v) {
   { NextVertices(g, v) } -> std::same_as<std::vector<typename G::vertex_type>>;
   { PrevVertices(g, v) } -> std::same_as<std::vector<typename G::vertex_type>>;
 
-  { v.id() } -> std::same_as<std::uint32_t>;
+  { VertexId(g, v) } -> std::same_as<std::uint32_t>;
 };
 
 }  // namespace lucid

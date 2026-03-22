@@ -144,6 +144,11 @@ inline std::vector<ControlFlowGraph::BlockRef> PrevVertices(
   return cfg.get(block).preds;
 }
 
+inline std::uint32_t VertexId(const ControlFlowGraph&,
+                              ControlFlowGraph::BlockRef block) {
+  return block.id();
+}
+
 // Returns the control flow graph of `func`.
 //
 // Requires:

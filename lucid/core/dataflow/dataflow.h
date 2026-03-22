@@ -9,8 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include "lucid/core/container/graph/order.h"
 #include "lucid/core/dataflow/worklist.h"
-#include "lucid/graph_order.h"
 
 namespace lucid {
 
@@ -41,13 +41,16 @@ template <Graph GraphT>
 class VertexDomain {
  public:
   explicit VertexDomain(const GraphT& graph)
-      : vertex_count_(VertexCount(graph)) {}
+      : graph_(graph), vertex_count_(VertexCount(graph)) {}
 
   std::size_t size() const { return vertex_count_; }
 
-  std::size_t id(GraphT::vertex_type vertex) const { return vertex.id(); }
+  std::size_t id(GraphT::vertex_type vertex) const {
+    return VertexId(graph_, vertex);
+  }
 
  private:
+  const GraphT& graph_;
   std::size_t vertex_count_;
 };
 
@@ -62,13 +65,15 @@ std::vector<std::optional<typename AnalysisT::State>> RunBackwardDataflow(
   using State = typename AnalysisT::State;
 
   std::vector<std::optional<State>> states(VertexCount(graph));
-  auto has_state = [&](auto ref) { return states[ref.id()].has_value(); };
-  auto to_state = [&](auto ref) { return *states[ref.id()]; };
+  auto has_state = [&](auto ref) {
+    return states[VertexId(graph, ref)].has_value();
+  };
+  auto to_state = [&](auto ref) { return *states[VertexId(graph, ref)]; };
 
   Worklist<typename GraphT::vertex_type, VertexDomain<GraphT>,
            CompareVertexOrder<GraphT>>
-      worklist(VertexDomain(graph),
-               CompareVertexOrder<GraphT>(ComputeReversePostOrder(graph)));
+      worklist(VertexDomain(graph), CompareVertexOrder<GraphT>(
+                                        graph, ComputeReversePostOrder(graph)));
   worklist.push(SinkVertex(graph));
   while (!worklist.empty()) {
     typename GraphT::vertex_type vertex = worklist.pop();
@@ -77,7 +82,7 @@ std::vector<std::optional<typename AnalysisT::State>> RunBackwardDataflow(
             std::views::transform(to_state),
         analysis.MakeInitial(), std::bind_front(&AnalysisT::Join, &analysis));
     State new_state = analysis.Transfer(std::move(prior_state), vertex);
-    if (auto& state = states[vertex.id()]; new_state != state) {
+    if (auto& state = states[VertexId(graph, vertex)]; new_state != state) {
       state = std::move(new_state);
       worklist.push_range(PrevVertices(graph, vertex));
     }

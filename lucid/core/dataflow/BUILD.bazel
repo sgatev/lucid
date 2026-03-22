@@ -3,9 +3,28 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_library(
+    name = "dataflow",
+    hdrs = ["dataflow.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":worklist",
+        "//lucid/core/container/graph:order",
+    ],
+)
+
+cc_test(
+    name = "dataflow_test",
+    srcs = ["dataflow_test.cc"],
+    deps = [
+        ":dataflow",
+        "//lucid/core/container/graph:test_graph",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "worklist",
     hdrs = ["worklist.h"],
-    visibility = ["//lucid:__subpackages__"],
 )
 
 cc_test(

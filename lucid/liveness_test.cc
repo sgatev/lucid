@@ -9,7 +9,7 @@
 #include "gtest/gtest.h"
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
-#include "lucid/dataflow.h"
+#include "lucid/core/dataflow/dataflow.h"
 #include "lucid/lexer.h"
 #include "lucid/parser.h"
 

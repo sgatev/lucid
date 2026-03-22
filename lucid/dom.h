@@ -7,10 +7,10 @@
 #include <unordered_set>
 #include <vector>
 
+#include "lucid/core/container/graph/graph.h"
+#include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
-#include "lucid/graph.h"
-#include "lucid/graph_order.h"
 
 namespace lucid {
 
@@ -20,7 +20,8 @@ namespace lucid {
 template <Graph GraphT>
 std::vector<std::optional<typename GraphT::vertex_type>>
 ComputeImmediateDominators(const GraphT& graph) {
-  const CompareVertexOrder<GraphT> compare(ComputeReversePostOrder(graph));
+  const CompareVertexOrder<GraphT> compare(graph,
+                                           ComputeReversePostOrder(graph));
 
   std::vector<typename GraphT::vertex_type> vertices = Vertices(graph);
   std::sort(vertices.begin(), vertices.end(), compare);
