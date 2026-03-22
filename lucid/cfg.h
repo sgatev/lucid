@@ -7,8 +7,8 @@
 #include <ranges>
 #include <vector>
 
-#include "lucid/arena.h"
 #include "lucid/ast.h"
+#include "lucid/core/container/arena.h"
 #include "lucid/string_index.h"
 #include "lucid/successive_list.h"
 

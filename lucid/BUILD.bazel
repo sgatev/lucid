@@ -46,7 +46,6 @@ cc_library(
     hdrs = ["am_gen.h"],
     deps = [
         ":am",
-        ":arena",
         ":ast",
         ":cfg",
         ":graph_order",
@@ -60,7 +59,6 @@ cc_test(
     deps = [
         ":am",
         ":am_gen",
-        ":arena",
         ":ast_fixture",
         ":cfg",
         ":type",
@@ -73,7 +71,6 @@ cc_binary(
     srcs = ["am_gen_bench.cc"],
     deps = [
         ":am_gen",
-        ":arena",
         ":cfg",
         ":lexer",
         ":parser",
@@ -116,20 +113,6 @@ cc_library(
 )
 
 cc_library(
-    name = "arena",
-    hdrs = ["arena.h"],
-)
-
-cc_test(
-    name = "arena_test",
-    srcs = ["arena_test.cc"],
-    deps = [
-        ":arena",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "arm64",
     hdrs = ["arm64.h"],
     deps = [
@@ -163,9 +146,9 @@ cc_library(
     name = "ast",
     hdrs = ["ast.h"],
     deps = [
-        ":arena",
         ":string_index",
         ":successive_list",
+        "//lucid/core/container:arena",
     ],
 )
 
@@ -192,10 +175,10 @@ cc_library(
     testonly = True,
     hdrs = ["ast_fixture.h"],
     deps = [
-        ":arena",
         ":ast",
         ":string_index",
         ":successive_list",
+        "//lucid/core/container:arena",
         "@googletest//:gtest",
     ],
 )
@@ -237,9 +220,9 @@ cc_library(
     srcs = ["cfg.cc"],
     hdrs = ["cfg.h"],
     deps = [
-        ":arena",
         ":ast",
         ":successive_list",
+        "//lucid/core/container:arena",
     ],
 )
 
@@ -247,10 +230,10 @@ cc_test(
     name = "cfg_test",
     srcs = ["cfg_test.cc"],
     deps = [
-        ":arena",
         ":ast",
         ":ast_fixture",
         ":cfg",
+        "//lucid/core/container:arena",
         "@googletest//:gtest_main",
     ],
 )
@@ -287,7 +270,6 @@ cc_binary(
         ":am_cfg",
         ":am_gen",
         ":ami_printer",
-        ":arena",
         ":arm64",
         ":arm64_gen",
         ":ast",
@@ -632,12 +614,12 @@ cc_library(
     name = "parser",
     hdrs = ["parser.h"],
     deps = [
-        ":arena",
         ":ast",
         ":lexer",
         ":string_index",
         ":successive_list",
         ":token",
+        "//lucid/core/container:arena",
         "//lucid/core/container:fixed_map",
     ],
 )
@@ -646,7 +628,6 @@ cc_test(
     name = "parser_test",
     srcs = ["parser_test.cc"],
     deps = [
-        ":arena",
         ":ast",
         ":ast_fixture",
         ":lexer",
@@ -659,7 +640,6 @@ cc_binary(
     name = "parser_bench",
     srcs = ["parser_bench.cc"],
     deps = [
-        ":arena",
         ":ast",
         ":buffered_lexer",
         ":lexer",
@@ -832,7 +812,6 @@ cc_test(
     name = "type_test",
     srcs = ["type_test.cc"],
     deps = [
-        ":arena",
         ":ast",
         ":ast_fixture",
         ":result",
