@@ -12,7 +12,7 @@
 
 #include "lucid/arena.h"
 #include "lucid/ast.h"
-#include "lucid/fixed_map.h"
+#include "lucid/core/container/fixed_map.h"
 #include "lucid/string_index.h"
 #include "lucid/successive_list.h"
 #include "lucid/token.h"

@@ -1,0 +1,17 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_library(
+    name = "fixed_map",
+    hdrs = ["fixed_map.h"],
+    visibility = ["//lucid:__subpackages__"],
+)
+
+cc_test(
+    name = "fixed_map_test",
+    srcs = ["fixed_map_test.cc"],
+    deps = [
+        ":fixed_map",
+        "@googletest//:gtest_main",
+    ],
+)

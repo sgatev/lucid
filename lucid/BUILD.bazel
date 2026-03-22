@@ -606,20 +606,6 @@ cc_test(
 )
 
 cc_library(
-    name = "fixed_map",
-    hdrs = ["fixed_map.h"],
-)
-
-cc_test(
-    name = "fixed_map_test",
-    srcs = ["fixed_map_test.cc"],
-    deps = [
-        ":fixed_map",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "macho",
     srcs = ["macho.cc"],
     hdrs = ["macho.h"],
@@ -648,11 +634,11 @@ cc_library(
     deps = [
         ":arena",
         ":ast",
-        ":fixed_map",
         ":lexer",
         ":string_index",
         ":successive_list",
         ":token",
+        "//lucid/core/container:fixed_map",
     ],
 )
 
