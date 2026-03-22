@@ -49,7 +49,7 @@ TEST(StringIndexTest, UniqueRef) {
 TEST(StringIndexTest, UniqueDeref) {
   StringIndex index;
   auto r = index.ref();
-  EXPECT_EQ(index.deref(r), "<unique>");
+  EXPECT_EQ(index.deref(r), "$0");
 }
 
 }  // namespace

@@ -45,8 +45,9 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
           const auto& expr = ctx.DerefExpr(expr_ref);
           if (std::holds_alternative<FuncCallExpr>(expr)) {
             std::cout << "FuncCallExpr";
-          } else if (std::holds_alternative<IntLitExpr>(expr)) {
-            std::cout << "IntLitExpr";
+          } else if (auto* s = std::get_if<IntLitExpr>(&expr)) {
+            std::cout << "IntLitExpr { .value = " << ctx.DerefIdent(s->value)
+                      << " }";
           } else if (std::holds_alternative<BoolLitExpr>(expr)) {
             std::cout << "BoolLitExpr";
           } else if (std::holds_alternative<StringLitExpr>(expr)) {
@@ -56,8 +57,10 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
                       << "' }";
           } else if (std::holds_alternative<IndexExpr>(expr)) {
             std::cout << "IndexExpr";
-          } else if (std::holds_alternative<BinaryOpExpr>(expr)) {
-            std::cout << "BinaryOpExpr";
+          } else if (auto* s = std::get_if<BinaryOpExpr>(&expr)) {
+            std::cout << "BinaryOpExpr { .op = " << to_string(s->op)
+                      << ", .lhs = E" << s->lhs << ", .rhs = E" << s->rhs
+                      << " }";
           }
 
           std::cout << std::endl;
@@ -68,16 +71,18 @@ void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
           const auto& stmt = ctx.DerefStmt(*seq.stmt);
           if (auto* s = std::get_if<VarDeclStmt>(&stmt)) {
             std::cout << "VarDeclStmt { .name = '" << ctx.DerefIdent(s->name)
-                      << "' }";
+                      << "'";
+            if (s->init.has_value()) std::cout << ", .init = E" << *s->init;
+            std::cout << " }";
           } else if (auto* s = std::get_if<VarAssignStmt>(&stmt)) {
             std::cout << "VarAssignStmt { .name = '" << ctx.DerefIdent(s->name)
-                      << "' }";
+                      << "', .expr = E" << s->expr << " }";
           } else if (std::holds_alternative<ArrayAssignStmt>(stmt)) {
             std::cout << "ArrayAssignStmt";
           } else if (std::holds_alternative<FuncDefStmt>(stmt)) {
             std::cout << "FuncDefStmt";
-          } else if (std::holds_alternative<ReturnStmt>(stmt)) {
-            std::cout << "ReturnStmt";
+          } else if (auto* s = std::get_if<ReturnStmt>(&stmt)) {
+            std::cout << "ReturnStmt { .value = E" << s->value << " }";
           } else if (std::holds_alternative<DoStmt>(stmt)) {
             std::cout << "DoStmt";
           } else if (std::holds_alternative<BreakStmt>(stmt)) {

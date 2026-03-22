@@ -208,6 +208,29 @@ enum class BinaryOp {
   NotEq,
 };
 
+inline std::string to_string(BinaryOp op) {
+  switch (op) {
+    case BinaryOp::Add:
+      return "Add";
+    case BinaryOp::Sub:
+      return "Sub";
+    case BinaryOp::Mul:
+      return "Mul";
+    case BinaryOp::Div:
+      return "Div";
+    case BinaryOp::Mod:
+      return "Mod";
+    case BinaryOp::Gt:
+      return "Gt";
+    case BinaryOp::Lt:
+      return "Lt";
+    case BinaryOp::Eq:
+      return "Eq";
+    case BinaryOp::NotEq:
+      return "NotEq";
+  }
+}
+
 // An expression that represents a binary operation over the values of two
 // sub-expressions.
 struct BinaryOpExpr : public ExprBase {

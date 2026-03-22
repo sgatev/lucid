@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <list>
+#include <string>
 #include <string_view>
 
 #include "lucid/hash_map.h"
@@ -43,11 +45,15 @@ class StringIndex {
   }
 
   // Returns a unique reference.
-  Ref ref() { return Ref(unique_ident_++, -1); }
+  Ref ref() {
+    Ref ref(unique_ident_++, -1);
+    unique_idents_.push_back("$" + std::to_string(unique_ident_ - 1));
+    ref_to_string_.Insert(ref, unique_idents_.back());
+    return ref;
+  }
 
   // Returns the string identified by the given reference.
   std::string_view deref(Ref ref) const {
-    if (ref.size_ < 0) return "<unique>";
     OptionalRef<std::string_view> res = ref_to_string_.Find(ref);
     assert(res.has_value());
     return *res;
@@ -56,6 +62,7 @@ class StringIndex {
  private:
   HashMap<std::string_view, Ref> string_to_ref_;
   HashMap<Ref, std::string_view> ref_to_string_;
+  std::list<std::string> unique_idents_;
   std::uint32_t unique_ident_ = 0;
 };
 
