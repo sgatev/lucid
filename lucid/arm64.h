@@ -13,7 +13,7 @@
 #include <variant>
 #include <vector>
 
-#include "lucid/bits.h"
+#include "lucid/core/numeric/bits.h"
 #include "lucid/string.h"
 
 namespace lucid::arm64 {

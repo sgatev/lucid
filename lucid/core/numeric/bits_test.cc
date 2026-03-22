@@ -1,4 +1,4 @@
-#include "lucid/bits.h"
+#include "lucid/core/numeric/bits.h"
 
 #include "gtest/gtest.h"
 

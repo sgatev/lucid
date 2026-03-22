@@ -116,8 +116,8 @@ cc_library(
     name = "arm64",
     hdrs = ["arm64.h"],
     deps = [
-        ":bits",
         ":string",
+        "//lucid/core/numeric:bits",
     ],
 )
 
@@ -180,20 +180,6 @@ cc_library(
         "//lucid/core/container:arena",
         "//lucid/core/container:successive_list",
         "@googletest//:gtest",
-    ],
-)
-
-cc_library(
-    name = "bits",
-    hdrs = ["bits.h"],
-)
-
-cc_test(
-    name = "bits_test",
-    srcs = ["bits_test.cc"],
-    deps = [
-        ":bits",
-        "@googletest//:gtest_main",
     ],
 )
 
