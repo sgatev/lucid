@@ -11,10 +11,10 @@
 #include "lucid/am.h"
 #include "lucid/am_cfg.h"
 #include "lucid/am_liveness.h"
+#include "lucid/core/container/graph/dominator.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
 #include "lucid/core/dataflow/dataflow.h"
-#include "lucid/dom.h"
 
 namespace lucid {
 

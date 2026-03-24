@@ -9,7 +9,7 @@
 
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
-#include "lucid/dom.h"
+#include "lucid/core/container/graph/dominator.h"
 #include "lucid/string_index.h"
 
 namespace lucid {
@@ -46,7 +46,8 @@ CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
 }
 
 void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
-  const std::vector<std::optional<BlockRef>> idoms = ComputeImmediateDominators(cfg);
+  const std::vector<std::optional<BlockRef>> idoms =
+      ComputeImmediateDominators(cfg);
   const std::unordered_map<BlockRef, std::unordered_set<BlockRef>> dom_fronts =
       ComputeDominanceFrontiers(cfg, idoms);
   const std::unordered_map<StringIndex::Ref,
@@ -178,7 +179,8 @@ void ConvertToStaticSingleAssignment(SyntaxContext& ctx,
 }
 
 void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
-  const std::vector<std::optional<BlockRef>> idoms = ComputeImmediateDominators(cfg);
+  const std::vector<std::optional<BlockRef>> idoms =
+      ComputeImmediateDominators(cfg);
 
   for (auto& block : cfg.blocks()) {
     if (block.phis.empty()) continue;

@@ -29,7 +29,7 @@ ComputeImmediateDominators(const GraphT& graph) {
   auto source_vertex = SourceVertex(graph);
   std::vector<std::optional<typename GraphT::vertex_type>> idoms(
       VertexCount(graph));
-  idoms[source_vertex.id()] = source_vertex;
+  idoms[VertexId(graph, source_vertex)] = source_vertex;
 
   bool changed = true;
   while (changed) {
@@ -40,7 +40,7 @@ ComputeImmediateDominators(const GraphT& graph) {
 
       std::optional<typename GraphT::vertex_type> new_idom;
       for (auto prev_vertex : PrevVertices(graph, vertex)) {
-        if (!idoms[prev_vertex.id()].has_value()) continue;
+        if (!idoms[VertexId(graph, prev_vertex)].has_value()) continue;
 
         if (!new_idom.has_value()) {
           new_idom = prev_vertex;
@@ -49,19 +49,19 @@ ComputeImmediateDominators(const GraphT& graph) {
             assert(new_idom.has_value());
             while (compare(prev_vertex, *new_idom)) {
               assert(new_idom.has_value());
-              new_idom = idoms[new_idom->id()];
+              new_idom = idoms[VertexId(graph, *new_idom)];
             }
             assert(new_idom.has_value());
             while (compare(*new_idom, prev_vertex)) {
-              assert(idoms[prev_vertex.id()].has_value());
-              prev_vertex = *idoms[prev_vertex.id()];
+              assert(idoms[VertexId(graph, prev_vertex)].has_value());
+              prev_vertex = *idoms[VertexId(graph, prev_vertex)];
             }
           }
         }
       }
 
-      if (idoms[vertex.id()] != new_idom) {
-        idoms[vertex.id()] = new_idom;
+      if (idoms[VertexId(graph, vertex)] != new_idom) {
+        idoms[VertexId(graph, vertex)] = new_idom;
         changed = true;
       }
     }
@@ -90,12 +90,12 @@ ComputeDominanceFrontiers(
     if (prev_vertices.size() < 2) continue;
 
     for (auto prev_vertex : prev_vertices) {
-      while (prev_vertex != idoms[front_vertex.id()]) {
+      while (prev_vertex != idoms[VertexId(graph, front_vertex)]) {
         dom_fronts[prev_vertex].insert(front_vertex);
 
-        if (!idoms[prev_vertex.id()].has_value()) break;
+        if (!idoms[VertexId(graph, prev_vertex)].has_value()) break;
 
-        prev_vertex = *idoms[prev_vertex.id()];
+        prev_vertex = *idoms[VertexId(graph, prev_vertex)];
       }
     }
   }
@@ -112,8 +112,8 @@ BuildDominatorTree(const GraphT& graph) {
   std::vector<std::optional<vertex_type>> idoms =
       ComputeImmediateDominators(graph);
   for (vertex_type to : Vertices(graph)) {
-    if (!idoms[to.id()].has_value()) continue;
-    vertex_type from = *idoms[to.id()];
+    if (!idoms[VertexId(graph, to)].has_value()) continue;
+    vertex_type from = *idoms[VertexId(graph, to)];
     dom_tree.Insert(from, {});
     dom_tree.Find(from)->Insert(to);
   }

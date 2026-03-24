@@ -323,29 +323,6 @@ cc_library(
 )
 
 cc_library(
-    name = "dom",
-    hdrs = ["dom.h"],
-    deps = [
-        "//lucid/core/container:hash_map",
-        "//lucid/core/container:hash_set",
-        "//lucid/core/container/graph",
-        "//lucid/core/container/graph:order",
-    ],
-)
-
-cc_test(
-    name = "dom_test",
-    srcs = ["dom_test.cc"],
-    deps = [
-        ":ast",
-        ":ast_fixture",
-        ":cfg",
-        ":dom",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "file",
     srcs = ["file.cc"],
     hdrs = ["file.h"],
@@ -495,9 +472,9 @@ cc_library(
     deps = [
         ":am_cfg",
         ":am_liveness",
-        ":dom",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
+        "//lucid/core/container/graph:dominator",
         "//lucid/core/dataflow",
     ],
 )
@@ -535,8 +512,8 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
-        ":dom",
         ":string_index",
+        "//lucid/core/container/graph:dominator",
     ],
 )
 
