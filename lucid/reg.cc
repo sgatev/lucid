@@ -47,9 +47,12 @@ HashMap<RegId, int> ColorInterferenceGraph(
     const HashMap<RegId, HashSet<RegId>>& ig, int colors_count) {
   HashMap<RegId, int> ig_colors;
 
+  std::vector<std::optional<AbstractMachineControlFlowGraph::BlockRef>> idoms =
+      ComputeImmediateDominators(am_cfg);
+
   HashMap<AbstractMachineControlFlowGraph::BlockRef,
           HashSet<AbstractMachineControlFlowGraph::BlockRef>>
-      dom_tree = BuildDominatorTree(am_cfg);
+      dom_tree = BuildDominatorTree(am_cfg, idoms);
 
   std::stack<AbstractMachineControlFlowGraph::BlockRef> pending;
   std::vector<int> visited(VertexCount(am_cfg), 0);

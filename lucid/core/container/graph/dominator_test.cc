@@ -93,7 +93,7 @@ TEST(BuildDominatorTreeTest, Simple) {
   g.SetSink('W');
   g.AddEdge('A', 'W');
 
-  EXPECT_THAT(BuildDominatorTree(g),
+  EXPECT_THAT(BuildDominatorTree(g, ComputeImmediateDominators(g)),
               UnorderedElementsAre(Pair('A', UnorderedElementsAre('A', 'W'))));
 }
 
@@ -106,7 +106,7 @@ TEST(BuildDominatorTreeTest, DiamondBranch) {
   g.AddEdge('B', 'W');
   g.AddEdge('C', 'W');
 
-  EXPECT_THAT(BuildDominatorTree(g),
+  EXPECT_THAT(BuildDominatorTree(g, ComputeImmediateDominators(g)),
               UnorderedElementsAre(
                   Pair('A', UnorderedElementsAre('A', 'B', 'C', 'W'))));
 }
@@ -121,7 +121,7 @@ TEST(BuildDominatorTreeTest, Loop) {
   g.AddEdge('C', 'B');
   g.AddEdge('D', 'W');
 
-  EXPECT_THAT(BuildDominatorTree(g),
+  EXPECT_THAT(BuildDominatorTree(g, ComputeImmediateDominators(g)),
               UnorderedElementsAre(Pair('A', UnorderedElementsAre('A', 'B')),
                                    Pair('B', UnorderedElementsAre('C', 'D')),
                                    Pair('D', UnorderedElementsAre('W'))));
