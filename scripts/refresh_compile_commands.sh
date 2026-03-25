@@ -1,4 +1,4 @@
 #!/bin/bash
 # Refreshes compile_commands.json.
 
-bear -- bazel test //...
+bazel run @hedron_compile_commands//:refresh_all
