@@ -79,31 +79,6 @@ cc_binary(
 )
 
 cc_library(
-    name = "am_liveness",
-    srcs = ["am_liveness.cc"],
-    hdrs = ["am_liveness.h"],
-    deps = [
-        ":am_cfg",
-        "//lucid/core/container:hash_set",
-    ],
-)
-
-cc_test(
-    name = "am_liveness_test",
-    srcs = ["am_liveness_test.cc"],
-    deps = [
-        ":am_cfg",
-        ":am_liveness",
-        ":ast",
-        ":lexer",
-        ":parser",
-        ":string_index",
-        "//lucid/core/dataflow",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "ami_printer",
     srcs = ["ami_printer.cc"],
     hdrs = ["ami_printer.h"],
@@ -269,7 +244,6 @@ cc_binary(
         ":macho",
         ":opt",
         ":parser",
-        ":reg",
         ":ssa",
         ":static",
         ":type",
@@ -462,32 +436,6 @@ cc_binary(
         ":parser",
         ":token",
         "@google_benchmark//:benchmark",
-    ],
-)
-
-cc_library(
-    name = "reg",
-    srcs = ["reg.cc"],
-    hdrs = ["reg.h"],
-    deps = [
-        ":am_cfg",
-        ":am_liveness",
-        "//lucid/core/container:hash_map",
-        "//lucid/core/container:hash_set",
-        "//lucid/core/container/graph:dominator",
-        "//lucid/core/dataflow",
-    ],
-)
-
-cc_test(
-    name = "reg_test",
-    srcs = ["reg_test.cc"],
-    deps = [
-        ":am",
-        ":am_cfg",
-        ":ast",
-        ":reg",
-        "@googletest//:gtest_main",
     ],
 )
 
