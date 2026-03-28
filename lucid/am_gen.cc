@@ -38,38 +38,37 @@ class AbstractMachineFunctionGenerator {
     }
     for (const auto& block : graph.blocks()) {
       for (const auto& seq : block.sequences) {
-        if (seq.stmt.has_value()) {
-          const auto& stmt = ctx_.DerefStmt(*seq.stmt);
-          if (auto* var_decl = std::get_if<VarDeclStmt>(&stmt)) {
-            if (auto* array_type = std::get_if<ArrayType>(
-                    &ctx_.DerefType(var_decl->type_constraint))) {
-              const auto& var_decl_type = std::get<BasicType>(
-                  ctx_.DerefType(array_type->element_type_constraint));
-              std::string_view var_decl_type_name =
-                  ctx.DerefIdent(var_decl_type.name);
-              auto size =
-                  std::atoi(ctx_.DerefIdent(array_type->size.value).data());
-              for (int i = 0; i < size; ++i) {
-                if (var_decl_type_name == "Int32" ||
-                    var_decl_type_name == "Bool") {
-                  state_.func.stack_slots.push_back(4);
-                } else if (var_decl_type_name == "Int64") {
-                  state_.func.stack_slots.push_back(8);
-                }
-              }
-            } else {
-              const auto& var_decl_type = std::get<BasicType>(
-                  ctx_.DerefType(var_decl->type_constraint));
-              std::string_view var_decl_type_name =
-                  ctx.DerefIdent(var_decl_type.name);
-              if (var_decl_type_name == "Int32") {
-                state_.func.stack_slots.push_back(4);
-              } else if (var_decl_type_name == "Int64") {
-                state_.func.stack_slots.push_back(8);
-              } else if (var_decl_type_name == "Bool") {
-                state_.func.stack_slots.push_back(1);
-              }
+        if (!seq.stmt.has_value()) continue;
+        const auto& stmt = ctx_.DerefStmt(*seq.stmt);
+
+        auto* var_decl = std::get_if<VarDeclStmt>(&stmt);
+        if (var_decl == nullptr) continue;
+
+        if (auto* array_type = std::get_if<ArrayType>(
+                &ctx_.DerefType(var_decl->type_constraint))) {
+          const auto& var_decl_type = std::get<BasicType>(
+              ctx_.DerefType(array_type->element_type_constraint));
+          std::string_view var_decl_type_name =
+              ctx.DerefIdent(var_decl_type.name);
+          auto size = std::atoi(ctx_.DerefIdent(array_type->size.value).data());
+          for (int i = 0; i < size; ++i) {
+            if (var_decl_type_name == "Int32" || var_decl_type_name == "Bool") {
+              state_.func.stack_slots.push_back(4);
+            } else if (var_decl_type_name == "Int64") {
+              state_.func.stack_slots.push_back(8);
             }
+          }
+        } else {
+          const auto& var_decl_type =
+              std::get<BasicType>(ctx_.DerefType(var_decl->type_constraint));
+          std::string_view var_decl_type_name =
+              ctx.DerefIdent(var_decl_type.name);
+          if (var_decl_type_name == "Int32") {
+            state_.func.stack_slots.push_back(4);
+          } else if (var_decl_type_name == "Int64") {
+            state_.func.stack_slots.push_back(8);
+          } else if (var_decl_type_name == "Bool") {
+            state_.func.stack_slots.push_back(1);
           }
         }
       }
