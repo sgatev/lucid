@@ -24,7 +24,7 @@ cc_library(
     hdrs = ["am_cfg.h"],
     deps = [
         ":am",
-        "//lucid/core/container:hash_map",
+        "//lucid/core/container:arena",
         "//lucid/core/container:hash_set",
     ],
 )
@@ -35,10 +35,11 @@ cc_library(
     hdrs = ["am_gen.h"],
     deps = [
         ":am",
+        ":am_cfg",
         ":ast",
         ":cfg",
         ":string_index",
-        "//lucid/core/container/graph:order",
+        "//lucid/core/container:arena",
     ],
 )
 
@@ -51,6 +52,7 @@ cc_test(
         ":ast_fixture",
         ":cfg",
         ":type",
+        "//lucid/core/container/graph:order",
         "@googletest//:gtest_main",
     ],
 )
@@ -63,6 +65,7 @@ cc_binary(
         ":cfg",
         ":lexer",
         ":parser",
+        ":string_index",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -100,9 +103,11 @@ cc_library(
     hdrs = ["arm64_gen.h"],
     deps = [
         ":am",
+        ":am_cfg",
         ":arm64",
         ":ast",
         ":string_index",
+        "//lucid/core/container/graph:order",
     ],
 )
 

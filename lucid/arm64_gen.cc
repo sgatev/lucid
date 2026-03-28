@@ -7,7 +7,9 @@
 #include <vector>
 
 #include "lucid/am.h"
+#include "lucid/am_cfg.h"
 #include "lucid/arm64.h"
+#include "lucid/core/container/graph/order.h"
 #include "lucid/string_index.h"
 
 namespace lucid {
@@ -18,8 +20,9 @@ using namespace ::lucid::arm64;
 class Arm64BinaryGenerator {
  public:
   explicit Arm64BinaryGenerator(const SyntaxContext& ctx, const Function& func,
+                                const AbstractMachineControlFlowGraph& am_cfg,
                                 Assembler& assmebler)
-      : ctx_(ctx), func_(func), assembler_(assmebler) {}
+      : ctx_(ctx), func_(func), am_cfg_(am_cfg), assembler_(assmebler) {}
 
   void Generate() && {
     assembler_.Label(std::string(ctx_.DerefIdent(func_.name)));
@@ -35,12 +38,26 @@ class Arm64BinaryGenerator {
       stack_offsets_[i] = stack_offsets_[i - 1] + func_.stack_slots[i - 1];
     }
 
-    for (const auto& inst : func_.instructions) Process(inst);
+    std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
+        Vertices(am_cfg_);
+    const CompareVertexOrder<AbstractMachineControlFlowGraph> compare(
+        am_cfg_, ComputeReversePostOrder(am_cfg_));
+    std::sort(block_refs.begin(), block_refs.end(), compare);
+    for (const auto& ref : block_refs) Process(am_cfg_.get(ref));
   }
 
  private:
+  void Process(const AbstractMachineControlFlowGraph::Block& block) {
+    for (const auto& inst : block.instructions) Process(inst);
+  }
+
   void Process(const Instruction& inst) {
-    std::visit([this](auto&& inst) { Process(inst); }, inst);
+    std::visit(
+        [this](auto&& inst) {
+          // std::cout << inst << std::endl;
+          Process(inst);
+        },
+        inst);
   }
 
   void Process(const Nop&) {}
@@ -244,6 +261,7 @@ class Arm64BinaryGenerator {
 
   const SyntaxContext& ctx_;
   const Function& func_;
+  const AbstractMachineControlFlowGraph& am_cfg_;
   Assembler& assembler_;
   std::size_t stack_size_ = 0;
   std::vector<std::size_t> stack_offsets_;
@@ -289,8 +307,9 @@ void GenerateArmEndBinary(
 }
 
 void GenerateArmAssemblyBinary(const SyntaxContext& ctx, const Function& func,
+                               const AbstractMachineControlFlowGraph& am_cfg,
                                Assembler& assmebler) {
-  Arm64BinaryGenerator(ctx, func, assmebler).Generate();
+  Arm64BinaryGenerator(ctx, func, am_cfg, assmebler).Generate();
 }
 
 }  // namespace lucid

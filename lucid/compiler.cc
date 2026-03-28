@@ -20,8 +20,6 @@
 #include "lucid/cfg.h"
 #include "lucid/cfg_printer.h"
 #include "lucid/cli.h"
-#include "lucid/core/container/hash_map.h"
-#include "lucid/core/container/hash_set.h"
 #include "lucid/file.h"
 #include "lucid/lexer.h"
 #include "lucid/macho.h"
@@ -63,6 +61,7 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
   if (maybe_funcs.HasError()) return maybe_funcs.GetError();
   auto& func_defs = maybe_funcs.GetValue();
   // TODO: Avoid optional state here
+  std::unordered_map<std::uintptr_t, StringIndex::Ref> strings;
   std::optional<AbstractMachineState> state;
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
@@ -73,8 +72,12 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
               {
                   .name = func.name,
               },
+          .strings = strings,
       });
     }
+    state->func.name = func.name;
+    state->am_cfg = AbstractMachineControlFlowGraph();
+    state->out_reg.clear();
     if (auto res = InferExprTypes(ctx, func_defs, func); res.HasError()) {
       return res.GetError();
     }
@@ -85,8 +88,10 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     ConvertToStaticSingleAssignment(ctx, cfg);
     DestroyStaticSingleAssignment(ctx, cfg);
     GenerateAbstractMachineFunction(ctx, cfg, *state);
-    OptimizeAbstractMachineInstructions(state->func.instructions);
-    GenerateArmAssemblyBinary(ctx, state->func, assembler);
+    for (auto& block : state->am_cfg.blocks()) {
+      OptimizeAbstractMachineInstructions(block.instructions);
+    }
+    GenerateArmAssemblyBinary(ctx, state->func, state->am_cfg, assembler);
   }
   GenerateArmEndBinary(ctx, state->strings, assembler);
   WriteCompiledMachObject(assembler, out);
@@ -325,15 +330,21 @@ int HandlePrintAmiCommand(CommandContext ctx) {
       DestroyStaticSingleAssignment(sctx, cfg);
     }
 
+    std::unordered_map<std::uintptr_t, StringIndex::Ref> strings;
     AbstractMachineState state = {
         .func =
             {
                 .name = func_def.name,
             },
+        .strings = strings,
     };
     GenerateAbstractMachineFunction(sctx, cfg, state);
-    OptimizeAbstractMachineInstructions(state.func.instructions);
-    Print(sctx.DerefIdent(state.func.name), state.func.instructions);
+    for (auto& block : state.am_cfg.blocks()) {
+      OptimizeAbstractMachineInstructions(block.instructions);
+    }
+    for (const auto& block : state.am_cfg.blocks()) {
+      Print(sctx.DerefIdent(state.func.name), block.instructions);
+    }
   }
 
   return 0;

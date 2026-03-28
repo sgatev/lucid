@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "lucid/am.h"
+#include "lucid/am_cfg.h"
 #include "lucid/arm64.h"
 #include "lucid/ast.h"
 #include "lucid/string_index.h"
@@ -21,6 +22,7 @@ void GenerateArmEndBinary(
 
 // Generates 64-bit ARM machine code for `func`.
 void GenerateArmAssemblyBinary(const SyntaxContext& ctx, const Function& func,
-                               arm64::Assembler& assembler);
+                               const AbstractMachineControlFlowGraph& am_cfg,
+                               arm64::Assembler& assmebler);
 
 }  // namespace lucid

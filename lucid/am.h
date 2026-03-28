@@ -717,9 +717,6 @@ struct Function {
 
   // Abstract machine stack slots.
   std::vector<std::size_t> stack_slots;
-
-  // Abstract machine instructions of the function.
-  std::vector<Instruction> instructions;
 };
 
 }  // namespace lucid
