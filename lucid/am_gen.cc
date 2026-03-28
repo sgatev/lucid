@@ -21,13 +21,15 @@ class AbstractMachineFunctionGenerator {
   AbstractMachineFunctionGenerator(const SyntaxContext& ctx,
                                    const ControlFlowGraph& graph,
                                    AbstractMachineState& state)
-      : ctx_(ctx), graph_(graph), state_(state) {
-    for (const auto& param_ref : graph.func_params) {
+      : ctx_(ctx), graph_(graph), state_(state) {}
+
+  void Generate() {
+    for (const auto& param_ref : graph_.func_params) {
       const auto& param = ctx_.DerefParam(param_ref);
       // TODO: Handle `ArrayType`.
       const auto& param_type =
           std::get<BasicType>(ctx_.DerefType(param.type_constraint));
-      std::string_view param_name = ctx.DerefIdent(param_type.name);
+      std::string_view param_name = ctx_.DerefIdent(param_type.name);
       if (param_name == "Int32") {
         state_.func.stack_slots.push_back(4);
       } else if (param_name == "Int64") {
@@ -36,61 +38,14 @@ class AbstractMachineFunctionGenerator {
         state_.func.stack_slots.push_back(1);
       }
     }
-    for (const auto& block : graph.blocks()) {
-      for (const auto& seq : block.sequences) {
-        if (!seq.stmt.has_value()) continue;
-        const auto& stmt = ctx_.DerefStmt(*seq.stmt);
 
-        auto* var_decl = std::get_if<VarDeclStmt>(&stmt);
-        if (var_decl == nullptr) continue;
-
-        if (auto* array_type = std::get_if<ArrayType>(
-                &ctx_.DerefType(var_decl->type_constraint))) {
-          const auto& var_decl_type = std::get<BasicType>(
-              ctx_.DerefType(array_type->element_type_constraint));
-          std::string_view var_decl_type_name =
-              ctx.DerefIdent(var_decl_type.name);
-          auto size = std::atoi(ctx_.DerefIdent(array_type->size.value).data());
-          for (int i = 0; i < size; ++i) {
-            if (var_decl_type_name == "Int32" || var_decl_type_name == "Bool") {
-              state_.func.stack_slots.push_back(4);
-            } else if (var_decl_type_name == "Int64") {
-              state_.func.stack_slots.push_back(8);
-            }
-          }
-        } else {
-          const auto& var_decl_type =
-              std::get<BasicType>(ctx_.DerefType(var_decl->type_constraint));
-          std::string_view var_decl_type_name =
-              ctx.DerefIdent(var_decl_type.name);
-          if (var_decl_type_name == "Int32") {
-            state_.func.stack_slots.push_back(4);
-          } else if (var_decl_type_name == "Int64") {
-            state_.func.stack_slots.push_back(8);
-          } else if (var_decl_type_name == "Bool") {
-            state_.func.stack_slots.push_back(1);
-          }
-        }
-      }
-    }
-  }
-
-  void Generate() {
     if (graph_.has_func_calls) stack_offset_ = 12;
 
     state_.out_reg.clear();
     state_.out_reg.resize(ctx_.Size());
 
     state_.func.name = graph_.func_name;
-
-    std::size_t instructions_count = 0;
-    for (const auto& block : graph_.blocks()) {
-      for (const auto& seq : block.sequences) {
-        instructions_count += seq.expressions.size() + 1;
-      }
-    }
     state_.func.instructions.clear();
-    state_.func.instructions.reserve(instructions_count * 2);
 
     if (ctx_.DerefIdent(graph_.func_name) == "printString") {
       state_.func.instructions.push_back(Jump{
@@ -140,17 +95,14 @@ class AbstractMachineFunctionGenerator {
       }
     }
 
+    std::vector<ControlFlowGraph::BlockRef> block_refs = Vertices(graph_);
     const CompareVertexOrder<ControlFlowGraph> compare(
         graph_, ComputeReversePostOrder(graph_));
-
-    std::vector<ControlFlowGraph::BlockRef> block_refs = Vertices(graph_);
     std::sort(block_refs.begin(), block_refs.end(), compare);
 
-    RegId highest_reg = 1;
     for (const auto& block_ref : block_refs) {
       const auto& block = graph_.get(block_ref);
 
-      if (next_reg_ > highest_reg) highest_reg = next_reg_;
       next_reg_ = 1;
 
       state_.func.instructions.push_back(Label{
@@ -184,7 +136,6 @@ class AbstractMachineFunctionGenerator {
         });
       }
     }
-    next_reg_ = highest_reg;
 
     state_.func.instructions.insert(state_.func.instructions.begin() + pop_pos,
                                     PopStack{});
@@ -321,7 +272,18 @@ class AbstractMachineFunctionGenerator {
             ctx_.DerefType(stmt.type_constraint))) {
       auto array_type =
           std::get<ArrayType>(ctx_.DerefType(stmt.type_constraint));
+      const auto& var_decl_type = std::get<BasicType>(
+          ctx_.DerefType(array_type.element_type_constraint));
+      std::string_view var_decl_type_name = ctx_.DerefIdent(var_decl_type.name);
       auto size = std::atoi(ctx_.DerefIdent(array_type.size.value).data());
+      for (int i = 0; i < size; ++i) {
+        if (var_decl_type_name == "Int32" || var_decl_type_name == "Bool") {
+          state_.func.stack_slots.push_back(4);
+        } else if (var_decl_type_name == "Int64") {
+          state_.func.stack_slots.push_back(8);
+        }
+      }
+
       var_stack_[stmt.name] = stack_offset_;
       for (int i = 0; i < size; ++i) {
         ++stack_offset_;
@@ -329,10 +291,18 @@ class AbstractMachineFunctionGenerator {
       return;
     }
 
-    if (!stmt.init.has_value()) return;
-
     auto stmt_type = std::get<BasicType>(ctx_.DerefType(stmt.type_constraint));
     std::string_view stmt_type_name = ctx_.DerefIdent(stmt_type.name);
+    if (stmt_type_name == "Int32") {
+      state_.func.stack_slots.push_back(4);
+    } else if (stmt_type_name == "Int64") {
+      state_.func.stack_slots.push_back(8);
+    } else if (stmt_type_name == "Bool") {
+      state_.func.stack_slots.push_back(1);
+    }
+
+    if (!stmt.init.has_value()) return;
+
     if (stmt_type_name == "Int32") {
       state_.func.instructions.push_back(StoreStack32{
           .offset = stack_offset_,
