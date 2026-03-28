@@ -62,7 +62,6 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
   if (maybe_funcs.HasError()) return maybe_funcs.GetError();
   auto& func_defs = maybe_funcs.GetValue();
   // TODO: Avoid optional state here
-  std::unordered_map<std::uintptr_t, StringIndex::Ref> strings;
   std::optional<AbstractMachineState> state;
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
@@ -73,7 +72,6 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
               {
                   .name = func.name,
               },
-          .strings = strings,
       });
     }
     state->func.name = func.name;
@@ -333,13 +331,11 @@ int HandlePrintAmiCommand(CommandContext ctx) {
       DestroyStaticSingleAssignment(sctx, cfg);
     }
 
-    std::unordered_map<std::uintptr_t, StringIndex::Ref> strings;
     AbstractMachineState state = {
         .func =
             {
                 .name = func_def.name,
             },
-        .strings = strings,
     };
     AbstractMachineControlFlowGraph am_cfg =
         GenerateAbstractMachineFunction(sctx, cfg, state);

@@ -18,7 +18,7 @@ struct AbstractMachineState {
   Function func;
 
   // Strings used in `func`.
-  std::unordered_map<std::uintptr_t, StringIndex::Ref>& strings;
+  std::unordered_map<std::uintptr_t, StringIndex::Ref> strings;
 };
 
 // Generates abstract machine instructions for `graph`.

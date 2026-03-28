@@ -65,7 +65,6 @@ cc_binary(
         ":cfg",
         ":lexer",
         ":parser",
-        ":string_index",
         "@google_benchmark//:benchmark",
     ],
 )

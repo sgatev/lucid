@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <optional>
 #include <string_view>
-#include <unordered_map>
 
 #include "benchmark/benchmark.h"
 #include "lucid/am_gen.h"
@@ -10,7 +9,6 @@
 #include "lucid/cfg.h"
 #include "lucid/lexer.h"
 #include "lucid/parser.h"
-#include "lucid/string_index.h"
 
 std::size_t CountInstructions(const lucid::SyntaxContext& ctx,
                               const lucid::ControlFlowGraph& graph,
@@ -29,13 +27,11 @@ void Benchmark(benchmark::State& state, std::string_view code) {
   auto func_def = std::get<std::optional<lucid::FuncDefStmt>>(
       lucid::Parser(ctx, code, lucid::Lexer(code)).ParseFuncDef());
   auto graph = BuildControlFlowGraph(ctx, func_def.value());
-  std::unordered_map<std::uintptr_t, lucid::StringIndex::Ref> strings;
   lucid::AbstractMachineState am_state = {
       .func =
           {
               .name = func_def->name,
           },
-      .strings = strings,
   };
 
   for (auto _ : state) {
