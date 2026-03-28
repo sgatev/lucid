@@ -263,6 +263,7 @@ cc_binary(
         ":macho",
         ":opt",
         ":parser",
+        ":reg",
         ":ssa",
         ":static",
         ":type",
@@ -455,6 +456,31 @@ cc_binary(
         ":parser",
         ":token",
         "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_library(
+    name = "reg",
+    srcs = ["reg.cc"],
+    hdrs = ["reg.h"],
+    deps = [
+        ":am_cfg",
+        ":am_liveness",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
+        "//lucid/core/container/graph:dominator",
+        "//lucid/core/dataflow",
+    ],
+)
+
+cc_test(
+    name = "reg_test",
+    srcs = ["reg_test.cc"],
+    deps = [
+        ":am_cfg",
+        ":ast",
+        ":reg",
+        "@googletest//:gtest_main",
     ],
 )
 

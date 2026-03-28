@@ -25,6 +25,15 @@ class AbstractMachineFunctionGenerator {
       : ctx_(ctx), graph_(graph), state_(state) {}
 
   void Generate() {
+    state_.out_reg.clear();
+    state_.out_reg.resize(ctx_.Size());
+
+    for (const auto& block : graph_.blocks()) {
+      graph_map_[block.ref] = state_.am_cfg.add().ref;
+    }
+    state_.am_cfg.first = graph_map_[graph_.first];
+    state_.am_cfg.last = graph_map_[graph_.last];
+
     for (const auto& param_ref : graph_.func_params) {
       const auto& param = ctx_.DerefParam(param_ref);
       // TODO: Handle `ArrayType`.
@@ -69,15 +78,6 @@ class AbstractMachineFunctionGenerator {
     }
 
     if (graph_.has_func_calls) stack_offset_ = 12;
-
-    state_.out_reg.clear();
-    state_.out_reg.resize(ctx_.Size());
-
-    for (const auto& block : graph_.blocks()) {
-      graph_map_[block.ref] = state_.am_cfg.add().ref;
-    }
-    state_.am_cfg.first = graph_map_[graph_.first];
-    state_.am_cfg.last = graph_map_[graph_.last];
 
     {
       auto& first_block = state_.am_cfg.get(state_.am_cfg.first);

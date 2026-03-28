@@ -25,6 +25,7 @@
 #include "lucid/macho.h"
 #include "lucid/opt.h"
 #include "lucid/parser.h"
+#include "lucid/reg.h"
 #include "lucid/result.h"
 #include "lucid/ssa.h"
 #include "lucid/static.h"
@@ -91,6 +92,10 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     for (auto& block : state->am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
+    HashMap<RegId, HashSet<RegId>> am_ig =
+        BuildInterferenceGraph(state->am_cfg);
+    HashMap<RegId, int> am_ig_colors =
+        ColorInterferenceGraph(state->am_cfg, am_ig, 14);
     GenerateArmAssemblyBinary(ctx, state->func, state->am_cfg, assembler);
   }
   GenerateArmEndBinary(ctx, state->strings, assembler);
