@@ -131,9 +131,4 @@ inline std::uint32_t VertexId(const AbstractMachineControlFlowGraph&,
   return block.id();
 }
 
-// Builds a graph that represents the control flow of a abstract machine
-// instructions.
-AbstractMachineControlFlowGraph BuildAbstractMachineControlFlowGraph(
-    const std::vector<Instruction>& instructions);
-
 }  // namespace lucid

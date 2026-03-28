@@ -21,22 +21,11 @@ cc_test(
 
 cc_library(
     name = "am_cfg",
-    srcs = ["am_cfg.cc"],
     hdrs = ["am_cfg.h"],
     deps = [
         ":am",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
-    ],
-)
-
-cc_test(
-    name = "am_cfg_test",
-    srcs = ["am_cfg_test.cc"],
-    deps = [
-        ":am",
-        ":am_cfg",
-        "@googletest//:gtest_main",
     ],
 )
 

@@ -86,8 +86,6 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     DestroyStaticSingleAssignment(ctx, cfg);
     GenerateAbstractMachineFunction(ctx, cfg, *state);
     OptimizeAbstractMachineInstructions(state->func.instructions);
-    AbstractMachineControlFlowGraph am_cfg =
-        BuildAbstractMachineControlFlowGraph(state->func.instructions);
     GenerateArmAssemblyBinary(ctx, state->func, assembler);
   }
   GenerateArmEndBinary(ctx, state->strings, assembler);
