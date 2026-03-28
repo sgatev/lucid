@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <unordered_map>
-#include <vector>
 
 #include "lucid/am.h"
 #include "lucid/am_cfg.h"
@@ -18,12 +17,6 @@ struct AbstractMachineState {
   // `GenerateAbstractMachineFunction` where this state was used.
   Function func;
 
-  AbstractMachineControlFlowGraph am_cfg;
-
-  // Register allocation data structure that is used to generate abstract
-  // machine instructions.
-  std::vector<RegId> out_reg;
-
   // Strings used in `func`.
   std::unordered_map<std::uintptr_t, StringIndex::Ref>& strings;
 };
@@ -34,8 +27,8 @@ struct AbstractMachineState {
 //
 // Requires:
 // - `graph` must be constructed in `ctx`.
-void GenerateAbstractMachineFunction(const SyntaxContext& ctx,
-                                     const ControlFlowGraph& graph,
-                                     AbstractMachineState& state);
+AbstractMachineControlFlowGraph GenerateAbstractMachineFunction(
+    const SyntaxContext& ctx, const ControlFlowGraph& graph,
+    AbstractMachineState& state);
 
 }  // namespace lucid

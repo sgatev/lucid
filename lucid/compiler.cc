@@ -77,8 +77,6 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
       });
     }
     state->func.name = func.name;
-    state->am_cfg = AbstractMachineControlFlowGraph();
-    state->out_reg.clear();
     if (auto res = InferExprTypes(ctx, func_defs, func); res.HasError()) {
       return res.GetError();
     }
@@ -88,15 +86,15 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     }
     ConvertToStaticSingleAssignment(ctx, cfg);
     DestroyStaticSingleAssignment(ctx, cfg);
-    GenerateAbstractMachineFunction(ctx, cfg, *state);
-    for (auto& block : state->am_cfg.blocks()) {
+    AbstractMachineControlFlowGraph am_cfg =
+        GenerateAbstractMachineFunction(ctx, cfg, *state);
+    for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
-    HashMap<RegId, HashSet<RegId>> am_ig =
-        BuildInterferenceGraph(state->am_cfg);
+    HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
     HashMap<RegId, int> am_ig_colors =
-        ColorInterferenceGraph(state->am_cfg, am_ig, 14);
-    GenerateArmAssemblyBinary(ctx, state->func, state->am_cfg, assembler);
+        ColorInterferenceGraph(am_cfg, am_ig, 14);
+    GenerateArmAssemblyBinary(ctx, state->func, am_cfg, assembler);
   }
   GenerateArmEndBinary(ctx, state->strings, assembler);
   WriteCompiledMachObject(assembler, out);
@@ -343,11 +341,12 @@ int HandlePrintAmiCommand(CommandContext ctx) {
             },
         .strings = strings,
     };
-    GenerateAbstractMachineFunction(sctx, cfg, state);
-    for (auto& block : state.am_cfg.blocks()) {
+    AbstractMachineControlFlowGraph am_cfg =
+        GenerateAbstractMachineFunction(sctx, cfg, state);
+    for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
-    for (const auto& block : state.am_cfg.blocks()) {
+    for (const auto& block : am_cfg.blocks()) {
       Print(sctx.DerefIdent(state.func.name), block.instructions);
     }
   }

@@ -31,17 +31,18 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
             },
         .strings = strings,
     };
-    GenerateAbstractMachineFunction(ctx_, graph, state);
+    AbstractMachineControlFlowGraph am_cfg =
+        GenerateAbstractMachineFunction(ctx_, graph, state);
 
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
-        Vertices(state.am_cfg);
+        Vertices(am_cfg);
     const CompareVertexOrder<AbstractMachineControlFlowGraph> compare(
-        state.am_cfg, ComputeReversePostOrder(state.am_cfg));
+        am_cfg, ComputeReversePostOrder(am_cfg));
     std::sort(block_refs.begin(), block_refs.end(), compare);
 
     std::vector<Instruction> instructions;
     for (const auto& ref : block_refs) {
-      const auto& block = state.am_cfg.get(ref);
+      const auto& block = am_cfg.get(ref);
       instructions.insert(instructions.end(), block.instructions.begin(),
                           block.instructions.end());
     }

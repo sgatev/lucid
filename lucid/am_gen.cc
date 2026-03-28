@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <string_view>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 
 #include "lucid/am.h"
@@ -22,17 +23,16 @@ class AbstractMachineFunctionGenerator {
   AbstractMachineFunctionGenerator(const SyntaxContext& ctx,
                                    const ControlFlowGraph& graph,
                                    AbstractMachineState& state)
-      : ctx_(ctx), graph_(graph), state_(state) {}
+      : ctx_(ctx), graph_(graph), state_(state) {
+    expr_and_stmt_to_reg_.resize(ctx_.Size());
+  }
 
-  void Generate() {
-    state_.out_reg.clear();
-    state_.out_reg.resize(ctx_.Size());
-
+  AbstractMachineControlFlowGraph Generate() && {
     for (const auto& block : graph_.blocks()) {
-      graph_map_[block.ref] = state_.am_cfg.add().ref;
+      graph_map_[block.ref] = am_cfg_.add().ref;
     }
-    state_.am_cfg.first = graph_map_[graph_.first];
-    state_.am_cfg.last = graph_map_[graph_.last];
+    am_cfg_.first = graph_map_[graph_.first];
+    am_cfg_.last = graph_map_[graph_.last];
 
     for (const auto& param_ref : graph_.func_params) {
       const auto& param = ctx_.DerefParam(param_ref);
@@ -50,8 +50,8 @@ class AbstractMachineFunctionGenerator {
     }
 
     if (ctx_.DerefIdent(graph_.func_name) == "printString") {
-      auto& first_block = state_.am_cfg.add();
-      state_.am_cfg.first = first_block.ref;
+      auto& first_block = am_cfg_.add();
+      am_cfg_.first = first_block.ref;
 
       first_block.instructions.push_back(Jump{
           .label = "_print_string",
@@ -61,10 +61,10 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = 0,
       });
       first_block.instructions.push_back(Return{});
-      return;
+      return std::move(am_cfg_);
     } else if (ctx_.DerefIdent(graph_.func_name) == "sleep") {
-      auto& first_block = state_.am_cfg.add();
-      state_.am_cfg.first = first_block.ref;
+      auto& first_block = am_cfg_.add();
+      am_cfg_.first = first_block.ref;
 
       first_block.instructions.push_back(Jump{
           .label = "_sleep",
@@ -74,13 +74,13 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = 0,
       });
       first_block.instructions.push_back(Return{});
-      return;
+      return std::move(am_cfg_);
     }
 
     if (graph_.has_func_calls) stack_offset_ = 12;
 
     {
-      auto& first_block = state_.am_cfg.get(state_.am_cfg.first);
+      auto& first_block = am_cfg_.get(am_cfg_.first);
       first_block.instructions.push_back(PushStack{});
       if (graph_.has_func_calls) {
         for (std::size_t i = 12; i >= 1; --i) {
@@ -114,11 +114,11 @@ class AbstractMachineFunctionGenerator {
     }
 
     for (const auto& block : graph_.blocks()) {
-      Process(block, state_.am_cfg.get(graph_map_[block.ref]));
+      Process(block, am_cfg_.get(graph_map_[block.ref]));
     }
 
     {
-      auto& last_block = state_.am_cfg.get(state_.am_cfg.last);
+      auto& last_block = am_cfg_.get(am_cfg_.last);
       if (graph_.has_func_calls) {
         for (std::size_t i = 12; i >= 1; --i) {
           last_block.instructions.push_back(LoadStack64{
@@ -131,6 +131,8 @@ class AbstractMachineFunctionGenerator {
       last_block.instructions.push_back(PopStack{});
       last_block.instructions.push_back(Return{});
     }
+
+    return std::move(am_cfg_);
   }
 
  private:
@@ -151,7 +153,7 @@ class AbstractMachineFunctionGenerator {
     }
     if (block.branch_cond != Arena<Expr>::kNullRef) {
       am_block.instructions.push_back(CondJump{
-          .cond_reg = state_.out_reg[block.branch_cond.id()],
+          .cond_reg = expr_and_stmt_to_reg_[block.branch_cond.id()],
           .then_label = graph_.get(block.next[0]).ref.id(),
           .else_label = graph_.get(block.next[1]).ref.id(),
       });
@@ -189,7 +191,7 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = reg,
       });
     }
-    state_.out_reg[ref.id()] = reg;
+    expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const BoolLitExpr& expr,
@@ -199,7 +201,7 @@ class AbstractMachineFunctionGenerator {
         .src_val = ctx_.DerefIdent(expr.value) == "true" ? "1" : "0",
         .dst_reg = reg,
     });
-    state_.out_reg[ref.id()] = reg;
+    expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const StringLitExpr& expr,
@@ -213,7 +215,7 @@ class AbstractMachineFunctionGenerator {
         .src_val = string_id,
         .dst_reg = reg,
     });
-    state_.out_reg[ref.id()] = reg;
+    expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const FuncCallExpr& expr,
@@ -226,12 +228,12 @@ class AbstractMachineFunctionGenerator {
       std::string_view arg_type_name = ctx_.DerefIdent(arg_type.name);
       if (arg_type_name == "Int32") {
         am_block.instructions.push_back(MoveReg32{
-            .src_reg = state_.out_reg[arg.id()],
+            .src_reg = expr_and_stmt_to_reg_[arg.id()],
             .dst_reg = i++,
         });
       } else if (arg_type_name == "Int64" || arg_type_name == "String") {
         am_block.instructions.push_back(MoveReg64{
-            .src_reg = state_.out_reg[arg.id()],
+            .src_reg = expr_and_stmt_to_reg_[arg.id()],
             .dst_reg = i++,
         });
       }
@@ -252,7 +254,7 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = reg,
       });
     }
-    state_.out_reg[ref.id()] = reg;
+    expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const IdentExpr& expr,
@@ -272,7 +274,7 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = reg,
       });
     }
-    state_.out_reg[ref.id()] = reg;
+    expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const IndexExpr& expr,
@@ -290,7 +292,7 @@ class AbstractMachineFunctionGenerator {
       am_block.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[expr.index.id()],
+          .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
       });
 
       am_block.instructions.push_back(LoadStackReg32{
@@ -307,7 +309,7 @@ class AbstractMachineFunctionGenerator {
       am_block.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[expr.index.id()],
+          .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
       });
 
       am_block.instructions.push_back(LoadStackReg64{
@@ -324,7 +326,7 @@ class AbstractMachineFunctionGenerator {
       am_block.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[expr.index.id()],
+          .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
       });
 
       am_block.instructions.push_back(LoadStackReg32{
@@ -333,7 +335,7 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = reg,
       });
     }
-    state_.out_reg[ref.id()] = reg;
+    expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr,
@@ -347,14 +349,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type_name == "Int32") {
           am_block.instructions.push_back(AddReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         } else if (expr_type_name == "Int64") {
           am_block.instructions.push_back(AddReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         }
         break;
@@ -362,14 +364,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type_name == "Int64") {
           am_block.instructions.push_back(SubReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         } else {
           am_block.instructions.push_back(SubReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         }
         break;
@@ -377,14 +379,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type_name == "Int32") {
           am_block.instructions.push_back(MulReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         } else if (expr_type_name == "Int64") {
           am_block.instructions.push_back(MulReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         }
         break;
@@ -392,14 +394,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type_name == "Int32") {
           am_block.instructions.push_back(DivReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         } else if (expr_type_name == "Int64") {
           am_block.instructions.push_back(DivReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         }
         break;
@@ -407,14 +409,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type_name == "Int32") {
           am_block.instructions.push_back(ModReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         } else if (expr_type_name == "Int64") {
           am_block.instructions.push_back(ModReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         }
         break;
@@ -422,14 +424,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type_name == "Int64") {
           am_block.instructions.push_back(GtReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         } else {
           am_block.instructions.push_back(GtReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         }
         break;
@@ -437,14 +439,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type_name == "Int64") {
           am_block.instructions.push_back(LtReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         } else {
           am_block.instructions.push_back(LtReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         }
         break;
@@ -452,14 +454,14 @@ class AbstractMachineFunctionGenerator {
         if (expr_type_name == "Int64") {
           am_block.instructions.push_back(EqReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         } else {
           am_block.instructions.push_back(EqReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         }
         break;
@@ -467,19 +469,19 @@ class AbstractMachineFunctionGenerator {
         if (expr_type_name == "Int64") {
           am_block.instructions.push_back(NotEqReg64{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         } else {
           am_block.instructions.push_back(NotEqReg32{
               .res_reg = reg,
-              .lhs_reg = state_.out_reg[expr.lhs.id()],
-              .rhs_reg = state_.out_reg[expr.rhs.id()],
+              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
           });
         }
         break;
     }
-    state_.out_reg[ref.id()] = reg;
+    expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
   void Process(StmtRef ref, const Stmt& stmt,
@@ -494,12 +496,12 @@ class AbstractMachineFunctionGenerator {
     std::string_view type_name = ctx_.DerefIdent(type.name);
     if (type_name == "Int32" || type_name == "Bool") {
       am_block.instructions.push_back(MoveReg32{
-          .src_reg = state_.out_reg[stmt.value.id()],
+          .src_reg = expr_and_stmt_to_reg_[stmt.value.id()],
           .dst_reg = 0,
       });
     } else if (type_name == "Int64") {
       am_block.instructions.push_back(MoveReg64{
-          .src_reg = state_.out_reg[stmt.value.id()],
+          .src_reg = expr_and_stmt_to_reg_[stmt.value.id()],
           .dst_reg = 0,
       });
     }
@@ -516,12 +518,12 @@ class AbstractMachineFunctionGenerator {
     if (expr_type_name == "Int32") {
       am_block.instructions.push_back(StoreStack32{
           .offset = var_stack_[stmt.name],
-          .src_reg = state_.out_reg[stmt.expr.id()],
+          .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
       });
     } else if (expr_type_name == "Int64") {
       am_block.instructions.push_back(StoreStack64{
           .offset = var_stack_[stmt.name],
-          .src_reg = state_.out_reg[stmt.expr.id()],
+          .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
       });
     }
   }
@@ -566,14 +568,14 @@ class AbstractMachineFunctionGenerator {
     if (stmt_type_name == "Int32") {
       am_block.instructions.push_back(StoreStack32{
           .offset = stack_offset_,
-          .src_reg = state_.out_reg[stmt.init->id()],
+          .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
       });
       var_stack_[stmt.name] = stack_offset_;
       ++stack_offset_;
     } else if (stmt_type_name == "Int64") {
       am_block.instructions.push_back(StoreStack64{
           .offset = stack_offset_,
-          .src_reg = state_.out_reg[stmt.init->id()],
+          .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
       });
       var_stack_[stmt.name] = stack_offset_;
       ++stack_offset_;
@@ -594,13 +596,13 @@ class AbstractMachineFunctionGenerator {
       am_block.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[stmt.index.id()],
+          .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
       });
 
       am_block.instructions.push_back(StoreStackReg32{
           .offset = var_stack_[stmt.name],
           .offset_reg = offset_reg,
-          .src_reg = state_.out_reg[stmt.expr.id()],
+          .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
       });
     } else if (expr_type_name == "Int64") {
       RegId offset_reg = next_reg_++;
@@ -611,13 +613,13 @@ class AbstractMachineFunctionGenerator {
       am_block.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[stmt.index.id()],
+          .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
       });
 
       am_block.instructions.push_back(StoreStackReg64{
           .offset = var_stack_[stmt.name],
           .offset_reg = offset_reg,
-          .src_reg = state_.out_reg[stmt.expr.id()],
+          .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
       });
     } else if (expr_type_name == "Bool") {
       RegId offset_reg = next_reg_++;
@@ -628,13 +630,13 @@ class AbstractMachineFunctionGenerator {
       am_block.instructions.push_back(MulReg32{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
-          .rhs_reg = state_.out_reg[stmt.index.id()],
+          .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
       });
 
       am_block.instructions.push_back(StoreStackReg32{
           .offset = var_stack_[stmt.name],
           .offset_reg = offset_reg,
-          .src_reg = state_.out_reg[stmt.expr.id()],
+          .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
       });
     }
   }
@@ -659,20 +661,22 @@ class AbstractMachineFunctionGenerator {
   const SyntaxContext& ctx_;
   const ControlFlowGraph& graph_;
   AbstractMachineState& state_;
+  AbstractMachineControlFlowGraph am_cfg_;
   RegId next_reg_ = 1;
   std::size_t stack_offset_ = 0;
   std::unordered_map<StringIndex::Ref, std::size_t> var_stack_;
   std::unordered_map<ControlFlowGraph::BlockRef,
                      AbstractMachineControlFlowGraph::BlockRef>
       graph_map_;
+  std::vector<RegId> expr_and_stmt_to_reg_;
 };
 
 }  // namespace
 
-void GenerateAbstractMachineFunction(const SyntaxContext& ctx,
-                                     const ControlFlowGraph& graph,
-                                     AbstractMachineState& state) {
-  AbstractMachineFunctionGenerator(ctx, graph, state).Generate();
+AbstractMachineControlFlowGraph GenerateAbstractMachineFunction(
+    const SyntaxContext& ctx, const ControlFlowGraph& graph,
+    AbstractMachineState& state) {
+  return AbstractMachineFunctionGenerator(ctx, graph, state).Generate();
 }
 
 }  // namespace lucid

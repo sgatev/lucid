@@ -15,9 +15,10 @@
 std::size_t CountInstructions(const lucid::SyntaxContext& ctx,
                               const lucid::ControlFlowGraph& graph,
                               lucid::AbstractMachineState& state) {
-  lucid::GenerateAbstractMachineFunction(ctx, graph, state);
+  lucid::AbstractMachineControlFlowGraph am_cfg =
+      lucid::GenerateAbstractMachineFunction(ctx, graph, state);
   std::size_t instructions_count = 0;
-  for (const auto& block : state.am_cfg.blocks()) {
+  for (const auto& block : am_cfg.blocks()) {
     instructions_count += block.instructions.size();
   }
   return instructions_count;
