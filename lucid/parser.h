@@ -325,8 +325,8 @@ class Parser {
     if (IsError(init)) return std::get<ParserError>(init);
 
     return VarDeclStmt{
-        .type_constraint = std::get<TypeRef>(maybe_type),
         .name = std::get<StringIndex::Ref>(maybe_name),
+        .type_constraint = std::get<TypeRef>(maybe_type),
         .init = ctx_.Add(std::get<Expr>(init)),
     };
   }
