@@ -700,15 +700,39 @@ struct LoadStackReg64 {
   }
 };
 
+// Calls a function.
+struct FuncCall {
+  // Label of the function to call.
+  std::string_view label;
+
+  struct Slot {
+    RegId reg;
+    int bits;
+
+    bool operator==(const Slot&) const = default;
+  };
+
+  // Arguments to pass to the function.
+  std::vector<Slot> args;
+
+  // Result from the function.
+  Slot res;
+
+  bool operator==(const FuncCall&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const FuncCall& inst) {
+    return os << "FuncCall {}";
+  }
+};
+
 // An instruction for the Lucid abstract machine.
-using Instruction =
-    std::variant<Nop, MoveReg32, MoveReg64, SetReg32, SetReg64, SetStr, Jump,
-                 UncondJump, CondJump, Label, Return, AddReg32, AddReg64,
-                 SubReg32, SubReg64, MulReg32, MulReg64, DivReg32, DivReg64,
-                 ModReg32, ModReg64, GtReg32, GtReg64, LtReg32, LtReg64,
-                 EqReg32, EqReg64, NotEqReg32, NotEqReg64, PushStack, PopStack,
-                 StoreStack32, StoreStackReg32, StoreStack64, StoreStackReg64,
-                 LoadStack32, LoadStackReg32, LoadStack64, LoadStackReg64>;
+using Instruction = std::variant<
+    Nop, MoveReg32, MoveReg64, SetReg32, SetReg64, SetStr, Jump, UncondJump,
+    CondJump, Label, Return, AddReg32, AddReg64, SubReg32, SubReg64, MulReg32,
+    MulReg64, DivReg32, DivReg64, ModReg32, ModReg64, GtReg32, GtReg64, LtReg32,
+    LtReg64, EqReg32, EqReg64, NotEqReg32, NotEqReg64, PushStack, PopStack,
+    StoreStack32, StoreStackReg32, StoreStack64, StoreStackReg64, LoadStack32,
+    LoadStackReg32, LoadStack64, LoadStackReg64, FuncCall>;
 
 // Abstract machine function definition.
 struct Function {

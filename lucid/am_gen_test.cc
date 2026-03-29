@@ -195,16 +195,20 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
                                                          .src_val = "21",
                                                          .dst_reg = 1,
                                                      },
-                                                     MoveReg32{
-                                                         .src_reg = 1,
-                                                         .dst_reg = 1,
-                                                     },
-                                                     Jump{
+                                                     FuncCall{
                                                          .label = "id",
-                                                     },
-                                                     MoveReg32{
-                                                         .src_reg = 0,
-                                                         .dst_reg = 2,
+                                                         .args =
+                                                             {
+                                                                 {
+                                                                     .reg = 1,
+                                                                     .bits = 32,
+                                                                 },
+                                                             },
+                                                         .res =
+                                                             {
+                                                                 .reg = 2,
+                                                                 .bits = 32,
+                                                             },
                                                      },
                                                      MoveReg32{
                                                          .src_reg = 2,
@@ -350,16 +354,20 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
                                                          .src_val = "21",
                                                          .dst_reg = 1,
                                                      },
-                                                     MoveReg64{
-                                                         .src_reg = 1,
-                                                         .dst_reg = 1,
-                                                     },
-                                                     Jump{
+                                                     FuncCall{
                                                          .label = "id",
-                                                     },
-                                                     MoveReg64{
-                                                         .src_reg = 0,
-                                                         .dst_reg = 2,
+                                                         .args =
+                                                             {
+                                                                 {
+                                                                     .reg = 1,
+                                                                     .bits = 64,
+                                                                 },
+                                                             },
+                                                         .res =
+                                                             {
+                                                                 .reg = 2,
+                                                                 .bits = 64,
+                                                             },
                                                      },
                                                      MoveReg64{
                                                          .src_reg = 2,

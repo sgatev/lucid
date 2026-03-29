@@ -253,6 +253,24 @@ class Arm64BinaryGenerator {
                    Imm(0));
   }
 
+  void Process(const FuncCall& inst) {
+    std::uint8_t arg_reg_id = 1;
+    // TODO: Ensure that registers don't get overwritten.
+    for (const auto& arg : inst.args) {
+      if (arg.bits == 32) {
+        assembler_.Mov(W(arg_reg_id++), W(arg.reg));
+      } else {
+        assembler_.Mov(X(arg_reg_id++), X(arg.reg));
+      }
+    }
+    assembler_.Bl(inst.label);
+    if (inst.res.bits == 32) {
+      assembler_.Mov(W(inst.res.reg), W(0));
+    } else {
+      assembler_.Mov(X(inst.res.reg), X(0));
+    }
+  }
+
   Imm ParseImm(std::string_view sv) {
     std::uint16_t res;
     std::from_chars(sv.begin(), sv.end(), res);

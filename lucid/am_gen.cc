@@ -221,39 +221,40 @@ class AbstractMachineFunctionGenerator {
   void ProcessExpr(ExprRef ref, const FuncCallExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
     RegId reg = next_reg_++;
-    RegId i = 1;
+
+    FuncCall func_call = {
+        .label = ctx_.DerefIdent(expr.func_name),
+    };
     for (ExprRef arg : expr.args) {
       const auto& arg_expr = ctx_.DerefExpr(arg);
       auto arg_type = std::get<BasicType>(ctx_.DerefType(GetType(arg_expr)));
       std::string_view arg_type_name = ctx_.DerefIdent(arg_type.name);
       if (arg_type_name == "Int32") {
-        am_block.instructions.push_back(MoveReg32{
-            .src_reg = expr_and_stmt_to_reg_[arg.id()],
-            .dst_reg = i++,
+        func_call.args.push_back(FuncCall::Slot{
+            .reg = expr_and_stmt_to_reg_[arg.id()],
+            .bits = 32,
         });
       } else if (arg_type_name == "Int64" || arg_type_name == "String") {
-        am_block.instructions.push_back(MoveReg64{
-            .src_reg = expr_and_stmt_to_reg_[arg.id()],
-            .dst_reg = i++,
+        func_call.args.push_back(FuncCall::Slot{
+            .reg = expr_and_stmt_to_reg_[arg.id()],
+            .bits = 64,
         });
       }
     }
-    am_block.instructions.push_back(Jump{
-        .label = ctx_.DerefIdent(expr.func_name),
-    });
     auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
     std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
     if (expr_type_name == "Int32") {
-      am_block.instructions.push_back(MoveReg32{
-          .src_reg = 0,
-          .dst_reg = reg,
-      });
+      func_call.res = {
+          .reg = reg,
+          .bits = 32,
+      };
     } else if (expr_type_name == "Int64") {
-      am_block.instructions.push_back(MoveReg64{
-          .src_reg = 0,
-          .dst_reg = reg,
-      });
+      func_call.res = {
+          .reg = reg,
+          .bits = 64,
+      };
     }
+    am_block.instructions.push_back(std::move(func_call));
     expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
