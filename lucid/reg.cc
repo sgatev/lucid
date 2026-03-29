@@ -6,6 +6,7 @@
 #include <optional>
 #include <ranges>
 #include <stack>
+#include <variant>
 #include <vector>
 
 #include "lucid/am.h"
@@ -14,6 +15,7 @@
 #include "lucid/core/container/graph/dominator.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
+#include "lucid/core/container/optional_ref.h"
 #include "lucid/core/dataflow/dataflow.h"
 
 namespace lucid {
@@ -155,6 +157,133 @@ HashMap<RegId, int> ColorInterferenceGraph(
   }
 
   return ig_colors;
+}
+
+void UpdateRegister(const HashMap<RegId, int>& reg_colors, RegId& reg) {
+  OptionalRef<int> color = reg_colors.Find(reg);
+  assert(color.has_value());
+  reg = *color;
+}
+
+void MergeRegisters(const HashMap<RegId, int>& reg_colors,
+                    AbstractMachineControlFlowGraph& am_cfg) {
+  for (auto& block : am_cfg.blocks()) {
+    if (block.ref == am_cfg.last) continue;
+
+    bool seen_label = false;
+    for (auto& inst : block.instructions) {
+      if (std::holds_alternative<Label>(inst)) {
+        seen_label = true;
+      }
+      if (block.ref == am_cfg.first && !seen_label) continue;
+
+      if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->src_reg);
+        UpdateRegister(reg_colors, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->src_reg);
+        UpdateRegister(reg_colors, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
+        UpdateRegister(reg_colors, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<AddReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<AddReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<SubReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<SubReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<MulReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<MulReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<DivReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<DivReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<ModReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<LtReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->lhs_reg);
+        UpdateRegister(reg_colors, cinst->rhs_reg);
+        UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<StoreStack32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->src_reg);
+      } else if (auto* cinst = std::get_if<StoreStackReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->src_reg);
+        UpdateRegister(reg_colors, cinst->offset_reg);
+      } else if (auto* cinst = std::get_if<StoreStack64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->src_reg);
+      } else if (auto* cinst = std::get_if<StoreStackReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->src_reg);
+        UpdateRegister(reg_colors, cinst->offset_reg);
+      } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
+        UpdateRegister(reg_colors, cinst->offset_reg);
+        UpdateRegister(reg_colors, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
+        UpdateRegister(reg_colors, cinst->offset_reg);
+        UpdateRegister(reg_colors, cinst->dst_reg);
+      }
+    }
+  }
 }
 
 }  // namespace lucid

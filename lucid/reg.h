@@ -14,4 +14,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
     const HashMap<RegId, HashSet<RegId>>& ig, int colors_count);
 
+void MergeRegisters(const HashMap<RegId, int>& reg_colors,
+                    AbstractMachineControlFlowGraph& am_cfg);
+
 }  // namespace lucid

@@ -342,9 +342,13 @@ int HandlePrintAmiCommand(CommandContext ctx) {
     for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
-    for (const auto& block : am_cfg.blocks()) {
-      Print(sctx.DerefIdent(state.func.name), block.instructions);
+    if (ctx.flags.contains("merge-regs")) {
+      HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
+      HashMap<RegId, int> am_ig_colors =
+          ColorInterferenceGraph(am_cfg, am_ig, 14);
+      MergeRegisters(am_ig_colors, am_cfg);
     }
+    Print(sctx.DerefIdent(state.func.name), am_cfg);
   }
 
   return 0;

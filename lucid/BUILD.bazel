@@ -99,6 +99,7 @@ cc_library(
     srcs = ["ami_printer.cc"],
     hdrs = ["ami_printer.h"],
     deps = [
+        ":am",
         ":am_cfg",
     ],
 )

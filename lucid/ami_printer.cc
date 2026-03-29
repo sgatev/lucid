@@ -4,9 +4,9 @@
 #include <iostream>
 #include <string_view>
 #include <variant>
-#include <vector>
 
 #include "lucid/am.h"
+#include "lucid/am_cfg.h"
 
 namespace lucid {
 namespace {
@@ -20,19 +20,21 @@ void Blue(std::function<void()> f) {
 }  // namespace
 
 void Print(std::string_view func_name,
-           const std::vector<Instruction>& instructions) {
+           const AbstractMachineControlFlowGraph& am_cfg) {
   Blue([&] { std::cout << func_name << "\n"; });
-  for (const auto& inst : instructions) {
-    std::visit(
-        [](const auto& inst) {
-          using T = std::decay_t<decltype(inst)>;
-          if constexpr (std::is_same_v<T, Label>) {
-            Blue([&] { std::cout << inst << "\n"; });
-          } else {
-            std::cout << "  " << inst << "\n";
-          }
-        },
-        inst);
+  for (const auto& block : am_cfg.blocks()) {
+    for (const auto& inst : block.instructions) {
+      std::visit(
+          [](const auto& inst) {
+            using T = std::decay_t<decltype(inst)>;
+            if constexpr (std::is_same_v<T, Label>) {
+              Blue([&] { std::cout << inst << "\n"; });
+            } else {
+              std::cout << "  " << inst << "\n";
+            }
+          },
+          inst);
+    }
   }
 }
 
