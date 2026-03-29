@@ -6,6 +6,7 @@
 #include <optional>
 #include <ranges>
 #include <stack>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -27,17 +28,29 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
       liveness_block_states = RunBackwardDataflow(am_cfg, liveness_analysis);
 
   HashMap<RegId, HashSet<RegId>> interference_graph;
-  for (auto block : Vertices(am_cfg)) {
-    const auto& state = liveness_block_states[block.id()];
-    if (!state.has_value()) continue;
+  for (const auto& block : am_cfg.blocks()) {
+    auto maybe_state = liveness_block_states[block.ref.id()];
+    if (!maybe_state.has_value()) continue;
+    auto state = *maybe_state;
 
-    auto vars = state->live_in;
-    for (RegId from : vars) {
+    for (RegId from : state.live_in) {
       interference_graph.Insert(from, {});
-      for (RegId to : vars) {
+      for (RegId to : state.live_in) {
         if (from == to) continue;
 
         interference_graph.Find(from)->Insert(to);
+      }
+    }
+    for (const auto& inst : block.instructions) {
+      state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
+
+      for (RegId from : state.live_in) {
+        interference_graph.Insert(from, {});
+        for (RegId to : state.live_in) {
+          if (from == to) continue;
+
+          interference_graph.Find(from)->Insert(to);
+        }
       }
     }
   }
@@ -127,6 +140,8 @@ HashMap<RegId, int> ColorInterferenceGraph(
           dst_reg = cinst->dst_reg;
         } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
           dst_reg = cinst->dst_reg;
+        } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
+          dst_reg = cinst->res.reg;
         }
         if (!dst_reg.has_value()) continue;
 
@@ -177,7 +192,9 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
       }
       if (block.ref == am_cfg.first && !seen_label) continue;
 
-      if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
+      if (auto* cinst = std::get_if<CondJump>(&inst)) {
+        UpdateRegister(reg_colors, cinst->cond_reg);
+      } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
         UpdateRegister(reg_colors, cinst->src_reg);
         UpdateRegister(reg_colors, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
@@ -281,6 +298,9 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
       } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
         UpdateRegister(reg_colors, cinst->offset_reg);
         UpdateRegister(reg_colors, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
+        for (auto& arg : cinst->args) UpdateRegister(reg_colors, arg.reg);
+        UpdateRegister(reg_colors, cinst->res.reg);
       }
     }
   }

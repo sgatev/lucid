@@ -92,6 +92,7 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
     HashMap<RegId, int> am_ig_colors =
         ColorInterferenceGraph(am_cfg, am_ig, 14);
+    MergeRegisters(am_ig_colors, am_cfg);
     GenerateArmAssemblyBinary(ctx, state->func, am_cfg, assembler);
   }
   GenerateArmEndBinary(ctx, state->strings, assembler);

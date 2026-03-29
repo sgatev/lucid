@@ -4,12 +4,14 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "lucid/am.h"
 #include "lucid/am_cfg.h"
 #include "lucid/arm64.h"
 #include "lucid/core/container/graph/order.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/string_index.h"
 
 namespace lucid {
@@ -254,16 +256,46 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const FuncCall& inst) {
-    std::uint8_t arg_reg_id = 1;
-    // TODO: Ensure that registers don't get overwritten.
-    for (const auto& arg : inst.args) {
-      if (arg.bits == 32) {
-        assembler_.Mov(W(arg_reg_id++), W(arg.reg));
-      } else {
-        assembler_.Mov(X(arg_reg_id++), X(arg.reg));
+    HashMap<RegId, std::pair<FuncCall::Slot, std::uint8_t>> reg_mappings;
+    for (std::uint8_t target_reg_id = 1; const auto& arg : inst.args) {
+      reg_mappings.Insert(arg.reg, {arg, target_reg_id++});
+    }
+
+    while (!reg_mappings.empty()) {
+      std::uint8_t temp_reg_id = 15;
+
+      auto [arg, target_reg_id] = reg_mappings.begin()->second;
+      reg_mappings.Remove(arg.reg);
+
+      std::uint8_t from_reg_id = arg.reg;
+      std::uint8_t to_reg_id = target_reg_id;
+      while (true) {
+        auto next_mapping = reg_mappings.Find(to_reg_id);
+
+        if (next_mapping.has_value()) {
+          if (next_mapping->first.bits == 32) {
+            assembler_.Mov(W(temp_reg_id), W(to_reg_id));
+          } else {
+            assembler_.Mov(X(temp_reg_id), X(to_reg_id));
+          }
+        }
+
+        if (arg.bits == 32) {
+          assembler_.Mov(W(to_reg_id), W(from_reg_id));
+        } else {
+          assembler_.Mov(X(to_reg_id), X(from_reg_id));
+        }
+
+        if (!next_mapping.has_value()) break;
+
+        std::swap(from_reg_id, temp_reg_id);
+        to_reg_id = next_mapping->second;
+        reg_mappings.Remove(next_mapping->first.reg);
       }
     }
+
     assembler_.Bl(inst.label);
+
     if (inst.res.bits == 32) {
       assembler_.Mov(W(inst.res.reg), W(0));
     } else {

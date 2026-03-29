@@ -132,6 +132,7 @@ cc_library(
         ":arm64",
         ":ast",
         ":string_index",
+        "//lucid/core/container:hash_map",
         "//lucid/core/container/graph:order",
     ],
 )

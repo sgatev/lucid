@@ -721,7 +721,14 @@ struct FuncCall {
   bool operator==(const FuncCall&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const FuncCall& inst) {
-    return os << "FuncCall {}";
+    os << "FuncCall { .label=\"" << inst.label << "\" .args = [";
+    for (bool has_printed_arg = false; const auto& arg : inst.args) {
+      if (has_printed_arg) os << ", ";
+      os << arg.reg << "(" << arg.bits << ")";
+      has_printed_arg = true;
+    }
+    os << "] .res=" << inst.res.reg << "(" << inst.res.bits << ") }";
+    return os;
   }
 };
 
