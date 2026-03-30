@@ -1,6 +1,7 @@
 #include "lucid/am_liveness.h"
 
 #include <ranges>
+#include <utility>
 
 #include "lucid/am.h"
 #include "lucid/am_cfg.h"
@@ -132,7 +133,7 @@ State AbstractMachineLivenessAnalysis::MakeInitial() { return {}; }
 State AbstractMachineLivenessAnalysis::Transfer(
     State state, const AbstractMachineControlFlowGraph::BlockRef& block) {
   for (auto inst : am_cfg_.get(block).instructions | std::views::reverse) {
-    Transfer(state, inst);
+    state = Transfer(std::move(state), inst);
   }
   return state;
 }
