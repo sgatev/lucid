@@ -82,8 +82,8 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     if (auto res = InferStaticExprs(ctx, cfg); res.HasError()) {
       return res.GetError();
     }
-    // ConvertToStaticSingleAssignment(ctx, cfg);
-    // DestroyStaticSingleAssignment(ctx, cfg);
+    ConvertToStaticSingleAssignment(ctx, cfg);
+    DestroyStaticSingleAssignment(ctx, cfg);
     AbstractMachineControlFlowGraph am_cfg =
         GenerateAbstractMachineFunction(ctx, cfg, *state);
     for (auto& block : am_cfg.blocks()) {
