@@ -33,6 +33,8 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
     if (!maybe_state.has_value()) continue;
     auto state = *maybe_state;
 
+    state.live_in = state.live_out;
+
     for (RegId from : state.live_in) {
       interference_graph.Insert(from, {});
       for (RegId to : state.live_in) {
@@ -41,8 +43,30 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
         interference_graph.Find(from)->Insert(to);
       }
     }
-    for (const auto& inst : block.instructions) {
+    for (const auto& inst : block.instructions | std::views::reverse) {
       state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
+
+      if (auto* cinst = std::get_if<ModReg32>(&inst)) {
+        interference_graph.Insert(cinst->res_reg, {});
+        interference_graph.Insert(cinst->lhs_reg, {});
+        interference_graph.Insert(cinst->rhs_reg, {});
+
+        interference_graph.Find(cinst->res_reg)->Insert(cinst->lhs_reg);
+        interference_graph.Find(cinst->lhs_reg)->Insert(cinst->res_reg);
+
+        interference_graph.Find(cinst->res_reg)->Insert(cinst->rhs_reg);
+        interference_graph.Find(cinst->rhs_reg)->Insert(cinst->res_reg);
+      } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
+        interference_graph.Insert(cinst->res_reg, {});
+        interference_graph.Insert(cinst->lhs_reg, {});
+        interference_graph.Insert(cinst->rhs_reg, {});
+
+        interference_graph.Find(cinst->res_reg)->Insert(cinst->lhs_reg);
+        interference_graph.Find(cinst->lhs_reg)->Insert(cinst->res_reg);
+
+        interference_graph.Find(cinst->res_reg)->Insert(cinst->rhs_reg);
+        interference_graph.Find(cinst->rhs_reg)->Insert(cinst->res_reg);
+      }
 
       for (RegId from : state.live_in) {
         interference_graph.Insert(from, {});
@@ -80,9 +104,6 @@ HashMap<RegId, int> ColorInterferenceGraph(
     pending.pop();
 
     if (visited[block.id()] == 2) {
-      HashSet<int> colors;
-      for (int i = 0; i < colors_count; ++i) colors.Insert(i);
-
       for (const auto& inst :
            am_cfg.get(block).instructions | std::views::reverse) {
         std::optional<RegId> dst_reg;
@@ -144,6 +165,9 @@ HashMap<RegId, int> ColorInterferenceGraph(
           dst_reg = cinst->res.reg;
         }
         if (!dst_reg.has_value()) continue;
+
+        HashSet<int> colors;
+        for (int i = 0; i <= colors_count; ++i) colors.Insert(i);
 
         if (const auto& neighbours = ig.Find(*dst_reg);
             neighbours.has_value()) {

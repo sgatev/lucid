@@ -45,7 +45,7 @@ class AbstractMachineFunctionGenerator {
       } else if (param_name == "Int64") {
         state_.func.stack_slots.push_back(8);
       } else if (param_name == "Bool") {
-        state_.func.stack_slots.push_back(1);
+        state_.func.stack_slots.push_back(4);
       }
     }
 
@@ -264,7 +264,7 @@ class AbstractMachineFunctionGenerator {
     auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
     std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
     RegId reg = next_reg_++;
-    if (expr_type_name == "Int32") {
+    if (expr_type_name == "Int32" || expr_type_name == "Bool") {
       am_block.instructions.push_back(LoadStack32{
           .offset = var_stack_[expr.name],
           .dst_reg = reg,
@@ -516,7 +516,7 @@ class AbstractMachineFunctionGenerator {
     auto expr_type =
         std::get<BasicType>(ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.expr))));
     std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
-    if (expr_type_name == "Int32") {
+    if (expr_type_name == "Int32" || expr_type_name == "Bool") {
       am_block.instructions.push_back(StoreStack32{
           .offset = var_stack_[stmt.name],
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
@@ -561,12 +561,12 @@ class AbstractMachineFunctionGenerator {
     } else if (stmt_type_name == "Int64") {
       state_.func.stack_slots.push_back(8);
     } else if (stmt_type_name == "Bool") {
-      state_.func.stack_slots.push_back(1);
+      state_.func.stack_slots.push_back(4);
     }
 
     if (!stmt.init.has_value()) return;
 
-    if (stmt_type_name == "Int32") {
+    if (stmt_type_name == "Int32" || stmt_type_name == "Bool") {
       am_block.instructions.push_back(StoreStack32{
           .offset = stack_offset_,
           .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],

@@ -12,11 +12,11 @@ using State = AbstractMachineLivenessAnalysis::State;
 
 State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
   if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
-    state.live_in.Insert(cinst->src_reg);
     state.live_in.Remove(cinst->dst_reg);
+    state.live_in.Insert(cinst->src_reg);
   } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
-    state.live_in.Insert(cinst->src_reg);
     state.live_in.Remove(cinst->dst_reg);
+    state.live_in.Insert(cinst->src_reg);
   } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
     state.live_in.Remove(cinst->dst_reg);
   } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
@@ -24,77 +24,77 @@ State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
   } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
     state.live_in.Remove(cinst->dst_reg);
   } else if (auto* cinst = std::get_if<AddReg32>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<AddReg64>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<SubReg32>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<SubReg64>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<MulReg32>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<MulReg64>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<DivReg32>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<DivReg64>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<ModReg32>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<LtReg64>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
+    state.live_in.Remove(cinst->res_reg);
     state.live_in.Insert(cinst->lhs_reg);
     state.live_in.Insert(cinst->rhs_reg);
-    state.live_in.Remove(cinst->res_reg);
   } else if (auto* cinst = std::get_if<StoreStack32>(&inst)) {
     state.live_in.Insert(cinst->src_reg);
   } else if (auto* cinst = std::get_if<StoreStackReg32>(&inst)) {
@@ -108,18 +108,16 @@ State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
   } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
     state.live_in.Remove(cinst->dst_reg);
   } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
-    state.live_in.Insert(cinst->offset_reg);
     state.live_in.Remove(cinst->dst_reg);
+    state.live_in.Insert(cinst->offset_reg);
   } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
     state.live_in.Remove(cinst->dst_reg);
   } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
-    state.live_in.Insert(cinst->offset_reg);
     state.live_in.Remove(cinst->dst_reg);
+    state.live_in.Insert(cinst->offset_reg);
   } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-    for (const auto& arg : cinst->args) {
-      state.live_in.Insert(arg.reg);
-    }
     state.live_in.Remove(cinst->res.reg);
+    for (const auto& arg : cinst->args) state.live_in.Insert(arg.reg);
   }
   return state;
 }

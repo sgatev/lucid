@@ -752,5 +752,34 @@ TEST_F(CompilerTest, BoolArray) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(5));
 }
 
+TEST_F(CompilerTest, LongDependencyChain) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int32 {
+      let a1: Int32 = 1
+      let a2: Int32 = a1 + 1
+      let a3: Int32 = a2 + 1
+      let a4: Int32 = a3 + 1
+      let a5: Int32 = a4 + 1
+      let a6: Int32 = a5 + 1
+      let a7: Int32 = a6 + 1
+      let a8: Int32 = a7 + 1
+      let a9: Int32 = a8 + 1
+      let a10: Int32 = a9 + 1
+      let a11: Int32 = a10 + 1
+      let a12: Int32 = a11 + 1
+      let a13: Int32 = a12 + 1
+      let a14: Int32 = a13 + 1
+      let a15: Int32 = a14 + 1
+      let a16: Int32 = a15 + 1
+      let a17: Int32 = a16 + 1
+      let a18: Int32 = a17 + 1
+      let a19: Int32 = a18 + 1
+      let a20: Int32 = a19 + 1
+      return a20
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(20));
+}
+
 }  // namespace
 }  // namespace lucid

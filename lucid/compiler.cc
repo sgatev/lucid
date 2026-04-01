@@ -82,8 +82,8 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     if (auto res = InferStaticExprs(ctx, cfg); res.HasError()) {
       return res.GetError();
     }
-    ConvertToStaticSingleAssignment(ctx, cfg);
-    DestroyStaticSingleAssignment(ctx, cfg);
+    // ConvertToStaticSingleAssignment(ctx, cfg);
+    // DestroyStaticSingleAssignment(ctx, cfg);
     AbstractMachineControlFlowGraph am_cfg =
         GenerateAbstractMachineFunction(ctx, cfg, *state);
     for (auto& block : am_cfg.blocks()) {
@@ -91,7 +91,7 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     }
     HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
     HashMap<RegId, int> am_ig_colors =
-        ColorInterferenceGraph(am_cfg, am_ig, 14);
+        ColorInterferenceGraph(am_cfg, am_ig, 12);
     MergeRegisters(am_ig_colors, am_cfg);
     GenerateArmAssemblyBinary(ctx, state->func, am_cfg, assembler);
   }
