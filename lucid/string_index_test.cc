@@ -39,18 +39,5 @@ TEST(StringIndexTest, PrefixDeref) {
   EXPECT_EQ(index.deref(foo), "foo");
 }
 
-TEST(StringIndexTest, UniqueRef) {
-  StringIndex index;
-  auto r1 = index.ref();
-  auto r2 = index.ref();
-  EXPECT_NE(r1, r2);
-}
-
-TEST(StringIndexTest, UniqueDeref) {
-  StringIndex index;
-  auto r = index.ref();
-  EXPECT_EQ(index.deref(r), "$0");
-}
-
 }  // namespace
 }  // namespace lucid

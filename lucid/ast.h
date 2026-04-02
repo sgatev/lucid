@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstddef>
+#include <list>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <variant>
 
@@ -313,7 +315,10 @@ class SyntaxContext {
   }
 
   // Adds a unique ident to the context.
-  StringIndex::Ref AddUniqueIdent() { return idents_.ref(); }
+  StringIndex::Ref AddUniqueIdent() {
+    unique_idents_.push_back("$" + std::to_string(unique_idents_.size()));
+    return idents_.ref(unique_idents_.back());
+  }
 
   // Creates an alias of `ref` in the context.
   StmtRef AliasStmt(StmtRef ref) { return stmts_.Alias(ref); }
@@ -359,6 +364,7 @@ class SyntaxContext {
   Arena<Expr> exprs_;
   Arena<Type> types_;
   Arena<FuncParam> params_;
+  std::list<std::string> unique_idents_;
   StringIndex idents_;
 };
 
