@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "lucid/am/cfg.h"
+#include "lucid/am/cfg_printer.h"
 #include "lucid/am_gen.h"
-#include "lucid/ami_printer.h"
 #include "lucid/arm64.h"
 #include "lucid/arm64_gen.h"
 #include "lucid/cli.h"

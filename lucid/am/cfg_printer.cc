@@ -1,4 +1,4 @@
-#include "lucid/ami_printer.h"
+#include "lucid/am/cfg_printer.h"
 
 #include <functional>
 #include <iostream>

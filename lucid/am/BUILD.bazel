@@ -13,6 +13,17 @@ cc_library(
 )
 
 cc_library(
+    name = "cfg_printer",
+    srcs = ["cfg_printer.cc"],
+    hdrs = ["cfg_printer.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":cfg",
+        ":instructions",
+    ],
+)
+
+cc_library(
     name = "instructions",
     hdrs = ["instructions.h"],
     visibility = ["//lucid:__subpackages__"],

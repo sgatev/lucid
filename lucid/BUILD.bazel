@@ -68,16 +68,6 @@ cc_test(
 )
 
 cc_library(
-    name = "ami_printer",
-    srcs = ["ami_printer.cc"],
-    hdrs = ["ami_printer.h"],
-    deps = [
-        "//lucid/am:cfg",
-        "//lucid/am:instructions",
-    ],
-)
-
-cc_library(
     name = "arm64",
     hdrs = ["arm64.h"],
     deps = [
@@ -130,7 +120,6 @@ cc_binary(
     srcs = ["compiler.cc"],
     deps = [
         ":am_gen",
-        ":ami_printer",
         ":arm64",
         ":arm64_gen",
         ":cli",
@@ -143,6 +132,7 @@ cc_binary(
         ":type",
         ":version",
         "//lucid/am:cfg",
+        "//lucid/am:cfg_printer",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/syntax:ast",
