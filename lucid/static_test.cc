@@ -1,8 +1,8 @@
 #include "lucid/static.h"
 
 #include "gtest/gtest.h"
-#include "lucid/ast_fixture.h"
 #include "lucid/syntax/ast.h"
+#include "lucid/syntax/ast_fixture.h"
 
 namespace lucid {
 namespace {

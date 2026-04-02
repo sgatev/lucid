@@ -49,10 +49,10 @@ cc_test(
     deps = [
         ":am",
         ":am_gen",
-        ":ast_fixture",
         ":cfg",
         ":type",
         "//lucid/core/container/graph:order",
+        "//lucid/syntax:ast_fixture",
         "@googletest//:gtest_main",
     ],
 )
@@ -139,19 +139,6 @@ cc_library(
 )
 
 cc_library(
-    name = "ast_fixture",
-    testonly = True,
-    hdrs = ["ast_fixture.h"],
-    deps = [
-        "//lucid/core/container:arena",
-        "//lucid/core/container:successive_list",
-        "//lucid/core/string:index",
-        "//lucid/syntax:ast",
-        "@googletest//:gtest",
-    ],
-)
-
-cc_library(
     name = "cfg",
     srcs = ["cfg.cc"],
     hdrs = ["cfg.h"],
@@ -166,10 +153,10 @@ cc_test(
     name = "cfg_test",
     srcs = ["cfg_test.cc"],
     deps = [
-        ":ast_fixture",
         ":cfg",
         "//lucid/core/container:arena",
         "//lucid/syntax:ast",
+        "//lucid/syntax:ast_fixture",
         "@googletest//:gtest_main",
     ],
 )
@@ -339,9 +326,9 @@ cc_test(
     name = "parser_test",
     srcs = ["parser_test.cc"],
     deps = [
-        ":ast_fixture",
         ":parser",
         "//lucid/syntax:ast",
+        "//lucid/syntax:ast_fixture",
         "//lucid/syntax:lexer",
         "@googletest//:gtest_main",
     ],
@@ -415,10 +402,10 @@ cc_test(
     name = "ssa_test",
     srcs = ["ssa_test.cc"],
     deps = [
-        ":ast_fixture",
         ":cfg",
         ":ssa",
         "//lucid/syntax:ast",
+        "//lucid/syntax:ast_fixture",
         "@googletest//:gtest_main",
     ],
 )
@@ -438,9 +425,9 @@ cc_test(
     name = "static_test",
     srcs = ["static_test.cc"],
     deps = [
-        ":ast_fixture",
         ":static",
         "//lucid/syntax:ast",
+        "//lucid/syntax:ast_fixture",
         "@googletest//:gtest_main",
     ],
 )
@@ -475,10 +462,10 @@ cc_test(
     name = "type_test",
     srcs = ["type_test.cc"],
     deps = [
-        ":ast_fixture",
         ":result",
         ":type",
         "//lucid/syntax:ast",
+        "//lucid/syntax:ast_fixture",
         "@googletest//:gtest_main",
     ],
 )

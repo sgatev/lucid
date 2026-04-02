@@ -9,7 +9,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "lucid/syntax/ast.h"
-#include "lucid/ast_fixture.h"
+#include "lucid/syntax/ast_fixture.h"
 #include "lucid/syntax/lexer.h"
 
 MATCHER_P(HoldsFuncDef, match_stmt, "") {

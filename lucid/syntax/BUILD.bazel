@@ -23,6 +23,20 @@ cc_test(
 )
 
 cc_library(
+    name = "ast_fixture",
+    testonly = True,
+    hdrs = ["ast_fixture.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":ast",
+        "//lucid/core/container:arena",
+        "//lucid/core/container:successive_list",
+        "//lucid/core/string:index",
+        "@googletest//:gtest",
+    ],
+)
+
+cc_library(
     name = "ast_printer",
     srcs = ["ast_printer.cc"],
     hdrs = ["ast_printer.h"],
