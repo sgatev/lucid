@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <vector>
 
-#include "lucid/token.h"
+#include "lucid/syntax/token.h"
 
 namespace lucid {
 

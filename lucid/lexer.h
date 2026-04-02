@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <string_view>
 
-#include "lucid/token.h"
+#include "lucid/syntax/token.h"
 
 namespace lucid {
 

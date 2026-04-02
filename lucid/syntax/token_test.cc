@@ -1,4 +1,4 @@
-#include "lucid/token.h"
+#include "lucid/syntax/token.h"
 
 #include <sstream>
 #include <string>

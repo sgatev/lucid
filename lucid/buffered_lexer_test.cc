@@ -5,7 +5,7 @@
 
 #include "gtest/gtest.h"
 #include "lucid/lexer.h"
-#include "lucid/token.h"
+#include "lucid/syntax/token.h"
 
 namespace lucid {
 namespace {

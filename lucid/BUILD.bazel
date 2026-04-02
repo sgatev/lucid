@@ -183,7 +183,7 @@ cc_library(
     name = "buffered_lexer",
     srcs = ["buffered_lexer.h"],
     deps = [
-        ":token",
+        "//lucid/syntax:token",
     ],
 )
 
@@ -343,7 +343,7 @@ cc_library(
     name = "lexer",
     hdrs = ["lexer.h"],
     deps = [
-        ":token",
+        "//lucid/syntax:token",
     ],
 )
 
@@ -352,7 +352,7 @@ cc_test(
     srcs = ["lexer_test.cc"],
     deps = [
         ":lexer",
-        ":token",
+        "//lucid/syntax:token",
         "@googletest//:gtest_main",
     ],
 )
@@ -362,7 +362,7 @@ cc_binary(
     srcs = ["lexer_bench.cc"],
     deps = [
         ":lexer",
-        ":token",
+        "//lucid/syntax:token",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -428,11 +428,11 @@ cc_library(
     deps = [
         ":ast",
         ":lexer",
-        ":token",
         "//lucid/core/container:arena",
         "//lucid/core/container:fixed_map",
         "//lucid/core/container:successive_list",
         "//lucid/core/string:index",
+        "//lucid/syntax:token",
     ],
 )
 
@@ -456,7 +456,7 @@ cc_binary(
         ":buffered_lexer",
         ":lexer",
         ":parser",
-        ":token",
+        "//lucid/syntax:token",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -557,21 +557,6 @@ cc_test(
     srcs = ["string_test.cc"],
     deps = [
         ":string",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "token",
-    srcs = ["token.cc"],
-    hdrs = ["token.h"],
-)
-
-cc_test(
-    name = "token_test",
-    srcs = ["token_test.cc"],
-    deps = [
-        ":token",
         "@googletest//:gtest_main",
     ],
 )

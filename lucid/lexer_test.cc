@@ -7,7 +7,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lucid/token.h"
+#include "lucid/syntax/token.h"
 
 namespace lucid {
 namespace {
