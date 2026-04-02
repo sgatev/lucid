@@ -12,7 +12,7 @@
 #include "lucid/arm64.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
-#include "lucid/string_index.h"
+#include "lucid/core/string/index.h"
 
 namespace lucid {
 namespace {

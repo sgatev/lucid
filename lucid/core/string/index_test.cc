@@ -1,4 +1,4 @@
-#include "lucid/string_index.h"
+#include "lucid/core/string/index.h"
 
 #include "gtest/gtest.h"
 

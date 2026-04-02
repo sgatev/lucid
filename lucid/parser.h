@@ -14,7 +14,7 @@
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/fixed_map.h"
 #include "lucid/core/container/successive_list.h"
-#include "lucid/string_index.h"
+#include "lucid/core/string/index.h"
 #include "lucid/token.h"
 
 namespace lucid {

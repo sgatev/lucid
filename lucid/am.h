@@ -7,7 +7,7 @@
 #include <variant>
 #include <vector>
 
-#include "lucid/string_index.h"
+#include "lucid/core/string/index.h"
 
 namespace lucid {
 

@@ -13,7 +13,7 @@
 #include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/core/container/arena.h"
-#include "lucid/string_index.h"
+#include "lucid/core/string/index.h"
 
 namespace lucid {
 namespace {

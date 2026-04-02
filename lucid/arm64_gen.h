@@ -7,7 +7,7 @@
 #include "lucid/am_cfg.h"
 #include "lucid/arm64.h"
 #include "lucid/ast.h"
-#include "lucid/string_index.h"
+#include "lucid/core/string/index.h"
 
 namespace lucid {
 

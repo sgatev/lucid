@@ -6,7 +6,7 @@ cc_library(
     name = "am",
     hdrs = ["am.h"],
     deps = [
-        ":string_index",
+        "//lucid/core/string:index",
     ],
 )
 
@@ -38,8 +38,8 @@ cc_library(
         ":am_cfg",
         ":ast",
         ":cfg",
-        ":string_index",
         "//lucid/core/container:arena",
+        "//lucid/core/string:index",
     ],
 )
 
@@ -89,8 +89,8 @@ cc_test(
         ":ast",
         ":lexer",
         ":parser",
-        ":string_index",
         "//lucid/core/dataflow",
+        "//lucid/core/string:index",
         "@googletest//:gtest_main",
     ],
 )
@@ -132,9 +132,9 @@ cc_library(
         ":am_cfg",
         ":arm64",
         ":ast",
-        ":string_index",
         "//lucid/core/container:hash_map",
         "//lucid/core/container/graph:order",
+        "//lucid/core/string:index",
     ],
 )
 
@@ -142,9 +142,9 @@ cc_library(
     name = "ast",
     hdrs = ["ast.h"],
     deps = [
-        ":string_index",
         "//lucid/core/container:arena",
         "//lucid/core/container:successive_list",
+        "//lucid/core/string:index",
     ],
 )
 
@@ -172,9 +172,9 @@ cc_library(
     hdrs = ["ast_fixture.h"],
     deps = [
         ":ast",
-        ":string_index",
         "//lucid/core/container:arena",
         "//lucid/core/container:successive_list",
+        "//lucid/core/string:index",
         "@googletest//:gtest",
     ],
 )
@@ -374,8 +374,8 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
-        ":string_index",
         "//lucid/core/container:hash_set",
+        "//lucid/core/string:index",
     ],
 )
 
@@ -388,8 +388,8 @@ cc_test(
         ":lexer",
         ":liveness",
         ":parser",
-        ":string_index",
         "//lucid/core/dataflow",
+        "//lucid/core/string:index",
         "@googletest//:gtest_main",
     ],
 )
@@ -428,11 +428,11 @@ cc_library(
     deps = [
         ":ast",
         ":lexer",
-        ":string_index",
         ":token",
         "//lucid/core/container:arena",
         "//lucid/core/container:fixed_map",
         "//lucid/core/container:successive_list",
+        "//lucid/core/string:index",
     ],
 )
 
@@ -507,8 +507,8 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
-        ":string_index",
         "//lucid/core/container/graph:dominator",
+        "//lucid/core/string:index",
     ],
 )
 
@@ -562,24 +562,6 @@ cc_test(
 )
 
 cc_library(
-    name = "string_index",
-    hdrs = ["string_index.h"],
-    deps = [
-        "//lucid/core/container:hash_map",
-        "//lucid/core/container:optional_ref",
-    ],
-)
-
-cc_test(
-    name = "string_index_test",
-    srcs = ["string_index_test.cc"],
-    deps = [
-        ":string_index",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "token",
     srcs = ["token.cc"],
     hdrs = ["token.h"],
@@ -601,7 +583,7 @@ cc_library(
     deps = [
         ":ast",
         ":result",
-        ":string_index",
+        "//lucid/core/string:index",
     ],
 )
 

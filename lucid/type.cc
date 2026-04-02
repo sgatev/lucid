@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "lucid/ast.h"
+#include "lucid/core/string/index.h"
 #include "lucid/result.h"
-#include "lucid/string_index.h"
 
 namespace lucid {
 namespace {
