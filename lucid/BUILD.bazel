@@ -303,33 +303,6 @@ cc_test(
 )
 
 cc_library(
-    name = "liveness",
-    srcs = ["liveness.cc"],
-    hdrs = ["liveness.h"],
-    deps = [
-        ":cfg",
-        "//lucid/core/container:hash_set",
-        "//lucid/core/string:index",
-        "//lucid/syntax:ast",
-    ],
-)
-
-cc_test(
-    name = "liveness_test",
-    srcs = ["liveness_test.cc"],
-    deps = [
-        ":cfg",
-        ":liveness",
-        ":parser",
-        "//lucid/core/dataflow",
-        "//lucid/core/string:index",
-        "//lucid/syntax:ast",
-        "//lucid/syntax:lexer",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "opt",
     srcs = ["opt.cc"],
     hdrs = ["opt.h"],
