@@ -23,6 +23,16 @@ cc_test(
 )
 
 cc_library(
+    name = "ast_printer",
+    srcs = ["ast_printer.cc"],
+    hdrs = ["ast_printer.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":ast",
+    ],
+)
+
+cc_library(
     name = "buffered_lexer",
     srcs = ["buffered_lexer.h"],
     visibility = ["//lucid:__subpackages__"],

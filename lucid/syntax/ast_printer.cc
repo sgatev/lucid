@@ -1,4 +1,4 @@
-#include "lucid/ast_printer.h"
+#include "lucid/syntax/ast_printer.h"
 
 #include <functional>
 #include <iostream>
