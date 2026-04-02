@@ -6,8 +6,8 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
-#include "lucid/am_cfg.h"
 #include "lucid/core/dataflow/dataflow.h"
 
 namespace lucid {

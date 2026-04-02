@@ -5,8 +5,8 @@
 #include <string_view>
 #include <variant>
 
+#include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
-#include "lucid/am_cfg.h"
 
 namespace lucid {
 namespace {

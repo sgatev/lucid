@@ -8,8 +8,8 @@
 #include <utility>
 #include <variant>
 
+#include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
-#include "lucid/am_cfg.h"
 #include "lucid/core/container/arena.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"

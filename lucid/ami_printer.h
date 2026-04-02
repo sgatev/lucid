@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-#include "lucid/am_cfg.h"
+#include "lucid/am/cfg.h"
 
 namespace lucid {
 

@@ -3,21 +3,11 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_library(
-    name = "am_cfg",
-    hdrs = ["am_cfg.h"],
-    deps = [
-        "//lucid/am:instructions",
-        "//lucid/core/container:arena",
-        "//lucid/core/container:hash_set",
-    ],
-)
-
-cc_library(
     name = "am_gen",
     srcs = ["am_gen.cc"],
     hdrs = ["am_gen.h"],
     deps = [
-        ":am_cfg",
+        "//lucid/am:cfg",
         "//lucid/am:instructions",
         "//lucid/core/container:arena",
         "//lucid/core/string:index",
@@ -57,7 +47,7 @@ cc_library(
     srcs = ["am_liveness.cc"],
     hdrs = ["am_liveness.h"],
     deps = [
-        ":am_cfg",
+        "//lucid/am:cfg",
         "//lucid/core/container:hash_set",
     ],
 )
@@ -66,8 +56,8 @@ cc_test(
     name = "am_liveness_test",
     srcs = ["am_liveness_test.cc"],
     deps = [
-        ":am_cfg",
         ":am_liveness",
+        "//lucid/am:cfg",
         "//lucid/am:instructions",
         "//lucid/core/dataflow",
         "//lucid/core/string:index",
@@ -82,7 +72,7 @@ cc_library(
     srcs = ["ami_printer.cc"],
     hdrs = ["ami_printer.h"],
     deps = [
-        ":am_cfg",
+        "//lucid/am:cfg",
         "//lucid/am:instructions",
     ],
 )
@@ -110,8 +100,8 @@ cc_library(
     srcs = ["arm64_gen.cc"],
     hdrs = ["arm64_gen.h"],
     deps = [
-        ":am_cfg",
         ":arm64",
+        "//lucid/am:cfg",
         "//lucid/am:instructions",
         "//lucid/core/container:hash_map",
         "//lucid/core/container/graph:order",
@@ -139,7 +129,6 @@ cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
     deps = [
-        ":am_cfg",
         ":am_gen",
         ":ami_printer",
         ":arm64",
@@ -153,6 +142,7 @@ cc_binary(
         ":static",
         ":type",
         ":version",
+        "//lucid/am:cfg",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/syntax:ast",
@@ -262,8 +252,8 @@ cc_library(
     srcs = ["reg.cc"],
     hdrs = ["reg.h"],
     deps = [
-        ":am_cfg",
         ":am_liveness",
+        "//lucid/am:cfg",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/container/graph:dominator",
@@ -275,8 +265,8 @@ cc_test(
     name = "reg_test",
     srcs = ["reg_test.cc"],
     deps = [
-        ":am_cfg",
         ":reg",
+        "//lucid/am:cfg",
         "//lucid/syntax:ast",
         "@googletest//:gtest_main",
     ],
