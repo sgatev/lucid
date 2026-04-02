@@ -87,8 +87,8 @@ Result<void, ParserError, TypeError, StaticError> CompileSource(
     HashMap<RegId, int> am_ig_colors =
         ColorInterferenceGraph(am_cfg, am_ig, 12);
     MergeRegisters(am_ig_colors, am_cfg);
-    GenerateArmAssemblyBinary(ctx, state->stack_slots, func.name, am_cfg,
-                              assembler);
+    GenerateArmAssemblyBinary(ctx.DerefIdent(func.name), state->stack_slots,
+                              am_cfg, assembler);
   }
   GenerateArmEndBinary(ctx, state->strings, assembler);
   WriteCompiledMachObject(assembler, out);

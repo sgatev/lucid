@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string_view>
 #include <unordered_map>
 
 #include "lucid/am/cfg.h"
@@ -20,9 +21,8 @@ void GenerateArmEndBinary(
     arm64::Assembler& Assembler);
 
 // Generates 64-bit ARM machine code for `func`.
-void GenerateArmAssemblyBinary(const SyntaxContext& ctx,
+void GenerateArmAssemblyBinary(std::string_view func_name,
                                const std::vector<std::size_t>& stack_slots,
-                               StringIndex::Ref func_name,
                                const AbstractMachineControlFlowGraph& am_cfg,
                                arm64::Assembler& assmebler);
 

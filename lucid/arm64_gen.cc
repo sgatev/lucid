@@ -3,6 +3,7 @@
 #include <charconv>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -21,19 +22,17 @@ using namespace ::lucid::arm64;
 
 class Arm64BinaryGenerator {
  public:
-  explicit Arm64BinaryGenerator(const SyntaxContext& ctx,
+  explicit Arm64BinaryGenerator(std::string_view func_name,
                                 const std::vector<std::size_t>& stack_slots,
-                                StringIndex::Ref func_name,
                                 const AbstractMachineControlFlowGraph& am_cfg,
                                 Assembler& assmebler)
-      : ctx_(ctx),
+      : func_name_(func_name),
         stack_slots_(stack_slots),
-        func_name_(func_name),
         am_cfg_(am_cfg),
         assembler_(assmebler) {}
 
   void Generate() && {
-    assembler_.Label(std::string(ctx_.DerefIdent(func_name_)));
+    assembler_.Label(std::string(func_name_));
     assembler_.StpPreIndex(X(29), X(30), SP, Imm(-16));
 
     for (std::size_t size : stack_slots_) stack_size_ += size;
@@ -99,26 +98,24 @@ class Arm64BinaryGenerator {
   void Process(const Jump& inst) { assembler_.Bl(inst.label); }
 
   void Process(const UncondJump& inst) {
-    std::string label =
-        std::string(ctx_.DerefIdent(func_name_)) + std::to_string(inst.label);
+    std::string label = std::string(func_name_) + std::to_string(inst.label);
     assembler_.B(label);
   }
 
   void Process(const CondJump& inst) {
     assembler_.Cmp(W(inst.cond_reg), Imm(0));
 
-    std::string else_label = std::string(ctx_.DerefIdent(func_name_)) +
-                             std::to_string(inst.else_label);
+    std::string else_label =
+        std::string(func_name_) + std::to_string(inst.else_label);
     assembler_.B(Cond::Eq, else_label);
 
-    std::string then_label = std::string(ctx_.DerefIdent(func_name_)) +
-                             std::to_string(inst.then_label);
+    std::string then_label =
+        std::string(func_name_) + std::to_string(inst.then_label);
     assembler_.B(then_label);
   }
 
   void Process(const Label& inst) {
-    std::string label =
-        std::string(ctx_.DerefIdent(func_name_)) + std::to_string(inst.id);
+    std::string label = std::string(func_name_) + std::to_string(inst.id);
     assembler_.Label(label);
   }
 
@@ -315,9 +312,8 @@ class Arm64BinaryGenerator {
     return Imm(res);
   }
 
-  const SyntaxContext& ctx_;
+  std::string_view func_name_;
   const std::vector<std::size_t>& stack_slots_;
-  StringIndex::Ref func_name_;
   const AbstractMachineControlFlowGraph& am_cfg_;
   Assembler& assembler_;
   std::size_t stack_size_ = 0;
@@ -363,13 +359,11 @@ void GenerateArmEndBinary(
   }
 }
 
-void GenerateArmAssemblyBinary(const SyntaxContext& ctx,
+void GenerateArmAssemblyBinary(std::string_view func_name,
                                const std::vector<std::size_t>& stack_slots,
-                               StringIndex::Ref func_name,
                                const AbstractMachineControlFlowGraph& am_cfg,
                                Assembler& assmebler) {
-  Arm64BinaryGenerator(ctx, stack_slots, func_name, am_cfg, assmebler)
-      .Generate();
+  Arm64BinaryGenerator(func_name, stack_slots, am_cfg, assmebler).Generate();
 }
 
 }  // namespace lucid
