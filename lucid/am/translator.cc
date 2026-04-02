@@ -41,11 +41,11 @@ class AbstractMachineFunctionGenerator {
           std::get<BasicType>(ctx_.DerefType(param.type_constraint));
       std::string_view param_name = ctx_.DerefIdent(param_type.name);
       if (param_name == "Int32") {
-        state_.func.stack_slots.push_back(4);
+        state_.stack_slots.push_back(4);
       } else if (param_name == "Int64") {
-        state_.func.stack_slots.push_back(8);
+        state_.stack_slots.push_back(8);
       } else if (param_name == "Bool") {
-        state_.func.stack_slots.push_back(4);
+        state_.stack_slots.push_back(4);
       }
     }
 
@@ -125,7 +125,7 @@ class AbstractMachineFunctionGenerator {
               .offset = i - 1,
               .dst_reg = RegId(i),
           });
-          state_.func.stack_slots.push_back(8);
+          state_.stack_slots.push_back(8);
         }
       }
       last_block.instructions.push_back(PopStack{});
@@ -541,9 +541,9 @@ class AbstractMachineFunctionGenerator {
       auto size = std::atoi(ctx_.DerefIdent(array_type.size.value).data());
       for (int i = 0; i < size; ++i) {
         if (var_decl_type_name == "Int32" || var_decl_type_name == "Bool") {
-          state_.func.stack_slots.push_back(4);
+          state_.stack_slots.push_back(4);
         } else if (var_decl_type_name == "Int64") {
-          state_.func.stack_slots.push_back(8);
+          state_.stack_slots.push_back(8);
         }
       }
 
@@ -557,11 +557,11 @@ class AbstractMachineFunctionGenerator {
     auto stmt_type = std::get<BasicType>(ctx_.DerefType(stmt.type_constraint));
     std::string_view stmt_type_name = ctx_.DerefIdent(stmt_type.name);
     if (stmt_type_name == "Int32") {
-      state_.func.stack_slots.push_back(4);
+      state_.stack_slots.push_back(4);
     } else if (stmt_type_name == "Int64") {
-      state_.func.stack_slots.push_back(8);
+      state_.stack_slots.push_back(8);
     } else if (stmt_type_name == "Bool") {
-      state_.func.stack_slots.push_back(4);
+      state_.stack_slots.push_back(4);
     }
 
     if (!stmt.init.has_value()) return;

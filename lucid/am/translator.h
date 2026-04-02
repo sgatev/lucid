@@ -4,7 +4,6 @@
 #include <unordered_map>
 
 #include "lucid/am/cfg.h"
-#include "lucid/am/instructions.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
@@ -13,9 +12,8 @@ namespace lucid {
 
 // State used in the generation of abstract machine instructions.
 struct AbstractMachineState {
-  // Generated abstract machine function after the last call to
-  // `GenerateAbstractMachineFunction` where this state was used.
-  Function func;
+  // Abstract machine stack slots.
+  std::vector<std::size_t> stack_slots;
 
   // Strings used in `func`.
   std::unordered_map<std::uintptr_t, StringIndex::Ref> strings;

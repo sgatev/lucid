@@ -741,13 +741,4 @@ using Instruction = std::variant<
     StoreStack32, StoreStackReg32, StoreStack64, StoreStackReg64, LoadStack32,
     LoadStackReg32, LoadStack64, LoadStackReg64, FuncCall>;
 
-// Abstract machine function definition.
-struct Function {
-  // Name of the function.
-  StringIndex::Ref name;
-
-  // Abstract machine stack slots.
-  std::vector<std::size_t> stack_slots;
-};
-
 }  // namespace lucid

@@ -21,23 +21,29 @@ using namespace ::lucid::arm64;
 
 class Arm64BinaryGenerator {
  public:
-  explicit Arm64BinaryGenerator(const SyntaxContext& ctx, const Function& func,
+  explicit Arm64BinaryGenerator(const SyntaxContext& ctx,
+                                const std::vector<std::size_t>& stack_slots,
+                                StringIndex::Ref func_name,
                                 const AbstractMachineControlFlowGraph& am_cfg,
                                 Assembler& assmebler)
-      : ctx_(ctx), func_(func), am_cfg_(am_cfg), assembler_(assmebler) {}
+      : ctx_(ctx),
+        stack_slots_(stack_slots),
+        func_name_(func_name),
+        am_cfg_(am_cfg),
+        assembler_(assmebler) {}
 
   void Generate() && {
-    assembler_.Label(std::string(ctx_.DerefIdent(func_.name)));
+    assembler_.Label(std::string(ctx_.DerefIdent(func_name_)));
     assembler_.StpPreIndex(X(29), X(30), SP, Imm(-16));
 
-    for (std::size_t size : func_.stack_slots) stack_size_ += size;
+    for (std::size_t size : stack_slots_) stack_size_ += size;
     std::size_t quot = stack_size_ % 16;
     stack_size_ = quot == 0 ? stack_size_ : stack_size_ + 16 - quot;
 
-    stack_offsets_.resize(func_.stack_slots.size() + 1);
+    stack_offsets_.resize(stack_slots_.size() + 1);
     stack_offsets_[0] = 0;
     for (int i = 1; i < stack_offsets_.size(); ++i) {
-      stack_offsets_[i] = stack_offsets_[i - 1] + func_.stack_slots[i - 1];
+      stack_offsets_[i] = stack_offsets_[i - 1] + stack_slots_[i - 1];
     }
 
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
@@ -94,25 +100,25 @@ class Arm64BinaryGenerator {
 
   void Process(const UncondJump& inst) {
     std::string label =
-        std::string(ctx_.DerefIdent(func_.name)) + std::to_string(inst.label);
+        std::string(ctx_.DerefIdent(func_name_)) + std::to_string(inst.label);
     assembler_.B(label);
   }
 
   void Process(const CondJump& inst) {
     assembler_.Cmp(W(inst.cond_reg), Imm(0));
 
-    std::string else_label = std::string(ctx_.DerefIdent(func_.name)) +
+    std::string else_label = std::string(ctx_.DerefIdent(func_name_)) +
                              std::to_string(inst.else_label);
     assembler_.B(Cond::Eq, else_label);
 
-    std::string then_label = std::string(ctx_.DerefIdent(func_.name)) +
+    std::string then_label = std::string(ctx_.DerefIdent(func_name_)) +
                              std::to_string(inst.then_label);
     assembler_.B(then_label);
   }
 
   void Process(const Label& inst) {
     std::string label =
-        std::string(ctx_.DerefIdent(func_.name)) + std::to_string(inst.id);
+        std::string(ctx_.DerefIdent(func_name_)) + std::to_string(inst.id);
     assembler_.Label(label);
   }
 
@@ -310,7 +316,8 @@ class Arm64BinaryGenerator {
   }
 
   const SyntaxContext& ctx_;
-  const Function& func_;
+  const std::vector<std::size_t>& stack_slots_;
+  StringIndex::Ref func_name_;
   const AbstractMachineControlFlowGraph& am_cfg_;
   Assembler& assembler_;
   std::size_t stack_size_ = 0;
@@ -356,10 +363,13 @@ void GenerateArmEndBinary(
   }
 }
 
-void GenerateArmAssemblyBinary(const SyntaxContext& ctx, const Function& func,
+void GenerateArmAssemblyBinary(const SyntaxContext& ctx,
+                               const std::vector<std::size_t>& stack_slots,
+                               StringIndex::Ref func_name,
                                const AbstractMachineControlFlowGraph& am_cfg,
                                Assembler& assmebler) {
-  Arm64BinaryGenerator(ctx, func, am_cfg, assmebler).Generate();
+  Arm64BinaryGenerator(ctx, stack_slots, func_name, am_cfg, assmebler)
+      .Generate();
 }
 
 }  // namespace lucid

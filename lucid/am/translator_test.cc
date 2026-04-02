@@ -23,12 +23,7 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
       FuncDefStmt& func, const std::vector<FuncDefStmt>& func_defs = {}) {
     InferExprTypes(ctx_, func_defs, func);
     auto graph = BuildControlFlowGraph(ctx_, func);
-    AbstractMachineState state = {
-        .func =
-            {
-                .name = func.name,
-            },
-    };
+    AbstractMachineState state;
     AbstractMachineControlFlowGraph am_cfg =
         GenerateAbstractMachineFunction(ctx_, graph, state);
 
