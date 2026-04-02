@@ -63,7 +63,7 @@ cc_binary(
     deps = [
         ":am_gen",
         ":cfg",
-        ":parser",
+        "//lucid/syntax:parser",
         "//lucid/syntax:lexer",
         "@google_benchmark//:benchmark",
     ],
@@ -86,7 +86,6 @@ cc_test(
         ":am",
         ":am_cfg",
         ":am_liveness",
-        ":parser",
         "//lucid/core/dataflow",
         "//lucid/core/string:index",
         "//lucid/syntax:ast",
@@ -201,7 +200,7 @@ cc_binary(
         ":file",
         ":macho",
         ":opt",
-        ":parser",
+        "//lucid/syntax:parser",
         ":reg",
         ":ssa",
         ":static",
@@ -305,45 +304,6 @@ cc_library(
     hdrs = ["macho.h"],
     deps = [
         ":arm64",
-    ],
-)
-
-cc_library(
-    name = "parser",
-    hdrs = ["parser.h"],
-    deps = [
-        "//lucid/core/container:arena",
-        "//lucid/core/container:fixed_map",
-        "//lucid/core/container:successive_list",
-        "//lucid/core/string:index",
-        "//lucid/syntax:ast",
-        "//lucid/syntax:lexer",
-        "//lucid/syntax:token",
-    ],
-)
-
-cc_test(
-    name = "parser_test",
-    srcs = ["parser_test.cc"],
-    deps = [
-        ":parser",
-        "//lucid/syntax:ast",
-        "//lucid/syntax:ast_fixture",
-        "//lucid/syntax:lexer",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_binary(
-    name = "parser_bench",
-    srcs = ["parser_bench.cc"],
-    deps = [
-        ":parser",
-        "//lucid/syntax:ast",
-        "//lucid/syntax:buffered_lexer",
-        "//lucid/syntax:lexer",
-        "//lucid/syntax:token",
-        "@google_benchmark//:benchmark",
     ],
 )
 

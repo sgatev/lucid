@@ -20,7 +20,6 @@
 #include "lucid/file.h"
 #include "lucid/macho.h"
 #include "lucid/opt.h"
-#include "lucid/parser.h"
 #include "lucid/reg.h"
 #include "lucid/result.h"
 #include "lucid/ssa.h"
@@ -29,6 +28,7 @@
 #include "lucid/syntax/ast_printer.h"
 #include "lucid/syntax/buffered_lexer.h"
 #include "lucid/syntax/lexer.h"
+#include "lucid/syntax/parser.h"
 #include "lucid/type.h"
 #include "lucid/version.h"
 

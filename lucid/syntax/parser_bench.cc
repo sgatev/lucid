@@ -3,10 +3,10 @@
 #include <string_view>
 
 #include "benchmark/benchmark.h"
-#include "lucid/parser.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/buffered_lexer.h"
 #include "lucid/syntax/lexer.h"
+#include "lucid/syntax/parser.h"
 
 using namespace std::string_literals;
 

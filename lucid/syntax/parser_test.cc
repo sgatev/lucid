@@ -1,4 +1,4 @@
-#include "lucid/parser.h"
+#include "lucid/syntax/parser.h"
 
 #include <optional>
 #include <sstream>

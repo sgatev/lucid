@@ -95,6 +95,46 @@ cc_binary(
 )
 
 cc_library(
+    name = "parser",
+    hdrs = ["parser.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":ast",
+        ":lexer",
+        ":token",
+        "//lucid/core/container:arena",
+        "//lucid/core/container:fixed_map",
+        "//lucid/core/container:successive_list",
+        "//lucid/core/string:index",
+    ],
+)
+
+cc_test(
+    name = "parser_test",
+    srcs = ["parser_test.cc"],
+    deps = [
+        ":ast",
+        ":ast_fixture",
+        ":lexer",
+        ":parser",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "parser_bench",
+    srcs = ["parser_bench.cc"],
+    deps = [
+        ":ast",
+        ":buffered_lexer",
+        ":lexer",
+        ":parser",
+        ":token",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_library(
     name = "token",
     srcs = ["token.cc"],
     hdrs = ["token.h"],
