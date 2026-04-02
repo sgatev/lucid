@@ -1,4 +1,4 @@
-#include "lucid/cfg_printer.h"
+#include "lucid/syntax/cfg_printer.h"
 
 #include <functional>
 #include <iostream>

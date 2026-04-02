@@ -90,6 +90,17 @@ cc_test(
 )
 
 cc_library(
+    name = "cfg_printer",
+    srcs = ["cfg_printer.cc"],
+    hdrs = ["cfg_printer.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":ast",
+        ":cfg",
+    ],
+)
+
+cc_library(
     name = "lexer",
     hdrs = ["lexer.h"],
     visibility = ["//lucid:__subpackages__"],

@@ -138,16 +138,6 @@ cc_library(
 )
 
 cc_library(
-    name = "cfg_printer",
-    srcs = ["cfg_printer.cc"],
-    hdrs = ["cfg_printer.h"],
-    deps = [
-        "//lucid/syntax:ast",
-        "//lucid/syntax:cfg",
-    ],
-)
-
-cc_library(
     name = "cli",
     srcs = ["cli.cc"],
     hdrs = ["cli.h"],
@@ -171,7 +161,6 @@ cc_binary(
         ":ami_printer",
         ":arm64",
         ":arm64_gen",
-        ":cfg_printer",
         ":cli",
         ":file",
         ":macho",
@@ -187,6 +176,7 @@ cc_binary(
         "//lucid/syntax:ast_printer",
         "//lucid/syntax:buffered_lexer",
         "//lucid/syntax:cfg",
+        "//lucid/syntax:cfg_printer",
         "//lucid/syntax:lexer",
         "//lucid/syntax:parser",
     ],
