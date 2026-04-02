@@ -1,4 +1,4 @@
-#include "lucid/lexer.h"
+#include "lucid/syntax/lexer.h"
 
 #include <ostream>
 #include <string>

@@ -1,10 +1,10 @@
-#include "lucid/buffered_lexer.h"
+#include "lucid/syntax/buffered_lexer.h"
 
 #include <string>
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "lucid/lexer.h"
+#include "lucid/syntax/lexer.h"
 #include "lucid/syntax/token.h"
 
 namespace lucid {

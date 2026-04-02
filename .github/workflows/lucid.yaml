@@ -17,7 +17,7 @@ jobs:
         run: bazel test --config=ubsan ...
       - name: Run benchmarks
         run: |
-          bazel run -c opt //lucid:lexer_bench
+          bazel run -c opt //lucid/syntax:lexer_bench
           bazel run -c opt //lucid:parser_bench
           bazel run -c opt //lucid/core/container:hash_map_bench
           bazel run -c opt //lucid/core/container:hash_set_bench

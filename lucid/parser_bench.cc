@@ -4,13 +4,13 @@
 
 #include "benchmark/benchmark.h"
 #include "lucid/ast.h"
-#include "lucid/buffered_lexer.h"
-#include "lucid/lexer.h"
 #include "lucid/parser.h"
+#include "lucid/syntax/buffered_lexer.h"
+#include "lucid/syntax/lexer.h"
 
 using namespace std::string_literals;
 
-void Benchmark(benchmark::State &state, std::string_view snippet) {
+void Benchmark(benchmark::State& state, std::string_view snippet) {
   static constexpr int kSnippetRepetitions = 10000;
   std::string code;
   code.reserve(snippet.size() * kSnippetRepetitions + 1);
@@ -34,7 +34,7 @@ void Benchmark(benchmark::State &state, std::string_view snippet) {
                           std::int64_t(code.size()));
 }
 
-static void BM_Function(benchmark::State &state) {
+static void BM_Function(benchmark::State& state) {
   Benchmark(state, R"(
     let main = () -> Int32 {
       return 0
@@ -43,7 +43,7 @@ static void BM_Function(benchmark::State &state) {
 }
 BENCHMARK(BM_Function);
 
-static void BM_Comment(benchmark::State &state) {
+static void BM_Comment(benchmark::State& state) {
   Benchmark(state, R"(
     # Returns the sum of two integers.
     let sum = (a: Int32, b: Int32) -> Int32 {
@@ -53,7 +53,7 @@ static void BM_Comment(benchmark::State &state) {
 }
 BENCHMARK(BM_Comment);
 
-static void BM_Branches(benchmark::State &state) {
+static void BM_Branches(benchmark::State& state) {
   Benchmark(state, R"(
     let gcd = (a: Int32, b: Int32) -> Int32 {
       loop {

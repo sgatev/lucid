@@ -4,7 +4,7 @@
 #include <string_view>
 
 #include "benchmark/benchmark.h"
-#include "lucid/lexer.h"
+#include "lucid/syntax/lexer.h"
 #include "lucid/syntax/token.h"
 
 using namespace std::string_literals;

@@ -10,7 +10,7 @@
 #include "gtest/gtest.h"
 #include "lucid/ast.h"
 #include "lucid/ast_fixture.h"
-#include "lucid/lexer.h"
+#include "lucid/syntax/lexer.h"
 
 MATCHER_P(HoldsFuncDef, match_stmt, "") {
   auto* stmt = std::get_if<lucid::FuncDefStmt>(&arg);

@@ -1,5 +1,54 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_library(
+    name = "buffered_lexer",
+    srcs = ["buffered_lexer.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":token",
+    ],
+)
+
+cc_test(
+    name = "buffered_lexer_test",
+    srcs = ["buffered_lexer_test.cc"],
+    deps = [
+        ":buffered_lexer",
+        ":lexer",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "lexer",
+    hdrs = ["lexer.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":token",
+    ],
+)
+
+cc_test(
+    name = "lexer_test",
+    srcs = ["lexer_test.cc"],
+    deps = [
+        ":lexer",
+        ":token",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "lexer_bench",
+    srcs = ["lexer_bench.cc"],
+    deps = [
+        ":lexer",
+        ":token",
+        "@google_benchmark//:benchmark",
+    ],
+)
 
 cc_library(
     name = "token",
