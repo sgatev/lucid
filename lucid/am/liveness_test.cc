@@ -1,4 +1,4 @@
-#include "lucid/am_liveness.h"
+#include "lucid/am/liveness.h"
 
 #include <optional>
 #include <utility>

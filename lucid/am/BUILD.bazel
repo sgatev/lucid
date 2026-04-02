@@ -40,3 +40,29 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "liveness",
+    srcs = ["liveness.cc"],
+    hdrs = ["liveness.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":cfg",
+        "//lucid/core/container:hash_set",
+    ],
+)
+
+cc_test(
+    name = "liveness_test",
+    srcs = ["liveness_test.cc"],
+    deps = [
+        ":cfg",
+        ":instructions",
+        ":liveness",
+        "//lucid/core/dataflow",
+        "//lucid/core/string:index",
+        "//lucid/syntax:ast",
+        "//lucid/syntax:lexer",
+        "@googletest//:gtest_main",
+    ],
+)

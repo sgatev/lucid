@@ -43,31 +43,6 @@ cc_binary(
 )
 
 cc_library(
-    name = "am_liveness",
-    srcs = ["am_liveness.cc"],
-    hdrs = ["am_liveness.h"],
-    deps = [
-        "//lucid/am:cfg",
-        "//lucid/core/container:hash_set",
-    ],
-)
-
-cc_test(
-    name = "am_liveness_test",
-    srcs = ["am_liveness_test.cc"],
-    deps = [
-        ":am_liveness",
-        "//lucid/am:cfg",
-        "//lucid/am:instructions",
-        "//lucid/core/dataflow",
-        "//lucid/core/string:index",
-        "//lucid/syntax:ast",
-        "//lucid/syntax:lexer",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "arm64",
     hdrs = ["arm64.h"],
     deps = [
@@ -242,8 +217,8 @@ cc_library(
     srcs = ["reg.cc"],
     hdrs = ["reg.h"],
     deps = [
-        ":am_liveness",
         "//lucid/am:cfg",
+        "//lucid/am:liveness",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/container/graph:dominator",
