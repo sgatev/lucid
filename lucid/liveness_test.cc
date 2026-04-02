@@ -7,10 +7,10 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/core/dataflow/dataflow.h"
 #include "lucid/parser.h"
+#include "lucid/syntax/ast.h"
 #include "lucid/syntax/lexer.h"
 
 namespace lucid {

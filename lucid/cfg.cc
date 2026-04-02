@@ -6,8 +6,8 @@
 #include <variant>
 #include <vector>
 
-#include "lucid/ast.h"
 #include "lucid/core/container/successive_list.h"
+#include "lucid/syntax/ast.h"
 
 namespace lucid {
 namespace {

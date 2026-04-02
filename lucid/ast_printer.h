@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lucid/ast.h"
+#include "lucid/syntax/ast.h"
 
 namespace lucid {
 

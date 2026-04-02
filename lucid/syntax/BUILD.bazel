@@ -3,6 +3,26 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_library(
+    name = "ast",
+    hdrs = ["ast.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        "//lucid/core/container:arena",
+        "//lucid/core/container:successive_list",
+        "//lucid/core/string:index",
+    ],
+)
+
+cc_test(
+    name = "ast_test",
+    srcs = ["ast_test.cc"],
+    deps = [
+        ":ast",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "buffered_lexer",
     srcs = ["buffered_lexer.h"],
     visibility = ["//lucid:__subpackages__"],

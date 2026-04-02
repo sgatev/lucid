@@ -10,11 +10,11 @@
 #include <utility>
 #include <variant>
 
-#include "lucid/ast.h"
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/fixed_map.h"
 #include "lucid/core/container/successive_list.h"
 #include "lucid/core/string/index.h"
+#include "lucid/syntax/ast.h"
 #include "lucid/syntax/token.h"
 
 namespace lucid {

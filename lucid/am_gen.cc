@@ -10,10 +10,10 @@
 
 #include "lucid/am.h"
 #include "lucid/am_cfg.h"
-#include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/core/container/arena.h"
 #include "lucid/core/string/index.h"
+#include "lucid/syntax/ast.h"
 
 namespace lucid {
 namespace {

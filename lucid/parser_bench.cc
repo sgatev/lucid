@@ -3,8 +3,8 @@
 #include <string_view>
 
 #include "benchmark/benchmark.h"
-#include "lucid/ast.h"
 #include "lucid/parser.h"
+#include "lucid/syntax/ast.h"
 #include "lucid/syntax/buffered_lexer.h"
 #include "lucid/syntax/lexer.h"
 

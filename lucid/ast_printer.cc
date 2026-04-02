@@ -7,7 +7,7 @@
 #include <variant>
 #include <vector>
 
-#include "lucid/ast.h"
+#include "lucid/syntax/ast.h"
 
 namespace lucid {
 namespace {

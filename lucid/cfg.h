@@ -7,10 +7,10 @@
 #include <ranges>
 #include <vector>
 
-#include "lucid/ast.h"
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/successive_list.h"
 #include "lucid/core/string/index.h"
+#include "lucid/syntax/ast.h"
 
 namespace lucid {
 

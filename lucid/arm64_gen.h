@@ -6,8 +6,8 @@
 #include "lucid/am.h"
 #include "lucid/am_cfg.h"
 #include "lucid/arm64.h"
-#include "lucid/ast.h"
 #include "lucid/core/string/index.h"
+#include "lucid/syntax/ast.h"
 
 namespace lucid {
 

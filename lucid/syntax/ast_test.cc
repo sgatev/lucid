@@ -1,4 +1,4 @@
-#include "lucid/ast.h"
+#include "lucid/syntax/ast.h"
 
 #include "gtest/gtest.h"
 

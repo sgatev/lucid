@@ -2,9 +2,9 @@
 
 #include <variant>
 
-#include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/result.h"
+#include "lucid/syntax/ast.h"
 
 namespace lucid {
 namespace {

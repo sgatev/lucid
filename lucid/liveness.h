@@ -1,9 +1,9 @@
 #pragma once
 
-#include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/core/container/hash_set.h"
 #include "lucid/core/string/index.h"
+#include "lucid/syntax/ast.h"
 
 namespace lucid {
 

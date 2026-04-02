@@ -5,9 +5,9 @@
 
 #include "benchmark/benchmark.h"
 #include "lucid/am_gen.h"
-#include "lucid/ast.h"
 #include "lucid/cfg.h"
 #include "lucid/parser.h"
+#include "lucid/syntax/ast.h"
 #include "lucid/syntax/lexer.h"
 
 std::size_t CountInstructions(const lucid::SyntaxContext& ctx,
