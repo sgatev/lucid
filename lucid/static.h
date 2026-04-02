@@ -4,9 +4,9 @@
 #include <string>
 #include <utility>
 
-#include "lucid/cfg.h"
 #include "lucid/result.h"
 #include "lucid/syntax/ast.h"
+#include "lucid/syntax/cfg.h"
 
 namespace lucid {
 

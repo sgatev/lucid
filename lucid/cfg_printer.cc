@@ -4,8 +4,8 @@
 #include <iostream>
 #include <variant>
 
-#include "lucid/cfg.h"
 #include "lucid/syntax/ast.h"
+#include "lucid/syntax/cfg.h"
 
 namespace lucid {
 namespace {

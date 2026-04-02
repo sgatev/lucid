@@ -5,8 +5,8 @@
 
 #include "benchmark/benchmark.h"
 #include "lucid/am_gen.h"
-#include "lucid/cfg.h"
 #include "lucid/syntax/ast.h"
+#include "lucid/syntax/cfg.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
 

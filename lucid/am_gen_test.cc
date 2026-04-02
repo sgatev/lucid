@@ -5,10 +5,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "lucid/am.h"
-#include "lucid/cfg.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
+#include "lucid/syntax/cfg.h"
 #include "lucid/type.h"
 
 namespace lucid {

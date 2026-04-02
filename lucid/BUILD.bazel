@@ -36,10 +36,10 @@ cc_library(
     deps = [
         ":am",
         ":am_cfg",
-        ":cfg",
         "//lucid/core/container:arena",
         "//lucid/core/string:index",
         "//lucid/syntax:ast",
+        "//lucid/syntax:cfg",
     ],
 )
 
@@ -49,10 +49,10 @@ cc_test(
     deps = [
         ":am",
         ":am_gen",
-        ":cfg",
         ":type",
         "//lucid/core/container/graph:order",
         "//lucid/syntax:ast_fixture",
+        "//lucid/syntax:cfg",
         "@googletest//:gtest_main",
     ],
 )
@@ -62,9 +62,9 @@ cc_binary(
     srcs = ["am_gen_bench.cc"],
     deps = [
         ":am_gen",
-        ":cfg",
-        "//lucid/syntax:parser",
+        "//lucid/syntax:cfg",
         "//lucid/syntax:lexer",
+        "//lucid/syntax:parser",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -138,35 +138,12 @@ cc_library(
 )
 
 cc_library(
-    name = "cfg",
-    srcs = ["cfg.cc"],
-    hdrs = ["cfg.h"],
-    deps = [
-        "//lucid/core/container:arena",
-        "//lucid/core/container:successive_list",
-        "//lucid/syntax:ast",
-    ],
-)
-
-cc_test(
-    name = "cfg_test",
-    srcs = ["cfg_test.cc"],
-    deps = [
-        ":cfg",
-        "//lucid/core/container:arena",
-        "//lucid/syntax:ast",
-        "//lucid/syntax:ast_fixture",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "cfg_printer",
     srcs = ["cfg_printer.cc"],
     hdrs = ["cfg_printer.h"],
     deps = [
-        ":cfg",
         "//lucid/syntax:ast",
+        "//lucid/syntax:cfg",
     ],
 )
 
@@ -194,13 +171,11 @@ cc_binary(
         ":ami_printer",
         ":arm64",
         ":arm64_gen",
-        ":cfg",
         ":cfg_printer",
         ":cli",
         ":file",
         ":macho",
         ":opt",
-        "//lucid/syntax:parser",
         ":reg",
         ":ssa",
         ":static",
@@ -211,7 +186,9 @@ cc_binary(
         "//lucid/syntax:ast",
         "//lucid/syntax:ast_printer",
         "//lucid/syntax:buffered_lexer",
+        "//lucid/syntax:cfg",
         "//lucid/syntax:lexer",
+        "//lucid/syntax:parser",
     ],
 )
 
@@ -351,10 +328,10 @@ cc_library(
     srcs = ["ssa.cc"],
     hdrs = ["ssa.h"],
     deps = [
-        ":cfg",
         "//lucid/core/container/graph:dominator",
         "//lucid/core/string:index",
         "//lucid/syntax:ast",
+        "//lucid/syntax:cfg",
     ],
 )
 
@@ -362,10 +339,10 @@ cc_test(
     name = "ssa_test",
     srcs = ["ssa_test.cc"],
     deps = [
-        ":cfg",
         ":ssa",
         "//lucid/syntax:ast",
         "//lucid/syntax:ast_fixture",
+        "//lucid/syntax:cfg",
         "@googletest//:gtest_main",
     ],
 )
@@ -375,9 +352,9 @@ cc_library(
     srcs = ["static.cc"],
     hdrs = ["static.h"],
     deps = [
-        ":cfg",
         ":result",
         "//lucid/syntax:ast",
+        "//lucid/syntax:cfg",
     ],
 )
 

@@ -1,4 +1,4 @@
-#include "lucid/cfg.h"
+#include "lucid/syntax/cfg.h"
 
 #include <algorithm>
 #include <stack>

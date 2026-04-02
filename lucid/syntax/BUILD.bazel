@@ -66,6 +66,30 @@ cc_test(
 )
 
 cc_library(
+    name = "cfg",
+    srcs = ["cfg.cc"],
+    hdrs = ["cfg.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":ast",
+        "//lucid/core/container:arena",
+        "//lucid/core/container:successive_list",
+    ],
+)
+
+cc_test(
+    name = "cfg_test",
+    srcs = ["cfg_test.cc"],
+    deps = [
+        ":ast",
+        ":ast_fixture",
+        ":cfg",
+        "//lucid/core/container:arena",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "lexer",
     hdrs = ["lexer.h"],
     visibility = ["//lucid:__subpackages__"],
