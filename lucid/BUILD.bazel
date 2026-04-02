@@ -3,46 +3,6 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_library(
-    name = "am_gen",
-    srcs = ["am_gen.cc"],
-    hdrs = ["am_gen.h"],
-    deps = [
-        "//lucid/am:cfg",
-        "//lucid/am:instructions",
-        "//lucid/core/container:arena",
-        "//lucid/core/string:index",
-        "//lucid/syntax:ast",
-        "//lucid/syntax:cfg",
-    ],
-)
-
-cc_test(
-    name = "am_gen_test",
-    srcs = ["am_gen_test.cc"],
-    deps = [
-        ":am_gen",
-        ":type",
-        "//lucid/am:instructions",
-        "//lucid/core/container/graph:order",
-        "//lucid/syntax:ast_fixture",
-        "//lucid/syntax:cfg",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_binary(
-    name = "am_gen_bench",
-    srcs = ["am_gen_bench.cc"],
-    deps = [
-        ":am_gen",
-        "//lucid/syntax:cfg",
-        "//lucid/syntax:lexer",
-        "//lucid/syntax:parser",
-        "@google_benchmark//:benchmark",
-    ],
-)
-
-cc_library(
     name = "arm64",
     hdrs = ["arm64.h"],
     deps = [
@@ -94,7 +54,6 @@ cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
     deps = [
-        ":am_gen",
         ":arm64",
         ":arm64_gen",
         ":cli",
@@ -108,6 +67,7 @@ cc_binary(
         ":version",
         "//lucid/am:cfg",
         "//lucid/am:cfg_printer",
+        "//lucid/am:translator",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/syntax:ast",
@@ -316,6 +276,7 @@ cc_library(
     name = "type",
     srcs = ["type.cc"],
     hdrs = ["type.h"],
+    visibility = ["//lucid/am:__subpackages__"],
     deps = [
         ":result",
         "//lucid/core/string:index",

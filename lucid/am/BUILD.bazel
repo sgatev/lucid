@@ -1,3 +1,4 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
@@ -64,5 +65,46 @@ cc_test(
         "//lucid/syntax:ast",
         "//lucid/syntax:lexer",
         "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "translator",
+    srcs = ["translator.cc"],
+    hdrs = ["translator.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":cfg",
+        ":instructions",
+        "//lucid/core/container:arena",
+        "//lucid/core/string:index",
+        "//lucid/syntax:ast",
+        "//lucid/syntax:cfg",
+    ],
+)
+
+cc_test(
+    name = "translator_test",
+    srcs = ["translator_test.cc"],
+    deps = [
+        ":instructions",
+        ":translator",
+        "//lucid:type",
+        "//lucid/core/container/graph:order",
+        "//lucid/syntax:ast_fixture",
+        "//lucid/syntax:cfg",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "translator_bench",
+    srcs = ["translator_bench.cc"],
+    deps = [
+        ":translator",
+        "//lucid/syntax:cfg",
+        "//lucid/syntax:lexer",
+        "//lucid/syntax:parser",
+        "@google_benchmark//:benchmark",
     ],
 )

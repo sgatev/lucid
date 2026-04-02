@@ -4,7 +4,7 @@
 #include <string_view>
 
 #include "benchmark/benchmark.h"
-#include "lucid/am_gen.h"
+#include "lucid/am/translator.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
 #include "lucid/syntax/lexer.h"

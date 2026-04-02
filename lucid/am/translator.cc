@@ -1,4 +1,4 @@
-#include "lucid/am_gen.h"
+#include "lucid/am/translator.h"
 
 #include <cstddef>
 #include <cstdint>
