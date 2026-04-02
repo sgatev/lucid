@@ -4,7 +4,7 @@
 #include <variant>
 #include <vector>
 
-#include "lucid/am.h"
+#include "lucid/am/instructions.h"
 
 namespace lucid {
 namespace {

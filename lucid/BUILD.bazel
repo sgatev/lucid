@@ -3,27 +3,10 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_library(
-    name = "am",
-    hdrs = ["am.h"],
-    deps = [
-        "//lucid/core/string:index",
-    ],
-)
-
-cc_test(
-    name = "am_test",
-    srcs = ["am_test.cc"],
-    deps = [
-        ":am",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "am_cfg",
     hdrs = ["am_cfg.h"],
     deps = [
-        ":am",
+        "//lucid/am:instructions",
         "//lucid/core/container:arena",
         "//lucid/core/container:hash_set",
     ],
@@ -34,8 +17,8 @@ cc_library(
     srcs = ["am_gen.cc"],
     hdrs = ["am_gen.h"],
     deps = [
-        ":am",
         ":am_cfg",
+        "//lucid/am:instructions",
         "//lucid/core/container:arena",
         "//lucid/core/string:index",
         "//lucid/syntax:ast",
@@ -47,9 +30,9 @@ cc_test(
     name = "am_gen_test",
     srcs = ["am_gen_test.cc"],
     deps = [
-        ":am",
         ":am_gen",
         ":type",
+        "//lucid/am:instructions",
         "//lucid/core/container/graph:order",
         "//lucid/syntax:ast_fixture",
         "//lucid/syntax:cfg",
@@ -83,9 +66,9 @@ cc_test(
     name = "am_liveness_test",
     srcs = ["am_liveness_test.cc"],
     deps = [
-        ":am",
         ":am_cfg",
         ":am_liveness",
+        "//lucid/am:instructions",
         "//lucid/core/dataflow",
         "//lucid/core/string:index",
         "//lucid/syntax:ast",
@@ -99,8 +82,8 @@ cc_library(
     srcs = ["ami_printer.cc"],
     hdrs = ["ami_printer.h"],
     deps = [
-        ":am",
         ":am_cfg",
+        "//lucid/am:instructions",
     ],
 )
 
@@ -127,9 +110,9 @@ cc_library(
     srcs = ["arm64_gen.cc"],
     hdrs = ["arm64_gen.h"],
     deps = [
-        ":am",
         ":am_cfg",
         ":arm64",
+        "//lucid/am:instructions",
         "//lucid/core/container:hash_map",
         "//lucid/core/container/graph:order",
         "//lucid/core/string:index",
@@ -251,7 +234,7 @@ cc_library(
     srcs = ["opt.cc"],
     hdrs = ["opt.h"],
     deps = [
-        ":am",
+        "//lucid/am:instructions",
     ],
 )
 
@@ -259,8 +242,8 @@ cc_test(
     name = "opt_test",
     srcs = ["opt_test.cc"],
     deps = [
-        ":am",
         ":opt",
+        "//lucid/am:instructions",
         "@googletest//:gtest_main",
     ],
 )

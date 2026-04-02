@@ -1,4 +1,4 @@
-#include "lucid/am.h"
+#include "lucid/am/instructions.h"
 
 #include "gtest/gtest.h"
 

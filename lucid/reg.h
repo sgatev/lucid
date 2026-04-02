@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lucid/am.h"
+#include "lucid/am/instructions.h"
 #include "lucid/am_cfg.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"

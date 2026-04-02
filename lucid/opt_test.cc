@@ -4,7 +4,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lucid/am.h"
+#include "lucid/am/instructions.h"
 
 namespace lucid {
 namespace {

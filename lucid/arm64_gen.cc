@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include "lucid/am.h"
+#include "lucid/am/instructions.h"
 #include "lucid/am_cfg.h"
 #include "lucid/arm64.h"
 #include "lucid/core/container/graph/order.h"

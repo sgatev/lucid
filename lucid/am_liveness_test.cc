@@ -6,7 +6,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lucid/am.h"
+#include "lucid/am/instructions.h"
 #include "lucid/am_cfg.h"
 #include "lucid/core/dataflow/dataflow.h"
 

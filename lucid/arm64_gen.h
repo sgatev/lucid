@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "lucid/am.h"
+#include "lucid/am/instructions.h"
 #include "lucid/am_cfg.h"
 #include "lucid/arm64.h"
 #include "lucid/core/string/index.h"
