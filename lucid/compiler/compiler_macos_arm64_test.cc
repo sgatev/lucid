@@ -781,5 +781,35 @@ TEST_F(CompilerTest, LongDependencyChain) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(20));
 }
 
+TEST_F(CompilerTest, ManyLiveVariables) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let main = () -> Int32 {
+      let a1: Int32 = 1
+      let a2: Int32 = 2
+      let a3: Int32 = 3
+      let a4: Int32 = 4
+      let a5: Int32 = 5
+      let a6: Int32 = 6
+      let a7: Int32 = 7
+      let a8: Int32 = 8
+      let a9: Int32 = 9
+      let a10: Int32 = 10
+      let a11: Int32 = 11
+      let a12: Int32 = 12
+      let a13: Int32 = 13
+      let a14: Int32 = 14
+      let a15: Int32 = 15
+      let a16: Int32 = 16
+      let a17: Int32 = 17
+      let a18: Int32 = 18
+      return a1  + a2  + a3  + a4  + a5 +
+             a6  + a7  + a8  + a9  + a10 +
+             a11 + a12 + a13 + a14 + a15 +
+             a16 + a17 + a18
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(171));
+}
+
 }  // namespace
 }  // namespace lucid

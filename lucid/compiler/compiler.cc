@@ -79,6 +79,7 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
     for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
+    IntroduceSpilling(am_cfg, state->stack_slots);
     HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
     HashMap<RegId, int> am_ig_colors =
         ColorInterferenceGraph(am_cfg, am_ig, 12);
@@ -329,6 +330,7 @@ int HandlePrintAmiCommand(CommandContext ctx) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
     if (ctx.flags.contains("merge-regs")) {
+      IntroduceSpilling(am_cfg, state.stack_slots);
       HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
       HashMap<RegId, int> am_ig_colors =
           ColorInterferenceGraph(am_cfg, am_ig, 14);
