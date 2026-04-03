@@ -6,13 +6,13 @@ cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
     deps = [
-        ":reg",
         ":static",
         ":type",
         ":version",
         "//lucid/am:cfg",
         "//lucid/am:cfg_printer",
         "//lucid/am:opt",
+        "//lucid/am:reg",
         "//lucid/am:translator",
         "//lucid/arm64:assembler",
         "//lucid/arm64:macho",
@@ -66,31 +66,6 @@ cc_library(
     hdrs = ["compiler_test_fixture.h"],
     deps = [
         "//lucid/core/io:file",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "reg",
-    srcs = ["reg.cc"],
-    hdrs = ["reg.h"],
-    deps = [
-        "//lucid/am:cfg",
-        "//lucid/am:liveness",
-        "//lucid/core/container:hash_map",
-        "//lucid/core/container:hash_set",
-        "//lucid/core/container/graph:dominator",
-        "//lucid/core/dataflow",
-    ],
-)
-
-cc_test(
-    name = "reg_test",
-    srcs = ["reg_test.cc"],
-    deps = [
-        ":reg",
-        "//lucid/am:cfg",
-        "//lucid/syntax:ast",
         "@googletest//:gtest_main",
     ],
 )

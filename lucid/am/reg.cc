@@ -1,4 +1,4 @@
-#include "lucid/reg.h"
+#include "lucid/am/reg.h"
 
 #include <unistd.h>
 
