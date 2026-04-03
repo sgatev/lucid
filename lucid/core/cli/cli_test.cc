@@ -1,4 +1,4 @@
-#include "lucid/cli.h"
+#include "lucid/core/cli/cli.h"
 
 #include <span>
 #include <sstream>

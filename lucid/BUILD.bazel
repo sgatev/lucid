@@ -2,26 +2,10 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
-cc_library(
-    name = "cli",
-    srcs = ["cli.cc"],
-    hdrs = ["cli.h"],
-)
-
-cc_test(
-    name = "cli_test",
-    srcs = ["cli_test.cc"],
-    deps = [
-        ":cli",
-        "@googletest//:gtest_main",
-    ],
-)
-
 cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
     deps = [
-        ":cli",
         ":opt",
         ":reg",
         ":ssa",
@@ -34,6 +18,7 @@ cc_binary(
         "//lucid/arm64:assembler",
         "//lucid/arm64:macho",
         "//lucid/arm64:translator",
+        "//lucid/core/cli",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/io:file",
@@ -54,7 +39,6 @@ cc_test(
         ":compiler",
     ],
     deps = [
-        ":cli",
         ":compiler_test_fixture",
         "@googletest//:gtest_main",
     ],
@@ -71,7 +55,6 @@ cc_test(
         "@platforms//cpu:arm64",
     ],
     deps = [
-        ":cli",
         ":compiler_test_fixture",
         "@googletest//:gtest_main",
     ],
@@ -82,7 +65,6 @@ cc_library(
     testonly = True,
     hdrs = ["compiler_test_fixture.h"],
     deps = [
-        ":cli",
         "//lucid/core/io:file",
         "@googletest//:gtest_main",
     ],
