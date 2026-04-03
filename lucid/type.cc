@@ -9,8 +9,8 @@
 #include <variant>
 #include <vector>
 
+#include "lucid/core/functional/result.h"
 #include "lucid/core/string/index.h"
-#include "lucid/result.h"
 #include "lucid/syntax/ast.h"
 
 namespace lucid {

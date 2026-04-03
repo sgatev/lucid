@@ -2,7 +2,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lucid/result.h"
+#include "lucid/core/functional/result.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 

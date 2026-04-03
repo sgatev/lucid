@@ -95,7 +95,7 @@ cc_library(
     srcs = ["file.cc"],
     hdrs = ["file.h"],
     deps = [
-        ":result",
+        "//lucid/core/functional:result",
     ],
 )
 
@@ -156,20 +156,6 @@ cc_test(
 )
 
 cc_library(
-    name = "result",
-    hdrs = ["result.h"],
-)
-
-cc_test(
-    name = "result_test",
-    srcs = ["result_test.cc"],
-    deps = [
-        ":result",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "ssa",
     srcs = ["ssa.cc"],
     hdrs = ["ssa.h"],
@@ -198,7 +184,7 @@ cc_library(
     srcs = ["static.cc"],
     hdrs = ["static.h"],
     deps = [
-        ":result",
+        "//lucid/core/functional:result",
         "//lucid/syntax:ast",
         "//lucid/syntax:cfg",
     ],
@@ -221,7 +207,7 @@ cc_library(
     hdrs = ["type.h"],
     visibility = ["//lucid/am:__subpackages__"],
     deps = [
-        ":result",
+        "//lucid/core/functional:result",
         "//lucid/core/string:index",
         "//lucid/syntax:ast",
     ],
@@ -231,8 +217,8 @@ cc_test(
     name = "type_test",
     srcs = ["type_test.cc"],
     deps = [
-        ":result",
         ":type",
+        "//lucid/core/functional:result",
         "//lucid/syntax:ast",
         "//lucid/syntax:ast_fixture",
         "@googletest//:gtest_main",

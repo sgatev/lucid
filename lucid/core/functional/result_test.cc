@@ -1,4 +1,4 @@
-#include "lucid/result.h"
+#include "lucid/core/functional/result.h"
 
 #include "gtest/gtest.h"
 

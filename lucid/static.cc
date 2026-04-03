@@ -2,7 +2,7 @@
 
 #include <variant>
 
-#include "lucid/result.h"
+#include "lucid/core/functional/result.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
 

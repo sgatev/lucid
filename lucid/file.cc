@@ -5,7 +5,7 @@
 #include <ios>
 #include <string>
 
-#include "lucid/result.h"
+#include "lucid/core/functional/result.h"
 
 namespace lucid {
 

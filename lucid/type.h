@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-#include "lucid/result.h"
+#include "lucid/core/functional/result.h"
 #include "lucid/syntax/ast.h"
 
 namespace lucid {
