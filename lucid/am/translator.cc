@@ -34,21 +34,6 @@ class AbstractMachineFunctionGenerator {
     am_cfg_.first = graph_map_[graph_.first];
     am_cfg_.last = graph_map_[graph_.last];
 
-    for (const auto& param_ref : graph_.func_params) {
-      const auto& param = ctx_.DerefParam(param_ref);
-      // TODO: Handle `ArrayType`.
-      const auto& param_type =
-          std::get<BasicType>(ctx_.DerefType(param.type_constraint));
-      std::string_view param_name = ctx_.DerefIdent(param_type.name);
-      if (param_name == "Int32") {
-        state_.stack_slots.push_back(4);
-      } else if (param_name == "Int64") {
-        state_.stack_slots.push_back(8);
-      } else if (param_name == "Bool") {
-        state_.stack_slots.push_back(4);
-      }
-    }
-
     if (ctx_.DerefIdent(graph_.func_name) == "printString") {
       auto& first_block = am_cfg_.add();
       am_cfg_.first = first_block.ref;
@@ -77,8 +62,6 @@ class AbstractMachineFunctionGenerator {
       return std::move(am_cfg_);
     }
 
-    if (graph_.has_func_calls) stack_offset_ = 12;
-
     {
       auto& first_block = am_cfg_.get(am_cfg_.first);
       first_block.instructions.push_back(PushStack{});
@@ -88,6 +71,7 @@ class AbstractMachineFunctionGenerator {
               .offset = i - 1,
               .src_reg = RegId(i),
           });
+          state_.stack_slots.push_back(8);
         }
       }
       for (RegId i = 0; i < graph_.func_params.size(); ++i) {
@@ -97,18 +81,18 @@ class AbstractMachineFunctionGenerator {
         std::string_view param_type_name = ctx_.DerefIdent(param_type.name);
         if (param_type_name == "Int32") {
           first_block.instructions.push_back(StoreStack32{
-              .offset = stack_offset_,
+              .offset = state_.stack_slots.size(),
               .src_reg = static_cast<RegId>(i + 1),
           });
-          var_stack_[param.name] = stack_offset_;
-          ++stack_offset_;
+          var_stack_[param.name] = state_.stack_slots.size();
+          state_.stack_slots.push_back(4);
         } else if (param_type_name == "Int64") {
           first_block.instructions.push_back(StoreStack64{
-              .offset = stack_offset_,
+              .offset = state_.stack_slots.size(),
               .src_reg = static_cast<RegId>(i + 1),
           });
-          var_stack_[param.name] = stack_offset_;
-          ++stack_offset_;
+          var_stack_[param.name] = state_.stack_slots.size();
+          state_.stack_slots.push_back(8);
         }
       }
     }
@@ -539,6 +523,7 @@ class AbstractMachineFunctionGenerator {
           ctx_.DerefType(array_type.element_type_constraint));
       std::string_view var_decl_type_name = ctx_.DerefIdent(var_decl_type.name);
       auto size = std::atoi(ctx_.DerefIdent(array_type.size.value).data());
+      auto stack_offset = state_.stack_slots.size();
       for (int i = 0; i < size; ++i) {
         if (var_decl_type_name == "Int32" || var_decl_type_name == "Bool") {
           state_.stack_slots.push_back(4);
@@ -546,16 +531,13 @@ class AbstractMachineFunctionGenerator {
           state_.stack_slots.push_back(8);
         }
       }
-
-      var_stack_[stmt.name] = stack_offset_;
-      for (int i = 0; i < size; ++i) {
-        ++stack_offset_;
-      }
+      var_stack_[stmt.name] = stack_offset;
       return;
     }
 
     auto stmt_type = std::get<BasicType>(ctx_.DerefType(stmt.type_constraint));
     std::string_view stmt_type_name = ctx_.DerefIdent(stmt_type.name);
+    auto stack_offset = state_.stack_slots.size();
     if (stmt_type_name == "Int32") {
       state_.stack_slots.push_back(4);
     } else if (stmt_type_name == "Int64") {
@@ -568,18 +550,16 @@ class AbstractMachineFunctionGenerator {
 
     if (stmt_type_name == "Int32" || stmt_type_name == "Bool") {
       am_block.instructions.push_back(StoreStack32{
-          .offset = stack_offset_,
+          .offset = stack_offset,
           .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
       });
-      var_stack_[stmt.name] = stack_offset_;
-      ++stack_offset_;
+      var_stack_[stmt.name] = stack_offset;
     } else if (stmt_type_name == "Int64") {
       am_block.instructions.push_back(StoreStack64{
-          .offset = stack_offset_,
+          .offset = stack_offset,
           .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
       });
-      var_stack_[stmt.name] = stack_offset_;
-      ++stack_offset_;
+      var_stack_[stmt.name] = stack_offset;
     }
   }
 
@@ -664,7 +644,6 @@ class AbstractMachineFunctionGenerator {
   AbstractMachineState& state_;
   AbstractMachineControlFlowGraph am_cfg_;
   RegId next_reg_ = 1;
-  std::size_t stack_offset_ = 0;
   std::unordered_map<StringIndex::Ref, std::size_t> var_stack_;
   std::unordered_map<ControlFlowGraph::BlockRef,
                      AbstractMachineControlFlowGraph::BlockRef>
