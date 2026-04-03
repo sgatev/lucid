@@ -1,6 +1,6 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lucid/compiler_test_fixture.h"
+#include "lucid/compiler/compiler_test_fixture.h"
 
 namespace lucid {
 namespace {

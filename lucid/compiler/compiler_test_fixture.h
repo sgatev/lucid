@@ -62,7 +62,7 @@ class CompilerTest : public testing::Test {
 
   // Runs the compiler binary, passing it the given `args`.
   CommandResult RunCompiler(std::initializer_list<std::string_view> args) {
-    return Run(std::string(runtime_dir_ / "lucid/compiler"), args);
+    return Run(std::string(runtime_dir_ / "lucid/compiler/compiler"), args);
   }
 
   // Runs the binary with the given `binary_path`, passing it the given `args`.
