@@ -19,3 +19,13 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "macho",
+    srcs = ["macho.cc"],
+    hdrs = ["macho.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":assembler",
+    ],
+)

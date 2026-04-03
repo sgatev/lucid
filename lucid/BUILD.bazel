@@ -7,9 +7,9 @@ cc_library(
     srcs = ["arm64_gen.cc"],
     hdrs = ["arm64_gen.h"],
     deps = [
-        "//lucid/arm64:assembler",
         "//lucid/am:cfg",
         "//lucid/am:instructions",
+        "//lucid/arm64:assembler",
         "//lucid/core/container:hash_map",
         "//lucid/core/container/graph:order",
         "//lucid/core/string:index",
@@ -36,11 +36,9 @@ cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
     deps = [
-        "//lucid/arm64:assembler",
         ":arm64_gen",
         ":cli",
         ":file",
-        ":macho",
         ":opt",
         ":reg",
         ":ssa",
@@ -50,6 +48,8 @@ cc_binary(
         "//lucid/am:cfg",
         "//lucid/am:cfg_printer",
         "//lucid/am:translator",
+        "//lucid/arm64:assembler",
+        "//lucid/arm64:macho",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/syntax:ast",
@@ -142,15 +142,6 @@ cc_test(
         ":opt",
         "//lucid/am:instructions",
         "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "macho",
-    srcs = ["macho.cc"],
-    hdrs = ["macho.h"],
-    deps = [
-        "//lucid/arm64:assembler",
     ],
 )
 
