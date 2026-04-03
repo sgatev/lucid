@@ -1,4 +1,4 @@
-#include "lucid/arm64.h"
+#include "lucid/arm64/assembler.h"
 
 #include "gtest/gtest.h"
 

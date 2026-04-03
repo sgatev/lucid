@@ -2,7 +2,7 @@
 
 #include <ostream>
 
-#include "lucid/arm64.h"
+#include "lucid/arm64/assembler.h"
 
 namespace lucid {
 

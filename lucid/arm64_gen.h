@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include "lucid/am/cfg.h"
-#include "lucid/arm64.h"
+#include "lucid/arm64/assembler.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 

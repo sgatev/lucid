@@ -10,7 +10,7 @@
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
-#include "lucid/arm64.h"
+#include "lucid/arm64/assembler.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"

@@ -4,7 +4,7 @@
 #include <ostream>
 #include <vector>
 
-#include "lucid/arm64.h"
+#include "lucid/arm64/assembler.h"
 
 namespace lucid {
 namespace {

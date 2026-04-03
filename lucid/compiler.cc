@@ -12,7 +12,7 @@
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_printer.h"
 #include "lucid/am/translator.h"
-#include "lucid/arm64.h"
+#include "lucid/arm64/assembler.h"
 #include "lucid/arm64_gen.h"
 #include "lucid/cli.h"
 #include "lucid/file.h"
