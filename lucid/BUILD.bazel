@@ -6,7 +6,6 @@ cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
     deps = [
-        ":type",
         ":version",
         "//lucid/am:cfg",
         "//lucid/am:cfg_printer",
@@ -28,6 +27,7 @@ cc_binary(
         "//lucid/syntax:lexer",
         "//lucid/syntax:parser",
         "//lucid/syntax:ssa",
+        "//lucid/syntax:type",
     ],
 )
 
@@ -65,30 +65,6 @@ cc_library(
     hdrs = ["compiler_test_fixture.h"],
     deps = [
         "//lucid/core/io:file",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "type",
-    srcs = ["type.cc"],
-    hdrs = ["type.h"],
-    visibility = ["//lucid/am:__subpackages__"],
-    deps = [
-        "//lucid/core/functional:result",
-        "//lucid/core/string:index",
-        "//lucid/syntax:ast",
-    ],
-)
-
-cc_test(
-    name = "type_test",
-    srcs = ["type_test.cc"],
-    deps = [
-        ":type",
-        "//lucid/core/functional:result",
-        "//lucid/syntax:ast",
-        "//lucid/syntax:ast_fixture",
         "@googletest//:gtest_main",
     ],
 )

@@ -1,4 +1,4 @@
-#include "lucid/type.h"
+#include "lucid/syntax/type.h"
 
 #include <cstdint>
 #include <optional>

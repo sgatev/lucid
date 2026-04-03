@@ -28,7 +28,7 @@
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
 #include "lucid/syntax/ssa.h"
-#include "lucid/type.h"
+#include "lucid/syntax/type.h"
 #include "lucid/version.h"
 
 namespace lucid {

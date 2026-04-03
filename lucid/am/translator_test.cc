@@ -9,7 +9,7 @@
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 #include "lucid/syntax/cfg.h"
-#include "lucid/type.h"
+#include "lucid/syntax/type.h"
 
 namespace lucid {
 namespace {

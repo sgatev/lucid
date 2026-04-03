@@ -135,10 +135,10 @@ cc_test(
     deps = [
         ":instructions",
         ":translator",
-        "//lucid:type",
         "//lucid/core/container/graph:order",
         "//lucid/syntax:ast_fixture",
         "//lucid/syntax:cfg",
+        "//lucid/syntax:type",
         "@googletest//:gtest_main",
     ],
 )

@@ -209,3 +209,27 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "type",
+    srcs = ["type.cc"],
+    hdrs = ["type.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":ast",
+        "//lucid/core/functional:result",
+        "//lucid/core/string:index",
+    ],
+)
+
+cc_test(
+    name = "type_test",
+    srcs = ["type_test.cc"],
+    deps = [
+        ":ast",
+        ":ast_fixture",
+        ":type",
+        "//lucid/core/functional:result",
+        "@googletest//:gtest_main",
+    ],
+)
