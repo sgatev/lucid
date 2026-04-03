@@ -5,10 +5,10 @@
 
 namespace lucid {
 
-// Prints the basic blocks in `graph`.
+// Prints the basic blocks in `scfg`.
 //
 // Requires:
-// - `graph` must be constructed in `ctx`.
-void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph);
+// - `scfg` must be constructed in `ctx`.
+void Print(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg);
 
 }  // namespace lucid

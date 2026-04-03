@@ -15,18 +15,18 @@ using ::testing::SizeIs;
 using ::testing::Test;
 using ::testing::UnorderedElementsAre;
 
-using BlockRef = ControlFlowGraph::BlockRef;
-using Phi = ControlFlowGraph::Phi;
+using BlockRef = SyntaxControlFlowGraph::BlockRef;
+using Phi = SyntaxControlFlowGraph::Phi;
 
 class ConvertToStaticSingleAssignmentTest : public Test, public AstFixture {
  protected:
-  ControlFlowGraph BuildControlFlowGraph(FuncDefStmt func_def) {
+  SyntaxControlFlowGraph BuildControlFlowGraph(FuncDefStmt func_def) {
     return ::lucid::BuildControlFlowGraph(ctx_, func_def);
   }
 };
 
 TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
@@ -62,28 +62,28 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
       }),
   });
 
-  ConvertToStaticSingleAssignment(ctx_, graph);
+  ConvertToStaticSingleAssignment(ctx_, scfg);
 
-  ASSERT_EQ(graph.blocks().Size(), 5);
+  ASSERT_EQ(scfg.blocks().Size(), 5);
 
-  const auto& first_block = graph.blocks().Get(0);
+  const auto& first_block = scfg.blocks().Get(0);
   EXPECT_THAT(first_block.phis, IsEmpty());
 
-  const auto& last_block = graph.blocks().Get(1);
+  const auto& last_block = scfg.blocks().Get(1);
   EXPECT_THAT(last_block.phis, IsEmpty());
 
-  const auto& post_if_block = graph.blocks().Get(2);
+  const auto& post_if_block = scfg.blocks().Get(2);
   EXPECT_THAT(post_if_block.phis, SizeIs(1));
 
-  const auto& then_block = graph.blocks().Get(3);
+  const auto& then_block = scfg.blocks().Get(3);
   EXPECT_THAT(then_block.phis, IsEmpty());
 
-  const auto& else_block = graph.blocks().Get(4);
+  const auto& else_block = scfg.blocks().Get(4);
   EXPECT_THAT(else_block.phis, IsEmpty());
 }
 
 TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
@@ -134,37 +134,37 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
       }),
   });
 
-  ConvertToStaticSingleAssignment(ctx_, graph);
+  ConvertToStaticSingleAssignment(ctx_, scfg);
 
-  ASSERT_EQ(graph.blocks().Size(), 8);
+  ASSERT_EQ(scfg.blocks().Size(), 8);
 
-  const auto& first_block = graph.blocks().Get(0);
+  const auto& first_block = scfg.blocks().Get(0);
   EXPECT_THAT(first_block.phis, IsEmpty());
 
-  const auto& last_block = graph.blocks().Get(1);
+  const auto& last_block = scfg.blocks().Get(1);
   EXPECT_THAT(last_block.phis, IsEmpty());
 
-  const auto& post_if_block = graph.blocks().Get(2);
+  const auto& post_if_block = scfg.blocks().Get(2);
   EXPECT_THAT(post_if_block.phis, SizeIs(1));
 
-  const auto& then_block = graph.blocks().Get(3);
+  const auto& then_block = scfg.blocks().Get(3);
   EXPECT_THAT(then_block.phis, IsEmpty());
 
-  const auto& nested_post_if_block = graph.blocks().Get(4);
+  const auto& nested_post_if_block = scfg.blocks().Get(4);
   EXPECT_THAT(nested_post_if_block.phis, SizeIs(1));
 
-  const auto& nested_then_block = graph.blocks().Get(5);
+  const auto& nested_then_block = scfg.blocks().Get(5);
   EXPECT_THAT(nested_then_block.phis, IsEmpty());
 
-  const auto& nested_else_block = graph.blocks().Get(6);
+  const auto& nested_else_block = scfg.blocks().Get(6);
   EXPECT_THAT(nested_else_block.phis, IsEmpty());
 
-  const auto& else_block = graph.blocks().Get(7);
+  const auto& else_block = scfg.blocks().Get(7);
   EXPECT_THAT(else_block.phis, IsEmpty());
 }
 
 TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
@@ -205,28 +205,28 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
       }),
   });
 
-  ConvertToStaticSingleAssignment(ctx_, graph);
+  ConvertToStaticSingleAssignment(ctx_, scfg);
 
-  ASSERT_EQ(graph.blocks().Size(), 5);
+  ASSERT_EQ(scfg.blocks().Size(), 5);
 
-  const auto& first_block = graph.blocks().Get(0);
+  const auto& first_block = scfg.blocks().Get(0);
   EXPECT_THAT(first_block.phis, IsEmpty());
 
-  const auto& last_block = graph.blocks().Get(1);
+  const auto& last_block = scfg.blocks().Get(1);
   EXPECT_THAT(last_block.phis, IsEmpty());
 
-  const auto& post_if_block = graph.blocks().Get(2);
+  const auto& post_if_block = scfg.blocks().Get(2);
   EXPECT_THAT(post_if_block.phis, SizeIs(2));
 
-  const auto& then_block = graph.blocks().Get(3);
+  const auto& then_block = scfg.blocks().Get(3);
   EXPECT_THAT(then_block.phis, IsEmpty());
 
-  const auto& else_block = graph.blocks().Get(4);
+  const auto& else_block = scfg.blocks().Get(4);
   EXPECT_THAT(else_block.phis, IsEmpty());
 }
 
 TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
@@ -259,29 +259,29 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
       }),
   });
 
-  ConvertToStaticSingleAssignment(ctx_, graph);
+  ConvertToStaticSingleAssignment(ctx_, scfg);
 
-  ASSERT_EQ(graph.blocks().Size(), 7);
+  ASSERT_EQ(scfg.blocks().Size(), 7);
 
-  const auto& first_block = graph.blocks().Get(0);
+  const auto& first_block = scfg.blocks().Get(0);
   EXPECT_THAT(first_block.phis, IsEmpty());
 
-  const auto& last_block = graph.blocks().Get(1);
+  const auto& last_block = scfg.blocks().Get(1);
   EXPECT_THAT(last_block.phis, IsEmpty());
 
-  const auto& loop_block = graph.blocks().Get(2);
+  const auto& loop_block = scfg.blocks().Get(2);
   EXPECT_THAT(loop_block.phis, IsEmpty());
 
-  const auto& post_loop_block = graph.blocks().Get(3);
+  const auto& post_loop_block = scfg.blocks().Get(3);
   EXPECT_THAT(post_loop_block.phis, SizeIs(1));
 
-  const auto& post_if_block = graph.blocks().Get(4);
+  const auto& post_if_block = scfg.blocks().Get(4);
   EXPECT_THAT(post_if_block.phis, IsEmpty());
 
-  const auto& then_block = graph.blocks().Get(5);
+  const auto& then_block = scfg.blocks().Get(5);
   EXPECT_THAT(then_block.phis, IsEmpty());
 
-  const auto& else_block = graph.blocks().Get(6);
+  const auto& else_block = scfg.blocks().Get(6);
   EXPECT_THAT(else_block.phis, IsEmpty());
 }
 

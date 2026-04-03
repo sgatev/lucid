@@ -14,52 +14,52 @@ using ::testing::IsEmpty;
 using ::testing::Optional;
 using ::testing::SizeIs;
 
-class ControlFlowGraphTest : public testing::Test, public AstFixture {
+class SyntaxControlFlowGraphTest : public testing::Test, public AstFixture {
  protected:
-  ControlFlowGraph BuildControlFlowGraph(FuncDefStmt func_def) {
+  SyntaxControlFlowGraph BuildControlFlowGraph(FuncDefStmt func_def) {
     return ::lucid::BuildControlFlowGraph(ctx_, func_def);
   }
 };
 
-TEST_F(ControlFlowGraphTest, FunctionName) {
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+TEST_F(SyntaxControlFlowGraphTest, FunctionName) {
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T(BasicType{.name = I("Void")}),
   });
 
-  EXPECT_EQ(graph.func_name, I("foo"));
+  EXPECT_EQ(scfg.func_name, I("foo"));
 }
 
-TEST_F(ControlFlowGraphTest, EmptyFunction) {
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+TEST_F(SyntaxControlFlowGraphTest, EmptyFunction) {
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T(BasicType{.name = I("Void")}),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 2);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
+  ASSERT_EQ(scfg.blocks().Size(), 2);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   EXPECT_THAT(first_block.sequences, IsEmpty());
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
+TEST_F(SyntaxControlFlowGraphTest, FuncCallExprWithoutArgs) {
   auto func_call_expr = E(FuncCallExpr({
       .func_name = I("bar"),
       .args = EmptyList<Expr>(),
   }));
   auto do_stmt = S(DoStmt{.expr = func_call_expr});
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
@@ -67,11 +67,11 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
       }),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 2);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
+  ASSERT_EQ(scfg.blocks().Size(), 2);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
@@ -81,14 +81,14 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithoutArgs) {
                                                     }));
   EXPECT_THAT(first_block.sequences[0].stmt, Optional(StmtEquivTo(do_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
+TEST_F(SyntaxControlFlowGraphTest, FuncCallExprWithArgs) {
   auto baz_arg1_expr = IntLitExpr{
       .value = I("3"),
   };
@@ -120,7 +120,7 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
       .args = bar_func_call_args,
   }));
   auto do_stmt = S(DoStmt{.expr = bar_func_call_expr});
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
@@ -128,11 +128,11 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
       }),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 2);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
+  ASSERT_EQ(scfg.blocks().Size(), 2);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
@@ -148,14 +148,14 @@ TEST_F(ControlFlowGraphTest, FuncCallExprWithArgs) {
                                                     }));
   EXPECT_THAT(first_block.sequences[0].stmt, Optional(StmtEquivTo(do_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(ControlFlowGraphTest, ReturnStmt) {
+TEST_F(SyntaxControlFlowGraphTest, ReturnStmt) {
   auto func_call_args = ExprListOf({
       E(IntLitExpr{
           .value = I("3"),
@@ -168,17 +168,17 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   auto return_stmt = S(ReturnStmt{
       .value = func_call_expr,
   });
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({return_stmt}),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 2);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
+  ASSERT_EQ(scfg.blocks().Size(), 2);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
@@ -190,14 +190,14 @@ TEST_F(ControlFlowGraphTest, ReturnStmt) {
   EXPECT_THAT(first_block.sequences[0].stmt,
               Optional(StmtEquivTo(return_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(ControlFlowGraphTest, VarDeclStmt) {
+TEST_F(SyntaxControlFlowGraphTest, VarDeclStmt) {
   auto func_call_stmt_ref = E(FuncCallExpr{
       .func_name = I("bar"),
       .args = EmptyList<Expr>(),
@@ -207,17 +207,17 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
       .name = I("x"),
       .init = func_call_stmt_ref,
   });
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .stmts = StmtListOf({var_decl_stmt}),
       .result_type = T(BasicType{.name = I("Void")}),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 2);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
+  ASSERT_EQ(scfg.blocks().Size(), 2);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
@@ -228,14 +228,14 @@ TEST_F(ControlFlowGraphTest, VarDeclStmt) {
   EXPECT_THAT(first_block.sequences[0].stmt,
               Optional(StmtEquivTo(var_decl_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
+TEST_F(SyntaxControlFlowGraphTest, BinaryOpExpr) {
   auto lhs_expr = E(IntLitExpr{.value = I("2")});
   auto rhs_expr = E(IntLitExpr{.value = I("3")});
   auto add_expr = E(BinaryOpExpr{
@@ -244,17 +244,17 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
       .rhs = rhs_expr,
   });
   auto do_stmt = S(DoStmt{.expr = add_expr});
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .stmts = StmtListOf({do_stmt}),
       .result_type = T(BasicType{.name = I("Int32")}),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 2);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
+  ASSERT_EQ(scfg.blocks().Size(), 2);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
@@ -266,14 +266,14 @@ TEST_F(ControlFlowGraphTest, BinaryOpExpr) {
                                                     }));
   EXPECT_THAT(first_block.sequences[0].stmt, Optional(StmtEquivTo(do_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(ControlFlowGraphTest, IfStmt) {
+TEST_F(SyntaxControlFlowGraphTest, IfStmt) {
   auto add_lhs_expr = E(IntLitExpr{.value = I("2")});
   auto add_rhs_expr = E(IntLitExpr{.value = I("3")});
   auto add_expr = E(BinaryOpExpr{
@@ -290,7 +290,7 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
   });
   auto cond_expr = E(BoolLitExpr{.value = I("true")});
   auto do_mul_stmt = S(DoStmt{.expr = mul_expr});
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .stmts = StmtListOf({
           S(IfStmt{
@@ -304,13 +304,13 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
       .result_type = T(BasicType{.name = I("Int32")}),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 4);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
-  const auto& post_if_block = graph.blocks().Get(2);
-  const auto& then_block = graph.blocks().Get(3);
+  ASSERT_EQ(scfg.blocks().Size(), 4);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
+  const auto& post_if_block = scfg.blocks().Get(2);
+  const auto& then_block = scfg.blocks().Get(3);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.next, ElementsAre(then_block.ref, post_if_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
@@ -334,16 +334,16 @@ TEST_F(ControlFlowGraphTest, IfStmt) {
   EXPECT_THAT(post_if_block.sequences[0].stmt,
               Optional(StmtEquivTo(do_mul_stmt)));
   EXPECT_THAT(post_if_block.next, ElementsAre(last_block.ref));
-  EXPECT_THAT(post_if_block.preds, ElementsAre(then_block.ref, graph.first));
+  EXPECT_THAT(post_if_block.preds, ElementsAre(then_block.ref, scfg.first));
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(post_if_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(ControlFlowGraphTest, IfElseStmt) {
+TEST_F(SyntaxControlFlowGraphTest, IfElseStmt) {
   auto add_lhs_expr = E(IntLitExpr{.value = I("2")});
   auto add_rhs_expr = E(IntLitExpr{.value = I("3")});
   auto add_expr = E(BinaryOpExpr{
@@ -361,7 +361,7 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
   auto cond_expr = E(BoolLitExpr{.value = I("true")});
   auto do_add_stmt = S(DoStmt{.expr = add_expr});
   auto do_mul_stmt = S(DoStmt{.expr = mul_expr});
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .stmts = StmtListOf({
           S(IfStmt{
@@ -373,14 +373,14 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
       .result_type = T(BasicType{.name = I("Int32")}),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 5);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
-  const auto& post_if_block = graph.blocks().Get(2);
-  const auto& then_block = graph.blocks().Get(3);
-  const auto& else_block = graph.blocks().Get(4);
+  ASSERT_EQ(scfg.blocks().Size(), 5);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
+  const auto& post_if_block = scfg.blocks().Get(2);
+  const auto& then_block = scfg.blocks().Get(3);
+  const auto& else_block = scfg.blocks().Get(4);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.next, ElementsAre(then_block.ref, else_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
@@ -417,14 +417,14 @@ TEST_F(ControlFlowGraphTest, IfElseStmt) {
   EXPECT_THAT(post_if_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(post_if_block.preds, ElementsAre(then_block.ref, else_block.ref));
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(post_if_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(ControlFlowGraphTest, VarDecl) {
+TEST_F(SyntaxControlFlowGraphTest, VarDecl) {
   auto int_lit = E(IntLitExpr{
       .value = I("3"),
   });
@@ -439,17 +439,17 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   auto return_stmt = S(ReturnStmt{
       .value = ident_expr,
   });
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({var_decl_stmt, return_stmt}),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 2);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
+  ASSERT_EQ(scfg.blocks().Size(), 2);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.next, ElementsAre(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
@@ -465,14 +465,14 @@ TEST_F(ControlFlowGraphTest, VarDecl) {
   EXPECT_THAT(first_block.sequences[1].stmt,
               Optional(StmtEquivTo(return_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(ControlFlowGraphTest, Loop) {
+TEST_F(SyntaxControlFlowGraphTest, Loop) {
   auto add_lhs_expr = E(IntLitExpr{.value = I("2")});
   auto add_rhs_expr = E(IntLitExpr{.value = I("3")});
   auto add_expr = E(BinaryOpExpr{
@@ -481,7 +481,7 @@ TEST_F(ControlFlowGraphTest, Loop) {
       .rhs = add_rhs_expr,
   });
   auto do_add_stmt = S(DoStmt{.expr = add_expr});
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .stmts = StmtListOf({
           S(LoopStmt{
@@ -491,13 +491,13 @@ TEST_F(ControlFlowGraphTest, Loop) {
       .result_type = T(BasicType{.name = I("Int32")}),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 4);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
-  const auto& post_loop_block = graph.blocks().Get(2);
-  const auto& loop_block = graph.blocks().Get(3);
+  ASSERT_EQ(scfg.blocks().Size(), 4);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
+  const auto& post_loop_block = scfg.blocks().Get(2);
+  const auto& loop_block = scfg.blocks().Get(3);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.next, ElementsAre(loop_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
@@ -519,14 +519,14 @@ TEST_F(ControlFlowGraphTest, Loop) {
   EXPECT_THAT(post_loop_block.preds, IsEmpty());
   EXPECT_THAT(post_loop_block.sequences, IsEmpty());
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(post_loop_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
+TEST_F(SyntaxControlFlowGraphTest, SingleLoopAndBreak) {
   auto n_var_init_ref = E(IntLitExpr{
       .value = I("0"),
   });
@@ -558,7 +558,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   auto return_stmt = S(ReturnStmt{
       .value = return_value_ref,
   });
-  auto graph = BuildControlFlowGraph(FuncDefStmt{
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .stmts = StmtListOf({
           var_decl_stmt,
@@ -576,15 +576,15 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
       .result_type = T(BasicType{.name = I("Int32")}),
   });
 
-  ASSERT_EQ(graph.blocks().Size(), 6);
-  const auto& first_block = graph.blocks().Get(0);
-  const auto& last_block = graph.blocks().Get(1);
-  const auto& post_loop_block = graph.blocks().Get(2);
-  const auto& loop_block = graph.blocks().Get(3);
-  const auto& post_if_block = graph.blocks().Get(4);
-  const auto& then_block = graph.blocks().Get(5);
+  ASSERT_EQ(scfg.blocks().Size(), 6);
+  const auto& first_block = scfg.blocks().Get(0);
+  const auto& last_block = scfg.blocks().Get(1);
+  const auto& post_loop_block = scfg.blocks().Get(2);
+  const auto& loop_block = scfg.blocks().Get(3);
+  const auto& post_if_block = scfg.blocks().Get(4);
+  const auto& then_block = scfg.blocks().Get(5);
 
-  EXPECT_EQ(graph.first, first_block.ref);
+  EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   ASSERT_THAT(first_block.next, ElementsAre(loop_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
@@ -634,7 +634,7 @@ TEST_F(ControlFlowGraphTest, SingleLoopAndBreak) {
   EXPECT_THAT(post_loop_block.sequences[0].stmt,
               Optional(StmtEquivTo(return_stmt)));
 
-  EXPECT_EQ(graph.last, last_block.ref);
+  EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.next, IsEmpty());
   EXPECT_THAT(last_block.preds, ElementsAre(post_loop_block.ref));

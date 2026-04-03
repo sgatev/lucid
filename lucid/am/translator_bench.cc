@@ -11,10 +11,10 @@
 #include "lucid/syntax/parser.h"
 
 std::size_t CountInstructions(const lucid::SyntaxContext& ctx,
-                              const lucid::ControlFlowGraph& graph,
+                              const lucid::SyntaxControlFlowGraph& scfg,
                               lucid::AbstractMachineState& state) {
   lucid::AbstractMachineControlFlowGraph am_cfg =
-      lucid::GenerateAbstractMachineFunction(ctx, graph, state);
+      lucid::GenerateAbstractMachineFunction(ctx, scfg, state);
   std::size_t instructions_count = 0;
   for (const auto& block : am_cfg.blocks()) {
     instructions_count += block.instructions.size();

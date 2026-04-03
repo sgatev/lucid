@@ -14,8 +14,8 @@
 
 namespace lucid {
 
-// A graph that represents the control flow of a function.
-struct ControlFlowGraph {
+// A graph that represents the control flow of a function at the syntax level.
+struct SyntaxControlFlowGraph {
   struct Block;
   using BlockRef = Arena<Block>::Ref;
   using vertex_type = BlockRef;
@@ -75,7 +75,7 @@ struct ControlFlowGraph {
     ExprRef branch_cond = Arena<Expr>::kNullRef;
   };
 
-  explicit ControlFlowGraph(StringIndex::Ref func_name)
+  explicit SyntaxControlFlowGraph(StringIndex::Ref func_name)
       : func_name(func_name) {}
 
   // Adds `block` to the control flow graph and returns a reference to it.
@@ -115,37 +115,39 @@ struct ControlFlowGraph {
   Arena<Block> blocks_;
 };
 
-inline std::size_t VertexCount(const ControlFlowGraph& cfg) {
+inline std::size_t VertexCount(const SyntaxControlFlowGraph& cfg) {
   return cfg.blocks().Size();
 }
 
-inline std::vector<ControlFlowGraph::BlockRef> Vertices(
-    const ControlFlowGraph& cfg) {
-  std::vector<ControlFlowGraph::BlockRef> blocks;
+inline std::vector<SyntaxControlFlowGraph::BlockRef> Vertices(
+    const SyntaxControlFlowGraph& cfg) {
+  std::vector<SyntaxControlFlowGraph::BlockRef> blocks;
   for (const auto& block : cfg.blocks()) blocks.push_back(block.ref);
   return blocks;
 }
 
-inline ControlFlowGraph::BlockRef SourceVertex(const ControlFlowGraph& cfg) {
+inline SyntaxControlFlowGraph::BlockRef SourceVertex(
+    const SyntaxControlFlowGraph& cfg) {
   return cfg.first;
 }
 
-inline ControlFlowGraph::BlockRef SinkVertex(const ControlFlowGraph& cfg) {
+inline SyntaxControlFlowGraph::BlockRef SinkVertex(
+    const SyntaxControlFlowGraph& cfg) {
   return cfg.last;
 }
 
-inline std::vector<ControlFlowGraph::BlockRef> NextVertices(
-    const ControlFlowGraph& cfg, ControlFlowGraph::BlockRef block) {
+inline std::vector<SyntaxControlFlowGraph::BlockRef> NextVertices(
+    const SyntaxControlFlowGraph& cfg, SyntaxControlFlowGraph::BlockRef block) {
   return cfg.get(block).next;
 }
 
-inline std::vector<ControlFlowGraph::BlockRef> PrevVertices(
-    const ControlFlowGraph& cfg, ControlFlowGraph::BlockRef block) {
+inline std::vector<SyntaxControlFlowGraph::BlockRef> PrevVertices(
+    const SyntaxControlFlowGraph& cfg, SyntaxControlFlowGraph::BlockRef block) {
   return cfg.get(block).preds;
 }
 
-inline std::uint32_t VertexId(const ControlFlowGraph&,
-                              ControlFlowGraph::BlockRef block) {
+inline std::uint32_t VertexId(const SyntaxControlFlowGraph&,
+                              SyntaxControlFlowGraph::BlockRef block) {
   return block.id();
 }
 
@@ -153,21 +155,21 @@ inline std::uint32_t VertexId(const ControlFlowGraph&,
 //
 // Requires:
 // - `func` must be associated with `ctx`.
-ControlFlowGraph BuildControlFlowGraph(const SyntaxContext& ctx,
-                                       const FuncDefStmt& func);
+SyntaxControlFlowGraph BuildControlFlowGraph(const SyntaxContext& ctx,
+                                             const FuncDefStmt& func);
 
 template <typename T>
 class ControlFlowGraphAnalysis {
  public:
   using State = T::State;
 
-  explicit ControlFlowGraphAnalysis(const ControlFlowGraph& cfg,
+  explicit ControlFlowGraphAnalysis(const SyntaxControlFlowGraph& cfg,
                                     const SyntaxContext& ctx)
       : cfg_(cfg), t_(ctx) {}
 
   State MakeInitial() { return t_.MakeInitial(); }
 
-  State Transfer(State state, const ControlFlowGraph::BlockRef& block) {
+  State Transfer(State state, const SyntaxControlFlowGraph::BlockRef& block) {
     return std::ranges::fold_left(
         cfg_.get(block).sequences | std::views::reverse, state,
         std::bind_front(&T::Transfer, &t_));
@@ -176,7 +178,7 @@ class ControlFlowGraphAnalysis {
   State Join(State left, State right) { return t_.Join(left, right); }
 
  private:
-  const ControlFlowGraph& cfg_;
+  const SyntaxControlFlowGraph& cfg_;
   T t_;
 };
 
@@ -185,8 +187,8 @@ class ControlFlowGraphAnalysis {
 namespace std {
 
 template <>
-struct hash<typename lucid::ControlFlowGraph::BlockRef> {
-  size_t operator()(const lucid::ControlFlowGraph::BlockRef& ref) const {
+struct hash<typename lucid::SyntaxControlFlowGraph::BlockRef> {
+  size_t operator()(const lucid::SyntaxControlFlowGraph::BlockRef& ref) const {
     return hash<uint32_t>()(ref.id());
   }
 };

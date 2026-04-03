@@ -15,21 +15,21 @@
 namespace lucid {
 namespace {
 
-using BlockRef = ControlFlowGraph::BlockRef;
-using Phi = ControlFlowGraph::Phi;
+using BlockRef = SyntaxControlFlowGraph::BlockRef;
+using Phi = SyntaxControlFlowGraph::Phi;
 
 std::unordered_map<StringIndex::Ref,
                    std::pair<TypeRef, std::unordered_set<BlockRef>>>
-CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
+CollectVarDefs(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
   std::unordered_map<StringIndex::Ref,
                      std::pair<TypeRef, std::unordered_set<BlockRef>>>
       defs;
-  for (auto param_ref : cfg.func_params) {
+  for (auto param_ref : scfg.func_params) {
     const auto& param = ctx.DerefParam(param_ref);
     defs[param.name].first = param.type_constraint;
-    defs[param.name].second.insert(cfg.first);
+    defs[param.name].second.insert(scfg.first);
   }
-  for (const auto& block : cfg.blocks()) {
+  for (const auto& block : scfg.blocks()) {
     for (const auto& seq : block.sequences) {
       if (!seq.stmt.has_value()) continue;
 
@@ -45,14 +45,14 @@ CollectVarDefs(const SyntaxContext& ctx, const ControlFlowGraph& cfg) {
   return defs;
 }
 
-void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
+void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
   const std::vector<std::optional<BlockRef>> idoms =
-      ComputeImmediateDominators(cfg);
+      ComputeImmediateDominators(scfg);
   const std::unordered_map<BlockRef, std::unordered_set<BlockRef>> dom_fronts =
-      ComputeDominanceFrontiers(cfg, idoms);
+      ComputeDominanceFrontiers(scfg, idoms);
   const std::unordered_map<StringIndex::Ref,
                            std::pair<TypeRef, std::unordered_set<BlockRef>>>
-      var_defs = CollectVarDefs(ctx, cfg);
+      var_defs = CollectVarDefs(ctx, scfg);
 
   for (const auto& [var, add] : var_defs) {
     const auto& [type, def_blocks] = add;
@@ -72,7 +72,7 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
       for (auto y : dom_front_it->second) {
         if (visited.contains(y)) continue;
 
-        auto& yb = cfg.get(y);
+        auto& yb = scfg.get(y);
 
         Phi phi = {
             .name = var,
@@ -91,21 +91,21 @@ void InitPhiFunctions(const SyntaxContext& ctx, ControlFlowGraph& cfg) {
   }
 }
 
-void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
+void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
   std::vector<std::unordered_map<StringIndex::Ref, StringIndex::Ref>>
-      block_defs(cfg.blocks().Size());
+      block_defs(scfg.blocks().Size());
 
-  for (auto param_ref : cfg.func_params) {
+  for (auto param_ref : scfg.func_params) {
     auto& param = ctx.DerefParam(param_ref);
     StringIndex::Ref new_name = ctx.AddUniqueIdent();
-    block_defs[cfg.first.id()].insert_or_assign(param.name, new_name);
+    block_defs[scfg.first.id()].insert_or_assign(param.name, new_name);
     param.name = new_name;
   }
 
-  std::vector<bool> visited(cfg.blocks().Size(), false);
+  std::vector<bool> visited(scfg.blocks().Size(), false);
 
   std::stack<BlockRef> pending;
-  pending.push(cfg.first);
+  pending.push(scfg.first);
 
   while (!pending.empty()) {
     auto block_ref = pending.top();
@@ -114,7 +114,7 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
     if (visited[block_ref.id()]) continue;
     visited[block_ref.id()] = true;
 
-    auto& block = cfg.blocks().Get(block_ref);
+    auto& block = scfg.blocks().Get(block_ref);
 
     auto& reaching_defs = block_defs[block_ref.id()];
     for (auto pred : block.preds) {
@@ -161,7 +161,7 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
     }
   }
 
-  for (ControlFlowGraph::Block& block : cfg.blocks()) {
+  for (SyntaxControlFlowGraph::Block& block : scfg.blocks()) {
     for (auto& phi : block.phis) {
       for (int j = 0; j < phi.args.size(); ++j) {
         phi.args[j] = block_defs[block.preds[j].id()].at(phi.args[j]);
@@ -173,20 +173,21 @@ void RenameVariables(SyntaxContext& ctx, ControlFlowGraph& cfg) {
 }  // namespace
 
 void ConvertToStaticSingleAssignment(SyntaxContext& ctx,
-                                     ControlFlowGraph& cfg) {
-  InitPhiFunctions(ctx, cfg);
-  RenameVariables(ctx, cfg);
+                                     SyntaxControlFlowGraph& scfg) {
+  InitPhiFunctions(ctx, scfg);
+  RenameVariables(ctx, scfg);
 }
 
-void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
+void DestroyStaticSingleAssignment(SyntaxContext& ctx,
+                                   SyntaxControlFlowGraph& scfg) {
   const std::vector<std::optional<BlockRef>> idoms =
-      ComputeImmediateDominators(cfg);
+      ComputeImmediateDominators(scfg);
 
-  for (auto& block : cfg.blocks()) {
+  for (auto& block : scfg.blocks()) {
     if (block.phis.empty()) continue;
 
     assert(idoms[block.ref.id()].has_value());
-    auto& dom = cfg.get(*idoms[block.ref.id()]);
+    auto& dom = scfg.get(*idoms[block.ref.id()]);
     for (const auto& phi : block.phis) {
       auto& seq = dom.sequences.emplace_back();
       auto init_expr = IntLitExpr{.value = ctx.AddIdent("0")};
@@ -200,7 +201,7 @@ void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg) {
       });
 
       for (int i = 0; i < block.preds.size(); ++i) {
-        auto& pred = cfg.get(block.preds[i]);
+        auto& pred = scfg.get(block.preds[i]);
         auto& seq = pred.sequences.emplace_back();
         auto assign_expr = IdentExpr{
             .name = phi.args[i],

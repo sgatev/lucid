@@ -18,11 +18,10 @@ void Blue(std::function<void()> f) {
 
 }  // namespace
 
-void Print(const SyntaxContext& ctx, const ControlFlowGraph& graph) {
-  Blue([&] {
-    std::cout << ctx.DerefIdent(graph.func_name) << ":" << std::endl;
-  });
-  for (const auto& block : graph.blocks()) {
+void Print(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
+  Blue(
+      [&] { std::cout << ctx.DerefIdent(scfg.func_name) << ":" << std::endl; });
+  for (const auto& block : scfg.blocks()) {
     Blue([&] { std::cout << "  B" << block.ref << ": "; });
     std::cout << "{" << std::endl;
 

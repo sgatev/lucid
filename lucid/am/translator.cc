@@ -21,20 +21,20 @@ namespace {
 class AbstractMachineFunctionGenerator {
  public:
   AbstractMachineFunctionGenerator(const SyntaxContext& ctx,
-                                   const ControlFlowGraph& graph,
+                                   const SyntaxControlFlowGraph& scfg,
                                    AbstractMachineState& state)
-      : ctx_(ctx), graph_(graph), state_(state) {
+      : ctx_(ctx), scfg_(scfg), state_(state) {
     expr_and_stmt_to_reg_.resize(ctx_.Size());
   }
 
   AbstractMachineControlFlowGraph Generate() && {
-    for (const auto& block : graph_.blocks()) {
+    for (const auto& block : scfg_.blocks()) {
       graph_map_[block.ref] = am_cfg_.add().ref;
     }
-    am_cfg_.first = graph_map_[graph_.first];
-    am_cfg_.last = graph_map_[graph_.last];
+    am_cfg_.first = graph_map_[scfg_.first];
+    am_cfg_.last = graph_map_[scfg_.last];
 
-    if (ctx_.DerefIdent(graph_.func_name) == "printString") {
+    if (ctx_.DerefIdent(scfg_.func_name) == "printString") {
       auto& first_block = am_cfg_.add();
       am_cfg_.first = first_block.ref;
 
@@ -47,7 +47,7 @@ class AbstractMachineFunctionGenerator {
       });
       first_block.instructions.push_back(Return{});
       return std::move(am_cfg_);
-    } else if (ctx_.DerefIdent(graph_.func_name) == "sleep") {
+    } else if (ctx_.DerefIdent(scfg_.func_name) == "sleep") {
       auto& first_block = am_cfg_.add();
       am_cfg_.first = first_block.ref;
 
@@ -65,7 +65,7 @@ class AbstractMachineFunctionGenerator {
     {
       auto& first_block = am_cfg_.get(am_cfg_.first);
       first_block.instructions.push_back(PushStack{});
-      if (graph_.has_func_calls) {
+      if (scfg_.has_func_calls) {
         for (std::size_t i = 12; i >= 1; --i) {
           first_block.instructions.push_back(StoreStack64{
               .offset = i - 1,
@@ -74,8 +74,8 @@ class AbstractMachineFunctionGenerator {
           state_.stack_slots.push_back(8);
         }
       }
-      for (RegId i = 0; i < graph_.func_params.size(); ++i) {
-        const auto& param = ctx_.DerefParam(graph_.func_params[i]);
+      for (RegId i = 0; i < scfg_.func_params.size(); ++i) {
+        const auto& param = ctx_.DerefParam(scfg_.func_params[i]);
         const auto& param_type =
             std::get<BasicType>(ctx_.DerefType(param.type_constraint));
         std::string_view param_type_name = ctx_.DerefIdent(param_type.name);
@@ -97,13 +97,13 @@ class AbstractMachineFunctionGenerator {
       }
     }
 
-    for (const auto& block : graph_.blocks()) {
+    for (const auto& block : scfg_.blocks()) {
       Process(block, am_cfg_.get(graph_map_[block.ref]));
     }
 
     {
       auto& last_block = am_cfg_.get(am_cfg_.last);
-      if (graph_.has_func_calls) {
+      if (scfg_.has_func_calls) {
         for (std::size_t i = 12; i >= 1; --i) {
           last_block.instructions.push_back(LoadStack64{
               .offset = i - 1,
@@ -120,7 +120,7 @@ class AbstractMachineFunctionGenerator {
   }
 
  private:
-  void Process(const ControlFlowGraph::Block& block,
+  void Process(const SyntaxControlFlowGraph::Block& block,
                AbstractMachineControlFlowGraph::Block& am_block) {
     next_reg_ = 1;
 
@@ -138,12 +138,12 @@ class AbstractMachineFunctionGenerator {
     if (block.branch_cond != Arena<Expr>::kNullRef) {
       am_block.instructions.push_back(CondJump{
           .cond_reg = expr_and_stmt_to_reg_[block.branch_cond.id()],
-          .then_label = graph_.get(block.next[0]).ref.id(),
-          .else_label = graph_.get(block.next[1]).ref.id(),
+          .then_label = scfg_.get(block.next[0]).ref.id(),
+          .else_label = scfg_.get(block.next[1]).ref.id(),
       });
     } else if (block.next.size() == 1) {
       am_block.instructions.push_back(UncondJump{
-          .label = graph_.get(block.next[0]).ref.id(),
+          .label = scfg_.get(block.next[0]).ref.id(),
       });
     }
     for (const auto& next : block.next) {
@@ -640,12 +640,12 @@ class AbstractMachineFunctionGenerator {
   }
 
   const SyntaxContext& ctx_;
-  const ControlFlowGraph& graph_;
+  const SyntaxControlFlowGraph& scfg_;
   AbstractMachineState& state_;
   AbstractMachineControlFlowGraph am_cfg_;
   RegId next_reg_ = 1;
   std::unordered_map<StringIndex::Ref, std::size_t> var_stack_;
-  std::unordered_map<ControlFlowGraph::BlockRef,
+  std::unordered_map<SyntaxControlFlowGraph::BlockRef,
                      AbstractMachineControlFlowGraph::BlockRef>
       graph_map_;
   std::vector<RegId> expr_and_stmt_to_reg_;
@@ -654,9 +654,9 @@ class AbstractMachineFunctionGenerator {
 }  // namespace
 
 AbstractMachineControlFlowGraph GenerateAbstractMachineFunction(
-    const SyntaxContext& ctx, const ControlFlowGraph& graph,
+    const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg,
     AbstractMachineState& state) {
-  return AbstractMachineFunctionGenerator(ctx, graph, state).Generate();
+  return AbstractMachineFunctionGenerator(ctx, scfg, state).Generate();
 }
 
 }  // namespace lucid

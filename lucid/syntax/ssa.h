@@ -5,11 +5,13 @@
 
 namespace lucid {
 
-// Converts `cfg` to Static Single Assignment (SSA) form.
-void ConvertToStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg);
+// Converts `scfg` to Static Single Assignment (SSA) form.
+void ConvertToStaticSingleAssignment(SyntaxContext& ctx,
+                                     SyntaxControlFlowGraph& scfg);
 
 // Removes Phi functions associated with Static Single Assigment (SSA) from
-// `cfg`.
-void DestroyStaticSingleAssignment(SyntaxContext& ctx, ControlFlowGraph& cfg);
+// `scfg`.
+void DestroyStaticSingleAssignment(SyntaxContext& ctx,
+                                   SyntaxControlFlowGraph& scfg);
 
 }  // namespace lucid

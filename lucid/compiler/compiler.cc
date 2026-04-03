@@ -71,11 +71,11 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
     if (auto res = InferExprTypes(ctx, func_defs, func); res.HasError()) {
       return res.GetError();
     }
-    ControlFlowGraph cfg = BuildControlFlowGraph(ctx, func);
-    ConvertToStaticSingleAssignment(ctx, cfg);
-    DestroyStaticSingleAssignment(ctx, cfg);
+    SyntaxControlFlowGraph scfg = BuildControlFlowGraph(ctx, func);
+    ConvertToStaticSingleAssignment(ctx, scfg);
+    DestroyStaticSingleAssignment(ctx, scfg);
     AbstractMachineControlFlowGraph am_cfg =
-        GenerateAbstractMachineFunction(ctx, cfg, *state);
+        GenerateAbstractMachineFunction(ctx, scfg, *state);
     for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }

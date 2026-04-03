@@ -19,14 +19,14 @@ struct AbstractMachineState {
   std::unordered_map<std::uintptr_t, StringIndex::Ref> strings;
 };
 
-// Generates abstract machine instructions for `graph`.
+// Generates abstract machine instructions for `scfg`.
 //
 // The generated instructions are stored in `state`.
 //
 // Requires:
-// - `graph` must be constructed in `ctx`.
+// - `scfg` must be constructed in `ctx`.
 AbstractMachineControlFlowGraph GenerateAbstractMachineFunction(
-    const SyntaxContext& ctx, const ControlFlowGraph& graph,
+    const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg,
     AbstractMachineState& state);
 
 }  // namespace lucid

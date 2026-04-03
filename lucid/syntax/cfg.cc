@@ -14,8 +14,8 @@ namespace {
 
 // Builds the control flow graph of a function.
 class ControlFlowGraphBuilder {
-  using BlockRef = ControlFlowGraph::BlockRef;
-  using Sequence = ControlFlowGraph::Sequence;
+  using BlockRef = SyntaxControlFlowGraph::BlockRef;
+  using Sequence = SyntaxControlFlowGraph::Sequence;
 
  public:
   ControlFlowGraphBuilder(const SyntaxContext& ctx, const FuncDefStmt& func_def)
@@ -27,11 +27,11 @@ class ControlFlowGraphBuilder {
   }
 
   // Returns the constructed control flow graph.
-  ControlFlowGraph Consume() && { return std::move(graph_); }
+  SyntaxControlFlowGraph Consume() && { return std::move(graph_); }
 
  private:
   BlockRef AddBlock() {
-    ControlFlowGraph::Block block;
+    SyntaxControlFlowGraph::Block block;
     auto ref = graph_.add(std::move(block));
     graph_.get(ref).ref = ref;
     return ref;
@@ -207,14 +207,14 @@ class ControlFlowGraphBuilder {
 
   const SyntaxContext& ctx_;
   std::stack<ExprRef, std::vector<ExprRef>> pending_sub_exprs_;
-  ControlFlowGraph graph_;
+  SyntaxControlFlowGraph graph_;
   std::stack<BlockRef> post_loop_blocks_;
 };
 
 }  // namespace
 
-ControlFlowGraph BuildControlFlowGraph(const SyntaxContext& ctx,
-                                       const FuncDefStmt& func) {
+SyntaxControlFlowGraph BuildControlFlowGraph(const SyntaxContext& ctx,
+                                             const FuncDefStmt& func) {
   return ControlFlowGraphBuilder(ctx, func).Consume();
 }
 
