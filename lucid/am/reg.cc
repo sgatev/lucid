@@ -22,59 +22,37 @@
 namespace lucid {
 namespace {
 
-HashSet<RegId> FindRegistersToSpill(
+std::optional<RegId> FindRegToSpill(
     const AbstractMachineControlFlowGraph& am_cfg) {
   AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       liveness_block_states = RunBackwardDataflow(am_cfg, liveness_analysis);
 
-  HashSet<RegId> registers_to_spill;
   for (const auto& block : am_cfg.blocks()) {
     auto maybe_state = liveness_block_states[block.ref.id()];
     if (!maybe_state.has_value()) continue;
     auto state = *maybe_state;
 
     state.live_in = state.live_out;
+    if (state.live_in.size() > 12) return *state.live_in.begin();
 
     for (const auto& inst : block.instructions | std::views::reverse) {
       state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
 
-      HashSet<RegId> clique;
-      for (RegId reg : state.live_in) {
-        clique.Insert(reg);
-      }
-
-      if (auto* cinst = std::get_if<ModReg32>(&inst)) {
-        clique.Insert(cinst->lhs_reg);
-        clique.Insert(cinst->rhs_reg);
-        clique.Insert(cinst->res_reg);
-      } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
-        clique.Insert(cinst->lhs_reg);
-        clique.Insert(cinst->rhs_reg);
-        clique.Insert(cinst->res_reg);
-      }
-
-      for (RegId spilled_reg : registers_to_spill) {
-        clique.Remove(spilled_reg);
-      }
-
-      while (clique.size() > 12) {
-        RegId spilled_reg = *clique.begin();
-        clique.Remove(spilled_reg);
-        registers_to_spill.Insert(spilled_reg);
-      }
+      if (state.live_in.size() > 12) return *state.live_in.begin();
     }
   }
-  return registers_to_spill;
+  return std::nullopt;
 }
 
-void SpillRegisters(const HashSet<RegId>& registers_to_spill,
-                    AbstractMachineControlFlowGraph& am_cfg,
-                    std::vector<std::size_t>& stack_slots) {
+void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
+                    std::vector<std::size_t>& stack_slots, RegId& next_reg) {
   HashMap<RegId, std::size_t> reg_stack;
+  HashMap<RegId, RegId> reg_rename;
+
   auto maybe_insert_store32 = [&](std::vector<Instruction>& instructions,
                                   int& pos, RegId reg) {
-    if (!registers_to_spill.Contains(reg)) return;
+    if (reg != reg_to_spill) return;
 
     ++pos;
     instructions.insert(instructions.begin() + pos,
@@ -87,7 +65,7 @@ void SpillRegisters(const HashSet<RegId>& registers_to_spill,
   };
   auto maybe_insert_store64 = [&](std::vector<Instruction>& instructions,
                                   int& pos, RegId reg) {
-    if (!registers_to_spill.Contains(reg)) return;
+    if (reg != reg_to_spill) return;
 
     ++pos;
     instructions.insert(instructions.begin() + pos,
@@ -99,39 +77,59 @@ void SpillRegisters(const HashSet<RegId>& registers_to_spill,
     stack_slots.push_back(8);
   };
   auto maybe_insert_load32 = [&](std::vector<Instruction>& instructions,
-                                 int& pos, RegId reg) {
-    if (!registers_to_spill.Contains(reg)) return;
+                                 int& pos, RegId& reg) {
+    if (reg != reg_to_spill) return;
 
-    instructions.insert(instructions.begin() + pos,
-                        LoadStack32{
-                            .offset = *reg_stack.Find(reg),
-                            .dst_reg = reg,
-                        });
+    RegId old_reg = reg;
+    reg = next_reg++;
+    reg_rename.Insert(old_reg, reg);
+
+    auto offset = reg_stack.Find(old_reg);
+    if (!offset.has_value()) return;
+
+    instructions.insert(instructions.begin() + pos, LoadStack32{
+                                                        .offset = *offset,
+                                                        .dst_reg = reg,
+                                                    });
     ++pos;
   };
   auto maybe_insert_load64 = [&](std::vector<Instruction>& instructions,
-                                 int& pos, RegId reg) {
-    if (!registers_to_spill.Contains(reg)) return;
+                                 int& pos, RegId& reg) {
+    if (reg != reg_to_spill) return;
 
-    instructions.insert(instructions.begin() + pos,
-                        LoadStack64{
-                            .offset = *reg_stack.Find(reg),
-                            .dst_reg = reg,
-                        });
+    RegId old_reg = reg;
+    reg = next_reg++;
+    reg_rename.Insert(old_reg, reg);
+
+    auto offset = reg_stack.Find(old_reg);
+    if (!offset.has_value()) return;
+
+    instructions.insert(instructions.begin() + pos, LoadStack64{
+                                                        .offset = *offset,
+                                                        .dst_reg = reg,
+                                                    });
     ++pos;
   };
 
-  for (auto& block : am_cfg.blocks()) {
+  std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
+      Vertices(am_cfg);
+  const CompareVertexOrder<AbstractMachineControlFlowGraph> compare(
+      am_cfg, ComputeReversePostOrder(am_cfg));
+  std::sort(block_refs.begin(), block_refs.end(), compare);
+
+  for (const auto& block_ref : block_refs) {
+    auto& block = am_cfg.get(block_ref);
+
     int i = 0;
     while (i < block.instructions.size()) {
       auto& inst = block.instructions[i];
 
       if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->dst_reg);
         maybe_insert_load32(block.instructions, i, cinst->src_reg);
+        maybe_insert_store32(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->dst_reg);
         maybe_insert_load64(block.instructions, i, cinst->src_reg);
+        maybe_insert_store64(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
         maybe_insert_store32(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
@@ -139,77 +137,77 @@ void SpillRegisters(const HashSet<RegId>& registers_to_spill,
       } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
         maybe_insert_store64(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<AddReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->res_reg);
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store32(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<AddReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->res_reg);
         maybe_insert_load64(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load64(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<SubReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->res_reg);
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store32(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<SubReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->res_reg);
         maybe_insert_load64(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load64(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<MulReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->res_reg);
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store32(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<MulReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->res_reg);
         maybe_insert_load64(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load64(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<DivReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->res_reg);
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store32(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<DivReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->res_reg);
         maybe_insert_load64(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load64(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<ModReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->res_reg);
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store32(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->res_reg);
         maybe_insert_load64(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load64(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->res_reg);
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store32(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->res_reg);
         maybe_insert_load64(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load64(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->res_reg);
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store32(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<LtReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->res_reg);
         maybe_insert_load64(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load64(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->res_reg);
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store32(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->res_reg);
         maybe_insert_load64(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load64(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->res_reg);
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store32(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->res_reg);
         maybe_insert_load64(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load64(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_store64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<StoreStack32>(&inst)) {
         maybe_insert_load32(block.instructions, i, cinst->src_reg);
       } else if (auto* cinst = std::get_if<StoreStackReg32>(&inst)) {
@@ -223,15 +221,15 @@ void SpillRegisters(const HashSet<RegId>& registers_to_spill,
       } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
         maybe_insert_store32(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
-        maybe_insert_store32(block.instructions, i, cinst->dst_reg);
         maybe_insert_load32(block.instructions, i, cinst->offset_reg);
+        maybe_insert_store32(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
         maybe_insert_store64(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->dst_reg);
         maybe_insert_load64(block.instructions, i, cinst->offset_reg);
+        maybe_insert_store64(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-        for (const auto& arg : cinst->args) {
+        for (auto& arg : cinst->args) {
           if (arg.bits == 32) {
             maybe_insert_load32(block.instructions, i, arg.reg);
           } else {
@@ -254,9 +252,15 @@ void SpillRegisters(const HashSet<RegId>& registers_to_spill,
 
 }  // namespace
 
-void IntroduceSpilling(AbstractMachineControlFlowGraph& am_cfg,
-                       std::vector<std::size_t>& stack_slots) {
-  SpillRegisters(FindRegistersToSpill(am_cfg), am_cfg, stack_slots);
+void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
+                    std::vector<std::size_t>& stack_slots) {
+  RegId next_reg = 1000;
+  while (true) {
+    std::optional<RegId> reg_to_spill = FindRegToSpill(am_cfg);
+    if (!reg_to_spill.has_value()) break;
+
+    SpillRegisters(*reg_to_spill, am_cfg, stack_slots, next_reg);
+  }
 }
 
 HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
@@ -416,7 +420,12 @@ HashMap<RegId, int> ColorInterferenceGraph(
         }
 
         assert(colors.begin() != colors.end());
-        ig_colors.Insert(*dst_reg, *colors.begin());
+        int min_color = *colors.begin();
+        for (auto color : colors) {
+          if (color < min_color) min_color = color;
+        }
+
+        ig_colors.Insert(*dst_reg, min_color);
       }
     } else {
       pending.push(block);

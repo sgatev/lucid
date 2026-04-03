@@ -59,12 +59,7 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const Instruction& inst) {
-    std::visit(
-        [this](auto&& inst) {
-          // std::cout << inst << std::endl;
-          Process(inst);
-        },
-        inst);
+    std::visit([this](auto&& inst) { Process(inst); }, inst);
   }
 
   void Process(const Nop&) {}

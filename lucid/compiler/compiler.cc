@@ -79,7 +79,7 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
     for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
-    IntroduceSpilling(am_cfg, state->stack_slots);
+    SpillRegisters(am_cfg, state->stack_slots);
     HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
     HashMap<RegId, int> am_ig_colors =
         ColorInterferenceGraph(am_cfg, am_ig, 12);
@@ -329,11 +329,13 @@ int HandlePrintAmiCommand(CommandContext ctx) {
     for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
-    if (ctx.flags.contains("merge-regs")) {
-      IntroduceSpilling(am_cfg, state.stack_slots);
+    if (ctx.flags["regs"] == "spill") {
+      SpillRegisters(am_cfg, state.stack_slots);
+    } else if (ctx.flags["regs"] == "merge") {
+      SpillRegisters(am_cfg, state.stack_slots);
       HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
       HashMap<RegId, int> am_ig_colors =
-          ColorInterferenceGraph(am_cfg, am_ig, 14);
+          ColorInterferenceGraph(am_cfg, am_ig, 12);
       MergeRegisters(am_ig_colors, am_cfg);
     }
     Print(sctx.DerefIdent(func_def.name), am_cfg);

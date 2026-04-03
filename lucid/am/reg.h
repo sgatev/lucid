@@ -10,8 +10,8 @@
 
 namespace lucid {
 
-void IntroduceSpilling(AbstractMachineControlFlowGraph& am_cfg,
-                       std::vector<std::size_t>& stack_slots);
+void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
+                    std::vector<std::size_t>& stack_slots);
 
 HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg);
