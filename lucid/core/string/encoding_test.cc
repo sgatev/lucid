@@ -1,4 +1,4 @@
-#include "lucid/string.h"
+#include "lucid/core/string/encoding.h"
 
 #include "gtest/gtest.h"
 

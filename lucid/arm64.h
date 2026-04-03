@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "lucid/core/numeric/bits.h"
-#include "lucid/string.h"
+#include "lucid/core/string/encoding.h"
 
 namespace lucid::arm64 {
 namespace internal {

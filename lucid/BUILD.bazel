@@ -6,8 +6,8 @@ cc_library(
     name = "arm64",
     hdrs = ["arm64.h"],
     deps = [
-        ":string",
         "//lucid/core/numeric:bits",
+        "//lucid/core/string:encoding",
     ],
 )
 
@@ -253,21 +253,6 @@ cc_test(
         ":static",
         "//lucid/syntax:ast",
         "//lucid/syntax:ast_fixture",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "string",
-    srcs = ["string.cc"],
-    hdrs = ["string.h"],
-)
-
-cc_test(
-    name = "string_test",
-    srcs = ["string_test.cc"],
-    deps = [
-        ":string",
         "@googletest//:gtest_main",
     ],
 )
