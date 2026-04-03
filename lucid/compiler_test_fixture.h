@@ -10,7 +10,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lucid/file.h"
+#include "lucid/core/io/file.h"
 
 namespace lucid {
 

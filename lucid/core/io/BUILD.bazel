@@ -1,0 +1,24 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_library(
+    name = "file",
+    srcs = ["file.cc"],
+    hdrs = ["file.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        "//lucid/core/functional:result",
+    ],
+)
+
+cc_test(
+    name = "file_test",
+    srcs = ["file_test.cc"],
+    data = [
+        "//lucid/core/io/testdata:foobarbaz",
+    ],
+    deps = [
+        ":file",
+        "@googletest//:gtest_main",
+    ],
+)

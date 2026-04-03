@@ -1,4 +1,4 @@
-#include "lucid/file.h"
+#include "lucid/core/io/file.h"
 
 #include <string>
 
@@ -19,7 +19,8 @@ using ::testing::_;
 using ::testing::VariantWith;
 
 TEST(ReadFileTest, Works) {
-  std::string path = testing::SrcDir() + "_main/lucid/testdata/foobarbaz";
+  std::string path =
+      testing::SrcDir() + "_main/lucid/core/io/testdata/foobarbaz";
   EXPECT_THAT(ReadFile(path), HasValue("foobarbaz\n"s));
   EXPECT_THAT(ReadFile(path, /*with_trailing_zero=*/true),
               HasValue("foobarbaz\n\0"s));

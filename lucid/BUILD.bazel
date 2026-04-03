@@ -22,7 +22,6 @@ cc_binary(
     srcs = ["compiler.cc"],
     deps = [
         ":cli",
-        ":file",
         ":opt",
         ":reg",
         ":ssa",
@@ -37,6 +36,7 @@ cc_binary(
         "//lucid/arm64:translator",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
+        "//lucid/core/io:file",
         "//lucid/syntax:ast",
         "//lucid/syntax:ast_printer",
         "//lucid/syntax:buffered_lexer",
@@ -56,7 +56,6 @@ cc_test(
     deps = [
         ":cli",
         ":compiler_test_fixture",
-        ":file",
         "@googletest//:gtest_main",
     ],
 )
@@ -74,7 +73,6 @@ cc_test(
     deps = [
         ":cli",
         ":compiler_test_fixture",
-        ":file",
         "@googletest//:gtest_main",
     ],
 )
@@ -85,28 +83,7 @@ cc_library(
     hdrs = ["compiler_test_fixture.h"],
     deps = [
         ":cli",
-        ":file",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "file",
-    srcs = ["file.cc"],
-    hdrs = ["file.h"],
-    deps = [
-        "//lucid/core/functional:result",
-    ],
-)
-
-cc_test(
-    name = "file_test",
-    srcs = ["file_test.cc"],
-    data = [
-        "//lucid/testdata:foobarbaz",
-    ],
-    deps = [
-        ":file",
+        "//lucid/core/io:file",
         "@googletest//:gtest_main",
     ],
 )
