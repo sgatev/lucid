@@ -8,7 +8,6 @@ cc_binary(
     deps = [
         ":opt",
         ":reg",
-        ":ssa",
         ":static",
         ":type",
         ":version",
@@ -29,6 +28,7 @@ cc_binary(
         "//lucid/syntax:cfg_printer",
         "//lucid/syntax:lexer",
         "//lucid/syntax:parser",
+        "//lucid/syntax:ssa",
     ],
 )
 
@@ -110,30 +110,6 @@ cc_test(
         ":reg",
         "//lucid/am:cfg",
         "//lucid/syntax:ast",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "ssa",
-    srcs = ["ssa.cc"],
-    hdrs = ["ssa.h"],
-    deps = [
-        "//lucid/core/container/graph:dominator",
-        "//lucid/core/string:index",
-        "//lucid/syntax:ast",
-        "//lucid/syntax:cfg",
-    ],
-)
-
-cc_test(
-    name = "ssa_test",
-    srcs = ["ssa_test.cc"],
-    deps = [
-        ":ssa",
-        "//lucid/syntax:ast",
-        "//lucid/syntax:ast_fixture",
-        "//lucid/syntax:cfg",
         "@googletest//:gtest_main",
     ],
 )

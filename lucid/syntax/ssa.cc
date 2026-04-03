@@ -1,4 +1,4 @@
-#include "lucid/ssa.h"
+#include "lucid/syntax/ssa.h"
 
 #include <cstddef>
 #include <stack>
