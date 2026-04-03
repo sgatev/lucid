@@ -1,4 +1,4 @@
-#include "lucid/opt.h"
+#include "lucid/am/opt.h"
 
 #include <vector>
 

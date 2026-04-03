@@ -11,6 +11,7 @@
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_printer.h"
+#include "lucid/am/opt.h"
 #include "lucid/am/translator.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/arm64/macho.h"
@@ -18,7 +19,6 @@
 #include "lucid/core/cli/cli.h"
 #include "lucid/core/functional/result.h"
 #include "lucid/core/io/file.h"
-#include "lucid/opt.h"
 #include "lucid/reg.h"
 #include "lucid/static.h"
 #include "lucid/syntax/ast.h"

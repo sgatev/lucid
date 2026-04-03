@@ -6,13 +6,13 @@ cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
     deps = [
-        ":opt",
         ":reg",
         ":static",
         ":type",
         ":version",
         "//lucid/am:cfg",
         "//lucid/am:cfg_printer",
+        "//lucid/am:opt",
         "//lucid/am:translator",
         "//lucid/arm64:assembler",
         "//lucid/arm64:macho",
@@ -66,25 +66,6 @@ cc_library(
     hdrs = ["compiler_test_fixture.h"],
     deps = [
         "//lucid/core/io:file",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "opt",
-    srcs = ["opt.cc"],
-    hdrs = ["opt.h"],
-    deps = [
-        "//lucid/am:instructions",
-    ],
-)
-
-cc_test(
-    name = "opt_test",
-    srcs = ["opt_test.cc"],
-    deps = [
-        ":opt",
-        "//lucid/am:instructions",
         "@googletest//:gtest_main",
     ],
 )
