@@ -3,21 +3,6 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_library(
-    name = "arm64_gen",
-    srcs = ["arm64_gen.cc"],
-    hdrs = ["arm64_gen.h"],
-    deps = [
-        "//lucid/am:cfg",
-        "//lucid/am:instructions",
-        "//lucid/arm64:assembler",
-        "//lucid/core/container:hash_map",
-        "//lucid/core/container/graph:order",
-        "//lucid/core/string:index",
-        "//lucid/syntax:ast",
-    ],
-)
-
-cc_library(
     name = "cli",
     srcs = ["cli.cc"],
     hdrs = ["cli.h"],
@@ -36,7 +21,6 @@ cc_binary(
     name = "compiler",
     srcs = ["compiler.cc"],
     deps = [
-        ":arm64_gen",
         ":cli",
         ":file",
         ":opt",
@@ -50,6 +34,7 @@ cc_binary(
         "//lucid/am:translator",
         "//lucid/arm64:assembler",
         "//lucid/arm64:macho",
+        "//lucid/arm64:translator",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/syntax:ast",

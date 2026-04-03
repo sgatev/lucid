@@ -29,3 +29,28 @@ cc_library(
         ":assembler",
     ],
 )
+
+cc_library(
+    name = "translator",
+    srcs = ["translator.cc"],
+    hdrs = ["translator.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":assembler",
+        "//lucid/am:cfg",
+        "//lucid/am:instructions",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container/graph:order",
+        "//lucid/core/string:index",
+        "//lucid/syntax:ast",
+    ],
+)
+
+cc_test(
+    name = "translator_test",
+    srcs = ["translator_test.cc"],
+    deps = [
+        ":translator",
+        "@googletest//:gtest_main",
+    ],
+)

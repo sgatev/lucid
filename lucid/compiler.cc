@@ -14,7 +14,7 @@
 #include "lucid/am/translator.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/arm64/macho.h"
-#include "lucid/arm64_gen.h"
+#include "lucid/arm64/translator.h"
 #include "lucid/cli.h"
 #include "lucid/file.h"
 #include "lucid/opt.h"
