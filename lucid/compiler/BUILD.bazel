@@ -2,10 +2,37 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
-cc_binary(
+cc_library(
     name = "compiler",
     srcs = ["compiler.cc"],
+    hdrs = ["compiler.h"],
     deps = [
+        "//lucid/am:cfg",
+        "//lucid/am:opt",
+        "//lucid/am:reg",
+        "//lucid/am:translator",
+        "//lucid/arm64:assembler",
+        "//lucid/arm64:macho",
+        "//lucid/arm64:translator",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
+        "//lucid/core/io:file",
+        "//lucid/syntax:ast",
+        "//lucid/syntax:ast_printer",
+        "//lucid/syntax:buffered_lexer",
+        "//lucid/syntax:cfg",
+        "//lucid/syntax:lexer",
+        "//lucid/syntax:parser",
+        "//lucid/syntax:ssa",
+        "//lucid/syntax:type",
+    ],
+)
+
+cc_binary(
+    name = "main",
+    srcs = ["main.cc"],
+    deps = [
+      ":compiler",
         ":version",
         "//lucid/am:cfg",
         "//lucid/am:cfg_printer",
@@ -35,7 +62,7 @@ cc_test(
     name = "compiler_test",
     srcs = ["compiler_test.cc"],
     data = [
-        ":compiler",
+        ":main",
     ],
     deps = [
         ":compiler_test_fixture",
@@ -47,7 +74,7 @@ cc_test(
     name = "compiler_macos_arm64_test",
     srcs = ["compiler_macos_arm64_test.cc"],
     data = [
-        ":compiler",
+        ":main",
     ],
     target_compatible_with = [
         "@platforms//os:macos",
@@ -64,6 +91,7 @@ cc_library(
     testonly = True,
     hdrs = ["compiler_test_fixture.h"],
     deps = [
+        ":compiler",
         "//lucid/core/io:file",
         "@googletest//:gtest_main",
     ],
