@@ -65,15 +65,6 @@ class AbstractMachineFunctionGenerator {
     {
       auto& first_block = am_cfg_.get(am_cfg_.first);
       first_block.instructions.push_back(PushStack{});
-      if (scfg_.has_func_calls) {
-        for (std::size_t i = 12; i >= 1; --i) {
-          first_block.instructions.push_back(StoreStack64{
-              .offset = i - 1,
-              .src_reg = RegId(i),
-          });
-          state_.stack_slots.push_back(8);
-        }
-      }
       for (RegId i = 0; i < scfg_.func_params.size(); ++i) {
         const auto& param = ctx_.DerefParam(scfg_.func_params[i]);
         const auto& param_type =
@@ -103,14 +94,6 @@ class AbstractMachineFunctionGenerator {
 
     {
       auto& last_block = am_cfg_.get(am_cfg_.last);
-      if (scfg_.has_func_calls) {
-        for (std::size_t i = 12; i >= 1; --i) {
-          last_block.instructions.push_back(LoadStack64{
-              .offset = i - 1,
-              .dst_reg = RegId(i),
-          });
-        }
-      }
       last_block.instructions.push_back(PopStack{});
       last_block.instructions.push_back(Return{});
     }
@@ -633,7 +616,10 @@ class AbstractMachineFunctionGenerator {
 
   std::size_t GetStackOffset(ExprRef expr_ref) {
     const auto& expr = std::get<IdentExpr>(ctx_.DerefExpr(expr_ref));
-    return var_stack_[expr.name];
+    std::size_t pos = var_stack_[expr.name];
+    std::size_t offset = 0;
+    for (int i = 0; i < pos; ++i) offset += state_.stack_slots[i];
+    return offset;
   }
 
   const SyntaxContext& ctx_;

@@ -35,14 +35,18 @@ class Arm64BinaryGenerator {
     assembler_.Label(std::string(func_name_));
     assembler_.StpPreIndex(X(29), X(30), SP, Imm(-16));
 
+    stack_size_ = 12 * 8;
     for (std::size_t size : stack_slots_) stack_size_ += size;
     std::size_t quot = stack_size_ % 16;
     stack_size_ = quot == 0 ? stack_size_ : stack_size_ + 16 - quot;
 
-    stack_offsets_.resize(stack_slots_.size() + 1);
+    stack_offsets_.resize(stack_slots_.size() + 12);
     stack_offsets_[0] = 0;
-    for (int i = 1; i < stack_offsets_.size(); ++i) {
-      stack_offsets_[i] = stack_offsets_[i - 1] + stack_slots_[i - 1];
+    for (int i = 1; i < 12; ++i) {
+      stack_offsets_[i] = stack_offsets_[i - 1] + 8;
+    }
+    for (int i = 0; i < stack_slots_.size(); ++i) {
+      stack_offsets_[12 + i] = stack_offsets_[12 + i - 1] + stack_slots_[i];
     }
 
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
@@ -200,55 +204,63 @@ class Arm64BinaryGenerator {
 
   void Process(const PushStack& inst) {
     assembler_.Sub(SP, SP, Imm(stack_size_));
+
+    for (std::size_t i = 12; i >= 1; --i) {
+      assembler_.StrUnsignedOffset(X(i), SP, Imm(stack_offsets_[i - 1]));
+    }
   }
 
   void Process(const PopStack& inst) {
+    for (std::size_t i = 12; i >= 1; --i) {
+      assembler_.LdrUnsignedOffset(X(i), SP, Imm(stack_offsets_[i - 1]));
+    }
+
     assembler_.Add(SP, SP, Imm(stack_size_));
   }
 
   void Process(const StoreStack32& inst) {
     assembler_.StrUnsignedOffset(W(inst.src_reg), SP,
-                                 Imm(stack_offsets_[inst.offset]));
+                                 Imm(stack_offsets_[12 + inst.offset]));
   }
 
   void Process(const StoreStackReg32& inst) {
     assembler_.Add(W(inst.offset_reg), W(inst.offset_reg),
-                   Imm(stack_offsets_[inst.offset]));
+                   Imm(stack_offsets_[12 + inst.offset]));
     assembler_.Str(W(inst.src_reg), SP, W(inst.offset_reg), Extend::Uxtw,
                    Imm(0));
   }
 
   void Process(const StoreStack64& inst) {
     assembler_.StrUnsignedOffset(X(inst.src_reg), SP,
-                                 Imm(stack_offsets_[inst.offset]));
+                                 Imm(stack_offsets_[12 + inst.offset]));
   }
 
   void Process(const StoreStackReg64& inst) {
     assembler_.Add(X(inst.offset_reg), X(inst.offset_reg),
-                   Imm(stack_offsets_[inst.offset]));
+                   Imm(stack_offsets_[12 + inst.offset]));
     assembler_.Str(X(inst.src_reg), SP, X(inst.offset_reg), Extend::Lsl,
                    Imm(0));
   }
 
   void Process(const LoadStack32& inst) {
     assembler_.LdrUnsignedOffset(W(inst.dst_reg), SP,
-                                 Imm(stack_offsets_[inst.offset]));
+                                 Imm(stack_offsets_[12 + inst.offset]));
   }
 
   void Process(const LoadStackReg32& inst) {
     assembler_.Add(W(inst.offset_reg), W(inst.offset_reg),
-                   Imm(stack_offsets_[inst.offset]));
+                   Imm(stack_offsets_[12 + inst.offset]));
     assembler_.Ldr(W(inst.dst_reg), SP, W(inst.offset_reg), Extend::Uxtw);
   }
 
   void Process(const LoadStack64& inst) {
     assembler_.LdrUnsignedOffset(X(inst.dst_reg), SP,
-                                 Imm(stack_offsets_[inst.offset]));
+                                 Imm(stack_offsets_[12 + inst.offset]));
   }
 
   void Process(const LoadStackReg64& inst) {
     assembler_.Add(X(inst.offset_reg), X(inst.offset_reg),
-                   Imm(stack_offsets_[inst.offset]));
+                   Imm(stack_offsets_[12 + inst.offset]));
     assembler_.Ldr(X(inst.dst_reg), SP, X(inst.offset_reg), Extend::Lsl,
                    Imm(0));
   }

@@ -135,54 +135,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
   };
 
   EXPECT_THAT(Generate(func, {id_func}), ElementsAre(PushStack{},
-                                                     StoreStack64{
-                                                         .offset = 11,
-                                                         .src_reg = 12,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 10,
-                                                         .src_reg = 11,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 9,
-                                                         .src_reg = 10,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 8,
-                                                         .src_reg = 9,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 7,
-                                                         .src_reg = 8,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 6,
-                                                         .src_reg = 7,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 5,
-                                                         .src_reg = 6,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 4,
-                                                         .src_reg = 5,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 3,
-                                                         .src_reg = 4,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 2,
-                                                         .src_reg = 3,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 1,
-                                                         .src_reg = 2,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 0,
-                                                         .src_reg = 1,
-                                                     },
                                                      Label{
                                                          .id = 0,
                                                      },
@@ -215,54 +167,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
                                                      Label{
                                                          .id = 1,
                                                      },
-                                                     LoadStack64{
-                                                         .offset = 11,
-                                                         .dst_reg = 12,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 10,
-                                                         .dst_reg = 11,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 9,
-                                                         .dst_reg = 10,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 8,
-                                                         .dst_reg = 9,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 7,
-                                                         .dst_reg = 8,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 6,
-                                                         .dst_reg = 7,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 5,
-                                                         .dst_reg = 6,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 4,
-                                                         .dst_reg = 5,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 3,
-                                                         .dst_reg = 4,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 2,
-                                                         .dst_reg = 3,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 1,
-                                                         .dst_reg = 2,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 0,
-                                                         .dst_reg = 1,
-                                                     },
                                                      PopStack{}, Return{}));
 }
 
@@ -294,54 +198,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
   };
 
   EXPECT_THAT(Generate(func, {id_func}), ElementsAre(PushStack{},
-                                                     StoreStack64{
-                                                         .offset = 11,
-                                                         .src_reg = 12,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 10,
-                                                         .src_reg = 11,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 9,
-                                                         .src_reg = 10,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 8,
-                                                         .src_reg = 9,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 7,
-                                                         .src_reg = 8,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 6,
-                                                         .src_reg = 7,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 5,
-                                                         .src_reg = 6,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 4,
-                                                         .src_reg = 5,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 3,
-                                                         .src_reg = 4,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 2,
-                                                         .src_reg = 3,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 1,
-                                                         .src_reg = 2,
-                                                     },
-                                                     StoreStack64{
-                                                         .offset = 0,
-                                                         .src_reg = 1,
-                                                     },
                                                      Label{
                                                          .id = 0,
                                                      },
@@ -373,54 +229,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
                                                      },
                                                      Label{
                                                          .id = 1,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 11,
-                                                         .dst_reg = 12,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 10,
-                                                         .dst_reg = 11,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 9,
-                                                         .dst_reg = 10,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 8,
-                                                         .dst_reg = 9,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 7,
-                                                         .dst_reg = 8,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 6,
-                                                         .dst_reg = 7,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 5,
-                                                         .dst_reg = 6,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 4,
-                                                         .dst_reg = 5,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 3,
-                                                         .dst_reg = 4,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 2,
-                                                         .dst_reg = 3,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 1,
-                                                         .dst_reg = 2,
-                                                     },
-                                                     LoadStack64{
-                                                         .offset = 0,
-                                                         .dst_reg = 1,
                                                      },
                                                      PopStack{}, Return{}));
 }
