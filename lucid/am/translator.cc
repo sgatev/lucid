@@ -109,7 +109,6 @@ class AbstractMachineFunctionGenerator {
               .offset = i - 1,
               .dst_reg = RegId(i),
           });
-          state_.stack_slots.push_back(8);
         }
       }
       last_block.instructions.push_back(PopStack{});
