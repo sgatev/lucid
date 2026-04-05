@@ -122,8 +122,6 @@ class AbstractMachineFunctionGenerator {
  private:
   void Process(const SyntaxControlFlowGraph::Block& block,
                AbstractMachineControlFlowGraph::Block& am_block) {
-    next_reg_ = 1;
-
     am_block.instructions.push_back(Label{
         .id = block.ref.id(),
     });

@@ -920,19 +920,19 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           },
                                           SetReg32{
                                               .src_val = "4",
-                                              .dst_reg = 1,
+                                              .dst_reg = 2,
                                           },
                                           SetReg32{
                                               .src_val = "5",
-                                              .dst_reg = 2,
+                                              .dst_reg = 3,
                                           },
                                           MulReg32{
-                                              .res_reg = 3,
-                                              .lhs_reg = 1,
-                                              .rhs_reg = 2,
+                                              .res_reg = 4,
+                                              .lhs_reg = 2,
+                                              .rhs_reg = 3,
                                           },
                                           MoveReg32{
-                                              .src_reg = 3,
+                                              .src_reg = 4,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -943,19 +943,19 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           },
                                           SetReg32{
                                               .src_val = "2",
-                                              .dst_reg = 1,
+                                              .dst_reg = 5,
                                           },
                                           SetReg32{
                                               .src_val = "3",
-                                              .dst_reg = 2,
+                                              .dst_reg = 6,
                                           },
                                           AddReg32{
-                                              .res_reg = 3,
-                                              .lhs_reg = 1,
-                                              .rhs_reg = 2,
+                                              .res_reg = 7,
+                                              .lhs_reg = 5,
+                                              .rhs_reg = 6,
                                           },
                                           MoveReg32{
-                                              .src_reg = 3,
+                                              .src_reg = 7,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -1014,19 +1014,19 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           },
                                           SetReg32{
                                               .src_val = "4",
-                                              .dst_reg = 1,
+                                              .dst_reg = 5,
                                           },
                                           SetReg32{
                                               .src_val = "5",
-                                              .dst_reg = 2,
+                                              .dst_reg = 6,
                                           },
                                           MulReg32{
-                                              .res_reg = 3,
-                                              .lhs_reg = 1,
-                                              .rhs_reg = 2,
+                                              .res_reg = 7,
+                                              .lhs_reg = 5,
+                                              .rhs_reg = 6,
                                           },
                                           MoveReg32{
-                                              .src_reg = 3,
+                                              .src_reg = 7,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -1037,19 +1037,19 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           },
                                           SetReg32{
                                               .src_val = "2",
-                                              .dst_reg = 1,
+                                              .dst_reg = 2,
                                           },
                                           SetReg32{
                                               .src_val = "3",
-                                              .dst_reg = 2,
+                                              .dst_reg = 3,
                                           },
                                           AddReg32{
-                                              .res_reg = 3,
-                                              .lhs_reg = 1,
-                                              .rhs_reg = 2,
+                                              .res_reg = 4,
+                                              .lhs_reg = 2,
+                                              .rhs_reg = 3,
                                           },
                                           MoveReg32{
-                                              .src_reg = 3,
+                                              .src_reg = 4,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -1950,10 +1950,10 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                           },
                                           SetReg32{
                                               .src_val = "1",
-                                              .dst_reg = 1,
+                                              .dst_reg = 2,
                                           },
                                           MoveReg32{
-                                              .src_reg = 1,
+                                              .src_reg = 2,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
@@ -2037,19 +2037,19 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           },
                                           LoadStack32{
                                               .offset = 0,
-                                              .dst_reg = 1,
+                                              .dst_reg = 3,
                                           },
                                           SetReg32{
                                               .src_val = "3",
-                                              .dst_reg = 2,
+                                              .dst_reg = 4,
                                           },
                                           GtReg32{
-                                              .res_reg = 3,
-                                              .lhs_reg = 1,
-                                              .rhs_reg = 2,
+                                              .res_reg = 5,
+                                              .lhs_reg = 3,
+                                              .rhs_reg = 4,
                                           },
                                           CondJump{
-                                              .cond_reg = 3,
+                                              .cond_reg = 5,
                                               .then_label = 5,
                                               .else_label = 4,
                                           },
@@ -2058,20 +2058,20 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           },
                                           LoadStack32{
                                               .offset = 0,
-                                              .dst_reg = 1,
+                                              .dst_reg = 6,
                                           },
                                           SetReg32{
                                               .src_val = "1",
-                                              .dst_reg = 2,
+                                              .dst_reg = 7,
                                           },
                                           AddReg32{
-                                              .res_reg = 3,
-                                              .lhs_reg = 1,
-                                              .rhs_reg = 2,
+                                              .res_reg = 8,
+                                              .lhs_reg = 6,
+                                              .rhs_reg = 7,
                                           },
                                           StoreStack32{
                                               .offset = 0,
-                                              .src_reg = 3,
+                                              .src_reg = 8,
                                           },
                                           UncondJump{
                                               .label = 3,
@@ -2087,10 +2087,10 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           },
                                           LoadStack32{
                                               .offset = 0,
-                                              .dst_reg = 1,
+                                              .dst_reg = 2,
                                           },
                                           MoveReg32{
-                                              .src_reg = 1,
+                                              .src_reg = 2,
                                               .dst_reg = 0,
                                           },
                                           UncondJump{
