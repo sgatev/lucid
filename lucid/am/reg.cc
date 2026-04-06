@@ -23,7 +23,7 @@ namespace lucid {
 namespace {
 
 std::optional<RegId> FindRegToSpill(
-    const AbstractMachineControlFlowGraph& am_cfg) {
+    const AbstractMachineControlFlowGraph& am_cfg, HashSet<RegId>& spilled) {
   AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       liveness_block_states = RunBackwardDataflow(am_cfg, liveness_analysis);
@@ -34,12 +34,33 @@ std::optional<RegId> FindRegToSpill(
     auto state = *maybe_state;
 
     state.live_in = state.live_out;
-    if (state.live_in.size() > 10) return *state.live_in.begin();
+
+    if (state.live_in.size() > 10) {
+      for (const auto& reg : state.live_in) {
+        if (reg < 1000 && !spilled.Contains(reg)) return reg;
+      }
+      assert(false);
+    }
 
     for (const auto& inst : block.instructions | std::views::reverse) {
       state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
 
-      if (state.live_in.size() > 10) return *state.live_in.begin();
+      if (state.live_in.size() > 10) {
+        for (const auto& reg : state.live_in) {
+          if (reg < 1000 && !spilled.Contains(reg)) return reg;
+        }
+        assert(false);
+      }
+    }
+    if (block.ref == am_cfg.first) {
+      for (auto& param : am_cfg.params) state.live_in.Insert(param.reg);
+
+      if (state.live_in.size() > 10) {
+        for (const auto& reg : state.live_in) {
+          if (reg < 1000 && !spilled.Contains(reg)) return reg;
+        }
+        assert(false);
+      }
     }
   }
   return std::nullopt;
@@ -261,12 +282,15 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 
 void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
                     std::vector<std::size_t>& stack_slots) {
+  HashSet<RegId> spilt_regs;
   RegId next_reg = 1000;
   while (true) {
-    std::optional<RegId> reg_to_spill = FindRegToSpill(am_cfg);
+    std::optional<RegId> reg_to_spill = FindRegToSpill(am_cfg, spilt_regs);
     if (!reg_to_spill.has_value()) break;
 
     SpillRegisters(*reg_to_spill, am_cfg, stack_slots, next_reg);
+
+    spilt_regs.Insert(*reg_to_spill);
   }
 }
 

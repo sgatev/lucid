@@ -1,7 +1,9 @@
 #include "lucid/am/liveness.h"
 
+#include <cassert>
 #include <ranges>
 #include <utility>
+#include <variant>
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
@@ -11,7 +13,11 @@ namespace lucid {
 using State = AbstractMachineLivenessAnalysis::State;
 
 State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
-  if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
+  if (std::holds_alternative<PushStack>(inst)) {
+  } else if (std::holds_alternative<PopStack>(inst)) {
+  } else if (std::holds_alternative<Label>(inst)) {
+  } else if (std::holds_alternative<UncondJump>(inst)) {
+  } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
     state.live_in.Remove(cinst->dst_reg);
     state.live_in.Insert(cinst->src_reg);
   } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
@@ -122,6 +128,8 @@ State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
     state.live_in.Insert(cinst->cond_reg);
   } else if (auto* cinst = std::get_if<Return>(&inst)) {
     state.live_in.Insert(cinst->res_reg);
+  } else {
+    assert(false);
   }
   return state;
 }
