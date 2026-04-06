@@ -407,7 +407,7 @@ TEST_F(CompilerTest, FibRec) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
-TEST_F(CompilerTest, DISABLED_FibIter) {
+TEST_F(CompilerTest, FibIter) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let fib = (n: Int32) -> Int32 {
       let a: Int32 = 0
