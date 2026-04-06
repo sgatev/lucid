@@ -5,7 +5,7 @@
 namespace lucid {
 namespace {
 
-TEST(InstructionTest, Size) { EXPECT_EQ(sizeof(Instruction), 56); }
+TEST(InstructionTest, Size) { EXPECT_EQ(sizeof(Instruction), 64); }
 
 }  // namespace
 }  // namespace lucid

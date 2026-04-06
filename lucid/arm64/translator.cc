@@ -289,10 +289,12 @@ class Arm64BinaryGenerator {
 
     assembler_.Bl(inst.label);
 
-    if (inst.res.bits == 32) {
-      assembler_.Mov(W(inst.res.reg), W(0));
-    } else {
-      assembler_.Mov(X(inst.res.reg), X(0));
+    if (inst.res.has_value()) {
+      if (inst.res->bits == 32) {
+        assembler_.Mov(W(inst.res->reg), W(0));
+      } else {
+        assembler_.Mov(X(inst.res->reg), X(0));
+      }
     }
   }
 

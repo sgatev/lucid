@@ -124,7 +124,7 @@ State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
     state.live_in.Remove(cinst->dst_reg);
     state.live_in.Insert(cinst->offset_reg);
   } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-    state.live_in.Remove(cinst->res.reg);
+    if (cinst->res.has_value()) state.live_in.Remove(cinst->res->reg);
     for (const auto& arg : cinst->args) state.live_in.Insert(arg.reg);
   } else if (auto* cinst = std::get_if<CondJump>(&inst)) {
     state.live_in.Insert(cinst->cond_reg);

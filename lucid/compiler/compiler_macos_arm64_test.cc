@@ -431,7 +431,7 @@ TEST_F(CompilerTest, DISABLED_FibIter) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
-TEST_F(CompilerTest, DISABLED_PrintInt32) {
+TEST_F(CompilerTest, PrintInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let printString = (s: String) -> Int32 {
       return 0

@@ -140,43 +140,43 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
       }),
   };
 
-  EXPECT_THAT(Generate(func, {id_func}), ElementsAre(PushStack{},
-                                                     Label{
-                                                         .id = 0,
-                                                     },
-                                                     SetReg32{
-                                                         .src_val = "21",
-                                                         .dst_reg = 2,
-                                                     },
-                                                     FuncCall{
-                                                         .label = "id",
-                                                         .args =
-                                                             {
-                                                                 {
-                                                                     .reg = 2,
-                                                                     .bits = 32,
-                                                                 },
-                                                             },
-                                                         .res =
-                                                             {
-                                                                 .reg = 3,
-                                                                 .bits = 32,
-                                                             },
-                                                     },
-                                                     MoveReg32{
-                                                         .src_reg = 3,
-                                                         .dst_reg = 1,
-                                                     },
-                                                     UncondJump{
-                                                         .label = 1,
-                                                     },
-                                                     Label{
-                                                         .id = 1,
-                                                     },
-                                                     PopStack{},
-                                                     Return{
-                                                         .res_reg = 1,
-                                                     }));
+  EXPECT_THAT(Generate(func, {id_func}),
+              ElementsAre(PushStack{},
+                          Label{
+                              .id = 0,
+                          },
+                          SetReg32{
+                              .src_val = "21",
+                              .dst_reg = 2,
+                          },
+                          FuncCall{
+                              .label = "id",
+                              .args =
+                                  {
+                                      {
+                                          .reg = 2,
+                                          .bits = 32,
+                                      },
+                                  },
+                              .res = std::optional<FuncCall::Slot>({
+                                  .reg = 3,
+                                  .bits = 32,
+                              }),
+                          },
+                          MoveReg32{
+                              .src_reg = 3,
+                              .dst_reg = 1,
+                          },
+                          UncondJump{
+                              .label = 1,
+                          },
+                          Label{
+                              .id = 1,
+                          },
+                          PopStack{},
+                          Return{
+                              .res_reg = 1,
+                          }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
@@ -206,43 +206,43 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
       }),
   };
 
-  EXPECT_THAT(Generate(func, {id_func}), ElementsAre(PushStack{},
-                                                     Label{
-                                                         .id = 0,
-                                                     },
-                                                     SetReg64{
-                                                         .src_val = "21",
-                                                         .dst_reg = 2,
-                                                     },
-                                                     FuncCall{
-                                                         .label = "id",
-                                                         .args =
-                                                             {
-                                                                 {
-                                                                     .reg = 2,
-                                                                     .bits = 64,
-                                                                 },
-                                                             },
-                                                         .res =
-                                                             {
-                                                                 .reg = 3,
-                                                                 .bits = 64,
-                                                             },
-                                                     },
-                                                     MoveReg64{
-                                                         .src_reg = 3,
-                                                         .dst_reg = 1,
-                                                     },
-                                                     UncondJump{
-                                                         .label = 1,
-                                                     },
-                                                     Label{
-                                                         .id = 1,
-                                                     },
-                                                     PopStack{},
-                                                     Return{
-                                                         .res_reg = 1,
-                                                     }));
+  EXPECT_THAT(Generate(func, {id_func}),
+              ElementsAre(PushStack{},
+                          Label{
+                              .id = 0,
+                          },
+                          SetReg64{
+                              .src_val = "21",
+                              .dst_reg = 2,
+                          },
+                          FuncCall{
+                              .label = "id",
+                              .args =
+                                  {
+                                      {
+                                          .reg = 2,
+                                          .bits = 64,
+                                      },
+                                  },
+                              .res = std::optional<FuncCall::Slot>({
+                                  .reg = 3,
+                                  .bits = 64,
+                              }),
+                          },
+                          MoveReg64{
+                              .src_reg = 3,
+                              .dst_reg = 1,
+                          },
+                          UncondJump{
+                              .label = 1,
+                          },
+                          Label{
+                              .id = 1,
+                          },
+                          PopStack{},
+                          Return{
+                              .res_reg = 1,
+                          }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {

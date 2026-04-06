@@ -717,7 +717,7 @@ struct FuncCall {
   std::vector<Slot> args;
 
   // Result from the function.
-  Slot res;
+  std::optional<Slot> res;
 
   bool operator==(const FuncCall&) const = default;
 
@@ -728,7 +728,11 @@ struct FuncCall {
       os << arg.reg << "(" << arg.bits << ")";
       has_printed_arg = true;
     }
-    os << "] .res=" << inst.res.reg << "(" << inst.res.bits << ") }";
+    os << "]";
+    if (inst.res.has_value()) {
+      os << " .res=" << inst.res->reg << "(" << inst.res->bits << ")";
+    }
+    os << " }";
     return os;
   }
 };

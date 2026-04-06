@@ -479,7 +479,9 @@ class AbstractMachineFunctionGenerator {
   }
 
   void Process(StmtRef ref, const DoStmt& stmt,
-               AbstractMachineControlFlowGraph::Block& am_block) {}
+               AbstractMachineControlFlowGraph::Block& am_block) {
+    std::get<FuncCall>(am_block.instructions.back()).res.reset();
+  }
 
   void Process(StmtRef ref, const VarAssignStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {

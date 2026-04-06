@@ -263,10 +263,12 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
             maybe_insert_load64(block.instructions, i, arg.reg);
           }
         }
-        if (cinst->res.bits == 32) {
-          maybe_insert_store32(block.instructions, i, cinst->res.reg);
-        } else {
-          maybe_insert_store64(block.instructions, i, cinst->res.reg);
+        if (cinst->res.has_value()) {
+          if (cinst->res->bits == 32) {
+            maybe_insert_store32(block.instructions, i, cinst->res->reg);
+          } else {
+            maybe_insert_store64(block.instructions, i, cinst->res->reg);
+          }
         }
       } else if (auto* cinst = std::get_if<CondJump>(&inst)) {
         maybe_insert_load32(block.instructions, i, cinst->cond_reg);
@@ -296,9 +298,9 @@ void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
 HashMap<RegId, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
     const HashMap<RegId, HashSet<RegId>>& am_ig, int colors_count) {
-  std::unordered_map<RegId, int> m;
+  HashMap<RegId, int> reg_scores;
   for (const auto& param : am_cfg.params) {
-    m.insert({param.reg, 0});
+    reg_scores.Insert(param.reg, 0);
   }
   for (const auto& block : am_cfg.blocks()) {
     for (const auto& inst : block.instructions) {
@@ -308,116 +310,116 @@ HashMap<RegId, int> ColorInterferenceGraph(
           std::holds_alternative<Jump>(inst) ||
           std::holds_alternative<UncondJump>(inst)) {
       } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
-        m.insert({cinst->dst_reg, 0});
-        m.insert({cinst->src_reg, 0});
+        reg_scores.Insert(cinst->dst_reg, 0);
+        reg_scores.Insert(cinst->src_reg, 0);
       } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
-        m.insert({cinst->dst_reg, 0});
-        m.insert({cinst->src_reg, 0});
+        reg_scores.Insert(cinst->dst_reg, 0);
+        reg_scores.Insert(cinst->src_reg, 0);
       } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
-        m.insert({cinst->dst_reg, 0});
+        reg_scores.Insert(cinst->dst_reg, 0);
       } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
-        m.insert({cinst->dst_reg, 0});
+        reg_scores.Insert(cinst->dst_reg, 0);
       } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
-        m.insert({cinst->dst_reg, 0});
+        reg_scores.Insert(cinst->dst_reg, 0);
       } else if (auto* cinst = std::get_if<AddReg32>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<AddReg64>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<SubReg32>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<SubReg64>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<MulReg32>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<MulReg64>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<DivReg32>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<DivReg64>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<ModReg32>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<LtReg64>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
-        m.insert({cinst->res_reg, 0});
-        m.insert({cinst->lhs_reg, 0});
-        m.insert({cinst->rhs_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
+        reg_scores.Insert(cinst->lhs_reg, 0);
+        reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<StoreStack32>(&inst)) {
-        m.insert({cinst->src_reg, 0});
+        reg_scores.Insert(cinst->src_reg, 0);
       } else if (auto* cinst = std::get_if<StoreStackReg32>(&inst)) {
-        m.insert({cinst->src_reg, 0});
-        m.insert({cinst->offset_reg, 0});
+        reg_scores.Insert(cinst->src_reg, 0);
+        reg_scores.Insert(cinst->offset_reg, 0);
       } else if (auto* cinst = std::get_if<StoreStack64>(&inst)) {
-        m.insert({cinst->src_reg, 0});
+        reg_scores.Insert(cinst->src_reg, 0);
       } else if (auto* cinst = std::get_if<StoreStackReg64>(&inst)) {
-        m.insert({cinst->src_reg, 0});
-        m.insert({cinst->offset_reg, 0});
+        reg_scores.Insert(cinst->src_reg, 0);
+        reg_scores.Insert(cinst->offset_reg, 0);
       } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
-        m.insert({cinst->dst_reg, 0});
+        reg_scores.Insert(cinst->dst_reg, 0);
       } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
-        m.insert({cinst->dst_reg, 0});
-        m.insert({cinst->offset_reg, 0});
+        reg_scores.Insert(cinst->dst_reg, 0);
+        reg_scores.Insert(cinst->offset_reg, 0);
       } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
-        m.insert({cinst->dst_reg, 0});
+        reg_scores.Insert(cinst->dst_reg, 0);
       } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
-        m.insert({cinst->dst_reg, 0});
-        m.insert({cinst->offset_reg, 0});
+        reg_scores.Insert(cinst->dst_reg, 0);
+        reg_scores.Insert(cinst->offset_reg, 0);
       } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-        m.insert({cinst->res.reg, 0});
-        for (const auto& arg : cinst->args) m.insert({arg.reg, 0});
+        if (cinst->res.has_value()) reg_scores.Insert(cinst->res->reg, 0);
+        for (const auto& arg : cinst->args) reg_scores.Insert(arg.reg, 0);
       } else if (auto* cinst = std::get_if<CondJump>(&inst)) {
-        m.insert({cinst->cond_reg, 0});
+        reg_scores.Insert(cinst->cond_reg, 0);
       } else if (auto* cinst = std::get_if<Return>(&inst)) {
-        m.insert({cinst->res_reg, 0});
+        reg_scores.Insert(cinst->res_reg, 0);
       } else {
         assert(false && "unhandled instruction type");
       }
@@ -425,10 +427,10 @@ HashMap<RegId, int> ColorInterferenceGraph(
   }
 
   std::vector<RegId> seo;
-  while (!m.empty()) {
-    int max_reg = m.begin()->first;
-    int max_score = m.begin()->second;
-    for (const auto& [reg, score] : m) {
+  while (!reg_scores.empty()) {
+    int max_reg = reg_scores.begin()->first;
+    int max_score = reg_scores.begin()->second;
+    for (const auto& [reg, score] : reg_scores) {
       if (score >= max_score) {
         max_reg = reg;
         max_score = score;
@@ -436,13 +438,13 @@ HashMap<RegId, int> ColorInterferenceGraph(
     }
 
     seo.push_back(max_reg);
-    m.erase(max_reg);
+    reg_scores.Remove(max_reg);
 
     if (const auto& nbs = am_ig.Find(max_reg); nbs.has_value()) {
       for (const auto& nb : *nbs) {
-        if (!m.contains(nb)) continue;
-
-        m[nb] = m[nb] + 1;
+        if (auto nb_score = reg_scores.Find(nb); nb_score.has_value()) {
+          reg_scores.Set(nb, *nb_score + 1);
+        }
       }
     }
   }
@@ -592,7 +594,7 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
         UpdateRegister(reg_colors, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
         for (auto& arg : cinst->args) UpdateRegister(reg_colors, arg.reg);
-        UpdateRegister(reg_colors, cinst->res.reg);
+        if (cinst->res.has_value()) UpdateRegister(reg_colors, cinst->res->reg);
       } else if (auto* cinst = std::get_if<Return>(&inst)) {
         UpdateRegister(reg_colors, cinst->res_reg);
       }

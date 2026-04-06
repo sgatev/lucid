@@ -21,7 +21,15 @@ void Blue(std::function<void()> f) {
 
 void Print(std::string_view func_name,
            const AbstractMachineControlFlowGraph& am_cfg) {
-  Blue([&] { std::cout << func_name << "\n"; });
+  Blue([&] {
+    std::cout << func_name << "(";
+    for (bool has_printed_param = false; const auto& param : am_cfg.params) {
+      if (has_printed_param) std::cout << ", ";
+      std::cout << param.reg << "(" << param.bits << ")";
+      has_printed_param = true;
+    }
+    std::cout << ")\n";
+  });
   for (const auto& block : am_cfg.blocks()) {
     for (const auto& inst : block.instructions) {
       std::visit(
