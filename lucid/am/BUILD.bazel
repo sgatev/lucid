@@ -28,9 +28,6 @@ cc_library(
     name = "instructions",
     hdrs = ["instructions.h"],
     visibility = ["//lucid:__subpackages__"],
-    deps = [
-        "//lucid/core/string:index",
-    ],
 )
 
 cc_test(

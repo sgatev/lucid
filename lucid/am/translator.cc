@@ -34,31 +34,41 @@ class AbstractMachineFunctionGenerator {
     am_cfg_.first = graph_map_[scfg_.first];
     am_cfg_.last = graph_map_[scfg_.last];
 
+    result_reg_ = next_reg_++;
+
     if (ctx_.DerefIdent(scfg_.func_name) == "printString") {
       auto& first_block = am_cfg_.add();
       am_cfg_.first = first_block.ref;
 
+      first_block.instructions.push_back(PushStack{});
       first_block.instructions.push_back(Jump{
           .label = "_print_string",
       });
       first_block.instructions.push_back(SetReg32{
           .src_val = "0",
-          .dst_reg = 0,
+          .dst_reg = result_reg_,
       });
-      first_block.instructions.push_back(Return{});
+      first_block.instructions.push_back(PopStack{});
+      first_block.instructions.push_back(Return{
+          .res_reg = result_reg_,
+      });
       return std::move(am_cfg_);
     } else if (ctx_.DerefIdent(scfg_.func_name) == "sleep") {
       auto& first_block = am_cfg_.add();
       am_cfg_.first = first_block.ref;
 
+      first_block.instructions.push_back(PushStack{});
       first_block.instructions.push_back(Jump{
           .label = "_sleep",
       });
       first_block.instructions.push_back(SetReg32{
           .src_val = "0",
-          .dst_reg = 0,
+          .dst_reg = result_reg_,
       });
-      first_block.instructions.push_back(Return{});
+      first_block.instructions.push_back(PopStack{});
+      first_block.instructions.push_back(Return{
+          .res_reg = result_reg_,
+      });
       return std::move(am_cfg_);
     }
 
@@ -71,19 +81,13 @@ class AbstractMachineFunctionGenerator {
             std::get<BasicType>(ctx_.DerefType(param.type_constraint));
         std::string_view param_type_name = ctx_.DerefIdent(param_type.name);
         if (param_type_name == "Int32") {
-          first_block.instructions.push_back(StoreStack32{
-              .offset = state_.stack_slots.size(),
-              .src_reg = static_cast<RegId>(i + 1),
-          });
-          var_stack_[param.name] = state_.stack_slots.size();
-          state_.stack_slots.push_back(4);
-        } else if (param_type_name == "Int64") {
-          first_block.instructions.push_back(StoreStack64{
-              .offset = state_.stack_slots.size(),
-              .src_reg = static_cast<RegId>(i + 1),
-          });
-          var_stack_[param.name] = state_.stack_slots.size();
-          state_.stack_slots.push_back(8);
+          RegId reg = next_reg_++;
+          var_to_reg_[param.name] = reg;
+          am_cfg_.params.push_back({.bits = 32, .reg = reg});
+        } else if (param_type_name == "Int64" || param_type_name == "String") {
+          RegId reg = next_reg_++;
+          var_to_reg_[param.name] = reg;
+          am_cfg_.params.push_back({.bits = 64, .reg = reg});
         }
       }
     }
@@ -95,7 +99,9 @@ class AbstractMachineFunctionGenerator {
     {
       auto& last_block = am_cfg_.get(am_cfg_.last);
       last_block.instructions.push_back(PopStack{});
-      last_block.instructions.push_back(Return{});
+      last_block.instructions.push_back(Return{
+          .res_reg = result_reg_,
+      });
     }
 
     return std::move(am_cfg_);
@@ -229,13 +235,13 @@ class AbstractMachineFunctionGenerator {
     std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
     RegId reg = next_reg_++;
     if (expr_type_name == "Int32" || expr_type_name == "Bool") {
-      am_block.instructions.push_back(LoadStack32{
-          .offset = var_stack_[expr.name],
+      am_block.instructions.push_back(MoveReg32{
+          .src_reg = var_to_reg_[expr.name],
           .dst_reg = reg,
       });
     } else if (expr_type_name == "Int64") {
-      am_block.instructions.push_back(LoadStack64{
-          .offset = var_stack_[expr.name],
+      am_block.instructions.push_back(MoveReg64{
+          .src_reg = var_to_reg_[expr.name],
           .dst_reg = reg,
       });
     }
@@ -462,12 +468,12 @@ class AbstractMachineFunctionGenerator {
     if (type_name == "Int32" || type_name == "Bool") {
       am_block.instructions.push_back(MoveReg32{
           .src_reg = expr_and_stmt_to_reg_[stmt.value.id()],
-          .dst_reg = 0,
+          .dst_reg = result_reg_,
       });
     } else if (type_name == "Int64") {
       am_block.instructions.push_back(MoveReg64{
           .src_reg = expr_and_stmt_to_reg_[stmt.value.id()],
-          .dst_reg = 0,
+          .dst_reg = result_reg_,
       });
     }
   }
@@ -481,14 +487,14 @@ class AbstractMachineFunctionGenerator {
         std::get<BasicType>(ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.expr))));
     std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
     if (expr_type_name == "Int32" || expr_type_name == "Bool") {
-      am_block.instructions.push_back(StoreStack32{
-          .offset = var_stack_[stmt.name],
+      am_block.instructions.push_back(MoveReg32{
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
+          .dst_reg = var_to_reg_[stmt.name],
       });
     } else if (expr_type_name == "Int64") {
-      am_block.instructions.push_back(StoreStack64{
-          .offset = var_stack_[stmt.name],
+      am_block.instructions.push_back(MoveReg64{
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
+          .dst_reg = var_to_reg_[stmt.name],
       });
     }
   }
@@ -517,29 +523,22 @@ class AbstractMachineFunctionGenerator {
 
     auto stmt_type = std::get<BasicType>(ctx_.DerefType(stmt.type_constraint));
     std::string_view stmt_type_name = ctx_.DerefIdent(stmt_type.name);
-    auto stack_offset = state_.stack_slots.size();
-    if (stmt_type_name == "Int32") {
-      state_.stack_slots.push_back(4);
-    } else if (stmt_type_name == "Int64") {
-      state_.stack_slots.push_back(8);
-    } else if (stmt_type_name == "Bool") {
-      state_.stack_slots.push_back(4);
-    }
 
     if (!stmt.init.has_value()) return;
 
+    RegId reg = next_reg_++;
     if (stmt_type_name == "Int32" || stmt_type_name == "Bool") {
-      am_block.instructions.push_back(StoreStack32{
-          .offset = stack_offset,
+      am_block.instructions.push_back(MoveReg32{
           .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
+          .dst_reg = reg,
       });
-      var_stack_[stmt.name] = stack_offset;
+      var_to_reg_[stmt.name] = reg;
     } else if (stmt_type_name == "Int64") {
-      am_block.instructions.push_back(StoreStack64{
-          .offset = stack_offset,
+      am_block.instructions.push_back(MoveReg64{
           .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
+          .dst_reg = reg,
       });
-      var_stack_[stmt.name] = stack_offset;
+      var_to_reg_[stmt.name] = reg;
     }
   }
 
@@ -627,6 +626,8 @@ class AbstractMachineFunctionGenerator {
   AbstractMachineState& state_;
   AbstractMachineControlFlowGraph am_cfg_;
   RegId next_reg_ = 1;
+  RegId result_reg_;
+  std::unordered_map<StringIndex::Ref, RegId> var_to_reg_;
   std::unordered_map<StringIndex::Ref, std::size_t> var_stack_;
   std::unordered_map<SyntaxControlFlowGraph::BlockRef,
                      AbstractMachineControlFlowGraph::BlockRef>

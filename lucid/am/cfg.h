@@ -52,6 +52,15 @@ class AbstractMachineControlFlowGraph {
   BlockRef first = kNullBlockRef;
   BlockRef last = kNullBlockRef;
 
+  // Represents a parameter of the function.
+  struct Param {
+    int bits;
+    RegId reg;
+  };
+
+  // Parameters of the function.
+  std::vector<Param> params;
+
  private:
   friend std::size_t VertexCount(const AbstractMachineControlFlowGraph&);
   friend std::vector<BlockRef> Vertices(const AbstractMachineControlFlowGraph&);

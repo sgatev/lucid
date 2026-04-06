@@ -120,6 +120,8 @@ State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
     for (const auto& arg : cinst->args) state.live_in.Insert(arg.reg);
   } else if (auto* cinst = std::get_if<CondJump>(&inst)) {
     state.live_in.Insert(cinst->cond_reg);
+  } else if (auto* cinst = std::get_if<Return>(&inst)) {
+    state.live_in.Insert(cinst->res_reg);
   }
   return state;
 }

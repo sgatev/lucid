@@ -7,8 +7,6 @@
 #include <variant>
 #include <vector>
 
-#include "lucid/core/string/index.h"
-
 namespace lucid {
 
 // A register in the Lucid abstract machine.
@@ -161,10 +159,13 @@ struct Label {
 
 // Returns to the location before the last jump.
 struct Return {
+  // Result register.
+  RegId res_reg;
+
   bool operator==(const Return&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const Return& inst) {
-    return os << "Return {}";
+    return os << "Return { .res_reg=" << inst.res_reg << " }";
   }
 };
 

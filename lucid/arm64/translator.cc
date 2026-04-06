@@ -6,14 +6,12 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/container/graph/order.h"
-#include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"
 
 namespace lucid {
@@ -92,6 +90,15 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const Return& inst) {
+    assembler_.Mov(W(0), W(inst.res_reg));
+
+    for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
+      assembler_.LdrUnsignedOffset(X(kRegistersToPersist[i]), SP,
+                                   Imm(stack_offsets_[i]));
+    }
+
+    assembler_.Add(SP, SP, Imm(stack_size_));
+
     assembler_.LdpPostIndex(X(29), X(30), SP, Imm(16));
     assembler_.Ret();
   }
@@ -211,16 +218,18 @@ class Arm64BinaryGenerator {
       assembler_.StrUnsignedOffset(X(kRegistersToPersist[i]), SP,
                                    Imm(stack_offsets_[i]));
     }
-  }
 
-  void Process(const PopStack& inst) {
-    for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
-      assembler_.LdrUnsignedOffset(X(kRegistersToPersist[i]), SP,
-                                   Imm(stack_offsets_[i]));
+    int param_idx = 1;
+    for (const auto& param : am_cfg_.params) {
+      if (param.bits == 32) {
+        assembler_.Mov(W(param.reg), W(param_idx++));
+      } else if (param.bits == 64) {
+        assembler_.Mov(X(param.reg), X(param_idx++));
+      }
     }
-
-    assembler_.Add(SP, SP, Imm(stack_size_));
   }
+
+  void Process(const PopStack& inst) {}
 
   void Process(const StoreStack32& inst) {
     assembler_.StrUnsignedOffset(W(inst.src_reg), SP,
@@ -270,41 +279,11 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const FuncCall& inst) {
-    HashMap<RegId, std::pair<FuncCall::Slot, std::uint8_t>> reg_mappings;
-    for (std::uint8_t target_reg_id = 1; const auto& arg : inst.args) {
-      reg_mappings.Insert(arg.reg, {arg, target_reg_id++});
-    }
-
-    while (!reg_mappings.empty()) {
-      std::uint8_t temp_reg_id = 15;
-
-      auto [arg, target_reg_id] = reg_mappings.begin()->second;
-      reg_mappings.Remove(arg.reg);
-
-      std::uint8_t from_reg_id = arg.reg;
-      std::uint8_t to_reg_id = target_reg_id;
-      while (true) {
-        auto next_mapping = reg_mappings.Find(to_reg_id);
-
-        if (next_mapping.has_value()) {
-          if (next_mapping->first.bits == 32) {
-            assembler_.Mov(W(temp_reg_id), W(to_reg_id));
-          } else {
-            assembler_.Mov(X(temp_reg_id), X(to_reg_id));
-          }
-        }
-
-        if (arg.bits == 32) {
-          assembler_.Mov(W(to_reg_id), W(from_reg_id));
-        } else {
-          assembler_.Mov(X(to_reg_id), X(from_reg_id));
-        }
-
-        if (!next_mapping.has_value()) break;
-
-        std::swap(from_reg_id, temp_reg_id);
-        to_reg_id = next_mapping->second;
-        reg_mappings.Remove(next_mapping->first.reg);
+    for (int i = 0; i < inst.args.size(); ++i) {
+      if (inst.args[i].bits == 32) {
+        assembler_.Mov(W(i + 1), W(inst.args[i].reg));
+      } else {
+        assembler_.Mov(X(i + 1), X(inst.args[i].reg));
       }
     }
 
@@ -327,8 +306,8 @@ class Arm64BinaryGenerator {
     return stack_offsets_[kRegistersToPersist.size() + offset];
   }
 
-  static constexpr std::array<std::uint8_t, 12> kRegistersToPersist = {
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+  static constexpr std::array<std::uint8_t, 10> kRegistersToPersist = {
+      19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
   };
 
   std::string_view func_name_;

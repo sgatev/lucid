@@ -57,7 +57,7 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
     SpillRegisters(am_cfg, state->stack_slots);
     HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
     HashMap<RegId, int> am_ig_colors =
-        ColorInterferenceGraph(am_cfg, am_ig, 12);
+        ColorInterferenceGraph(am_cfg, am_ig, 10);
     MergeRegisters(am_ig_colors, am_cfg);
     GenerateArmAssemblyBinary(ctx.DerefIdent(func.name), state->stack_slots,
                               am_cfg, assembler);

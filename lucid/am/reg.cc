@@ -34,12 +34,12 @@ std::optional<RegId> FindRegToSpill(
     auto state = *maybe_state;
 
     state.live_in = state.live_out;
-    if (state.live_in.size() > 12) return *state.live_in.begin();
+    if (state.live_in.size() > 10) return *state.live_in.begin();
 
     for (const auto& inst : block.instructions | std::views::reverse) {
       state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
 
-      if (state.live_in.size() > 12) return *state.live_in.begin();
+      if (state.live_in.size() > 10) return *state.live_in.begin();
     }
   }
   return std::nullopt;
@@ -121,6 +121,11 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     auto& block = am_cfg.get(block_ref);
 
     int i = 0;
+    if (block_ref == am_cfg.first) {
+      for (auto& param : am_cfg.params) {
+        maybe_insert_store32(block.instructions, i, param.reg);
+      }
+    }
     while (i < block.instructions.size()) {
       auto& inst = block.instructions[i];
 
@@ -228,6 +233,8 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
       } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
         maybe_insert_load64(block.instructions, i, cinst->offset_reg);
         maybe_insert_store64(block.instructions, i, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<Return>(&inst)) {
+        maybe_insert_load64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
         for (auto& arg : cinst->args) {
           if (arg.bits == 32) {
@@ -320,6 +327,7 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
       }
     }
   }
+
   return interference_graph;
 }
 
@@ -342,12 +350,12 @@ HashMap<RegId, int> ColorInterferenceGraph(
   visited[SourceVertex(am_cfg).id()] = 1;
 
   while (!pending.empty()) {
-    auto block = pending.top();
+    auto block_ref = pending.top();
     pending.pop();
 
-    if (visited[block.id()] == 2) {
-      for (const auto& inst :
-           am_cfg.get(block).instructions | std::views::reverse) {
+    if (visited[block_ref.id()] == 2) {
+      auto& block = am_cfg.get(block_ref);
+      for (const auto& inst : block.instructions | std::views::reverse) {
         std::optional<RegId> dst_reg;
         if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
           dst_reg = cinst->dst_reg;
@@ -409,7 +417,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
         if (!dst_reg.has_value()) continue;
 
         HashSet<int> colors;
-        for (int i = 0; i <= colors_count; ++i) colors.Insert(i);
+        for (int i = 0; i < colors_count; ++i) colors.Insert(19 + i);
 
         if (const auto& neighbours = ig.Find(*dst_reg);
             neighbours.has_value()) {
@@ -427,12 +435,36 @@ HashMap<RegId, int> ColorInterferenceGraph(
 
         ig_colors.Insert(*dst_reg, min_color);
       }
-    } else {
-      pending.push(block);
-      visited[block.id()] = 2;
+      if (block_ref == am_cfg.first) {
+        for (auto& param : am_cfg.params) {
+          RegId dst_reg = param.reg;
 
-      if (dom_tree.Find(block).has_value()) {
-        for (auto next_block : *dom_tree.Find(block)) {
+          HashSet<int> colors;
+          for (int i = 0; i < colors_count; ++i) colors.Insert(19 + i);
+
+          if (const auto& neighbours = ig.Find(dst_reg);
+              neighbours.has_value()) {
+            for (const auto& neighbour : *neighbours) {
+              const auto& neighbour_color = ig_colors.Find(neighbour);
+              if (neighbour_color.has_value()) colors.Remove(*neighbour_color);
+            }
+          }
+
+          assert(colors.begin() != colors.end());
+          int min_color = *colors.begin();
+          for (auto color : colors) {
+            if (color < min_color) min_color = color;
+          }
+
+          ig_colors.Insert(dst_reg, min_color);
+        }
+      }
+    } else {
+      pending.push(block_ref);
+      visited[block_ref.id()] = 2;
+
+      if (dom_tree.Find(block_ref).has_value()) {
+        for (auto next_block : *dom_tree.Find(block_ref)) {
           if (visited[next_block.id()] != 0) continue;
 
           pending.push(next_block);
@@ -453,16 +485,11 @@ void UpdateRegister(const HashMap<RegId, int>& reg_colors, RegId& reg) {
 
 void MergeRegisters(const HashMap<RegId, int>& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg) {
+  for (auto& param : am_cfg.params) {
+    UpdateRegister(reg_colors, param.reg);
+  }
   for (auto& block : am_cfg.blocks()) {
-    if (block.ref == am_cfg.last) continue;
-
-    bool seen_label = false;
     for (auto& inst : block.instructions) {
-      if (std::holds_alternative<Label>(inst)) {
-        seen_label = true;
-      }
-      if (block.ref == am_cfg.first && !seen_label) continue;
-
       if (auto* cinst = std::get_if<CondJump>(&inst)) {
         UpdateRegister(reg_colors, cinst->cond_reg);
       } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
@@ -572,6 +599,8 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
       } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
         for (auto& arg : cinst->args) UpdateRegister(reg_colors, arg.reg);
         UpdateRegister(reg_colors, cinst->res.reg);
+      } else if (auto* cinst = std::get_if<Return>(&inst)) {
+        UpdateRegister(reg_colors, cinst->res_reg);
       }
     }
   }

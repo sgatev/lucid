@@ -231,7 +231,7 @@ int HandlePrintAmiCommand(CommandContext ctx) {
       SpillRegisters(am_cfg, state.stack_slots);
       HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
       HashMap<RegId, int> am_ig_colors =
-          ColorInterferenceGraph(am_cfg, am_ig, 12);
+          ColorInterferenceGraph(am_cfg, am_ig, 10);
       MergeRegisters(am_ig_colors, am_cfg);
     }
     Print(sctx.DerefIdent(func_def.name), am_cfg);
