@@ -13,10 +13,11 @@ namespace lucid {
 using State = AbstractMachineLivenessAnalysis::State;
 
 State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
-  if (std::holds_alternative<PushStack>(inst)) {
-  } else if (std::holds_alternative<PopStack>(inst)) {
-  } else if (std::holds_alternative<Label>(inst)) {
-  } else if (std::holds_alternative<UncondJump>(inst)) {
+  if (std::holds_alternative<PushStack>(inst) ||
+      std::holds_alternative<PopStack>(inst) ||
+      std::holds_alternative<Label>(inst) ||
+      std::holds_alternative<UncondJump>(inst)) {
+    // Nothing to do here.
   } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
     state.live_in.Remove(cinst->dst_reg);
     state.live_in.Insert(cinst->src_reg);
@@ -129,7 +130,7 @@ State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
   } else if (auto* cinst = std::get_if<Return>(&inst)) {
     state.live_in.Insert(cinst->res_reg);
   } else {
-    assert(false);
+    assert(false && "unhandled instruction type");
   }
   return state;
 }
