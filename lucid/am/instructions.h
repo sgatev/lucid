@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <ostream>
 #include <string_view>
 #include <variant>
@@ -745,5 +747,161 @@ using Instruction = std::variant<
     LtReg64, EqReg32, EqReg64, NotEqReg32, NotEqReg64, PushStack, PopStack,
     StoreStack32, StoreStackReg32, StoreStack64, StoreStackReg64, LoadStack32,
     LoadStackReg32, LoadStack64, LoadStackReg64, FuncCall>;
+
+// Returns the source registers used by the given instruction, if any.
+inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
+  if (std::holds_alternative<PushStack>(inst) ||
+      std::holds_alternative<PopStack>(inst) ||
+      std::holds_alternative<Label>(inst) ||
+      std::holds_alternative<Jump>(inst) ||
+      std::holds_alternative<UncondJump>(inst) ||
+      std::holds_alternative<SetReg32>(inst) ||
+      std::holds_alternative<SetReg64>(inst) ||
+      std::holds_alternative<SetStr>(inst) ||
+      std::holds_alternative<LoadStack32>(inst) ||
+      std::holds_alternative<LoadStack64>(inst)) {
+    return {};
+  } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
+    return {cinst->src_reg};
+  } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
+    return {cinst->src_reg};
+  } else if (auto* cinst = std::get_if<AddReg32>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<AddReg64>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<SubReg32>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<SubReg64>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<MulReg32>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<MulReg64>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<DivReg32>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<DivReg64>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<ModReg32>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<LtReg64>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
+    return {cinst->lhs_reg, cinst->rhs_reg};
+  } else if (auto* cinst = std::get_if<StoreStack32>(&inst)) {
+    return {cinst->src_reg};
+  } else if (auto* cinst = std::get_if<StoreStackReg32>(&inst)) {
+    return {cinst->src_reg, cinst->offset_reg};
+  } else if (auto* cinst = std::get_if<StoreStack64>(&inst)) {
+    return {cinst->src_reg};
+  } else if (auto* cinst = std::get_if<StoreStackReg64>(&inst)) {
+    return {cinst->src_reg, cinst->offset_reg};
+  } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
+    return {cinst->offset_reg};
+  } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
+    return {cinst->offset_reg};
+  } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
+    std::vector<RegId> source_regs;
+    for (const auto& arg : cinst->args) source_regs.push_back(arg.reg);
+    return source_regs;
+  } else if (auto* cinst = std::get_if<CondJump>(&inst)) {
+    return {cinst->cond_reg};
+  } else if (auto* cinst = std::get_if<Return>(&inst)) {
+    return {cinst->res_reg};
+  } else {
+    assert(false && "unhandled instruction type");
+  }
+  return {};
+}
+
+// Returns the target register used by the given instruction, if any.
+inline std::optional<RegId> GetTargetRegister(const Instruction& inst) {
+  if (std::holds_alternative<PushStack>(inst) ||
+      std::holds_alternative<PopStack>(inst) ||
+      std::holds_alternative<Label>(inst) ||
+      std::holds_alternative<Jump>(inst) ||
+      std::holds_alternative<UncondJump>(inst) ||
+      std::holds_alternative<StoreStack32>(inst) ||
+      std::holds_alternative<StoreStackReg32>(inst) ||
+      std::holds_alternative<StoreStack64>(inst) ||
+      std::holds_alternative<StoreStackReg64>(inst) ||
+      std::holds_alternative<CondJump>(inst) ||
+      std::holds_alternative<Return>(inst)) {
+    return std::nullopt;
+  } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
+    return cinst->dst_reg;
+  } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
+    return cinst->dst_reg;
+  } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
+    return cinst->dst_reg;
+  } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
+    return cinst->dst_reg;
+  } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
+    return cinst->dst_reg;
+  } else if (auto* cinst = std::get_if<AddReg32>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<AddReg64>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<SubReg32>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<SubReg64>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<MulReg32>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<MulReg64>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<DivReg32>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<DivReg64>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<ModReg32>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<LtReg64>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
+    return cinst->dst_reg;
+  } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
+    return cinst->dst_reg;
+  } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
+    return cinst->dst_reg;
+  } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
+    return cinst->dst_reg;
+  } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
+    if (cinst->res.has_value()) return cinst->res->reg;
+    return std::nullopt;
+  } else {
+    assert(false && "unhandled instruction type");
+  }
+  return std::nullopt;
+}
 
 }  // namespace lucid

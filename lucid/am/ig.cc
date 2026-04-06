@@ -33,6 +33,17 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
     }
 
     for (const auto& inst : block.instructions | std::views::reverse) {
+      if (auto target_reg = GetTargetRegister(inst); target_reg.has_value()) {
+        for (RegId to : state.live_in) {
+          if (to != *target_reg) {
+            am_ig.Insert(*target_reg, {});
+            am_ig.Find(*target_reg)->Insert(to);
+            am_ig.Insert(to, {});
+            am_ig.Find(to)->Insert(*target_reg);
+          }
+        }
+      }
+
       state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
 
       if (auto* cinst = std::get_if<ModReg32>(&inst)) {
