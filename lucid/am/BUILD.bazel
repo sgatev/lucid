@@ -120,7 +120,6 @@ cc_library(
         ":liveness",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
-        "//lucid/core/container/graph:dominator",
         "//lucid/core/dataflow",
     ],
 )

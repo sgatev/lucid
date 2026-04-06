@@ -16,6 +16,7 @@ State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
   if (std::holds_alternative<PushStack>(inst) ||
       std::holds_alternative<PopStack>(inst) ||
       std::holds_alternative<Label>(inst) ||
+      std::holds_alternative<Jump>(inst) ||
       std::holds_alternative<UncondJump>(inst)) {
     // Nothing to do here.
   } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {

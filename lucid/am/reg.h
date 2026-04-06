@@ -15,7 +15,7 @@ void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
 
 HashMap<RegId, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
-    const HashMap<RegId, HashSet<RegId>>& ig, int colors_count);
+    const HashMap<RegId, HashSet<RegId>>& am_ig, int colors_count);
 
 void MergeRegisters(const HashMap<RegId, int>& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg);

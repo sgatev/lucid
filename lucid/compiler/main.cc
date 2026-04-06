@@ -213,13 +213,8 @@ int HandlePrintAmiCommand(CommandContext ctx) {
       return 1;
     }
     auto cfg = BuildControlFlowGraph(sctx, func_def);
-    if (ctx.flags["ssa"] == "after-init") {
-      ConvertToStaticSingleAssignment(sctx, cfg);
-    } else if (ctx.flags["ssa"] == "after-deinit") {
-      ConvertToStaticSingleAssignment(sctx, cfg);
-      DestroyStaticSingleAssignment(sctx, cfg);
-    }
-
+    ConvertToStaticSingleAssignment(sctx, cfg);
+    DestroyStaticSingleAssignment(sctx, cfg);
     AbstractMachineState state;
     AbstractMachineControlFlowGraph am_cfg =
         GenerateAbstractMachineFunction(sctx, cfg, state);

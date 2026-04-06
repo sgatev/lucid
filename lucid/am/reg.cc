@@ -2,10 +2,10 @@
 
 #include <unistd.h>
 
+#include <algorithm>
 #include <cassert>
 #include <optional>
 #include <ranges>
-#include <stack>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -13,7 +13,6 @@
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/liveness.h"
-#include "lucid/core/container/graph/dominator.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
 #include "lucid/core/container/optional_ref.h"
@@ -296,145 +295,177 @@ void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
 
 HashMap<RegId, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
-    const HashMap<RegId, HashSet<RegId>>& ig, int colors_count) {
-  HashMap<RegId, int> ig_colors;
-
-  std::vector<std::optional<AbstractMachineControlFlowGraph::BlockRef>> idoms =
-      ComputeImmediateDominators(am_cfg);
-
-  HashMap<AbstractMachineControlFlowGraph::BlockRef,
-          HashSet<AbstractMachineControlFlowGraph::BlockRef>>
-      dom_tree = BuildDominatorTree(am_cfg, idoms);
-
-  std::stack<AbstractMachineControlFlowGraph::BlockRef> pending;
-  std::vector<int> visited(VertexCount(am_cfg), 0);
-
-  pending.push(SourceVertex(am_cfg));
-  visited[SourceVertex(am_cfg).id()] = 1;
-
-  while (!pending.empty()) {
-    auto block_ref = pending.top();
-    pending.pop();
-
-    if (visited[block_ref.id()] == 2) {
-      auto& block = am_cfg.get(block_ref);
-      for (const auto& inst : block.instructions | std::views::reverse) {
-        std::optional<RegId> dst_reg;
-        if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
-          dst_reg = cinst->dst_reg;
-        } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
-          dst_reg = cinst->dst_reg;
-        } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
-          dst_reg = cinst->dst_reg;
-        } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
-          dst_reg = cinst->dst_reg;
-        } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
-          dst_reg = cinst->dst_reg;
-        } else if (auto* cinst = std::get_if<AddReg32>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<AddReg64>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<SubReg32>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<SubReg64>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<MulReg32>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<MulReg64>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<DivReg32>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<DivReg64>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<ModReg32>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<LtReg64>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
-          dst_reg = cinst->res_reg;
-        } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
-          dst_reg = cinst->dst_reg;
-        } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
-          dst_reg = cinst->dst_reg;
-        } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
-          dst_reg = cinst->dst_reg;
-        } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
-          dst_reg = cinst->dst_reg;
-        } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-          dst_reg = cinst->res.reg;
-        }
-        if (!dst_reg.has_value()) continue;
-
-        HashSet<int> colors;
-        for (int i = 0; i < colors_count; ++i) colors.Insert(19 + i);
-
-        if (const auto& neighbours = ig.Find(*dst_reg);
-            neighbours.has_value()) {
-          for (const auto& neighbour : *neighbours) {
-            const auto& neighbour_color = ig_colors.Find(neighbour);
-            if (neighbour_color.has_value()) colors.Remove(*neighbour_color);
-          }
-        }
-
-        assert(colors.begin() != colors.end());
-        int min_color = *colors.begin();
-        for (auto color : colors) {
-          if (color < min_color) min_color = color;
-        }
-
-        ig_colors.Insert(*dst_reg, min_color);
-      }
-      if (block_ref == am_cfg.first) {
-        for (auto& param : am_cfg.params) {
-          RegId dst_reg = param.reg;
-
-          HashSet<int> colors;
-          for (int i = 0; i < colors_count; ++i) colors.Insert(19 + i);
-
-          if (const auto& neighbours = ig.Find(dst_reg);
-              neighbours.has_value()) {
-            for (const auto& neighbour : *neighbours) {
-              const auto& neighbour_color = ig_colors.Find(neighbour);
-              if (neighbour_color.has_value()) colors.Remove(*neighbour_color);
-            }
-          }
-
-          assert(colors.begin() != colors.end());
-          int min_color = *colors.begin();
-          for (auto color : colors) {
-            if (color < min_color) min_color = color;
-          }
-
-          ig_colors.Insert(dst_reg, min_color);
-        }
-      }
-    } else {
-      pending.push(block_ref);
-      visited[block_ref.id()] = 2;
-
-      if (dom_tree.Find(block_ref).has_value()) {
-        for (auto next_block : *dom_tree.Find(block_ref)) {
-          if (visited[next_block.id()] != 0) continue;
-
-          pending.push(next_block);
-          visited[next_block.id()] = 1;
-        }
+    const HashMap<RegId, HashSet<RegId>>& am_ig, int colors_count) {
+  std::unordered_map<RegId, int> m;
+  for (const auto& param : am_cfg.params) {
+    m.insert({param.reg, 0});
+  }
+  for (const auto& block : am_cfg.blocks()) {
+    for (const auto& inst : block.instructions) {
+      if (std::holds_alternative<PushStack>(inst) ||
+          std::holds_alternative<PopStack>(inst) ||
+          std::holds_alternative<Label>(inst) ||
+          std::holds_alternative<Jump>(inst) ||
+          std::holds_alternative<UncondJump>(inst)) {
+      } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
+        m.insert({cinst->dst_reg, 0});
+        m.insert({cinst->src_reg, 0});
+      } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
+        m.insert({cinst->dst_reg, 0});
+        m.insert({cinst->src_reg, 0});
+      } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
+        m.insert({cinst->dst_reg, 0});
+      } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
+        m.insert({cinst->dst_reg, 0});
+      } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
+        m.insert({cinst->dst_reg, 0});
+      } else if (auto* cinst = std::get_if<AddReg32>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<AddReg64>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<SubReg32>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<SubReg64>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<MulReg32>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<MulReg64>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<DivReg32>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<DivReg64>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<ModReg32>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<LtReg64>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+        m.insert({cinst->lhs_reg, 0});
+        m.insert({cinst->rhs_reg, 0});
+      } else if (auto* cinst = std::get_if<StoreStack32>(&inst)) {
+        m.insert({cinst->src_reg, 0});
+      } else if (auto* cinst = std::get_if<StoreStackReg32>(&inst)) {
+        m.insert({cinst->src_reg, 0});
+        m.insert({cinst->offset_reg, 0});
+      } else if (auto* cinst = std::get_if<StoreStack64>(&inst)) {
+        m.insert({cinst->src_reg, 0});
+      } else if (auto* cinst = std::get_if<StoreStackReg64>(&inst)) {
+        m.insert({cinst->src_reg, 0});
+        m.insert({cinst->offset_reg, 0});
+      } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
+        m.insert({cinst->dst_reg, 0});
+      } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
+        m.insert({cinst->dst_reg, 0});
+        m.insert({cinst->offset_reg, 0});
+      } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
+        m.insert({cinst->dst_reg, 0});
+      } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
+        m.insert({cinst->dst_reg, 0});
+        m.insert({cinst->offset_reg, 0});
+      } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
+        m.insert({cinst->res.reg, 0});
+        for (const auto& arg : cinst->args) m.insert({arg.reg, 0});
+      } else if (auto* cinst = std::get_if<CondJump>(&inst)) {
+        m.insert({cinst->cond_reg, 0});
+      } else if (auto* cinst = std::get_if<Return>(&inst)) {
+        m.insert({cinst->res_reg, 0});
+      } else {
+        assert(false && "unhandled instruction type");
       }
     }
+  }
+
+  std::vector<RegId> seo;
+  while (!m.empty()) {
+    int max_reg = m.begin()->first;
+    int max_score = m.begin()->second;
+    for (const auto& [reg, score] : m) {
+      if (score >= max_score) {
+        max_reg = reg;
+        max_score = score;
+      }
+    }
+
+    seo.push_back(max_reg);
+    m.erase(max_reg);
+
+    if (const auto& nbs = am_ig.Find(max_reg); nbs.has_value()) {
+      for (const auto& nb : *nbs) {
+        if (!m.contains(nb)) continue;
+
+        m[nb] = m[nb] + 1;
+      }
+    }
+  }
+
+  HashMap<RegId, int> ig_colors;
+  for (RegId reg : seo) {
+    HashSet<int> colors;
+    for (int i = 0; i < colors_count; ++i) colors.Insert(19 + i);
+
+    if (const auto& nbs = am_ig.Find(reg); nbs.has_value()) {
+      for (const auto& nb : *nbs) {
+        const auto& neighbour_color = ig_colors.Find(nb);
+        if (neighbour_color.has_value()) colors.Remove(*neighbour_color);
+      }
+    }
+
+    assert(colors.begin() != colors.end());
+    int min_color = *colors.begin();
+    for (auto color : colors) {
+      if (color < min_color) min_color = color;
+    }
+
+    ig_colors.Insert(reg, min_color);
   }
 
   return ig_colors;
