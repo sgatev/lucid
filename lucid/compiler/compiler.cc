@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "lucid/am/cfg.h"
+#include "lucid/am/ig.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
 #include "lucid/am/translator.h"

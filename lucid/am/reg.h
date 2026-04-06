@@ -13,9 +13,6 @@ namespace lucid {
 void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
                     std::vector<std::size_t>& stack_slots);
 
-HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
-    const AbstractMachineControlFlowGraph& am_cfg);
-
 HashMap<RegId, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
     const HashMap<RegId, HashSet<RegId>>& ig, int colors_count);

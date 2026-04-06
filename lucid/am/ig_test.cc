@@ -1,4 +1,4 @@
-#include "lucid/am/reg.h"
+#include "lucid/am/ig.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

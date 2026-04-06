@@ -294,67 +294,6 @@ void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
   }
 }
 
-HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
-    const AbstractMachineControlFlowGraph& am_cfg) {
-  AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      liveness_block_states = RunBackwardDataflow(am_cfg, liveness_analysis);
-
-  HashMap<RegId, HashSet<RegId>> interference_graph;
-  for (const auto& block : am_cfg.blocks()) {
-    auto maybe_state = liveness_block_states[block.ref.id()];
-    if (!maybe_state.has_value()) continue;
-    auto state = *maybe_state;
-
-    state.live_in = state.live_out;
-
-    for (RegId from : state.live_in) {
-      interference_graph.Insert(from, {});
-      for (RegId to : state.live_in) {
-        if (from == to) continue;
-
-        interference_graph.Find(from)->Insert(to);
-      }
-    }
-    for (const auto& inst : block.instructions | std::views::reverse) {
-      state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
-
-      if (auto* cinst = std::get_if<ModReg32>(&inst)) {
-        interference_graph.Insert(cinst->res_reg, {});
-        interference_graph.Insert(cinst->lhs_reg, {});
-        interference_graph.Insert(cinst->rhs_reg, {});
-
-        interference_graph.Find(cinst->res_reg)->Insert(cinst->lhs_reg);
-        interference_graph.Find(cinst->lhs_reg)->Insert(cinst->res_reg);
-
-        interference_graph.Find(cinst->res_reg)->Insert(cinst->rhs_reg);
-        interference_graph.Find(cinst->rhs_reg)->Insert(cinst->res_reg);
-      } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
-        interference_graph.Insert(cinst->res_reg, {});
-        interference_graph.Insert(cinst->lhs_reg, {});
-        interference_graph.Insert(cinst->rhs_reg, {});
-
-        interference_graph.Find(cinst->res_reg)->Insert(cinst->lhs_reg);
-        interference_graph.Find(cinst->lhs_reg)->Insert(cinst->res_reg);
-
-        interference_graph.Find(cinst->res_reg)->Insert(cinst->rhs_reg);
-        interference_graph.Find(cinst->rhs_reg)->Insert(cinst->res_reg);
-      }
-
-      for (RegId from : state.live_in) {
-        interference_graph.Insert(from, {});
-        for (RegId to : state.live_in) {
-          if (from == to) continue;
-
-          interference_graph.Find(from)->Insert(to);
-        }
-      }
-    }
-  }
-
-  return interference_graph;
-}
-
 HashMap<RegId, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
     const HashMap<RegId, HashSet<RegId>>& ig, int colors_count) {

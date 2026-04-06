@@ -25,6 +25,31 @@ cc_library(
 )
 
 cc_library(
+    name = "ig",
+    srcs = ["ig.cc"],
+    hdrs = ["ig.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":cfg",
+        ":liveness",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
+        "//lucid/core/container/graph:dominator",
+        "//lucid/core/dataflow",
+    ],
+)
+
+cc_test(
+    name = "ig_test",
+    srcs = ["ig_test.cc"],
+    deps = [
+        ":cfg",
+        ":ig",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "instructions",
     hdrs = ["instructions.h"],
     visibility = ["//lucid:__subpackages__"],
@@ -97,17 +122,6 @@ cc_library(
         "//lucid/core/container:hash_set",
         "//lucid/core/container/graph:dominator",
         "//lucid/core/dataflow",
-    ],
-)
-
-cc_test(
-    name = "reg_test",
-    srcs = ["reg_test.cc"],
-    deps = [
-        ":cfg",
-        ":reg",
-        "//lucid/syntax:ast",
-        "@googletest//:gtest_main",
     ],
 )
 
