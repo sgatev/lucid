@@ -1,6 +1,6 @@
 #include "lucid/am/opt.h"
 
-#include <vector>
+#include <list>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -12,7 +12,7 @@ namespace {
 using ::testing::ElementsAre;
 
 TEST(OptimizeAbstractMachineInstructionsTest, RemovesUnnecessaryInstructions) {
-  std::vector<Instruction> instructions = {
+  std::list<Instruction> instructions = {
       MoveReg32{.src_reg = 1, .dst_reg = 2},
       MoveReg32{.src_reg = 3, .dst_reg = 3},
       AddReg32{.res_reg = 1, .lhs_reg = 2, .rhs_reg = 2},

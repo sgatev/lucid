@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <list>
 #include <vector>
 
 #include "lucid/am/instructions.h"
@@ -22,7 +23,7 @@ class AbstractMachineControlFlowGraph {
   // Represents a basic block in the control flow graph.
   struct Block {
     BlockRef ref;
-    std::vector<Instruction> instructions;
+    std::list<Instruction> instructions;
     HashSet<BlockRef> next;
     HashSet<BlockRef> preds;
   };

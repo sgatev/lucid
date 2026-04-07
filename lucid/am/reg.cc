@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <list>
 #include <optional>
 #include <ranges>
 #include <utility>
@@ -70,34 +71,35 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
   HashMap<RegId, std::size_t> reg_stack;
   HashMap<RegId, RegId> reg_rename;
 
-  auto maybe_insert_store32 = [&](std::vector<Instruction>& instructions,
-                                  int& pos, RegId reg) {
+  auto maybe_insert_store32 = [&](std::list<Instruction>& instructions,
+                                  std::list<Instruction>::iterator& pos,
+                                  RegId reg) {
     if (reg != reg_to_spill) return;
 
     ++pos;
-    instructions.insert(instructions.begin() + pos,
-                        StoreStack32{
-                            .offset = stack_slots.size(),
-                            .src_reg = reg,
-                        });
     reg_stack.Insert(reg, stack_slots.size());
+    instructions.insert(pos, StoreStack32{
+                                 .offset = stack_slots.size(),
+                                 .src_reg = reg,
+                             });
     stack_slots.push_back(4);
   };
-  auto maybe_insert_store64 = [&](std::vector<Instruction>& instructions,
-                                  int& pos, RegId reg) {
+  auto maybe_insert_store64 = [&](std::list<Instruction>& instructions,
+                                  std::list<Instruction>::iterator& pos,
+                                  RegId reg) {
     if (reg != reg_to_spill) return;
 
     ++pos;
-    instructions.insert(instructions.begin() + pos,
-                        StoreStack64{
-                            .offset = stack_slots.size(),
-                            .src_reg = reg,
-                        });
     reg_stack.Insert(reg, stack_slots.size());
+    instructions.insert(pos, StoreStack64{
+                                 .offset = stack_slots.size(),
+                                 .src_reg = reg,
+                             });
     stack_slots.push_back(8);
   };
-  auto maybe_insert_load32 = [&](std::vector<Instruction>& instructions,
-                                 int& pos, RegId& reg) {
+  auto maybe_insert_load32 = [&](std::list<Instruction>& instructions,
+                                 std::list<Instruction>::iterator& pos,
+                                 RegId& reg) {
     if (reg != reg_to_spill) return;
 
     RegId old_reg = reg;
@@ -107,14 +109,15 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     auto offset = reg_stack.Find(old_reg);
     if (!offset.has_value()) return;
 
-    instructions.insert(instructions.begin() + pos, LoadStack32{
-                                                        .offset = *offset,
-                                                        .dst_reg = reg,
-                                                    });
+    instructions.insert(pos, LoadStack32{
+                                 .offset = *offset,
+                                 .dst_reg = reg,
+                             });
     ++pos;
   };
-  auto maybe_insert_load64 = [&](std::vector<Instruction>& instructions,
-                                 int& pos, RegId& reg) {
+  auto maybe_insert_load64 = [&](std::list<Instruction>& instructions,
+                                 std::list<Instruction>::iterator& pos,
+                                 RegId& reg) {
     if (reg != reg_to_spill) return;
 
     RegId old_reg = reg;
@@ -124,10 +127,10 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     auto offset = reg_stack.Find(old_reg);
     if (!offset.has_value()) return;
 
-    instructions.insert(instructions.begin() + pos, LoadStack64{
-                                                        .offset = *offset,
-                                                        .dst_reg = reg,
-                                                    });
+    instructions.insert(pos, LoadStack64{
+                                 .offset = *offset,
+                                 .dst_reg = reg,
+                             });
     ++pos;
   };
 
@@ -140,14 +143,14 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
   for (const auto& block_ref : block_refs) {
     auto& block = am_cfg.get(block_ref);
 
-    int i = 0;
+    auto i = block.instructions.begin();
     if (block_ref == am_cfg.first) {
       for (auto& param : am_cfg.params) {
         maybe_insert_store32(block.instructions, i, param.reg);
       }
     }
-    while (i < block.instructions.size()) {
-      auto& inst = block.instructions[i];
+    while (i != block.instructions.end()) {
+      auto& inst = *i;
 
       if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
         maybe_insert_load32(block.instructions, i, cinst->src_reg);

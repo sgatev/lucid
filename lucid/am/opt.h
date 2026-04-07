@@ -1,13 +1,12 @@
 #pragma once
 
-#include <vector>
+#include <list>
 
 #include "lucid/am/instructions.h"
 
 namespace lucid {
 
 // Optimizes `instructions` for efficiency.
-void OptimizeAbstractMachineInstructions(
-    std::vector<Instruction>& instructions);
+void OptimizeAbstractMachineInstructions(std::list<Instruction>& instructions);
 
 }  // namespace lucid

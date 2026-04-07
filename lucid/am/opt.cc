@@ -1,28 +1,27 @@
 #include "lucid/am/opt.h"
 
 #include <cstddef>
+#include <list>
 #include <variant>
-#include <vector>
 
 #include "lucid/am/instructions.h"
 
 namespace lucid {
 namespace {
 
-void RemoveUnnecessaryInstructions(std::vector<Instruction>& instructions) {
-  for (std::size_t i = 0; i < instructions.size(); ++i) {
+void RemoveUnnecessaryInstructions(std::list<Instruction>& instructions) {
+  for (auto& inst : instructions) {
     // Remove MoveReg32 where src and dst registrars are the same.
-    auto* inst = std::get_if<MoveReg32>(&instructions[i]);
-    if (inst == nullptr) continue;
-    if (inst->src_reg != inst->dst_reg) continue;
-    instructions[i] = Nop{};
+    auto* cinst = std::get_if<MoveReg32>(&inst);
+    if (cinst == nullptr) continue;
+    if (cinst->src_reg != cinst->dst_reg) continue;
+    inst = Nop{};
   }
 }
 
 }  // namespace
 
-void OptimizeAbstractMachineInstructions(
-    std::vector<Instruction>& instructions) {
+void OptimizeAbstractMachineInstructions(std::list<Instruction>& instructions) {
   RemoveUnnecessaryInstructions(instructions);
 }
 
