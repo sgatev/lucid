@@ -80,20 +80,35 @@ class AbstractMachineFunctionGenerator {
         const auto& param_type =
             std::get<BasicType>(ctx_.DerefType(param.type_constraint));
         std::string_view param_type_name = ctx_.DerefIdent(param_type.name);
-        if (param_type_name == "Int32") {
-          RegId reg = next_reg_++;
-          var_to_reg_[param.name] = reg;
-          am_cfg_.params.push_back({.bits = 32, .reg = reg});
+        if (param_type_name == "Int32" || param_type_name == "Bool") {
+          am_cfg_.params.push_back({.bits = 32, .reg = GetVarReg(param.name)});
         } else if (param_type_name == "Int64" || param_type_name == "String") {
-          RegId reg = next_reg_++;
-          var_to_reg_[param.name] = reg;
-          am_cfg_.params.push_back({.bits = 64, .reg = reg});
+          am_cfg_.params.push_back({.bits = 64, .reg = GetVarReg(param.name)});
         }
       }
     }
 
     for (const auto& block : scfg_.blocks()) {
       Process(block, am_cfg_.get(graph_map_[block.ref]));
+    }
+    for (const auto& block : scfg_.blocks()) {
+      auto& am_block = am_cfg_.get(graph_map_[block.ref]);
+      for (const auto& phi : block.phis) {
+        auto phi_type =
+            std::get<BasicType>(ctx_.DerefType(phi.type_constraint));
+        std::string_view phi_type_name = ctx_.DerefIdent(phi_type.name);
+
+        auto& am_phi = am_block.phis.emplace_back();
+        if (phi_type_name == "Int32" || phi_type_name == "Bool") {
+          am_phi.bits = 32;
+        } else {
+          am_phi.bits = 64;
+        }
+        am_phi.target = GetVarReg(phi.name);
+        for (const auto& arg : phi.args) {
+          am_phi.sources.push_back(GetVarReg(arg));
+        }
+      }
     }
 
     {
@@ -133,10 +148,10 @@ class AbstractMachineFunctionGenerator {
       });
     }
     for (const auto& next : block.next) {
-      am_block.next.Insert(graph_map_[next]);
+      am_block.next.push_back(graph_map_[next]);
     }
     for (const auto& pred : block.preds) {
-      am_block.preds.Insert(graph_map_[pred]);
+      am_block.preds.push_back(graph_map_[pred]);
     }
   }
 
@@ -199,7 +214,7 @@ class AbstractMachineFunctionGenerator {
       const auto& arg_expr = ctx_.DerefExpr(arg);
       auto arg_type = std::get<BasicType>(ctx_.DerefType(GetType(arg_expr)));
       std::string_view arg_type_name = ctx_.DerefIdent(arg_type.name);
-      if (arg_type_name == "Int32") {
+      if (arg_type_name == "Int32" || arg_type_name == "Bool") {
         func_call.args.push_back(FuncCall::Slot{
             .reg = expr_and_stmt_to_reg_[arg.id()],
             .bits = 32,
@@ -236,12 +251,12 @@ class AbstractMachineFunctionGenerator {
     RegId reg = next_reg_++;
     if (expr_type_name == "Int32" || expr_type_name == "Bool") {
       am_block.instructions.push_back(MoveReg32{
-          .src_reg = var_to_reg_[expr.name],
+          .src_reg = GetVarReg(expr.name),
           .dst_reg = reg,
       });
     } else if (expr_type_name == "Int64") {
       am_block.instructions.push_back(MoveReg64{
-          .src_reg = var_to_reg_[expr.name],
+          .src_reg = GetVarReg(expr.name),
           .dst_reg = reg,
       });
     }
@@ -491,12 +506,12 @@ class AbstractMachineFunctionGenerator {
     if (expr_type_name == "Int32" || expr_type_name == "Bool") {
       am_block.instructions.push_back(MoveReg32{
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
-          .dst_reg = var_to_reg_[stmt.name],
+          .dst_reg = GetVarReg(stmt.name),
       });
     } else if (expr_type_name == "Int64") {
       am_block.instructions.push_back(MoveReg64{
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
-          .dst_reg = var_to_reg_[stmt.name],
+          .dst_reg = GetVarReg(stmt.name),
       });
     }
   }
@@ -528,19 +543,16 @@ class AbstractMachineFunctionGenerator {
 
     if (!stmt.init.has_value()) return;
 
-    RegId reg = next_reg_++;
     if (stmt_type_name == "Int32" || stmt_type_name == "Bool") {
       am_block.instructions.push_back(MoveReg32{
           .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
-          .dst_reg = reg,
+          .dst_reg = GetVarReg(stmt.name),
       });
-      var_to_reg_[stmt.name] = reg;
     } else if (stmt_type_name == "Int64") {
       am_block.instructions.push_back(MoveReg64{
           .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
-          .dst_reg = reg,
+          .dst_reg = GetVarReg(stmt.name),
       });
-      var_to_reg_[stmt.name] = reg;
     }
   }
 
@@ -621,6 +633,15 @@ class AbstractMachineFunctionGenerator {
     std::size_t offset = 0;
     for (int i = 0; i < pos; ++i) offset += state_.stack_slots[i];
     return offset;
+  }
+
+  RegId GetVarReg(StringIndex::Ref var_name) {
+    auto it = var_to_reg_.find(var_name);
+    if (it != var_to_reg_.end()) return it->second;
+
+    RegId reg = next_reg_++;
+    var_to_reg_[var_name] = reg;
+    return reg;
   }
 
   const SyntaxContext& ctx_;

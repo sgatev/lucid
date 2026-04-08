@@ -426,6 +426,10 @@ HashMap<RegId, int> ColorInterferenceGraph(
       } else {
         assert(false && "unhandled instruction type");
       }
+      for (const auto& phi : block.phis) {
+        reg_scores.Insert(phi.target, 0);
+        for (const auto& source : phi.sources) reg_scores.Insert(source, 0);
+      }
     }
   }
 
@@ -601,6 +605,10 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
       } else if (auto* cinst = std::get_if<Return>(&inst)) {
         UpdateRegister(reg_colors, cinst->res_reg);
       }
+    }
+    for (auto& phi : block.phis) {
+      UpdateRegister(reg_colors, phi.target);
+      for (auto& source : phi.sources) UpdateRegister(reg_colors, source);
     }
   }
 }

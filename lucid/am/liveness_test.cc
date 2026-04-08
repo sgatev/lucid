@@ -23,8 +23,8 @@ class GraphBuilder {
 
   void edge(AbstractMachineControlFlowGraph::BlockRef from,
             AbstractMachineControlFlowGraph::BlockRef to) {
-    am_cfg.get(from).next.Insert(to);
-    am_cfg.get(to).preds.Insert(from);
+    am_cfg.get(from).next.push_back(to);
+    am_cfg.get(to).preds.push_back(from);
   }
 
   void inst(AbstractMachineControlFlowGraph::BlockRef ref, Instruction inst) {

@@ -169,6 +169,24 @@ TEST_F(CompilerTest, IfStmtElseBranch) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
 }
 
+TEST_F(CompilerTest, IfStmtBothBranches) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let foo = (b: Bool, n: Int32) -> Int32 {
+      if b {
+        n = n + 1
+      } else {
+        n = n + 2
+      }
+      return n
+    }
+
+    let main = () -> Int32 {
+      return foo(true, 2) + foo(false, 3)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(8));
+}
+
 TEST_F(CompilerTest, GtInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {

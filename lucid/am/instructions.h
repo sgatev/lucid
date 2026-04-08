@@ -583,7 +583,7 @@ struct StoreStackReg32 {
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const StoreStackReg32& inst) {
-    return os << "StoreStackReg32 { .offset=" << inst.offset_reg
+    return os << "StoreStackReg32 { .offset=" << inst.offset
               << ", .offset_reg=" << inst.offset_reg
               << ", .src_reg=" << inst.src_reg << " }";
   }
@@ -621,7 +621,7 @@ struct StoreStackReg64 {
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const StoreStackReg64& inst) {
-    return os << "StoreStackReg64 { .offset=" << inst.offset_reg
+    return os << "StoreStackReg64 { .offset=" << inst.offset
               << ", .offset_reg=" << inst.offset_reg
               << ", .src_reg=" << inst.src_reg << " }";
   }
@@ -659,7 +659,7 @@ struct LoadStackReg32 {
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const LoadStackReg32& inst) {
-    return os << "LoadStackReg32 { .offset=" << inst.offset_reg
+    return os << "LoadStackReg32 { .offset=" << inst.offset
               << ", .offset_reg=" << inst.offset_reg
               << ", .dst_reg=" << inst.dst_reg << " }";
   }

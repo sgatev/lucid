@@ -28,9 +28,14 @@ AbstractMachineLivenessAnalysis::AbstractMachineLivenessAnalysis(
 State AbstractMachineLivenessAnalysis::MakeInitial() { return {}; }
 
 State AbstractMachineLivenessAnalysis::Transfer(
-    State state, const AbstractMachineControlFlowGraph::BlockRef& block) {
-  for (auto inst : am_cfg_.get(block).instructions | std::views::reverse) {
+    State state, const AbstractMachineControlFlowGraph::BlockRef& block_ref) {
+  const auto& block = am_cfg_.get(block_ref);
+  for (auto inst : block.instructions | std::views::reverse) {
     state = Transfer(std::move(state), inst);
+  }
+  for (const auto& phi : block.phis) {
+    state.live_in.Remove(phi.target);
+    for (const auto& source : phi.sources) state.live_in.Insert(source);
   }
   return state;
 }

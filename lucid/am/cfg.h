@@ -20,12 +20,19 @@ class AbstractMachineControlFlowGraph {
   // A null block reference.
   static constexpr BlockRef kNullBlockRef = Arena<Block>::kNullRef;
 
+  struct Phi {
+    int bits;
+    RegId target;
+    std::vector<RegId> sources;
+  };
+
   // Represents a basic block in the control flow graph.
   struct Block {
     BlockRef ref;
     std::list<Instruction> instructions;
-    HashSet<BlockRef> next;
-    HashSet<BlockRef> preds;
+    std::vector<BlockRef> next;
+    std::vector<BlockRef> preds;
+    std::vector<Phi> phis;
   };
 
   // Adds a new block to the control flow graph.

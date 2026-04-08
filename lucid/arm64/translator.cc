@@ -59,37 +59,55 @@ class Arm64BinaryGenerator {
 
  private:
   void Process(const AbstractMachineControlFlowGraph::Block& block) {
-    for (const auto& inst : block.instructions) Process(inst);
+    for (const auto& inst : block.instructions) Process(block, inst);
   }
 
-  void Process(const Instruction& inst) {
-    std::visit([this](auto&& inst) { Process(inst); }, inst);
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const Instruction& inst) {
+    std::visit([&](auto&& inst) { Process(block, inst); }, inst);
   }
 
-  void Process(const Nop&) {}
+  void Process(const AbstractMachineControlFlowGraph::Phi& phi, int i) {
+    if (phi.bits == 32) {
+      assembler_.Mov(W(15), W(phi.sources[i]));
+      assembler_.Mov(W(phi.target), W(15));
+    } else if (phi.bits == 64) {
+      assembler_.Mov(X(15), X(phi.sources[i]));
+      assembler_.Mov(X(phi.target), X(15));
+    }
+  }
 
-  void Process(const MoveReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const Nop&) {}
+
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const MoveReg32& inst) {
     assembler_.Mov(W(inst.dst_reg), W(inst.src_reg));
   }
 
-  void Process(const MoveReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const MoveReg64& inst) {
     assembler_.Mov(X(inst.dst_reg), X(inst.src_reg));
   }
 
-  void Process(const SetReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const SetReg32& inst) {
     assembler_.Mov(W(inst.dst_reg), ParseImm(inst.src_val));
   }
 
-  void Process(const SetReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const SetReg64& inst) {
     assembler_.Mov(X(inst.dst_reg), ParseImm(inst.src_val));
   }
 
-  void Process(const SetStr& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const SetStr& inst) {
     std::string label = "str" + std::to_string(inst.src_val);
     assembler_.Adr(X(inst.dst_reg), label);
   }
 
-  void Process(const Return& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const Return& inst) {
     assembler_.Mov(W(0), W(inst.res_reg));
 
     for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
@@ -103,115 +121,183 @@ class Arm64BinaryGenerator {
     assembler_.Ret();
   }
 
-  void Process(const Jump& inst) { assembler_.Bl(inst.label); }
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const Jump& inst) {
+    assembler_.Bl(inst.label);
+  }
 
-  void Process(const UncondJump& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const UncondJump& inst) {
+    std::string phi_label = std::string(func_name_) +
+                            std::to_string(block.ref.id()) + "_" +
+                            std::to_string(inst.label) + "_phi";
+    assembler_.B(phi_label);
+
+    assembler_.Label(phi_label);
+    for (const auto& phi : am_cfg_.get(inst.label).phis) {
+      int idx;
+      for (int i = 0; i < am_cfg_.get(inst.label).preds.size(); ++i) {
+        if (am_cfg_.get(inst.label).preds[i] == block.ref) {
+          idx = i;
+        }
+      }
+      Process(phi, idx);
+    }
     std::string label = std::string(func_name_) + std::to_string(inst.label);
     assembler_.B(label);
   }
 
-  void Process(const CondJump& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const CondJump& inst) {
     assembler_.Cmp(W(inst.cond_reg), Imm(0));
 
+    std::string else_label_phi =
+        std::string(func_name_) + std::to_string(inst.else_label) + "_phi";
+    assembler_.B(Cond::Eq, else_label_phi);
+
+    std::string then_label_phi =
+        std::string(func_name_) + std::to_string(inst.then_label) + "_phi";
+    assembler_.B(then_label_phi);
+
+    assembler_.Label(else_label_phi);
     std::string else_label =
         std::string(func_name_) + std::to_string(inst.else_label);
-    assembler_.B(Cond::Eq, else_label);
+    for (const auto& phi : am_cfg_.get(inst.else_label).phis) {
+      int idx;
+      for (int i = 0; i < am_cfg_.get(inst.else_label).preds.size(); ++i) {
+        if (am_cfg_.get(inst.else_label).preds[i] == block.ref) {
+          idx = i;
+        }
+      }
+      Process(phi, idx);
+    }
+    assembler_.B(else_label);
 
+    assembler_.Label(then_label_phi);
     std::string then_label =
         std::string(func_name_) + std::to_string(inst.then_label);
+    for (const auto& phi : am_cfg_.get(inst.then_label).phis) {
+      int idx;
+      for (int i = 0; i < am_cfg_.get(inst.then_label).preds.size(); ++i) {
+        if (am_cfg_.get(inst.then_label).preds[i] == block.ref) {
+          idx = i;
+        }
+      }
+      Process(phi, idx);
+    }
     assembler_.B(then_label);
   }
 
-  void Process(const Label& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const Label& inst) {
     std::string label = std::string(func_name_) + std::to_string(inst.id);
     assembler_.Label(label);
   }
 
-  void Process(const AddReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const AddReg32& inst) {
     assembler_.Add(W(inst.res_reg), W(inst.lhs_reg), W(inst.rhs_reg));
   }
 
-  void Process(const AddReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const AddReg64& inst) {
     assembler_.Add(X(inst.res_reg), X(inst.lhs_reg), X(inst.rhs_reg));
   }
 
-  void Process(const SubReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const SubReg32& inst) {
     assembler_.Sub(W(inst.res_reg), W(inst.lhs_reg), W(inst.rhs_reg));
   }
 
-  void Process(const SubReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const SubReg64& inst) {
     assembler_.Sub(X(inst.res_reg), X(inst.lhs_reg), X(inst.rhs_reg));
   }
 
-  void Process(const MulReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const MulReg32& inst) {
     assembler_.Mul(W(inst.res_reg), W(inst.lhs_reg), W(inst.rhs_reg));
   }
 
-  void Process(const MulReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const MulReg64& inst) {
     assembler_.Mul(X(inst.res_reg), X(inst.lhs_reg), X(inst.rhs_reg));
   }
 
-  void Process(const DivReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const DivReg32& inst) {
     assembler_.Udiv(W(inst.res_reg), W(inst.lhs_reg), W(inst.rhs_reg));
   }
 
-  void Process(const DivReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const DivReg64& inst) {
     assembler_.Udiv(X(inst.res_reg), X(inst.lhs_reg), X(inst.rhs_reg));
   }
 
-  void Process(const ModReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const ModReg32& inst) {
     assembler_.Udiv(W(inst.res_reg), W(inst.lhs_reg), W(inst.rhs_reg));
     assembler_.Msub(W(inst.res_reg), W(inst.res_reg), W(inst.rhs_reg),
                     W(inst.lhs_reg));
   }
 
-  void Process(const ModReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const ModReg64& inst) {
     assembler_.Udiv(X(inst.res_reg), X(inst.lhs_reg), X(inst.rhs_reg));
     assembler_.Msub(X(inst.res_reg), X(inst.res_reg), X(inst.rhs_reg),
                     X(inst.lhs_reg));
   }
 
-  void Process(const GtReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const GtReg32& inst) {
     assembler_.Cmp(W(inst.lhs_reg), W(inst.rhs_reg));
     assembler_.Cset(W(inst.res_reg), InvCond::Gt);
   }
 
-  void Process(const GtReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const GtReg64& inst) {
     assembler_.Cmp(X(inst.lhs_reg), X(inst.rhs_reg));
     assembler_.Cset(X(inst.res_reg), InvCond::Gt);
   }
 
-  void Process(const LtReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const LtReg32& inst) {
     assembler_.Cmp(W(inst.lhs_reg), W(inst.rhs_reg));
     assembler_.Cset(W(inst.res_reg), InvCond::Lt);
   }
 
-  void Process(const LtReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const LtReg64& inst) {
     assembler_.Cmp(X(inst.lhs_reg), X(inst.rhs_reg));
     assembler_.Cset(X(inst.res_reg), InvCond::Lt);
   }
 
-  void Process(const EqReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const EqReg32& inst) {
     assembler_.Cmp(W(inst.lhs_reg), W(inst.rhs_reg));
     assembler_.Cset(W(inst.res_reg), InvCond::Eq);
   }
 
-  void Process(const EqReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const EqReg64& inst) {
     assembler_.Cmp(X(inst.lhs_reg), X(inst.rhs_reg));
     assembler_.Cset(X(inst.res_reg), InvCond::Eq);
   }
 
-  void Process(const NotEqReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const NotEqReg32& inst) {
     assembler_.Cmp(W(inst.lhs_reg), W(inst.rhs_reg));
     assembler_.Cset(W(inst.res_reg), InvCond::Ne);
   }
 
-  void Process(const NotEqReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const NotEqReg64& inst) {
     assembler_.Cmp(X(inst.lhs_reg), X(inst.rhs_reg));
     assembler_.Cset(X(inst.res_reg), InvCond::Ne);
   }
 
-  void Process(const PushStack& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const PushStack& inst) {
     assembler_.Sub(SP, SP, Imm(stack_size_));
 
     for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
@@ -229,56 +315,66 @@ class Arm64BinaryGenerator {
     }
   }
 
-  void Process(const PopStack& inst) {}
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const PopStack& inst) {}
 
-  void Process(const StoreStack32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const StoreStack32& inst) {
     assembler_.StrUnsignedOffset(W(inst.src_reg), SP,
                                  Imm(AdjustedOffset(inst.offset)));
   }
 
-  void Process(const StoreStackReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const StoreStackReg32& inst) {
     assembler_.Add(W(inst.offset_reg), W(inst.offset_reg),
                    Imm(AdjustedOffset(inst.offset)));
     assembler_.Str(W(inst.src_reg), SP, W(inst.offset_reg), Extend::Uxtw,
                    Imm(0));
   }
 
-  void Process(const StoreStack64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const StoreStack64& inst) {
     assembler_.StrUnsignedOffset(X(inst.src_reg), SP,
                                  Imm(AdjustedOffset(inst.offset)));
   }
 
-  void Process(const StoreStackReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const StoreStackReg64& inst) {
     assembler_.Add(X(inst.offset_reg), X(inst.offset_reg),
                    Imm(AdjustedOffset(inst.offset)));
     assembler_.Str(X(inst.src_reg), SP, X(inst.offset_reg), Extend::Lsl,
                    Imm(0));
   }
 
-  void Process(const LoadStack32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const LoadStack32& inst) {
     assembler_.LdrUnsignedOffset(W(inst.dst_reg), SP,
                                  Imm(AdjustedOffset(inst.offset)));
   }
 
-  void Process(const LoadStackReg32& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const LoadStackReg32& inst) {
     assembler_.Add(W(inst.offset_reg), W(inst.offset_reg),
                    Imm(AdjustedOffset(inst.offset)));
     assembler_.Ldr(W(inst.dst_reg), SP, W(inst.offset_reg), Extend::Uxtw);
   }
 
-  void Process(const LoadStack64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const LoadStack64& inst) {
     assembler_.LdrUnsignedOffset(X(inst.dst_reg), SP,
                                  Imm(AdjustedOffset(inst.offset)));
   }
 
-  void Process(const LoadStackReg64& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const LoadStackReg64& inst) {
     assembler_.Add(X(inst.offset_reg), X(inst.offset_reg),
                    Imm(AdjustedOffset(inst.offset)));
     assembler_.Ldr(X(inst.dst_reg), SP, X(inst.offset_reg), Extend::Lsl,
                    Imm(0));
   }
 
-  void Process(const FuncCall& inst) {
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const FuncCall& inst) {
     for (int i = 0; i < inst.args.size(); ++i) {
       if (inst.args[i].bits == 32) {
         assembler_.Mov(W(i + 1), W(inst.args[i].reg));

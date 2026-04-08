@@ -49,7 +49,6 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
     }
     SyntaxControlFlowGraph scfg = BuildControlFlowGraph(ctx, func);
     ConvertToStaticSingleAssignment(ctx, scfg);
-    DestroyStaticSingleAssignment(ctx, scfg);
     AbstractMachineControlFlowGraph am_cfg =
         GenerateAbstractMachineFunction(ctx, scfg, *state);
     for (auto& block : am_cfg.blocks()) {

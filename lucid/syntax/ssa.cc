@@ -178,45 +178,4 @@ void ConvertToStaticSingleAssignment(SyntaxContext& ctx,
   RenameVariables(ctx, scfg);
 }
 
-void DestroyStaticSingleAssignment(SyntaxContext& ctx,
-                                   SyntaxControlFlowGraph& scfg) {
-  const std::vector<std::optional<BlockRef>> idoms =
-      ComputeImmediateDominators(scfg);
-
-  for (auto& block : scfg.blocks()) {
-    if (block.phis.empty()) continue;
-
-    assert(idoms[block.ref.id()].has_value());
-    auto& dom = scfg.get(*idoms[block.ref.id()]);
-    for (const auto& phi : block.phis) {
-      auto& seq = dom.sequences.emplace_back();
-      auto init_expr = IntLitExpr{.value = ctx.AddIdent("0")};
-      init_expr.type = phi.type_constraint;
-      auto init_expr_ref = ctx.Add(init_expr);
-      seq.expressions.push_back(init_expr_ref);
-      seq.stmt = ctx.Add(VarDeclStmt{
-          .name = phi.name,
-          .type_constraint = phi.type_constraint,
-          .init = init_expr_ref,
-      });
-
-      for (int i = 0; i < block.preds.size(); ++i) {
-        auto& pred = scfg.get(block.preds[i]);
-        auto& seq = pred.sequences.emplace_back();
-        auto assign_expr = IdentExpr{
-            .name = phi.args[i],
-        };
-        assign_expr.type = phi.type_constraint;
-        auto assign_expr_ref = ctx.Add(assign_expr);
-        seq.expressions.push_back(assign_expr_ref);
-        seq.stmt = ctx.Add(VarAssignStmt{
-            .name = phi.name,
-            .expr = assign_expr_ref,
-        });
-      }
-    }
-    block.phis.clear();
-  }
-}
-
 }  // namespace lucid

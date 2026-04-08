@@ -31,12 +31,21 @@ void Print(std::string_view func_name,
     std::cout << ")\n";
   });
   for (const auto& block : am_cfg.blocks()) {
+    Blue([&] { std::cout << "B" << block.ref.id() << ":\n"; });
+    for (const auto& phi : block.phis) {
+      std::cout << "  " << "φ(" << phi.target << ") = (";
+      for (bool has_printed_source = false; const auto& source : phi.sources) {
+        if (has_printed_source) std::cout << ", ";
+        std::cout << source;
+        has_printed_source = true;
+      }
+      std::cout << ")" << "\n";
+    }
     for (const auto& inst : block.instructions) {
       std::visit(
           [](const auto& inst) {
             using T = std::decay_t<decltype(inst)>;
             if constexpr (std::is_same_v<T, Label>) {
-              Blue([&] { std::cout << inst << "\n"; });
             } else {
               std::cout << "  " << inst << "\n";
             }

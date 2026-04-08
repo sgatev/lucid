@@ -766,29 +766,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                               .else_label = 2,
                                           },
                                           Label{
-                                              .id = 2,
-                                          },
-                                          SetReg32{
-                                              .src_val = "4",
-                                              .dst_reg = 3,
-                                          },
-                                          SetReg32{
-                                              .src_val = "5",
-                                              .dst_reg = 4,
-                                          },
-                                          MulReg32{
-                                              .res_reg = 5,
-                                              .lhs_reg = 3,
-                                              .rhs_reg = 4,
-                                          },
-                                          MoveReg32{
-                                              .src_reg = 5,
-                                              .dst_reg = 1,
-                                          },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
-                                          Label{
                                               .id = 3,
                                           },
                                           SetReg32{
@@ -806,6 +783,29 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           },
                                           MoveReg32{
                                               .src_reg = 8,
+                                              .dst_reg = 1,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 2,
+                                          },
+                                          SetReg32{
+                                              .src_val = "4",
+                                              .dst_reg = 3,
+                                          },
+                                          SetReg32{
+                                              .src_val = "5",
+                                              .dst_reg = 4,
+                                          },
+                                          MulReg32{
+                                              .res_reg = 5,
+                                              .lhs_reg = 3,
+                                              .rhs_reg = 4,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 5,
                                               .dst_reg = 1,
                                           },
                                           UncondJump{
@@ -863,29 +863,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                               .else_label = 4,
                                           },
                                           Label{
-                                              .id = 4,
-                                          },
-                                          SetReg32{
-                                              .src_val = "4",
-                                              .dst_reg = 6,
-                                          },
-                                          SetReg32{
-                                              .src_val = "5",
-                                              .dst_reg = 7,
-                                          },
-                                          MulReg32{
-                                              .res_reg = 8,
-                                              .lhs_reg = 6,
-                                              .rhs_reg = 7,
-                                          },
-                                          MoveReg32{
-                                              .src_reg = 8,
-                                              .dst_reg = 1,
-                                          },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
-                                          Label{
                                               .id = 3,
                                           },
                                           SetReg32{
@@ -903,6 +880,29 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           },
                                           MoveReg32{
                                               .src_reg = 5,
+                                              .dst_reg = 1,
+                                          },
+                                          UncondJump{
+                                              .label = 1,
+                                          },
+                                          Label{
+                                              .id = 4,
+                                          },
+                                          SetReg32{
+                                              .src_val = "4",
+                                              .dst_reg = 6,
+                                          },
+                                          SetReg32{
+                                              .src_val = "5",
+                                              .dst_reg = 7,
+                                          },
+                                          MulReg32{
+                                              .res_reg = 8,
+                                              .lhs_reg = 6,
+                                              .rhs_reg = 7,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 8,
                                               .dst_reg = 1,
                                           },
                                           UncondJump{
@@ -1889,29 +1889,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .else_label = 4,
                                           },
                                           Label{
-                                              .id = 4,
-                                          },
-                                          MoveReg32{
-                                              .src_reg = 3,
-                                              .dst_reg = 8,
-                                          },
-                                          SetReg32{
-                                              .src_val = "1",
-                                              .dst_reg = 9,
-                                          },
-                                          AddReg32{
-                                              .res_reg = 10,
-                                              .lhs_reg = 8,
-                                              .rhs_reg = 9,
-                                          },
-                                          MoveReg32{
-                                              .src_reg = 10,
-                                              .dst_reg = 3,
-                                          },
-                                          UncondJump{
-                                              .label = 3,
-                                          },
-                                          Label{
                                               .id = 5,
                                           },
                                           UncondJump{
@@ -1937,6 +1914,29 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           PopStack{},
                                           Return{
                                               .res_reg = 1,
+                                          },
+                                          Label{
+                                              .id = 4,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 3,
+                                              .dst_reg = 8,
+                                          },
+                                          SetReg32{
+                                              .src_val = "1",
+                                              .dst_reg = 9,
+                                          },
+                                          AddReg32{
+                                              .res_reg = 10,
+                                              .lhs_reg = 8,
+                                              .rhs_reg = 9,
+                                          },
+                                          MoveReg32{
+                                              .src_reg = 10,
+                                              .dst_reg = 3,
+                                          },
+                                          UncondJump{
+                                              .label = 3,
                                           }));
 }
 

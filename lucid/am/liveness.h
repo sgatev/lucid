@@ -27,7 +27,7 @@ class AbstractMachineLivenessAnalysis {
   State MakeInitial();
 
   State Transfer(State state,
-                 const AbstractMachineControlFlowGraph::BlockRef& block);
+                 const AbstractMachineControlFlowGraph::BlockRef& block_ref);
 
   State Join(State left, State right);
 
