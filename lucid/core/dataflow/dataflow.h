@@ -54,6 +54,43 @@ class VertexDomain {
   std::size_t vertex_count_;
 };
 
+// Performs forward dataflow analysis over a graph.
+//
+// Returns a mapping from vertex IDs to dataflow analysis states that model the
+// respective vertices. The returned vector will have the same size as the
+// number of vertices in the graph, with indices corresponding to vertex IDs.
+template <Graph GraphT, DataflowAnalysis<GraphT> AnalysisT>
+std::vector<std::optional<typename AnalysisT::State>> RunForwardDataflow(
+    const GraphT& graph, AnalysisT& analysis) {
+  using State = typename AnalysisT::State;
+
+  std::vector<std::optional<State>> states(VertexCount(graph));
+  auto has_state = [&](auto ref) {
+    return states[VertexId(graph, ref)].has_value();
+  };
+  auto to_state = [&](auto ref) { return *states[VertexId(graph, ref)]; };
+
+  Worklist<typename GraphT::vertex_type, VertexDomain<GraphT>,
+           CompareVertexOrder<GraphT>>
+      worklist(VertexDomain(graph), CompareVertexOrder<GraphT>(
+                                        graph, ComputeReversePostOrder(graph)));
+  worklist.push(SourceVertex(graph));
+  while (!worklist.empty()) {
+    typename GraphT::vertex_type vertex = worklist.pop();
+    State prior_state = std::ranges::fold_left(
+        PrevVertices(graph, vertex) | std::views::filter(has_state) |
+            std::views::transform(to_state),
+        analysis.MakeInitial(), std::bind_front(&AnalysisT::Join, &analysis));
+    State new_state = analysis.Transfer(std::move(prior_state), vertex);
+    if (auto& state = states[VertexId(graph, vertex)]; new_state != state) {
+      state = std::move(new_state);
+      worklist.push_range(NextVertices(graph, vertex));
+    }
+  }
+
+  return states;
+}
+
 // Performs backward dataflow analysis over a graph.
 //
 // Returns a mapping from vertex IDs to dataflow analysis states that model the

@@ -45,6 +45,96 @@ class TestResultUnionAnalysis {
  private:
 };
 
+TEST(RunForwardDataflowTest, Simple) {
+  TestGraph g;
+  g.SetSource('A');
+  g.SetSink('W');
+  g.AddEdge('A', 'W');
+
+  TestResultUnionAnalysis a;
+  std::vector<std::optional<TestResultUnionAnalysis::State>> vertex_states =
+      RunForwardDataflow(g, a);
+
+  ASSERT_THAT(vertex_states, SizeIs(2));
+
+  EXPECT_THAT(vertex_states[/* A */ 0],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A'))));
+
+  EXPECT_THAT(vertex_states[/* W */ 1],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A', 'W'))));
+}
+
+TEST(RunForwardDataflowTest, DiamondBranch) {
+  TestGraph g;
+  g.SetSource('A');
+  g.SetSink('W');
+  g.AddEdge('A', 'B');
+  g.AddEdge('A', 'C');
+  g.AddEdge('B', 'W');
+  g.AddEdge('C', 'W');
+
+  TestResultUnionAnalysis a;
+  std::vector<std::optional<TestResultUnionAnalysis::State>> vertex_states =
+      RunForwardDataflow(g, a);
+
+  ASSERT_THAT(vertex_states, SizeIs(4));
+
+  EXPECT_THAT(vertex_states[/* A */ 0],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A'))));
+
+  EXPECT_THAT(vertex_states[/* W */ 1],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A', 'B', 'C', 'W'))));
+
+  EXPECT_THAT(vertex_states[/* B */ 2],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A', 'B'))));
+
+  EXPECT_THAT(vertex_states[/* C */ 3],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A', 'C'))));
+}
+
+TEST(RunForwardDataflowTest, Loop) {
+  TestGraph g;
+  g.SetSource('A');
+  g.SetSink('W');
+  g.AddEdge('A', 'B');
+  g.AddEdge('B', 'C');
+  g.AddEdge('B', 'D');
+  g.AddEdge('C', 'B');
+  g.AddEdge('D', 'W');
+
+  TestResultUnionAnalysis a;
+  std::vector<std::optional<TestResultUnionAnalysis::State>> vertex_states =
+      RunForwardDataflow(g, a);
+
+  ASSERT_THAT(vertex_states, SizeIs(5));
+
+  EXPECT_THAT(vertex_states[/* A */ 0],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A'))));
+
+  EXPECT_THAT(vertex_states[/* W */ 1],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A', 'B', 'C', 'D', 'W'))));
+
+  EXPECT_THAT(vertex_states[/* B */ 2],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A', 'B', 'C'))));
+
+  EXPECT_THAT(vertex_states[/* C */ 3],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A', 'B', 'C'))));
+
+  EXPECT_THAT(vertex_states[/* D */ 4],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsAre('A', 'B', 'C', 'D'))));
+}
+
 TEST(RunBackwardDataflowTest, Simple) {
   TestGraph g;
   g.SetSource('A');
