@@ -32,6 +32,8 @@ class TestGraph {
     prevs_.Find(to)->Insert(from);
   }
 
+  const std::vector<char>& Vertices() const { return vertices_; }
+
  private:
   friend std::size_t VertexCount(const TestGraph&);
   friend std::vector<char> Vertices(const TestGraph&);
