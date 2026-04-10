@@ -72,8 +72,8 @@ std::vector<std::optional<typename AnalysisT::State>> RunBackwardDataflow(
 
   Worklist<typename GraphT::vertex_type, VertexDomain<GraphT>,
            CompareVertexOrder<GraphT>>
-      worklist(VertexDomain(graph), CompareVertexOrder<GraphT>(
-                                        graph, ComputeReversePostOrder(graph)));
+      worklist(VertexDomain(graph),
+               CompareVertexOrder<GraphT>(graph, ComputePostOrder(graph)));
   worklist.push(SinkVertex(graph));
   while (!worklist.empty()) {
     typename GraphT::vertex_type vertex = worklist.pop();
