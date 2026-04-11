@@ -42,7 +42,7 @@ class GraphBuilder {
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
   build() && {
     AbstractMachineLivenessAnalysis analysis(am_cfg);
-    return RunBackwardDataflow(am_cfg, analysis);
+    return RunDataflow(Backward(am_cfg), analysis);
   }
 
  private:

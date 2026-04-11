@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "lucid/core/container/graph/dominator.h"
+#include "lucid/core/container/graph/order.h"
 #include "lucid/core/dataflow/dataflow.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
@@ -99,7 +100,7 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
   SyntaxReachabilityAnalysis reachability_analysis(scfg, ctx);
   std::vector<std::optional<SyntaxReachabilityAnalysis::State>>
       reachability_block_states =
-          RunForwardDataflow(scfg, reachability_analysis);
+          RunDataflow(Forward(scfg), reachability_analysis);
 
   HashMap<SyntaxReachabilityAnalysis::NamedValueSource, StringIndex::Ref>
       renames;
@@ -112,11 +113,9 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
     param.name = new_name;
   }
 
-  std::vector<SyntaxControlFlowGraph::BlockRef> block_refs =
-      Vertices(scfg);
-  const CompareVertexOrder<SyntaxControlFlowGraph> compare(
-      scfg, ComputeReversePostOrder(scfg));
-  std::sort(block_refs.begin(), block_refs.end(), compare);
+  std::vector<SyntaxControlFlowGraph::BlockRef> block_refs = Vertices(scfg);
+  std::sort(block_refs.begin(), block_refs.end(),
+            CompareReversePostOrder(scfg));
 
   for (auto block_ref : block_refs) {
     auto& block = scfg.get(block_ref);

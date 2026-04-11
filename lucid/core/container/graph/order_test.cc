@@ -13,20 +13,19 @@ namespace {
 
 using ::testing::ElementsAre;
 
-TEST(ComputePostOrderTest, Simple) {
+TEST(ComparePostOrderTest, Simple) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
   g.AddEdge('A', 'W');
 
   std::vector<char> vertices = g.Vertices();
-  std::sort(vertices.begin(), vertices.end(),
-            CompareVertexOrder(g, ComputePostOrder(g)));
+  std::sort(vertices.begin(), vertices.end(), ComparePostOrder(g));
 
   EXPECT_THAT(vertices, ElementsAre('W', 'A'));
 }
 
-TEST(ComputePostOrderTest, DiamondBranch) {
+TEST(ComparePostOrderTest, DiamondBranch) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -36,13 +35,12 @@ TEST(ComputePostOrderTest, DiamondBranch) {
   g.AddEdge('C', 'W');
 
   std::vector<char> vertices = g.Vertices();
-  std::sort(vertices.begin(), vertices.end(),
-            CompareVertexOrder(g, ComputePostOrder(g)));
+  std::sort(vertices.begin(), vertices.end(), ComparePostOrder(g));
 
   EXPECT_THAT(vertices, ElementsAre('W', 'C', 'B', 'A'));
 }
 
-TEST(ComputePostOrderTest, Complex) {
+TEST(ComparePostOrderTest, Complex) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -56,13 +54,12 @@ TEST(ComputePostOrderTest, Complex) {
   g.AddEdge('E', 'W');
 
   std::vector<char> vertices = g.Vertices();
-  std::sort(vertices.begin(), vertices.end(),
-            CompareVertexOrder(g, ComputePostOrder(g)));
+  std::sort(vertices.begin(), vertices.end(), ComparePostOrder(g));
 
   EXPECT_THAT(vertices, ElementsAre('W', 'C', 'B', 'E', 'D', 'A'));
 }
 
-TEST(ComputePostOrderTest, Loop) {
+TEST(ComparePostOrderTest, Loop) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -73,26 +70,24 @@ TEST(ComputePostOrderTest, Loop) {
   g.AddEdge('D', 'W');
 
   std::vector<char> vertices = g.Vertices();
-  std::sort(vertices.begin(), vertices.end(),
-            CompareVertexOrder(g, ComputePostOrder(g)));
+  std::sort(vertices.begin(), vertices.end(), ComparePostOrder(g));
 
   EXPECT_THAT(vertices, ElementsAre('C', 'W', 'D', 'B', 'A'));
 }
 
-TEST(ComputeReversePostOrderTest, Simple) {
+TEST(CompareReversePostOrderTest, Simple) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
   g.AddEdge('A', 'W');
 
   std::vector<char> vertices = g.Vertices();
-  std::sort(vertices.begin(), vertices.end(),
-            CompareVertexOrder(g, ComputeReversePostOrder(g)));
+  std::sort(vertices.begin(), vertices.end(), CompareReversePostOrder(g));
 
   EXPECT_THAT(vertices, ElementsAre('A', 'W'));
 }
 
-TEST(ComputeReversePostOrderTest, DiamondBranch) {
+TEST(CompareReversePostOrderTest, DiamondBranch) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -102,13 +97,12 @@ TEST(ComputeReversePostOrderTest, DiamondBranch) {
   g.AddEdge('C', 'W');
 
   std::vector<char> vertices = g.Vertices();
-  std::sort(vertices.begin(), vertices.end(),
-            CompareVertexOrder(g, ComputeReversePostOrder(g)));
+  std::sort(vertices.begin(), vertices.end(), CompareReversePostOrder(g));
 
   EXPECT_THAT(vertices, ElementsAre('A', 'B', 'C', 'W'));
 }
 
-TEST(ComputeReversePostOrderTest, Complex) {
+TEST(CompareReversePostOrderTest, Complex) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -122,13 +116,12 @@ TEST(ComputeReversePostOrderTest, Complex) {
   g.AddEdge('E', 'W');
 
   std::vector<char> vertices = g.Vertices();
-  std::sort(vertices.begin(), vertices.end(),
-            CompareVertexOrder(g, ComputeReversePostOrder(g)));
+  std::sort(vertices.begin(), vertices.end(), CompareReversePostOrder(g));
 
   EXPECT_THAT(vertices, ElementsAre('A', 'D', 'E', 'B', 'C', 'W'));
 }
 
-TEST(ComputeReversePostOrderTest, Loop) {
+TEST(CompareReversePostOrderTest, Loop) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -139,8 +132,7 @@ TEST(ComputeReversePostOrderTest, Loop) {
   g.AddEdge('D', 'W');
 
   std::vector<char> vertices = g.Vertices();
-  std::sort(vertices.begin(), vertices.end(),
-            CompareVertexOrder(g, ComputeReversePostOrder(g)));
+  std::sort(vertices.begin(), vertices.end(), CompareReversePostOrder(g));
 
   EXPECT_THAT(vertices, ElementsAre('A', 'B', 'D', 'W', 'C'));
 }

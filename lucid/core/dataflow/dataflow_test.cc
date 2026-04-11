@@ -53,7 +53,7 @@ TEST(RunForwardDataflowTest, Simple) {
 
   TestResultUnionAnalysis a;
   std::vector<std::optional<TestResultUnionAnalysis::State>> vertex_states =
-      RunForwardDataflow(g, a);
+      RunDataflow(Forward(g), a);
 
   ASSERT_THAT(vertex_states, SizeIs(2));
 
@@ -77,7 +77,7 @@ TEST(RunForwardDataflowTest, DiamondBranch) {
 
   TestResultUnionAnalysis a;
   std::vector<std::optional<TestResultUnionAnalysis::State>> vertex_states =
-      RunForwardDataflow(g, a);
+      RunDataflow(Forward(g), a);
 
   ASSERT_THAT(vertex_states, SizeIs(4));
 
@@ -110,7 +110,7 @@ TEST(RunForwardDataflowTest, Loop) {
 
   TestResultUnionAnalysis a;
   std::vector<std::optional<TestResultUnionAnalysis::State>> vertex_states =
-      RunForwardDataflow(g, a);
+      RunDataflow(Forward(g), a);
 
   ASSERT_THAT(vertex_states, SizeIs(5));
 
@@ -143,7 +143,7 @@ TEST(RunBackwardDataflowTest, Simple) {
 
   TestResultUnionAnalysis a;
   std::vector<std::optional<TestResultUnionAnalysis::State>> vertex_states =
-      RunBackwardDataflow(g, a);
+      RunDataflow(Backward(g), a);
 
   ASSERT_THAT(vertex_states, SizeIs(2));
 
@@ -167,7 +167,7 @@ TEST(RunBackwardDataflowTest, DiamondBranch) {
 
   TestResultUnionAnalysis a;
   std::vector<std::optional<TestResultUnionAnalysis::State>> vertex_states =
-      RunBackwardDataflow(g, a);
+      RunDataflow(Backward(g), a);
 
   ASSERT_THAT(vertex_states, SizeIs(4));
 
@@ -200,7 +200,7 @@ TEST(RunBackwardDataflowTest, Loop) {
 
   TestResultUnionAnalysis a;
   std::vector<std::optional<TestResultUnionAnalysis::State>> vertex_states =
-      RunBackwardDataflow(g, a);
+      RunDataflow(Backward(g), a);
 
   ASSERT_THAT(vertex_states, SizeIs(5));
 

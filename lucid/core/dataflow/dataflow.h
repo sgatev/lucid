@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "lucid/core/container/graph/graph.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/dataflow/worklist.h"
 
@@ -54,74 +55,119 @@ class VertexDomain {
   std::size_t vertex_count_;
 };
 
-// Performs forward dataflow analysis over a graph.
+// A scheme for dataflow analysis.
 //
-// Returns a mapping from vertex IDs to dataflow analysis states that model the
-// respective vertices. The returned vector will have the same size as the
-// number of vertices in the graph, with indices corresponding to vertex IDs.
-template <Graph GraphT, DataflowAnalysis<GraphT> AnalysisT>
-std::vector<std::optional<typename AnalysisT::State>> RunForwardDataflow(
-    const GraphT& graph, AnalysisT& analysis) {
-  using State = typename AnalysisT::State;
+// Requires:
+// - `Graph` sub-type that models a single-source, single-sink graph.
+// - `Compare` member that returns a function object for performing vertex
+//   comparisons.
+// - `Domain` member that returns a finite domain of vertices in the graph.
+// - `Initial` member that returns the initial vertex of the graph.
+// - `Prior` member that returns the vertices that come before a given vertex in
+//   the graph.
+// - `Subsequent` member that returns the vertices that come after a given
+//   vertex in the graph.
+template <typename S>
+concept DataflowScheme = requires(S s, typename S::Graph::vertex_type v) {
+  requires Graph<typename S::Graph>;
+  { s.Compare() } -> std::same_as<CompareVertexOrder<typename S::Graph>>;
+  { s.Domain() } -> std::same_as<VertexDomain<typename S::Graph>>;
+  { s.Compare() } -> std::same_as<CompareVertexOrder<typename S::Graph>>;
+  { s.Initial() } -> std::same_as<typename S::Graph::vertex_type>;
+  { s.Prior(v) } -> std::same_as<std::vector<typename S::Graph::vertex_type>>;
+  {
+    s.Subsequent(v)
+  } -> std::same_as<std::vector<typename S::Graph::vertex_type>>;
+};
 
-  std::vector<std::optional<State>> states(VertexCount(graph));
-  auto has_state = [&](auto ref) {
-    return states[VertexId(graph, ref)].has_value();
-  };
-  auto to_state = [&](auto ref) { return *states[VertexId(graph, ref)]; };
+// A scheme for forward dataflow analysis.
+template <Graph GraphT>
+struct Forward {
+  using Graph = GraphT;
 
-  Worklist<typename GraphT::vertex_type, VertexDomain<GraphT>,
-           CompareVertexOrder<GraphT>>
-      worklist(VertexDomain(graph), CompareVertexOrder<GraphT>(
-                                        graph, ComputeReversePostOrder(graph)));
-  worklist.push(SourceVertex(graph));
-  while (!worklist.empty()) {
-    typename GraphT::vertex_type vertex = worklist.pop();
-    State prior_state = std::ranges::fold_left(
-        PrevVertices(graph, vertex) | std::views::filter(has_state) |
-            std::views::transform(to_state),
-        analysis.MakeInitial(), std::bind_front(&AnalysisT::Join, &analysis));
-    State new_state = analysis.Transfer(std::move(prior_state), vertex);
-    if (auto& state = states[VertexId(graph, vertex)]; new_state != state) {
-      state = std::move(new_state);
-      worklist.push_range(NextVertices(graph, vertex));
-    }
+  Forward(const GraphT& g) : g_(g) {}
+
+  VertexDomain<GraphT> Domain() const { return VertexDomain(g_); }
+
+  CompareVertexOrder<GraphT> Compare() const {
+    return CompareReversePostOrder(g_);
   }
 
-  return states;
-}
+  typename GraphT::vertex_type Initial() const { return SourceVertex(g_); }
 
-// Performs backward dataflow analysis over a graph.
+  std::vector<typename GraphT::vertex_type> Prior(
+      typename GraphT::vertex_type v) const {
+    return PrevVertices(g_, v);
+  }
+
+  std::vector<typename GraphT::vertex_type> Subsequent(
+      typename GraphT::vertex_type v) const {
+    return NextVertices(g_, v);
+  }
+
+ private:
+  const GraphT& g_;
+};
+
+// A scheme for backward dataflow analysis.
+template <Graph GraphT>
+struct Backward {
+  using Graph = GraphT;
+
+  Backward(const GraphT& g) : g_(g) {}
+
+  VertexDomain<GraphT> Domain() const { return VertexDomain(g_); }
+
+  CompareVertexOrder<GraphT> Compare() const { return ComparePostOrder(g_); }
+
+  typename GraphT::vertex_type Initial() const { return SinkVertex(g_); }
+
+  std::vector<typename GraphT::vertex_type> Prior(
+      typename GraphT::vertex_type v) const {
+    return NextVertices(g_, v);
+  }
+
+  std::vector<typename GraphT::vertex_type> Subsequent(
+      typename GraphT::vertex_type v) const {
+    return PrevVertices(g_, v);
+  }
+
+ private:
+  const GraphT& g_;
+};
+
+// Performs dataflow analysis over a graph according to the given scheme.
 //
 // Returns a mapping from vertex IDs to dataflow analysis states that model the
 // respective vertices. The returned vector will have the same size as the
 // number of vertices in the graph, with indices corresponding to vertex IDs.
-template <Graph GraphT, DataflowAnalysis<GraphT> AnalysisT>
-std::vector<std::optional<typename AnalysisT::State>> RunBackwardDataflow(
-    const GraphT& graph, AnalysisT& analysis) {
+template <DataflowScheme SchemeT,
+          DataflowAnalysis<typename SchemeT::Graph> AnalysisT>
+std::vector<std::optional<typename AnalysisT::State>> RunDataflow(
+    const SchemeT& s, AnalysisT& a) {
+  using GraphT = typename SchemeT::Graph;
   using State = typename AnalysisT::State;
 
-  std::vector<std::optional<State>> states(VertexCount(graph));
-  auto has_state = [&](auto ref) {
-    return states[VertexId(graph, ref)].has_value();
-  };
-  auto to_state = [&](auto ref) { return *states[VertexId(graph, ref)]; };
+  auto d = s.Domain();
+
+  std::vector<std::optional<State>> states(d.size());
+  auto has_state = [&](auto v) { return states[d.id(v)].has_value(); };
+  auto to_state = [&](auto v) { return *states[d.id(v)]; };
 
   Worklist<typename GraphT::vertex_type, VertexDomain<GraphT>,
            CompareVertexOrder<GraphT>>
-      worklist(VertexDomain(graph),
-               CompareVertexOrder<GraphT>(graph, ComputePostOrder(graph)));
-  worklist.push(SinkVertex(graph));
+      worklist(d, s.Compare());
+  worklist.push(s.Initial());
   while (!worklist.empty()) {
-    typename GraphT::vertex_type vertex = worklist.pop();
+    typename GraphT::vertex_type v = worklist.pop();
     State prior_state = std::ranges::fold_left(
-        NextVertices(graph, vertex) | std::views::filter(has_state) |
+        s.Prior(v) | std::views::filter(has_state) |
             std::views::transform(to_state),
-        analysis.MakeInitial(), std::bind_front(&AnalysisT::Join, &analysis));
-    State new_state = analysis.Transfer(std::move(prior_state), vertex);
-    if (auto& state = states[VertexId(graph, vertex)]; new_state != state) {
+        a.MakeInitial(), std::bind_front(&AnalysisT::Join, &a));
+    State new_state = a.Transfer(std::move(prior_state), v);
+    if (auto& state = states[d.id(v)]; new_state != state) {
       state = std::move(new_state);
-      worklist.push_range(PrevVertices(graph, vertex));
+      worklist.push_range(s.Subsequent(v));
     }
   }
 

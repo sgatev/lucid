@@ -12,7 +12,6 @@
 #include "lucid/am/instructions.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/container/graph/order.h"
-#include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"
 
 namespace lucid {
@@ -52,9 +51,8 @@ class Arm64BinaryGenerator {
 
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
         Vertices(am_cfg_);
-    const CompareVertexOrder<AbstractMachineControlFlowGraph> compare(
-        am_cfg_, ComputeReversePostOrder(am_cfg_));
-    std::sort(block_refs.begin(), block_refs.end(), compare);
+    std::sort(block_refs.begin(), block_refs.end(),
+              CompareReversePostOrder(am_cfg_));
     for (const auto& ref : block_refs) Process(am_cfg_.get(ref));
   }
 

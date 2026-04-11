@@ -8,28 +8,12 @@
 #include "lucid/core/container/graph/graph.h"
 
 namespace lucid {
-
-// Function object for performing vertex comparisons.
-template <Graph GraphT>
-struct CompareVertexOrder {
-  explicit CompareVertexOrder(const GraphT& graph,
-                              std::vector<int> vertex_order)
-      : graph_(graph), vertex_order_(std::move(vertex_order)) {}
-
-  bool operator()(const GraphT::vertex_type& lhs,
-                  const GraphT::vertex_type& rhs) const {
-    return vertex_order_[VertexId(graph_, lhs)] <
-           vertex_order_[VertexId(graph_, rhs)];
-  }
-
-  const GraphT& graph_;
-  std::vector<int> vertex_order_;
-};
+namespace internal {
 
 // Returns a vector whose elements correspond to post-order traversal
 // indices of blocks of `cfg`.
 template <Graph GraphT>
-inline std::vector<int> ComputePostOrder(const GraphT& g) {
+std::vector<int> ComputePostOrder(const GraphT& g) {
   const std::size_t vertex_count = VertexCount(g);
   std::vector<int> post_order(vertex_count, static_cast<int>(vertex_count));
 
@@ -67,7 +51,7 @@ inline std::vector<int> ComputePostOrder(const GraphT& g) {
 // Returns a vector whose elements correspond to reverse post-order traversal
 // indices of blocks of `cfg`.
 template <Graph GraphT>
-inline std::vector<int> ComputeReversePostOrder(const GraphT& g) {
+std::vector<int> ComputeReversePostOrder(const GraphT& g) {
   const std::size_t vertex_count = VertexCount(g);
   std::vector<int> reverse_post_order(vertex_count,
                                       static_cast<int>(vertex_count));
@@ -101,6 +85,39 @@ inline std::vector<int> ComputeReversePostOrder(const GraphT& g) {
   }
 
   return reverse_post_order;
+}
+
+}  // namespace internal
+
+// Function object for performing vertex comparisons.
+template <Graph GraphT>
+struct CompareVertexOrder {
+  explicit CompareVertexOrder(const GraphT& graph,
+                              std::vector<int> vertex_order)
+      : graph_(graph), vertex_order_(std::move(vertex_order)) {}
+
+  bool operator()(const GraphT::vertex_type& lhs,
+                  const GraphT::vertex_type& rhs) const {
+    return vertex_order_[VertexId(graph_, lhs)] <
+           vertex_order_[VertexId(graph_, rhs)];
+  }
+
+  const GraphT& graph_;
+  std::vector<int> vertex_order_;
+};
+
+// Returns a unction object for performing post-order vertex comparisons on the
+// given graph.
+template <Graph GraphT>
+CompareVertexOrder<GraphT> ComparePostOrder(const GraphT& g) {
+  return CompareVertexOrder<GraphT>(g, internal::ComputePostOrder(g));
+}
+
+// Returns a function object for performing reverse post-order vertex
+// comparisons on the given graph.
+template <Graph GraphT>
+CompareVertexOrder<GraphT> CompareReversePostOrder(const GraphT& g) {
+  return CompareVertexOrder<GraphT>(g, internal::ComputeReversePostOrder(g));
 }
 
 }  // namespace lucid

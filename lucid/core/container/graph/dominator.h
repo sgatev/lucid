@@ -20,8 +20,7 @@ namespace lucid {
 template <Graph GraphT>
 std::vector<std::optional<typename GraphT::vertex_type>>
 ComputeImmediateDominators(const GraphT& graph) {
-  const CompareVertexOrder<GraphT> compare(graph,
-                                           ComputeReversePostOrder(graph));
+  const auto compare = CompareReversePostOrder(graph);
 
   std::vector<typename GraphT::vertex_type> vertices = Vertices(graph);
   std::sort(vertices.begin(), vertices.end(), compare);

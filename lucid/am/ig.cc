@@ -15,7 +15,7 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg) {
   AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      liveness_block_states = RunBackwardDataflow(am_cfg, liveness_analysis);
+      liveness_block_states = RunDataflow(Backward(am_cfg), liveness_analysis);
 
   HashMap<RegId, HashSet<RegId>> am_ig;
   for (const auto& block : am_cfg.blocks()) {

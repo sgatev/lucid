@@ -29,9 +29,8 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
 
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
         Vertices(am_cfg);
-    const CompareVertexOrder<AbstractMachineControlFlowGraph> compare(
-        am_cfg, ComputeReversePostOrder(am_cfg));
-    std::sort(block_refs.begin(), block_refs.end(), compare);
+    std::sort(block_refs.begin(), block_refs.end(),
+              CompareReversePostOrder(am_cfg));
 
     std::vector<Instruction> instructions;
     for (const auto& ref : block_refs) {

@@ -14,6 +14,7 @@
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/liveness.h"
+#include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
 #include "lucid/core/container/optional_ref.h"
@@ -26,7 +27,7 @@ std::optional<RegId> FindRegToSpill(
     const AbstractMachineControlFlowGraph& am_cfg, HashSet<RegId>& spilled) {
   AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      liveness_block_states = RunBackwardDataflow(am_cfg, liveness_analysis);
+      liveness_block_states = RunDataflow(Backward(am_cfg), liveness_analysis);
 
   for (const auto& block : am_cfg.blocks()) {
     auto maybe_state = liveness_block_states[block.ref.id()];
@@ -136,9 +137,8 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 
   std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
       Vertices(am_cfg);
-  const CompareVertexOrder<AbstractMachineControlFlowGraph> compare(
-      am_cfg, ComputeReversePostOrder(am_cfg));
-  std::sort(block_refs.begin(), block_refs.end(), compare);
+  std::sort(block_refs.begin(), block_refs.end(),
+            CompareReversePostOrder(am_cfg));
 
   for (const auto& block_ref : block_refs) {
     auto& block = am_cfg.get(block_ref);
