@@ -75,6 +75,18 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
         }
       }
     }
+
+    HashSet<RegId> phi_regs;
+    for (const auto& phi : block.phis) {
+      phi_regs.Insert(phi.target);
+      for (auto source : phi.sources) phi_regs.Insert(source);
+    }
+    for (RegId from : phi_regs) {
+      am_ig.Insert(from, {});
+      for (RegId to : phi_regs) {
+        if (to != from) am_ig.Find(from)->Insert(to);
+      }
+    }
   }
 
   return am_ig;

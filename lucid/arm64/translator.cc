@@ -12,6 +12,7 @@
 #include "lucid/am/instructions.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/container/graph/order.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"
 
 namespace lucid {
@@ -65,16 +66,6 @@ class Arm64BinaryGenerator {
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const Instruction& inst) {
     std::visit([&](auto&& inst) { Process(block, inst); }, inst);
-  }
-
-  void Process(const AbstractMachineControlFlowGraph::Phi& phi, int i) {
-    if (phi.bits == 32) {
-      assembler_.Mov(W(15), W(phi.sources[i]));
-      assembler_.Mov(W(phi.target), W(15));
-    } else if (phi.bits == 64) {
-      assembler_.Mov(X(15), X(phi.sources[i]));
-      assembler_.Mov(X(phi.target), X(15));
-    }
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
@@ -134,15 +125,7 @@ class Arm64BinaryGenerator {
     assembler_.B(phi_label);
 
     assembler_.Label(phi_label);
-    for (const auto& phi : am_cfg_.get(inst.label).phis) {
-      int idx;
-      for (int i = 0; i < am_cfg_.get(inst.label).preds.size(); ++i) {
-        if (am_cfg_.get(inst.label).preds[i] == block.ref) {
-          idx = i;
-        }
-      }
-      Process(phi, idx);
-    }
+    ProcessPhiFunctions(am_cfg_.get(inst.label), block.ref);
     std::string label = std::string(func_name_) + std::to_string(inst.label);
     assembler_.B(label);
   }
@@ -162,30 +145,36 @@ class Arm64BinaryGenerator {
     assembler_.Label(else_label_phi);
     std::string else_label =
         std::string(func_name_) + std::to_string(inst.else_label);
-    for (const auto& phi : am_cfg_.get(inst.else_label).phis) {
-      int idx;
-      for (int i = 0; i < am_cfg_.get(inst.else_label).preds.size(); ++i) {
-        if (am_cfg_.get(inst.else_label).preds[i] == block.ref) {
-          idx = i;
-        }
-      }
-      Process(phi, idx);
-    }
+    ProcessPhiFunctions(am_cfg_.get(inst.else_label), block.ref);
     assembler_.B(else_label);
 
     assembler_.Label(then_label_phi);
     std::string then_label =
         std::string(func_name_) + std::to_string(inst.then_label);
-    for (const auto& phi : am_cfg_.get(inst.then_label).phis) {
-      int idx;
-      for (int i = 0; i < am_cfg_.get(inst.then_label).preds.size(); ++i) {
-        if (am_cfg_.get(inst.then_label).preds[i] == block.ref) {
-          idx = i;
-        }
-      }
-      Process(phi, idx);
-    }
+    ProcessPhiFunctions(am_cfg_.get(inst.then_label), block.ref);
     assembler_.B(then_label);
+  }
+
+  void ProcessPhiFunctions(
+      const AbstractMachineControlFlowGraph::Block& block,
+      AbstractMachineControlFlowGraph::BlockRef pred_block_ref) {
+    int pred_block_idx;
+    for (int i = 0; i < block.preds.size(); ++i) {
+      if (block.preds[i] == pred_block_ref) {
+        pred_block_idx = i;
+        break;
+      }
+    }
+
+    for (const auto& phi : block.phis) {
+      if (phi.bits == 32) {
+        assembler_.Mov(W(15), W(phi.sources[pred_block_idx]));
+        assembler_.Mov(W(phi.target), W(15));
+      } else if (phi.bits == 64) {
+        assembler_.Mov(X(15), X(phi.sources[pred_block_idx]));
+        assembler_.Mov(X(phi.target), X(15));
+      }
+    }
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
