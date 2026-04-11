@@ -17,6 +17,7 @@ namespace {
 
 using BlockRef = SyntaxControlFlowGraph::BlockRef;
 using Phi = SyntaxControlFlowGraph::Phi;
+using PhiRef = SyntaxControlFlowGraph::PhiRef;
 
 std::unordered_map<StringIndex::Ref,
                    std::pair<TypeRef, std::unordered_set<BlockRef>>>
@@ -82,7 +83,7 @@ void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
           phi.args.push_back(var);
         }
 
-        yb.phis.push_back(std::move(phi));
+        yb.phis.push_back(scfg.add(std::move(phi)));
         visited.insert(y);
 
         if (!def_blocks.contains(y)) pending.insert(y);
@@ -123,7 +124,8 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
       }
     }
 
-    for (auto& phi : block.phis) {
+    for (PhiRef phi_ref : block.phis) {
+      auto& phi = scfg.deref(phi_ref);
       StringIndex::Ref new_name = ctx.AddUniqueIdent();
       reaching_defs.insert_or_assign(phi.name, new_name);
       phi.name = new_name;
@@ -162,7 +164,8 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
   }
 
   for (SyntaxControlFlowGraph::Block& block : scfg.blocks()) {
-    for (auto& phi : block.phis) {
+    for (PhiRef phi_ref : block.phis) {
+      auto& phi = scfg.deref(phi_ref);
       for (int j = 0; j < phi.args.size(); ++j) {
         phi.args[j] = block_defs[block.preds[j].id()].at(phi.args[j]);
       }

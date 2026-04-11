@@ -56,6 +56,8 @@ using ExprRef = Arena<Expr>::Ref;
 // A reference to a type that can be dereferenced using an `Arena<Type>` object.
 using TypeRef = Arena<Type>::Ref;
 
+// A reference to a function parameter that can be dereferenced using an
+// `Arena<FuncParam>` object.
 using ParamRef = Arena<FuncParam>::Ref;
 
 // A common base of all expressions.

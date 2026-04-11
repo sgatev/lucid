@@ -27,7 +27,8 @@ void Print(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
 
     if (!block.phis.empty()) {
       std::cout << "    .phis = [" << std::endl;
-      for (const auto& phi : block.phis) {
+      for (auto phi_ref : block.phis) {
+        const auto& phi = scfg.deref(phi_ref);
         std::cout << "      " << ctx.DerefIdent(phi.name) << " = φ(";
         for (int i = 0; i < phi.args.size(); ++i) {
           if (i > 0) std::cout << ", ";

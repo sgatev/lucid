@@ -5,6 +5,7 @@
 #include <functional>
 #include <optional>
 #include <ranges>
+#include <utility>
 #include <vector>
 
 #include "lucid/core/container/arena.h"
@@ -47,6 +48,10 @@ struct SyntaxControlFlowGraph {
     bool operator==(const Phi& other) const = default;
   };
 
+  // A reference to a phi functionn that can be dereferenced using an
+  // `Arena<Phi>` object.
+  using PhiRef = Arena<Phi>::Ref;
+
   // Represents a basic block in the control flow graph of a function.
   struct Block {
     // Ref of the basic block.
@@ -54,7 +59,7 @@ struct SyntaxControlFlowGraph {
 
     // Phi functions that represent variable definition join points when the
     // graph is converted to Static Single Assignment (SSA) form.
-    std::vector<Phi> phis;
+    std::vector<PhiRef> phis;
 
     // A list of sequences in evaluation order.
     std::vector<Sequence> sequences;
@@ -93,6 +98,13 @@ struct SyntaxControlFlowGraph {
   Arena<Block>& blocks() { return blocks_; }
   const Arena<Block>& blocks() const { return blocks_; }
 
+  // Adds `phi` to the graph.
+  PhiRef add(Phi phi) { return phis_.Add(std::move(phi)); }
+
+  // Returns the phi function that `ref` refers to.
+  const Phi& deref(PhiRef ref) const { return phis_.Get(ref); }
+  Phi& deref(PhiRef ref) { return phis_.Get(ref); }
+
   // Name of the function.
   StringIndex::Ref func_name;
 
@@ -111,6 +123,7 @@ struct SyntaxControlFlowGraph {
 
  private:
   Arena<Block> blocks_;
+  Arena<Phi> phis_;
 };
 
 inline std::size_t VertexCount(const SyntaxControlFlowGraph& cfg) {

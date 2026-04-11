@@ -93,7 +93,8 @@ class AbstractMachineFunctionGenerator {
     }
     for (const auto& block : scfg_.blocks()) {
       auto& am_block = am_cfg_.get(graph_map_[block.ref]);
-      for (const auto& phi : block.phis) {
+      for (auto phi_ref : block.phis) {
+        const auto& phi = scfg_.deref(phi_ref);
         auto phi_type =
             std::get<BasicType>(ctx_.DerefType(phi.type_constraint));
         std::string_view phi_type_name = ctx_.DerefIdent(phi_type.name);
