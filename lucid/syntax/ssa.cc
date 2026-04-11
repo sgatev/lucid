@@ -1,16 +1,19 @@
 #include "lucid/syntax/ssa.h"
 
+#include <cassert>
 #include <cstddef>
-#include <stack>
+#include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <variant>
 #include <vector>
 
 #include "lucid/core/container/graph/dominator.h"
+#include "lucid/core/dataflow/dataflow.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
+#include "lucid/syntax/reachability.h"
 
 namespace lucid {
 namespace {
@@ -93,62 +96,74 @@ void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
 }
 
 void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
-  std::vector<std::unordered_map<StringIndex::Ref, StringIndex::Ref>>
-      block_defs(scfg.blocks().Size());
+  SyntaxReachabilityAnalysis reachability_analysis(scfg, ctx);
+  std::vector<std::optional<SyntaxReachabilityAnalysis::State>>
+      reachability_block_states =
+          RunForwardDataflow(scfg, reachability_analysis);
 
+  HashMap<SyntaxReachabilityAnalysis::NamedValueSource, StringIndex::Ref>
+      renames;
   for (auto param_ref : scfg.func_params) {
     auto& param = ctx.DerefParam(param_ref);
-    StringIndex::Ref new_name = ctx.AddUniqueIdent();
-    block_defs[scfg.first.id()].insert_or_assign(param.name, new_name);
+
+    const auto new_name = ctx.AddUniqueIdent();
+    renames.Set(param_ref, new_name);
+
     param.name = new_name;
   }
 
-  std::vector<bool> visited(scfg.blocks().Size(), false);
+  std::vector<SyntaxControlFlowGraph::BlockRef> block_refs =
+      Vertices(scfg);
+  const CompareVertexOrder<SyntaxControlFlowGraph> compare(
+      scfg, ComputeReversePostOrder(scfg));
+  std::sort(block_refs.begin(), block_refs.end(), compare);
 
-  std::stack<BlockRef> pending;
-  pending.push(scfg.first);
+  for (auto block_ref : block_refs) {
+    auto& block = scfg.get(block_ref);
+    auto reachability_block_state = reachability_block_states[block.ref.id()];
+    if (!reachability_block_state.has_value()) continue;
 
-  while (!pending.empty()) {
-    auto block_ref = pending.top();
-    pending.pop();
-
-    if (visited[block_ref.id()]) continue;
-    visited[block_ref.id()] = true;
-
-    auto& block = scfg.blocks().Get(block_ref);
-
-    auto& reaching_defs = block_defs[block_ref.id()];
-    for (auto pred : block.preds) {
-      for (const auto& [k, v] : block_defs[pred.id()]) {
-        reaching_defs.insert_or_assign(k, v);
-      }
-    }
-
-    for (PhiRef phi_ref : block.phis) {
+    for (auto phi_ref : block.phis) {
       auto& phi = scfg.deref(phi_ref);
-      StringIndex::Ref new_name = ctx.AddUniqueIdent();
-      reaching_defs.insert_or_assign(phi.name, new_name);
+
+      reachability_block_state->vars_in.Set(phi.name, phi_ref);
+
+      const auto new_name = ctx.AddUniqueIdent();
+      renames.Set(phi_ref, new_name);
+
       phi.name = new_name;
     }
-
     for (auto& seq : block.sequences) {
-      for (size_t i = 0; i < seq.expressions.size(); ++i) {
-        Expr& expr = ctx.DerefExpr(seq.expressions[i]);
+      for (auto expr_ref : seq.expressions) {
+        auto& expr = ctx.DerefExpr(expr_ref);
         auto* ident_expr = std::get_if<IdentExpr>(&expr);
         if (ident_expr == nullptr) continue;
 
-        ident_expr->name = reaching_defs.at(ident_expr->name);
-      }
+        const auto nvs =
+            reachability_block_state->vars_in.Find(ident_expr->name);
+        assert(nvs.has_value());
 
+        const auto new_name = renames.Find(*nvs);
+        assert(new_name.has_value());
+
+        ident_expr->name = *new_name;
+      }
       if (seq.stmt.has_value()) {
         auto& stmt = ctx.DerefStmt(*seq.stmt);
         if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-          StringIndex::Ref new_name = ctx.AddUniqueIdent();
-          reaching_defs.insert_or_assign(var_decl_stmt->name, new_name);
+          reachability_block_state->vars_in.Set(var_decl_stmt->name, *seq.stmt);
+
+          const auto new_name = ctx.AddUniqueIdent();
+          renames.Set(*seq.stmt, new_name);
+
           var_decl_stmt->name = new_name;
         } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-          StringIndex::Ref new_name = ctx.AddUniqueIdent();
-          reaching_defs.insert_or_assign(var_assign_stmt->name, new_name);
+          reachability_block_state->vars_in.Set(var_assign_stmt->name,
+                                                *seq.stmt);
+
+          const auto new_name = ctx.AddUniqueIdent();
+          renames.Set(*seq.stmt, new_name);
+
           seq.stmt = ctx.Add(VarDeclStmt{
               .name = new_name,
               .type_constraint = GetType(ctx.DerefExpr(var_assign_stmt->expr)),
@@ -157,17 +172,22 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
         }
       }
     }
-
-    for (int i = block.next.size() - 1; i >= 0; --i) {
-      if (!visited[block.next[i].id()]) pending.push(block.next[i]);
-    }
   }
-
-  for (SyntaxControlFlowGraph::Block& block : scfg.blocks()) {
-    for (PhiRef phi_ref : block.phis) {
+  for (auto& block : scfg.blocks()) {
+    for (auto phi_ref : block.phis) {
       auto& phi = scfg.deref(phi_ref);
-      for (int j = 0; j < phi.args.size(); ++j) {
-        phi.args[j] = block_defs[block.preds[j].id()].at(phi.args[j]);
+      for (int i = 0; i < phi.args.size(); ++i) {
+        const auto& reachability_block_state =
+            reachability_block_states[block.preds[i].id()];
+        assert(reachability_block_state.has_value());
+
+        const auto nvs = reachability_block_state->vars_out.Find(phi.args[i]);
+        assert(nvs.has_value());
+
+        const auto new_name = renames.Find(*nvs);
+        assert(new_name.has_value());
+
+        phi.args[i] = *new_name;
       }
     }
   }

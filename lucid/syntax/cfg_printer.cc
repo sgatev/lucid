@@ -19,8 +19,15 @@ void Blue(std::function<void()> f) {
 }  // namespace
 
 void Print(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
-  Blue(
-      [&] { std::cout << ctx.DerefIdent(scfg.func_name) << ":" << std::endl; });
+  Blue([&] {
+    std::cout << ctx.DerefIdent(scfg.func_name) << "(";
+    for (bool has_printed_param = false; auto param_ref : scfg.func_params) {
+      if (has_printed_param) std::cout << ", ";
+      std::cout << ctx.DerefIdent(ctx.DerefParam(param_ref).name);
+      has_printed_param = true;
+    }
+    std::cout << "):" << std::endl;
+  });
   for (const auto& block : scfg.blocks()) {
     Blue([&] { std::cout << "  B" << block.ref << ": "; });
     std::cout << "{" << std::endl;

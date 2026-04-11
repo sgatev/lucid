@@ -193,6 +193,10 @@ class ControlFlowGraphAnalysis {
   T t_;
 };
 
+inline std::size_t Hash(const SyntaxControlFlowGraph::PhiRef& ref) {
+  return Hash(ref.id());
+}
+
 }  // namespace lucid
 
 namespace std {

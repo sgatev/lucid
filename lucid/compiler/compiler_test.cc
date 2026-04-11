@@ -78,7 +78,7 @@ TEST_F(CompilerTest, PrintCfg) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-cfg", FullPath("max.lu")}),
-              AllOf(ReturnsCode(0), Prints(R"([34mmax:
+              AllOf(ReturnsCode(0), Prints(R"([34mmax($0, $1):
 [0m[34m  B0: [0m{
     .sequences = [
 [34m      E0: [0mIntLitExpr { .value = 0 }
@@ -99,10 +99,10 @@ TEST_F(CompilerTest, PrintCfg) {
   }
 [34m  B2: [0m{
     .phis = [
-      $4 = φ($3, $5)
+      $5 = φ($4, $3)
     ]
     .sequences = [
-[34m      E6: [0mIdentExpr { .name = '$4' }
+[34m      E6: [0mIdentExpr { .name = '$5' }
 [34m      S4: [0mReturnStmt { .value = E6 }
     ]
     .next = [
@@ -116,7 +116,7 @@ TEST_F(CompilerTest, PrintCfg) {
 [34m  B3: [0m{
     .sequences = [
 [34m      E4: [0mIdentExpr { .name = '$0' }
-[34m      S5: [0mVarDeclStmt { .name = '$3', .init = E4 }
+[34m      S6: [0mVarDeclStmt { .name = '$4', .init = E4 }
     ]
     .next = [
 [34m      B2
@@ -128,7 +128,7 @@ TEST_F(CompilerTest, PrintCfg) {
 [34m  B4: [0m{
     .sequences = [
 [34m      E5: [0mIdentExpr { .name = '$1' }
-[34m      S6: [0mVarDeclStmt { .name = '$5', .init = E5 }
+[34m      S5: [0mVarDeclStmt { .name = '$3', .init = E5 }
     ]
     .next = [
 [34m      B2

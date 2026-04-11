@@ -366,6 +366,11 @@ class SyntaxContext {
   StringIndex idents_;
 };
 
+inline std::size_t Hash(const lucid::ExprRef& ref) { return Hash(ref.id()); }
+inline std::size_t Hash(const lucid::StmtRef& ref) { return Hash(ref.id()); }
+inline std::size_t Hash(const lucid::TypeRef& ref) { return Hash(ref.id()); }
+inline std::size_t Hash(const lucid::ParamRef& ref) { return Hash(ref.id()); }
+
 }  // namespace lucid
 
 namespace std {

@@ -170,6 +170,19 @@ cc_binary(
 )
 
 cc_library(
+    name = "reachability",
+    srcs = ["reachability.cc"],
+    hdrs = ["reachability.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":ast",
+        ":cfg",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/string:index",
+    ],
+)
+
+cc_library(
     name = "ssa",
     srcs = ["ssa.cc"],
     hdrs = ["ssa.h"],
@@ -177,7 +190,9 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
+        ":reachability",
         "//lucid/core/container/graph:dominator",
+        "//lucid/core/dataflow",
         "//lucid/core/string:index",
     ],
 )
