@@ -44,9 +44,7 @@ struct SyntaxControlFlowGraph {
     // Arguments to the Phi function, i.e. variables from previous blocks.
     std::vector<StringIndex::Ref> args;
 
-    bool operator==(const Phi& other) const {
-      return name == other.name && args == other.args;
-    }
+    bool operator==(const Phi& other) const = default;
   };
 
   // Represents a basic block in the control flow graph of a function.

@@ -31,8 +31,8 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
+              .type_constraint = T(BasicType{.name = I("Int32")}),
               .init = E(IntLitExpr{.value = I("21")}),
           }),
           S(IfStmt{
@@ -88,8 +88,8 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
+              .type_constraint = T(BasicType{.name = I("Int32")}),
               .init = E(IntLitExpr{.value = I("21")}),
           }),
           S(IfStmt{
@@ -169,13 +169,13 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
+              .type_constraint = T(BasicType{.name = I("Int32")}),
               .init = E(IntLitExpr{.value = I("21")}),
           }),
           S(VarDeclStmt{
-              .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("y"),
+              .type_constraint = T(BasicType{.name = I("Int32")}),
               .init = E(IntLitExpr{.value = I("2")}),
           }),
           S(IfStmt{
@@ -231,8 +231,8 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(VarDeclStmt{
-              .type_constraint = T(BasicType{.name = I("Int32")}),
               .name = I("x"),
+              .type_constraint = T(BasicType{.name = I("Int32")}),
               .init = E(IntLitExpr{.value = I("21")}),
           }),
           S(LoopStmt{

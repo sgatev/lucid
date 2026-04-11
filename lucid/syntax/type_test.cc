@@ -89,13 +89,13 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
 TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Void")}),
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int64")}),
           }),
       }),
+      .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
           S(VarAssignStmt{
               .name = I("x"),
@@ -111,7 +111,6 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
       func,
       HoldsFuncDef(MatchesFuncDefStmt({
           .name = I("foo"),
-          .result_type = MatchesBasicType({.name = I("Void")}),
           .params =
               {
                   MatchesFuncParam({
@@ -119,6 +118,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
                       .type_constraint = MatchesBasicType({.name = I("Int64")}),
                   }),
               },
+          .result_type = MatchesBasicType({.name = I("Void")}),
           .body = {{
               MatchesVarAssignStmt({
                   .name = I("x"),
@@ -134,13 +134,13 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
 TEST_F(InferExprTypesTest, IfStmtCond) {
   auto func = FuncDefStmt{
       .name = I("fact"),
-      .result_type = T(BasicType{.name = I("Void")}),
       .params = ParamListOf({
           P(FuncParam{
               .name = I("n"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
           }),
       }),
+      .result_type = T(BasicType{.name = I("Void")}),
       .stmts = StmtListOf({
           S(IfStmt{
               .cond = E(BinaryOpExpr{
@@ -158,7 +158,6 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
       func,
       HoldsFuncDef(MatchesFuncDefStmt({
           .name = I("fact"),
-          .result_type = MatchesBasicType({.name = I("Void")}),
           .params =
               {
                   MatchesFuncParam({
@@ -166,6 +165,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
                       .type_constraint = MatchesBasicType({.name = I("Int32")}),
                   }),
               },
+          .result_type = MatchesBasicType({.name = I("Void")}),
           .body = {{{
               MatchesIfStmt({
                   .cond = MatchesBinaryOpExpr({
@@ -211,8 +211,8 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
                   .name = I("x"),
                   .type_constraint = MatchesBasicType({.name = I("Int64")}),
                   .init = MatchesBinaryOpExpr({
-                      .op = BinaryOp::Add,
                       .type = MatchesBasicType({.name = I("Int64")}),
+                      .op = BinaryOp::Add,
                       .lhs = MatchesIntLitExpr({
                           .type = MatchesBasicType({.name = I("Int64")}),
                           .value = I("2"),
@@ -230,13 +230,13 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
 TEST_F(InferExprTypesTest, FuncArgFromParamType) {
   auto id_func = FuncDefStmt{
       .name = I("id"),
-      .result_type = T(BasicType{.name = I("Int32")}),
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
           }),
       }),
+      .result_type = T(BasicType{.name = I("Int32")}),
   };
 
   auto func = FuncDefStmt{
@@ -310,8 +310,8 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
                 .body = {{
                     MatchesIfStmt({
                         .cond = MatchesBinaryOpExpr({
-                            .op = BinaryOp::Lt,
                             .type = MatchesBasicType({.name = I("Bool")}),
+                            .op = BinaryOp::Lt,
                             .lhs = MatchesIntLitExpr({
                                 .type = MatchesBasicType({.name = I("Int32")}),
                                 .value = I("2"),
@@ -362,19 +362,19 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
                     }),
                     MatchesReturnStmt({
                         .value = MatchesIndexExpr({
+                            .type = MatchesBasicType({.name = I("Int32")}),
                             .base = MatchesIdentExpr({
-                                .name = I("a"),
                                 .type = MatchesArrayType({
                                     .element_type_constraint =
                                         MatchesBasicType({.name = I("Int32")}),
                                     .size = {.value = I("10")},
                                 }),
+                                .name = I("a"),
                             }),
                             .index = MatchesIntLitExpr({
-                                .value = I("2"),
                                 .type = MatchesBasicType({.name = I("Int32")}),
+                                .value = I("2"),
                             }),
-                            .type = MatchesBasicType({.name = I("Int32")}),
                         }),
                     }),
                 }},

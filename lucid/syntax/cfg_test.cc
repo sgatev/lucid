@@ -203,14 +203,14 @@ TEST_F(SyntaxControlFlowGraphTest, VarDeclStmt) {
       .args = EmptyList<Expr>(),
   });
   auto var_decl_stmt = S(VarDeclStmt{
-      .type_constraint = T(BasicType{.name = I("Int32")}),
       .name = I("x"),
+      .type_constraint = T(BasicType{.name = I("Int32")}),
       .init = func_call_stmt_ref,
   });
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .stmts = StmtListOf({var_decl_stmt}),
       .result_type = T(BasicType{.name = I("Void")}),
+      .stmts = StmtListOf({var_decl_stmt}),
   });
 
   ASSERT_EQ(scfg.blocks().Size(), 2);
@@ -246,8 +246,8 @@ TEST_F(SyntaxControlFlowGraphTest, BinaryOpExpr) {
   auto do_stmt = S(DoStmt{.expr = add_expr});
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
-      .stmts = StmtListOf({do_stmt}),
       .result_type = T(BasicType{.name = I("Int32")}),
+      .stmts = StmtListOf({do_stmt}),
   });
 
   ASSERT_EQ(scfg.blocks().Size(), 2);
@@ -292,6 +292,7 @@ TEST_F(SyntaxControlFlowGraphTest, IfStmt) {
   auto do_mul_stmt = S(DoStmt{.expr = mul_expr});
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
+      .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(IfStmt{
               .cond = cond_expr,
@@ -301,7 +302,6 @@ TEST_F(SyntaxControlFlowGraphTest, IfStmt) {
           }),
           do_mul_stmt,
       }),
-      .result_type = T(BasicType{.name = I("Int32")}),
   });
 
   ASSERT_EQ(scfg.blocks().Size(), 4);
@@ -363,6 +363,7 @@ TEST_F(SyntaxControlFlowGraphTest, IfElseStmt) {
   auto do_mul_stmt = S(DoStmt{.expr = mul_expr});
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
+      .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(IfStmt{
               .cond = cond_expr,
@@ -370,7 +371,6 @@ TEST_F(SyntaxControlFlowGraphTest, IfElseStmt) {
               .else_stmts = StmtListOf({do_mul_stmt}),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Int32")}),
   });
 
   ASSERT_EQ(scfg.blocks().Size(), 5);
@@ -483,12 +483,12 @@ TEST_F(SyntaxControlFlowGraphTest, Loop) {
   auto do_add_stmt = S(DoStmt{.expr = add_expr});
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
+      .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(LoopStmt{
               .stmts = StmtListOf({do_add_stmt}),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Int32")}),
   });
 
   ASSERT_EQ(scfg.blocks().Size(), 4);
@@ -547,8 +547,8 @@ TEST_F(SyntaxControlFlowGraphTest, SingleLoopAndBreak) {
   auto break_stmt = S(BreakStmt{});
   auto return_value_ref = E(IdentExpr{.name = I("n")});
   auto var_decl_stmt = S(VarDeclStmt{
-      .type_constraint = T(BasicType{.name = I("Int32")}),
       .name = I("n"),
+      .type_constraint = T(BasicType{.name = I("Int32")}),
       .init = n_var_init_ref,
   });
   auto var_assign_stmt = S(VarAssignStmt{
@@ -560,6 +560,7 @@ TEST_F(SyntaxControlFlowGraphTest, SingleLoopAndBreak) {
   });
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
+      .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           var_decl_stmt,
           S(LoopStmt{
@@ -573,7 +574,6 @@ TEST_F(SyntaxControlFlowGraphTest, SingleLoopAndBreak) {
           }),
           return_stmt,
       }),
-      .result_type = T(BasicType{.name = I("Int32")}),
   });
 
   ASSERT_EQ(scfg.blocks().Size(), 6);
