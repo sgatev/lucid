@@ -8,6 +8,8 @@
 
 class BoundedNatDomain {
  public:
+  using element_type = int;
+
   explicit BoundedNatDomain(std::size_t size) : size_(size) {}
 
   std::size_t size() const { return size_; }
@@ -18,7 +20,7 @@ class BoundedNatDomain {
   std::size_t size_;
 };
 
-static void BM_Push(benchmark::State &state) {
+static void BM_Push(benchmark::State& state) {
   lucid::Worklist<int, BoundedNatDomain, std::less<>> worklist(
       BoundedNatDomain(1000), std::less());
 
@@ -33,7 +35,7 @@ static void BM_Push(benchmark::State &state) {
 }
 BENCHMARK(BM_Push);
 
-static void BM_Pop(benchmark::State &state) {
+static void BM_Pop(benchmark::State& state) {
   lucid::Worklist<int, BoundedNatDomain, std::less<>> worklist(
       BoundedNatDomain(1000), std::less());
 
@@ -46,7 +48,7 @@ static void BM_Pop(benchmark::State &state) {
 }
 BENCHMARK(BM_Pop);
 
-static void BM_PushPop(benchmark::State &state) {
+static void BM_PushPop(benchmark::State& state) {
   lucid::Worklist<int, BoundedNatDomain, std::less<>> worklist(
       BoundedNatDomain(1000), std::less());
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <cstddef>
 #include <queue>
 #include <utility>
@@ -10,6 +11,7 @@ namespace lucid {
 // Models a finite set of elements.
 template <typename D, typename E>
 concept FiniteDomain = requires(D d, E e) {
+  std::same_as<typename D::element_type, E>;
   { d.size() } -> std::same_as<std::size_t>;
   { d.id(e) } -> std::same_as<std::size_t>;
 };
@@ -25,9 +27,9 @@ concept OrderedBefore = requires(O o, E e1, E e2) {
 template <typename T, FiniteDomain<T> D, OrderedBefore<T> O>
 class Worklist {
  public:
-  explicit Worklist(D domain, O ordered_before)
+  Worklist(D domain, O compare)
       : domain_(std::move(domain)),
-        queue_(std::move(ordered_before)),
+        queue_(std::move(compare)),
         present_(domain.size(), false) {}
 
   // Returns whether the worklist is empty.
@@ -60,5 +62,15 @@ class Worklist {
   std::priority_queue<T, std::vector<T>, O> queue_;
   std::vector<bool> present_;
 };
+
+// Deduction guide to simplify the construction of a worklist.
+//
+// Example:
+//
+//   Worklist worklist(domain, compare);
+template <typename D, OrderedBefore<typename D::element_type> O>
+  requires FiniteDomain<D, typename D::element_type>
+Worklist(D domain, O ordered_before)
+    -> Worklist<typename D::element_type, D, O>;
 
 }  // namespace lucid

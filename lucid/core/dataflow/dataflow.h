@@ -41,6 +41,8 @@ concept DataflowAnalysis = Graph<G> and requires(A a, A::State s1, A::State s2,
 template <Graph GraphT>
 class VertexDomain {
  public:
+  using element_type = GraphT::vertex_type;
+
   explicit VertexDomain(const GraphT& graph)
       : graph_(graph), vertex_count_(VertexCount(graph)) {}
 
@@ -144,30 +146,30 @@ struct Backward {
 template <DataflowScheme SchemeT,
           DataflowAnalysis<typename SchemeT::Graph> AnalysisT>
 std::vector<std::optional<typename AnalysisT::State>> RunDataflow(
-    const SchemeT& s, AnalysisT& a) {
+    const SchemeT& scheme, AnalysisT& analysis) {
   using GraphT = typename SchemeT::Graph;
   using State = typename AnalysisT::State;
 
-  auto d = s.Domain();
+  auto domain = scheme.Domain();
 
-  std::vector<std::optional<State>> states(d.size());
-  auto has_state = [&](auto v) { return states[d.id(v)].has_value(); };
-  auto to_state = [&](auto v) { return *states[d.id(v)]; };
+  std::vector<std::optional<State>> states(domain.size());
+  auto has_state = [&](auto v) { return states[domain.id(v)].has_value(); };
+  auto to_state = [&](auto v) { return *states[domain.id(v)]; };
 
-  Worklist<typename GraphT::vertex_type, VertexDomain<GraphT>,
-           CompareVertexOrder<GraphT>>
-      worklist(d, s.Compare());
-  worklist.push(s.Initial());
-  while (!worklist.empty()) {
-    typename GraphT::vertex_type v = worklist.pop();
+  Worklist vertices_to_process(domain, scheme.Compare());
+  vertices_to_process.push(scheme.Initial());
+  while (!vertices_to_process.empty()) {
+    typename GraphT::vertex_type vertex = vertices_to_process.pop();
+
     State prior_state = std::ranges::fold_left(
-        s.Prior(v) | std::views::filter(has_state) |
+        scheme.Prior(vertex) | std::views::filter(has_state) |
             std::views::transform(to_state),
-        a.MakeInitial(), std::bind_front(&AnalysisT::Join, &a));
-    State new_state = a.Transfer(std::move(prior_state), v);
-    if (auto& state = states[d.id(v)]; new_state != state) {
+        analysis.MakeInitial(), std::bind_front(&AnalysisT::Join, &analysis));
+
+    State new_state = analysis.Transfer(std::move(prior_state), vertex);
+    if (auto& state = states[domain.id(vertex)]; new_state != state) {
       state = std::move(new_state);
-      worklist.push_range(s.Subsequent(v));
+      vertices_to_process.push_range(scheme.Subsequent(vertex));
     }
   }
 

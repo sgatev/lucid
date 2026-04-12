@@ -10,6 +10,8 @@ namespace {
 
 class BoundedNatDomain {
  public:
+  using element_type = int;
+
   explicit BoundedNatDomain(std::size_t size) : size_(size) {}
 
   std::size_t size() const { return size_; }
