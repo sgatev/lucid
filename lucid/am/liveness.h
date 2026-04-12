@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
 #include "lucid/core/container/hash_set.h"
@@ -24,9 +26,7 @@ class AbstractMachineLivenessAnalysis {
   explicit AbstractMachineLivenessAnalysis(
       const AbstractMachineControlFlowGraph& am_cfg);
 
-  State MakeInitial();
-
-  State Transfer(State state,
+  State Transfer(std::optional<State> prior_state,
                  const AbstractMachineControlFlowGraph::BlockRef& block_ref);
 
   State Join(State left, State right);

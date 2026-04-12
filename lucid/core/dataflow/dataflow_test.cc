@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -29,9 +30,9 @@ class TestResultUnionAnalysis {
 
   explicit TestResultUnionAnalysis() {}
 
-  State MakeInitial() { return {}; }
-
-  State Transfer(State state, TestGraph::vertex_type v) {
+  State Transfer(std::optional<State> prior_state, TestGraph::vertex_type v) {
+    State state;
+    if (prior_state.has_value()) state = *std::move(prior_state);
     state.results.insert(v);
     return state;
   }

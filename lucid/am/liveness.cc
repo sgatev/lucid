@@ -1,6 +1,7 @@
 #include "lucid/am/liveness.h"
 
 #include <cassert>
+#include <optional>
 #include <ranges>
 #include <utility>
 
@@ -25,10 +26,15 @@ AbstractMachineLivenessAnalysis::AbstractMachineLivenessAnalysis(
     const AbstractMachineControlFlowGraph& am_cfg)
     : am_cfg_(am_cfg) {}
 
-State AbstractMachineLivenessAnalysis::MakeInitial() { return {}; }
-
 State AbstractMachineLivenessAnalysis::Transfer(
-    State state, const AbstractMachineControlFlowGraph::BlockRef& block_ref) {
+    std::optional<State> prior_state,
+    const AbstractMachineControlFlowGraph::BlockRef& block_ref) {
+  State state;
+  if (prior_state.has_value()) {
+    state.live_out = std::move(prior_state->live_in);
+    state.live_in = state.live_out;
+  }
+
   const auto& block = am_cfg_.get(block_ref);
   for (auto inst : block.instructions | std::views::reverse) {
     state = Transfer(std::move(state), inst);
@@ -37,14 +43,14 @@ State AbstractMachineLivenessAnalysis::Transfer(
     state.live_in.Remove(phi.target);
     for (const auto& source : phi.sources) state.live_in.Insert(source);
   }
+
   return state;
 }
 
 State AbstractMachineLivenessAnalysis::Join(State left, State right) {
   State state;
-  for (RegId reg : left.live_in) state.live_out.Insert(reg);
-  for (RegId reg : right.live_in) state.live_out.Insert(reg);
-  state.live_in = state.live_out;
+  state.live_in = std::move(left.live_in);
+  for (RegId reg : right.live_in) state.live_in.Insert(reg);
   return state;
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <variant>
 
 #include "lucid/core/container/hash_map.h"
@@ -25,9 +26,7 @@ class SyntaxReachabilityAnalysis {
   explicit SyntaxReachabilityAnalysis(SyntaxControlFlowGraph& s_cfg,
                                       SyntaxContext& ctx);
 
-  State MakeInitial();
-
-  State Transfer(State state,
+  State Transfer(std::optional<State> prior_state,
                  const SyntaxControlFlowGraph::BlockRef& block_ref);
 
   State Join(State left, State right);

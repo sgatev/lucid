@@ -1,6 +1,8 @@
 #include "lucid/syntax/reachability.h"
 
 #include <cassert>
+#include <optional>
+#include <utility>
 
 #include "lucid/syntax/cfg.h"
 
@@ -12,10 +14,15 @@ SyntaxReachabilityAnalysis::SyntaxReachabilityAnalysis(
     SyntaxControlFlowGraph& s_cfg, SyntaxContext& ctx)
     : s_cfg_(s_cfg), ctx_(ctx) {}
 
-State SyntaxReachabilityAnalysis::MakeInitial() { return {}; }
-
 State SyntaxReachabilityAnalysis::Transfer(
-    State state, const SyntaxControlFlowGraph::BlockRef& block_ref) {
+    std::optional<State> prior_state,
+    const SyntaxControlFlowGraph::BlockRef& block_ref) {
+  State state;
+  if (prior_state.has_value()) {
+    state.vars_in = std::move(prior_state->vars_out);
+    state.vars_out = state.vars_in;
+  }
+
   if (block_ref == s_cfg_.first) {
     for (auto param_ref : s_cfg_.func_params) {
       const auto& param = ctx_.DerefParam(param_ref);
@@ -39,14 +46,14 @@ State SyntaxReachabilityAnalysis::Transfer(
       state.vars_out.Set(var_assign_stmt->name, *seq.stmt);
     }
   }
+
   return state;
 }
 
 State SyntaxReachabilityAnalysis::Join(State left, State right) {
   State state;
-  for (auto [from, to] : left.vars_out) state.vars_in.Set(from, to);
-  for (auto [from, to] : right.vars_out) state.vars_in.Set(from, to);
-  state.vars_out = state.vars_in;
+  state.vars_out = std::move(left.vars_out);
+  for (auto [from, to] : right.vars_out) state.vars_out.Set(from, to);
   return state;
 }
 

@@ -25,17 +25,16 @@ concept BoundedJoinSemiLattice = requires(L l1, L l2) {
 //
 // Requires:
 // - `State` sub-type that models a bounded join-semilattice.
-// - `MakeInitial` member that constructs an initial state.
-// - `Transfer` member that transfers a state given a vertex.
-// - `Join` member that joins two states.
+// - `Transfer` member that transfers a prior state given a vertex.
+// - `Join` member that joins two prior states as input for `Transfer`.
 template <typename A, typename G>
-concept DataflowAnalysis = Graph<G> and requires(A a, A::State s1, A::State s2,
-                                                 const G::vertex_type& v) {
-  requires BoundedJoinSemiLattice<typename A::State>;
-  { a.MakeInitial() } -> std::same_as<typename A::State>;
-  { a.Transfer(s1, v) } -> std::same_as<typename A::State>;
-  { a.Join(s1, s2) } -> std::same_as<typename A::State>;
-};
+concept DataflowAnalysis =
+    Graph<G> and requires(A a, std::optional<typename A::State> os, A::State s1,
+                          A::State s2, const G::vertex_type& v) {
+      requires BoundedJoinSemiLattice<typename A::State>;
+      { a.Transfer(os, v) } -> std::same_as<typename A::State>;
+      { a.Join(s1, s2) } -> std::same_as<typename A::State>;
+    };
 
 // A finite domain of vertices in a graph.
 template <Graph GraphT>
@@ -138,6 +137,17 @@ struct Backward {
   const GraphT& g_;
 };
 
+// Left-folds the elements of given range. Returns nullopt if the range is
+// empty.
+template <std::ranges::input_range R, typename F>
+std::optional<std::ranges::range_value_t<R>> fold_left_first(R&& r, F&& f) {
+  if (std::ranges::empty(r)) return std::nullopt;
+  auto begin = std::ranges::begin(r);
+  return std::ranges::fold_left(
+      std::ranges::subrange(std::ranges::next(begin), std::ranges::end(r)),
+      *begin, f);
+}
+
 // Performs dataflow analysis over a graph according to the given scheme.
 //
 // Returns a mapping from vertex IDs to dataflow analysis states that model the
@@ -161,10 +171,10 @@ std::vector<std::optional<typename AnalysisT::State>> RunDataflow(
   while (!vertices_to_process.empty()) {
     typename GraphT::vertex_type vertex = vertices_to_process.pop();
 
-    State prior_state = std::ranges::fold_left(
-        scheme.Prior(vertex) | std::views::filter(has_state) |
-            std::views::transform(to_state),
-        analysis.MakeInitial(), std::bind_front(&AnalysisT::Join, &analysis));
+    std::optional<State> prior_state =
+        fold_left_first(scheme.Prior(vertex) | std::views::filter(has_state) |
+                            std::views::transform(to_state),
+                        std::bind_front(&AnalysisT::Join, &analysis));
 
     State new_state = analysis.Transfer(std::move(prior_state), vertex);
     if (auto& state = states[domain.id(vertex)]; new_state != state) {
