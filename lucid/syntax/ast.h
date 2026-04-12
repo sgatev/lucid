@@ -353,6 +353,15 @@ class SyntaxContext {
     return stmts_.Equiv(lhs, rhs);
   }
 
+  // Returns true if and only if `lhs` and `rhs` refer to equivalent statements.
+  bool Equiv(StmtRef lhs, StmtRef rhs) const { return stmts_.Equiv(lhs, rhs); }
+
+  // Returns true if and only if `lhs` and `rhs` refer to equivalent function
+  // parameters.
+  bool Equiv(ParamRef lhs, ParamRef rhs) const {
+    return params_.Equiv(lhs, rhs);
+  }
+
   std::size_t Size() const {
     return stmts_.Size() + exprs_.Size() + types_.Size();
   }

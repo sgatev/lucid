@@ -287,6 +287,22 @@ class AstFixture {
     });
   }
 
+  // Returns a matcher that is satisfied if the argument is a statement
+  // reference equivalent to `expected`.
+  auto EquivTo(StmtRef expected) {
+    return testing::Truly([this, expected](StmtRef actual) {
+      return ctx_.Equiv(expected, actual);
+    });
+  }
+
+  // Returns a matcher that is satisfied if the argument is a function parameter
+  // reference equivalent to `expected`.
+  auto EquivTo(ParamRef expected) {
+    return testing::Truly([this, expected](ParamRef actual) {
+      return ctx_.Equiv(expected, actual);
+    });
+  }
+
   ExprRefMatcher MatchesAnyExpr() {
     return [](ExprRef) { return true; };
   }
