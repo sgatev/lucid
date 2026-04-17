@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <optional>
 
 namespace lucid {
@@ -21,11 +22,25 @@ class OptionalRef {
   OptionalRef<T>& operator=(const OptionalRef<T>&) = default;
   OptionalRef<T>& operator=(OptionalRef<T>&&) = default;
 
-  const T& operator*() const { return *value_; }
-  T& operator*() { return *value_; }
+  const T& operator*() const {
+    assert(has_value());
+    return *value_;
+  }
 
-  const T* operator->() const { return value_; }
-  T* operator->() { return value_; }
+  T& operator*() {
+    assert(has_value());
+    return *value_;
+  }
+
+  const T* operator->() const {
+    assert(has_value());
+    return value_;
+  }
+
+  T* operator->() {
+    assert(has_value());
+    return value_;
+  }
 
   bool operator==(const T& value) const {
     return value_ != nullptr && *value_ == value;
