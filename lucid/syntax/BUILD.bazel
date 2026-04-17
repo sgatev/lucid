@@ -204,6 +204,7 @@ cc_library(
         ":ast",
         ":cfg",
         ":reachability",
+        "//lucid/core/container:hash_set",
         "//lucid/core/container/graph:dominator",
         "//lucid/core/dataflow",
         "//lucid/core/string:index",
