@@ -6,7 +6,6 @@
 
 #include "lucid/am/instructions.h"
 #include "lucid/core/container/arena.h"
-#include "lucid/core/container/hash_set.h"
 
 namespace lucid {
 

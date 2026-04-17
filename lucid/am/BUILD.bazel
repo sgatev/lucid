@@ -9,7 +9,6 @@ cc_library(
     deps = [
         ":instructions",
         "//lucid/core/container:arena",
-        "//lucid/core/container:hash_set",
     ],
 )
 
