@@ -4,11 +4,11 @@
 #include <optional>
 #include <ranges>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
 
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/functional/result.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
@@ -22,7 +22,7 @@ class ExprTypeInferenceEngine {
                           const std::vector<FuncDefStmt>& func_defs,
                           FuncDefStmt& func_def)
       : ctx_(ctx), func_def_(func_def) {
-    for (const auto& func : func_defs) func_defs_[func.name] = &func;
+    for (const auto& func : func_defs) func_defs_.Set(func.name, &func);
   }
 
   Result<void, TypeError> InferTypes() {
@@ -56,10 +56,10 @@ class ExprTypeInferenceEngine {
     SolveTypeEquations();
 
     for (auto int_lit_expr : int_lit_exprs_) {
-      if (expr_from_type_.find(int_lit_expr) == expr_from_type_.end()) {
-        expr_from_type_[int_lit_expr] = ctx_.Add(BasicType{
-            .name = ctx_.AddIdent("Int32"),
-        });
+      if (!expr_from_type_.Find(int_lit_expr).has_value()) {
+        expr_from_type_.Set(int_lit_expr, ctx_.Add(BasicType{
+                                              .name = ctx_.AddIdent("Int32"),
+                                          }));
       }
     }
 
@@ -151,7 +151,7 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
-    const auto& func_def = func_defs_.at(expr.func_name);
+    const auto& func_def = *func_defs_.Find(expr.func_name);
     for (std::uint32_t i = 0; i < expr.args.size(); ++i) {
       const auto& param = ctx_.DerefParam(func_def->params[i]);
       ExprRef arg = expr.args[i];
@@ -204,33 +204,33 @@ class ExprTypeInferenceEngine {
   }
 
   void RequireTypeForExpr(ExprRef expr_ref, TypeRef type_ref) {
-    if (auto it = expr_from_type_.find(expr_ref);
-        it != expr_from_type_.end() && !TypesEqual(it->second, type_ref)) {
-      if (std::holds_alternative<ArrayType>(ctx_.DerefType(it->second))) {
+    if (auto it = expr_from_type_.Find(expr_ref);
+        it.has_value() && !TypesEqual(*it, type_ref)) {
+      if (std::holds_alternative<ArrayType>(ctx_.DerefType(*it))) {
         errors_.push_back(std::string("expected array type"));
       } else {
-        const auto& it_type = std::get<BasicType>(ctx_.DerefType(it->second));
+        const auto& it_type = std::get<BasicType>(ctx_.DerefType(*it));
         errors_.push_back(std::string("expected type ") +
                           std::string(ctx_.DerefIdent(it_type.name)));
       }
     }
-    expr_from_type_[expr_ref] = type_ref;
+    expr_from_type_.Set(expr_ref, type_ref);
   }
 
   void RequireSameTypesForExprs(ExprRef lhs, ExprRef rhs) {
-    expr_from_expr_[lhs] = rhs;
+    expr_from_expr_.Set(lhs, rhs);
   }
 
   void RequireArrayElementTypeForExpr(ExprRef element, ExprRef array) {
-    expr_from_array_[element] = array;
+    expr_from_array_.Set(element, array);
   }
 
   void SetIdentType(StringIndex::Ref ident, TypeRef type_ref) {
-    ident_from_type_[ident] = type_ref;
+    ident_from_type_.Set(ident, type_ref);
   }
 
   TypeRef GetIdentType(StringIndex::Ref name) const {
-    return ident_from_type_.at(name);
+    return *ident_from_type_.Find(name);
   }
 
   bool TypesEqual(TypeRef lhs_ref, TypeRef rhs_ref) {
@@ -275,20 +275,18 @@ class ExprTypeInferenceEngine {
   void SolveTypeEquations() {
     while (true) {
       for (auto [element, array] : expr_from_array_) {
-        if (auto it = expr_from_type_.find(array);
-            it != expr_from_type_.end()) {
-          const auto& array_type =
-              std::get<ArrayType>(ctx_.DerefType(it->second));
-          expr_from_type_[element] = array_type.element_type_constraint;
+        if (auto it = expr_from_type_.Find(array); it.has_value()) {
+          const auto& array_type = std::get<ArrayType>(ctx_.DerefType(*it));
+          expr_from_type_.Set(element, array_type.element_type_constraint);
         }
       }
 
-      std::unordered_map<ExprRef, ExprRef> next_expr_from_expr;
+      HashMap<ExprRef, ExprRef> next_expr_from_expr;
       for (auto [lhs, rhs] : expr_from_expr_) {
-        if (auto it = expr_from_type_.find(rhs); it != expr_from_type_.end()) {
-          expr_from_type_[lhs] = it->second;
+        if (auto it = expr_from_type_.Find(rhs); it.has_value()) {
+          expr_from_type_.Set(lhs, *it);
         } else {
-          next_expr_from_expr[lhs] = rhs;
+          next_expr_from_expr.Set(lhs, rhs);
         }
       }
       if (next_expr_from_expr.size() == expr_from_expr_.size()) break;
@@ -302,13 +300,13 @@ class ExprTypeInferenceEngine {
   }
 
   SyntaxContext& ctx_;
-  std::unordered_map<StringIndex::Ref, const FuncDefStmt*> func_defs_;
+  HashMap<StringIndex::Ref, const FuncDefStmt*> func_defs_;
   FuncDefStmt& func_def_;
 
-  std::unordered_map<ExprRef, ExprRef> expr_from_expr_;
-  std::unordered_map<ExprRef, TypeRef> expr_from_type_;
-  std::unordered_map<StringIndex::Ref, TypeRef> ident_from_type_;
-  std::unordered_map<ExprRef, ExprRef> expr_from_array_;
+  HashMap<ExprRef, ExprRef> expr_from_expr_;
+  HashMap<ExprRef, TypeRef> expr_from_type_;
+  HashMap<StringIndex::Ref, TypeRef> ident_from_type_;
+  HashMap<ExprRef, ExprRef> expr_from_array_;
 
   std::vector<StmtRef> pending_stmts_;
   std::vector<ExprRef> pending_exprs_;

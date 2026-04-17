@@ -245,6 +245,7 @@ cc_library(
     visibility = ["//lucid:__subpackages__"],
     deps = [
         ":ast",
+        "//lucid/core/container:hash_map",
         "//lucid/core/functional:result",
         "//lucid/core/string:index",
     ],
