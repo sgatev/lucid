@@ -5,13 +5,13 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/container/graph/order.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"
 
 namespace lucid {
@@ -434,7 +434,7 @@ void GenerateArmStartBinary(Assembler& assembler) {
 
 void GenerateArmEndBinary(
     const SyntaxContext& ctx,
-    const std::unordered_map<std::uintptr_t, StringIndex::Ref>& strings,
+    const HashMap<std::uintptr_t, StringIndex::Ref>& strings,
     Assembler& assmebler) {
   for (const auto& [k, v] : strings) {
     assmebler.Label("str" + std::to_string(k));

@@ -2,10 +2,10 @@
 
 #include <cstdint>
 #include <string_view>
-#include <unordered_map>
 
 #include "lucid/am/cfg.h"
 #include "lucid/arm64/assembler.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 
@@ -17,7 +17,7 @@ void GenerateArmStartBinary(arm64::Assembler& Assembler);
 // Generates the end sequence for 64-bit ARM machine code.
 void GenerateArmEndBinary(
     const SyntaxContext& ctx,
-    const std::unordered_map<std::uintptr_t, StringIndex::Ref>& strings,
+    const HashMap<std::uintptr_t, StringIndex::Ref>& strings,
     arm64::Assembler& Assembler);
 
 // Generates 64-bit ARM machine code for `func`.

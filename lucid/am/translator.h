@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <unordered_map>
 
 #include "lucid/am/cfg.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
@@ -16,7 +16,7 @@ struct AbstractMachineState {
   std::vector<std::size_t> stack_slots;
 
   // Strings used in `func`.
-  std::unordered_map<std::uintptr_t, StringIndex::Ref> strings;
+  HashMap<std::uintptr_t, StringIndex::Ref> strings;
 };
 
 // Generates abstract machine instructions for `scfg`.

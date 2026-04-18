@@ -194,7 +194,7 @@ class AbstractMachineFunctionGenerator {
                    AbstractMachineControlFlowGraph::Block& am_block) {
     auto string_id =
         reinterpret_cast<std::uintptr_t>(ctx_.DerefIdent(expr.value).data());
-    state_.strings.insert({string_id, expr.value});
+    state_.strings.Insert(string_id, expr.value);
 
     RegId reg = next_reg_++;
     am_block.instructions.push_back(SetStr{
