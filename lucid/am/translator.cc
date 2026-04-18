@@ -653,11 +653,11 @@ class AbstractMachineFunctionGenerator {
   }
 
   RegId GetVarReg(StringIndex::Ref var_name) {
-    auto it = var_to_reg_.find(var_name);
-    if (it != var_to_reg_.end()) return it->second;
+    auto it = var_to_reg_.Find(var_name);
+    if (it.has_value()) return *it;
 
     RegId reg = next_reg_++;
-    var_to_reg_[var_name] = reg;
+    var_to_reg_.Insert(var_name, reg);
     return reg;
   }
 
@@ -667,7 +667,7 @@ class AbstractMachineFunctionGenerator {
   AbstractMachineControlFlowGraph am_cfg_;
   RegId next_reg_ = 1;
   RegId result_reg_;
-  std::unordered_map<StringIndex::Ref, RegId> var_to_reg_;
+  HashMap<StringIndex::Ref, RegId> var_to_reg_;
   std::unordered_map<StringIndex::Ref, std::size_t> var_stack_;
   HashMap<SyntaxControlFlowGraph::BlockRef,
           AbstractMachineControlFlowGraph::BlockRef>
