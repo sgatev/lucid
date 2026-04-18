@@ -4,11 +4,11 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "lucid/core/container/hash_map.h"
 
 namespace lucid {
 namespace {
@@ -22,7 +22,7 @@ TEST(RunCommandTest, RunsCommand) {
                                         "--bar_flag=bar_value", "baz"};
 
   std::span<std::string_view> foo_args;
-  std::unordered_map<std::string_view, std::string_view> foo_flags;
+  HashMap<std::string_view, std::string_view> foo_flags;
   auto foo = [&foo_args, &foo_flags](CommandContext ctx) {
     foo_args = ctx.args;
     foo_flags = ctx.flags;
@@ -52,7 +52,7 @@ TEST(RunCommandTest, RunsCommand) {
 TEST(RunCommandTest, UnknownCommand) {
   auto bar = [](CommandContext) { return 0; };
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
-  std::unordered_map<std::string_view, std::string_view> flags = {};
+  HashMap<std::string_view, std::string_view> flags = {};
   std::stringstream out, err;
   EXPECT_EQ(RunCommand("test",
                        {
@@ -70,7 +70,7 @@ TEST(RunCommandTest, UnknownCommand) {
 TEST(RunCommandTest, EmptyArgs) {
   auto foo = [](CommandContext) { return 1; };
   std::vector<std::string_view> args = {};
-  std::unordered_map<std::string_view, std::string_view> flags = {};
+  HashMap<std::string_view, std::string_view> flags = {};
   std::stringstream out, err;
   EXPECT_EQ(RunCommand("test",
                        {

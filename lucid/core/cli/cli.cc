@@ -6,7 +6,8 @@
 #include <iostream>
 #include <span>
 #include <string_view>
-#include <unordered_map>
+
+#include "lucid/core/container/hash_map.h"
 
 namespace lucid {
 
@@ -39,11 +40,11 @@ int RunCommand(std::string_view root_name,
       std::find_if(args.begin(), args.end(),
                    [](auto arg) { return !arg.starts_with("--"); });
 
-  std::unordered_map<std::string_view, std::string_view> flags;
+  HashMap<std::string_view, std::string_view> flags;
   for (auto it = args.begin(); it != first_non_flag_arg_it; ++it) {
     auto flag = it->substr(2);
     auto count = flag.find("=");
-    flags[flag.substr(0, count)] = flag.substr(count + 1);
+    flags.Set(flag.substr(0, count), flag.substr(count + 1));
   }
 
   return command_it->handler({

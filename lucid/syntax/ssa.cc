@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstddef>
 #include <optional>
-#include <unordered_map>
 #include <unordered_set>
 #include <variant>
 #include <vector>
@@ -25,14 +24,14 @@ using BlockRef = SyntaxControlFlowGraph::BlockRef;
 using Phi = SyntaxControlFlowGraph::Phi;
 using PhiRef = SyntaxControlFlowGraph::PhiRef;
 
-std::unordered_map<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>>
-CollectVarDefs(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
-  std::unordered_map<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>>
-      defs;
+HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> CollectVarDefs(
+    const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
+  HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> defs;
   for (auto param_ref : scfg.func_params) {
     const auto& param = ctx.DerefParam(param_ref);
-    defs[param.name].first = param.type_constraint;
-    defs[param.name].second.Insert(scfg.first);
+    defs.Insert(param.name, {});
+    defs.Find(param.name)->first = param.type_constraint;
+    defs.Find(param.name)->second.Insert(scfg.first);
   }
   for (const auto& block : scfg.blocks()) {
     for (const auto& seq : block.sequences) {
@@ -40,10 +39,12 @@ CollectVarDefs(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
 
       const auto& stmt = ctx.DerefStmt(*seq.stmt);
       if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-        defs[var_decl_stmt->name].first = var_decl_stmt->type_constraint;
-        defs[var_decl_stmt->name].second.Insert(block.ref);
+        defs.Insert(var_decl_stmt->name, {});
+        defs.Find(var_decl_stmt->name)->first = var_decl_stmt->type_constraint;
+        defs.Find(var_decl_stmt->name)->second.Insert(block.ref);
       } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-        defs[var_assign_stmt->name].second.Insert(block.ref);
+        defs.Insert(var_assign_stmt->name, {});
+        defs.Find(var_assign_stmt->name)->second.Insert(block.ref);
       }
     }
   }
@@ -55,8 +56,7 @@ void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
       ComputeImmediateDominators(scfg);
   const HashMap<BlockRef, std::unordered_set<BlockRef>> dom_fronts =
       ComputeDominanceFrontiers(scfg, idoms);
-  const std::unordered_map<StringIndex::Ref,
-                           std::pair<TypeRef, HashSet<BlockRef>>>
+  const HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>>
       var_defs = CollectVarDefs(ctx, scfg);
 
   for (const auto& [var, add] : var_defs) {

@@ -6,6 +6,9 @@ cc_library(
     srcs = ["cli.cc"],
     hdrs = ["cli.h"],
     visibility = ["//lucid:__subpackages__"],
+    deps = [
+        "//lucid/core/container:hash_map",
+    ],
 )
 
 cc_test(
@@ -13,6 +16,7 @@ cc_test(
     srcs = ["cli_test.cc"],
     deps = [
         ":cli",
+        "//lucid/core/container:hash_map",
         "@googletest//:gtest_main",
     ],
 )

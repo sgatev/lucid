@@ -5,7 +5,8 @@
 #include <ostream>
 #include <span>
 #include <string_view>
-#include <unordered_map>
+
+#include "lucid/core/container/hash_map.h"
 
 namespace lucid {
 
@@ -15,7 +16,7 @@ struct CommandContext {
   std::span<std::string_view> args;
 
   // Flags passed to the command.
-  std::unordered_map<std::string_view, std::string_view> flags;
+  HashMap<std::string_view, std::string_view> flags;
 
   // Standard output stream of the command.
   std::ostream& out;
