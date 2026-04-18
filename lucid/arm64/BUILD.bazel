@@ -6,6 +6,7 @@ cc_library(
     hdrs = ["assembler.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
+        "//lucid/core/container:hash_map",
         "//lucid/core/numeric:bits",
         "//lucid/core/string:encoding",
     ],

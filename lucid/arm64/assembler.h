@@ -9,10 +9,10 @@
 #include <ostream>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <variant>
 #include <vector>
 
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/numeric/bits.h"
 #include "lucid/core/string/encoding.h"
 
@@ -90,9 +90,8 @@ class LitInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(
-      const std::unordered_map<std::string, std::size_t>& label_offsets,
-      std::ostream& out) const {
+  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
+                  std::ostream& out) const {
     out.write(reinterpret_cast<const char*>(&value_), 4);
   }
 
@@ -110,11 +109,11 @@ class AdrInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(
-      const std::unordered_map<std::string, std::size_t>& label_offsets,
-      std::ostream& out) const {
-    std::size_t label_offset = label_offsets.at(std::string(label_));
-    std::size_t offset = label_offset - pos_;
+  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
+                  std::ostream& out) const {
+    auto label_offset = label_offsets.Find(std::string(label_));
+    assert(label_offset.has_value());
+    std::size_t offset = *label_offset - pos_;
     auto immlo = offset & 0b11;
     auto immhi = (offset >> 2) & 0b1111111111111111111;
     std::uint32_t res =
@@ -139,12 +138,12 @@ class BInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(
-      const std::unordered_map<std::string, std::size_t>& label_offsets,
-      std::ostream& out) const {
+  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
+                  std::ostream& out) const {
+    auto label_offset = label_offsets.Find(std::string(label_));
+    assert(label_offset.has_value());
     std::size_t offset =
-        ((label_offsets.at(std::string(label_)) - this_offset_) / 4) &
-        0b11111111111111111111111111;
+        ((*label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
     std::uint32_t res = 0b00010100000000000000000000000000 | offset;
 
     out.write(reinterpret_cast<const char*>(&res), 4);
@@ -186,12 +185,12 @@ class BCondInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(
-      const std::unordered_map<std::string, std::size_t>& label_offsets,
-      std::ostream& out) const {
+  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
+                  std::ostream& out) const {
+    auto label_offset = label_offsets.Find(std::string(label_));
+    assert(label_offset.has_value());
     std::size_t offset =
-        ((label_offsets.at(std::string(label_)) - this_offset_) / 4) &
-        0b11111111111111111111111111;
+        ((*label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
     std::uint32_t res = 0b01010100000000000000000000000000 |
                         (offset << 5) << static_cast<std::uint8_t>(cond_);
 
@@ -214,13 +213,14 @@ class BlInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(
-      const std::unordered_map<std::string, std::size_t>& label_offsets,
-      std::ostream& out) const {
+  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
+                  std::ostream& out) const {
     std::size_t offset = 0;
     if (!label_.empty()) {
-      offset = ((label_offsets.at(std::string(label_)) - this_offset_) / 4) &
-               0b11111111111111111111111111;
+      auto label_offset = label_offsets.Find(std::string(label_));
+      assert(label_offset.has_value());
+      offset =
+          ((*label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
     }
     std::uint32_t res = 0b10010100000000000000000000000000 | offset;
 
@@ -247,9 +247,8 @@ class AscizInst {
   }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(
-      const std::unordered_map<std::string, std::size_t>& label_offsets,
-      std::ostream& out) const {
+  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
+                  std::ostream& out) const {
     const std::size_t length = WriteEncodedString(s_, out);
     std::size_t remainder = 4 - (length % 4);
     for (; remainder > 0; --remainder) out.put(0);
@@ -279,7 +278,7 @@ class Assembler {
   }
 
   // Returns all global labels that were inserted.
-  const std::unordered_map<std::string, std::size_t>& GlobalLabels() const {
+  const HashMap<std::string, std::size_t>& GlobalLabels() const {
     return global_label_offsets_;
   }
 
@@ -291,12 +290,12 @@ class Assembler {
 
   // Inserts local `label` after the last instruction that was added.
   void Label(std::string label) {
-    label_offsets_[std::move(label)] = insts_size_;
+    label_offsets_.Set(std::move(label), insts_size_);
   }
 
   // Inserts global `label` after the last instruction that was added.
   void Global(std::string label) {
-    global_label_offsets_[std::move(label)] = insts_size_;
+    global_label_offsets_.Set(std::move(label), insts_size_);
   }
 
   // Creates an external label.
@@ -943,8 +942,8 @@ class Assembler {
     insts_.push_back(std::move(inst));
   }
 
-  std::unordered_map<std::string, std::size_t> label_offsets_;
-  std::unordered_map<std::string, std::size_t> global_label_offsets_;
+  HashMap<std::string, std::size_t> label_offsets_;
+  HashMap<std::string, std::size_t> global_label_offsets_;
   std::vector<Inst> insts_;
   std::size_t insts_size_ = 0;
   std::map<std::string, std::vector<std::size_t>> external_labels_;
