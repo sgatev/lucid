@@ -10,6 +10,7 @@
 
 #include "lucid/core/container/graph/dominator.h"
 #include "lucid/core/container/graph/order.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
 #include "lucid/core/dataflow/dataflow.h"
 #include "lucid/core/string/index.h"
@@ -52,7 +53,7 @@ CollectVarDefs(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
 void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
   const std::vector<std::optional<BlockRef>> idoms =
       ComputeImmediateDominators(scfg);
-  const std::unordered_map<BlockRef, std::unordered_set<BlockRef>> dom_fronts =
+  const HashMap<BlockRef, std::unordered_set<BlockRef>> dom_fronts =
       ComputeDominanceFrontiers(scfg, idoms);
   const std::unordered_map<StringIndex::Ref,
                            std::pair<TypeRef, HashSet<BlockRef>>>
@@ -70,10 +71,10 @@ void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
       auto block = *pending.begin();
       pending.Remove(block);
 
-      auto dom_front_it = dom_fronts.find(block);
-      if (dom_front_it == dom_fronts.end()) continue;
+      auto dom_front_it = dom_fronts.Find(block);
+      if (!dom_front_it.has_value()) continue;
 
-      for (auto y : dom_front_it->second) {
+      for (auto y : *dom_front_it) {
         if (visited.Contains(y)) continue;
 
         auto& yb = scfg.get(y);
