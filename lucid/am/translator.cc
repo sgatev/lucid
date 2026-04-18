@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <string_view>
-#include <unordered_map>
 #include <utility>
 #include <variant>
 
@@ -551,7 +550,7 @@ class AbstractMachineFunctionGenerator {
           state_.stack_slots.push_back(8);
         }
       }
-      var_stack_[stmt.name] = stack_offset;
+      var_stack_.Set(stmt.name, stack_offset);
       return;
     }
 
@@ -578,6 +577,8 @@ class AbstractMachineFunctionGenerator {
     auto expr_type =
         std::get<BasicType>(ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.expr))));
     std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
+    auto stmt_offset = var_stack_.Find(stmt.name);
+    assert(stmt_offset.has_value());
     if (expr_type_name == "Int32") {
       RegId offset_reg = next_reg_++;
       am_block.instructions.push_back(SetReg32{
@@ -591,7 +592,7 @@ class AbstractMachineFunctionGenerator {
       });
 
       am_block.instructions.push_back(StoreStackReg32{
-          .offset = var_stack_[stmt.name],
+          .offset = *stmt_offset,
           .offset_reg = offset_reg,
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
       });
@@ -608,7 +609,7 @@ class AbstractMachineFunctionGenerator {
       });
 
       am_block.instructions.push_back(StoreStackReg64{
-          .offset = var_stack_[stmt.name],
+          .offset = *stmt_offset,
           .offset_reg = offset_reg,
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
       });
@@ -625,7 +626,7 @@ class AbstractMachineFunctionGenerator {
       });
 
       am_block.instructions.push_back(StoreStackReg32{
-          .offset = var_stack_[stmt.name],
+          .offset = *stmt_offset,
           .offset_reg = offset_reg,
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
       });
@@ -646,9 +647,10 @@ class AbstractMachineFunctionGenerator {
 
   std::size_t GetStackOffset(ExprRef expr_ref) {
     const auto& expr = std::get<IdentExpr>(ctx_.DerefExpr(expr_ref));
-    std::size_t pos = var_stack_[expr.name];
+    auto pos = var_stack_.Find(expr.name);
+    assert(pos.has_value());
     std::size_t offset = 0;
-    for (int i = 0; i < pos; ++i) offset += state_.stack_slots[i];
+    for (int i = 0; i < *pos; ++i) offset += state_.stack_slots[i];
     return offset;
   }
 
@@ -668,7 +670,7 @@ class AbstractMachineFunctionGenerator {
   RegId next_reg_ = 1;
   RegId result_reg_;
   HashMap<StringIndex::Ref, RegId> var_to_reg_;
-  std::unordered_map<StringIndex::Ref, std::size_t> var_stack_;
+  HashMap<StringIndex::Ref, std::size_t> var_stack_;
   HashMap<SyntaxControlFlowGraph::BlockRef,
           AbstractMachineControlFlowGraph::BlockRef>
       graph_map_;

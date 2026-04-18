@@ -167,6 +167,16 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
               .type_constraint = GetType(ctx.DerefExpr(var_assign_stmt->expr)),
               .init = var_assign_stmt->expr,
           });
+        } else if (auto* array_assign_stmt =
+                       std::get_if<ArrayAssignStmt>(&stmt)) {
+          const auto nvs =
+              reachability_block_state->vars_in.Find(array_assign_stmt->name);
+          assert(nvs.has_value());
+
+          const auto new_name = renames.Find(*nvs);
+          assert(new_name.has_value());
+
+          array_assign_stmt->name = *new_name;
         }
       }
     }
