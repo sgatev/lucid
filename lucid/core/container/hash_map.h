@@ -20,7 +20,7 @@ class HashMap {
 
   // Returns the value that corresponds to the given `key` if the table contains
   // it. Otherwise returns nullopt.
-  inline OptionalRef<V> Find(const K& key) const {
+  inline OptionalRef<V> Get(const K& key) const {
     return table_.Find(key).transform(&std::get<1, K, V>);
   }
 

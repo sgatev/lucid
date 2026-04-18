@@ -28,8 +28,8 @@ class TestGraph {
     AddVertex(from);
     AddVertex(to);
 
-    nexts_.Find(from)->Insert(to);
-    prevs_.Find(to)->Insert(from);
+    nexts_.Get(from)->Insert(to);
+    prevs_.Get(to)->Insert(from);
   }
 
   const std::vector<char>& Vertices() const { return vertices_; }
@@ -44,7 +44,7 @@ class TestGraph {
   friend std::uint32_t VertexId(const TestGraph&, TestGraph::vertex_type);
 
   void AddVertex(char v) {
-    if (order_.Find(v).has_value()) return;
+    if (order_.Get(v).has_value()) return;
 
     vertices_.push_back(v);
     order_.Insert(v, order_.size());
@@ -72,7 +72,7 @@ inline char SinkVertex(const TestGraph& g) { return g.sink_; }
 
 inline std::vector<char> NextVertices(const TestGraph& g, char v) {
   std::vector<char> next_vertices;
-  if (auto it = g.nexts_.Find(v); it.has_value()) {
+  if (auto it = g.nexts_.Get(v); it.has_value()) {
     for (char n : *it) next_vertices.push_back(n);
   }
   return next_vertices;
@@ -80,14 +80,14 @@ inline std::vector<char> NextVertices(const TestGraph& g, char v) {
 
 inline std::vector<char> PrevVertices(const TestGraph& g, char v) {
   std::vector<char> prev_vertices;
-  if (auto it = g.prevs_.Find(v); it.has_value()) {
+  if (auto it = g.prevs_.Get(v); it.has_value()) {
     for (char n : *it) prev_vertices.push_back(n);
   }
   return prev_vertices;
 }
 
 inline std::uint32_t VertexId(const TestGraph& g, char v) {
-  return *g.order_.Find(v);
+  return *g.order_.Get(v);
 }
 
 }  // namespace lucid

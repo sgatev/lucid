@@ -56,7 +56,7 @@ class ExprTypeInferenceEngine {
     SolveTypeEquations();
 
     for (auto int_lit_expr : int_lit_exprs_) {
-      if (!expr_from_type_.Find(int_lit_expr).has_value()) {
+      if (!expr_from_type_.Get(int_lit_expr).has_value()) {
         expr_from_type_.Set(int_lit_expr, ctx_.Add(BasicType{
                                               .name = ctx_.AddIdent("Int32"),
                                           }));
@@ -151,7 +151,7 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
-    const auto& func_def = *func_defs_.Find(expr.func_name);
+    const auto& func_def = *func_defs_.Get(expr.func_name);
     for (std::uint32_t i = 0; i < expr.args.size(); ++i) {
       const auto& param = ctx_.DerefParam(func_def->params[i]);
       ExprRef arg = expr.args[i];
@@ -204,7 +204,7 @@ class ExprTypeInferenceEngine {
   }
 
   void RequireTypeForExpr(ExprRef expr_ref, TypeRef type_ref) {
-    if (auto it = expr_from_type_.Find(expr_ref);
+    if (auto it = expr_from_type_.Get(expr_ref);
         it.has_value() && !TypesEqual(*it, type_ref)) {
       if (std::holds_alternative<ArrayType>(ctx_.DerefType(*it))) {
         errors_.push_back(std::string("expected array type"));
@@ -230,7 +230,7 @@ class ExprTypeInferenceEngine {
   }
 
   TypeRef GetIdentType(StringIndex::Ref name) const {
-    return *ident_from_type_.Find(name);
+    return *ident_from_type_.Get(name);
   }
 
   bool TypesEqual(TypeRef lhs_ref, TypeRef rhs_ref) {
@@ -275,7 +275,7 @@ class ExprTypeInferenceEngine {
   void SolveTypeEquations() {
     while (true) {
       for (auto [element, array] : expr_from_array_) {
-        if (auto it = expr_from_type_.Find(array); it.has_value()) {
+        if (auto it = expr_from_type_.Get(array); it.has_value()) {
           const auto& array_type = std::get<ArrayType>(ctx_.DerefType(*it));
           expr_from_type_.Set(element, array_type.element_type_constraint);
         }
@@ -283,7 +283,7 @@ class ExprTypeInferenceEngine {
 
       HashMap<ExprRef, ExprRef> next_expr_from_expr;
       for (auto [lhs, rhs] : expr_from_expr_) {
-        if (auto it = expr_from_type_.Find(rhs); it.has_value()) {
+        if (auto it = expr_from_type_.Get(rhs); it.has_value()) {
           expr_from_type_.Set(lhs, *it);
         } else {
           next_expr_from_expr.Set(lhs, rhs);

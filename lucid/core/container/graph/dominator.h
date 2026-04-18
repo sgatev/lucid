@@ -87,7 +87,7 @@ ComputeDominanceFrontiers(
     for (auto prev_vertex : prev_vertices) {
       while (prev_vertex != idoms[VertexId(graph, front_vertex)]) {
         dom_fronts.Insert(prev_vertex, {});
-        dom_fronts.Find(prev_vertex)->Insert(front_vertex);
+        dom_fronts.Get(prev_vertex)->Insert(front_vertex);
 
         if (!idoms[VertexId(graph, prev_vertex)].has_value()) break;
 
@@ -111,7 +111,7 @@ BuildDominatorTree(
     if (!idoms[VertexId(graph, to)].has_value()) continue;
     vertex_type from = *idoms[VertexId(graph, to)];
     dom_tree.Insert(from, {});
-    dom_tree.Find(from)->Insert(to);
+    dom_tree.Get(from)->Insert(to);
   }
   return dom_tree;
 }

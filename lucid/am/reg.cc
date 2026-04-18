@@ -107,7 +107,7 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     reg = next_reg++;
     reg_rename.Insert(old_reg, reg);
 
-    auto offset = reg_stack.Find(old_reg);
+    auto offset = reg_stack.Get(old_reg);
     if (!offset.has_value()) return;
 
     instructions.insert(pos, LoadStack32{
@@ -125,7 +125,7 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     reg = next_reg++;
     reg_rename.Insert(old_reg, reg);
 
-    auto offset = reg_stack.Find(old_reg);
+    auto offset = reg_stack.Get(old_reg);
     if (!offset.has_value()) return;
 
     instructions.insert(pos, LoadStack64{
@@ -447,9 +447,9 @@ HashMap<RegId, int> ColorInterferenceGraph(
     seo.push_back(max_reg);
     reg_scores.Remove(max_reg);
 
-    if (const auto& nbs = am_ig.Find(max_reg); nbs.has_value()) {
+    if (const auto& nbs = am_ig.Get(max_reg); nbs.has_value()) {
       for (const auto& nb : *nbs) {
-        if (auto nb_score = reg_scores.Find(nb); nb_score.has_value()) {
+        if (auto nb_score = reg_scores.Get(nb); nb_score.has_value()) {
           reg_scores.Set(nb, *nb_score + 1);
         }
       }
@@ -461,9 +461,9 @@ HashMap<RegId, int> ColorInterferenceGraph(
     HashSet<int> colors;
     for (int i = 0; i < colors_count; ++i) colors.Insert(19 + i);
 
-    if (const auto& nbs = am_ig.Find(reg); nbs.has_value()) {
+    if (const auto& nbs = am_ig.Get(reg); nbs.has_value()) {
       for (const auto& nb : *nbs) {
-        const auto& neighbour_color = ig_colors.Find(nb);
+        const auto& neighbour_color = ig_colors.Get(nb);
         if (neighbour_color.has_value()) colors.Remove(*neighbour_color);
       }
     }
@@ -481,7 +481,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
 }
 
 void UpdateRegister(const HashMap<RegId, int>& reg_colors, RegId& reg) {
-  OptionalRef<int> color = reg_colors.Find(reg);
+  OptionalRef<int> color = reg_colors.Get(reg);
   assert(color.has_value());
   reg = *color;
 }

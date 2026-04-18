@@ -29,8 +29,8 @@ HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> CollectVarDefs(
   for (auto param_ref : scfg.func_params) {
     const auto& param = ctx.DerefParam(param_ref);
     defs.Insert(param.name, {});
-    defs.Find(param.name)->first = param.type_constraint;
-    defs.Find(param.name)->second.Insert(scfg.first);
+    defs.Get(param.name)->first = param.type_constraint;
+    defs.Get(param.name)->second.Insert(scfg.first);
   }
   for (const auto& block : scfg.blocks()) {
     for (const auto& seq : block.sequences) {
@@ -39,11 +39,11 @@ HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> CollectVarDefs(
       const auto& stmt = ctx.DerefStmt(*seq.stmt);
       if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
         defs.Insert(var_decl_stmt->name, {});
-        defs.Find(var_decl_stmt->name)->first = var_decl_stmt->type_constraint;
-        defs.Find(var_decl_stmt->name)->second.Insert(block.ref);
+        defs.Get(var_decl_stmt->name)->first = var_decl_stmt->type_constraint;
+        defs.Get(var_decl_stmt->name)->second.Insert(block.ref);
       } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
         defs.Insert(var_assign_stmt->name, {});
-        defs.Find(var_assign_stmt->name)->second.Insert(block.ref);
+        defs.Get(var_assign_stmt->name)->second.Insert(block.ref);
       }
     }
   }
@@ -70,7 +70,7 @@ void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
       auto block = *pending.begin();
       pending.Remove(block);
 
-      auto dom_front_it = dom_fronts.Find(block);
+      auto dom_front_it = dom_fronts.Get(block);
       if (!dom_front_it.has_value()) continue;
 
       for (auto y : *dom_front_it) {
@@ -138,10 +138,10 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
         if (ident_expr == nullptr) continue;
 
         const auto nvs =
-            reachability_block_state->vars_in.Find(ident_expr->name);
+            reachability_block_state->vars_in.Get(ident_expr->name);
         assert(nvs.has_value());
 
-        const auto new_name = renames.Find(*nvs);
+        const auto new_name = renames.Get(*nvs);
         assert(new_name.has_value());
 
         ident_expr->name = *new_name;
@@ -170,10 +170,10 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
         } else if (auto* array_assign_stmt =
                        std::get_if<ArrayAssignStmt>(&stmt)) {
           const auto nvs =
-              reachability_block_state->vars_in.Find(array_assign_stmt->name);
+              reachability_block_state->vars_in.Get(array_assign_stmt->name);
           assert(nvs.has_value());
 
-          const auto new_name = renames.Find(*nvs);
+          const auto new_name = renames.Get(*nvs);
           assert(new_name.has_value());
 
           array_assign_stmt->name = *new_name;
@@ -189,10 +189,10 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
             reachability_block_states[block.preds[i].id()];
         assert(reachability_block_state.has_value());
 
-        const auto nvs = reachability_block_state->vars_out.Find(phi.args[i]);
+        const auto nvs = reachability_block_state->vars_out.Get(phi.args[i]);
         assert(nvs.has_value());
 
-        const auto new_name = renames.Find(*nvs);
+        const auto new_name = renames.Get(*nvs);
         assert(new_name.has_value());
 
         phi.args[i] = *new_name;

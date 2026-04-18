@@ -28,7 +28,7 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
     for (RegId from : state.live_in) {
       am_ig.Insert(from, {});
       for (RegId to : state.live_in) {
-        if (to != from) am_ig.Find(from)->Insert(to);
+        if (to != from) am_ig.Get(from)->Insert(to);
       }
     }
 
@@ -37,9 +37,9 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
         for (RegId to : state.live_in) {
           if (to != *target_reg) {
             am_ig.Insert(*target_reg, {});
-            am_ig.Find(*target_reg)->Insert(to);
+            am_ig.Get(*target_reg)->Insert(to);
             am_ig.Insert(to, {});
-            am_ig.Find(to)->Insert(*target_reg);
+            am_ig.Get(to)->Insert(*target_reg);
           }
         }
       }
@@ -51,27 +51,27 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
         am_ig.Insert(cinst->lhs_reg, {});
         am_ig.Insert(cinst->rhs_reg, {});
 
-        am_ig.Find(cinst->res_reg)->Insert(cinst->lhs_reg);
-        am_ig.Find(cinst->lhs_reg)->Insert(cinst->res_reg);
+        am_ig.Get(cinst->res_reg)->Insert(cinst->lhs_reg);
+        am_ig.Get(cinst->lhs_reg)->Insert(cinst->res_reg);
 
-        am_ig.Find(cinst->res_reg)->Insert(cinst->rhs_reg);
-        am_ig.Find(cinst->rhs_reg)->Insert(cinst->res_reg);
+        am_ig.Get(cinst->res_reg)->Insert(cinst->rhs_reg);
+        am_ig.Get(cinst->rhs_reg)->Insert(cinst->res_reg);
       } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
         am_ig.Insert(cinst->res_reg, {});
         am_ig.Insert(cinst->lhs_reg, {});
         am_ig.Insert(cinst->rhs_reg, {});
 
-        am_ig.Find(cinst->res_reg)->Insert(cinst->lhs_reg);
-        am_ig.Find(cinst->lhs_reg)->Insert(cinst->res_reg);
+        am_ig.Get(cinst->res_reg)->Insert(cinst->lhs_reg);
+        am_ig.Get(cinst->lhs_reg)->Insert(cinst->res_reg);
 
-        am_ig.Find(cinst->res_reg)->Insert(cinst->rhs_reg);
-        am_ig.Find(cinst->rhs_reg)->Insert(cinst->res_reg);
+        am_ig.Get(cinst->res_reg)->Insert(cinst->rhs_reg);
+        am_ig.Get(cinst->rhs_reg)->Insert(cinst->res_reg);
       }
 
       for (RegId from : state.live_in) {
         am_ig.Insert(from, {});
         for (RegId to : state.live_in) {
-          if (to != from) am_ig.Find(from)->Insert(to);
+          if (to != from) am_ig.Get(from)->Insert(to);
         }
       }
     }
@@ -84,7 +84,7 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
     for (RegId from : phi_regs) {
       am_ig.Insert(from, {});
       for (RegId to : phi_regs) {
-        if (to != from) am_ig.Find(from)->Insert(to);
+        if (to != from) am_ig.Get(from)->Insert(to);
       }
     }
   }

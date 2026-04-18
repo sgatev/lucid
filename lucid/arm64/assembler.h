@@ -111,7 +111,7 @@ class AdrInst {
   // Writes the bytes produced by this instruction.
   void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
                   std::ostream& out) const {
-    auto label_offset = label_offsets.Find(std::string(label_));
+    auto label_offset = label_offsets.Get(std::string(label_));
     assert(label_offset.has_value());
     std::size_t offset = *label_offset - pos_;
     auto immlo = offset & 0b11;
@@ -140,7 +140,7 @@ class BInst {
   // Writes the bytes produced by this instruction.
   void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
                   std::ostream& out) const {
-    auto label_offset = label_offsets.Find(std::string(label_));
+    auto label_offset = label_offsets.Get(std::string(label_));
     assert(label_offset.has_value());
     std::size_t offset =
         ((*label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
@@ -187,7 +187,7 @@ class BCondInst {
   // Writes the bytes produced by this instruction.
   void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
                   std::ostream& out) const {
-    auto label_offset = label_offsets.Find(std::string(label_));
+    auto label_offset = label_offsets.Get(std::string(label_));
     assert(label_offset.has_value());
     std::size_t offset =
         ((*label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
@@ -217,7 +217,7 @@ class BlInst {
                   std::ostream& out) const {
     std::size_t offset = 0;
     if (!label_.empty()) {
-      auto label_offset = label_offsets.Find(std::string(label_));
+      auto label_offset = label_offsets.Get(std::string(label_));
       assert(label_offset.has_value());
       offset =
           ((*label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
