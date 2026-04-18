@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstddef>
 #include <optional>
-#include <unordered_set>
 #include <variant>
 #include <vector>
 
@@ -54,7 +53,7 @@ HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> CollectVarDefs(
 void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
   const std::vector<std::optional<BlockRef>> idoms =
       ComputeImmediateDominators(scfg);
-  const HashMap<BlockRef, std::unordered_set<BlockRef>> dom_fronts =
+  const HashMap<BlockRef, HashSet<BlockRef>> dom_fronts =
       ComputeDominanceFrontiers(scfg, idoms);
   const HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>>
       var_defs = CollectVarDefs(ctx, scfg);

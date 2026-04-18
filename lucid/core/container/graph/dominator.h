@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cassert>
 #include <optional>
-#include <unordered_set>
 #include <vector>
 
 #include "lucid/core/container/graph/graph.h"
@@ -75,13 +74,11 @@ ComputeImmediateDominators(const GraphT& graph) {
 // Requires:
 // - `idoms` must be the immediate dominators computed from `graph`.
 template <Graph GraphT>
-HashMap<typename GraphT::vertex_type,
-        std::unordered_set<typename GraphT::vertex_type>>
+HashMap<typename GraphT::vertex_type, HashSet<typename GraphT::vertex_type>>
 ComputeDominanceFrontiers(
     const GraphT& graph,
     const std::vector<std::optional<typename GraphT::vertex_type>>& idoms) {
-  HashMap<typename GraphT::vertex_type,
-          std::unordered_set<typename GraphT::vertex_type>>
+  HashMap<typename GraphT::vertex_type, HashSet<typename GraphT::vertex_type>>
       dom_fronts;
   for (const auto& front_vertex : Vertices(graph)) {
     auto prev_vertices = PrevVertices(graph, front_vertex);
@@ -90,7 +87,7 @@ ComputeDominanceFrontiers(
     for (auto prev_vertex : prev_vertices) {
       while (prev_vertex != idoms[VertexId(graph, front_vertex)]) {
         dom_fronts.Insert(prev_vertex, {});
-        dom_fronts.Find(prev_vertex)->insert(front_vertex);
+        dom_fronts.Find(prev_vertex)->Insert(front_vertex);
 
         if (!idoms[VertexId(graph, prev_vertex)].has_value()) break;
 

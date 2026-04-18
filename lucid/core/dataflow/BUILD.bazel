@@ -8,6 +8,7 @@ cc_library(
     visibility = ["//lucid:__subpackages__"],
     deps = [
         ":worklist",
+        "//lucid/core/container:hash_map",
         "//lucid/core/container/graph",
         "//lucid/core/container/graph:order",
     ],

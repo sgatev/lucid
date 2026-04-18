@@ -1,13 +1,13 @@
 #include "lucid/core/dataflow/dataflow.h"
 
 #include <optional>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "lucid/core/container/graph/test_graph.h"
+#include "lucid/core/container/hash_set.h"
 
 namespace lucid {
 namespace {
@@ -25,7 +25,7 @@ class TestResultUnionAnalysis {
   struct State {
     bool operator==(const State&) const = default;
 
-    std::unordered_set<char> results;
+    HashSet<char> results;
   };
 
   explicit TestResultUnionAnalysis() {}
@@ -33,13 +33,13 @@ class TestResultUnionAnalysis {
   State Transfer(std::optional<State> prior_state, TestGraph::vertex_type v) {
     State state;
     if (prior_state.has_value()) state = *std::move(prior_state);
-    state.results.insert(v);
+    state.results.Insert(v);
     return state;
   }
 
   State Join(State left, State right) {
     State state = std::move(left);
-    state.results.insert(right.results.begin(), right.results.end());
+    for (auto& result : right.results) state.results.Insert(std::move(result));
     return state;
   }
 
