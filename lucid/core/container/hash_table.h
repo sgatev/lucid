@@ -155,7 +155,7 @@ class HashTable {
       }
       if (!full(offset_meta)) {
         *(meta() + offset) = proj_meta;
-        *(slots() + offset) = std::move(value);
+        new (slots() + offset) V(std::move(value));
         ++size_;
         return true;
       }
