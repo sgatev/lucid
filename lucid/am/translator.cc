@@ -1,5 +1,6 @@
 #include "lucid/am/translator.h"
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -11,6 +12,7 @@
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
 #include "lucid/core/container/arena.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
@@ -29,10 +31,16 @@ class AbstractMachineFunctionGenerator {
 
   AbstractMachineControlFlowGraph Generate() && {
     for (const auto& block : scfg_.blocks()) {
-      graph_map_[block.ref] = am_cfg_.add().ref;
+      graph_map_.Set(block.ref, am_cfg_.add().ref);
     }
-    am_cfg_.first = graph_map_[scfg_.first];
-    am_cfg_.last = graph_map_[scfg_.last];
+
+    auto scfg_first = graph_map_.Find(scfg_.first);
+    assert(scfg_first.has_value());
+    am_cfg_.first = *scfg_first;
+
+    auto scfg_last = graph_map_.Find(scfg_.last);
+    assert(scfg_last.has_value());
+    am_cfg_.last = *scfg_last;
 
     result_reg_ = next_reg_++;
 
@@ -89,10 +97,14 @@ class AbstractMachineFunctionGenerator {
     }
 
     for (const auto& block : scfg_.blocks()) {
-      Process(block, am_cfg_.get(graph_map_[block.ref]));
+      auto am_cfg_block_ref = graph_map_.Find(block.ref);
+      assert(am_cfg_block_ref.has_value());
+      Process(block, am_cfg_.get(*am_cfg_block_ref));
     }
     for (const auto& block : scfg_.blocks()) {
-      auto& am_block = am_cfg_.get(graph_map_[block.ref]);
+      auto am_cfg_block_ref = graph_map_.Find(block.ref);
+      assert(am_cfg_block_ref.has_value());
+      auto& am_block = am_cfg_.get(*am_cfg_block_ref);
       for (auto phi_ref : block.phis) {
         const auto& phi = scfg_.deref(phi_ref);
         auto phi_type =
@@ -149,10 +161,14 @@ class AbstractMachineFunctionGenerator {
       });
     }
     for (const auto& next : block.next) {
-      am_block.next.push_back(graph_map_[next]);
+      auto am_cfg_next = graph_map_.Find(next);
+      assert(am_cfg_next.has_value());
+      am_block.next.push_back(*am_cfg_next);
     }
     for (const auto& pred : block.preds) {
-      am_block.preds.push_back(graph_map_[pred]);
+      auto am_cfg_pred = graph_map_.Find(pred);
+      assert(am_cfg_pred.has_value());
+      am_block.preds.push_back(*am_cfg_pred);
     }
   }
 
@@ -653,8 +669,8 @@ class AbstractMachineFunctionGenerator {
   RegId result_reg_;
   std::unordered_map<StringIndex::Ref, RegId> var_to_reg_;
   std::unordered_map<StringIndex::Ref, std::size_t> var_stack_;
-  std::unordered_map<SyntaxControlFlowGraph::BlockRef,
-                     AbstractMachineControlFlowGraph::BlockRef>
+  HashMap<SyntaxControlFlowGraph::BlockRef,
+          AbstractMachineControlFlowGraph::BlockRef>
       graph_map_;
   std::vector<RegId> expr_and_stmt_to_reg_;
 };
