@@ -202,14 +202,3 @@ inline std::size_t Hash(const SyntaxControlFlowGraph::PhiRef& ref) {
 }
 
 }  // namespace lucid
-
-namespace std {
-
-template <>
-struct hash<typename lucid::SyntaxControlFlowGraph::BlockRef> {
-  size_t operator()(const lucid::SyntaxControlFlowGraph::BlockRef& ref) const {
-    return hash<uint32_t>()(ref.id());
-  }
-};
-
-}  // namespace std
