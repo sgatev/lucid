@@ -124,8 +124,8 @@ TEST(HashMap, Remove) {
   HashMap<int, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
-  EXPECT_TRUE(map.Remove(21));
-  EXPECT_FALSE(map.Remove(42));
+  EXPECT_EQ(map.Remove(21), 42);
+  EXPECT_EQ(map.Remove(42), std::nullopt);
 
   EXPECT_EQ(map.size(), 0);
   EXPECT_EQ(map.Find(21), std::nullopt);

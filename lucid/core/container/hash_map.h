@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <utility>
 
 #include "lucid/core/container/hash_table.h"
@@ -23,21 +24,24 @@ class HashMap {
     return table_.Find(key).transform(&std::get<1, K, V>);
   }
 
-  // Inserts the given `key` and `value` pair and returns true if `key` is not
+  // Inserts the given `key` and `val` pair and returns true if `key` is not
   // already inserted. Otherwise returns false.
-  inline bool Insert(K key, V value) {
-    return table_.Insert(std::make_pair(std::move(key), std::move(value)));
+  inline bool Insert(K key, V val) {
+    return table_.Insert(std::make_pair(std::move(key), std::move(val)));
   }
 
-  // Inserts the given `key` and `value` pair and returns true if `key` is not
+  // Inserts the given `key` and `val` pair and returns true if `key` is not
   // already inserted. Otherwise overrides the value and returns false.
-  inline bool Set(K key, V value) {
-    return table_.Set(std::make_pair(std::move(key), std::move(value)));
+  inline bool Set(K key, V val) {
+    return table_.Set(std::make_pair(std::move(key), std::move(val)));
   }
 
   // Removes the given `key` and its corresponding value from the map and
-  // returns true if present. Otherwise returns false.
-  inline bool Remove(const K& key) { return table_.Remove(key); }
+  // returns the value if present. Otherwise returns nullopt.
+  inline std::optional<V> Remove(const K& key) {
+    return table_.Remove(key).transform(
+        [](auto&& r) { return std::get<1>(std::forward<decltype(r)>(r)); });
+  }
 
   // Returns the number of unique keys inserted so far.
   inline std::size_t size() const { return table_.size(); }

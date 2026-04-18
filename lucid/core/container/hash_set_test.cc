@@ -1,6 +1,7 @@
 #include "lucid/core/container/hash_set.h"
 
 #include <cstdint>
+#include <optional>
 #include <string_view>
 #include <utility>
 
@@ -100,8 +101,8 @@ TEST(HashSet, Remove) {
   HashSet<int> set;
 
   EXPECT_TRUE(set.Insert(21));
-  EXPECT_TRUE(set.Remove(21));
-  EXPECT_FALSE(set.Remove(42));
+  EXPECT_EQ(set.Remove(21), 21);
+  EXPECT_EQ(set.Remove(42), std::nullopt);
 
   EXPECT_EQ(set.size(), 0);
   EXPECT_FALSE(set.Contains(21));

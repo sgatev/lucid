@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <utility>
 
 #include "lucid/core/container/hash_table.h"
@@ -16,16 +17,16 @@ class HashSet {
 
   bool operator==(const HashSet&) const noexcept = default;
 
-  // Returns true iff the table contains `value`.
-  inline bool Contains(V value) const { return table_.Find(value).has_value(); }
+  // Returns true iff the table contains `val`.
+  inline bool Contains(V val) const { return table_.Find(val).has_value(); }
 
-  // Inserts the given `value` and returns true if it is not already in the
+  // Inserts the given `val` and returns true if it is not already in the
   // table. Otherwise returns false.
-  inline bool Insert(V value) { return table_.Insert(std::move(value)); }
+  inline bool Insert(V val) { return table_.Insert(std::move(val)); }
 
-  // Removes the given `value` from the set and returns true if present.
-  // Otherwise returns false.
-  inline bool Remove(const V& value) { return table_.Remove(value); }
+  // Removes the given `val` from the set and returns it if present.
+  // Otherwise returns nullopt.
+  inline std::optional<V> Remove(const V& val) { return table_.Remove(val); }
 
   // Returns the number of unique values inserted so far.
   inline std::size_t size() const { return table_.size(); }

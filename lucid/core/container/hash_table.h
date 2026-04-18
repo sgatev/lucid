@@ -164,7 +164,7 @@ class HashTable {
 
   // Removes the value that corresponds to the given projection and returns true
   // if present. Otherwise returns false.
-  inline bool Remove(const P& proj) {
+  inline std::optional<V> Remove(const P& proj) {
     const std::size_t proj_hash = Hash(proj);
     const std::uint8_t proj_meta = proj_hash & 0b01111111;
 
@@ -173,12 +173,13 @@ class HashTable {
       offset = (offset + i) & capacity_mask_;
 
       const std::uint8_t offset_meta = *(meta() + offset);
-      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
+      V& value = *(slots() + offset);
+      if (offset_meta == proj_meta && Project(value) == proj) {
         *(meta() + offset) = 0b11111110;
         --size_;
-        return true;
+        return std::move(value);
       }
-      if (empty(offset_meta)) return false;
+      if (empty(offset_meta)) return std::nullopt;
     }
   }
 
