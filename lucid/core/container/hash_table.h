@@ -8,7 +8,6 @@
 #include <optional>
 #include <utility>
 
-#include "lucid/core/container/optional_ref.h"
 #include "lucid/core/functional/identity.h"
 #include "lucid/core/hash/hash.h"
 
@@ -19,15 +18,46 @@ template <typename V, typename P = V,
           const P& (*Project)(const V&) = &identity<const V&>>
 class HashTable {
  public:
+  class Iterator {
+   public:
+    using value_type = V;
+
+    bool operator==(const Iterator&) const = default;
+
+    value_type& operator*() const { return *(table_->slots() + pos_); }
+
+    value_type* operator->() const { return table_->slots() + pos_; }
+
+    Iterator& operator++() {
+      pos_ = table_->next_full(pos_ + 1);
+      return *this;
+    }
+
+    Iterator operator++(int) {
+      Iterator it(*this);
+      ++(*this);
+      return it;
+    }
+
+   private:
+    friend class HashTable;
+
+    Iterator(const HashTable& table, std::size_t pos)
+        : table_(&table), pos_(pos) {}
+
+    const HashTable* table_;
+    std::size_t pos_;
+  };
+
   class ConstIterator {
    public:
     using value_type = const V;
 
     bool operator==(const ConstIterator&) const = default;
 
-    const V& operator*() const { return *(table_->slots() + pos_); }
+    value_type& operator*() const { return *(table_->slots() + pos_); }
 
-    const V* operator->() const { return table_->slots() + pos_; }
+    value_type* operator->() const { return table_->slots() + pos_; }
 
     ConstIterator& operator++() {
       pos_ = table_->next_full(pos_ + 1);
@@ -80,19 +110,15 @@ class HashTable {
   }
 
   bool operator==(const HashTable& other) const noexcept {
-    if (size_ != other.size_) return false;
-    for (std::uint8_t offset = 0; offset < other.capacity(); ++offset) {
-      if (!full(*(other.meta() + offset))) continue;
-
-      const V& other_value = *(other.slots() + offset);
-      OptionalRef<V> value = Find(Project(other_value));
-      if (value != other_value) return false;
-    }
-    return true;
+    return other.size_ == size_ &&
+           std::all_of(other.begin(), other.end(), [&](const auto& val) {
+             auto it = Find(Project(val));
+             return it != end() && *it == val;
+           });
   }
 
-  // Returns the value that corresponds to the given projection or nullopt.
-  inline OptionalRef<V> Find(const P& proj) const {
+  // Returns an iterator that corresponds to the given projection or `end()`.
+  inline Iterator Find(const P& proj) {
     const std::size_t proj_hash = Hash(proj);
     const std::uint8_t proj_meta = proj_hash & 0b01111111;
 
@@ -101,11 +127,28 @@ class HashTable {
       offset = (offset + i) & capacity_mask_;
 
       const std::uint8_t offset_meta = *(meta() + offset);
-      if (offset_meta == proj_meta) {
-        V& value = *(slots() + offset);
-        if (Project(value) == proj) return value;
+      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
+        return Iterator(*this, offset);
       }
-      if (empty(offset_meta)) return std::nullopt;
+      if (empty(offset_meta)) return end();
+    }
+  }
+
+  // Returns a const iterator that corresponds to the given projection or
+  // `end()`.
+  inline ConstIterator Find(const P& proj) const {
+    const std::size_t proj_hash = Hash(proj);
+    const std::uint8_t proj_meta = proj_hash & 0b01111111;
+
+    std::size_t offset = proj_hash;
+    for (std::size_t i = 0;; ++i) {
+      offset = (offset + i) & capacity_mask_;
+
+      const std::uint8_t offset_meta = *(meta() + offset);
+      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
+        return ConstIterator(*this, offset);
+      }
+      if (empty(offset_meta)) return end();
     }
   }
 
@@ -186,11 +229,18 @@ class HashTable {
   // Returns the number of unique values inserted so far.
   inline std::size_t size() const noexcept { return size_; }
 
+  // Returns an iterator referring to the first value in the table or `end()`,
+  // if there isn't one.
+  Iterator begin() noexcept { return Iterator(*this, next_full(0)); }
+
   // Returns a const iterator referring to the first value in the table or
   // `end()`, if there isn't one.
   ConstIterator begin() const noexcept {
     return ConstIterator(*this, next_full(0));
   }
+
+  // Returns an iterator past the last value in the table.
+  Iterator end() noexcept { return Iterator(*this, capacity()); }
 
   // Returns a const iterator past the last value in the table.
   ConstIterator end() const noexcept {

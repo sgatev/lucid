@@ -43,7 +43,7 @@ class StringIndex {
 
   // Returns the string identified by the given reference.
   std::string_view deref(Ref ref) const {
-    OptionalRef<std::string_view> res = ref_to_string_.Get(ref);
+    OptionalRef<const std::string_view> res = ref_to_string_.Get(ref);
     assert(res.has_value());
     return *res;
   }

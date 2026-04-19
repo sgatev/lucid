@@ -18,10 +18,18 @@ class HashMap {
 
   bool operator==(const HashMap&) const noexcept = default;
 
-  // Returns the value that corresponds to the given `key` if the table contains
-  // it. Otherwise returns nullopt.
-  inline OptionalRef<V> Get(const K& key) const {
-    return table_.Find(key).transform(&std::get<1, K, V>);
+  // Returns a reference to the value that corresponds to the given `key` if the
+  // table contains it. Otherwise returns nullopt.
+  inline OptionalRef<V> Get(const K& key) {
+    if (auto it = table_.Find(key); it != end()) return it->second;
+    return std::nullopt;
+  }
+
+  // Returns a const reference to the value that corresponds to the given `key`
+  // if the table contains it. Otherwise returns nullopt.
+  inline OptionalRef<const V> Get(const K& key) const {
+    if (auto it = table_.Find(key); it != end()) return it->second;
+    return std::nullopt;
   }
 
   // Inserts the given `key` and `val` pair and returns true if `key` is not
@@ -49,9 +57,16 @@ class HashMap {
   // Returns true iff there are no key-value pairs in the map.
   inline bool empty() const { return size() == 0; }
 
+  // Returns an iterator referring to the first key-value pair in the map or
+  // `end()`, if there isn't one.
+  inline HashTableT::Iterator begin() { return table_.begin(); }
+
   // Returns a const iterator referring to the first key-value pair in the map
   // or `end()`, if there isn't one.
   inline HashTableT::ConstIterator begin() const { return table_.begin(); }
+
+  // Returns an iterator past the last key-value pair in the map.
+  inline HashTableT::Iterator end() { return table_.end(); }
 
   // Returns a const iterator past the last key-value pair in the map.
   inline HashTableT::ConstIterator end() const { return table_.end(); }

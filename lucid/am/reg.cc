@@ -481,7 +481,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
 }
 
 void UpdateRegister(const HashMap<RegId, int>& reg_colors, RegId& reg) {
-  OptionalRef<int> color = reg_colors.Get(reg);
+  OptionalRef<const int> color = reg_colors.Get(reg);
   assert(color.has_value());
   reg = *color;
 }

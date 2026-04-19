@@ -91,7 +91,6 @@ cc_library(
     name = "hash_table",
     hdrs = ["hash_table.h"],
     deps = [
-        ":optional_ref",
         "//lucid/core/functional:identity",
         "//lucid/core/hash",
     ],

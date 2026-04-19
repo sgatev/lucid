@@ -18,7 +18,7 @@ class HashSet {
   bool operator==(const HashSet&) const noexcept = default;
 
   // Returns true iff the table contains `val`.
-  inline bool Contains(V val) const { return table_.Find(val).has_value(); }
+  inline bool Contains(V val) const { return table_.Find(val) != end(); }
 
   // Inserts the given `val` and returns true if it is not already in the
   // table. Otherwise returns false.
@@ -34,9 +34,16 @@ class HashSet {
   // Returns true iff there are no values in the set.
   inline bool empty() const { return size() == 0; }
 
+  // Returns an iterator referring to the first value in the set or `end()`, if
+  // there isn't one.
+  inline HashTableT::Iterator begin() { return table_.begin(); }
+
   // Returns a const iterator referring to the first value in the set or
   // `end()`, if there isn't one.
   inline HashTableT::ConstIterator begin() const { return table_.begin(); }
+
+  // Returns an iterator past the last value in the set.
+  inline HashTableT::Iterator end() { return table_.end(); }
 
   // Returns a const iterator past the last value in the set.
   inline HashTableT::ConstIterator end() const { return table_.end(); }
