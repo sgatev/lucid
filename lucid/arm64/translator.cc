@@ -71,33 +71,33 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const MoveReg32& inst) {
-    assembler_.Mov(W(inst.dst_reg), W(inst.src_reg));
+    assembler_.Mov(W(inst.dst_reg.id), W(inst.src_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const MoveReg64& inst) {
-    assembler_.Mov(X(inst.dst_reg), X(inst.src_reg));
+    assembler_.Mov(X(inst.dst_reg.id), X(inst.src_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const SetReg32& inst) {
-    assembler_.Mov(W(inst.dst_reg), ParseImm(inst.src_val));
+    assembler_.Mov(W(inst.dst_reg.id), ParseImm(inst.src_val));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const SetReg64& inst) {
-    assembler_.Mov(X(inst.dst_reg), ParseImm(inst.src_val));
+    assembler_.Mov(X(inst.dst_reg.id), ParseImm(inst.src_val));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const SetStr& inst) {
     std::string label = "str" + std::to_string(inst.src_val);
-    assembler_.Adr(X(inst.dst_reg), label);
+    assembler_.Adr(X(inst.dst_reg.id), label);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const Return& inst) {
-    assembler_.Mov(W(0), W(inst.res_reg));
+    assembler_.Mov(W(0), W(inst.res_reg.id));
 
     for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
       assembler_.LdrUnsignedOffset(X(kRegistersToPersist[i]), SP,
@@ -130,7 +130,7 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const CondJump& inst) {
-    assembler_.Cmp(W(inst.cond_reg), Imm(0));
+    assembler_.Cmp(W(inst.cond_reg.id), Imm(0));
 
     std::string else_label_phi =
         std::string(func_name_) + std::to_string(inst.else_label) + "_phi";
@@ -166,11 +166,11 @@ class Arm64BinaryGenerator {
 
     for (const auto& phi : block.phis) {
       if (phi.bits == 32) {
-        assembler_.Mov(W(15), W(phi.sources[pred_block_idx]));
-        assembler_.Mov(W(phi.target), W(15));
+        assembler_.Mov(W(15), W(phi.sources[pred_block_idx].id));
+        assembler_.Mov(W(phi.target.id), W(15));
       } else if (phi.bits == 64) {
-        assembler_.Mov(X(15), X(phi.sources[pred_block_idx]));
-        assembler_.Mov(X(phi.target), X(15));
+        assembler_.Mov(X(15), X(phi.sources[pred_block_idx].id));
+        assembler_.Mov(X(phi.target.id), X(15));
       }
     }
   }
@@ -183,104 +183,104 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const AddReg32& inst) {
-    assembler_.Add(W(inst.res_reg), W(inst.lhs_reg), W(inst.rhs_reg));
+    assembler_.Add(W(inst.res_reg.id), W(inst.lhs_reg.id), W(inst.rhs_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const AddReg64& inst) {
-    assembler_.Add(X(inst.res_reg), X(inst.lhs_reg), X(inst.rhs_reg));
+    assembler_.Add(X(inst.res_reg.id), X(inst.lhs_reg.id), X(inst.rhs_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const SubReg32& inst) {
-    assembler_.Sub(W(inst.res_reg), W(inst.lhs_reg), W(inst.rhs_reg));
+    assembler_.Sub(W(inst.res_reg.id), W(inst.lhs_reg.id), W(inst.rhs_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const SubReg64& inst) {
-    assembler_.Sub(X(inst.res_reg), X(inst.lhs_reg), X(inst.rhs_reg));
+    assembler_.Sub(X(inst.res_reg.id), X(inst.lhs_reg.id), X(inst.rhs_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const MulReg32& inst) {
-    assembler_.Mul(W(inst.res_reg), W(inst.lhs_reg), W(inst.rhs_reg));
+    assembler_.Mul(W(inst.res_reg.id), W(inst.lhs_reg.id), W(inst.rhs_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const MulReg64& inst) {
-    assembler_.Mul(X(inst.res_reg), X(inst.lhs_reg), X(inst.rhs_reg));
+    assembler_.Mul(X(inst.res_reg.id), X(inst.lhs_reg.id), X(inst.rhs_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const DivReg32& inst) {
-    assembler_.Udiv(W(inst.res_reg), W(inst.lhs_reg), W(inst.rhs_reg));
+    assembler_.Udiv(W(inst.res_reg.id), W(inst.lhs_reg.id), W(inst.rhs_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const DivReg64& inst) {
-    assembler_.Udiv(X(inst.res_reg), X(inst.lhs_reg), X(inst.rhs_reg));
+    assembler_.Udiv(X(inst.res_reg.id), X(inst.lhs_reg.id), X(inst.rhs_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const ModReg32& inst) {
-    assembler_.Udiv(W(inst.res_reg), W(inst.lhs_reg), W(inst.rhs_reg));
-    assembler_.Msub(W(inst.res_reg), W(inst.res_reg), W(inst.rhs_reg),
-                    W(inst.lhs_reg));
+    assembler_.Udiv(W(inst.res_reg.id), W(inst.lhs_reg.id), W(inst.rhs_reg.id));
+    assembler_.Msub(W(inst.res_reg.id), W(inst.res_reg.id), W(inst.rhs_reg.id),
+                    W(inst.lhs_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const ModReg64& inst) {
-    assembler_.Udiv(X(inst.res_reg), X(inst.lhs_reg), X(inst.rhs_reg));
-    assembler_.Msub(X(inst.res_reg), X(inst.res_reg), X(inst.rhs_reg),
-                    X(inst.lhs_reg));
+    assembler_.Udiv(X(inst.res_reg.id), X(inst.lhs_reg.id), X(inst.rhs_reg.id));
+    assembler_.Msub(X(inst.res_reg.id), X(inst.res_reg.id), X(inst.rhs_reg.id),
+                    X(inst.lhs_reg.id));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const GtReg32& inst) {
-    assembler_.Cmp(W(inst.lhs_reg), W(inst.rhs_reg));
-    assembler_.Cset(W(inst.res_reg), InvCond::Gt);
+    assembler_.Cmp(W(inst.lhs_reg.id), W(inst.rhs_reg.id));
+    assembler_.Cset(W(inst.res_reg.id), InvCond::Gt);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const GtReg64& inst) {
-    assembler_.Cmp(X(inst.lhs_reg), X(inst.rhs_reg));
-    assembler_.Cset(X(inst.res_reg), InvCond::Gt);
+    assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));
+    assembler_.Cset(X(inst.res_reg.id), InvCond::Gt);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const LtReg32& inst) {
-    assembler_.Cmp(W(inst.lhs_reg), W(inst.rhs_reg));
-    assembler_.Cset(W(inst.res_reg), InvCond::Lt);
+    assembler_.Cmp(W(inst.lhs_reg.id), W(inst.rhs_reg.id));
+    assembler_.Cset(W(inst.res_reg.id), InvCond::Lt);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const LtReg64& inst) {
-    assembler_.Cmp(X(inst.lhs_reg), X(inst.rhs_reg));
-    assembler_.Cset(X(inst.res_reg), InvCond::Lt);
+    assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));
+    assembler_.Cset(X(inst.res_reg.id), InvCond::Lt);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const EqReg32& inst) {
-    assembler_.Cmp(W(inst.lhs_reg), W(inst.rhs_reg));
-    assembler_.Cset(W(inst.res_reg), InvCond::Eq);
+    assembler_.Cmp(W(inst.lhs_reg.id), W(inst.rhs_reg.id));
+    assembler_.Cset(W(inst.res_reg.id), InvCond::Eq);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const EqReg64& inst) {
-    assembler_.Cmp(X(inst.lhs_reg), X(inst.rhs_reg));
-    assembler_.Cset(X(inst.res_reg), InvCond::Eq);
+    assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));
+    assembler_.Cset(X(inst.res_reg.id), InvCond::Eq);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const NotEqReg32& inst) {
-    assembler_.Cmp(W(inst.lhs_reg), W(inst.rhs_reg));
-    assembler_.Cset(W(inst.res_reg), InvCond::Ne);
+    assembler_.Cmp(W(inst.lhs_reg.id), W(inst.rhs_reg.id));
+    assembler_.Cset(W(inst.res_reg.id), InvCond::Ne);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const NotEqReg64& inst) {
-    assembler_.Cmp(X(inst.lhs_reg), X(inst.rhs_reg));
-    assembler_.Cset(X(inst.res_reg), InvCond::Ne);
+    assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));
+    assembler_.Cset(X(inst.res_reg.id), InvCond::Ne);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
@@ -295,9 +295,9 @@ class Arm64BinaryGenerator {
     int param_idx = 1;
     for (const auto& param : am_cfg_.params) {
       if (param.bits == 32) {
-        assembler_.Mov(W(param.reg), W(param_idx++));
+        assembler_.Mov(W(param.reg.id), W(param_idx++));
       } else if (param.bits == 64) {
-        assembler_.Mov(X(param.reg), X(param_idx++));
+        assembler_.Mov(X(param.reg.id), X(param_idx++));
       }
     }
   }
@@ -307,56 +307,56 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const StoreStack32& inst) {
-    assembler_.StrUnsignedOffset(W(inst.src_reg), SP,
+    assembler_.StrUnsignedOffset(W(inst.src_reg.id), SP,
                                  Imm(AdjustedOffset(inst.offset)));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const StoreStackReg32& inst) {
-    assembler_.Add(W(inst.offset_reg), W(inst.offset_reg),
+    assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id),
                    Imm(AdjustedOffset(inst.offset)));
-    assembler_.Str(W(inst.src_reg), SP, W(inst.offset_reg), Extend::Uxtw,
+    assembler_.Str(W(inst.src_reg.id), SP, W(inst.offset_reg.id), Extend::Uxtw,
                    Imm(0));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const StoreStack64& inst) {
-    assembler_.StrUnsignedOffset(X(inst.src_reg), SP,
+    assembler_.StrUnsignedOffset(X(inst.src_reg.id), SP,
                                  Imm(AdjustedOffset(inst.offset)));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const StoreStackReg64& inst) {
-    assembler_.Add(X(inst.offset_reg), X(inst.offset_reg),
+    assembler_.Add(X(inst.offset_reg.id), X(inst.offset_reg.id),
                    Imm(AdjustedOffset(inst.offset)));
-    assembler_.Str(X(inst.src_reg), SP, X(inst.offset_reg), Extend::Lsl,
+    assembler_.Str(X(inst.src_reg.id), SP, X(inst.offset_reg.id), Extend::Lsl,
                    Imm(0));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const LoadStack32& inst) {
-    assembler_.LdrUnsignedOffset(W(inst.dst_reg), SP,
+    assembler_.LdrUnsignedOffset(W(inst.dst_reg.id), SP,
                                  Imm(AdjustedOffset(inst.offset)));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const LoadStackReg32& inst) {
-    assembler_.Add(W(inst.offset_reg), W(inst.offset_reg),
+    assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id),
                    Imm(AdjustedOffset(inst.offset)));
-    assembler_.Ldr(W(inst.dst_reg), SP, W(inst.offset_reg), Extend::Uxtw);
+    assembler_.Ldr(W(inst.dst_reg.id), SP, W(inst.offset_reg.id), Extend::Uxtw);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const LoadStack64& inst) {
-    assembler_.LdrUnsignedOffset(X(inst.dst_reg), SP,
+    assembler_.LdrUnsignedOffset(X(inst.dst_reg.id), SP,
                                  Imm(AdjustedOffset(inst.offset)));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const LoadStackReg64& inst) {
-    assembler_.Add(X(inst.offset_reg), X(inst.offset_reg),
+    assembler_.Add(X(inst.offset_reg.id), X(inst.offset_reg.id),
                    Imm(AdjustedOffset(inst.offset)));
-    assembler_.Ldr(X(inst.dst_reg), SP, X(inst.offset_reg), Extend::Lsl,
+    assembler_.Ldr(X(inst.dst_reg.id), SP, X(inst.offset_reg.id), Extend::Lsl,
                    Imm(0));
   }
 
@@ -364,9 +364,9 @@ class Arm64BinaryGenerator {
                const FuncCall& inst) {
     for (int i = 0; i < inst.args.size(); ++i) {
       if (inst.args[i].bits == 32) {
-        assembler_.Mov(W(i + 1), W(inst.args[i].reg));
+        assembler_.Mov(W(i + 1), W(inst.args[i].reg.id));
       } else {
-        assembler_.Mov(X(i + 1), X(inst.args[i].reg));
+        assembler_.Mov(X(i + 1), X(inst.args[i].reg.id));
       }
     }
 
@@ -374,9 +374,9 @@ class Arm64BinaryGenerator {
 
     if (inst.res.has_value()) {
       if (inst.res->bits == 32) {
-        assembler_.Mov(W(inst.res->reg), W(0));
+        assembler_.Mov(W(inst.res->reg.id), W(0));
       } else {
-        assembler_.Mov(X(inst.res->reg), X(0));
+        assembler_.Mov(X(inst.res->reg.id), X(0));
       }
     }
   }

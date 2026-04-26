@@ -38,7 +38,7 @@ std::optional<RegId> FindRegToSpill(
 
     if (state.live_in.size() > 10) {
       for (const auto& reg : state.live_in) {
-        if (reg < 1000 && !spilled.Contains(reg)) return reg;
+        if (reg.id < 1000 && !spilled.Contains(reg)) return reg;
       }
       assert(false);
     }
@@ -48,7 +48,7 @@ std::optional<RegId> FindRegToSpill(
 
       if (state.live_in.size() > 10) {
         for (const auto& reg : state.live_in) {
-          if (reg < 1000 && !spilled.Contains(reg)) return reg;
+          if (reg.id < 1000 && !spilled.Contains(reg)) return reg;
         }
         assert(false);
       }
@@ -58,7 +58,7 @@ std::optional<RegId> FindRegToSpill(
 
       if (state.live_in.size() > 10) {
         for (const auto& reg : state.live_in) {
-          if (reg < 1000 && !spilled.Contains(reg)) return reg;
+          if (reg.id < 1000 && !spilled.Contains(reg)) return reg;
         }
         assert(false);
       }
@@ -68,7 +68,8 @@ std::optional<RegId> FindRegToSpill(
 }
 
 void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
-                    std::vector<std::size_t>& stack_slots, RegId& next_reg) {
+                    std::vector<std::size_t>& stack_slots,
+                    std::int32_t& next_reg_id) {
   HashMap<RegId, std::size_t> reg_stack;
   HashMap<RegId, RegId> reg_rename;
 
@@ -104,7 +105,7 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     if (reg != reg_to_spill) return;
 
     RegId old_reg = reg;
-    reg = next_reg++;
+    reg.id = next_reg_id++;
     reg_rename.Insert(old_reg, reg);
 
     auto offset = reg_stack.Get(old_reg);
@@ -122,7 +123,7 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     if (reg != reg_to_spill) return;
 
     RegId old_reg = reg;
-    reg = next_reg++;
+    reg.id = next_reg_id++;
     reg_rename.Insert(old_reg, reg);
 
     auto offset = reg_stack.Get(old_reg);
@@ -287,12 +288,12 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
                     std::vector<std::size_t>& stack_slots) {
   HashSet<RegId> spilt_regs;
-  RegId next_reg = 1000;
+  std::int32_t next_reg_id = 1000;
   while (true) {
     std::optional<RegId> reg_to_spill = FindRegToSpill(am_cfg, spilt_regs);
     if (!reg_to_spill.has_value()) break;
 
-    SpillRegisters(*reg_to_spill, am_cfg, stack_slots, next_reg);
+    SpillRegisters(*reg_to_spill, am_cfg, stack_slots, next_reg_id);
 
     spilt_regs.Insert(*reg_to_spill);
   }
@@ -435,7 +436,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
 
   std::vector<RegId> seo;
   while (!reg_scores.empty()) {
-    int max_reg = reg_scores.begin()->first;
+    RegId max_reg = reg_scores.begin()->first;
     int max_score = reg_scores.begin()->second;
     for (const auto& [reg, score] : reg_scores) {
       if (score >= max_score) {
@@ -483,7 +484,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
 void UpdateRegister(const HashMap<RegId, int>& reg_colors, RegId& reg) {
   OptionalRef<const int> color = reg_colors.Get(reg);
   assert(color.has_value());
-  reg = *color;
+  reg.id = *color;
 }
 
 void MergeRegisters(const HashMap<RegId, int>& reg_colors,

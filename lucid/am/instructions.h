@@ -9,10 +9,35 @@
 #include <variant>
 #include <vector>
 
+#include "lucid/core/hash/hash.h"
+
 namespace lucid {
 
+enum RegSize { RegSize32, RegSize64 };
+
 // A register in the Lucid abstract machine.
-using RegId = std::int32_t;
+struct RegId {
+  std::int32_t id;
+  RegSize size;
+
+  bool operator==(const RegId&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const RegId& reg) {
+    os << reg.id << "(";
+    switch (reg.size) {
+      case RegSize32:
+        os << "32";
+        break;
+      case RegSize64:
+        os << "64";
+        break;
+    }
+    os << ")";
+    return os;
+  }
+};
+
+inline std::size_t Hash(const RegId& reg) { return Hash(reg.id); }
 
 // A no op instruction.
 struct Nop {

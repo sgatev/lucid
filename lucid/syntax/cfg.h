@@ -111,6 +111,9 @@ struct SyntaxControlFlowGraph {
   // Parameters of the function.
   SuccessiveList<ParamRef> func_params;
 
+  // Result type of the function.
+  TypeRef func_result_type;
+
   // The first block in the control flow graph.
   BlockRef first = kNullBlockRef;
 
