@@ -266,20 +266,11 @@ class AbstractMachineFunctionGenerator {
   void ProcessExpr(ExprRef ref, const IdentExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
     if (std::holds_alternative<ArrayType>(ctx_.DerefType(expr.type))) return;
-    auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
-    std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
     RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
-    if (expr_type_name == "Int32" || expr_type_name == "Bool") {
-      am_block.instructions.push_back(MoveReg32{
-          .src_reg = GetVarReg(expr.name, expr.type),
-          .dst_reg = reg,
-      });
-    } else if (expr_type_name == "Int64") {
-      am_block.instructions.push_back(MoveReg64{
-          .src_reg = GetVarReg(expr.name, expr.type),
-          .dst_reg = reg,
-      });
-    }
+    am_block.instructions.push_back(MoveReg{
+        .src_reg = GetVarReg(expr.name, expr.type),
+        .dst_reg = reg,
+    });
     expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
@@ -497,20 +488,10 @@ class AbstractMachineFunctionGenerator {
 
   void Process(StmtRef ref, const ReturnStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
-    auto type = std::get<BasicType>(
-        ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.value))));
-    std::string_view type_name = ctx_.DerefIdent(type.name);
-    if (type_name == "Int32" || type_name == "Bool") {
-      am_block.instructions.push_back(MoveReg32{
-          .src_reg = expr_and_stmt_to_reg_[stmt.value.id()],
-          .dst_reg = result_reg_,
-      });
-    } else if (type_name == "Int64") {
-      am_block.instructions.push_back(MoveReg64{
-          .src_reg = expr_and_stmt_to_reg_[stmt.value.id()],
-          .dst_reg = result_reg_,
-      });
-    }
+    am_block.instructions.push_back(MoveReg{
+        .src_reg = expr_and_stmt_to_reg_[stmt.value.id()],
+        .dst_reg = result_reg_,
+    });
   }
 
   void Process(StmtRef ref, const DoStmt& stmt,
@@ -521,19 +502,10 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef ref, const VarAssignStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
     auto expr_type_ref = GetType(ctx_.DerefExpr(stmt.expr));
-    auto expr_type = std::get<BasicType>(ctx_.DerefType(expr_type_ref));
-    std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
-    if (expr_type_name == "Int32" || expr_type_name == "Bool") {
-      am_block.instructions.push_back(MoveReg32{
-          .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
-          .dst_reg = GetVarReg(stmt.name, expr_type_ref),
-      });
-    } else if (expr_type_name == "Int64") {
-      am_block.instructions.push_back(MoveReg64{
-          .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
-          .dst_reg = GetVarReg(stmt.name, expr_type_ref),
-      });
-    }
+    am_block.instructions.push_back(MoveReg{
+        .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
+        .dst_reg = GetVarReg(stmt.name, expr_type_ref),
+    });
   }
 
   void Process(StmtRef ref, const VarDeclStmt& stmt,
@@ -558,22 +530,12 @@ class AbstractMachineFunctionGenerator {
       return;
     }
 
-    auto stmt_type = std::get<BasicType>(ctx_.DerefType(stmt.type_constraint));
-    std::string_view stmt_type_name = ctx_.DerefIdent(stmt_type.name);
-
     if (!stmt.init.has_value()) return;
 
-    if (stmt_type_name == "Int32" || stmt_type_name == "Bool") {
-      am_block.instructions.push_back(MoveReg32{
-          .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
-          .dst_reg = GetVarReg(stmt.name, stmt.type_constraint),
-      });
-    } else if (stmt_type_name == "Int64") {
-      am_block.instructions.push_back(MoveReg64{
-          .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
-          .dst_reg = GetVarReg(stmt.name, stmt.type_constraint),
-      });
-    }
+    am_block.instructions.push_back(MoveReg{
+        .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
+        .dst_reg = GetVarReg(stmt.name, stmt.type_constraint),
+    });
   }
 
   void Process(StmtRef ref, const ArrayAssignStmt& stmt,

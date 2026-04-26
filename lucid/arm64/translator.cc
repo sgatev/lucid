@@ -70,13 +70,15 @@ class Arm64BinaryGenerator {
                const Nop&) {}
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const MoveReg32& inst) {
-    assembler_.Mov(W(inst.dst_reg.id), W(inst.src_reg.id));
-  }
-
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const MoveReg64& inst) {
-    assembler_.Mov(X(inst.dst_reg.id), X(inst.src_reg.id));
+               const MoveReg& inst) {
+    switch (inst.dst_reg.size) {
+      case RegSize32:
+        assembler_.Mov(W(inst.dst_reg.id), W(inst.src_reg.id));
+        break;
+      case RegSize64:
+        assembler_.Mov(X(inst.dst_reg.id), X(inst.src_reg.id));
+        break;
+    }
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,

@@ -153,12 +153,9 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     while (i != block.instructions.end()) {
       auto& inst = *i;
 
-      if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
+      if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         maybe_insert_load32(block.instructions, i, cinst->src_reg);
         maybe_insert_store32(block.instructions, i, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
-        maybe_insert_load64(block.instructions, i, cinst->src_reg);
-        maybe_insert_store64(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
         maybe_insert_store32(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
@@ -313,10 +310,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
           std::holds_alternative<Label>(inst) ||
           std::holds_alternative<Jump>(inst) ||
           std::holds_alternative<UncondJump>(inst)) {
-      } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
-        reg_scores.Insert(cinst->dst_reg, 0);
-        reg_scores.Insert(cinst->src_reg, 0);
-      } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
+      } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
         reg_scores.Insert(cinst->src_reg, 0);
       } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
@@ -496,10 +490,7 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
     for (auto& inst : block.instructions) {
       if (auto* cinst = std::get_if<CondJump>(&inst)) {
         UpdateRegister(reg_colors, cinst->cond_reg);
-      } else if (auto* cinst = std::get_if<MoveReg32>(&inst)) {
-        UpdateRegister(reg_colors, cinst->src_reg);
-        UpdateRegister(reg_colors, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<MoveReg64>(&inst)) {
+      } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         UpdateRegister(reg_colors, cinst->src_reg);
         UpdateRegister(reg_colors, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {

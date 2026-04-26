@@ -62,7 +62,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
                               .src_val = "21",
                               .dst_reg = RegId(2, RegSize::RegSize32),
                           },
-                          MoveReg32{
+                          MoveReg{
                               .src_reg = RegId(2, RegSize::RegSize32),
                               .dst_reg = RegId(1, RegSize::RegSize32),
                           },
@@ -98,7 +98,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
                               .src_val = "21",
                               .dst_reg = RegId(2, RegSize::RegSize64),
                           },
-                          MoveReg64{
+                          MoveReg{
                               .src_reg = RegId(2, RegSize::RegSize64),
                               .dst_reg = RegId(1, RegSize::RegSize64),
                           },
@@ -164,7 +164,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
                                   .bits = 32,
                               }),
                           },
-                          MoveReg32{
+                          MoveReg{
                               .src_reg = RegId(3, RegSize32),
                               .dst_reg = RegId(1, RegSize32),
                           },

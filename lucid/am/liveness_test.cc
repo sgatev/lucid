@@ -85,13 +85,13 @@ TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
   g.first(a);
   g.inst(a, SetReg32{
                 .src_val = "1",
-                .dst_reg = RegId(1),
+                .dst_reg = RegId(1, RegSize32),
             });
   g.edge(a, b);
 
-  g.inst(b, MoveReg32{
-                .src_reg = RegId(1),
-                .dst_reg = RegId(2),
+  g.inst(b, MoveReg{
+                .src_reg = RegId(1, RegSize32),
+                .dst_reg = RegId(2, RegSize32),
             });
   g.edge(b, z);
 
@@ -132,21 +132,21 @@ TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
   g.edge(a, b);
   g.edge(a, c);
 
-  g.inst(b, MoveReg32{
-                .src_reg = RegId(1),
-                .dst_reg = RegId(3),
+  g.inst(b, MoveReg{
+                .src_reg = RegId(1, RegSize32),
+                .dst_reg = RegId(3, RegSize32),
             });
   g.edge(b, d);
 
-  g.inst(c, MoveReg32{
-                .src_reg = RegId(2),
-                .dst_reg = RegId(3),
+  g.inst(c, MoveReg{
+                .src_reg = RegId(2, RegSize32),
+                .dst_reg = RegId(3, RegSize32),
             });
   g.edge(c, d);
 
-  g.inst(d, MoveReg32{
-                .src_reg = RegId(3),
-                .dst_reg = RegId(4),
+  g.inst(d, MoveReg{
+                .src_reg = RegId(3, RegSize32),
+                .dst_reg = RegId(4, RegSize32),
             });
   g.edge(d, z);
 
@@ -185,15 +185,15 @@ TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
                 .src_val = "1",
                 .dst_reg = RegId(1),
             });
-  g.inst(a, MoveReg32{
-                .src_reg = RegId(1),
-                .dst_reg = RegId(2),
+  g.inst(a, MoveReg{
+                .src_reg = RegId(1, RegSize32),
+                .dst_reg = RegId(2, RegSize32),
             });
   g.edge(a, b);
 
-  g.inst(b, MoveReg32{
-                .src_reg = RegId(2),
-                .dst_reg = RegId(3),
+  g.inst(b, MoveReg{
+                .src_reg = RegId(2, RegSize32),
+                .dst_reg = RegId(3, RegSize32),
             });
   g.edge(b, z);
 

@@ -13,23 +13,33 @@ using ::testing::ElementsAre;
 
 TEST(OptimizeAbstractMachineInstructionsTest, RemovesUnnecessaryInstructions) {
   std::list<Instruction> instructions = {
-      MoveReg32{.src_reg = 1, .dst_reg = 2},
-      MoveReg32{.src_reg = 3, .dst_reg = 3},
-      AddReg32{.res_reg = 1, .lhs_reg = 2, .rhs_reg = 2},
+      MoveReg{
+          .src_reg = RegId(1, RegSize32),
+          .dst_reg = RegId(2, RegSize32),
+      },
+      MoveReg{
+          .src_reg = RegId(3, RegSize32),
+          .dst_reg = RegId(3, RegSize32),
+      },
+      AddReg32{
+          .res_reg = RegId(1, RegSize32),
+          .lhs_reg = RegId(2, RegSize32),
+          .rhs_reg = RegId(2, RegSize32),
+      },
   };
 
   OptimizeAbstractMachineInstructions(instructions);
 
   EXPECT_THAT(instructions, ElementsAre(
-                                MoveReg32{
-                                    .src_reg = 1,
-                                    .dst_reg = 2,
+                                MoveReg{
+                                    .src_reg = RegId(1, RegSize32),
+                                    .dst_reg = RegId(2, RegSize32),
                                 },
                                 Nop{},
                                 AddReg32{
-                                    .res_reg = 1,
-                                    .lhs_reg = 2,
-                                    .rhs_reg = 2,
+                                    .res_reg = RegId(1, RegSize32),
+                                    .lhs_reg = RegId(2, RegSize32),
+                                    .rhs_reg = RegId(2, RegSize32),
                                 }));
 }
 
