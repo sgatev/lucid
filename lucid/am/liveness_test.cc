@@ -56,7 +56,7 @@ TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
   auto z = g.block();
 
   g.first(a);
-  g.inst(a, SetReg32{
+  g.inst(a, SetReg{
                 .src_val = "1",
                 .dst_reg = RegId(1),
             });
@@ -83,7 +83,7 @@ TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
   auto z = g.block();
 
   g.first(a);
-  g.inst(a, SetReg32{
+  g.inst(a, SetReg{
                 .src_val = "1",
                 .dst_reg = RegId(1, RegSize32),
             });
@@ -121,11 +121,11 @@ TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
   auto z = g.block();
 
   g.first(a);
-  g.inst(a, SetReg32{
+  g.inst(a, SetReg{
                 .src_val = "1",
                 .dst_reg = RegId(1),
             });
-  g.inst(a, SetReg32{
+  g.inst(a, SetReg{
                 .src_val = "2",
                 .dst_reg = RegId(2),
             });
@@ -181,7 +181,7 @@ TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
   auto z = g.block();
 
   g.first(a);
-  g.inst(a, SetReg32{
+  g.inst(a, SetReg{
                 .src_val = "1",
                 .dst_reg = RegId(1),
             });
@@ -222,13 +222,13 @@ TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
   auto z = g.block();
 
   g.first(a);
-  g.inst(a, SetReg32{
+  g.inst(a, SetReg{
                 .src_val = "1",
                 .dst_reg = RegId(1),
             });
   g.edge(a, b);
 
-  g.inst(b, SetReg32{
+  g.inst(b, SetReg{
                 .src_val = "2",
                 .dst_reg = RegId(2),
             });

@@ -48,7 +48,7 @@ struct Nop {
   }
 };
 
-// Moves the value of an 32-bit register into another one.
+// Moves the value of a register into another one.
 struct MoveReg {
   // Source register.
   RegId src_reg;
@@ -64,34 +64,18 @@ struct MoveReg {
   }
 };
 
-// Sets a 32-bit value in a register.
-struct SetReg32 {
+// Sets a value in a register.
+struct SetReg {
   // Source value.
   std::string_view src_val;
 
   // Destination register.
   RegId dst_reg;
 
-  bool operator==(const SetReg32&) const = default;
+  bool operator==(const SetReg&) const = default;
 
-  friend std::ostream& operator<<(std::ostream& os, const SetReg32& inst) {
-    return os << "SetReg32 { .src_val=\"" << inst.src_val
-              << "\", .dst_reg=" << inst.dst_reg << " }";
-  }
-};
-
-// Sets 64-bit value in a register.
-struct SetReg64 {
-  // Source value.
-  std::string_view src_val;
-
-  // Destination register.
-  RegId dst_reg;
-
-  bool operator==(const SetReg64&) const = default;
-
-  friend std::ostream& operator<<(std::ostream& os, const SetReg64& inst) {
-    return os << "SetReg64 { .src_val=\"" << inst.src_val
+  friend std::ostream& operator<<(std::ostream& os, const SetReg& inst) {
+    return os << "SetReg { .src_val=\"" << inst.src_val
               << "\", .dst_reg=" << inst.dst_reg << " }";
   }
 };
@@ -747,10 +731,10 @@ struct FuncCall {
 
 // An instruction for the Lucid abstract machine.
 using Instruction =
-    std::variant<Nop, MoveReg, SetReg32, SetReg64, SetStr, Jump, UncondJump,
-                 CondJump, Label, Return, AddReg32, AddReg64, SubReg32,
-                 SubReg64, MulReg32, MulReg64, DivReg32, DivReg64, ModReg32,
-                 ModReg64, GtReg32, GtReg64, LtReg32, LtReg64, EqReg32, EqReg64,
+    std::variant<Nop, MoveReg, SetReg, SetStr, Jump, UncondJump, CondJump,
+                 Label, Return, AddReg32, AddReg64, SubReg32, SubReg64,
+                 MulReg32, MulReg64, DivReg32, DivReg64, ModReg32, ModReg64,
+                 GtReg32, GtReg64, LtReg32, LtReg64, EqReg32, EqReg64,
                  NotEqReg32, NotEqReg64, PushStack, PopStack, StoreStack32,
                  StoreStackReg32, StoreStack64, StoreStackReg64, LoadStack32,
                  LoadStackReg32, LoadStack64, LoadStackReg64, FuncCall>;
@@ -762,8 +746,7 @@ inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
       std::holds_alternative<Label>(inst) ||
       std::holds_alternative<Jump>(inst) ||
       std::holds_alternative<UncondJump>(inst) ||
-      std::holds_alternative<SetReg32>(inst) ||
-      std::holds_alternative<SetReg64>(inst) ||
+      std::holds_alternative<SetReg>(inst) ||
       std::holds_alternative<SetStr>(inst) ||
       std::holds_alternative<LoadStack32>(inst) ||
       std::holds_alternative<LoadStack64>(inst)) {
@@ -848,9 +831,7 @@ inline std::optional<RegId> GetTargetRegister(const Instruction& inst) {
     return std::nullopt;
   } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
     return cinst->dst_reg;
-  } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
-    return cinst->dst_reg;
-  } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
+  } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
     return cinst->dst_reg;
   } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
     return cinst->dst_reg;

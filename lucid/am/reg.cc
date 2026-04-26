@@ -156,10 +156,8 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
       if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         maybe_insert_load32(block.instructions, i, cinst->src_reg);
         maybe_insert_store32(block.instructions, i, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
+      } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
         maybe_insert_store32(block.instructions, i, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
-        maybe_insert_store64(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
         maybe_insert_store64(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<AddReg32>(&inst)) {
@@ -319,9 +317,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
       } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
         reg_scores.Insert(cinst->src_reg, 0);
-      } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
-        reg_scores.Insert(cinst->dst_reg, 0);
-      } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
+      } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
       } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
@@ -499,9 +495,7 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
       } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         UpdateRegister(reg_colors, cinst->src_reg);
         UpdateRegister(reg_colors, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<SetReg32>(&inst)) {
-        UpdateRegister(reg_colors, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<SetReg64>(&inst)) {
+      } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
         UpdateRegister(reg_colors, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
         UpdateRegister(reg_colors, cinst->dst_reg);

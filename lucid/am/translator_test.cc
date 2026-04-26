@@ -58,7 +58,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
                           Label{
                               .id = 0,
                           },
-                          SetReg32{
+                          SetReg{
                               .src_val = "21",
                               .dst_reg = RegId(2, RegSize::RegSize32),
                           },
@@ -94,7 +94,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
                           Label{
                               .id = 0,
                           },
-                          SetReg64{
+                          SetReg{
                               .src_val = "21",
                               .dst_reg = RegId(2, RegSize::RegSize64),
                           },
@@ -146,7 +146,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
                           Label{
                               .id = 0,
                           },
-                          SetReg32{
+                          SetReg{
                               .src_val = "21",
                               .dst_reg = RegId(2, RegSize32),
                           },
@@ -210,7 +210,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
                           Label{
                               .id = 0,
                           },
-                          SetReg64{
+                          SetReg{
                               .src_val = "21",
                               .dst_reg = RegId(2, RegSize64),
                           },
@@ -261,11 +261,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
@@ -309,11 +309,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize64),
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(3, RegSize64),
                                           },
@@ -357,11 +357,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "7",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "5",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
@@ -405,11 +405,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "7",
                                               .dst_reg = RegId(2, RegSize64),
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "5",
                                               .dst_reg = RegId(3, RegSize64),
                                           },
@@ -453,11 +453,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
@@ -501,11 +501,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize64),
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(3, RegSize64),
                                           },
@@ -549,11 +549,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "8",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
@@ -597,11 +597,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "8",
                                               .dst_reg = RegId(2, RegSize64),
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize64),
                                           },
@@ -645,11 +645,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "8",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
@@ -693,11 +693,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "8",
                                               .dst_reg = RegId(2, RegSize64),
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize64),
                                           },
@@ -753,7 +753,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "1",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
@@ -765,11 +765,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           Label{
                                               .id = 2,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "4",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "5",
                                               .dst_reg = RegId(4, RegSize32),
                                           },
@@ -788,11 +788,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           Label{
                                               .id = 3,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(6, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(7, RegSize32),
                                           },
@@ -850,7 +850,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "1",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
@@ -862,11 +862,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           Label{
                                               .id = 4,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "4",
                                               .dst_reg = RegId(6, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "5",
                                               .dst_reg = RegId(7, RegSize32),
                                           },
@@ -885,11 +885,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           Label{
                                               .id = 3,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(4, RegSize32),
                                           },
@@ -936,11 +936,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
@@ -1100,11 +1100,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
@@ -1499,7 +1499,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
@@ -1549,7 +1549,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize64),
                                           },
@@ -1601,7 +1601,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "0",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
@@ -1645,7 +1645,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "0",
                                               .dst_reg = RegId(2, RegSize64),
                                           },
@@ -1690,7 +1690,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
@@ -1743,7 +1743,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg64{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize64),
                                           },
@@ -1799,7 +1799,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                           Label{
                                               .id = 3,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "1",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
@@ -1820,7 +1820,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                           Label{
                                               .id = 2,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
@@ -1875,7 +1875,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           Label{
                                               .id = 0,
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "0",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
@@ -1893,7 +1893,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .src_reg = RegId(3, RegSize32),
                                               .dst_reg = RegId(5, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(6, RegSize32),
                                           },
@@ -1914,7 +1914,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .src_reg = RegId(3, RegSize32),
                                               .dst_reg = RegId(8, RegSize32),
                                           },
-                                          SetReg32{
+                                          SetReg{
                                               .src_val = "1",
                                               .dst_reg = RegId(9, RegSize32),
                                           },

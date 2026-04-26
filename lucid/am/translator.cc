@@ -51,7 +51,7 @@ class AbstractMachineFunctionGenerator {
       first_block.instructions.push_back(Jump{
           .label = "_print_string",
       });
-      first_block.instructions.push_back(SetReg32{
+      first_block.instructions.push_back(SetReg{
           .src_val = "0",
           .dst_reg = result_reg_,
       });
@@ -68,7 +68,7 @@ class AbstractMachineFunctionGenerator {
       first_block.instructions.push_back(Jump{
           .label = "_sleep",
       });
-      first_block.instructions.push_back(SetReg32{
+      first_block.instructions.push_back(SetReg{
           .src_val = "0",
           .dst_reg = result_reg_,
       });
@@ -174,27 +174,18 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const IntLitExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
-    auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
-    std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
     RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
-    if (expr_type_name == "Int64") {
-      am_block.instructions.push_back(SetReg64{
-          .src_val = ctx_.DerefIdent(expr.value),
-          .dst_reg = reg,
-      });
-    } else if (expr_type_name == "Int32") {
-      am_block.instructions.push_back(SetReg32{
-          .src_val = ctx_.DerefIdent(expr.value),
-          .dst_reg = reg,
-      });
-    }
+    am_block.instructions.push_back(SetReg{
+        .src_val = ctx_.DerefIdent(expr.value),
+        .dst_reg = reg,
+    });
     expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const BoolLitExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
     RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
-    am_block.instructions.push_back(SetReg32{
+    am_block.instructions.push_back(SetReg{
         .src_val = ctx_.DerefIdent(expr.value) == "true" ? "1" : "0",
         .dst_reg = reg,
     });
@@ -252,7 +243,7 @@ class AbstractMachineFunctionGenerator {
     RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
     if (expr_type_name == "Int32") {
       RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg32{
+      am_block.instructions.push_back(SetReg{
           .src_val = "4",
           .dst_reg = offset_reg,
       });
@@ -269,7 +260,7 @@ class AbstractMachineFunctionGenerator {
       });
     } else if (expr_type_name == "Int64") {
       RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg32{
+      am_block.instructions.push_back(SetReg{
           .src_val = "8",
           .dst_reg = offset_reg,
       });
@@ -286,7 +277,7 @@ class AbstractMachineFunctionGenerator {
       });
     } else if (expr_type_name == "Bool") {
       RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg32{
+      am_block.instructions.push_back(SetReg{
           .src_val = "4",
           .dst_reg = offset_reg,
       });
@@ -517,7 +508,7 @@ class AbstractMachineFunctionGenerator {
     assert(stmt_offset.has_value());
     if (expr_type_name == "Int32") {
       RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg32{
+      am_block.instructions.push_back(SetReg{
           .src_val = "4",
           .dst_reg = offset_reg,
       });
@@ -534,7 +525,7 @@ class AbstractMachineFunctionGenerator {
       });
     } else if (expr_type_name == "Int64") {
       RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg32{
+      am_block.instructions.push_back(SetReg{
           .src_val = "8",
           .dst_reg = offset_reg,
       });
@@ -551,7 +542,7 @@ class AbstractMachineFunctionGenerator {
       });
     } else if (expr_type_name == "Bool") {
       RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg32{
+      am_block.instructions.push_back(SetReg{
           .src_val = "4",
           .dst_reg = offset_reg,
       });
