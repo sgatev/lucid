@@ -20,7 +20,6 @@ class AbstractMachineControlFlowGraph {
   static constexpr BlockRef kNullBlockRef = Arena<Block>::kNullRef;
 
   struct Phi {
-    int bits;
     RegId target;
     std::vector<RegId> sources;
   };

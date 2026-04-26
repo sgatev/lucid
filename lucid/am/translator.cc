@@ -110,16 +110,8 @@ class AbstractMachineFunctionGenerator {
       auto& am_block = am_cfg_.get(*am_cfg_block_ref);
       for (auto phi_ref : block.phis) {
         const auto& phi = scfg_.deref(phi_ref);
-        auto phi_type =
-            std::get<BasicType>(ctx_.DerefType(phi.type_constraint));
-        std::string_view phi_type_name = ctx_.DerefIdent(phi_type.name);
 
         auto& am_phi = am_block.phis.emplace_back();
-        if (phi_type_name == "Int32" || phi_type_name == "Bool") {
-          am_phi.bits = 32;
-        } else {
-          am_phi.bits = 64;
-        }
         am_phi.target = GetVarReg(phi.name, phi.type_constraint);
         for (const auto& arg : phi.args) {
           am_phi.sources.push_back(GetVarReg(arg, phi.type_constraint));

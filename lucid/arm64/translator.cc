@@ -167,12 +167,15 @@ class Arm64BinaryGenerator {
     }
 
     for (const auto& phi : block.phis) {
-      if (phi.bits == 32) {
-        assembler_.Mov(W(15), W(phi.sources[pred_block_idx].id));
-        assembler_.Mov(W(phi.target.id), W(15));
-      } else if (phi.bits == 64) {
-        assembler_.Mov(X(15), X(phi.sources[pred_block_idx].id));
-        assembler_.Mov(X(phi.target.id), X(15));
+      switch (phi.target.size) {
+        case RegSize32:
+          assembler_.Mov(W(15), W(phi.sources[pred_block_idx].id));
+          assembler_.Mov(W(phi.target.id), W(15));
+          break;
+        case RegSize64:
+          assembler_.Mov(X(15), X(phi.sources[pred_block_idx].id));
+          assembler_.Mov(X(phi.target.id), X(15));
+          break;
       }
     }
   }
