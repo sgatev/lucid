@@ -258,17 +258,23 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
         maybe_insert_load64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
         for (auto& arg : cinst->args) {
-          if (arg.bits == 32) {
-            maybe_insert_load32(block.instructions, i, arg.reg);
-          } else {
-            maybe_insert_load64(block.instructions, i, arg.reg);
+          switch (arg.reg.size) {
+            case RegSize32:
+              maybe_insert_load32(block.instructions, i, arg.reg);
+              break;
+            case RegSize64:
+              maybe_insert_load64(block.instructions, i, arg.reg);
+              break;
           }
         }
         if (cinst->res.has_value()) {
-          if (cinst->res->bits == 32) {
-            maybe_insert_store32(block.instructions, i, cinst->res->reg);
-          } else {
-            maybe_insert_store64(block.instructions, i, cinst->res->reg);
+          switch (cinst->res->reg.size) {
+            case RegSize32:
+              maybe_insert_store32(block.instructions, i, cinst->res->reg);
+              break;
+            case RegSize64:
+              maybe_insert_store64(block.instructions, i, cinst->res->reg);
+              break;
           }
         }
       } else if (auto* cinst = std::get_if<CondJump>(&inst)) {

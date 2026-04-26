@@ -719,7 +719,6 @@ struct FuncCall {
 
   struct Slot {
     RegId reg;
-    int bits;
 
     bool operator==(const Slot&) const = default;
   };
@@ -736,13 +735,11 @@ struct FuncCall {
     os << "FuncCall { .label=\"" << inst.label << "\" .args = [";
     for (bool has_printed_arg = false; const auto& arg : inst.args) {
       if (has_printed_arg) os << ", ";
-      os << arg.reg << "(" << arg.bits << ")";
+      os << arg.reg;
       has_printed_arg = true;
     }
     os << "]";
-    if (inst.res.has_value()) {
-      os << " .res=" << inst.res->reg << "(" << inst.res->bits << ")";
-    }
+    if (inst.res.has_value()) os << " .res=" << inst.res->reg;
     os << " }";
     return os;
   }

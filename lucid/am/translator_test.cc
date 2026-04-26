@@ -156,12 +156,10 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
                                   {
                                       {
                                           .reg = RegId(2, RegSize32),
-                                          .bits = 32,
                                       },
                                   },
                               .res = std::optional<FuncCall::Slot>({
                                   .reg = RegId(3, RegSize32),
-                                  .bits = 32,
                               }),
                           },
                           MoveReg{
@@ -222,12 +220,10 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
                                   {
                                       {
                                           .reg = RegId(2, RegSize64),
-                                          .bits = 64,
                                       },
                                   },
                               .res = std::optional<FuncCall::Slot>({
                                   .reg = RegId(3, RegSize64),
-                                  .bits = 64,
                               }),
                           },
                           MoveReg{

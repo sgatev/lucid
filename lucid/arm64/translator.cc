@@ -368,20 +368,26 @@ class Arm64BinaryGenerator {
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const FuncCall& inst) {
     for (int i = 0; i < inst.args.size(); ++i) {
-      if (inst.args[i].bits == 32) {
-        assembler_.Mov(W(i + 1), W(inst.args[i].reg.id));
-      } else {
-        assembler_.Mov(X(i + 1), X(inst.args[i].reg.id));
+      switch (inst.args[i].reg.size) {
+        case RegSize32:
+          assembler_.Mov(W(i + 1), W(inst.args[i].reg.id));
+          break;
+        case RegSize64:
+          assembler_.Mov(X(i + 1), X(inst.args[i].reg.id));
+          break;
       }
     }
 
     assembler_.Bl(inst.label);
 
     if (inst.res.has_value()) {
-      if (inst.res->bits == 32) {
-        assembler_.Mov(W(inst.res->reg.id), W(0));
-      } else {
-        assembler_.Mov(X(inst.res->reg.id), X(0));
+      switch (inst.res->reg.size) {
+        case RegSize32:
+          assembler_.Mov(W(inst.res->reg.id), W(0));
+          break;
+        case RegSize64:
+          assembler_.Mov(X(inst.res->reg.id), X(0));
+          break;
       }
     }
   }
