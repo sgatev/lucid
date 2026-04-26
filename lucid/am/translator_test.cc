@@ -179,7 +179,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
                               .res_reg = RegId(1, RegSize32),
                           }));
 }
-/*
+
 TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
   auto id_func = FuncDefStmt{
       .name = I("id"),
@@ -214,25 +214,25 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
                           },
                           SetReg64{
                               .src_val = "21",
-                              .dst_reg = 2,
+                              .dst_reg = RegId(2, RegSize64),
                           },
                           FuncCall{
                               .label = "id",
                               .args =
                                   {
                                       {
-                                          .reg = 2,
+                                          .reg = RegId(2, RegSize64),
                                           .bits = 64,
                                       },
                                   },
                               .res = std::optional<FuncCall::Slot>({
-                                  .reg = 3,
+                                  .reg = RegId(3, RegSize64),
                                   .bits = 64,
                               }),
                           },
-                          MoveReg64{
-                              .src_reg = 3,
-                              .dst_reg = 1,
+                          MoveReg{
+                              .src_reg = RegId(3, RegSize64),
+                              .dst_reg = RegId(1, RegSize64),
                           },
                           UncondJump{
                               .label = 1,
@@ -242,7 +242,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
                           },
                           PopStack{},
                           Return{
-                              .res_reg = 1,
+                              .res_reg = RegId(1, RegSize64),
                           }));
 }
 
@@ -267,20 +267,20 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
                                           },
                                           SetReg32{
                                               .src_val = "2",
-                                              .dst_reg = 2,
+                                              .dst_reg = RegId(2, RegSize32),
                                           },
                                           SetReg32{
                                               .src_val = "3",
-                                              .dst_reg = 3,
+                                              .dst_reg = RegId(3, RegSize32),
                                           },
                                           AddReg32{
-                                              .res_reg = 4,
-                                              .lhs_reg = 2,
-                                              .rhs_reg = 3,
+                                              .res_reg = RegId(4, RegSize32),
+                                              .lhs_reg = RegId(2, RegSize32),
+                                              .rhs_reg = RegId(3, RegSize32),
                                           },
-                                          MoveReg32{
-                                              .src_reg = 4,
-                                              .dst_reg = 1,
+                                          MoveReg{
+                                              .src_reg = RegId(4, RegSize32),
+                                              .dst_reg = RegId(1, RegSize32),
                                           },
                                           UncondJump{
                                               .label = 1,
@@ -290,10 +290,10 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
                                           },
                                           PopStack{},
                                           Return{
-                                              .res_reg = 1,
+                                              .res_reg = RegId(1, RegSize32),
                                           }));
 }
-
+/*
 TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
