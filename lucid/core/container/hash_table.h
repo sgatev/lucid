@@ -24,9 +24,9 @@ class HashTable {
 
     bool operator==(const Iterator&) const = default;
 
-    value_type& operator*() const { return *(table_->slots() + pos_); }
+    value_type& operator*() const { return *(table_->slot(pos_)); }
 
-    value_type* operator->() const { return table_->slots() + pos_; }
+    value_type* operator->() const { return table_->slot(pos_); }
 
     Iterator& operator++() {
       pos_ = table_->next_full(pos_ + 1);
@@ -55,9 +55,9 @@ class HashTable {
 
     bool operator==(const ConstIterator&) const = default;
 
-    value_type& operator*() const { return *(table_->slots() + pos_); }
+    value_type& operator*() const { return *(table_->slot(pos_)); }
 
-    value_type* operator->() const { return table_->slots() + pos_; }
+    value_type* operator->() const { return table_->slot(pos_); }
 
     ConstIterator& operator++() {
       pos_ = table_->next_full(pos_ + 1);
@@ -119,111 +119,32 @@ class HashTable {
 
   // Returns an iterator that corresponds to the given projection or `end()`.
   inline Iterator Find(const P& proj) {
-    const std::size_t proj_hash = Hash(proj);
-    const std::uint8_t proj_meta = proj_hash & 0b01111111;
-
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
-
-      const std::uint8_t offset_meta = *(meta() + offset);
-      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
-        return Iterator(*this, offset);
-      }
-      if (empty(offset_meta)) return end();
-    }
+    return Iterator(*this, find_offset(proj));
   }
 
   // Returns a const iterator that corresponds to the given projection or
   // `end()`.
   inline ConstIterator Find(const P& proj) const {
-    const std::size_t proj_hash = Hash(proj);
-    const std::uint8_t proj_meta = proj_hash & 0b01111111;
-
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
-
-      const std::uint8_t offset_meta = *(meta() + offset);
-      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
-        return ConstIterator(*this, offset);
-      }
-      if (empty(offset_meta)) return end();
-    }
+    return ConstIterator(*this, find_offset(proj));
   }
 
   // Inserts the given `value` and returns true if `Project(value)` is not
   // already inserted. Otherwise returns false.
-  inline bool Insert(V value) {
-    if (size_ > (capacity() >> 1)) resize();
-
-    const P& proj = Project(value);
-    const std::size_t proj_hash = Hash(proj);
-    const std::uint8_t proj_meta = proj_hash & 0b01111111;
-
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
-
-      const std::uint8_t offset_meta = *(meta() + offset);
-      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
-        return false;
-      }
-      if (!full(offset_meta)) {
-        *(meta() + offset) = proj_meta;
-        new (slots() + offset) V(std::move(value));
-        ++size_;
-        return true;
-      }
-    }
-  }
+  inline bool Insert(V value) { return insert<false>(std::move(value)); }
 
   // Inserts the given `value` and returns true if `Project(value)` is not
   // already inserted. Otherwise overrides the value and returns false.
-  inline bool Set(V value) {
-    if (size_ > (capacity() >> 1)) resize();
+  inline bool Set(V value) { return insert<true>(std::move(value)); }
 
-    const P& proj = Project(value);
-    const std::size_t proj_hash = Hash(proj);
-    const std::uint8_t proj_meta = proj_hash & 0b01111111;
-
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
-
-      const std::uint8_t offset_meta = *(meta() + offset);
-      if (offset_meta == proj_meta && Project(*(slots() + offset)) == proj) {
-        *(slots() + offset) = std::move(value);
-        return false;
-      }
-      if (!full(offset_meta)) {
-        *(meta() + offset) = proj_meta;
-        new (slots() + offset) V(std::move(value));
-        ++size_;
-        return true;
-      }
-    }
-  }
-
-  // Removes the value that corresponds to the given projection and returns true
-  // if present. Otherwise returns false.
+  // Removes the value that corresponds to the given projection and returns it
+  // if present. Otherwise returns nullopt.
   inline std::optional<V> Remove(const P& proj) {
-    const std::size_t proj_hash = Hash(proj);
-    const std::uint8_t proj_meta = proj_hash & 0b01111111;
+    const std::size_t offset = find_offset(proj);
+    if (offset == capacity()) return std::nullopt;
 
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
-
-      const std::uint8_t offset_meta = *(meta() + offset);
-      V& value = *(slots() + offset);
-      if (offset_meta == proj_meta && Project(value) == proj) {
-        *(meta() + offset) = 0b11111110;
-        --size_;
-        return std::move(value);
-      }
-      if (empty(offset_meta)) return std::nullopt;
-    }
+    *meta(offset) = 0b11111110;
+    --size_;
+    return std::move(*slot(offset));
   }
 
   // Returns the number of unique values inserted so far.
@@ -271,7 +192,7 @@ class HashTable {
   inline std::size_t capacity() const noexcept { return capacity_mask_ + 1; }
 
   inline std::size_t next_full(std::size_t pos) const noexcept {
-    while (pos < capacity() && !full(*(meta() + pos))) ++pos;
+    while (pos < capacity() && !full(*meta(pos))) ++pos;
     return pos;
   }
 
@@ -279,13 +200,58 @@ class HashTable {
     *this = std::move(HashTable(capacity() << 1).with_content_from(*this));
   }
 
+  // Returns an offset that corresponds to the given projection or `capacity()`.
+  inline std::size_t find_offset(const P& proj) const {
+    const std::size_t proj_hash = Hash(proj);
+    const std::uint8_t proj_meta = proj_hash & 0b01111111;
+
+    std::size_t offset = proj_hash;
+    for (std::size_t i = 0;; ++i) {
+      offset = (offset + i) & capacity_mask_;
+
+      const std::uint8_t offset_meta = *meta(offset);
+      if (offset_meta == proj_meta && Project(*slot(offset)) == proj) {
+        return offset;
+      }
+      if (empty(offset_meta)) return capacity();
+    }
+  }
+
+  // Inserts the given `value` and returns true if `Project(value)` is not
+  // already inserted or `OverwriteIfPresent` is true. Otherwise returns false.
+  template <bool OverwriteIfPresent>
+  bool insert(V value) {
+    if (size_ > (capacity() >> 1)) resize();
+
+    const P& proj = Project(value);
+    const std::size_t proj_hash = Hash(proj);
+    const std::uint8_t proj_meta = proj_hash & 0b01111111;
+
+    std::size_t offset = proj_hash;
+    for (std::size_t i = 0;; ++i) {
+      offset = (offset + i) & capacity_mask_;
+
+      const std::uint8_t offset_meta = *meta(offset);
+      if (offset_meta == proj_meta && Project(*slot(offset)) == proj) {
+        if constexpr (OverwriteIfPresent) *slot(offset) = std::move(value);
+        return false;
+      }
+      if (!full(offset_meta)) {
+        *meta(offset) = proj_meta;
+        new (slot(offset)) V(std::move(value));
+        ++size_;
+        return true;
+      }
+    }
+  }
+
   template <typename T>
   inline HashTable& with_content_from(T&& other) noexcept {
     for (std::size_t pos = 0; pos < other.capacity(); ++pos) {
-      const std::uint8_t proj_meta = *(other.meta() + pos);
+      const std::uint8_t proj_meta = *other.meta(pos);
       if (!full(proj_meta)) continue;
 
-      V& value = *(other.slots() + pos);
+      V& value = *other.slot(pos);
       const P& proj = Project(value);
       const std::size_t proj_hash = Hash(proj);
 
@@ -293,10 +259,10 @@ class HashTable {
       for (std::size_t i = 0;; ++i) {
         offset = (offset + i) & capacity_mask_;
 
-        if (full(*(meta() + offset))) continue;
+        if (full(*meta(offset))) continue;
 
-        *(meta() + offset) = proj_meta;
-        new (slots() + offset) V(std::move(value));
+        *meta(offset) = proj_meta;
+        new (slot(offset)) V(std::move(value));
         break;
       }
     }
@@ -304,10 +270,12 @@ class HashTable {
     return *this;
   }
 
-  inline std::uint8_t* meta() const noexcept { return storage_; }
+  inline std::uint8_t* meta(std::size_t i) const noexcept {
+    return storage_ + i;
+  }
 
-  inline V* slots() const noexcept {
-    return reinterpret_cast<V*>(storage_ + capacity());
+  inline V* slot(std::size_t i) const noexcept {
+    return reinterpret_cast<V*>(storage_ + capacity()) + i;
   }
 
   std::size_t capacity_mask_;
