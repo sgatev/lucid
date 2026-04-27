@@ -234,7 +234,7 @@ TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
             });
   g.edge(b, c);
 
-  g.inst(c, AddReg32{
+  g.inst(c, AddReg{
                 .res_reg = RegId(3),
                 .lhs_reg = RegId(1),
                 .rhs_reg = RegId(2),

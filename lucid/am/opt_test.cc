@@ -21,7 +21,7 @@ TEST(OptimizeAbstractMachineInstructionsTest, RemovesUnnecessaryInstructions) {
           .src_reg = RegId(3, RegSize32),
           .dst_reg = RegId(3, RegSize32),
       },
-      AddReg32{
+      AddReg{
           .res_reg = RegId(1, RegSize32),
           .lhs_reg = RegId(2, RegSize32),
           .rhs_reg = RegId(2, RegSize32),
@@ -36,7 +36,7 @@ TEST(OptimizeAbstractMachineInstructionsTest, RemovesUnnecessaryInstructions) {
                                     .dst_reg = RegId(2, RegSize32),
                                 },
                                 Nop{},
-                                AddReg32{
+                                AddReg{
                                     .res_reg = RegId(1, RegSize32),
                                     .lhs_reg = RegId(2, RegSize32),
                                     .rhs_reg = RegId(2, RegSize32),

@@ -304,19 +304,11 @@ class AbstractMachineFunctionGenerator {
     RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
     switch (expr.op) {
       case BinaryOp::Add:
-        if (expr_type_name == "Int32") {
-          am_block.instructions.push_back(AddReg32{
-              .res_reg = reg,
-              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
-          });
-        } else if (expr_type_name == "Int64") {
-          am_block.instructions.push_back(AddReg64{
-              .res_reg = reg,
-              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
-          });
-        }
+        am_block.instructions.push_back(AddReg{
+            .res_reg = reg,
+            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+        });
         break;
       case BinaryOp::Sub:
         if (expr_type_name == "Int64") {
