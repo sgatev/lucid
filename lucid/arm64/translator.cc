@@ -305,15 +305,17 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const NotEqReg32& inst) {
-    assembler_.Cmp(W(inst.lhs_reg.id), W(inst.rhs_reg.id));
-    assembler_.Cset(W(inst.res_reg.id), InvCond::Ne);
-  }
-
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const NotEqReg64& inst) {
-    assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));
-    assembler_.Cset(X(inst.res_reg.id), InvCond::Ne);
+               const NotEqReg& inst) {
+    switch (inst.lhs_reg.size) {
+      case RegSize32:
+        assembler_.Cmp(W(inst.lhs_reg.id), W(inst.rhs_reg.id));
+        assembler_.Cset(W(inst.res_reg.id), InvCond::Ne);
+        break;
+      case RegSize64:
+        assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));
+        assembler_.Cset(X(inst.res_reg.id), InvCond::Ne);
+        break;
+    }
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,

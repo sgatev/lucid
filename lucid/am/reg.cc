@@ -192,14 +192,10 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store32(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
+      } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
         maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
         maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store32(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
-        maybe_insert_load64(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load64(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store64(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<StoreStack32>(&inst)) {
         maybe_insert_load32(block.instructions, i, cinst->src_reg);
       } else if (auto* cinst = std::get_if<StoreStackReg32>(&inst)) {
@@ -321,11 +317,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
         reg_scores.Insert(cinst->res_reg, 0);
         reg_scores.Insert(cinst->lhs_reg, 0);
         reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
+      } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
         reg_scores.Insert(cinst->res_reg, 0);
         reg_scores.Insert(cinst->lhs_reg, 0);
         reg_scores.Insert(cinst->rhs_reg, 0);
@@ -467,11 +459,7 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
         UpdateRegister(reg_colors, cinst->lhs_reg);
         UpdateRegister(reg_colors, cinst->rhs_reg);
         UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<NotEqReg64>(&inst)) {
+      } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
         UpdateRegister(reg_colors, cinst->lhs_reg);
         UpdateRegister(reg_colors, cinst->rhs_reg);
         UpdateRegister(reg_colors, cinst->res_reg);
