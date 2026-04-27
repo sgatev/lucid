@@ -11,7 +11,7 @@
 namespace lucid {
 
 void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
-                    AbstractMachineState& am_state);
+                    AbstractMachineState& am_state, int max_clique_size);
 
 HashMap<RegId, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,

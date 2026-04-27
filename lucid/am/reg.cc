@@ -25,7 +25,8 @@ namespace lucid {
 namespace {
 
 std::optional<RegId> FindRegToSpill(
-    const AbstractMachineControlFlowGraph& am_cfg, HashSet<RegId>& spilled) {
+    const AbstractMachineControlFlowGraph& am_cfg, HashSet<RegId>& spilled,
+    int max_clique_size) {
   AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       liveness_block_states = RunDataflow(Backward(am_cfg), liveness_analysis);
@@ -37,7 +38,7 @@ std::optional<RegId> FindRegToSpill(
 
     state.live_in = state.live_out;
 
-    if (state.live_in.size() > 10) {
+    if (state.live_in.size() > max_clique_size) {
       for (const auto& reg : state.live_in) {
         if (!spilled.Contains(reg)) return reg;
       }
@@ -47,7 +48,7 @@ std::optional<RegId> FindRegToSpill(
     for (const auto& inst : block.instructions | std::views::reverse) {
       state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
 
-      if (state.live_in.size() > 10) {
+      if (state.live_in.size() > max_clique_size) {
         for (const auto& reg : state.live_in) {
           if (!spilled.Contains(reg)) return reg;
         }
@@ -57,7 +58,7 @@ std::optional<RegId> FindRegToSpill(
     if (block.ref == am_cfg.first) {
       for (auto& param : am_cfg.params) state.live_in.Insert(param.reg);
 
-      if (state.live_in.size() > 10) {
+      if (state.live_in.size() > max_clique_size) {
         for (const auto& reg : state.live_in) {
           if (!spilled.Contains(reg)) return reg;
         }
@@ -251,10 +252,11 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 }  // namespace
 
 void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
-                    AbstractMachineState& am_state) {
+                    AbstractMachineState& am_state, int max_clique_size) {
   HashSet<RegId> spilt_regs;
   while (true) {
-    std::optional<RegId> reg_to_spill = FindRegToSpill(am_cfg, spilt_regs);
+    std::optional<RegId> reg_to_spill =
+        FindRegToSpill(am_cfg, spilt_regs, max_clique_size);
     if (!reg_to_spill.has_value()) break;
 
     SpillRegisters(*reg_to_spill, am_cfg, am_state);

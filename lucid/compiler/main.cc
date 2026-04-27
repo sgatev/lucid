@@ -215,13 +215,14 @@ int HandlePrintAmiCommand(CommandContext ctx) {
     for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
+    static constexpr int kArmRegistersCount = 10;
     if (ctx.flags.Get("regs") == "spill") {
-      SpillRegisters(am_cfg, state);
+      SpillRegisters(am_cfg, state, kArmRegistersCount);
     } else if (ctx.flags.Get("regs") == "merge") {
-      SpillRegisters(am_cfg, state);
+      SpillRegisters(am_cfg, state, kArmRegistersCount);
       HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
       HashMap<RegId, int> am_ig_colors =
-          ColorInterferenceGraph(am_cfg, am_ig, 10);
+          ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
       MergeRegisters(am_ig_colors, am_cfg);
     }
     Print(sctx.DerefIdent(func_def.name), am_cfg);

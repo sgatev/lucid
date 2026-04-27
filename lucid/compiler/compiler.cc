@@ -54,10 +54,11 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
     for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
-    SpillRegisters(am_cfg, *state);
+    static constexpr int kArmRegistersCount = 10;
+    SpillRegisters(am_cfg, *state, kArmRegistersCount);
     HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
     HashMap<RegId, int> am_ig_colors =
-        ColorInterferenceGraph(am_cfg, am_ig, 10);
+        ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
     MergeRegisters(am_ig_colors, am_cfg);
     GenerateArmAssemblyBinary(ctx.DerefIdent(func.name), state->stack_slots,
                               am_cfg, assembler);
