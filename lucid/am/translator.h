@@ -17,6 +17,9 @@ struct AbstractMachineState {
 
   // Strings used in `func`.
   HashMap<std::uintptr_t, StringIndex::Ref> strings;
+
+  // Next free register ID.
+  std::int32_t next_free_reg_id = 1;
 };
 
 // Generates abstract machine instructions for `scfg`.

@@ -54,7 +54,7 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
     for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
-    SpillRegisters(am_cfg, state->stack_slots);
+    SpillRegisters(am_cfg, *state);
     HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
     HashMap<RegId, int> am_ig_colors =
         ColorInterferenceGraph(am_cfg, am_ig, 10);

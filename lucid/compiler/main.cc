@@ -216,9 +216,9 @@ int HandlePrintAmiCommand(CommandContext ctx) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
     if (ctx.flags.Get("regs") == "spill") {
-      SpillRegisters(am_cfg, state.stack_slots);
+      SpillRegisters(am_cfg, state);
     } else if (ctx.flags.Get("regs") == "merge") {
-      SpillRegisters(am_cfg, state.stack_slots);
+      SpillRegisters(am_cfg, state);
       HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
       HashMap<RegId, int> am_ig_colors =
           ColorInterferenceGraph(am_cfg, am_ig, 10);

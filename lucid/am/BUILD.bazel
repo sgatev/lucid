@@ -120,6 +120,7 @@ cc_library(
     deps = [
         ":cfg",
         ":liveness",
+        ":translator",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/dataflow",

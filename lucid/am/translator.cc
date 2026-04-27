@@ -43,7 +43,8 @@ class AbstractMachineFunctionGenerator {
     assert(scfg_last.has_value());
     am_cfg_.last = *scfg_last;
 
-    result_reg_ = {next_reg_id_++, GetRegSize(scfg_.func_result_type)};
+    result_reg_ = {state_.next_free_reg_id++,
+                   GetRegSize(scfg_.func_result_type)};
 
     if (ctx_.DerefIdent(scfg_.func_name) == "printString") {
       auto& first_block = am_cfg_.add();
@@ -176,7 +177,7 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const IntLitExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
-    RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
+    RegId reg = {state_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(SetReg{
         .src_val = ctx_.DerefIdent(expr.value),
         .dst_reg = reg,
@@ -186,7 +187,7 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const BoolLitExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
-    RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
+    RegId reg = {state_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(SetReg{
         .src_val = ctx_.DerefIdent(expr.value) == "true" ? "1" : "0",
         .dst_reg = reg,
@@ -200,7 +201,7 @@ class AbstractMachineFunctionGenerator {
         reinterpret_cast<std::uintptr_t>(ctx_.DerefIdent(expr.value).data());
     state_.strings.Insert(string_id, expr.value);
 
-    RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
+    RegId reg = {state_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(SetStr{
         .src_val = string_id,
         .dst_reg = reg,
@@ -218,7 +219,7 @@ class AbstractMachineFunctionGenerator {
           .reg = expr_and_stmt_to_reg_[arg.id()],
       });
     }
-    RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
+    RegId reg = {state_.next_free_reg_id++, GetRegSize(expr.type)};
     func_call.res = {
         .reg = reg,
     };
@@ -229,7 +230,7 @@ class AbstractMachineFunctionGenerator {
   void ProcessExpr(ExprRef ref, const IdentExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
     if (std::holds_alternative<ArrayType>(ctx_.DerefType(expr.type))) return;
-    RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
+    RegId reg = {state_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(MoveReg{
         .src_reg = GetVarReg(expr.name, expr.type),
         .dst_reg = reg,
@@ -242,9 +243,9 @@ class AbstractMachineFunctionGenerator {
     std::size_t base_offset = GetStackOffset(expr.base);
     auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
     std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
-    RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
+    RegId reg = {state_.next_free_reg_id++, GetRegSize(expr.type)};
     if (expr_type_name == "Int32") {
-      RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
+      RegId offset_reg = {state_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
           .src_val = "4",
           .dst_reg = offset_reg,
@@ -261,7 +262,7 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = reg,
       });
     } else if (expr_type_name == "Int64") {
-      RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
+      RegId offset_reg = {state_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
           .src_val = "8",
           .dst_reg = offset_reg,
@@ -278,7 +279,7 @@ class AbstractMachineFunctionGenerator {
           .dst_reg = reg,
       });
     } else if (expr_type_name == "Bool") {
-      RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
+      RegId offset_reg = {state_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
           .src_val = "4",
           .dst_reg = offset_reg,
@@ -300,7 +301,7 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
-    RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
+    RegId reg = {state_.next_free_reg_id++, GetRegSize(expr.type)};
     switch (expr.op) {
       case BinaryOp::Add:
         am_block.instructions.push_back(AddReg{
@@ -439,7 +440,7 @@ class AbstractMachineFunctionGenerator {
     auto stmt_offset = var_stack_.Get(stmt.name);
     assert(stmt_offset.has_value());
     if (expr_type_name == "Int32") {
-      RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
+      RegId offset_reg = {state_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
           .src_val = "4",
           .dst_reg = offset_reg,
@@ -456,7 +457,7 @@ class AbstractMachineFunctionGenerator {
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
       });
     } else if (expr_type_name == "Int64") {
-      RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
+      RegId offset_reg = {state_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
           .src_val = "8",
           .dst_reg = offset_reg,
@@ -473,7 +474,7 @@ class AbstractMachineFunctionGenerator {
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
       });
     } else if (expr_type_name == "Bool") {
-      RegId offset_reg = {next_reg_id_++, RegSize::RegSize32};
+      RegId offset_reg = {state_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
           .src_val = "4",
           .dst_reg = offset_reg,
@@ -517,7 +518,7 @@ class AbstractMachineFunctionGenerator {
     auto it = var_to_reg_.Get(var_name);
     if (it.has_value()) return *it;
 
-    RegId reg = {next_reg_id_++, GetRegSize(var_type)};
+    RegId reg = {state_.next_free_reg_id++, GetRegSize(var_type)};
     var_to_reg_.Insert(var_name, reg);
     return reg;
   }
@@ -535,7 +536,6 @@ class AbstractMachineFunctionGenerator {
   const SyntaxControlFlowGraph& scfg_;
   AbstractMachineState& state_;
   AbstractMachineControlFlowGraph am_cfg_;
-  std::int32_t next_reg_id_ = 1;
   RegId result_reg_;
   HashMap<StringIndex::Ref, RegId> var_to_reg_;
   HashMap<StringIndex::Ref, std::size_t> var_stack_;

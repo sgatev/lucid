@@ -1,17 +1,17 @@
 #pragma once
 
 #include <cstddef>
-#include <vector>
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
+#include "lucid/am/translator.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
 
 namespace lucid {
 
 void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
-                    std::vector<std::size_t>& stack_slots);
+                    AbstractMachineState& am_state);
 
 HashMap<RegId, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,

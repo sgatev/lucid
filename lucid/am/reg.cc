@@ -14,6 +14,7 @@
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/liveness.h"
+#include "lucid/am/translator.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
@@ -38,7 +39,7 @@ std::optional<RegId> FindRegToSpill(
 
     if (state.live_in.size() > 10) {
       for (const auto& reg : state.live_in) {
-        if (reg.id < 1000 && !spilled.Contains(reg)) return reg;
+        if (!spilled.Contains(reg)) return reg;
       }
       assert(false);
     }
@@ -48,7 +49,7 @@ std::optional<RegId> FindRegToSpill(
 
       if (state.live_in.size() > 10) {
         for (const auto& reg : state.live_in) {
-          if (reg.id < 1000 && !spilled.Contains(reg)) return reg;
+          if (!spilled.Contains(reg)) return reg;
         }
         assert(false);
       }
@@ -58,7 +59,7 @@ std::optional<RegId> FindRegToSpill(
 
       if (state.live_in.size() > 10) {
         for (const auto& reg : state.live_in) {
-          if (reg.id < 1000 && !spilled.Contains(reg)) return reg;
+          if (!spilled.Contains(reg)) return reg;
         }
         assert(false);
       }
@@ -68,8 +69,7 @@ std::optional<RegId> FindRegToSpill(
 }
 
 void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
-                    std::vector<std::size_t>& stack_slots,
-                    std::int32_t& next_reg_id) {
+                    AbstractMachineState& am_state) {
   HashMap<RegId, std::size_t> reg_stack;
   HashMap<RegId, RegId> reg_rename;
 
@@ -79,12 +79,12 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     if (reg != reg_to_spill) return;
 
     ++pos;
-    reg_stack.Insert(reg, stack_slots.size());
+    reg_stack.Insert(reg, am_state.stack_slots.size());
     instructions.insert(pos, StoreStack32{
-                                 .offset = stack_slots.size(),
+                                 .offset = am_state.stack_slots.size(),
                                  .src_reg = reg,
                              });
-    stack_slots.push_back(4);
+    am_state.stack_slots.push_back(4);
   };
   auto maybe_insert_store64 = [&](std::list<Instruction>& instructions,
                                   std::list<Instruction>::iterator& pos,
@@ -92,12 +92,12 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     if (reg != reg_to_spill) return;
 
     ++pos;
-    reg_stack.Insert(reg, stack_slots.size());
+    reg_stack.Insert(reg, am_state.stack_slots.size());
     instructions.insert(pos, StoreStack64{
-                                 .offset = stack_slots.size(),
+                                 .offset = am_state.stack_slots.size(),
                                  .src_reg = reg,
                              });
-    stack_slots.push_back(8);
+    am_state.stack_slots.push_back(8);
   };
   auto maybe_insert_load32 = [&](std::list<Instruction>& instructions,
                                  std::list<Instruction>::iterator& pos,
@@ -105,7 +105,7 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     if (reg != reg_to_spill) return;
 
     RegId old_reg = reg;
-    reg.id = next_reg_id++;
+    reg.id = am_state.next_free_reg_id++;
     reg_rename.Insert(old_reg, reg);
 
     auto offset = reg_stack.Get(old_reg);
@@ -123,7 +123,7 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     if (reg != reg_to_spill) return;
 
     RegId old_reg = reg;
-    reg.id = next_reg_id++;
+    reg.id = am_state.next_free_reg_id++;
     reg_rename.Insert(old_reg, reg);
 
     auto offset = reg_stack.Get(old_reg);
@@ -251,14 +251,13 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 }  // namespace
 
 void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
-                    std::vector<std::size_t>& stack_slots) {
+                    AbstractMachineState& am_state) {
   HashSet<RegId> spilt_regs;
-  std::int32_t next_reg_id = 1000;
   while (true) {
     std::optional<RegId> reg_to_spill = FindRegToSpill(am_cfg, spilt_regs);
     if (!reg_to_spill.has_value()) break;
 
-    SpillRegisters(*reg_to_spill, am_cfg, stack_slots, next_reg_id);
+    SpillRegisters(*reg_to_spill, am_cfg, am_state);
 
     spilt_regs.Insert(*reg_to_spill);
   }
