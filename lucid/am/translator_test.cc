@@ -365,7 +365,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
                                               .src_val = "5",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
-                                          SubReg32{
+                                          SubReg{
                                               .res_reg = RegId(4, RegSize32),
                                               .lhs_reg = RegId(2, RegSize32),
                                               .rhs_reg = RegId(3, RegSize32),
@@ -413,7 +413,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
                                               .src_val = "5",
                                               .dst_reg = RegId(3, RegSize64),
                                           },
-                                          SubReg64{
+                                          SubReg{
                                               .res_reg = RegId(4, RegSize64),
                                               .lhs_reg = RegId(2, RegSize64),
                                               .rhs_reg = RegId(3, RegSize64),
