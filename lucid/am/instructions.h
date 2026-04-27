@@ -265,8 +265,8 @@ struct ModReg {
   }
 };
 
-// Tests the values in two 32-bit registers for a "greater than" relationship.
-struct GtReg32 {
+// Tests the values in two registers for a "greater than" relationship.
+struct GtReg {
   // Result register.
   RegId res_reg;
 
@@ -276,30 +276,10 @@ struct GtReg32 {
   // Second operand register.
   RegId rhs_reg;
 
-  bool operator==(const GtReg32&) const = default;
+  bool operator==(const GtReg&) const = default;
 
-  friend std::ostream& operator<<(std::ostream& os, const GtReg32& inst) {
-    return os << "GtReg32 { .res_reg=" << inst.res_reg
-              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
-              << " }";
-  }
-};
-
-// Tests the values in two 64-bit registers for a "greater than" relationship.
-struct GtReg64 {
-  // Result register.
-  RegId res_reg;
-
-  // First operand register.
-  RegId lhs_reg;
-
-  // Second operand register.
-  RegId rhs_reg;
-
-  bool operator==(const GtReg64&) const = default;
-
-  friend std::ostream& operator<<(std::ostream& os, const GtReg64& inst) {
-    return os << "GtReg64 { .res_reg=" << inst.res_reg
+  friend std::ostream& operator<<(std::ostream& os, const GtReg& inst) {
+    return os << "GtReg { .res_reg=" << inst.res_reg
               << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
               << " }";
   }
@@ -631,9 +611,9 @@ struct FuncCall {
 // An instruction for the Lucid abstract machine.
 using Instruction =
     std::variant<Nop, MoveReg, SetReg, SetStr, Jump, UncondJump, CondJump,
-                 Label, Return, AddReg, SubReg, MulReg, DivReg, ModReg, GtReg32,
-                 GtReg64, LtReg32, LtReg64, EqReg32, EqReg64, NotEqReg32,
-                 NotEqReg64, PushStack, PopStack, StoreStack32, StoreStackReg32,
+                 Label, Return, AddReg, SubReg, MulReg, DivReg, ModReg, GtReg,
+                 LtReg32, LtReg64, EqReg32, EqReg64, NotEqReg32, NotEqReg64,
+                 PushStack, PopStack, StoreStack32, StoreStackReg32,
                  StoreStack64, StoreStackReg64, LoadStack32, LoadStackReg32,
                  LoadStack64, LoadStackReg64, FuncCall>;
 
@@ -661,9 +641,7 @@ inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
     return {cinst->lhs_reg, cinst->rhs_reg};
   } else if (auto* cinst = std::get_if<ModReg>(&inst)) {
     return {cinst->lhs_reg, cinst->rhs_reg};
-  } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
-  } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
+  } else if (auto* cinst = std::get_if<GtReg>(&inst)) {
     return {cinst->lhs_reg, cinst->rhs_reg};
   } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
     return {cinst->lhs_reg, cinst->rhs_reg};
@@ -733,9 +711,7 @@ inline std::optional<RegId> GetTargetRegister(const Instruction& inst) {
     return cinst->res_reg;
   } else if (auto* cinst = std::get_if<ModReg>(&inst)) {
     return cinst->res_reg;
-  } else if (auto* cinst = std::get_if<GtReg32>(&inst)) {
-    return cinst->res_reg;
-  } else if (auto* cinst = std::get_if<GtReg64>(&inst)) {
+  } else if (auto* cinst = std::get_if<GtReg>(&inst)) {
     return cinst->res_reg;
   } else if (auto* cinst = std::get_if<LtReg32>(&inst)) {
     return cinst->res_reg;
