@@ -12,6 +12,7 @@
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
+#include "lucid/am/state.h"
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"

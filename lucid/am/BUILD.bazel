@@ -120,10 +120,19 @@ cc_library(
     deps = [
         ":cfg",
         ":liveness",
-        ":translator",
+        ":state",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/dataflow",
+    ],
+)
+
+cc_library(
+    name = "state",
+    hdrs = ["state.h"],
+    deps = [
+        "//lucid/core/container:hash_map",
+        "//lucid/core/string:index",
     ],
 )
 
@@ -135,6 +144,7 @@ cc_library(
     deps = [
         ":cfg",
         ":instructions",
+        ":state",
         "//lucid/core/container:arena",
         "//lucid/core/container:hash_map",
         "//lucid/core/string:index",
