@@ -245,17 +245,21 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const ModReg32& inst) {
-    assembler_.Udiv(W(inst.res_reg.id), W(inst.lhs_reg.id), W(inst.rhs_reg.id));
-    assembler_.Msub(W(inst.res_reg.id), W(inst.res_reg.id), W(inst.rhs_reg.id),
-                    W(inst.lhs_reg.id));
-  }
-
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const ModReg64& inst) {
-    assembler_.Udiv(X(inst.res_reg.id), X(inst.lhs_reg.id), X(inst.rhs_reg.id));
-    assembler_.Msub(X(inst.res_reg.id), X(inst.res_reg.id), X(inst.rhs_reg.id),
-                    X(inst.lhs_reg.id));
+               const ModReg& inst) {
+    switch (inst.res_reg.size) {
+      case RegSize32:
+        assembler_.Udiv(W(inst.res_reg.id), W(inst.lhs_reg.id),
+                        W(inst.rhs_reg.id));
+        assembler_.Msub(W(inst.res_reg.id), W(inst.res_reg.id),
+                        W(inst.rhs_reg.id), W(inst.lhs_reg.id));
+        break;
+      case RegSize64:
+        assembler_.Udiv(X(inst.res_reg.id), X(inst.lhs_reg.id),
+                        X(inst.rhs_reg.id));
+        assembler_.Msub(X(inst.res_reg.id), X(inst.res_reg.id),
+                        X(inst.rhs_reg.id), X(inst.lhs_reg.id));
+        break;
+    }
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,

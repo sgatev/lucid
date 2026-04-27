@@ -46,17 +46,7 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
 
       state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
 
-      if (auto* cinst = std::get_if<ModReg32>(&inst)) {
-        am_ig.Insert(cinst->res_reg, {});
-        am_ig.Insert(cinst->lhs_reg, {});
-        am_ig.Insert(cinst->rhs_reg, {});
-
-        am_ig.Get(cinst->res_reg)->Insert(cinst->lhs_reg);
-        am_ig.Get(cinst->lhs_reg)->Insert(cinst->res_reg);
-
-        am_ig.Get(cinst->res_reg)->Insert(cinst->rhs_reg);
-        am_ig.Get(cinst->rhs_reg)->Insert(cinst->res_reg);
-      } else if (auto* cinst = std::get_if<ModReg64>(&inst)) {
+      if (auto* cinst = std::get_if<ModReg>(&inst)) {
         am_ig.Insert(cinst->res_reg, {});
         am_ig.Insert(cinst->lhs_reg, {});
         am_ig.Insert(cinst->rhs_reg, {});
