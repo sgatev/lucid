@@ -1108,7 +1108,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
-                                          LtReg32{
+                                          LtReg{
                                               .res_reg = RegId(4, RegSize32),
                                               .lhs_reg = RegId(2, RegSize32),
                                               .rhs_reg = RegId(3, RegSize32),
@@ -1166,7 +1166,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
                                               .src_reg = RegId(3, RegSize32),
                                               .dst_reg = RegId(5, RegSize32),
                                           },
-                                          LtReg32{
+                                          LtReg{
                                               .res_reg = RegId(6, RegSize32),
                                               .lhs_reg = RegId(4, RegSize32),
                                               .rhs_reg = RegId(5, RegSize32),
@@ -1224,7 +1224,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
                                               .src_reg = RegId(3, RegSize64),
                                               .dst_reg = RegId(5, RegSize64),
                                           },
-                                          LtReg64{
+                                          LtReg{
                                               .res_reg = RegId(6, RegSize32),
                                               .lhs_reg = RegId(4, RegSize64),
                                               .rhs_reg = RegId(5, RegSize64),
