@@ -1,7 +1,6 @@
 #include "lucid/core/string/encoding.h"
 
 #include <array>
-#include <cmath>
 #include <cstdint>
 #include <ostream>
 #include <string_view>
@@ -100,11 +99,11 @@ std::size_t WriteEncodedString(std::string_view s, std::ostream& out) {
 
       std::uint8_t r = 0;
       for (; i >= 0; --i) {
-        r += kEscapeOctet[s.front()] * std::pow(8, i);
+        r += kEscapeOctet[s.front()] * (1 << (3 * i));
         s.remove_prefix(1);
       }
 
-      out.put(r);
+      out.put(static_cast<char>(r));
       ++count;
 
       continue;

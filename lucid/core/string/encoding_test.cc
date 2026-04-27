@@ -1,5 +1,7 @@
 #include "lucid/core/string/encoding.h"
 
+#include <sstream>
+
 #include "gtest/gtest.h"
 
 namespace lucid {
