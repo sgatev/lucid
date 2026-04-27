@@ -1,10 +1,12 @@
 #include "lucid/am/translator.h"
 
 #include <cassert>
+#include <charconv>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <variant>
 
@@ -298,9 +300,6 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
-    auto expr_type =
-        std::get<BasicType>(ctx_.DerefType(GetType(ctx_.DerefExpr(expr.lhs))));
-    std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
     RegId reg = {next_reg_id_++, GetRegSize(expr.type)};
     switch (expr.op) {
       case BinaryOp::Add:
@@ -406,25 +405,30 @@ class AbstractMachineFunctionGenerator {
       const auto& var_decl_type = std::get<BasicType>(
           ctx_.DerefType(array_type.element_type_constraint));
       std::string_view var_decl_type_name = ctx_.DerefIdent(var_decl_type.name);
-      auto size = std::atoi(ctx_.DerefIdent(array_type.size.value).data());
-      auto stack_offset = state_.stack_slots.size();
-      for (int i = 0; i < size; ++i) {
-        if (var_decl_type_name == "Int32" || var_decl_type_name == "Bool") {
-          state_.stack_slots.push_back(4);
-        } else if (var_decl_type_name == "Int64") {
-          state_.stack_slots.push_back(8);
+      std::string_view array_size = ctx_.DerefIdent(array_type.size.value);
+      std::size_t size;
+      auto res = std::from_chars(array_size.data(),
+                                 array_size.data() + array_size.size(), size);
+      if (res.ec == std::errc()) {
+        auto stack_offset = state_.stack_slots.size();
+        for (int i = 0; i < size; ++i) {
+          if (var_decl_type_name == "Int32" || var_decl_type_name == "Bool") {
+            state_.stack_slots.push_back(4);
+          } else if (var_decl_type_name == "Int64") {
+            state_.stack_slots.push_back(8);
+          }
         }
+        var_stack_.Set(stmt.name, stack_offset);
       }
-      var_stack_.Set(stmt.name, stack_offset);
       return;
     }
 
-    if (!stmt.init.has_value()) return;
-
-    am_block.instructions.push_back(MoveReg{
-        .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
-        .dst_reg = GetVarReg(stmt.name, stmt.type_constraint),
-    });
+    if (stmt.init.has_value()) {
+      am_block.instructions.push_back(MoveReg{
+          .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
+          .dst_reg = GetVarReg(stmt.name, stmt.type_constraint),
+      });
+    }
   }
 
   void Process(StmtRef ref, const ArrayAssignStmt& stmt,
