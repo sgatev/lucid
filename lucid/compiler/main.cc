@@ -186,10 +186,16 @@ int HandlePrintCfgCommand(CommandContext ctx) {
   return 0;
 }
 
-int HandlePrintAmiCommand(CommandContext ctx) {
+int HandlePrintAmCfgCommand(CommandContext ctx) {
   if (ctx.args.size() < 1) {
-    PrintError(ctx.err) << "'print-ami' command requires 1 argument\n";
-    return 1;
+    ctx.out << "Usage: ";
+    for (std::string_view e : ctx.path) ctx.out << e << " ";
+    ctx.out << "(--regs=spill|merge) <path>\n"
+            << "\n"
+            << "Examples:\n"
+            << "  print-am-cfg //my/source/file.lu\n"
+            << "  print-am-cfg --regs=spill //my/source/file.lu\n";
+    return 0;
   }
 
   auto src_path = std::filesystem::absolute(ctx.args[0]);
@@ -274,13 +280,13 @@ int HandleRoot(CommandContext ctx) {
           },
           {
               .name = "print-syntax-cfg",
-              .help = "Parses the specified target and prints the CFG.",
+              .help = "Parses the specified target and prints the syntax CFG.",
               .handler = HandlePrintCfgCommand,
           },
           {
-              .name = "print-ami",
-              .help = "Parses the specified target and prints the AMI.",
-              .handler = HandlePrintAmiCommand,
+              .name = "print-am-cfg",
+              .help = "Parses the specified target and prints the abstract machine CFG.",
+              .handler = HandlePrintAmCfgCommand,
           },
           {
               .name = "version",
