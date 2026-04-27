@@ -247,7 +247,7 @@ class AbstractMachineFunctionGenerator {
           .src_val = "4",
           .dst_reg = offset_reg,
       });
-      am_block.instructions.push_back(MulReg32{
+      am_block.instructions.push_back(MulReg{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
           .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
@@ -264,7 +264,7 @@ class AbstractMachineFunctionGenerator {
           .src_val = "8",
           .dst_reg = offset_reg,
       });
-      am_block.instructions.push_back(MulReg32{
+      am_block.instructions.push_back(MulReg{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
           .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
@@ -281,7 +281,7 @@ class AbstractMachineFunctionGenerator {
           .src_val = "4",
           .dst_reg = offset_reg,
       });
-      am_block.instructions.push_back(MulReg32{
+      am_block.instructions.push_back(MulReg{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
           .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
@@ -318,19 +318,11 @@ class AbstractMachineFunctionGenerator {
         });
         break;
       case BinaryOp::Mul:
-        if (expr_type_name == "Int32") {
-          am_block.instructions.push_back(MulReg32{
-              .res_reg = reg,
-              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
-          });
-        } else if (expr_type_name == "Int64") {
-          am_block.instructions.push_back(MulReg64{
-              .res_reg = reg,
-              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
-          });
-        }
+        am_block.instructions.push_back(MulReg{
+            .res_reg = reg,
+            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+        });
         break;
       case BinaryOp::Div:
         if (expr_type_name == "Int32") {
@@ -496,7 +488,7 @@ class AbstractMachineFunctionGenerator {
           .src_val = "4",
           .dst_reg = offset_reg,
       });
-      am_block.instructions.push_back(MulReg32{
+      am_block.instructions.push_back(MulReg{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
           .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
@@ -513,7 +505,7 @@ class AbstractMachineFunctionGenerator {
           .src_val = "8",
           .dst_reg = offset_reg,
       });
-      am_block.instructions.push_back(MulReg32{
+      am_block.instructions.push_back(MulReg{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
           .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
@@ -530,7 +522,7 @@ class AbstractMachineFunctionGenerator {
           .src_val = "4",
           .dst_reg = offset_reg,
       });
-      am_block.instructions.push_back(MulReg32{
+      am_block.instructions.push_back(MulReg{
           .res_reg = offset_reg,
           .lhs_reg = offset_reg,
           .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],

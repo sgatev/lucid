@@ -461,7 +461,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
                                               .src_val = "3",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
-                                          MulReg32{
+                                          MulReg{
                                               .res_reg = RegId(4, RegSize32),
                                               .lhs_reg = RegId(2, RegSize32),
                                               .rhs_reg = RegId(3, RegSize32),
@@ -509,7 +509,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
                                               .src_val = "3",
                                               .dst_reg = RegId(3, RegSize64),
                                           },
-                                          MulReg64{
+                                          MulReg{
                                               .res_reg = RegId(4, RegSize64),
                                               .lhs_reg = RegId(2, RegSize64),
                                               .rhs_reg = RegId(3, RegSize64),
@@ -773,7 +773,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                               .src_val = "5",
                                               .dst_reg = RegId(4, RegSize32),
                                           },
-                                          MulReg32{
+                                          MulReg{
                                               .res_reg = RegId(5, RegSize32),
                                               .lhs_reg = RegId(3, RegSize32),
                                               .rhs_reg = RegId(4, RegSize32),
@@ -870,7 +870,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                               .src_val = "5",
                                               .dst_reg = RegId(7, RegSize32),
                                           },
-                                          MulReg32{
+                                          MulReg{
                                               .res_reg = RegId(8, RegSize32),
                                               .lhs_reg = RegId(6, RegSize32),
                                               .rhs_reg = RegId(7, RegSize32),
