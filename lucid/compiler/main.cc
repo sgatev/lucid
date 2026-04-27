@@ -151,8 +151,14 @@ int HandlePrintAstCommand(CommandContext ctx) {
 
 int HandlePrintCfgCommand(CommandContext ctx) {
   if (ctx.args.size() < 1) {
-    PrintError(ctx.err) << "'print-cfg' command requires 1 argument\n";
-    return 1;
+    ctx.out << "Usage: ";
+    for (std::string_view e : ctx.path) ctx.out << e << " ";
+    ctx.out << "<path> (<identifier>)\n"
+            << "\n"
+            << "Examples:\n"
+            << "  print-syntax-cfg //my/source/file.lu\n"
+            << "  print-syntax-cfg //my/source/file.lu E2\n";
+    return 0;
   }
 
   auto src_path = std::filesystem::absolute(ctx.args[0]);
@@ -237,11 +243,8 @@ int HandleVersionCommand(CommandContext ctx) {
   return 0;
 }
 
-}  // namespace
-
-int Run(std::vector<std::string_view> args) {
+int HandleRoot(CommandContext ctx) {
   return RunCommand(
-      "lucid",
       {
           {
               .name = "build",
@@ -270,7 +273,7 @@ int Run(std::vector<std::string_view> args) {
               .handler = HandlePrintAstCommand,
           },
           {
-              .name = "print-cfg",
+              .name = "print-syntax-cfg",
               .help = "Parses the specified target and prints the CFG.",
               .handler = HandlePrintCfgCommand,
           },
@@ -285,9 +288,17 @@ int Run(std::vector<std::string_view> args) {
               .handler = HandleVersionCommand,
           },
       },
-      StandardRootCommandContext(args));
+      ctx);
+}
+
+}  // namespace
+
+int Run(std::vector<std::string_view> args) {
+  args[0] = "lucid";
+  return RunCommand({{.name = args[0], .handler = HandleRoot}},
+                    StandardRootCommandContext(args));
 }
 
 }  // namespace lucid
 
-int main(int argc, char* argv[]) { return lucid::Run({argv + 1, argv + argc}); }
+int main(int argc, char* argv[]) { return lucid::Run({argv, argv + argc}); }

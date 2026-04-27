@@ -28,8 +28,9 @@ void Print(std::string_view func_name,
       std::cout << param.reg << "(" << param.bits << ")";
       has_printed_param = true;
     }
-    std::cout << ")\n";
+    std::cout << ")";
   });
+  std::cout << " {\n";
   for (const auto& block : am_cfg.blocks()) {
     Blue([&] { std::cout << "B" << block.ref.id() << ":\n"; });
     for (const auto& phi : block.phis) {
@@ -53,6 +54,7 @@ void Print(std::string_view func_name,
           inst);
     }
   }
+  std::cout << "}\n";
 }
 
 }  // namespace lucid

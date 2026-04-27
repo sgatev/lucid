@@ -5,6 +5,7 @@
 #include <ostream>
 #include <span>
 #include <string_view>
+#include <vector>
 
 #include "lucid/core/container/hash_map.h"
 
@@ -12,6 +13,8 @@ namespace lucid {
 
 // The execution context of a command.
 struct CommandContext {
+  std::vector<std::string_view> path;
+
   // Arguments passed to the command.
   std::span<std::string_view> args;
 
@@ -53,8 +56,7 @@ struct Command {
 //
 // Requires:
 // - `commands` must not contain more than one command with a given name.
-int RunCommand(std::string_view root_name,
-               std::initializer_list<Command> commands, CommandContext ctx);
+int RunCommand(std::initializer_list<Command> commands, CommandContext ctx);
 
 // Returns a stream that formats an error string and outputs it in `out`.
 std::ostream& PrintError(std::ostream& out);

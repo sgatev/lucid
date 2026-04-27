@@ -19,14 +19,14 @@ TEST_F(CompilerTest, NoCommand) {
               AllOf(ReturnsCode(0), Prints(R"(Usage: lucid <command> ...
 
 Available commands:
-  build      Compiles the specified target and builds a binary.
-  compile    Compiles the specified target.
-  run        Compiles the specified target, builds a binary, and runs it.
-  parse      Parses the specified target.
-  print-ast  Parses the specified target and prints the AST.
-  print-cfg  Parses the specified target and prints the CFG.
-  print-ami  Parses the specified target and prints the AMI.
-  version    Prints version information for lucid.
+  build            Compiles the specified target and builds a binary.
+  compile          Compiles the specified target.
+  run              Compiles the specified target, builds a binary, and runs it.
+  parse            Parses the specified target.
+  print-ast        Parses the specified target and prints the AST.
+  print-syntax-cfg Parses the specified target and prints the CFG.
+  print-ami        Parses the specified target and prints the AMI.
+  version          Prints version information for lucid.
 )")));
 }
 
@@ -77,9 +77,9 @@ TEST_F(CompilerTest, PrintCfg) {
       return c
     }
   )"));
-  ASSERT_THAT(RunCompiler({"print-cfg", FullPath("max.lu")}),
-              AllOf(ReturnsCode(0), Prints(R"([34mmax($0, $1):
-[0m[34m  B0: [0m{
+  ASSERT_THAT(RunCompiler({"print-syntax-cfg", FullPath("max.lu")}),
+              AllOf(ReturnsCode(0), Prints(R"([34mmax($0, $1)[0m {
+[34m  B0: [0m{
     .sequences = [
 [34m      E0: [0mIntLitExpr { .value = 0 }
 [34m      S2: [0mVarDeclStmt { .name = '$2', .init = E0 }
@@ -137,7 +137,7 @@ TEST_F(CompilerTest, PrintCfg) {
 [34m      B0
 [0m    ]
   }
-
+}
 )")));
 }
 

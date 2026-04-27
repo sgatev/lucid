@@ -26,8 +26,9 @@ void Print(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
       std::cout << ctx.DerefIdent(ctx.DerefParam(param_ref).name);
       has_printed_param = true;
     }
-    std::cout << "):" << std::endl;
+    std::cout << ")";
   });
+  std::cout << " {\n";
   for (const auto& block : scfg.blocks()) {
     Blue([&] { std::cout << "  B" << block.ref << ": "; });
     std::cout << "{" << std::endl;
@@ -123,7 +124,7 @@ void Print(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
 
     std::cout << "  }" << std::endl;
   }
-  std::cout << std::endl;
+  std::cout << "}\n";
 }
 
 }  // namespace lucid

@@ -216,8 +216,9 @@ class AstPrinter {
   void Print(const StringLitExpr& expr) {
     Out() << "StringLitExpr {" << std::endl;
     Nested([&] {
-      Out() << Indent() << ".value = \"" << ctx_.DerefIdent(expr.value) << "\""
-            << std::endl;
+      Out() << Indent() << ".value = ";
+      Green([&] { Out() << ctx_.DerefIdent(expr.value); });
+      Out() << std::endl;
     });
     Out() << Indent() << "}" << std::endl;
   }
@@ -299,6 +300,18 @@ class AstPrinter {
 
   void Blue(std::function<void()> f) {
     Out() << "\033[34m";
+    std::invoke(f);
+    Out() << "\033[0m";
+  }
+
+  void LightBlue(std::function<void()> f) {
+    Out() << "\033[36m";
+    std::invoke(f);
+    Out() << "\033[0m";
+  }
+
+  void Green(std::function<void()> f) {
+    Out() << "\033[32m";
     std::invoke(f);
     Out() << "\033[0m";
   }

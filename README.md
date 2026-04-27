@@ -51,10 +51,10 @@ To print the abstract syntax tree derived from code execute
 bazel run -c opt //lucid:compiler -- print-ast examples/main.lu
 ```
 
-To print the control-flow graph derived from code execute
+To print the syntax control flow graph derived from code execute
 
 ```
-bazel run -c opt //lucid:compiler -- print-cfg examples/main.lu
+bazel run -c opt //lucid:compiler -- print-syntax-cfg examples/main.lu
 ```
 
 To print the abstract machine instructions derived from code execute

@@ -31,18 +31,24 @@ TEST(RunCommandTest, RunsCommand) {
   auto bar = [](CommandContext) { return 1; };
 
   std::stringstream out, err;
-  EXPECT_EQ(RunCommand("test",
-                       {
-                           {
-                               .name = "foo",
-                               .handler = foo,
-                           },
-                           {
-                               .name = "bar",
-                               .handler = bar,
-                           },
-                       },
-                       {.args = args, .flags = {}, .out = out, .err = err}),
+  EXPECT_EQ(RunCommand(
+                {
+                    {
+                        .name = "foo",
+                        .handler = foo,
+                    },
+                    {
+                        .name = "bar",
+                        .handler = bar,
+                    },
+                },
+                {
+                    .path = {"test"},
+                    .args = args,
+                    .flags = {},
+                    .out = out,
+                    .err = err,
+                }),
             0);
 
   EXPECT_THAT(foo_args, ElementsAre("bar", "--bar_flag=bar_value", "baz"));
@@ -54,14 +60,20 @@ TEST(RunCommandTest, UnknownCommand) {
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
   HashMap<std::string_view, std::string_view> flags = {};
   std::stringstream out, err;
-  EXPECT_EQ(RunCommand("test",
-                       {
-                           {
-                               .name = "bar",
-                               .handler = bar,
-                           },
-                       },
-                       {args, flags, out, err}),
+  EXPECT_EQ(RunCommand(
+                {
+                    {
+                        .name = "bar",
+                        .handler = bar,
+                    },
+                },
+                {
+                    .path = {"test"},
+                    .args = args,
+                    .flags = flags,
+                    .out = out,
+                    .err = err,
+                }),
             1);
   EXPECT_EQ(std::string(err.str()),
             "\033[31mERROR:\033[0m unknown command 'foo'\n");
@@ -72,11 +84,17 @@ TEST(RunCommandTest, EmptyArgs) {
   std::vector<std::string_view> args = {};
   HashMap<std::string_view, std::string_view> flags = {};
   std::stringstream out, err;
-  EXPECT_EQ(RunCommand("test",
-                       {
-                           {.name = "foo", .handler = foo},
-                       },
-                       {args, flags, out, err}),
+  EXPECT_EQ(RunCommand(
+                {
+                    {.name = "foo", .handler = foo},
+                },
+                {
+                    .path = {"test"},
+                    .args = args,
+                    .flags = flags,
+                    .out = out,
+                    .err = err,
+                }),
             0);
 }
 
