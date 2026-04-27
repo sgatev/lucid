@@ -305,8 +305,8 @@ struct LtReg {
   }
 };
 
-// Tests the values in two 32-bit registers for an "equals" relationship.
-struct EqReg32 {
+// Tests the values in two registers for an "equals" relationship.
+struct EqReg {
   // Result register.
   RegId res_reg;
 
@@ -316,30 +316,10 @@ struct EqReg32 {
   // Second operand register.
   RegId rhs_reg;
 
-  bool operator==(const EqReg32&) const = default;
+  bool operator==(const EqReg&) const = default;
 
-  friend std::ostream& operator<<(std::ostream& os, const EqReg32& inst) {
-    return os << "EqReg32 { .res_reg=" << inst.res_reg
-              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
-              << " }";
-  }
-};
-
-// Tests the values in two 64-bit registers for an "equals" relationship.
-struct EqReg64 {
-  // Result register.
-  RegId res_reg;
-
-  // First operand register.
-  RegId lhs_reg;
-
-  // Second operand register.
-  RegId rhs_reg;
-
-  bool operator==(const EqReg64&) const = default;
-
-  friend std::ostream& operator<<(std::ostream& os, const EqReg64& inst) {
-    return os << "EqReg64 { .res_reg=" << inst.res_reg
+  friend std::ostream& operator<<(std::ostream& os, const EqReg& inst) {
+    return os << "EqReg { .res_reg=" << inst.res_reg
               << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
               << " }";
   }
@@ -592,10 +572,10 @@ struct FuncCall {
 using Instruction =
     std::variant<Nop, MoveReg, SetReg, SetStr, Jump, UncondJump, CondJump,
                  Label, Return, AddReg, SubReg, MulReg, DivReg, ModReg, GtReg,
-                 LtReg, EqReg32, EqReg64, NotEqReg32, NotEqReg64, PushStack,
-                 PopStack, StoreStack32, StoreStackReg32, StoreStack64,
-                 StoreStackReg64, LoadStack32, LoadStackReg32, LoadStack64,
-                 LoadStackReg64, FuncCall>;
+                 LtReg, EqReg, NotEqReg32, NotEqReg64, PushStack, PopStack,
+                 StoreStack32, StoreStackReg32, StoreStack64, StoreStackReg64,
+                 LoadStack32, LoadStackReg32, LoadStack64, LoadStackReg64,
+                 FuncCall>;
 
 // Returns the source registers used by the given instruction, if any.
 inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
@@ -625,9 +605,7 @@ inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
     return {cinst->lhs_reg, cinst->rhs_reg};
   } else if (auto* cinst = std::get_if<LtReg>(&inst)) {
     return {cinst->lhs_reg, cinst->rhs_reg};
-  } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
-  } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
+  } else if (auto* cinst = std::get_if<EqReg>(&inst)) {
     return {cinst->lhs_reg, cinst->rhs_reg};
   } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
     return {cinst->lhs_reg, cinst->rhs_reg};
@@ -693,9 +671,7 @@ inline std::optional<RegId> GetTargetRegister(const Instruction& inst) {
     return cinst->res_reg;
   } else if (auto* cinst = std::get_if<LtReg>(&inst)) {
     return cinst->res_reg;
-  } else if (auto* cinst = std::get_if<EqReg32>(&inst)) {
-    return cinst->res_reg;
-  } else if (auto* cinst = std::get_if<EqReg64>(&inst)) {
+  } else if (auto* cinst = std::get_if<EqReg>(&inst)) {
     return cinst->res_reg;
   } else if (auto* cinst = std::get_if<NotEqReg32>(&inst)) {
     return cinst->res_reg;
