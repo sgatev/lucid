@@ -557,7 +557,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
                                           },
-                                          DivReg32{
+                                          DivReg{
                                               .res_reg = RegId(4, RegSize32),
                                               .lhs_reg = RegId(2, RegSize32),
                                               .rhs_reg = RegId(3, RegSize32),
@@ -605,7 +605,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize64),
                                           },
-                                          DivReg64{
+                                          DivReg{
                                               .res_reg = RegId(4, RegSize64),
                                               .lhs_reg = RegId(2, RegSize64),
                                               .rhs_reg = RegId(3, RegSize64),

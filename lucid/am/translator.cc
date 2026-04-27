@@ -325,19 +325,11 @@ class AbstractMachineFunctionGenerator {
         });
         break;
       case BinaryOp::Div:
-        if (expr_type_name == "Int32") {
-          am_block.instructions.push_back(DivReg32{
-              .res_reg = reg,
-              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
-          });
-        } else if (expr_type_name == "Int64") {
-          am_block.instructions.push_back(DivReg64{
-              .res_reg = reg,
-              .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-              .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
-          });
-        }
+        am_block.instructions.push_back(DivReg{
+            .res_reg = reg,
+            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+        });
         break;
       case BinaryOp::Mod:
         if (expr_type_name == "Int32") {
