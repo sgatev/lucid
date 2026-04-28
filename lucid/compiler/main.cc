@@ -15,6 +15,7 @@
 #include "lucid/core/cli/cli.h"
 #include "lucid/core/functional/result.h"
 #include "lucid/core/io/file.h"
+#include "lucid/core/string/concat.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_printer.h"
 #include "lucid/syntax/cfg.h"
@@ -151,9 +152,7 @@ int HandlePrintAstCommand(CommandContext ctx) {
 
 int HandlePrintCfgCommand(CommandContext ctx) {
   if (ctx.args.size() < 1) {
-    ctx.out << "Usage: ";
-    for (std::string_view e : ctx.path) ctx.out << e << " ";
-    ctx.out << "<path> (<identifier>)\n"
+    ctx.out << "Usage: " << Concat(ctx.path, " ") << " <path> (<identifier>)\n"
             << "\n"
             << "Examples:\n"
             << "  print-syntax-cfg //my/source/file.lu\n"
@@ -188,9 +187,8 @@ int HandlePrintCfgCommand(CommandContext ctx) {
 
 int HandlePrintAmCfgCommand(CommandContext ctx) {
   if (ctx.args.size() < 1) {
-    ctx.out << "Usage: ";
-    for (std::string_view e : ctx.path) ctx.out << e << " ";
-    ctx.out << "(--regs=spill|merge) <path>\n"
+    ctx.out << "Usage: " << Concat(ctx.path, " ")
+            << " (--regs=spill|merge) <path>\n"
             << "\n"
             << "Examples:\n"
             << "  print-am-cfg //my/source/file.lu\n"
@@ -285,7 +283,8 @@ int HandleRoot(CommandContext ctx) {
           },
           {
               .name = "print-am-cfg",
-              .help = "Parses the specified target and prints the abstract machine CFG.",
+              .help = "Parses the specified target and prints the abstract "
+                      "machine CFG.",
               .handler = HandlePrintAmCfgCommand,
           },
           {

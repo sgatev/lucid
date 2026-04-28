@@ -48,6 +48,7 @@ cc_binary(
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/io:file",
+        "//lucid/core/string:concat",
         "//lucid/syntax:ast",
         "//lucid/syntax:ast_printer",
         "//lucid/syntax:buffered_lexer",

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "lucid/core/container/hash_map.h"
+#include "lucid/core/string/concat.h"
 
 namespace lucid {
 
@@ -25,9 +26,7 @@ CommandContext StandardRootCommandContext(std::span<std::string_view> args) {
 
 int RunCommand(std::initializer_list<Command> commands, CommandContext ctx) {
   if (ctx.args.empty()) {
-    ctx.out << "Usage: ";
-    for (std::string_view e : ctx.path) ctx.out << e << " ";
-    ctx.out << "<command> ...\n\n"
+    ctx.out << "Usage: " << Concat(ctx.path, " ") << " <command> ...\n\n"
             << "Available commands:\n";
 
     int offset = 0;
