@@ -151,6 +151,10 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
         maybe_insert_store32(block.instructions, i, param.reg);
       }
     }
+    for (auto& phi : block.phis) {
+      // TODO: Handle spilt phi sources.
+      maybe_insert_store32(block.instructions, i, phi.target);
+    }
     while (i != block.instructions.end()) {
       auto& inst = *i;
 
@@ -359,6 +363,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
     }
   }
 
+  HashSet<RegId> visited;
   std::vector<RegId> seo;
   while (!reg_scores.empty()) {
     RegId max_reg = reg_scores.begin()->first;
@@ -372,9 +377,11 @@ HashMap<RegId, int> ColorInterferenceGraph(
 
     seo.push_back(max_reg);
     reg_scores.Remove(max_reg);
+    visited.Insert(max_reg);
 
     if (const auto& nbs = am_ig.Get(max_reg); nbs.has_value()) {
       for (const auto& nb : *nbs) {
+        if (visited.Contains(nb)) continue;
         if (auto nb_score = reg_scores.Get(nb); nb_score.has_value()) {
           reg_scores.Set(nb, *nb_score + 1);
         }

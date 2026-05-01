@@ -130,6 +130,32 @@ cc_binary(
 )
 
 cc_library(
+    name = "liveness",
+    srcs = ["liveness.cc"],
+    hdrs = ["liveness.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":ast",
+        ":cfg",
+        "//lucid/core/container:hash_set",
+        "//lucid/core/string:index",
+    ],
+)
+
+cc_test(
+    name = "liveness_test",
+    srcs = ["liveness_test.cc"],
+    deps = [
+        ":ast",
+        ":ast_fixture",
+        ":cfg",
+        ":liveness",
+        "//lucid/core/dataflow",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "parser",
     hdrs = ["parser.h"],
     visibility = ["//lucid:__subpackages__"],
@@ -203,6 +229,7 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
+        ":liveness",
         ":reachability",
         "//lucid/core/container:hash_set",
         "//lucid/core/container/graph:dominator",

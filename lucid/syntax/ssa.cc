@@ -14,6 +14,7 @@
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
+#include "lucid/syntax/liveness.h"
 #include "lucid/syntax/reachability.h"
 
 namespace lucid {
@@ -51,6 +52,9 @@ HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> CollectVarDefs(
 }
 
 void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
+  SyntaxLivenessAnalysis liveness_analysis(ctx, scfg);
+  std::vector<std::optional<SyntaxLivenessAnalysis::State>>
+      liveness_block_states = RunDataflow(Backward(scfg), liveness_analysis);
   const std::vector<std::optional<BlockRef>> idoms =
       ComputeImmediateDominators(scfg);
   const HashMap<BlockRef, HashSet<BlockRef>> dom_fronts =
@@ -75,6 +79,8 @@ void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
 
       for (auto y : *dom_front_it) {
         if (visited.Contains(y)) continue;
+
+        if (!liveness_block_states[y.id()]->live_in.Contains(var)) continue;
 
         auto& yb = scfg.get(y);
 

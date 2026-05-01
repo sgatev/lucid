@@ -216,7 +216,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
   EXPECT_THAT(last_block.phis, IsEmpty());
 
   const auto& post_if_block = scfg.blocks().Get(2);
-  EXPECT_THAT(post_if_block.phis, SizeIs(2));
+  EXPECT_THAT(post_if_block.phis, SizeIs(1));
 
   const auto& then_block = scfg.blocks().Get(3);
   EXPECT_THAT(then_block.phis, IsEmpty());
