@@ -59,9 +59,9 @@ let main = () -> Int32 {
 
         let y: Int32 = i * 20
         if current[y + j] == 1 {
-          do printString("*")
+          do printString("██")
         } else {
-          do printString(" ")
+          do printString("  ")
         }
 
         j = j + 1
