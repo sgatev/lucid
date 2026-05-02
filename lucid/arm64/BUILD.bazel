@@ -41,6 +41,7 @@ cc_library(
         "//lucid/am:cfg",
         "//lucid/am:instructions",
         "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
         "//lucid/core/container/graph:order",
         "//lucid/core/string:index",
         "//lucid/syntax:ast",

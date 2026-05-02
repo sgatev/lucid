@@ -23,6 +23,18 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
     if (!maybe_state.has_value()) continue;
     auto& state = *maybe_state;
 
+    for (const auto& next_block_ref : block.next) {
+      const auto& next_block = am_cfg.get(next_block_ref);
+      for (const auto& phi : next_block.phis) {
+        for (int i = 0; i < next_block.preds.size(); ++i) {
+          if (next_block.preds[i] == block.ref) {
+            state.live_out.Insert(phi.sources[i]);
+            break;
+          }
+        }
+      }
+    }
+
     state.live_in = std::move(state.live_out);
 
     for (RegId from : state.live_in) {
@@ -66,15 +78,13 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
       }
     }
 
-    HashSet<RegId> phi_regs;
     for (const auto& phi : block.phis) {
-      phi_regs.Insert(phi.target);
-      for (auto source : phi.sources) phi_regs.Insert(source);
-    }
-    for (RegId from : phi_regs) {
-      am_ig.Insert(from, {});
-      for (RegId to : phi_regs) {
-        if (to != from) am_ig.Get(from)->Insert(to);
+      for (auto source : phi.sources) {
+        am_ig.Insert(phi.target, {});
+        am_ig.Get(phi.target)->Insert(source);
+
+        am_ig.Insert(source, {});
+        am_ig.Get(source)->Insert(phi.target);
       }
     }
   }

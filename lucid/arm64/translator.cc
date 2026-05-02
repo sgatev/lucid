@@ -12,6 +12,7 @@
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
+#include "lucid/core/container/hash_set.h"
 #include "lucid/core/string/index.h"
 
 namespace lucid {
@@ -168,16 +169,48 @@ class Arm64BinaryGenerator {
       }
     }
 
+    HashMap<RegId, RegId> target_to_source;
+    HashSet<RegId> sources;
     for (const auto& phi : block.phis) {
-      switch (phi.target.size) {
-        case RegSize32:
-          assembler_.Mov(W(15), W(phi.sources[pred_block_idx].id));
-          assembler_.Mov(W(phi.target.id), W(15));
-          break;
-        case RegSize64:
-          assembler_.Mov(X(15), X(phi.sources[pred_block_idx].id));
-          assembler_.Mov(X(phi.target.id), X(15));
-          break;
+      target_to_source.Insert(phi.target, phi.sources[pred_block_idx]);
+      sources.Insert(phi.sources[pred_block_idx]);
+    }
+    while (!target_to_source.empty()) {
+      bool removed = false;
+      for (const auto [target, source] : target_to_source) {
+        if (sources.Contains(target)) continue;
+
+        target_to_source.Remove(target);
+        sources.Remove(source);
+
+        switch (target.size) {
+          case RegSize32:
+            assembler_.Mov(W(target.id), W(source.id));
+            break;
+          case RegSize64:
+            assembler_.Mov(X(target.id), X(source.id));
+            break;
+        }
+        removed = true;
+        break;
+      }
+      if (!removed) {
+        const auto [target, source] = *target_to_source.begin();
+        switch (target.size) {
+          case RegSize32:
+            assembler_.Mov(W(15), W(target.id));
+            break;
+          case RegSize64:
+            assembler_.Mov(X(15), X(target.id));
+            break;
+        }
+        for (const auto [t, s] : target_to_source) {
+          if (s == target) {
+            target_to_source.Set(t, RegId{.id=15, .size=target.size});
+          }
+        }
+        sources.Remove(target);
+        sources.Insert(RegId{.id=15, .size=target.size});
       }
     }
   }

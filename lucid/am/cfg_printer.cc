@@ -25,7 +25,7 @@ void Print(std::string_view func_name,
     std::cout << func_name << "(";
     for (bool has_printed_param = false; const auto& param : am_cfg.params) {
       if (has_printed_param) std::cout << ", ";
-      std::cout << param.reg << "(" << param.bits << ")";
+      std::cout << param.reg;
       has_printed_param = true;
     }
     std::cout << ")";

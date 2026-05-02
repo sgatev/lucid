@@ -36,6 +36,13 @@ std::optional<RegId> FindRegToSpill(
     if (!maybe_state.has_value()) continue;
     auto state = *maybe_state;
 
+    for (int i = 0; i < block.next.size(); ++i) {
+      const auto& next_block = am_cfg.get(block.next[i]);
+      for (const auto& phi : next_block.phis) {
+        state.live_out.Insert(phi.sources[i]);
+      }
+    }
+
     state.live_in = state.live_out;
 
     if (state.live_in.size() > max_clique_size) {

@@ -119,6 +119,7 @@ cc_library(
     visibility = ["//lucid:__subpackages__"],
     deps = [
         ":cfg",
+        ":cfg_printer",
         ":liveness",
         ":state",
         "//lucid/core/container:hash_map",

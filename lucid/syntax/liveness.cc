@@ -18,7 +18,7 @@ State SyntaxLivenessAnalysis::Transfer(
   if (seq.stmt.has_value()) {
     if (const auto* var_decl_stmt =
             std::get_if<VarDeclStmt>(&sctx_.DerefStmt(*seq.stmt))) {
-        state.live_in.Remove(var_decl_stmt->name);
+      state.live_in.Remove(var_decl_stmt->name);
     } else if (const auto* var_assign_stmt =
                    std::get_if<VarAssignStmt>(&sctx_.DerefStmt(*seq.stmt))) {
       state.live_in.Remove(var_assign_stmt->name);
@@ -40,20 +40,35 @@ SyntaxLivenessAnalysis::SyntaxLivenessAnalysis(
 State SyntaxLivenessAnalysis::Transfer(
     std::optional<State> prior_state,
     const SyntaxControlFlowGraph::BlockRef& block_ref) {
+  const auto& block = scfg_.get(block_ref);
   State state;
+
   if (prior_state.has_value()) {
     state.live_out = std::move(prior_state->live_in);
+
+    for (const auto& next_block_ref : block.next) {
+      const auto& next_block = scfg_.get(next_block_ref);
+      for (const auto& phi_ref : next_block.phis) {
+        const auto& phi = scfg_.deref(phi_ref);
+        for (int i = 0; i < next_block.preds.size(); ++i) {
+          if (next_block.preds[i] == block.ref) {
+            state.live_out.Insert(phi.args[i]);
+            break;
+          }
+        }
+      }
+    }
+
     state.live_in = state.live_out;
   }
 
-  const auto& block = scfg_.get(block_ref);
   for (const auto& seq : block.sequences | std::views::reverse) {
     state = Transfer(std::move(state), seq);
   }
+
   for (const auto& phi_ref : block.phis) {
     const auto& phi = scfg_.deref(phi_ref);
     state.live_in.Remove(phi.name);
-    for (const auto& arg : phi.args) state.live_in.Insert(arg);
   }
 
   return state;
