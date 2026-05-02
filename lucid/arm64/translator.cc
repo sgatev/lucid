@@ -24,11 +24,11 @@ class Arm64BinaryGenerator {
  public:
   explicit Arm64BinaryGenerator(std::string_view func_name,
                                 const std::vector<std::size_t>& stack_slots,
-                                const AbstractMachineControlFlowGraph& am_cfg,
+                                const AbstractMachineControlFlowGraph& amcfg,
                                 Assembler& assmebler)
       : func_name_(func_name),
         stack_slots_(stack_slots),
-        am_cfg_(am_cfg),
+        amcfg_(amcfg),
         assembler_(assmebler) {}
 
   void Generate() && {
@@ -51,10 +51,10 @@ class Arm64BinaryGenerator {
     }
 
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
-        Vertices(am_cfg_);
+        Vertices(amcfg_);
     std::sort(block_refs.begin(), block_refs.end(),
-              CompareReversePostOrder(am_cfg_));
-    for (const auto& ref : block_refs) Process(am_cfg_.get(ref));
+              CompareReversePostOrder(amcfg_));
+    for (const auto& ref : block_refs) Process(amcfg_.get(ref));
   }
 
  private:
@@ -128,7 +128,7 @@ class Arm64BinaryGenerator {
     assembler_.B(phi_label);
 
     assembler_.Label(phi_label);
-    ProcessPhiFunctions(am_cfg_.get(inst.label), block.ref);
+    ProcessPhiFunctions(amcfg_.get(inst.label), block.ref);
     std::string label = std::string(func_name_) + std::to_string(inst.label);
     assembler_.B(label);
   }
@@ -148,13 +148,13 @@ class Arm64BinaryGenerator {
     assembler_.Label(else_label_phi);
     std::string else_label =
         std::string(func_name_) + std::to_string(inst.else_label);
-    ProcessPhiFunctions(am_cfg_.get(inst.else_label), block.ref);
+    ProcessPhiFunctions(amcfg_.get(inst.else_label), block.ref);
     assembler_.B(else_label);
 
     assembler_.Label(then_label_phi);
     std::string then_label =
         std::string(func_name_) + std::to_string(inst.then_label);
-    ProcessPhiFunctions(am_cfg_.get(inst.then_label), block.ref);
+    ProcessPhiFunctions(amcfg_.get(inst.then_label), block.ref);
     assembler_.B(then_label);
   }
 
@@ -169,19 +169,19 @@ class Arm64BinaryGenerator {
       }
     }
 
-    HashMap<RegId, RegId> target_to_source;
-    HashSet<RegId> sources;
+    HashMap<RegId, RegId> dst_to_srcs;
+    HashSet<RegId> srcs;
     for (const auto& phi : block.phis) {
-      target_to_source.Insert(phi.target, phi.sources[pred_block_idx]);
-      sources.Insert(phi.sources[pred_block_idx]);
+      dst_to_srcs.Insert(phi.dst, phi.srcs[pred_block_idx]);
+      srcs.Insert(phi.srcs[pred_block_idx]);
     }
-    while (!target_to_source.empty()) {
+    while (!dst_to_srcs.empty()) {
       bool removed = false;
-      for (const auto [target, source] : target_to_source) {
-        if (sources.Contains(target)) continue;
+      for (const auto [target, source] : dst_to_srcs) {
+        if (srcs.Contains(target)) continue;
 
-        target_to_source.Remove(target);
-        sources.Remove(source);
+        dst_to_srcs.Remove(target);
+        srcs.Remove(source);
 
         switch (target.size) {
           case RegSize32:
@@ -195,7 +195,7 @@ class Arm64BinaryGenerator {
         break;
       }
       if (!removed) {
-        const auto [target, source] = *target_to_source.begin();
+        const auto [target, source] = *dst_to_srcs.begin();
         switch (target.size) {
           case RegSize32:
             assembler_.Mov(W(15), W(target.id));
@@ -204,13 +204,13 @@ class Arm64BinaryGenerator {
             assembler_.Mov(X(15), X(target.id));
             break;
         }
-        for (const auto [t, s] : target_to_source) {
+        for (const auto [t, s] : dst_to_srcs) {
           if (s == target) {
-            target_to_source.Set(t, RegId{.id=15, .size=target.size});
+            dst_to_srcs.Set(t, RegId{.id = 15, .size = target.size});
           }
         }
-        sources.Remove(target);
-        sources.Insert(RegId{.id=15, .size=target.size});
+        srcs.Remove(target);
+        srcs.Insert(RegId{.id = 15, .size = target.size});
       }
     }
   }
@@ -360,12 +360,14 @@ class Arm64BinaryGenerator {
                                    Imm(stack_offsets_[i]));
     }
 
-    int param_idx = 1;
-    for (const auto& param : am_cfg_.params) {
-      if (param.bits == 32) {
-        assembler_.Mov(W(param.reg.id), W(param_idx++));
-      } else if (param.bits == 64) {
-        assembler_.Mov(X(param.reg.id), X(param_idx++));
+    for (int param_idx = 1; const auto& param : amcfg_.params) {
+      switch (param.size) {
+        case RegSize32:
+          assembler_.Mov(W(param.id), W(param_idx++));
+          break;
+        case RegSize64:
+          assembler_.Mov(X(param.id), X(param_idx++));
+          break;
       }
     }
   }
@@ -471,7 +473,7 @@ class Arm64BinaryGenerator {
 
   std::string_view func_name_;
   const std::vector<std::size_t>& stack_slots_;
-  const AbstractMachineControlFlowGraph& am_cfg_;
+  const AbstractMachineControlFlowGraph& amcfg_;
   Assembler& assembler_;
   std::size_t stack_size_ = 0;
   std::vector<std::size_t> stack_offsets_;
@@ -518,9 +520,9 @@ void GenerateArmEndBinary(
 
 void GenerateArmAssemblyBinary(std::string_view func_name,
                                const std::vector<std::size_t>& stack_slots,
-                               const AbstractMachineControlFlowGraph& am_cfg,
+                               const AbstractMachineControlFlowGraph& amcfg,
                                Assembler& assmebler) {
-  Arm64BinaryGenerator(func_name, stack_slots, am_cfg, assmebler).Generate();
+  Arm64BinaryGenerator(func_name, stack_slots, amcfg, assmebler).Generate();
 }
 
 }  // namespace lucid

@@ -6,8 +6,8 @@
 
 namespace lucid {
 
-// Prints the abstract machine instructions generated for the given function.
+// Prints the given control flow graph of abstract machine instructions.
 void Print(std::string_view func_name,
-           const AbstractMachineControlFlowGraph& am_cfg);
+           const AbstractMachineControlFlowGraph& amcfg);
 
 }  // namespace lucid

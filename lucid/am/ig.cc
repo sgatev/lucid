@@ -28,7 +28,7 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
       for (const auto& phi : next_block.phis) {
         for (int i = 0; i < next_block.preds.size(); ++i) {
           if (next_block.preds[i] == block.ref) {
-            state.live_out.Insert(phi.sources[i]);
+            state.live_out.Insert(phi.srcs[i]);
             break;
           }
         }
@@ -79,12 +79,12 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
     }
 
     for (const auto& phi : block.phis) {
-      for (auto source : phi.sources) {
-        am_ig.Insert(phi.target, {});
-        am_ig.Get(phi.target)->Insert(source);
+      for (auto source : phi.srcs) {
+        am_ig.Insert(phi.dst, {});
+        am_ig.Get(phi.dst)->Insert(source);
 
         am_ig.Insert(source, {});
-        am_ig.Get(source)->Insert(phi.target);
+        am_ig.Get(source)->Insert(phi.dst);
       }
     }
   }

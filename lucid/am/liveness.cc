@@ -40,7 +40,7 @@ State AbstractMachineLivenessAnalysis::Transfer(
       for (const auto& phi : next_block.phis) {
         for (int i = 0; i < next_block.preds.size(); ++i) {
           if (next_block.preds[i] == block.ref) {
-            state.live_out.Insert(phi.sources[i]);
+            state.live_out.Insert(phi.srcs[i]);
             break;
           }
         }
@@ -54,7 +54,7 @@ State AbstractMachineLivenessAnalysis::Transfer(
     state = Transfer(std::move(state), inst);
   }
 
-  for (const auto& phi : block.phis) state.live_in.Remove(phi.target);
+  for (const auto& phi : block.phis) state.live_in.Remove(phi.dst);
 
   return state;
 }

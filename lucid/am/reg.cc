@@ -39,7 +39,7 @@ std::optional<RegId> FindRegToSpill(
     for (int i = 0; i < block.next.size(); ++i) {
       const auto& next_block = am_cfg.get(block.next[i]);
       for (const auto& phi : next_block.phis) {
-        state.live_out.Insert(phi.sources[i]);
+        state.live_out.Insert(phi.srcs[i]);
       }
     }
 
@@ -63,7 +63,7 @@ std::optional<RegId> FindRegToSpill(
       }
     }
     if (block.ref == am_cfg.first) {
-      for (auto& param : am_cfg.params) state.live_in.Insert(param.reg);
+      for (auto& param : am_cfg.params) state.live_in.Insert(param);
 
       if (state.live_in.size() > max_clique_size) {
         for (const auto& reg : state.live_in) {
@@ -155,12 +155,12 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     auto i = block.instructions.begin();
     if (block_ref == am_cfg.first) {
       for (auto& param : am_cfg.params) {
-        maybe_insert_store32(block.instructions, i, param.reg);
+        maybe_insert_store32(block.instructions, i, param);
       }
     }
     for (auto& phi : block.phis) {
       // TODO: Handle spilt phi sources.
-      maybe_insert_store32(block.instructions, i, phi.target);
+      maybe_insert_store32(block.instructions, i, phi.dst);
     }
     while (i != block.instructions.end()) {
       auto& inst = *i;
@@ -281,7 +281,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
     const HashMap<RegId, HashSet<RegId>>& am_ig, int colors_count) {
   HashMap<RegId, int> reg_scores;
   for (const auto& param : am_cfg.params) {
-    reg_scores.Insert(param.reg, 0);
+    reg_scores.Insert(param, 0);
   }
   for (const auto& block : am_cfg.blocks()) {
     for (const auto& inst : block.instructions) {
@@ -364,8 +364,8 @@ HashMap<RegId, int> ColorInterferenceGraph(
         assert(false && "unhandled instruction type");
       }
       for (const auto& phi : block.phis) {
-        reg_scores.Insert(phi.target, 0);
-        for (const auto& source : phi.sources) reg_scores.Insert(source, 0);
+        reg_scores.Insert(phi.dst, 0);
+        for (const auto& source : phi.srcs) reg_scores.Insert(source, 0);
       }
     }
   }
@@ -428,9 +428,7 @@ void UpdateRegister(const HashMap<RegId, int>& reg_colors, RegId& reg) {
 
 void MergeRegisters(const HashMap<RegId, int>& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg) {
-  for (auto& param : am_cfg.params) {
-    UpdateRegister(reg_colors, param.reg);
-  }
+  for (auto& param : am_cfg.params) UpdateRegister(reg_colors, param);
   for (auto& block : am_cfg.blocks()) {
     for (auto& inst : block.instructions) {
       if (auto* cinst = std::get_if<CondJump>(&inst)) {
@@ -506,8 +504,8 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
       }
     }
     for (auto& phi : block.phis) {
-      UpdateRegister(reg_colors, phi.target);
-      for (auto& source : phi.sources) UpdateRegister(reg_colors, source);
+      UpdateRegister(reg_colors, phi.dst);
+      for (auto& source : phi.srcs) UpdateRegister(reg_colors, source);
     }
   }
 }

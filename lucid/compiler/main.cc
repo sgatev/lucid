@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <filesystem>
+#include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -150,7 +151,7 @@ int HandlePrintAstCommand(CommandContext ctx) {
   return 0;
 }
 
-int HandlePrintCfgCommand(CommandContext ctx) {
+int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
   if (ctx.args.size() < 1) {
     ctx.out << "Usage: " << Concat(ctx.path, " ") << " <path> (<identifier>)\n"
             << "\n"
@@ -212,30 +213,33 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   }
   auto& func_defs = maybe_funcs.GetValue();
 
-  for (auto& func_def : func_defs) {
+  for (bool has_printed_func = false; auto& func_def : func_defs) {
     if (auto res = InferExprTypes(sctx, func_defs, func_def); res.HasError()) {
       res.OutputError(PrintError(ctx.err));
       return 1;
     }
-    auto cfg = BuildControlFlowGraph(sctx, func_def);
-    ConvertToStaticSingleAssignment(sctx, cfg);
+    SyntaxControlFlowGraph scfg = BuildControlFlowGraph(sctx, func_def);
+    ConvertToStaticSingleAssignment(sctx, scfg);
     AbstractMachineState state;
-    AbstractMachineControlFlowGraph am_cfg =
-        GenerateAbstractMachineFunction(sctx, cfg, state);
-    for (auto& block : am_cfg.blocks()) {
+    AbstractMachineControlFlowGraph amcfg =
+        GenerateAbstractMachineFunction(sctx, scfg, state);
+    for (auto& block : amcfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
     static constexpr int kArmRegistersCount = 10;
     if (ctx.flags.Get("regs") == "spill") {
-      SpillRegisters(am_cfg, state, kArmRegistersCount);
+      SpillRegisters(amcfg, state, kArmRegistersCount);
     } else if (ctx.flags.Get("regs") == "merge") {
-      SpillRegisters(am_cfg, state, kArmRegistersCount);
-      HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
+      SpillRegisters(amcfg, state, kArmRegistersCount);
+      HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(amcfg);
       HashMap<RegId, int> am_ig_colors =
-          ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
-      MergeRegisters(am_ig_colors, am_cfg);
+          ColorInterferenceGraph(amcfg, am_ig, kArmRegistersCount);
+      MergeRegisters(am_ig_colors, amcfg);
     }
-    Print(sctx.DerefIdent(func_def.name), am_cfg);
+
+    if (has_printed_func) std::cout << "\n";
+    Print(sctx.DerefIdent(func_def.name), amcfg);
+    has_printed_func = true;
   }
 
   return 0;
@@ -279,7 +283,7 @@ int HandleRoot(CommandContext ctx) {
           {
               .name = "print-syntax-cfg",
               .help = "Parses the specified target and prints the syntax CFG.",
-              .handler = HandlePrintCfgCommand,
+              .handler = HandlePrintSyntaxCfgCommand,
           },
           {
               .name = "print-am-cfg",

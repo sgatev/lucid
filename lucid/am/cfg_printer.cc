@@ -20,22 +20,21 @@ void Blue(std::function<void()> f) {
 }  // namespace
 
 void Print(std::string_view func_name,
-           const AbstractMachineControlFlowGraph& am_cfg) {
+           const AbstractMachineControlFlowGraph& amcfg) {
   Blue([&] {
     std::cout << func_name << "(";
-    for (bool has_printed_param = false; const auto& param : am_cfg.params) {
+    for (bool has_printed_param = false; const auto& param : amcfg.params) {
       if (has_printed_param) std::cout << ", ";
-      std::cout << param.reg;
+      std::cout << param;
       has_printed_param = true;
     }
-    std::cout << ")";
+    std::cout << "):\n";
   });
-  std::cout << " {\n";
-  for (const auto& block : am_cfg.blocks()) {
+  for (const auto& block : amcfg.blocks()) {
     Blue([&] { std::cout << "  B" << block.ref.id() << ":\n"; });
     for (const auto& phi : block.phis) {
-      std::cout << "    " << "φ(" << phi.target << ") = (";
-      for (bool has_printed_source = false; const auto& source : phi.sources) {
+      std::cout << "    " << "φ(" << phi.dst << ") = (";
+      for (bool has_printed_source = false; const auto& source : phi.srcs) {
         if (has_printed_source) std::cout << ", ";
         std::cout << source;
         has_printed_source = true;
@@ -54,7 +53,6 @@ void Print(std::string_view func_name,
           inst);
     }
   }
-  std::cout << "}\n";
 }
 
 }  // namespace lucid

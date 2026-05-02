@@ -86,20 +86,9 @@ class AbstractMachineFunctionGenerator {
     {
       auto& first_block = am_cfg_.get(am_cfg_.first);
       first_block.instructions.push_back(PushStack{});
-      for (int i = 0; i < scfg_.func_params.size(); ++i) {
-        const auto& param = ctx_.DerefParam(scfg_.func_params[i]);
-        const auto& param_type =
-            std::get<BasicType>(ctx_.DerefType(param.type_constraint));
-        std::string_view param_type_name = ctx_.DerefIdent(param_type.name);
-        if (param_type_name == "Int32" || param_type_name == "Bool") {
-          am_cfg_.params.push_back(
-              {.bits = 32,
-               .reg = GetVarReg(param.name, param.type_constraint)});
-        } else if (param_type_name == "Int64" || param_type_name == "String") {
-          am_cfg_.params.push_back(
-              {.bits = 64,
-               .reg = GetVarReg(param.name, param.type_constraint)});
-        }
+      for (const auto& param_ref : scfg_.func_params) {
+        const auto& param = ctx_.DerefParam(param_ref);
+        am_cfg_.params.push_back(GetVarReg(param.name, param.type_constraint));
       }
     }
 
@@ -116,9 +105,9 @@ class AbstractMachineFunctionGenerator {
         const auto& phi = scfg_.deref(phi_ref);
 
         auto& am_phi = am_block.phis.emplace_back();
-        am_phi.target = GetVarReg(phi.name, phi.type_constraint);
+        am_phi.dst = GetVarReg(phi.name, phi.type_constraint);
         for (const auto& arg : phi.args) {
-          am_phi.sources.push_back(GetVarReg(arg, phi.type_constraint));
+          am_phi.srcs.push_back(GetVarReg(arg, phi.type_constraint));
         }
       }
     }

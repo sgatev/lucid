@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <list>
 #include <vector>
@@ -9,28 +10,44 @@
 
 namespace lucid {
 
-// A graph that represents the control flow of a abstract machine instructions.
+// A graph that represents the control flow of abstract machine instructions.
 class AbstractMachineControlFlowGraph {
  public:
   struct Block;
+
+  // A reference to a block in the control flow graph.
   using BlockRef = Arena<Block>::Ref;
-  using vertex_type = BlockRef;
 
   // A null block reference.
   static constexpr BlockRef kNullBlockRef = Arena<Block>::kNullRef;
 
+  using vertex_type = BlockRef;
+
+  // A phi function in the control flow graph.
   struct Phi {
-    RegId target;
-    std::vector<RegId> sources;
+    // Destination for the result of the phi function.
+    RegId dst;
+
+    // Arguments to the phi function.
+    std::vector<RegId> srcs;
   };
 
-  // Represents a basic block in the control flow graph.
+  // A basic block in the control flow graph.
   struct Block {
+    // Reference of the basic block.
     BlockRef ref;
-    std::list<Instruction> instructions;
-    std::vector<BlockRef> next;
-    std::vector<BlockRef> preds;
+
+    // Phi functions in the basic block.
     std::vector<Phi> phis;
+
+    // Instructions in the basic block, in order of exectuion.
+    std::list<Instruction> instructions;
+
+    // Successors of the basic block.
+    std::vector<BlockRef> next;
+
+    // Predecessors of the basic block.
+    std::vector<BlockRef> preds;
   };
 
   // Adds a new block to the control flow graph.
@@ -58,14 +75,8 @@ class AbstractMachineControlFlowGraph {
   BlockRef first = kNullBlockRef;
   BlockRef last = kNullBlockRef;
 
-  // Represents a parameter of the function.
-  struct Param {
-    int bits;
-    RegId reg;
-  };
-
   // Parameters of the function.
-  std::vector<Param> params;
+  std::vector<RegId> params;
 
  private:
   friend std::size_t VertexCount(const AbstractMachineControlFlowGraph&);
@@ -82,50 +93,43 @@ class AbstractMachineControlFlowGraph {
   Arena<Block> blocks_;
 };
 
-inline std::size_t Hash(AbstractMachineControlFlowGraph::BlockRef v) {
-  return Hash(v.id());
-}
-
-inline std::size_t VertexCount(const AbstractMachineControlFlowGraph& cfg) {
-  return cfg.blocks_.Size();
+inline std::size_t VertexCount(const AbstractMachineControlFlowGraph& amcfg) {
+  return amcfg.blocks_.Size();
 }
 
 inline std::vector<AbstractMachineControlFlowGraph::BlockRef> Vertices(
-    const AbstractMachineControlFlowGraph& cfg) {
-  std::vector<AbstractMachineControlFlowGraph::BlockRef> blocks;
-  for (const auto& block : cfg.blocks_) blocks.push_back(block.ref);
-  return blocks;
+    const AbstractMachineControlFlowGraph& amcfg) {
+  std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs;
+  for (const auto& block : amcfg.blocks_) block_refs.push_back(block.ref);
+  return block_refs;
 }
 
 inline AbstractMachineControlFlowGraph::BlockRef SourceVertex(
-    const AbstractMachineControlFlowGraph& cfg) {
-  return cfg.first;
+    const AbstractMachineControlFlowGraph& amcfg) {
+  return amcfg.first;
 }
 
 inline AbstractMachineControlFlowGraph::BlockRef SinkVertex(
-    const AbstractMachineControlFlowGraph& cfg) {
-  return cfg.last;
+    const AbstractMachineControlFlowGraph& amcfg) {
+  return amcfg.last;
 }
 
 inline std::vector<AbstractMachineControlFlowGraph::BlockRef> NextVertices(
-    const AbstractMachineControlFlowGraph& cfg,
-    AbstractMachineControlFlowGraph::BlockRef block) {
-  std::vector<AbstractMachineControlFlowGraph::BlockRef> next;
-  for (const auto& block : cfg.get(block.id()).next) next.push_back(block);
-  return next;
+    const AbstractMachineControlFlowGraph& amcfg,
+    AbstractMachineControlFlowGraph::BlockRef block_ref) {
+  return amcfg.get(block_ref.id()).next;
 }
 
 inline std::vector<AbstractMachineControlFlowGraph::BlockRef> PrevVertices(
-    const AbstractMachineControlFlowGraph& cfg,
-    AbstractMachineControlFlowGraph::BlockRef block) {
-  std::vector<AbstractMachineControlFlowGraph::BlockRef> preds;
-  for (const auto& block : cfg.get(block.id()).preds) preds.push_back(block);
-  return preds;
+    const AbstractMachineControlFlowGraph& amcfg,
+    AbstractMachineControlFlowGraph::BlockRef block_ref) {
+  return amcfg.get(block_ref.id()).preds;
 }
 
-inline std::uint32_t VertexId(const AbstractMachineControlFlowGraph&,
-                              AbstractMachineControlFlowGraph::BlockRef block) {
-  return block.id();
+inline std::uint32_t VertexId(
+    const AbstractMachineControlFlowGraph&,
+    AbstractMachineControlFlowGraph::BlockRef block_ref) {
+  return block_ref.id();
 }
 
 }  // namespace lucid
