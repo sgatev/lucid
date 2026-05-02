@@ -510,9 +510,7 @@ class AbstractMachineFunctionGenerator {
     const auto& expr = std::get<IdentExpr>(ctx_.DerefExpr(expr_ref));
     auto pos = var_stack_.Get(expr.name);
     assert(pos.has_value());
-    std::size_t offset = 0;
-    for (int i = 0; i < *pos; ++i) offset += am_state_.stack_slots[i];
-    return offset;
+    return *pos;
   }
 
   RegId GetVarReg(StringIndex::Ref var_name, TypeRef var_type) {
