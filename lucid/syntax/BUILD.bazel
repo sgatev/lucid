@@ -43,6 +43,7 @@ cc_library(
     visibility = ["//lucid:__subpackages__"],
     deps = [
         ":ast",
+        "//lucid/core/cli:format",
     ],
 )
 
@@ -97,6 +98,7 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
+        "//lucid/core/cli:format",
     ],
 )
 

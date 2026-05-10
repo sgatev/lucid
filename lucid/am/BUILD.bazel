@@ -20,6 +20,7 @@ cc_library(
     deps = [
         ":cfg",
         ":instructions",
+        "//lucid/core/cli:format",
     ],
 )
 

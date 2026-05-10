@@ -40,9 +40,9 @@ TEST_F(CompilerTest, PrintAst) {
               AllOf(ReturnsCode(0), Prints(R"(FuncDefStmt {
   .name = "main"
   .stmts = [
-[34m    S0: [0mReturnStmt {
+[34m    S0: [mReturnStmt {
       .value = {
-[34m        E0: [0mIntLitExpr {
+[34m        E0: [mIntLitExpr {
           .value = 0
         }
       }
@@ -59,7 +59,7 @@ TEST_F(CompilerTest, PrintAstNode) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-ast", FullPath("main.lu"), "E0"}),
-              AllOf(ReturnsCode(0), Prints(R"([34mE0: [0mIntLitExpr {
+              AllOf(ReturnsCode(0), Prints(R"([34mE0: [mIntLitExpr {
   .value = 0
 }
 )")));
@@ -78,64 +78,64 @@ TEST_F(CompilerTest, PrintCfg) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-syntax-cfg", FullPath("max.lu")}),
-              AllOf(ReturnsCode(0), Prints(R"([34mmax($0, $1)[0m {
-[34m  B0: [0m{
+              AllOf(ReturnsCode(0), Prints(R"([34mmax($0, $1)[m {
+  [34mB0:[m {
     .sequences = [
-[34m      E0: [0mIntLitExpr { .value = 0 }
-[34m      S2: [0mVarDeclStmt { .name = '$2', .init = E0 }
-[34m      E1: [0mIdentExpr { .name = '$0' }
-[34m      E2: [0mIdentExpr { .name = '$1' }
-[34m      E3: [0mBinaryOpExpr { .op = Gt, .lhs = E1, .rhs = E2 }
+      [34mE0: [mIntLitExpr { .value = 0 }
+      [34mS2: [mVarDeclStmt { .name = '$2', .init = E0 }
+      [34mE1: [mIdentExpr { .name = '$0' }
+      [34mE2: [mIdentExpr { .name = '$1' }
+      [34mE3: [mBinaryOpExpr { .op = Gt, .lhs = E1, .rhs = E2 }
     ]
     .next = [
-[34m      B3
-[0m[34m      B4
-[0m    ]
+    [34mB3[m
+    [34mB4[m
+    ]
   }
-[34m  B1: [0m{
+  [34mB1:[m {
     .preds = [
-[34m      B2
-[0m    ]
+    [34mB2[m
+    ]
   }
-[34m  B2: [0m{
+  [34mB2:[m {
     .phis = [
       $5 = φ($4, $3)
     ]
     .sequences = [
-[34m      E6: [0mIdentExpr { .name = '$5' }
-[34m      S4: [0mReturnStmt { .value = E6 }
+      [34mE6: [mIdentExpr { .name = '$5' }
+      [34mS4: [mReturnStmt { .value = E6 }
     ]
     .next = [
-[34m      B1
-[0m    ]
+    [34mB1[m
+    ]
     .preds = [
-[34m      B3
-[0m[34m      B4
-[0m    ]
+    [34mB3[m
+    [34mB4[m
+    ]
   }
-[34m  B3: [0m{
+  [34mB3:[m {
     .sequences = [
-[34m      E4: [0mIdentExpr { .name = '$0' }
-[34m      S6: [0mVarDeclStmt { .name = '$4', .init = E4 }
+      [34mE4: [mIdentExpr { .name = '$0' }
+      [34mS6: [mVarDeclStmt { .name = '$4', .init = E4 }
     ]
     .next = [
-[34m      B2
-[0m    ]
+    [34mB2[m
+    ]
     .preds = [
-[34m      B0
-[0m    ]
+    [34mB0[m
+    ]
   }
-[34m  B4: [0m{
+  [34mB4:[m {
     .sequences = [
-[34m      E5: [0mIdentExpr { .name = '$1' }
-[34m      S5: [0mVarDeclStmt { .name = '$3', .init = E5 }
+      [34mE5: [mIdentExpr { .name = '$1' }
+      [34mS5: [mVarDeclStmt { .name = '$3', .init = E5 }
     ]
     .next = [
-[34m      B2
-[0m    ]
+    [34mB2[m
+    ]
     .preds = [
-[34m      B0
-[0m    ]
+    [34mB0[m
+    ]
   }
 }
 )")));

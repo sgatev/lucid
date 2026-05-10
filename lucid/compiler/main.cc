@@ -135,17 +135,17 @@ int HandlePrintAstCommand(CommandContext ctx) {
     std::string_view id = ctx.args[1];
     if (id[0] == 'S') {
       id.remove_prefix(1);
-      PrintStmt(sctx, std::stoi(std::string(id)));
+      PrintStmt(sctx, std::stoi(std::string(id)), ctx.out);
     } else if (id[0] == 'E') {
       id.remove_prefix(1);
-      PrintExpr(sctx, std::stoi(std::string(id)));
+      PrintExpr(sctx, std::stoi(std::string(id)), ctx.out);
     } else {
       PrintError(ctx.err) << "second argument to 'print-ast' command must be "
                              "either 'S<index>' or 'E<index>'\n";
       return 1;
     }
   } else {
-    for (const auto& func_def : func_defs) Print(sctx, func_def);
+    for (const auto& func_def : func_defs) Print(sctx, func_def, ctx.out);
   }
 
   return 0;
@@ -180,7 +180,7 @@ int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
   for (const auto& func_def : func_defs) {
     auto graph = BuildControlFlowGraph(sctx, func_def);
     ConvertToStaticSingleAssignment(sctx, graph);
-    Print(sctx, graph);
+    Print(sctx, graph, ctx.out);
   }
 
   return 0;
@@ -238,7 +238,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
     }
 
     if (has_printed_func) std::cout << "\n";
-    Print(sctx.DerefIdent(func_def.name), amcfg);
+    Print(sctx.DerefIdent(func_def.name), amcfg, ctx.out);
     has_printed_func = true;
   }
 
