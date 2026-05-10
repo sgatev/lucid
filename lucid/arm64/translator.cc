@@ -59,6 +59,8 @@ class Arm64BinaryGenerator {
 
  private:
   void Process(const AbstractMachineControlFlowGraph::Block& block) {
+    assembler_.Label(std::string(func_name_) + std::to_string(block.ref.id()));
+
     for (const auto& inst : block.instructions) Process(block, inst);
   }
 
@@ -213,12 +215,6 @@ class Arm64BinaryGenerator {
         srcs.Insert(RegId{.id = 15, .size = target.size});
       }
     }
-  }
-
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const Label& inst) {
-    std::string label = std::string(func_name_) + std::to_string(inst.id);
-    assembler_.Label(label);
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,

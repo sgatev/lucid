@@ -25,14 +25,8 @@ void PrintPhi(int indent, const AbstractMachineControlFlowGraph::Phi& phi,
 }
 
 void PrintInst(int indent, const Instruction& inst, std::ostream& out) {
-  std::visit(
-      [&](const auto& inst) {
-        using T = std::decay_t<decltype(inst)>;
-        if constexpr (!std::is_same_v<T, Label>) {
-          out << Indent(indent) << inst << "\n";
-        }
-      },
-      inst);
+  std::visit([&](const auto& inst) { out << Indent(indent) << inst << "\n"; },
+             inst);
 }
 
 void PrintBlock(int indent, const AbstractMachineControlFlowGraph::Block& block,

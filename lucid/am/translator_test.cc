@@ -55,9 +55,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
 
   EXPECT_THAT(Generate(func),
               ElementsAre(PushStack{},
-                          Label{
-                              .id = 0,
-                          },
                           SetReg{
                               .src_val = "21",
                               .dst_reg = RegId(2, RegSize::RegSize32),
@@ -68,9 +65,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
                           },
                           UncondJump{
                               .label = 1,
-                          },
-                          Label{
-                              .id = 1,
                           },
                           PopStack{},
                           Return{
@@ -91,9 +85,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
 
   EXPECT_THAT(Generate(func),
               ElementsAre(PushStack{},
-                          Label{
-                              .id = 0,
-                          },
                           SetReg{
                               .src_val = "21",
                               .dst_reg = RegId(2, RegSize::RegSize64),
@@ -104,9 +95,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
                           },
                           UncondJump{
                               .label = 1,
-                          },
-                          Label{
-                              .id = 1,
                           },
                           PopStack{},
                           Return{
@@ -143,9 +131,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
 
   EXPECT_THAT(Generate(func, {id_func}),
               ElementsAre(PushStack{},
-                          Label{
-                              .id = 0,
-                          },
                           SetReg{
                               .src_val = "21",
                               .dst_reg = RegId(2, RegSize32),
@@ -168,9 +153,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
                           },
                           UncondJump{
                               .label = 1,
-                          },
-                          Label{
-                              .id = 1,
                           },
                           PopStack{},
                           Return{
@@ -207,9 +189,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
 
   EXPECT_THAT(Generate(func, {id_func}),
               ElementsAre(PushStack{},
-                          Label{
-                              .id = 0,
-                          },
                           SetReg{
                               .src_val = "21",
                               .dst_reg = RegId(2, RegSize64),
@@ -233,9 +212,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
                           UncondJump{
                               .label = 1,
                           },
-                          Label{
-                              .id = 1,
-                          },
                           PopStack{},
                           Return{
                               .res_reg = RegId(1, RegSize64),
@@ -258,9 +234,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize32),
@@ -280,9 +253,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -306,9 +276,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize64),
@@ -328,9 +295,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -354,9 +318,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "7",
                                               .dst_reg = RegId(2, RegSize32),
@@ -376,9 +337,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -402,9 +360,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "7",
                                               .dst_reg = RegId(2, RegSize64),
@@ -424,9 +379,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -450,9 +402,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize32),
@@ -472,9 +421,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -498,9 +444,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize64),
@@ -520,9 +463,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -546,9 +486,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "8",
                                               .dst_reg = RegId(2, RegSize32),
@@ -568,9 +505,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -594,9 +528,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "8",
                                               .dst_reg = RegId(2, RegSize64),
@@ -616,9 +547,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -642,9 +570,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "8",
                                               .dst_reg = RegId(2, RegSize32),
@@ -664,9 +589,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -690,9 +612,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "8",
                                               .dst_reg = RegId(2, RegSize64),
@@ -712,9 +631,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -750,9 +666,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "1",
                                               .dst_reg = RegId(2, RegSize32),
@@ -761,9 +674,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                               .cond_reg = RegId(2, RegSize32),
                                               .then_label = 3,
                                               .else_label = 2,
-                                          },
-                                          Label{
-                                              .id = 2,
                                           },
                                           SetReg{
                                               .src_val = "4",
@@ -785,9 +695,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           UncondJump{
                                               .label = 1,
                                           },
-                                          Label{
-                                              .id = 3,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(6, RegSize32),
@@ -807,9 +714,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -847,9 +751,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "1",
                                               .dst_reg = RegId(2, RegSize32),
@@ -858,9 +759,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                               .cond_reg = RegId(2, RegSize32),
                                               .then_label = 3,
                                               .else_label = 4,
-                                          },
-                                          Label{
-                                              .id = 4,
                                           },
                                           SetReg{
                                               .src_val = "4",
@@ -882,9 +780,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           UncondJump{
                                               .label = 1,
                                           },
-                                          Label{
-                                              .id = 3,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
@@ -905,15 +800,9 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           UncondJump{
                                               .label = 1,
                                           },
-                                          Label{
-                                              .id = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize32),
-                                          },
-                                          Label{
-                                              .id = 2,
                                           }));
 }
 
@@ -933,9 +822,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(2, RegSize32),
@@ -955,9 +841,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -991,9 +874,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           MoveReg{
                                               .src_reg = RegId(2, RegSize32),
                                               .dst_reg = RegId(4, RegSize32),
@@ -1013,9 +893,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1049,9 +926,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           MoveReg{
                                               .src_reg = RegId(2, RegSize64),
                                               .dst_reg = RegId(4, RegSize64),
@@ -1071,9 +945,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1097,9 +968,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "3",
                                               .dst_reg = RegId(2, RegSize32),
@@ -1119,9 +987,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1155,9 +1020,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           MoveReg{
                                               .src_reg = RegId(2, RegSize32),
                                               .dst_reg = RegId(4, RegSize32),
@@ -1177,9 +1039,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1213,9 +1072,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           MoveReg{
                                               .src_reg = RegId(2, RegSize64),
                                               .dst_reg = RegId(4, RegSize64),
@@ -1235,9 +1091,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1271,9 +1124,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           MoveReg{
                                               .src_reg = RegId(2, RegSize32),
                                               .dst_reg = RegId(4, RegSize32),
@@ -1293,9 +1143,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1329,9 +1176,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           MoveReg{
                                               .src_reg = RegId(2, RegSize64),
                                               .dst_reg = RegId(4, RegSize64),
@@ -1351,9 +1195,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1387,9 +1228,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           MoveReg{
                                               .src_reg = RegId(2, RegSize32),
                                               .dst_reg = RegId(4, RegSize32),
@@ -1409,9 +1247,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1445,9 +1280,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           MoveReg{
                                               .src_reg = RegId(2, RegSize64),
                                               .dst_reg = RegId(4, RegSize64),
@@ -1467,9 +1299,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1496,9 +1325,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize32),
@@ -1517,9 +1343,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1546,9 +1369,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(2, RegSize64),
@@ -1567,9 +1387,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1598,9 +1415,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "0",
                                               .dst_reg = RegId(2, RegSize32),
@@ -1611,9 +1425,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1642,9 +1453,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "0",
                                               .dst_reg = RegId(2, RegSize64),
@@ -1655,9 +1463,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1687,9 +1492,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
@@ -1708,9 +1510,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1740,9 +1539,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize64),
@@ -1761,9 +1557,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1790,14 +1583,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           UncondJump{
                                               .label = 3,
-                                          },
-                                          Label{
-                                              .id = 3,
                                           },
                                           SetReg{
                                               .src_val = "1",
@@ -1810,15 +1597,9 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                           UncondJump{
                                               .label = 1,
                                           },
-                                          Label{
-                                              .id = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize32),
-                                          },
-                                          Label{
-                                              .id = 2,
                                           },
                                           SetReg{
                                               .src_val = "2",
@@ -1872,9 +1653,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          Label{
-                                              .id = 0,
-                                          },
                                           SetReg{
                                               .src_val = "0",
                                               .dst_reg = RegId(2, RegSize32),
@@ -1885,9 +1663,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           },
                                           UncondJump{
                                               .label = 3,
-                                          },
-                                          Label{
-                                              .id = 3,
                                           },
                                           MoveReg{
                                               .src_reg = RegId(3, RegSize32),
@@ -1906,9 +1681,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .cond_reg = RegId(7, RegSize32),
                                               .then_label = 5,
                                               .else_label = 4,
-                                          },
-                                          Label{
-                                              .id = 4,
                                           },
                                           MoveReg{
                                               .src_reg = RegId(3, RegSize32),
@@ -1930,14 +1702,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           UncondJump{
                                               .label = 3,
                                           },
-                                          Label{
-                                              .id = 5,
-                                          },
                                           UncondJump{
                                               .label = 2,
-                                          },
-                                          Label{
-                                              .id = 2,
                                           },
                                           MoveReg{
                                               .src_reg = RegId(3, RegSize32),
@@ -1949,9 +1715,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           },
                                           UncondJump{
                                               .label = 1,
-                                          },
-                                          Label{
-                                              .id = 1,
                                           },
                                           PopStack{},
                                           Return{

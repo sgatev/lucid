@@ -126,9 +126,6 @@ class AbstractMachineFunctionGenerator {
  private:
   void Process(const SyntaxControlFlowGraph::Block& block,
                AbstractMachineControlFlowGraph::Block& am_block) {
-    am_block.instructions.push_back(Label{
-        .id = block.ref.id(),
-    });
     for (const auto& seq : block.sequences) {
       for (ExprRef expr : seq.expressions) {
         Process(expr, ctx_.DerefExpr(expr), am_block);
@@ -140,12 +137,12 @@ class AbstractMachineFunctionGenerator {
     if (block.branch_cond != Arena<Expr>::kNullRef) {
       am_block.instructions.push_back(CondJump{
           .cond_reg = expr_and_stmt_to_reg_[block.branch_cond.id()],
-          .then_label = scfg_.get(block.next[0]).ref.id(),
-          .else_label = scfg_.get(block.next[1]).ref.id(),
+          .then_label = graph_map_.Get(block.next[0])->id(),
+          .else_label = graph_map_.Get(block.next[1])->id(),
       });
     } else if (block.next.size() == 1) {
       am_block.instructions.push_back(UncondJump{
-          .label = scfg_.get(block.next[0]).ref.id(),
+          .label = graph_map_.Get(block.next[0])->id(),
       });
     }
     for (const auto& next : block.next) {

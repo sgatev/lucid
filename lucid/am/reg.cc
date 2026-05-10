@@ -287,7 +287,6 @@ HashMap<RegId, int> ColorInterferenceGraph(
     for (const auto& inst : block.instructions) {
       if (std::holds_alternative<PushStack>(inst) ||
           std::holds_alternative<PopStack>(inst) ||
-          std::holds_alternative<Label>(inst) ||
           std::holds_alternative<Jump>(inst) ||
           std::holds_alternative<UncondJump>(inst)) {
       } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
