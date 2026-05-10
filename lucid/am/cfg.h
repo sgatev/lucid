@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <list>
+#include <optional>
 #include <vector>
 
 #include "lucid/am/instructions.h"
@@ -48,6 +49,12 @@ class AbstractMachineControlFlowGraph {
 
     // Predecessors of the basic block.
     std::vector<BlockRef> preds;
+
+    // Condition register that determines the block in `next` that follows
+    // this block. If set and the value is zero, control flow proceeds to
+    // the first block in `next`. If set and the value is non-zero`, control
+    // flow proceeds to the second block in `next`.
+    std::optional<RegId> branch_cond;
   };
 
   // Adds a new block to the control flow graph.

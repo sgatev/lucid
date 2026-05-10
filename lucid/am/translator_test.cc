@@ -63,9 +63,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
                               .src_reg = RegId(2, RegSize::RegSize32),
                               .dst_reg = RegId(1, RegSize::RegSize32),
                           },
-                          UncondJump{
-                              .label = 1,
-                          },
                           PopStack{},
                           Return{
                               .res_reg = RegId(1, RegSize::RegSize32),
@@ -92,9 +89,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
                           MoveReg{
                               .src_reg = RegId(2, RegSize::RegSize64),
                               .dst_reg = RegId(1, RegSize::RegSize64),
-                          },
-                          UncondJump{
-                              .label = 1,
                           },
                           PopStack{},
                           Return{
@@ -151,9 +145,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
                               .src_reg = RegId(3, RegSize32),
                               .dst_reg = RegId(1, RegSize32),
                           },
-                          UncondJump{
-                              .label = 1,
-                          },
                           PopStack{},
                           Return{
                               .res_reg = RegId(1, RegSize32),
@@ -209,9 +200,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
                               .src_reg = RegId(3, RegSize64),
                               .dst_reg = RegId(1, RegSize64),
                           },
-                          UncondJump{
-                              .label = 1,
-                          },
                           PopStack{},
                           Return{
                               .res_reg = RegId(1, RegSize64),
@@ -250,9 +238,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
                                           MoveReg{
                                               .src_reg = RegId(4, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -293,9 +278,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
                                               .src_reg = RegId(4, RegSize64),
                                               .dst_reg = RegId(1, RegSize64),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize64),
@@ -334,9 +316,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
                                           MoveReg{
                                               .src_reg = RegId(4, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -377,9 +356,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
                                               .src_reg = RegId(4, RegSize64),
                                               .dst_reg = RegId(1, RegSize64),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize64),
@@ -418,9 +394,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
                                           MoveReg{
                                               .src_reg = RegId(4, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -461,9 +434,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
                                               .src_reg = RegId(4, RegSize64),
                                               .dst_reg = RegId(1, RegSize64),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize64),
@@ -502,9 +472,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
                                           MoveReg{
                                               .src_reg = RegId(4, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -545,9 +512,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
                                               .src_reg = RegId(4, RegSize64),
                                               .dst_reg = RegId(1, RegSize64),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize64),
@@ -586,9 +550,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
                                           MoveReg{
                                               .src_reg = RegId(4, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -629,9 +590,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
                                               .src_reg = RegId(4, RegSize64),
                                               .dst_reg = RegId(1, RegSize64),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize64),
@@ -670,11 +628,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                               .src_val = "1",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
-                                          CondJump{
-                                              .cond_reg = RegId(2, RegSize32),
-                                              .then_label = 3,
-                                              .else_label = 2,
-                                          },
                                           SetReg{
                                               .src_val = "4",
                                               .dst_reg = RegId(3, RegSize32),
@@ -692,9 +645,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                               .src_reg = RegId(5, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(6, RegSize32),
@@ -711,9 +661,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                           MoveReg{
                                               .src_reg = RegId(8, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -755,11 +702,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                               .src_val = "1",
                                               .dst_reg = RegId(2, RegSize32),
                                           },
-                                          CondJump{
-                                              .cond_reg = RegId(2, RegSize32),
-                                              .then_label = 3,
-                                              .else_label = 4,
-                                          },
                                           SetReg{
                                               .src_val = "4",
                                               .dst_reg = RegId(6, RegSize32),
@@ -777,9 +719,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                               .src_reg = RegId(8, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           SetReg{
                                               .src_val = "2",
                                               .dst_reg = RegId(3, RegSize32),
@@ -796,9 +735,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                           MoveReg{
                                               .src_reg = RegId(5, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -838,9 +774,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
                                           MoveReg{
                                               .src_reg = RegId(4, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -891,9 +824,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
                                               .src_reg = RegId(6, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize32),
@@ -943,9 +873,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
                                               .src_reg = RegId(6, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize32),
@@ -984,9 +911,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
                                           MoveReg{
                                               .src_reg = RegId(4, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1037,9 +961,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
                                               .src_reg = RegId(6, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize32),
@@ -1088,9 +1009,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
                                           MoveReg{
                                               .src_reg = RegId(6, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1141,9 +1059,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
                                               .src_reg = RegId(6, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize32),
@@ -1192,9 +1107,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
                                           MoveReg{
                                               .src_reg = RegId(6, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1245,9 +1157,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
                                               .src_reg = RegId(6, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize32),
@@ -1297,9 +1206,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
                                               .src_reg = RegId(6, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize32),
@@ -1340,9 +1246,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
                                           MoveReg{
                                               .src_reg = RegId(4, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1385,9 +1288,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
                                               .src_reg = RegId(4, RegSize64),
                                               .dst_reg = RegId(1, RegSize64),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize64),
@@ -1423,9 +1323,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
                                               .src_reg = RegId(2, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize32),
@@ -1460,9 +1357,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
                                           MoveReg{
                                               .src_reg = RegId(2, RegSize64),
                                               .dst_reg = RegId(1, RegSize64),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1508,9 +1402,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
                                               .src_reg = RegId(4, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize32),
@@ -1555,9 +1446,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
                                               .src_reg = RegId(4, RegSize64),
                                               .dst_reg = RegId(1, RegSize64),
                                           },
-                                          UncondJump{
-                                              .label = 1,
-                                          },
                                           PopStack{},
                                           Return{
                                               .res_reg = RegId(1, RegSize64),
@@ -1583,9 +1471,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          UncondJump{
-                                              .label = 3,
-                                          },
                                           SetReg{
                                               .src_val = "1",
                                               .dst_reg = RegId(3, RegSize32),
@@ -1593,9 +1478,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                           MoveReg{
                                               .src_reg = RegId(3, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{
@@ -1608,9 +1490,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                           MoveReg{
                                               .src_reg = RegId(2, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           }));
 }
 
@@ -1661,9 +1540,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .src_reg = RegId(2, RegSize32),
                                               .dst_reg = RegId(3, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 3,
-                                          },
                                           MoveReg{
                                               .src_reg = RegId(3, RegSize32),
                                               .dst_reg = RegId(5, RegSize32),
@@ -1676,11 +1552,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .res_reg = RegId(7, RegSize32),
                                               .lhs_reg = RegId(5, RegSize32),
                                               .rhs_reg = RegId(6, RegSize32),
-                                          },
-                                          CondJump{
-                                              .cond_reg = RegId(7, RegSize32),
-                                              .then_label = 5,
-                                              .else_label = 4,
                                           },
                                           MoveReg{
                                               .src_reg = RegId(3, RegSize32),
@@ -1699,12 +1570,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                               .src_reg = RegId(10, RegSize32),
                                               .dst_reg = RegId(3, RegSize32),
                                           },
-                                          UncondJump{
-                                              .label = 3,
-                                          },
-                                          UncondJump{
-                                              .label = 2,
-                                          },
                                           MoveReg{
                                               .src_reg = RegId(3, RegSize32),
                                               .dst_reg = RegId(4, RegSize32),
@@ -1712,9 +1577,6 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                           MoveReg{
                                               .src_reg = RegId(4, RegSize32),
                                               .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          UncondJump{
-                                              .label = 1,
                                           },
                                           PopStack{},
                                           Return{

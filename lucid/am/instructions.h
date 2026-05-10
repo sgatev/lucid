@@ -108,38 +108,6 @@ struct Jump {
   }
 };
 
-// Jumps to a labeled location.
-struct UncondJump {
-  // Label of the location to jump to.
-  std::size_t label;
-
-  bool operator==(const UncondJump&) const = default;
-
-  friend std::ostream& operator<<(std::ostream& os, const UncondJump& inst) {
-    return os << "UncondJump { .label=\"" << inst.label << "\" }";
-  }
-};
-
-// Jumps to a labeled location based on the value of a register.
-struct CondJump {
-  // Int32 register used as a condition for the jump.
-  RegId cond_reg;
-
-  // Label of the location to jump to if the value in the register is not zero.
-  std::size_t then_label;
-
-  // Label of the location to jump to if the value in the register is zero.
-  std::size_t else_label;
-
-  bool operator==(const CondJump&) const = default;
-
-  friend std::ostream& operator<<(std::ostream& os, const CondJump& inst) {
-    return os << "CondJump { .cond_reg=" << inst.cond_reg
-              << ", .then_label=" << inst.then_label
-              << ", .else_label=" << inst.else_label << " }";
-  }
-};
-
 // Returns to the location before the last jump.
 struct Return {
   // Result register.
@@ -538,18 +506,17 @@ struct FuncCall {
 
 // An instruction for the Lucid abstract machine.
 using Instruction =
-    std::variant<Nop, MoveReg, SetReg, SetStr, Jump, UncondJump, CondJump,
-                 Return, AddReg, SubReg, MulReg, DivReg, ModReg, GtReg, LtReg,
-                 EqReg, NotEqReg, PushStack, PopStack, StoreStack32,
-                 StoreStackReg32, StoreStack64, StoreStackReg64, LoadStack32,
-                 LoadStackReg32, LoadStack64, LoadStackReg64, FuncCall>;
+    std::variant<Nop, MoveReg, SetReg, SetStr, Jump, Return, AddReg, SubReg,
+                 MulReg, DivReg, ModReg, GtReg, LtReg, EqReg, NotEqReg,
+                 PushStack, PopStack, StoreStack32, StoreStackReg32,
+                 StoreStack64, StoreStackReg64, LoadStack32, LoadStackReg32,
+                 LoadStack64, LoadStackReg64, FuncCall>;
 
 // Returns the source registers used by the given instruction, if any.
 inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
   if (std::holds_alternative<PushStack>(inst) ||
       std::holds_alternative<PopStack>(inst) ||
       std::holds_alternative<Jump>(inst) ||
-      std::holds_alternative<UncondJump>(inst) ||
       std::holds_alternative<SetReg>(inst) ||
       std::holds_alternative<SetStr>(inst) ||
       std::holds_alternative<LoadStack32>(inst) ||
@@ -591,8 +558,6 @@ inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
     std::vector<RegId> source_regs;
     for (const auto& arg : cinst->args) source_regs.push_back(arg.reg);
     return source_regs;
-  } else if (auto* cinst = std::get_if<CondJump>(&inst)) {
-    return {cinst->cond_reg};
   } else if (auto* cinst = std::get_if<Return>(&inst)) {
     return {cinst->res_reg};
   } else {
@@ -606,12 +571,10 @@ inline std::optional<RegId> GetTargetRegister(const Instruction& inst) {
   if (std::holds_alternative<PushStack>(inst) ||
       std::holds_alternative<PopStack>(inst) ||
       std::holds_alternative<Jump>(inst) ||
-      std::holds_alternative<UncondJump>(inst) ||
       std::holds_alternative<StoreStack32>(inst) ||
       std::holds_alternative<StoreStackReg32>(inst) ||
       std::holds_alternative<StoreStack64>(inst) ||
       std::holds_alternative<StoreStackReg64>(inst) ||
-      std::holds_alternative<CondJump>(inst) ||
       std::holds_alternative<Return>(inst)) {
     return std::nullopt;
   } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {

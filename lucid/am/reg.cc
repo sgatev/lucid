@@ -251,11 +251,12 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
               break;
           }
         }
-      } else if (auto* cinst = std::get_if<CondJump>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->cond_reg);
       }
 
       ++i;
+    }
+    if (block.branch_cond.has_value()) {
+      maybe_insert_load32(block.instructions, i, *block.branch_cond);
     }
   }
 }
@@ -287,8 +288,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
     for (const auto& inst : block.instructions) {
       if (std::holds_alternative<PushStack>(inst) ||
           std::holds_alternative<PopStack>(inst) ||
-          std::holds_alternative<Jump>(inst) ||
-          std::holds_alternative<UncondJump>(inst)) {
+          std::holds_alternative<Jump>(inst)) {
       } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
         reg_scores.Insert(cinst->src_reg, 0);
@@ -355,8 +355,6 @@ HashMap<RegId, int> ColorInterferenceGraph(
       } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
         if (cinst->res.has_value()) reg_scores.Insert(cinst->res->reg, 0);
         for (const auto& arg : cinst->args) reg_scores.Insert(arg.reg, 0);
-      } else if (auto* cinst = std::get_if<CondJump>(&inst)) {
-        reg_scores.Insert(cinst->cond_reg, 0);
       } else if (auto* cinst = std::get_if<Return>(&inst)) {
         reg_scores.Insert(cinst->res_reg, 0);
       } else {
@@ -366,6 +364,9 @@ HashMap<RegId, int> ColorInterferenceGraph(
         reg_scores.Insert(phi.dst, 0);
         for (const auto& source : phi.srcs) reg_scores.Insert(source, 0);
       }
+    }
+    if (block.branch_cond.has_value()) {
+      reg_scores.Insert(*block.branch_cond, 0);
     }
   }
 
@@ -430,9 +431,7 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
   for (auto& param : am_cfg.params) UpdateRegister(reg_colors, param);
   for (auto& block : am_cfg.blocks()) {
     for (auto& inst : block.instructions) {
-      if (auto* cinst = std::get_if<CondJump>(&inst)) {
-        UpdateRegister(reg_colors, cinst->cond_reg);
-      } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
+      if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         UpdateRegister(reg_colors, cinst->src_reg);
         UpdateRegister(reg_colors, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
@@ -501,6 +500,9 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
       } else if (auto* cinst = std::get_if<Return>(&inst)) {
         UpdateRegister(reg_colors, cinst->res_reg);
       }
+    }
+    if (block.branch_cond.has_value()) {
+      UpdateRegister(reg_colors, *block.branch_cond);
     }
     for (auto& phi : block.phis) {
       UpdateRegister(reg_colors, phi.dst);

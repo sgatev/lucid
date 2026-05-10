@@ -62,6 +62,41 @@ class Arm64BinaryGenerator {
     assembler_.Label(std::string(func_name_) + std::to_string(block.ref.id()));
 
     for (const auto& inst : block.instructions) Process(block, inst);
+
+    if (block.branch_cond.has_value()) {
+      assembler_.Cmp(W(block.branch_cond->id), Imm(0));
+
+      std::string else_label_phi =
+          std::string(func_name_) + std::to_string(block.next[1].id()) + "_phi";
+      assembler_.B(Cond::Eq, else_label_phi);
+
+      std::string then_label_phi =
+          std::string(func_name_) + std::to_string(block.next[0].id()) + "_phi";
+      assembler_.B(then_label_phi);
+
+      assembler_.Label(else_label_phi);
+      std::string else_label =
+          std::string(func_name_) + std::to_string(block.next[1].id());
+      ProcessPhiFunctions(amcfg_.get(block.next[1]), block.ref);
+      assembler_.B(else_label);
+
+      assembler_.Label(then_label_phi);
+      std::string then_label =
+          std::string(func_name_) + std::to_string(block.next[0].id());
+      ProcessPhiFunctions(amcfg_.get(block.next[0]), block.ref);
+      assembler_.B(then_label);
+    } else if (block.next.size() == 1) {
+      std::string phi_label = std::string(func_name_) +
+                              std::to_string(block.ref.id()) + "_" +
+                              std::to_string(block.next[0].id()) + "_phi";
+      assembler_.B(phi_label);
+
+      assembler_.Label(phi_label);
+      ProcessPhiFunctions(amcfg_.get(block.next[0]), block.ref);
+      std::string label =
+          std::string(func_name_) + std::to_string(block.next[0].id());
+      assembler_.B(label);
+    }
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
@@ -120,44 +155,6 @@ class Arm64BinaryGenerator {
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const Jump& inst) {
     assembler_.Bl(inst.label);
-  }
-
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const UncondJump& inst) {
-    std::string phi_label = std::string(func_name_) +
-                            std::to_string(block.ref.id()) + "_" +
-                            std::to_string(inst.label) + "_phi";
-    assembler_.B(phi_label);
-
-    assembler_.Label(phi_label);
-    ProcessPhiFunctions(amcfg_.get(inst.label), block.ref);
-    std::string label = std::string(func_name_) + std::to_string(inst.label);
-    assembler_.B(label);
-  }
-
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const CondJump& inst) {
-    assembler_.Cmp(W(inst.cond_reg.id), Imm(0));
-
-    std::string else_label_phi =
-        std::string(func_name_) + std::to_string(inst.else_label) + "_phi";
-    assembler_.B(Cond::Eq, else_label_phi);
-
-    std::string then_label_phi =
-        std::string(func_name_) + std::to_string(inst.then_label) + "_phi";
-    assembler_.B(then_label_phi);
-
-    assembler_.Label(else_label_phi);
-    std::string else_label =
-        std::string(func_name_) + std::to_string(inst.else_label);
-    ProcessPhiFunctions(amcfg_.get(inst.else_label), block.ref);
-    assembler_.B(else_label);
-
-    assembler_.Label(then_label_phi);
-    std::string then_label =
-        std::string(func_name_) + std::to_string(inst.then_label);
-    ProcessPhiFunctions(amcfg_.get(inst.then_label), block.ref);
-    assembler_.B(then_label);
   }
 
   void ProcessPhiFunctions(

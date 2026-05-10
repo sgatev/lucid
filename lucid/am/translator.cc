@@ -135,15 +135,7 @@ class AbstractMachineFunctionGenerator {
       }
     }
     if (block.branch_cond != Arena<Expr>::kNullRef) {
-      am_block.instructions.push_back(CondJump{
-          .cond_reg = expr_and_stmt_to_reg_[block.branch_cond.id()],
-          .then_label = graph_map_.Get(block.next[0])->id(),
-          .else_label = graph_map_.Get(block.next[1])->id(),
-      });
-    } else if (block.next.size() == 1) {
-      am_block.instructions.push_back(UncondJump{
-          .label = graph_map_.Get(block.next[0])->id(),
-      });
+      am_block.branch_cond = expr_and_stmt_to_reg_[block.branch_cond.id()];
     }
     for (const auto& next : block.next) {
       auto am_cfg_next = graph_map_.Get(next);
