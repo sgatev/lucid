@@ -317,17 +317,21 @@ class Parser {
 
     SkipSpace();
 
-    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
+    std::optional<ExprRef> init;
+    if (Peek().kind == Token::Kind::Equal) {
+      Read();
 
-    SkipSpace();
+      SkipSpace();
 
-    const auto init = ParseExpr();
-    if (IsError(init)) return std::get<ParserError>(init);
+      auto maybe_init = ParseExpr();
+      if (IsError(maybe_init)) return std::get<ParserError>(maybe_init);
+      init = ctx_.Add(std::get<Expr>(maybe_init));
+    }
 
     return VarDeclStmt{
         .name = std::get<StringIndex::Ref>(maybe_name),
         .type_constraint = std::get<TypeRef>(maybe_type),
-        .init = ctx_.Add(std::get<Expr>(init)),
+        .init = init,
     };
   }
 

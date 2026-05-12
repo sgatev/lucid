@@ -114,12 +114,7 @@ class ExprTypeInferenceEngine {
   void ProcessPendingStmt(StmtRef stmt_ref, const VarDeclStmt& stmt) {
     SetIdentType(stmt.name, stmt.type_constraint);
     if (stmt.init.has_value()) {
-      if (auto* array_type =
-              std::get_if<ArrayType>(&ctx_.DerefType(stmt.type_constraint))) {
-        RequireTypeForExpr(*stmt.init, array_type->element_type_constraint);
-      } else {
-        RequireTypeForExpr(*stmt.init, stmt.type_constraint);
-      }
+      RequireTypeForExpr(*stmt.init, stmt.type_constraint);
       AddPendingExpr(*stmt.init);
     }
   }

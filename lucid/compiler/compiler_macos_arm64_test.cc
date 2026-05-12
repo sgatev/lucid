@@ -557,7 +557,7 @@ TEST_F(CompilerTest, LoopAndBreak) {
 TEST_F(CompilerTest, Int32Array) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {
-      let a: Int32[10] = 8
+      let a: Int32[10]
 
       let i: Int32 = 0
       loop {
@@ -591,7 +591,7 @@ TEST_F(CompilerTest, Int32Array) {
 TEST_F(CompilerTest, Int64Array) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int64 {
-      let a: Int64[10] = 8
+      let a: Int64[10]
 
       let i: Int64 = 0
       loop {
@@ -625,7 +625,7 @@ TEST_F(CompilerTest, Int64Array) {
 TEST_F(CompilerTest, BoolArray) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     let main = () -> Int32 {
-      let a: Bool[10] = false
+      let a: Bool[10]
 
       let i: Int32 = 0
       loop {

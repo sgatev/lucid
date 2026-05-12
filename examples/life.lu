@@ -7,8 +7,8 @@ let sleep = (n: Int32) -> Int32 {
 }
 
 let main = () -> Int32 {
-  let current: Int32[200] = 0
-  let next: Int32[200] = 0
+  let current: Int32[200]
+  let next: Int32[200]
 
   let i: Int32 = 0
   loop {

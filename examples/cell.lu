@@ -35,7 +35,7 @@ let rule = (a: Int32, b: Int32, c: Int32) -> Int32 {
 }
 
 let main = () -> Int32 {
-  let buffer: Int32[101] = 0
+  let buffer: Int32[101]
 
   let col: Int32 = 0
   loop {
