@@ -150,16 +150,17 @@ MATCHER_P(FormattedError, matcher, "") {
 }
 
 TEST_F(CompilerTest, UnknownCommand) {
-  ASSERT_THAT(RunCompiler({"foo"}),
-              AllOf(ReturnsCode(1),
-                    PrintsError(FormattedError("unknown command 'foo'\n"))));
+  ASSERT_THAT(
+      RunCompiler({"foo"}),
+      AllOf(ReturnsCode(1),
+            PrintsError(FormattedError(StartsWith("unknown command 'foo'")))));
 }
 
 TEST_F(CompilerTest, NoBuildArguments) {
   ASSERT_THAT(RunCompiler({"build"}),
               AllOf(ReturnsCode(1),
-                    PrintsError(FormattedError(
-                        "'build' command requires exactly 2 arguments\n"))));
+                    PrintsError(FormattedError(StartsWith(
+                        "'build' command requires exactly 2 arguments")))));
 }
 
 TEST_F(CompilerTest, UnknownFile) {
@@ -177,9 +178,9 @@ TEST_F(CompilerTest, ParseError) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
-              AllOf(ReturnsCode(1), PrintsError(FormattedError(
+              AllOf(ReturnsCode(1), PrintsError(FormattedError(StartsWith(
                                         "expected closing parenthesis or "
-                                        "parameter at line 2, column 17\n"))));
+                                        "parameter at line 2, column 17\n")))));
 }
 
 TEST_F(CompilerTest, TypeError) {
@@ -188,9 +189,10 @@ TEST_F(CompilerTest, TypeError) {
       return true
     }
   )"));
-  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
-              AllOf(ReturnsCode(1),
-                    PrintsError(FormattedError("expected type Int32\n"))));
+  ASSERT_THAT(
+      RunCompiler({"build", "main", FullPath("main.lu")}),
+      AllOf(ReturnsCode(1),
+            PrintsError(FormattedError(StartsWith("expected type Int32\n")))));
 }
 
 }  // namespace

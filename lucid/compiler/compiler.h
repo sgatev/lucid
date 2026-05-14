@@ -4,6 +4,7 @@
 #include "lucid/core/functional/result.h"
 #include "lucid/core/io/file.h"
 #include "lucid/syntax/ast.h"
+#include "lucid/syntax/comp.h"
 #include "lucid/syntax/parser.h"
 #include "lucid/syntax/type.h"
 
@@ -17,7 +18,7 @@ struct CompileConfig {
   std::filesystem::path out_path;
 };
 
-Result<void, ReadFileError, ParserError, TypeError> CompileCode(
+Result<void, ReadFileError, ParserError, TypeError, CompError> CompileCode(
     CompileConfig config);
 
 struct BuildConfig {
@@ -25,7 +26,7 @@ struct BuildConfig {
   std::filesystem::path out_path;
 };
 
-Result<void, ReadFileError, ParserError, TypeError> BuildCode(
+Result<void, ReadFileError, ParserError, TypeError, CompError> BuildCode(
     BuildConfig config);
 
 }  // namespace lucid

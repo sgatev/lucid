@@ -22,6 +22,7 @@ cc_library(
         "//lucid/syntax:ast_printer",
         "//lucid/syntax:buffered_lexer",
         "//lucid/syntax:cfg",
+        "//lucid/syntax:comp",
         "//lucid/syntax:lexer",
         "//lucid/syntax:parser",
         "//lucid/syntax:ssa",

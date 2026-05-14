@@ -103,6 +103,33 @@ cc_library(
 )
 
 cc_library(
+    name = "comp",
+    srcs = ["comp.cc"],
+    hdrs = ["comp.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":ast",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/functional:result",
+        "//lucid/core/string:index",
+    ],
+)
+
+cc_test(
+    name = "comp_test",
+    srcs = ["comp_test.cc"],
+    deps = [
+        ":ast",
+        ":ast_fixture",
+        ":comp",
+        ":lexer",
+        ":parser",
+        "//lucid/core/functional:result",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "lexer",
     hdrs = ["lexer.h"],
     visibility = ["//lucid:__subpackages__"],
@@ -168,6 +195,7 @@ cc_library(
         "//lucid/core/container:arena",
         "//lucid/core/container:fixed_map",
         "//lucid/core/container:successive_list",
+        "//lucid/core/functional:result",
         "//lucid/core/string:index",
     ],
 )

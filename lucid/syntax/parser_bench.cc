@@ -26,7 +26,7 @@ void Benchmark(benchmark::State& state, std::string_view snippet) {
     lucid::Parser parser(ctx, code, lexer);
     std::size_t count = 0;
     for (int i = 0; i < kSnippetRepetitions; ++i) {
-      count += parser.ParseFuncDef().index();
+      if (parser.ParseFuncDef().HasValue()) ++count;
     }
     benchmark::DoNotOptimize(count);
   }

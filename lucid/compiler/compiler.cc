@@ -22,6 +22,7 @@
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/buffered_lexer.h"
 #include "lucid/syntax/cfg.h"
+#include "lucid/syntax/comp.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
 #include "lucid/syntax/ssa.h"
@@ -30,8 +31,8 @@
 namespace lucid {
 namespace {
 
-Result<void, ParserError, TypeError> CompileSource(std::string_view src,
-                                                   std::ostream& out) {
+Result<void, ParserError, TypeError, CompError> CompileSource(
+    std::string_view src, std::ostream& out) {
   SyntaxContext ctx;
   auto maybe_funcs = ParseFuncDefs(src, ctx);
   if (maybe_funcs.HasError()) return maybe_funcs.GetError();
@@ -45,6 +46,9 @@ Result<void, ParserError, TypeError> CompileSource(std::string_view src,
       state.emplace(AbstractMachineState{});
     }
     if (auto res = InferExprTypes(ctx, func_defs, func); res.HasError()) {
+      return res.GetError();
+    }
+    if (auto res = CheckComp(ctx, func_defs, func); res.HasError()) {
       return res.GetError();
     }
     SyntaxControlFlowGraph scfg = BuildControlFlowGraph(ctx, func);
@@ -77,12 +81,9 @@ Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
   Parser parser(ctx, src, lexer);
   while (true) {
     auto maybe_func_def = parser.ParseFuncDef();
-    if (auto* err = std::get_if<ParserError>(&maybe_func_def)) {
-      return std::move(*err);
-    }
+    RETURN_IF_ERROR(maybe_func_def);
 
-    auto func_def =
-        std::get<std::optional<FuncDefStmt>>(std::move(maybe_func_def));
+    auto func_def = std::move(maybe_func_def).GetValue();
     if (!func_def.has_value()) break;
 
     func_defs.push_back(std::move(*func_def));
@@ -90,7 +91,7 @@ Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
   return func_defs;
 }
 
-Result<void, ReadFileError, ParserError, TypeError> CompileCode(
+Result<void, ReadFileError, ParserError, TypeError, CompError> CompileCode(
     CompileConfig config) {
   const auto maybe_src = ReadFile(config.src_path, /*with_trailing_zero=*/true);
   if (maybe_src.HasError()) return maybe_src.GetError();
@@ -100,7 +101,7 @@ Result<void, ReadFileError, ParserError, TypeError> CompileCode(
   return CompileSource(src, out);
 }
 
-Result<void, ReadFileError, ParserError, TypeError> BuildCode(
+Result<void, ReadFileError, ParserError, TypeError, CompError> BuildCode(
     BuildConfig config) {
   auto obj_path = config.out_path;
   obj_path.replace_extension("o");

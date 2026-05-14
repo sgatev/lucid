@@ -98,8 +98,7 @@ class Result {
   // Requires:
   // - Must be called only if the result contains an error.
   void OutputError(std::ostream& out) const {
-    std::visit([&out](auto&& a) { out << a << "\n"; },
-               std::get<Errors>(state_));
+    std::visit([&out](auto&& a) { out << a; }, std::get<Errors>(state_));
   }
 
  private:
@@ -174,7 +173,7 @@ class Result<void, Es...> {
         [&out](auto&& a) {
           using T = std::decay_t<decltype(a)>;
           if constexpr (!std::is_same_v<T, std::monostate>) {
-            out << a << "\n";
+            out << a;
           }
         },
         std::get<Errors>(state_));
@@ -186,5 +185,10 @@ class Result<void, Es...> {
 
   std::variant<std::monostate, Errors> state_;
 };
+
+#define RETURN_IF_ERROR(expr)                   \
+  if (const auto& res = expr; res.HasError()) { \
+    return res.GetError();                      \
+  }
 
 }  // namespace lucid

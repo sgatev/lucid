@@ -40,6 +40,7 @@ int HandleCompileCommand(CommandContext ctx) {
   if (auto res = CompileCode({.src_path = src_path, .out_path = out_path});
       res.HasError()) {
     res.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
 
@@ -58,6 +59,7 @@ int HandleBuildCommand(CommandContext ctx) {
   if (auto res = BuildCode({.src_path = src_path, .out_path = bin_path});
       res.HasError()) {
     res.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
 
@@ -77,6 +79,7 @@ int HandleRunCommand(CommandContext ctx) {
   if (auto res = BuildCode({.src_path = src_path, .out_path = bin_path});
       res.HasError()) {
     res.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
 
@@ -94,6 +97,7 @@ int HandleParseCommand(CommandContext ctx) {
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (maybe_src.HasError()) {
     maybe_src.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
   const auto& src = maybe_src.GetValue();
@@ -102,6 +106,7 @@ int HandleParseCommand(CommandContext ctx) {
   auto maybe_funcs = ParseFuncDefs(src, sctx);
   if (maybe_funcs.HasError()) {
     maybe_funcs.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
 
@@ -119,6 +124,7 @@ int HandlePrintAstCommand(CommandContext ctx) {
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (maybe_src.HasError()) {
     maybe_src.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
   const auto& src = maybe_src.GetValue();
@@ -127,6 +133,7 @@ int HandlePrintAstCommand(CommandContext ctx) {
   auto maybe_funcs = ParseFuncDefs(src, sctx);
   if (maybe_funcs.HasError()) {
     maybe_funcs.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
   const auto& func_defs = maybe_funcs.GetValue();
@@ -165,6 +172,7 @@ int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (maybe_src.HasError()) {
     maybe_src.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
   const auto& src = maybe_src.GetValue();
@@ -173,6 +181,7 @@ int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
   auto maybe_funcs = ParseFuncDefs(src, sctx);
   if (maybe_funcs.HasError()) {
     maybe_funcs.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
   const auto& func_defs = maybe_funcs.GetValue();
@@ -201,6 +210,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (maybe_src.HasError()) {
     maybe_src.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
   const auto& src = maybe_src.GetValue();
@@ -209,6 +219,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   auto maybe_funcs = ParseFuncDefs(src, sctx);
   if (maybe_funcs.HasError()) {
     maybe_funcs.OutputError(PrintError(ctx.err));
+    ctx.err << "\n";
     return 1;
   }
   auto& func_defs = maybe_funcs.GetValue();
@@ -216,6 +227,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   for (bool has_printed_func = false; auto& func_def : func_defs) {
     if (auto res = InferExprTypes(sctx, func_defs, func_def); res.HasError()) {
       res.OutputError(PrintError(ctx.err));
+      ctx.err << "\n";
       return 1;
     }
     SyntaxControlFlowGraph scfg = BuildControlFlowGraph(sctx, func_def);

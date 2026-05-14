@@ -13,6 +13,7 @@
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/fixed_map.h"
 #include "lucid/core/container/successive_list.h"
+#include "lucid/core/functional/result.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/token.h"
@@ -80,10 +81,10 @@ class Parser {
         lexer_(std::move(lexer)),
         next_(lexer_.next()) {}
 
-  std::variant<std::optional<FuncDefStmt>, ParserError> ParseFuncDef() {
+  Result<std::optional<FuncDefStmt>, ParserError> ParseFuncDef() {
     SkipSpace();
 
-    if (Peek().kind == Token::Kind::End) return std::nullopt;
+    if (Peek().kind == Token::Kind::End) return std::optional<FuncDefStmt>();
 
     bool is_comp = false;
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "comp") {
@@ -155,7 +156,7 @@ class Parser {
     if (IsError(maybe_body)) return std::get<ParserError>(maybe_body);
     stmt.stmts = std::get<SuccessiveList<StmtRef>>(std::move(maybe_body));
 
-    return stmt;
+    return std::optional<FuncDefStmt>(stmt);
   }
 
  private:
