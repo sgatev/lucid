@@ -221,29 +221,31 @@ class AstFixture {
   // Allocates the statement `stmt` on an arena.
   template <typename X>
   StmtRef S(X stmt) {
-    return ctx_.Add(stmt);
+    return syn_ctx_.Add(stmt);
   }
 
   // Allocates the expression `expr` on an arena.
   template <typename X>
   ExprRef E(X expr) {
-    return ctx_.Add(expr);
+    return syn_ctx_.Add(expr);
   }
 
   // Allocates the type `type` on an arena.
   template <typename X>
   TypeRef T(X type) {
-    return ctx_.Add(type);
+    return syn_ctx_.Add(type);
   }
 
   // Allocates the type `param` on an arena.
   template <typename X>
   ParamRef P(X param) {
-    return ctx_.Add(param);
+    return syn_ctx_.Add(param);
   }
 
   // Allocates the `ident`.
-  StringIndex::Ref I(std::string_view ident) { return ctx_.AddIdent(ident); }
+  StringIndex::Ref I(std::string_view ident) {
+    return syn_ctx_.AddIdent(ident);
+  }
 
   // Returns an empty list.
   template <typename T>
@@ -255,9 +257,9 @@ class AstFixture {
   SuccessiveList<ExprRef> ExprListOf(std::initializer_list<ExprRef> exprs) {
     if (std::empty(exprs)) return EmptyList<Expr>();
     auto it = exprs.begin();
-    auto first_expr = ctx_.AliasExpr(*it);
+    auto first_expr = syn_ctx_.AliasExpr(*it);
     ++it;
-    for (; it != exprs.end(); ++it) ctx_.AliasExpr(*it);
+    for (; it != exprs.end(); ++it) syn_ctx_.AliasExpr(*it);
     return SuccessiveList<ExprRef>(exprs.size(), first_expr);
   }
 
@@ -265,9 +267,9 @@ class AstFixture {
   SuccessiveList<StmtRef> StmtListOf(std::initializer_list<StmtRef> stmts) {
     if (std::empty(stmts)) return EmptyList<Stmt>();
     auto it = stmts.begin();
-    auto first_stmt = ctx_.AliasStmt(*it);
+    auto first_stmt = syn_ctx_.AliasStmt(*it);
     ++it;
-    for (; it != stmts.end(); ++it) ctx_.AliasStmt(*it);
+    for (; it != stmts.end(); ++it) syn_ctx_.AliasStmt(*it);
     return SuccessiveList<StmtRef>(stmts.size(), first_stmt);
   }
 
@@ -275,9 +277,9 @@ class AstFixture {
   SuccessiveList<ParamRef> ParamListOf(std::initializer_list<ParamRef> params) {
     if (std::empty(params)) return EmptyList<FuncParam>();
     auto it = params.begin();
-    auto first_stmt = ctx_.AliasParam(*it);
+    auto first_stmt = syn_ctx_.AliasParam(*it);
     ++it;
-    for (; it != params.end(); ++it) ctx_.AliasParam(*it);
+    for (; it != params.end(); ++it) syn_ctx_.AliasParam(*it);
     return SuccessiveList<ParamRef>(params.size(), first_stmt);
   }
 
@@ -285,7 +287,7 @@ class AstFixture {
   // reference equivalent to `expected`.
   auto StmtEquivTo(StmtRef expected) {
     return testing::Truly([this, expected](StmtRef actual) {
-      return ctx_.EquivStmts(expected, actual);
+      return syn_ctx_.EquivStmts(expected, actual);
     });
   }
 
@@ -293,7 +295,7 @@ class AstFixture {
   // reference equivalent to `expected`.
   auto EquivTo(StmtRef expected) {
     return testing::Truly([this, expected](StmtRef actual) {
-      return ctx_.Equiv(expected, actual);
+      return syn_ctx_.Equiv(expected, actual);
     });
   }
 
@@ -301,7 +303,7 @@ class AstFixture {
   // reference equivalent to `expected`.
   auto EquivTo(ParamRef expected) {
     return testing::Truly([this, expected](ParamRef actual) {
-      return ctx_.Equiv(expected, actual);
+      return syn_ctx_.Equiv(expected, actual);
     });
   }
 
@@ -377,24 +379,25 @@ class AstFixture {
   }
 
   ParamRefMatcher MatchesFuncParam(FuncParamPattern pattern) {
-    return
-        [this, pattern](ParamRef ref) { return pattern(ctx_.DerefParam(ref)); };
+    return [this, pattern](ParamRef ref) {
+      return pattern(syn_ctx_.DerefParam(ref));
+    };
   }
 
-  SyntaxContext ctx_;
+  SyntaxContext syn_ctx_;
 
  private:
   template <typename S>
   StmtRefMatcher MatchesStmt() {
     return [this](StmtRef ref) {
-      return std::holds_alternative<S>(ctx_.DerefStmt(ref));
+      return std::holds_alternative<S>(syn_ctx_.DerefStmt(ref));
     };
   }
 
   template <typename S, typename P>
   StmtRefMatcher MatchesStmt(P pattern) {
     return [this, pattern](StmtRef ref) {
-      if (auto* stmt = std::get_if<S>(&ctx_.DerefStmt(ref))) {
+      if (auto* stmt = std::get_if<S>(&syn_ctx_.DerefStmt(ref))) {
         return pattern(*stmt);
       }
       return false;
@@ -404,7 +407,7 @@ class AstFixture {
   template <typename E, typename P>
   ExprRefMatcher MatchesExpr(P pattern) {
     return [this, pattern](ExprRef ref) {
-      if (auto* expr = std::get_if<E>(&ctx_.DerefExpr(ref))) {
+      if (auto* expr = std::get_if<E>(&syn_ctx_.DerefExpr(ref))) {
         return pattern(*expr);
       }
       return false;
@@ -414,7 +417,7 @@ class AstFixture {
   template <typename T, typename P>
   TypeRefMatcher MatchesType(P pattern) {
     return [this, pattern](TypeRef ref) {
-      if (auto* type = std::get_if<T>(&ctx_.DerefType(ref))) {
+      if (auto* type = std::get_if<T>(&syn_ctx_.DerefType(ref))) {
         return pattern(*type);
       }
       return false;

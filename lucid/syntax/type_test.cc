@@ -20,7 +20,7 @@ class InferExprTypesTest : public testing::Test, public AstFixture {
  protected:
   std::expected<void, TypeError> InferExprTypes(
       FuncDefStmt& stmt, const std::vector<FuncDefStmt>& func_defs = {}) {
-    return ::lucid::InferExprTypes(ctx_, func_defs, stmt);
+    return ::lucid::InferExprTypes(syn_ctx_, func_defs, stmt);
   }
 };
 

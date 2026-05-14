@@ -6,7 +6,7 @@
 namespace lucid {
 
 // Converts `scfg` to Static Single Assignment (SSA) form.
-void ConvertToStaticSingleAssignment(SyntaxContext& ctx,
-                                     SyntaxControlFlowGraph& scfg);
+void ConvertToStaticSingleAssignment(SyntaxContext& syn_ctx,
+                                     SyntaxControlFlowGraph& syn_cfg);
 
 }  // namespace lucid

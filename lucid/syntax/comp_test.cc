@@ -20,7 +20,7 @@ class CompCheckTest : public testing::Test, public AstFixture {
     code_with_null.append("\0"s);
 
     std::vector<FuncDefStmt> func_defs;
-    for (Parser parser(ctx_, src, Lexer(code_with_null));;) {
+    for (Parser parser(syn_ctx_, src, Lexer(code_with_null));;) {
       auto maybe_func_def_stmt = parser.ParseFuncDef();
       auto ref = std::move(maybe_func_def_stmt).value();
       if (!ref.has_value()) break;
@@ -30,10 +30,12 @@ class CompCheckTest : public testing::Test, public AstFixture {
 
     const FuncDefStmt* test_func_def = nullptr;
     for (const auto& func_def : func_defs) {
-      if (ctx_.DerefIdent(func_def.name) == "test") test_func_def = &func_def;
+      if (syn_ctx_.DerefIdent(func_def.name) == "test") {
+        test_func_def = &func_def;
+      }
     }
 
-    return lucid::CheckComp(ctx_, func_defs, *test_func_def);
+    return lucid::CheckComp(syn_ctx_, func_defs, *test_func_def);
   }
 };
 

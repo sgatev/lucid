@@ -12,18 +12,18 @@
 namespace lucid {
 
 // Generates the start sequence for 64-bit ARM machine code.
-void GenerateArmStartBinary(arm64::Assembler& Assembler);
+void GenerateArmStartBinary(arm64::Assembler& assembler);
 
 // Generates the end sequence for 64-bit ARM machine code.
 void GenerateArmEndBinary(
-    const SyntaxContext& ctx,
+    const SyntaxContext& syn_ctx,
     const HashMap<std::uintptr_t, StringIndex::Ref>& strings,
-    arm64::Assembler& Assembler);
+    arm64::Assembler& assembler);
 
 // Generates 64-bit ARM machine code for `func`.
 void GenerateArmAssemblyBinary(std::string_view func_name,
                                const std::vector<std::size_t>& stack_slots,
-                               const AbstractMachineControlFlowGraph& amcfg,
+                               const AbstractMachineControlFlowGraph& am_cfg,
                                arm64::Assembler& assmebler);
 
 }  // namespace lucid

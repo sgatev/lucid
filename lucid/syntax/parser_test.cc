@@ -36,7 +36,7 @@ class ParserTest : public testing::Test, public AstFixture {
     code_with_null.append("\0"s);
 
     auto maybe_func_def_stmt =
-        Parser(ctx_, src, Lexer(code_with_null)).ParseFuncDef();
+        Parser(syn_ctx_, src, Lexer(code_with_null)).ParseFuncDef();
     if (!maybe_func_def_stmt.has_value()) {
       std::stringstream out;
       out << maybe_func_def_stmt.error();

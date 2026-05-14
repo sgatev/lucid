@@ -17,7 +17,7 @@ using ::testing::SizeIs;
 class SyntaxControlFlowGraphTest : public testing::Test, public AstFixture {
  protected:
   SyntaxControlFlowGraph BuildControlFlowGraph(FuncDefStmt func_def) {
-    return ::lucid::BuildControlFlowGraph(ctx_, func_def);
+    return ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
   }
 };
 

@@ -75,8 +75,8 @@ class ParserError {
 template <typename LexerT>
 class Parser {
  public:
-  explicit Parser(SyntaxContext& ctx, std::string_view buffer, LexerT lexer)
-      : ctx_(ctx),
+  explicit Parser(SyntaxContext& syn_ctx, std::string_view buffer, LexerT lexer)
+      : syn_ctx_(syn_ctx),
         buffer_(buffer),
         lexer_(std::move(lexer)),
         next_(lexer_.next()) {}
@@ -185,7 +185,7 @@ class Parser {
     const auto maybe_type = ParseType();
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
 
-    return ctx_.Add(FuncParam{
+    return syn_ctx_.Add(FuncParam{
         .name = std::get<StringIndex::Ref>(maybe_name),
         .type_constraint = std::get<TypeRef>(maybe_type),
     });
@@ -194,7 +194,7 @@ class Parser {
   std::variant<StringIndex::Ref, ParserError> ParseIdent() {
     Token token = Read();
     if (token.kind == Token::Kind::Ident) [[likely]] {
-      return ctx_.AddIdent(TokenString(token));
+      return syn_ctx_.AddIdent(TokenString(token));
     }
     return MakeError(ParserError::Kind::ExpectedIdent, token);
   }
@@ -220,10 +220,10 @@ class Parser {
     const std::uint8_t args_size = pending_stmts_.size() - start_idx;
     StmtRef args_first = Arena<Stmt>::kNullRef;
     if (args_size > 0) {
-      args_first = ctx_.Add(std::move(pending_stmts_[start_idx]));
+      args_first = syn_ctx_.Add(std::move(pending_stmts_[start_idx]));
     }
     for (std::size_t i = 1; i < args_size; ++i) {
-      ctx_.Add(std::move(pending_stmts_[start_idx + i]));
+      syn_ctx_.Add(std::move(pending_stmts_[start_idx + i]));
     }
     for (std::size_t i = 0; i < args_size; ++i) {
       pending_stmts_.pop_back();
@@ -259,7 +259,7 @@ class Parser {
     if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
 
     return DoStmt{
-        .expr = ctx_.Add(std::get<Expr>(maybe_value)),
+        .expr = syn_ctx_.Add(std::get<Expr>(maybe_value)),
     };
   }
 
@@ -270,7 +270,7 @@ class Parser {
     if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
 
     return ReturnStmt{
-        .value = ctx_.Add(std::get<Expr>(maybe_value)),
+        .value = syn_ctx_.Add(std::get<Expr>(maybe_value)),
     };
   }
 
@@ -296,7 +296,7 @@ class Parser {
 
     const auto cond = ParseExpr();
     if (IsError(cond)) return std::get<ParserError>(cond);
-    if_stmt.cond = ctx_.Add(std::get<Expr>(cond));
+    if_stmt.cond = syn_ctx_.Add(std::get<Expr>(cond));
 
     auto then_body = ParseCompoundStmt();
     if (IsError(then_body)) return std::get<ParserError>(then_body);
@@ -313,7 +313,7 @@ class Parser {
         const auto stmt = ParseStmt();
         if (IsError(stmt)) return std::get<ParserError>(stmt);
         if_stmt.else_stmts =
-            SuccessiveList<StmtRef>(1, ctx_.Add(std::get<Stmt>(stmt)));
+            SuccessiveList<StmtRef>(1, syn_ctx_.Add(std::get<Stmt>(stmt)));
       } else {
         auto else_body = ParseCompoundStmt();
         if (IsError(else_body)) return std::get<ParserError>(else_body);
@@ -359,7 +359,7 @@ class Parser {
 
       auto maybe_init = ParseExpr();
       if (IsError(maybe_init)) return std::get<ParserError>(maybe_init);
-      init = ctx_.Add(std::get<Expr>(maybe_init));
+      init = syn_ctx_.Add(std::get<Expr>(maybe_init));
     }
 
     return VarDeclStmt{
@@ -401,8 +401,8 @@ class Parser {
 
         return ArrayAssignStmt{
             .name = ident,
-            .index = ctx_.Add(std::get<Expr>(maybe_size)),
-            .expr = ctx_.Add(std::get<Expr>(expr)),
+            .index = syn_ctx_.Add(std::get<Expr>(maybe_size)),
+            .expr = syn_ctx_.Add(std::get<Expr>(expr)),
         };
       }
 
@@ -421,7 +421,7 @@ class Parser {
 
       return VarAssignStmt{
           .name = ident,
-          .expr = ctx_.Add(std::get<Expr>(expr)),
+          .expr = syn_ctx_.Add(std::get<Expr>(expr)),
       };
     }
 
@@ -445,8 +445,8 @@ class Parser {
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
       return MakeBinaryOpExpr(BinaryOp::Gt,
-                              ctx_.Add(std::get<Expr>(maybe_expr)),
-                              ctx_.Add(std::get<Expr>(maybe_rhs)));
+                              syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+                              syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
     } else if (Peek().kind == Token::Kind::Less) {
       Read();
 
@@ -456,8 +456,8 @@ class Parser {
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
       return MakeBinaryOpExpr(BinaryOp::Lt,
-                              ctx_.Add(std::get<Expr>(maybe_expr)),
-                              ctx_.Add(std::get<Expr>(maybe_rhs)));
+                              syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+                              syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
     } else if (Peek().kind == Token::Kind::Equal) {
       Read();
 
@@ -471,8 +471,8 @@ class Parser {
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
       return MakeBinaryOpExpr(BinaryOp::Eq,
-                              ctx_.Add(std::get<Expr>(maybe_expr)),
-                              ctx_.Add(std::get<Expr>(maybe_rhs)));
+                              syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+                              syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
     } else if (Peek().kind == Token::Kind::Exclamation) {
       Read();
 
@@ -486,8 +486,8 @@ class Parser {
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
       return MakeBinaryOpExpr(BinaryOp::NotEq,
-                              ctx_.Add(std::get<Expr>(maybe_expr)),
-                              ctx_.Add(std::get<Expr>(maybe_rhs)));
+                              syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+                              syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
     }
 
     return maybe_expr;
@@ -521,8 +521,8 @@ class Parser {
       }
 
       maybe_expr = IndexExpr{
-          .base = ctx_.Add(std::get<Expr>(maybe_expr)),
-          .index = ctx_.Add(std::get<Expr>(maybe_size)),
+          .base = syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+          .index = syn_ctx_.Add(std::get<Expr>(maybe_size)),
       };
     }
 
@@ -535,8 +535,8 @@ class Parser {
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
       return MakeBinaryOpExpr(BinaryOp::Add,
-                              ctx_.Add(std::get<Expr>(maybe_expr)),
-                              ctx_.Add(std::get<Expr>(maybe_rhs)));
+                              syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+                              syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
     } else if (Peek().kind == Token::Kind::Minus) {
       Read();
 
@@ -546,8 +546,8 @@ class Parser {
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
       return MakeBinaryOpExpr(BinaryOp::Sub,
-                              ctx_.Add(std::get<Expr>(maybe_expr)),
-                              ctx_.Add(std::get<Expr>(maybe_rhs)));
+                              syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+                              syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
     } else if (Peek().kind == Token::Kind::Star) {
       Read();
 
@@ -557,8 +557,8 @@ class Parser {
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
       return MakeBinaryOpExpr(BinaryOp::Mul,
-                              ctx_.Add(std::get<Expr>(maybe_expr)),
-                              ctx_.Add(std::get<Expr>(maybe_rhs)));
+                              syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+                              syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
     } else if (Peek().kind == Token::Kind::Slash) {
       Read();
 
@@ -568,8 +568,8 @@ class Parser {
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
       return MakeBinaryOpExpr(BinaryOp::Div,
-                              ctx_.Add(std::get<Expr>(maybe_expr)),
-                              ctx_.Add(std::get<Expr>(maybe_rhs)));
+                              syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+                              syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
     } else if (Peek().kind == Token::Kind::Percent) {
       Read();
 
@@ -579,8 +579,8 @@ class Parser {
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
 
       return MakeBinaryOpExpr(BinaryOp::Mod,
-                              ctx_.Add(std::get<Expr>(maybe_expr)),
-                              ctx_.Add(std::get<Expr>(maybe_rhs)));
+                              syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+                              syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
     }
 
     return maybe_expr;
@@ -604,10 +604,10 @@ class Parser {
       const std::uint8_t args_size = pending_exprs_.size() - start_idx;
       ExprRef args_first = Arena<Expr>::kNullRef;
       if (args_size > 0) {
-        args_first = ctx_.Add(std::move(pending_exprs_[start_idx]));
+        args_first = syn_ctx_.Add(std::move(pending_exprs_[start_idx]));
       }
       for (std::size_t i = 1; i < args_size; ++i) {
-        ctx_.Add(std::move(pending_exprs_[start_idx + i]));
+        syn_ctx_.Add(std::move(pending_exprs_[start_idx + i]));
       }
       for (std::size_t i = 0; i < args_size; ++i) {
         pending_exprs_.pop_back();
@@ -619,7 +619,8 @@ class Parser {
       };
     }
 
-    if (ident == ctx_.AddIdent("true") || ident == ctx_.AddIdent("false")) {
+    if (ident == syn_ctx_.AddIdent("true") ||
+        ident == syn_ctx_.AddIdent("false")) {
       return BoolLitExpr{
           .value = ident,
       };
@@ -636,7 +637,7 @@ class Parser {
       return MakeError(ParserError::Kind::ExpectedNumber, token);
     }
     return IntLitExpr{
-        .value = ctx_.AddIdent(TokenString(token)),
+        .value = syn_ctx_.AddIdent(TokenString(token)),
     };
   }
 
@@ -657,7 +658,7 @@ class Parser {
       return MakeError(ParserError::Kind::ExpectedString, token);
     }
     return StringLitExpr{
-        .value = ctx_.AddIdent(TokenString(token)),
+        .value = syn_ctx_.AddIdent(TokenString(token)),
     };
   }
 
@@ -675,15 +676,15 @@ class Parser {
         return *r;
       }
 
-      return ctx_.Add(ArrayType{
-          .element_type_constraint = ctx_.Add(BasicType{
+      return syn_ctx_.Add(ArrayType{
+          .element_type_constraint = syn_ctx_.Add(BasicType{
               .name = std::get<StringIndex::Ref>(maybe_type),
           }),
           .size = std::get<IntLitExpr>(maybe_size),
       });
     }
 
-    return ctx_.Add(BasicType{
+    return syn_ctx_.Add(BasicType{
         .name = std::get<StringIndex::Ref>(maybe_type),
     });
   }
@@ -746,7 +747,7 @@ class Parser {
     return r.has_value();
   }
 
-  SyntaxContext& ctx_;
+  SyntaxContext& syn_ctx_;
   std::string_view buffer_;
   LexerT lexer_;
   Token next_;

@@ -28,11 +28,11 @@ class CompError {
 // Returns an error if `stmt` does not meet compilation requirements.
 //
 // Requires:
-// - `func_defs` must be associated with `sctx`.
-// - `stmt` must be associated with `sctx`.
+// - `func_defs` must be associated with `syn_ctx`.
+// - `stmt` must be associated with `syn_ctx`.
 // - All functions called from `stmt` must be in `func_defs`.
 std::expected<void, CompError> CheckComp(
-    const SyntaxContext& sctx, const std::vector<FuncDefStmt>& func_defs,
+    const SyntaxContext& syn_ctx, const std::vector<FuncDefStmt>& func_defs,
     const FuncDefStmt& stmt);
 
 }  // namespace lucid

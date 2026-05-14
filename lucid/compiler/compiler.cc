@@ -34,39 +34,40 @@ namespace {
 
 std::expected<void, CompileError> CompileSource(std::string_view src,
                                                 std::ostream& out) {
-  SyntaxContext sctx;
+  SyntaxContext syn_ctx;
 
   std::expected<std::vector<FuncDefStmt>, CompileError> func_defs =
-      ParseFuncDefs(src, sctx);
+      ParseFuncDefs(src, syn_ctx);
   if (!func_defs) return std::unexpected(func_defs.error());
 
   AbstractMachineState am_state;
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
   for (auto& func : *func_defs) {
-    if (auto res = InferExprTypes(sctx, *func_defs, func); !res.has_value()) {
+    if (auto res = InferExprTypes(syn_ctx, *func_defs, func);
+        !res.has_value()) {
       return std::unexpected(res.error());
     }
-    if (auto res = CheckComp(sctx, *func_defs, func); !res.has_value()) {
+    if (auto res = CheckComp(syn_ctx, *func_defs, func); !res.has_value()) {
       return std::unexpected(res.error());
     }
-    SyntaxControlFlowGraph scfg = BuildControlFlowGraph(sctx, func);
-    ConvertToStaticSingleAssignment(sctx, scfg);
-    AbstractMachineControlFlowGraph amcfg =
-        GenerateAbstractMachineFunction(sctx, scfg, am_state);
-    for (auto& block : amcfg.blocks()) {
+    SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func);
+    ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
+    AbstractMachineControlFlowGraph am_cfg =
+        GenerateAbstractMachineFunction(syn_ctx, syn_cfg, am_state);
+    for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
     static constexpr int kArmRegistersCount = 10;
-    SpillRegisters(amcfg, am_state, kArmRegistersCount);
-    HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(amcfg);
+    SpillRegisters(am_cfg, am_state, kArmRegistersCount);
+    HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
     HashMap<RegId, int> am_ig_colors =
-        ColorInterferenceGraph(amcfg, am_ig, kArmRegistersCount);
-    MergeRegisters(am_ig_colors, amcfg);
-    GenerateArmAssemblyBinary(sctx.DerefIdent(func.name), am_state.stack_slots,
-                              amcfg, assembler);
+        ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
+    MergeRegisters(am_ig_colors, am_cfg);
+    GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func.name),
+                              am_state.stack_slots, am_cfg, assembler);
   }
-  GenerateArmEndBinary(sctx, am_state.strings, assembler);
+  GenerateArmEndBinary(syn_ctx, am_state.strings, assembler);
   WriteCompiledMachObject(assembler, out);
   return {};
 }
@@ -97,15 +98,15 @@ std::expected<void, CompileError> CompileCode(CompileConfig config) {
   return CompileSource(*src, out);
 }
 
-std::expected<void, BuildError> BuildCode(BuildConfig config) {
-  std::filesystem::path obj_path = config.out_path;
+std::expected<void, BuildError> BuildCode(BuildConfig cfg) {
+  std::filesystem::path obj_path = cfg.out_path;
   obj_path.replace_extension("o");
 
-  return CompileCode({.src_path = config.src_path, .out_path = obj_path})
+  return CompileCode({.src_path = cfg.src_path, .out_path = obj_path})
       .and_then([&] -> std::expected<void, BuildError> {
         std::system(std::format("ld -o {} {} -lSystem -syslibroot `xcrun -sdk "
                                 "macosx --show-sdk-path` -e _start -arch arm64",
-                                config.out_path.c_str(), obj_path.c_str())
+                                cfg.out_path.c_str(), obj_path.c_str())
                         .data());
         return {};
       });

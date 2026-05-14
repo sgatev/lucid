@@ -24,30 +24,30 @@ namespace {
 
 class AbstractMachineFunctionGenerator {
  public:
-  AbstractMachineFunctionGenerator(const SyntaxContext& ctx,
-                                   const SyntaxControlFlowGraph& scfg,
-                                   AbstractMachineState& state)
-      : ctx_(ctx), scfg_(scfg), am_state_(state) {
-    expr_and_stmt_to_reg_.resize(ctx_.Size());
+  AbstractMachineFunctionGenerator(const SyntaxContext& syn_ctx,
+                                   const SyntaxControlFlowGraph& syn_cfg,
+                                   AbstractMachineState& am_state)
+      : syn_ctx_(syn_ctx), syn_cfg_(syn_cfg), am_state_(am_state) {
+    expr_and_stmt_to_reg_.resize(syn_ctx_.Size());
   }
 
   AbstractMachineControlFlowGraph Generate() && {
-    for (const auto& block : scfg_.blocks()) {
+    for (const auto& block : syn_cfg_.blocks()) {
       graph_map_.Set(block.ref, am_cfg_.add().ref);
     }
 
-    auto scfg_first = graph_map_.Get(scfg_.first);
+    auto scfg_first = graph_map_.Get(syn_cfg_.first);
     assert(scfg_first.has_value());
     am_cfg_.first = *scfg_first;
 
-    auto scfg_last = graph_map_.Get(scfg_.last);
+    auto scfg_last = graph_map_.Get(syn_cfg_.last);
     assert(scfg_last.has_value());
     am_cfg_.last = *scfg_last;
 
     result_reg_ = {am_state_.next_free_reg_id++,
-                   GetRegSize(scfg_.func_result_type)};
+                   GetRegSize(syn_cfg_.func_result_type)};
 
-    if (ctx_.DerefIdent(scfg_.func_name) == "printString") {
+    if (syn_ctx_.DerefIdent(syn_cfg_.func_name) == "printString") {
       auto& first_block = am_cfg_.add();
       am_cfg_.first = first_block.ref;
 
@@ -64,7 +64,7 @@ class AbstractMachineFunctionGenerator {
           .res_reg = result_reg_,
       });
       return std::move(am_cfg_);
-    } else if (ctx_.DerefIdent(scfg_.func_name) == "sleep") {
+    } else if (syn_ctx_.DerefIdent(syn_cfg_.func_name) == "sleep") {
       auto& first_block = am_cfg_.add();
       am_cfg_.first = first_block.ref;
 
@@ -86,23 +86,23 @@ class AbstractMachineFunctionGenerator {
     {
       auto& first_block = am_cfg_.get(am_cfg_.first);
       first_block.instructions.push_back(PushStack{});
-      for (const auto& param_ref : scfg_.func_params) {
-        const auto& param = ctx_.DerefParam(param_ref);
+      for (const auto& param_ref : syn_cfg_.func_params) {
+        const auto& param = syn_ctx_.DerefParam(param_ref);
         am_cfg_.params.push_back(GetVarReg(param.name, param.type_constraint));
       }
     }
 
-    for (const auto& block : scfg_.blocks()) {
+    for (const auto& block : syn_cfg_.blocks()) {
       auto am_cfg_block_ref = graph_map_.Get(block.ref);
       assert(am_cfg_block_ref.has_value());
       Process(block, am_cfg_.get(*am_cfg_block_ref));
     }
-    for (const auto& block : scfg_.blocks()) {
+    for (const auto& block : syn_cfg_.blocks()) {
       auto am_cfg_block_ref = graph_map_.Get(block.ref);
       assert(am_cfg_block_ref.has_value());
       auto& am_block = am_cfg_.get(*am_cfg_block_ref);
       for (auto phi_ref : block.phis) {
-        const auto& phi = scfg_.deref(phi_ref);
+        const auto& phi = syn_cfg_.deref(phi_ref);
 
         auto& am_phi = am_block.phis.emplace_back();
         am_phi.dst = GetVarReg(phi.name, phi.type_constraint);
@@ -128,10 +128,10 @@ class AbstractMachineFunctionGenerator {
                AbstractMachineControlFlowGraph::Block& am_block) {
     for (const auto& seq : block.sequences) {
       for (ExprRef expr : seq.expressions) {
-        Process(expr, ctx_.DerefExpr(expr), am_block);
+        Process(expr, syn_ctx_.DerefExpr(expr), am_block);
       }
       if (seq.stmt.has_value()) {
-        Process(*seq.stmt, ctx_.DerefStmt(*seq.stmt), am_block);
+        Process(*seq.stmt, syn_ctx_.DerefStmt(*seq.stmt), am_block);
       }
     }
     if (block.branch_cond != Arena<Expr>::kNullRef) {
@@ -158,7 +158,7 @@ class AbstractMachineFunctionGenerator {
                    AbstractMachineControlFlowGraph::Block& am_block) {
     RegId reg = {am_state_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(SetReg{
-        .src_val = ctx_.DerefIdent(expr.value),
+        .src_val = syn_ctx_.DerefIdent(expr.value),
         .dst_reg = reg,
     });
     expr_and_stmt_to_reg_[ref.id()] = reg;
@@ -168,7 +168,7 @@ class AbstractMachineFunctionGenerator {
                    AbstractMachineControlFlowGraph::Block& am_block) {
     RegId reg = {am_state_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(SetReg{
-        .src_val = ctx_.DerefIdent(expr.value) == "true" ? "1" : "0",
+        .src_val = syn_ctx_.DerefIdent(expr.value) == "true" ? "1" : "0",
         .dst_reg = reg,
     });
     expr_and_stmt_to_reg_[ref.id()] = reg;
@@ -176,8 +176,8 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const StringLitExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
-    auto string_id =
-        reinterpret_cast<std::uintptr_t>(ctx_.DerefIdent(expr.value).data());
+    auto string_id = reinterpret_cast<std::uintptr_t>(
+        syn_ctx_.DerefIdent(expr.value).data());
     am_state_.strings.Insert(string_id, expr.value);
 
     RegId reg = {am_state_.next_free_reg_id++, GetRegSize(expr.type)};
@@ -191,7 +191,7 @@ class AbstractMachineFunctionGenerator {
   void ProcessExpr(ExprRef ref, const FuncCallExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
     FuncCall func_call = {
-        .label = ctx_.DerefIdent(expr.func_name),
+        .label = syn_ctx_.DerefIdent(expr.func_name),
     };
     for (ExprRef arg : expr.args) {
       func_call.args.push_back(FuncCall::Slot{
@@ -208,7 +208,8 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const IdentExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
-    if (std::holds_alternative<ArrayType>(ctx_.DerefType(expr.type))) return;
+    if (std::holds_alternative<ArrayType>(syn_ctx_.DerefType(expr.type)))
+      return;
     RegId reg = {am_state_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(MoveReg{
         .src_reg = GetVarReg(expr.name, expr.type),
@@ -220,8 +221,8 @@ class AbstractMachineFunctionGenerator {
   void ProcessExpr(ExprRef ref, const IndexExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
     std::size_t base_offset = GetStackOffset(expr.base);
-    auto expr_type = std::get<BasicType>(ctx_.DerefType(expr.type));
-    std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
+    auto expr_type = std::get<BasicType>(syn_ctx_.DerefType(expr.type));
+    std::string_view expr_type_name = syn_ctx_.DerefIdent(expr_type.name);
     RegId reg = {am_state_.next_free_reg_id++, GetRegSize(expr.type)};
     if (expr_type_name == "Int32") {
       RegId offset_reg = {am_state_.next_free_reg_id++, RegSize::RegSize32};
@@ -369,7 +370,7 @@ class AbstractMachineFunctionGenerator {
 
   void Process(StmtRef ref, const VarAssignStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
-    auto expr_type_ref = GetType(ctx_.DerefExpr(stmt.expr));
+    auto expr_type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));
     am_block.instructions.push_back(MoveReg{
         .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
         .dst_reg = GetVarReg(stmt.name, expr_type_ref),
@@ -379,13 +380,14 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef ref, const VarDeclStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
     if (std::holds_alternative<ArrayType>(
-            ctx_.DerefType(stmt.type_constraint))) {
+            syn_ctx_.DerefType(stmt.type_constraint))) {
       auto array_type =
-          std::get<ArrayType>(ctx_.DerefType(stmt.type_constraint));
+          std::get<ArrayType>(syn_ctx_.DerefType(stmt.type_constraint));
       const auto& var_decl_type = std::get<BasicType>(
-          ctx_.DerefType(array_type.element_type_constraint));
-      std::string_view var_decl_type_name = ctx_.DerefIdent(var_decl_type.name);
-      std::string_view array_size = ctx_.DerefIdent(array_type.size.value);
+          syn_ctx_.DerefType(array_type.element_type_constraint));
+      std::string_view var_decl_type_name =
+          syn_ctx_.DerefIdent(var_decl_type.name);
+      std::string_view array_size = syn_ctx_.DerefIdent(array_type.size.value);
       std::size_t size;
       auto res = std::from_chars(array_size.data(),
                                  array_size.data() + array_size.size(), size);
@@ -413,9 +415,9 @@ class AbstractMachineFunctionGenerator {
 
   void Process(StmtRef ref, const ArrayAssignStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
-    auto expr_type =
-        std::get<BasicType>(ctx_.DerefType(GetType(ctx_.DerefExpr(stmt.expr))));
-    std::string_view expr_type_name = ctx_.DerefIdent(expr_type.name);
+    auto expr_type = std::get<BasicType>(
+        syn_ctx_.DerefType(GetType(syn_ctx_.DerefExpr(stmt.expr))));
+    std::string_view expr_type_name = syn_ctx_.DerefIdent(expr_type.name);
     auto stmt_offset = var_stack_.Get(stmt.name);
     assert(stmt_offset.has_value());
     if (expr_type_name == "Int32") {
@@ -485,7 +487,7 @@ class AbstractMachineFunctionGenerator {
                AbstractMachineControlFlowGraph::Block& am_block) {}
 
   std::size_t GetStackOffset(ExprRef expr_ref) {
-    const auto& expr = std::get<IdentExpr>(ctx_.DerefExpr(expr_ref));
+    const auto& expr = std::get<IdentExpr>(syn_ctx_.DerefExpr(expr_ref));
     auto pos = var_stack_.Get(expr.name);
     assert(pos.has_value());
     return *pos;
@@ -501,16 +503,16 @@ class AbstractMachineFunctionGenerator {
   }
 
   RegSize GetRegSize(TypeRef type_ref) {
-    auto expr_type = std::get<BasicType>(ctx_.DerefType(type_ref));
-    std::string_view type_name = ctx_.DerefIdent(expr_type.name);
+    auto expr_type = std::get<BasicType>(syn_ctx_.DerefType(type_ref));
+    std::string_view type_name = syn_ctx_.DerefIdent(expr_type.name);
     if (type_name == "Int64" || type_name == "String") {
       return RegSize::RegSize64;
     }
     return RegSize::RegSize32;
   }
 
-  const SyntaxContext& ctx_;
-  const SyntaxControlFlowGraph& scfg_;
+  const SyntaxContext& syn_ctx_;
+  const SyntaxControlFlowGraph& syn_cfg_;
   AbstractMachineState& am_state_;
   AbstractMachineControlFlowGraph am_cfg_;
   RegId result_reg_;
@@ -525,9 +527,10 @@ class AbstractMachineFunctionGenerator {
 }  // namespace
 
 AbstractMachineControlFlowGraph GenerateAbstractMachineFunction(
-    const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg,
-    AbstractMachineState& state) {
-  return AbstractMachineFunctionGenerator(ctx, scfg, state).Generate();
+    const SyntaxContext& syn_ctx, const SyntaxControlFlowGraph& syn_cfg,
+    AbstractMachineState& am_state) {
+  return AbstractMachineFunctionGenerator(syn_ctx, syn_cfg, am_state)
+      .Generate();
 }
 
 }  // namespace lucid

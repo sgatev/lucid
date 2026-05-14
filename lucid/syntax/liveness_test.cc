@@ -25,9 +25,9 @@ class SyntaxLivenessAnalysisTest : public testing::Test, public AstFixture {
   using State = SyntaxLivenessAnalysis::State;
 
   std::vector<std::optional<State>> AnalyzeReachability(FuncDefStmt func_def) {
-    auto scfg = ::lucid::BuildControlFlowGraph(ctx_, func_def);
-    SyntaxLivenessAnalysis analysis(ctx_, scfg);
-    return RunDataflow(Forward(scfg), analysis);
+    auto syn_cfg = ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
+    SyntaxLivenessAnalysis analysis(syn_ctx_, syn_cfg);
+    return RunDataflow(Forward(syn_cfg), analysis);
   }
 };
 

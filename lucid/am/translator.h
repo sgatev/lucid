@@ -7,14 +7,14 @@
 
 namespace lucid {
 
-// Generates abstract machine instructions for `scfg`.
+// Generates abstract machine instructions for `syn_cfg`.
 //
-// The generated instructions are stored in `state`.
+// The generated instructions are stored in `am_state`.
 //
 // Requires:
-// - `scfg` must be constructed in `ctx`.
+// - `syn_cfg` must be constructed in `syn_ctx`.
 AbstractMachineControlFlowGraph GenerateAbstractMachineFunction(
-    const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg,
-    AbstractMachineState& state);
+    const SyntaxContext& syn_ctx, const SyntaxControlFlowGraph& syn_cfg,
+    AbstractMachineState& am_state);
 
 }  // namespace lucid

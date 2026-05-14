@@ -25,9 +25,9 @@ class SyntaxReachabilityAnalysisTest : public testing::Test, public AstFixture {
   using State = SyntaxReachabilityAnalysis::State;
 
   std::vector<std::optional<State>> AnalyzeReachability(FuncDefStmt func_def) {
-    auto scfg = ::lucid::BuildControlFlowGraph(ctx_, func_def);
-    SyntaxReachabilityAnalysis analysis(scfg, ctx_);
-    return RunDataflow(Forward(scfg), analysis);
+    auto syn_cfg = ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
+    SyntaxReachabilityAnalysis analysis(syn_cfg, syn_ctx_);
+    return RunDataflow(Forward(syn_cfg), analysis);
   }
 };
 

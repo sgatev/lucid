@@ -30,11 +30,11 @@ class TypeError {
 // Returns an error if types in `stmt` are incompatible.
 //
 // Requires:
-// - `func_defs` must be associated with `ctx`.
-// - `stmt` must be associated with `ctx`.
+// - `func_defs` must be associated with `syn_ctx`.
+// - `stmt` must be associated with `syn_ctx`.
 // - All functions called from `stmt` must be in `func_defs`.
 std::expected<void, TypeError> InferExprTypes(
-    SyntaxContext& ctx, const std::vector<FuncDefStmt>& func_defs,
+    SyntaxContext& syn_ctx, const std::vector<FuncDefStmt>& func_defs,
     FuncDefStmt& stmt);
 
 }  // namespace lucid

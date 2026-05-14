@@ -21,7 +21,7 @@ using Phi = SyntaxControlFlowGraph::Phi;
 class ConvertToStaticSingleAssignmentTest : public Test, public AstFixture {
  protected:
   SyntaxControlFlowGraph BuildControlFlowGraph(FuncDefStmt func_def) {
-    return ::lucid::BuildControlFlowGraph(ctx_, func_def);
+    return ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
   }
 };
 
@@ -62,7 +62,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
       }),
   });
 
-  ConvertToStaticSingleAssignment(ctx_, scfg);
+  ConvertToStaticSingleAssignment(syn_ctx_, scfg);
 
   ASSERT_EQ(scfg.blocks().Size(), 5);
 
@@ -134,7 +134,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
       }),
   });
 
-  ConvertToStaticSingleAssignment(ctx_, scfg);
+  ConvertToStaticSingleAssignment(syn_ctx_, scfg);
 
   ASSERT_EQ(scfg.blocks().Size(), 8);
 
@@ -205,7 +205,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
       }),
   });
 
-  ConvertToStaticSingleAssignment(ctx_, scfg);
+  ConvertToStaticSingleAssignment(syn_ctx_, scfg);
 
   ASSERT_EQ(scfg.blocks().Size(), 5);
 
@@ -259,7 +259,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
       }),
   });
 
-  ConvertToStaticSingleAssignment(ctx_, scfg);
+  ConvertToStaticSingleAssignment(syn_ctx_, scfg);
 
   ASSERT_EQ(scfg.blocks().Size(), 7);
 

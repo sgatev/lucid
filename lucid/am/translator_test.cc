@@ -21,11 +21,11 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
  protected:
   std::vector<Instruction> Generate(
       FuncDefStmt& func, const std::vector<FuncDefStmt>& func_defs = {}) {
-    InferExprTypes(ctx_, func_defs, func);
-    auto graph = BuildControlFlowGraph(ctx_, func);
+    InferExprTypes(syn_ctx_, func_defs, func);
+    auto graph = BuildControlFlowGraph(syn_ctx_, func);
     AbstractMachineState state;
     AbstractMachineControlFlowGraph am_cfg =
-        GenerateAbstractMachineFunction(ctx_, graph, state);
+        GenerateAbstractMachineFunction(syn_ctx_, graph, state);
 
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
         Vertices(am_cfg);

@@ -25,19 +25,19 @@ using Phi = SyntaxControlFlowGraph::Phi;
 using PhiRef = SyntaxControlFlowGraph::PhiRef;
 
 HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> CollectVarDefs(
-    const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg) {
+    const SyntaxContext& syn_ctx, const SyntaxControlFlowGraph& syn_cfg) {
   HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> defs;
-  for (auto param_ref : scfg.func_params) {
-    const auto& param = ctx.DerefParam(param_ref);
+  for (auto param_ref : syn_cfg.func_params) {
+    const auto& param = syn_ctx.DerefParam(param_ref);
     defs.Insert(param.name, {});
     defs.Get(param.name)->first = param.type_constraint;
-    defs.Get(param.name)->second.Insert(scfg.first);
+    defs.Get(param.name)->second.Insert(syn_cfg.first);
   }
-  for (const auto& block : scfg.blocks()) {
+  for (const auto& block : syn_cfg.blocks()) {
     for (const auto& seq : block.sequences) {
       if (!seq.stmt.has_value()) continue;
 
-      const auto& stmt = ctx.DerefStmt(*seq.stmt);
+      const auto& stmt = syn_ctx.DerefStmt(*seq.stmt);
       if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
         defs.Insert(var_decl_stmt->name, {});
         defs.Get(var_decl_stmt->name)->first = var_decl_stmt->type_constraint;
@@ -51,16 +51,17 @@ HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> CollectVarDefs(
   return defs;
 }
 
-void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
-  SyntaxLivenessAnalysis liveness_analysis(ctx, scfg);
+void InitPhiFunctions(const SyntaxContext& syn_ctx,
+                      SyntaxControlFlowGraph& syn_cfg) {
+  SyntaxLivenessAnalysis liveness_analysis(syn_ctx, syn_cfg);
   std::vector<std::optional<SyntaxLivenessAnalysis::State>>
-      liveness_block_states = RunDataflow(Backward(scfg), liveness_analysis);
+      liveness_block_states = RunDataflow(Backward(syn_cfg), liveness_analysis);
   const std::vector<std::optional<BlockRef>> idoms =
-      ComputeImmediateDominators(scfg);
+      ComputeImmediateDominators(syn_cfg);
   const HashMap<BlockRef, HashSet<BlockRef>> dom_fronts =
-      ComputeDominanceFrontiers(scfg, idoms);
+      ComputeDominanceFrontiers(syn_cfg, idoms);
   const HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>>
-      var_defs = CollectVarDefs(ctx, scfg);
+      var_defs = CollectVarDefs(syn_ctx, syn_cfg);
 
   for (const auto& [var, add] : var_defs) {
     const auto& [type, def_blocks] = add;
@@ -82,7 +83,7 @@ void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
 
         if (!liveness_block_states[y.id()]->live_in.Contains(var)) continue;
 
-        auto& yb = scfg.get(y);
+        auto& yb = syn_cfg.get(y);
 
         Phi phi = {
             .name = var,
@@ -92,7 +93,7 @@ void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
           phi.args.push_back(var);
         }
 
-        yb.phis.push_back(scfg.add(std::move(phi)));
+        yb.phis.push_back(syn_cfg.add(std::move(phi)));
         visited.Insert(y);
 
         if (!def_blocks.Contains(y)) pending.Insert(y);
@@ -101,45 +102,45 @@ void InitPhiFunctions(const SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
   }
 }
 
-void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
-  SyntaxReachabilityAnalysis reachability_analysis(scfg, ctx);
+void RenameVariables(SyntaxContext& syn_ctx, SyntaxControlFlowGraph& syn_cfg) {
+  SyntaxReachabilityAnalysis reachability_analysis(syn_cfg, syn_ctx);
   std::vector<std::optional<SyntaxReachabilityAnalysis::State>>
       reachability_block_states =
-          RunDataflow(Forward(scfg), reachability_analysis);
+          RunDataflow(Forward(syn_cfg), reachability_analysis);
 
   HashMap<SyntaxReachabilityAnalysis::NamedValueSource, StringIndex::Ref>
       renames;
-  for (auto param_ref : scfg.func_params) {
-    auto& param = ctx.DerefParam(param_ref);
+  for (auto param_ref : syn_cfg.func_params) {
+    auto& param = syn_ctx.DerefParam(param_ref);
 
-    const auto new_name = ctx.AddUniqueIdent();
+    const auto new_name = syn_ctx.AddUniqueIdent();
     renames.Set(param_ref, new_name);
 
     param.name = new_name;
   }
 
-  std::vector<SyntaxControlFlowGraph::BlockRef> block_refs = Vertices(scfg);
+  std::vector<SyntaxControlFlowGraph::BlockRef> block_refs = Vertices(syn_cfg);
   std::sort(block_refs.begin(), block_refs.end(),
-            CompareReversePostOrder(scfg));
+            CompareReversePostOrder(syn_cfg));
 
   for (auto block_ref : block_refs) {
-    auto& block = scfg.get(block_ref);
+    auto& block = syn_cfg.get(block_ref);
     auto reachability_block_state = reachability_block_states[block.ref.id()];
     if (!reachability_block_state.has_value()) continue;
 
     for (auto phi_ref : block.phis) {
-      auto& phi = scfg.deref(phi_ref);
+      auto& phi = syn_cfg.deref(phi_ref);
 
       reachability_block_state->vars_in.Set(phi.name, phi_ref);
 
-      const auto new_name = ctx.AddUniqueIdent();
+      const auto new_name = syn_ctx.AddUniqueIdent();
       renames.Set(phi_ref, new_name);
 
       phi.name = new_name;
     }
     for (auto& seq : block.sequences) {
       for (auto expr_ref : seq.expressions) {
-        auto& expr = ctx.DerefExpr(expr_ref);
+        auto& expr = syn_ctx.DerefExpr(expr_ref);
         auto* ident_expr = std::get_if<IdentExpr>(&expr);
         if (ident_expr == nullptr) continue;
 
@@ -153,11 +154,11 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
         ident_expr->name = *new_name;
       }
       if (seq.stmt.has_value()) {
-        auto& stmt = ctx.DerefStmt(*seq.stmt);
+        auto& stmt = syn_ctx.DerefStmt(*seq.stmt);
         if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
           reachability_block_state->vars_in.Set(var_decl_stmt->name, *seq.stmt);
 
-          const auto new_name = ctx.AddUniqueIdent();
+          const auto new_name = syn_ctx.AddUniqueIdent();
           renames.Set(*seq.stmt, new_name);
 
           var_decl_stmt->name = new_name;
@@ -165,12 +166,13 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
           reachability_block_state->vars_in.Set(var_assign_stmt->name,
                                                 *seq.stmt);
 
-          const auto new_name = ctx.AddUniqueIdent();
+          const auto new_name = syn_ctx.AddUniqueIdent();
           renames.Set(*seq.stmt, new_name);
 
-          seq.stmt = ctx.Add(VarDeclStmt{
+          seq.stmt = syn_ctx.Add(VarDeclStmt{
               .name = new_name,
-              .type_constraint = GetType(ctx.DerefExpr(var_assign_stmt->expr)),
+              .type_constraint =
+                  GetType(syn_ctx.DerefExpr(var_assign_stmt->expr)),
               .init = var_assign_stmt->expr,
           });
         } else if (auto* array_assign_stmt =
@@ -187,9 +189,9 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
       }
     }
   }
-  for (auto& block : scfg.blocks()) {
+  for (auto& block : syn_cfg.blocks()) {
     for (auto phi_ref : block.phis) {
-      auto& phi = scfg.deref(phi_ref);
+      auto& phi = syn_cfg.deref(phi_ref);
       for (int i = 0; i < phi.args.size(); ++i) {
         const auto& reachability_block_state =
             reachability_block_states[block.preds[i].id()];
@@ -209,10 +211,10 @@ void RenameVariables(SyntaxContext& ctx, SyntaxControlFlowGraph& scfg) {
 
 }  // namespace
 
-void ConvertToStaticSingleAssignment(SyntaxContext& ctx,
-                                     SyntaxControlFlowGraph& scfg) {
-  InitPhiFunctions(ctx, scfg);
-  RenameVariables(ctx, scfg);
+void ConvertToStaticSingleAssignment(SyntaxContext& syn_ctx,
+                                     SyntaxControlFlowGraph& syn_cfg) {
+  InitPhiFunctions(syn_ctx, syn_cfg);
+  RenameVariables(syn_ctx, syn_cfg);
 }
 
 }  // namespace lucid
