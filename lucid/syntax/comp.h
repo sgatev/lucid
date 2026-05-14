@@ -1,11 +1,11 @@
 #pragma once
 
+#include <expected>
 #include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "lucid/core/functional/result.h"
 #include "lucid/syntax/ast.h"
 
 namespace lucid {
@@ -31,8 +31,8 @@ class CompError {
 // - `func_defs` must be associated with `sctx`.
 // - `stmt` must be associated with `sctx`.
 // - All functions called from `stmt` must be in `func_defs`.
-Result<void, CompError> CheckComp(const SyntaxContext& sctx,
-                                  const std::vector<FuncDefStmt>& func_defs,
-                                  const FuncDefStmt& stmt);
+std::expected<void, CompError> CheckComp(
+    const SyntaxContext& sctx, const std::vector<FuncDefStmt>& func_defs,
+    const FuncDefStmt& stmt);
 
 }  // namespace lucid

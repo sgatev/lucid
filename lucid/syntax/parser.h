@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <functional>
 #include <optional>
 #include <ostream>
@@ -13,7 +14,6 @@
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/fixed_map.h"
 #include "lucid/core/container/successive_list.h"
-#include "lucid/core/functional/result.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/token.h"
@@ -81,7 +81,7 @@ class Parser {
         lexer_(std::move(lexer)),
         next_(lexer_.next()) {}
 
-  Result<std::optional<FuncDefStmt>, ParserError> ParseFuncDef() {
+  std::expected<std::optional<FuncDefStmt>, ParserError> ParseFuncDef() {
     SkipSpace();
 
     if (Peek().kind == Token::Kind::End) return std::optional<FuncDefStmt>();
@@ -95,13 +95,15 @@ class Parser {
 
     if (auto r = ExpectIdent("let", ParserError::Kind::ExpectedLetKeyword);
         IsError(r)) {
-      return *r;
+      return std::unexpected(*r);
     }
 
     SkipSpace();
 
     const auto maybe_name = ParseIdent();
-    if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
+    if (IsError(maybe_name)) {
+      return std::unexpected(std::get<ParserError>(maybe_name));
+    }
 
     FuncDefStmt stmt = {
         .name = std::get<StringIndex::Ref>(maybe_name),
@@ -110,13 +112,17 @@ class Parser {
 
     SkipSpace();
 
-    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) return *r;
+    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) {
+      return std::unexpected(*r);
+    }
 
     SkipSpace();
 
     std::uint8_t params_size = 0;
     ParamRef first_param = Arena<FuncParam>::kNullRef;
-    if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) return *r;
+    if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) {
+      return std::unexpected(*r);
+    }
     while (true) {
       if (Peek().kind == Token::Kind::Comma) {
         Read();
@@ -128,12 +134,14 @@ class Parser {
       }
 
       if (Peek().kind != Token::Kind::Ident) {
-        return MakeError(ParserError::Kind::ExpectedClosingParenOrParam,
-                         Peek());
+        return std::unexpected(
+            MakeError(ParserError::Kind::ExpectedClosingParenOrParam, Peek()));
       }
 
       auto maybe_param = ParseParam();
-      if (IsError(maybe_param)) return std::get<ParserError>(maybe_param);
+      if (IsError(maybe_param)) {
+        return std::unexpected(std::get<ParserError>(maybe_param));
+      }
       if (params_size == 0) first_param = std::get<ParamRef>(maybe_param);
       ++params_size;
     }
@@ -141,19 +149,25 @@ class Parser {
 
     SkipSpace();
 
-    if (auto r = ExpectToken(Token::Kind::Minus); IsError(r)) return *r;
-    if (auto r = ExpectToken(Token::Kind::Greater); IsError(r)) return *r;
+    if (auto r = ExpectToken(Token::Kind::Minus); IsError(r)) {
+      return std::unexpected(*r);
+    }
+    if (auto r = ExpectToken(Token::Kind::Greater); IsError(r)) {
+      return std::unexpected(*r);
+    }
 
     SkipSpace();
 
     const auto maybe_result_type = ParseType();
     if (IsError(maybe_result_type)) {
-      return std::get<ParserError>(maybe_result_type);
+      return std::unexpected(std::get<ParserError>(maybe_result_type));
     }
     stmt.result_type = std::get<TypeRef>(maybe_result_type);
 
     auto maybe_body = ParseCompoundStmt();
-    if (IsError(maybe_body)) return std::get<ParserError>(maybe_body);
+    if (IsError(maybe_body)) {
+      return std::unexpected(std::get<ParserError>(maybe_body));
+    }
     stmt.stmts = std::get<SuccessiveList<StmtRef>>(std::move(maybe_body));
 
     return std::optional<FuncDefStmt>(stmt);

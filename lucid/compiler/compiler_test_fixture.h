@@ -83,8 +83,8 @@ class CompilerTest : public testing::Test {
     const int return_code = WEXITSTATUS(result);
     return {
         .return_code = return_code,
-        .out = ReadFile(out_path).GetValue(),
-        .err = ReadFile(err_path).GetValue(),
+        .out = ReadFile(out_path).value(),
+        .err = ReadFile(err_path).value(),
     };
   }
 

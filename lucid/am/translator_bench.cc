@@ -24,7 +24,7 @@ std::size_t CountInstructions(const lucid::SyntaxContext& ctx,
 void Benchmark(benchmark::State& state, std::string_view code) {
   lucid::SyntaxContext ctx;
   auto func_def =
-      lucid::Parser(ctx, code, lucid::Lexer(code)).ParseFuncDef().GetValue();
+      lucid::Parser(ctx, code, lucid::Lexer(code)).ParseFuncDef().value();
   auto graph = BuildControlFlowGraph(ctx, func_def.value());
   lucid::AbstractMachineState am_state;
 

@@ -1,8 +1,9 @@
 #include "lucid/syntax/type.h"
 
+#include <expected>
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "lucid/core/functional/result.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 
@@ -17,7 +18,7 @@ MATCHER_P(HoldsFuncDef, match_stmt, "") { return match_stmt(arg); }
 
 class InferExprTypesTest : public testing::Test, public AstFixture {
  protected:
-  Result<void, TypeError> InferExprTypes(
+  std::expected<void, TypeError> InferExprTypes(
       FuncDefStmt& stmt, const std::vector<FuncDefStmt>& func_defs = {}) {
     return ::lucid::InferExprTypes(ctx_, func_defs, stmt);
   }
@@ -36,7 +37,7 @@ TEST_F(InferExprTypesTest, ReturnValueFromResultType) {
       }),
   };
 
-  EXPECT_TRUE(InferExprTypes(func).HasValue());
+  EXPECT_TRUE(InferExprTypes(func).has_value());
   EXPECT_THAT(func,
               HoldsFuncDef(MatchesFuncDefStmt({
                   .name = I("foo"),
@@ -67,7 +68,7 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
       }),
   };
 
-  EXPECT_TRUE(InferExprTypes(func).HasValue());
+  EXPECT_TRUE(InferExprTypes(func).has_value());
   EXPECT_THAT(
       func,
       HoldsFuncDef(MatchesFuncDefStmt({
@@ -106,7 +107,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
       }),
   };
 
-  EXPECT_TRUE(InferExprTypes(func).HasValue());
+  EXPECT_TRUE(InferExprTypes(func).has_value());
   EXPECT_THAT(
       func,
       HoldsFuncDef(MatchesFuncDefStmt({
@@ -153,7 +154,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
       }),
   };
 
-  EXPECT_TRUE(InferExprTypes(func).HasValue());
+  EXPECT_TRUE(InferExprTypes(func).has_value());
   EXPECT_THAT(
       func,
       HoldsFuncDef(MatchesFuncDefStmt({
@@ -200,7 +201,7 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
       }),
   };
 
-  EXPECT_TRUE(InferExprTypes(func).HasValue());
+  EXPECT_TRUE(InferExprTypes(func).has_value());
   EXPECT_THAT(
       func,
       HoldsFuncDef(MatchesFuncDefStmt({
@@ -256,7 +257,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
       }),
   };
 
-  EXPECT_TRUE(InferExprTypes(func, {id_func}).HasValue());
+  EXPECT_TRUE(InferExprTypes(func, {id_func}).has_value());
   EXPECT_THAT(
       func, HoldsFuncDef(
                 MatchesFuncDefStmt({
@@ -302,7 +303,7 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
       }),
   };
 
-  EXPECT_TRUE(InferExprTypes(func).HasValue());
+  EXPECT_TRUE(InferExprTypes(func).has_value());
   EXPECT_THAT(
       func, HoldsFuncDef(MatchesFuncDefStmt({
                 .name = I("foo"),
@@ -346,7 +347,7 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
           }),
       })};
 
-  EXPECT_TRUE(InferExprTypes(func).HasValue());
+  EXPECT_TRUE(InferExprTypes(func).has_value());
   EXPECT_THAT(
       func, HoldsFuncDef(MatchesFuncDefStmt({
                 .name = I("foo"),
@@ -397,8 +398,8 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
   };
 
   auto res = InferExprTypes(func);
-  ASSERT_TRUE(res.HasError());
-  EXPECT_EQ(res.GetError(), TypeError("expected type Int32"));
+  ASSERT_TRUE(!res.has_value());
+  EXPECT_EQ(res.error(), TypeError("expected type Int32"));
 }
 
 TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
@@ -424,8 +425,8 @@ TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
   };
 
   auto res = InferExprTypes(func);
-  ASSERT_TRUE(res.HasError());
-  EXPECT_EQ(res.GetError(), TypeError("expected type Int64"));
+  ASSERT_TRUE(!res.has_value());
+  EXPECT_EQ(res.error(), TypeError("expected type Int64"));
 }
 
 }  // namespace

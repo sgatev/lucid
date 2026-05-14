@@ -15,18 +15,3 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
-
-cc_library(
-    name = "result",
-    hdrs = ["result.h"],
-    visibility = ["//lucid:__subpackages__"],
-)
-
-cc_test(
-    name = "result_test",
-    srcs = ["result_test.cc"],
-    deps = [
-        ":result",
-        "@googletest//:gtest_main",
-    ],
-)

@@ -1,10 +1,12 @@
 #include "lucid/compiler/compiler.h"
 
 #include <cstdlib>
+#include <expected>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -17,7 +19,6 @@
 #include "lucid/arm64/assembler.h"
 #include "lucid/arm64/macho.h"
 #include "lucid/arm64/translator.h"
-#include "lucid/core/functional/result.h"
 #include "lucid/core/io/file.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/buffered_lexer.h"
@@ -31,92 +32,83 @@
 namespace lucid {
 namespace {
 
-Result<void, ParserError, TypeError, CompError> CompileSource(
-    std::string_view src, std::ostream& out) {
-  SyntaxContext ctx;
-  auto maybe_funcs = ParseFuncDefs(src, ctx);
-  if (maybe_funcs.HasError()) return maybe_funcs.GetError();
-  auto& func_defs = maybe_funcs.GetValue();
-  // TODO: Avoid optional state here
-  std::optional<AbstractMachineState> state;
+std::expected<void, CompileError> CompileSource(std::string_view src,
+                                                std::ostream& out) {
+  SyntaxContext sctx;
+
+  std::expected<std::vector<FuncDefStmt>, CompileError> func_defs =
+      ParseFuncDefs(src, sctx);
+  if (!func_defs) return std::unexpected(func_defs.error());
+
+  AbstractMachineState am_state;
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
-  for (auto& func : func_defs) {
-    if (!state.has_value()) {
-      state.emplace(AbstractMachineState{});
+  for (auto& func : *func_defs) {
+    if (auto res = InferExprTypes(sctx, *func_defs, func); !res.has_value()) {
+      return std::unexpected(res.error());
     }
-    if (auto res = InferExprTypes(ctx, func_defs, func); res.HasError()) {
-      return res.GetError();
+    if (auto res = CheckComp(sctx, *func_defs, func); !res.has_value()) {
+      return std::unexpected(res.error());
     }
-    if (auto res = CheckComp(ctx, func_defs, func); res.HasError()) {
-      return res.GetError();
-    }
-    SyntaxControlFlowGraph scfg = BuildControlFlowGraph(ctx, func);
-    ConvertToStaticSingleAssignment(ctx, scfg);
-    AbstractMachineControlFlowGraph am_cfg =
-        GenerateAbstractMachineFunction(ctx, scfg, *state);
-    for (auto& block : am_cfg.blocks()) {
+    SyntaxControlFlowGraph scfg = BuildControlFlowGraph(sctx, func);
+    ConvertToStaticSingleAssignment(sctx, scfg);
+    AbstractMachineControlFlowGraph amcfg =
+        GenerateAbstractMachineFunction(sctx, scfg, am_state);
+    for (auto& block : amcfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
     static constexpr int kArmRegistersCount = 10;
-    SpillRegisters(am_cfg, *state, kArmRegistersCount);
-    HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
+    SpillRegisters(amcfg, am_state, kArmRegistersCount);
+    HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(amcfg);
     HashMap<RegId, int> am_ig_colors =
-        ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
-    MergeRegisters(am_ig_colors, am_cfg);
-    GenerateArmAssemblyBinary(ctx.DerefIdent(func.name), state->stack_slots,
-                              am_cfg, assembler);
+        ColorInterferenceGraph(amcfg, am_ig, kArmRegistersCount);
+    MergeRegisters(am_ig_colors, amcfg);
+    GenerateArmAssemblyBinary(sctx.DerefIdent(func.name), am_state.stack_slots,
+                              amcfg, assembler);
   }
-  GenerateArmEndBinary(ctx, state->strings, assembler);
+  GenerateArmEndBinary(sctx, am_state.strings, assembler);
   WriteCompiledMachObject(assembler, out);
   return {};
 }
 
 }  // namespace
 
-Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
+std::expected<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
     std::string_view src, SyntaxContext& ctx) {
   std::vector<FuncDefStmt> func_defs;
   BufferedLexer<Lexer> lexer(Lexer{src});
   Parser parser(ctx, src, lexer);
   while (true) {
-    auto maybe_func_def = parser.ParseFuncDef();
-    RETURN_IF_ERROR(maybe_func_def);
-
-    auto func_def = std::move(maybe_func_def).GetValue();
-    if (!func_def.has_value()) break;
-
-    func_defs.push_back(std::move(*func_def));
+    std::expected<std::optional<FuncDefStmt>, ParserError> func_def =
+        parser.ParseFuncDef();
+    if (!func_def.has_value()) return std::unexpected(func_def.error());
+    if (!func_def->has_value()) break;
+    func_defs.push_back(std::move(func_def)->value());
   }
   return func_defs;
 }
 
-Result<void, ReadFileError, ParserError, TypeError, CompError> CompileCode(
-    CompileConfig config) {
-  const auto maybe_src = ReadFile(config.src_path, /*with_trailing_zero=*/true);
-  if (maybe_src.HasError()) return maybe_src.GetError();
-  const auto& src = maybe_src.GetValue();
+std::expected<void, CompileError> CompileCode(CompileConfig config) {
+  std::expected<std::string, ReadFileError> src =
+      ReadFile(config.src_path, /*with_trailing_zero=*/true);
+  if (!src) return std::unexpected(src.error());
 
   std::ofstream out(config.out_path, std::ios::out | std::ios::binary);
-  return CompileSource(src, out);
+  return CompileSource(*src, out);
 }
 
-Result<void, ReadFileError, ParserError, TypeError, CompError> BuildCode(
-    BuildConfig config) {
-  auto obj_path = config.out_path;
+std::expected<void, BuildError> BuildCode(BuildConfig config) {
+  std::filesystem::path obj_path = config.out_path;
   obj_path.replace_extension("o");
 
-  if (auto res =
-          CompileCode({.src_path = config.src_path, .out_path = obj_path});
-      res.HasError()) {
-    return res.GetError();
-  }
-
-  std::system(std::format("ld -o {} {} -lSystem -syslibroot `xcrun -sdk "
-                          "macosx --show-sdk-path` -e _start -arch arm64",
-                          config.out_path.c_str(), obj_path.c_str())
-                  .data());
-  return {};
+  return CompileCode({.src_path = config.src_path, .out_path = obj_path})
+      .and_then([&] -> std::expected<void, BuildError> {
+        std::system(std::format("ld -o {} {} -lSystem -syslibroot `xcrun -sdk "
+                                "macosx --show-sdk-path` -e _start -arch arm64",
+                                config.out_path.c_str(), obj_path.c_str())
+                        .data());
+        return {};
+      });
 }
 
 }  // namespace lucid

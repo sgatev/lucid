@@ -1,6 +1,8 @@
 #include <cstdlib>
+#include <expected>
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -14,13 +16,13 @@
 #include "lucid/compiler/compiler.h"
 #include "lucid/compiler/version.h"
 #include "lucid/core/cli/cli.h"
-#include "lucid/core/functional/result.h"
 #include "lucid/core/io/file.h"
 #include "lucid/core/string/concat.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_printer.h"
 #include "lucid/syntax/cfg.h"
 #include "lucid/syntax/cfg_printer.h"
+#include "lucid/syntax/parser.h"
 #include "lucid/syntax/ssa.h"
 #include "lucid/syntax/type.h"
 
@@ -37,14 +39,14 @@ int HandleCompileCommand(CommandContext ctx) {
   auto out_path = std::filesystem::current_path() / src_path.filename();
   out_path.replace_extension("o");
 
-  if (auto res = CompileCode({.src_path = src_path, .out_path = out_path});
-      res.HasError()) {
-    res.OutputError(PrintError(ctx.err));
-    ctx.err << "\n";
-    return 1;
-  }
-
-  return 0;
+  return CompileCode({.src_path = src_path, .out_path = out_path})
+      .and_then([] -> std::expected<int, CompileError> { return 0; })
+      .or_else([&](CompileError err) -> std::expected<int, CompileError> {
+        std::visit([&](const auto& err) { PrintError(ctx.err) << err; }, err);
+        ctx.err << "\n";
+        return 1;
+      })
+      .value();
 }
 
 int HandleBuildCommand(CommandContext ctx) {
@@ -56,14 +58,14 @@ int HandleBuildCommand(CommandContext ctx) {
   auto src_path = std::filesystem::absolute(ctx.args[1]);
   auto bin_path = ctx.args[0];
 
-  if (auto res = BuildCode({.src_path = src_path, .out_path = bin_path});
-      res.HasError()) {
-    res.OutputError(PrintError(ctx.err));
-    ctx.err << "\n";
-    return 1;
-  }
-
-  return 0;
+  return BuildCode({.src_path = src_path, .out_path = bin_path})
+      .and_then([]() -> std::expected<int, BuildError> { return 0; })
+      .or_else([&](BuildError err) -> std::expected<int, BuildError> {
+        std::visit([&](const auto& err) { PrintError(ctx.err) << err; }, err);
+        ctx.err << "\n";
+        return 1;
+      })
+      .value();
 }
 
 int HandleRunCommand(CommandContext ctx) {
@@ -76,15 +78,17 @@ int HandleRunCommand(CommandContext ctx) {
   auto bin_path = std::filesystem::temp_directory_path() / src_path.filename();
   bin_path.replace_extension();
 
-  if (auto res = BuildCode({.src_path = src_path, .out_path = bin_path});
-      res.HasError()) {
-    res.OutputError(PrintError(ctx.err));
-    ctx.err << "\n";
-    return 1;
-  }
-
-  int status = std::system(bin_path.c_str());
-  return WEXITSTATUS(status);
+  return BuildCode({.src_path = src_path, .out_path = bin_path})
+      .and_then([&]() -> std::expected<int, BuildError> {
+        int status = std::system(bin_path.c_str());
+        return WEXITSTATUS(status);
+      })
+      .or_else([&](BuildError err) -> std::expected<int, BuildError> {
+        std::visit([&](const auto& err) { PrintError(ctx.err) << err; }, err);
+        ctx.err << "\n";
+        return 1;
+      })
+      .value();
 }
 
 int HandleParseCommand(CommandContext ctx) {
@@ -94,23 +98,35 @@ int HandleParseCommand(CommandContext ctx) {
   }
 
   auto src_path = std::filesystem::absolute(ctx.args[0]);
-  const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
-  if (maybe_src.HasError()) {
-    maybe_src.OutputError(PrintError(ctx.err));
-    ctx.err << "\n";
-    return 1;
-  }
-  const auto& src = maybe_src.GetValue();
 
-  SyntaxContext sctx;
-  auto maybe_funcs = ParseFuncDefs(src, sctx);
-  if (maybe_funcs.HasError()) {
-    maybe_funcs.OutputError(PrintError(ctx.err));
-    ctx.err << "\n";
-    return 1;
-  }
-
-  return 0;
+  return ReadFile(src_path, /*with_trailing_zero=*/true)
+      .or_else(
+          [](ReadFileError err) -> std::expected<std::string, std::string> {
+            std::stringstream ss;
+            ss << err;
+            return std::unexpected(ss.str());
+          })
+      .and_then([](std::string src)
+                    -> std::expected<std::vector<FuncDefStmt>, std::string> {
+        SyntaxContext sctx;
+        return ParseFuncDefs(src, sctx).or_else(
+            [](ParserError err)
+                -> std::expected<std::vector<FuncDefStmt>, std::string> {
+              std::stringstream ss;
+              ss << err;
+              return std::unexpected(ss.str());
+            });
+      })
+      .and_then(
+          [](std::vector<FuncDefStmt>) -> std::expected<int, std::string> {
+            return 0;
+          })
+      .or_else([&](std::string err) -> std::expected<int, std::string> {
+        PrintError(ctx.err) << err;
+        ctx.err << "\n";
+        return 1;
+      })
+      .value();
 }
 
 int HandlePrintAstCommand(CommandContext ctx) {
@@ -122,21 +138,21 @@ int HandlePrintAstCommand(CommandContext ctx) {
 
   auto src_path = std::filesystem::absolute(ctx.args[0]);
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
-  if (maybe_src.HasError()) {
-    maybe_src.OutputError(PrintError(ctx.err));
+  if (!maybe_src.has_value()) {
+    PrintError(ctx.err) << maybe_src.error();
     ctx.err << "\n";
     return 1;
   }
-  const auto& src = maybe_src.GetValue();
+  const auto& src = maybe_src.value();
 
   SyntaxContext sctx;
   auto maybe_funcs = ParseFuncDefs(src, sctx);
-  if (maybe_funcs.HasError()) {
-    maybe_funcs.OutputError(PrintError(ctx.err));
+  if (!maybe_funcs.has_value()) {
+    PrintError(ctx.err) << maybe_funcs.error();
     ctx.err << "\n";
     return 1;
   }
-  const auto& func_defs = maybe_funcs.GetValue();
+  const auto& func_defs = maybe_funcs.value();
 
   if (ctx.args.size() == 2) {
     std::string_view id = ctx.args[1];
@@ -170,21 +186,21 @@ int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
 
   auto src_path = std::filesystem::absolute(ctx.args[0]);
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
-  if (maybe_src.HasError()) {
-    maybe_src.OutputError(PrintError(ctx.err));
+  if (!maybe_src.has_value()) {
+    PrintError(ctx.err) << maybe_src.error();
     ctx.err << "\n";
     return 1;
   }
-  const auto& src = maybe_src.GetValue();
+  const auto& src = maybe_src.value();
 
   SyntaxContext sctx;
   auto maybe_funcs = ParseFuncDefs(src, sctx);
-  if (maybe_funcs.HasError()) {
-    maybe_funcs.OutputError(PrintError(ctx.err));
+  if (!maybe_funcs.has_value()) {
+    PrintError(ctx.err) << maybe_funcs.error();
     ctx.err << "\n";
     return 1;
   }
-  const auto& func_defs = maybe_funcs.GetValue();
+  const auto& func_defs = maybe_funcs.value();
 
   for (const auto& func_def : func_defs) {
     auto graph = BuildControlFlowGraph(sctx, func_def);
@@ -208,25 +224,26 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
 
   auto src_path = std::filesystem::absolute(ctx.args[0]);
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
-  if (maybe_src.HasError()) {
-    maybe_src.OutputError(PrintError(ctx.err));
+  if (!maybe_src.has_value()) {
+    PrintError(ctx.err) << maybe_src.error();
     ctx.err << "\n";
     return 1;
   }
-  const auto& src = maybe_src.GetValue();
+  const auto& src = maybe_src.value();
 
   SyntaxContext sctx;
   auto maybe_funcs = ParseFuncDefs(src, sctx);
-  if (maybe_funcs.HasError()) {
-    maybe_funcs.OutputError(PrintError(ctx.err));
+  if (!maybe_funcs.has_value()) {
+    PrintError(ctx.err) << maybe_funcs.error();
     ctx.err << "\n";
     return 1;
   }
-  auto& func_defs = maybe_funcs.GetValue();
+  auto& func_defs = maybe_funcs.value();
 
   for (bool has_printed_func = false; auto& func_def : func_defs) {
-    if (auto res = InferExprTypes(sctx, func_defs, func_def); res.HasError()) {
-      res.OutputError(PrintError(ctx.err));
+    if (auto res = InferExprTypes(sctx, func_defs, func_def);
+        !res.has_value()) {
+      PrintError(ctx.err) << res.error();
       ctx.err << "\n";
       return 1;
     }

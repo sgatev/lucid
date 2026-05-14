@@ -6,9 +6,6 @@ cc_library(
     srcs = ["file.cc"],
     hdrs = ["file.h"],
     visibility = ["//lucid:__subpackages__"],
-    deps = [
-        "//lucid/core/functional:result",
-    ],
 )
 
 cc_test(

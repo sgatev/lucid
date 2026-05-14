@@ -1,6 +1,7 @@
 #include "lucid/syntax/type.h"
 
 #include <cstdint>
+#include <expected>
 #include <optional>
 #include <ranges>
 #include <string>
@@ -9,7 +10,6 @@
 #include <vector>
 
 #include "lucid/core/container/hash_map.h"
-#include "lucid/core/functional/result.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 
@@ -25,7 +25,7 @@ class ExprTypeInferenceEngine {
     for (const auto& func : func_defs) func_defs_.Set(func.name, &func);
   }
 
-  Result<void, TypeError> InferTypes() {
+  std::expected<void, TypeError> InferTypes() {
     for (const auto& param_ref : func_def_.params) {
       const auto& param = ctx_.DerefParam(param_ref);
       SetIdentType(param.name, param.type_constraint);
@@ -50,7 +50,7 @@ class ExprTypeInferenceEngine {
     }
 
     if (auto error = GetError(); error.has_value()) {
-      return TypeError(std::move(*error));
+      return std::unexpected(TypeError(std::move(*error)));
     }
 
     SolveTypeEquations();
@@ -312,7 +312,7 @@ class ExprTypeInferenceEngine {
 
 }  // namespace
 
-Result<void, TypeError> InferExprTypes(
+std::expected<void, TypeError> InferExprTypes(
     SyntaxContext& ctx, const std::vector<FuncDefStmt>& func_defs,
     FuncDefStmt& func_def) {
   return ExprTypeInferenceEngine(ctx, func_defs, func_def).InferTypes();

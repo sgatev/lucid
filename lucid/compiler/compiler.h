@@ -1,7 +1,8 @@
+#include <expected>
 #include <filesystem>
 #include <string_view>
+#include <variant>
 
-#include "lucid/core/functional/result.h"
 #include "lucid/core/io/file.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/comp.h"
@@ -10,7 +11,10 @@
 
 namespace lucid {
 
-Result<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
+template <typename... Ts>
+using CompositeError = std::variant<Ts...>;
+
+std::expected<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
     std::string_view src, SyntaxContext& ctx);
 
 struct CompileConfig {
@@ -18,15 +22,19 @@ struct CompileConfig {
   std::filesystem::path out_path;
 };
 
-Result<void, ReadFileError, ParserError, TypeError, CompError> CompileCode(
-    CompileConfig config);
+using CompileError =
+    CompositeError<ReadFileError, ParserError, TypeError, CompError>;
+
+std::expected<void, CompileError> CompileCode(CompileConfig config);
 
 struct BuildConfig {
   std::filesystem::path src_path;
   std::filesystem::path out_path;
 };
 
-Result<void, ReadFileError, ParserError, TypeError, CompError> BuildCode(
-    BuildConfig config);
+using BuildError =
+    CompositeError<ReadFileError, ParserError, TypeError, CompError>;
+
+std::expected<void, BuildError> BuildCode(BuildConfig config);
 
 }  // namespace lucid

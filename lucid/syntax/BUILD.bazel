@@ -110,7 +110,6 @@ cc_library(
     deps = [
         ":ast",
         "//lucid/core/container:hash_map",
-        "//lucid/core/functional:result",
         "//lucid/core/string:index",
     ],
 )
@@ -124,7 +123,6 @@ cc_test(
         ":comp",
         ":lexer",
         ":parser",
-        "//lucid/core/functional:result",
         "@googletest//:gtest_main",
     ],
 )
@@ -195,7 +193,6 @@ cc_library(
         "//lucid/core/container:arena",
         "//lucid/core/container:fixed_map",
         "//lucid/core/container:successive_list",
-        "//lucid/core/functional:result",
         "//lucid/core/string:index",
     ],
 )
@@ -304,7 +301,6 @@ cc_library(
     deps = [
         ":ast",
         "//lucid/core/container:hash_map",
-        "//lucid/core/functional:result",
         "//lucid/core/string:index",
     ],
 )
@@ -316,7 +312,6 @@ cc_test(
         ":ast",
         ":ast_fixture",
         ":type",
-        "//lucid/core/functional:result",
         "@googletest//:gtest_main",
     ],
 )

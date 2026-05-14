@@ -3,7 +3,6 @@
 #include <utility>
 
 #include "gtest/gtest.h"
-#include "lucid/core/functional/result.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 #include "lucid/syntax/lexer.h"
@@ -16,16 +15,14 @@ using namespace std::string_literals;
 
 class CompCheckTest : public testing::Test, public AstFixture {
  protected:
-  Result<void, ParserError, CompError> CheckComp(std::string_view src) {
+  std::expected<void, CompError> CheckComp(std::string_view src) {
     std::string code_with_null(src);
     code_with_null.append("\0"s);
 
     std::vector<FuncDefStmt> func_defs;
     for (Parser parser(ctx_, src, Lexer(code_with_null));;) {
       auto maybe_func_def_stmt = parser.ParseFuncDef();
-      RETURN_IF_ERROR(maybe_func_def_stmt);
-
-      auto ref = std::move(maybe_func_def_stmt).GetValue();
+      auto ref = std::move(maybe_func_def_stmt).value();
       if (!ref.has_value()) break;
 
       func_defs.push_back(std::move(*ref));
@@ -47,7 +44,7 @@ TEST_F(CompCheckTest, EmptyNonCompFunc) {
     }
   )";
 
-  EXPECT_FALSE(CheckComp(src).HasError());
+  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 TEST_F(CompCheckTest, EmptyCompFunc) {
@@ -57,7 +54,7 @@ TEST_F(CompCheckTest, EmptyCompFunc) {
     }
   )";
 
-  EXPECT_FALSE(CheckComp(src).HasError());
+  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 TEST_F(CompCheckTest, DoStmtInCompFunc) {
@@ -72,7 +69,7 @@ TEST_F(CompCheckTest, DoStmtInCompFunc) {
     }
   )";
 
-  EXPECT_TRUE(CheckComp(src).HasError<CompError>());
+  EXPECT_FALSE(CheckComp(src).has_value());
 }
 
 TEST_F(CompCheckTest, DoStmtOnCompInCompFunc) {
@@ -87,7 +84,7 @@ TEST_F(CompCheckTest, DoStmtOnCompInCompFunc) {
     }
   )";
 
-  EXPECT_TRUE(CheckComp(src).HasError<CompError>());
+  EXPECT_FALSE(CheckComp(src).has_value());
 }
 
 TEST_F(CompCheckTest, NestedDoStmtInConstFunc) {
@@ -109,7 +106,7 @@ TEST_F(CompCheckTest, NestedDoStmtInConstFunc) {
     }
   )";
 
-  EXPECT_TRUE(CheckComp(src).HasError<CompError>());
+  EXPECT_FALSE(CheckComp(src).has_value());
 }
 
 TEST_F(CompCheckTest, NonCompVarDeclNonCompInit) {
@@ -124,7 +121,7 @@ TEST_F(CompCheckTest, NonCompVarDeclNonCompInit) {
     }
   )";
 
-  EXPECT_FALSE(CheckComp(src).HasError());
+  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 TEST_F(CompCheckTest, CompVarDeclNonCompInit) {
@@ -139,7 +136,7 @@ TEST_F(CompCheckTest, CompVarDeclNonCompInit) {
     }
   )";
 
-  EXPECT_TRUE(CheckComp(src).HasError<CompError>());
+  EXPECT_FALSE(CheckComp(src).has_value());
 }
 
 TEST_F(CompCheckTest, CompVarDeclCompFuncCallInit) {
@@ -154,7 +151,7 @@ TEST_F(CompCheckTest, CompVarDeclCompFuncCallInit) {
     }
   )";
 
-  EXPECT_FALSE(CheckComp(src).HasError());
+  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 TEST_F(CompCheckTest, CompVarDeclCompIntLitInit) {
@@ -165,7 +162,7 @@ TEST_F(CompCheckTest, CompVarDeclCompIntLitInit) {
     }
   )";
 
-  EXPECT_FALSE(CheckComp(src).HasError());
+  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 TEST_F(CompCheckTest, CompVarDeclCompBoolLitInit) {
@@ -176,7 +173,7 @@ TEST_F(CompCheckTest, CompVarDeclCompBoolLitInit) {
     }
   )";
 
-  EXPECT_FALSE(CheckComp(src).HasError());
+  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 }  // namespace
