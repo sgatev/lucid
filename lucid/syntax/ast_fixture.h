@@ -63,11 +63,12 @@ struct FuncDefStmtPattern {
   std::vector<ParamRefMatcher> params;
   TypeRefMatcher result_type;
   CompoundStmtPattern body;
+  bool is_comp = false;
 
   bool operator()(const FuncDefStmt& stmt) const {
     if (result_type != nullptr && !result_type(stmt.result_type)) return false;
     return name == stmt.name && AllMatch(stmt.params, params) &&
-           AllMatch(stmt.stmts, body.statements);
+           AllMatch(stmt.stmts, body.statements) && is_comp == stmt.is_comp;
   }
 };
 
@@ -176,6 +177,7 @@ struct VarDeclStmtPattern {
   StringIndex::Ref name;
   TypeRefMatcher type_constraint;
   ExprRefMatcher init;
+  bool is_comp = false;
 
   bool operator()(const VarDeclStmt& stmt) const {
     if (type_constraint != nullptr && !type_constraint(stmt.type_constraint)) {
@@ -185,7 +187,7 @@ struct VarDeclStmtPattern {
       if (!stmt.init.has_value()) return false;
       if (init != nullptr && !init(*stmt.init)) return false;
     }
-    return name == stmt.name;
+    return name == stmt.name && is_comp == stmt.is_comp;
   }
 };
 

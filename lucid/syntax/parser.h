@@ -85,6 +85,13 @@ class Parser {
 
     if (Peek().kind == Token::Kind::End) return std::nullopt;
 
+    bool is_comp = false;
+    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "comp") {
+      Read();
+      SkipSpace();
+      is_comp = true;
+    }
+
     if (auto r = ExpectIdent("let", ParserError::Kind::ExpectedLetKeyword);
         IsError(r)) {
       return *r;
@@ -97,6 +104,7 @@ class Parser {
 
     FuncDefStmt stmt = {
         .name = std::get<StringIndex::Ref>(maybe_name),
+        .is_comp = is_comp,
     };
 
     SkipSpace();
@@ -222,6 +230,7 @@ class Parser {
             std::pair{"loop"sv, &Parser::ParseLoopStmt},
             std::pair{"if"sv, &Parser::ParseIfStmt},
             std::pair{"let"sv, &Parser::ParseLetStmt},
+            std::pair{"comp"sv, &Parser::ParseCompStmt},
             std::pair{"break"sv, &Parser::ParseBreakStmt},
         },
         &Parser::ParseAssignStmt);
@@ -300,7 +309,17 @@ class Parser {
     return std::move(if_stmt);
   }
 
+  std::variant<Stmt, ParserError> ParseCompStmt() {
+    Read();
+    SkipSpace();
+    return ParseLet(/*is_comp=*/true);
+  }
+
   std::variant<Stmt, ParserError> ParseLetStmt() {
+    return ParseLet(/*is_comp=*/false);
+  }
+
+  std::variant<Stmt, ParserError> ParseLet(bool is_comp) {
     Read();
 
     SkipSpace();
@@ -332,6 +351,7 @@ class Parser {
         .name = std::get<StringIndex::Ref>(maybe_name),
         .type_constraint = std::get<TypeRef>(maybe_type),
         .init = init,
+        .is_comp = is_comp,
     };
   }
 

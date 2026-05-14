@@ -88,6 +88,9 @@ struct FuncDefStmt {
 
   // Body of the function.
   SuccessiveList<StmtRef> stmts;
+
+  // Whether the function can be evaluated during compilation.
+  bool is_comp = false;
 };
 
 // A statement that represents a return point in a function.
@@ -140,6 +143,9 @@ struct VarDeclStmt {
 
   // Initializer expression.
   std::optional<ExprRef> init;
+
+  // Whether the variable is initialized during compilation.
+  bool is_comp = false;
 };
 
 // A statement that represents assignment of an expression to a variable.

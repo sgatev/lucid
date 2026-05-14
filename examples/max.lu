@@ -1,4 +1,4 @@
-let max = (a: Int32, b: Int32) -> Int32 {
+comp let max = (a: Int32, b: Int32) -> Int32 {
   let m: Int32 = a
   if b > m {
     m = b
@@ -7,5 +7,6 @@ let max = (a: Int32, b: Int32) -> Int32 {
 }
 
 let main = () -> Int32 {
-  return max(105, 252)
+  comp let res: Int32 = max(21, 105)
+  return max(210, res)
 }
