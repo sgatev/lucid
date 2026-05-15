@@ -289,24 +289,6 @@ struct NotEqReg {
   }
 };
 
-// Pushes bytes onto the stack.
-struct PushStack {
-  bool operator==(const PushStack&) const = default;
-
-  friend std::ostream& operator<<(std::ostream& os, const PushStack& inst) {
-    return os << "PushStack {}";
-  }
-};
-
-// Pops bytes from the stack.
-struct PopStack {
-  bool operator==(const PopStack&) const = default;
-
-  friend std::ostream& operator<<(std::ostream& os, const PopStack& inst) {
-    return os << "PopStack {}";
-  }
-};
-
 // Stores the value of a 32-bit register on the stack.
 struct StoreStack32 {
   // Offset from the top of the stack where the value will be placed.
@@ -495,16 +477,13 @@ struct FuncCall {
 // An instruction for the Lucid abstract machine.
 using Instruction =
     std::variant<Nop, MoveReg, SetReg, SetStr, Return, AddReg, SubReg, MulReg,
-                 DivReg, ModReg, GtReg, LtReg, EqReg, NotEqReg, PushStack,
-                 PopStack, StoreStack32, StoreStackReg32, StoreStack64,
-                 StoreStackReg64, LoadStack32, LoadStackReg32, LoadStack64,
-                 LoadStackReg64, FuncCall>;
+                 DivReg, ModReg, GtReg, LtReg, EqReg, NotEqReg, StoreStack32,
+                 StoreStackReg32, StoreStack64, StoreStackReg64, LoadStack32,
+                 LoadStackReg32, LoadStack64, LoadStackReg64, FuncCall>;
 
 // Returns the source registers used by the given instruction, if any.
 inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
-  if (std::holds_alternative<PushStack>(inst) ||
-      std::holds_alternative<PopStack>(inst) ||
-      std::holds_alternative<SetReg>(inst) ||
+  if (std::holds_alternative<SetReg>(inst) ||
       std::holds_alternative<SetStr>(inst) ||
       std::holds_alternative<LoadStack32>(inst) ||
       std::holds_alternative<LoadStack64>(inst)) {
@@ -555,9 +534,7 @@ inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
 
 // Returns the target register used by the given instruction, if any.
 inline std::optional<RegId> GetTargetRegister(const Instruction& inst) {
-  if (std::holds_alternative<PushStack>(inst) ||
-      std::holds_alternative<PopStack>(inst) ||
-      std::holds_alternative<StoreStack32>(inst) ||
+  if (std::holds_alternative<StoreStack32>(inst) ||
       std::holds_alternative<StoreStackReg32>(inst) ||
       std::holds_alternative<StoreStack64>(inst) ||
       std::holds_alternative<StoreStackReg64>(inst) ||

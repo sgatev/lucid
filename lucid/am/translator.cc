@@ -51,7 +51,6 @@ class AbstractMachineFunctionGenerator {
       auto& first_block = am_cfg_.add();
       am_cfg_.first = first_block.ref;
 
-      first_block.instructions.push_back(PushStack{});
       first_block.instructions.push_back(FuncCall{
           .label = "_print_string",
       });
@@ -59,7 +58,6 @@ class AbstractMachineFunctionGenerator {
           .src_val = "0",
           .dst_reg = result_reg_,
       });
-      first_block.instructions.push_back(PopStack{});
       first_block.instructions.push_back(Return{
           .res_reg = result_reg_,
       });
@@ -68,7 +66,6 @@ class AbstractMachineFunctionGenerator {
       auto& first_block = am_cfg_.add();
       am_cfg_.first = first_block.ref;
 
-      first_block.instructions.push_back(PushStack{});
       first_block.instructions.push_back(FuncCall{
           .label = "_sleep",
       });
@@ -76,7 +73,6 @@ class AbstractMachineFunctionGenerator {
           .src_val = "0",
           .dst_reg = result_reg_,
       });
-      first_block.instructions.push_back(PopStack{});
       first_block.instructions.push_back(Return{
           .res_reg = result_reg_,
       });
@@ -85,7 +81,6 @@ class AbstractMachineFunctionGenerator {
 
     {
       auto& first_block = am_cfg_.get(am_cfg_.first);
-      first_block.instructions.push_back(PushStack{});
       for (const auto& param_ref : syn_cfg_.func_params) {
         const auto& param = syn_ctx_.DerefParam(param_ref);
         am_cfg_.params.push_back(GetVarReg(param.name, param.type_constraint));
@@ -114,7 +109,6 @@ class AbstractMachineFunctionGenerator {
 
     {
       auto& last_block = am_cfg_.get(am_cfg_.last);
-      last_block.instructions.push_back(PopStack{});
       last_block.instructions.push_back(Return{
           .res_reg = result_reg_,
       });

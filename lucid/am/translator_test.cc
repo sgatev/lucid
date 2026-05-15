@@ -53,20 +53,18 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
       }),
   };
 
-  EXPECT_THAT(Generate(func),
-              ElementsAre(PushStack{},
-                          SetReg{
-                              .src_val = "21",
-                              .dst_reg = RegId(2, RegSize::RegSize32),
-                          },
-                          MoveReg{
-                              .src_reg = RegId(2, RegSize::RegSize32),
-                              .dst_reg = RegId(1, RegSize::RegSize32),
-                          },
-                          PopStack{},
-                          Return{
-                              .res_reg = RegId(1, RegSize::RegSize32),
-                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "21",
+                                      .dst_reg = RegId(2, RegSize::RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize::RegSize32),
+                                      .dst_reg = RegId(1, RegSize::RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize::RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
@@ -80,20 +78,18 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
       }),
   };
 
-  EXPECT_THAT(Generate(func),
-              ElementsAre(PushStack{},
-                          SetReg{
-                              .src_val = "21",
-                              .dst_reg = RegId(2, RegSize::RegSize64),
-                          },
-                          MoveReg{
-                              .src_reg = RegId(2, RegSize::RegSize64),
-                              .dst_reg = RegId(1, RegSize::RegSize64),
-                          },
-                          PopStack{},
-                          Return{
-                              .res_reg = RegId(1, RegSize::RegSize64),
-                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "21",
+                                      .dst_reg = RegId(2, RegSize::RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize::RegSize64),
+                                      .dst_reg = RegId(1, RegSize::RegSize64),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize::RegSize64),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
@@ -124,31 +120,30 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
   };
 
   EXPECT_THAT(Generate(func, {id_func}),
-              ElementsAre(PushStack{},
-                          SetReg{
-                              .src_val = "21",
-                              .dst_reg = RegId(2, RegSize32),
+              ElementsAre(
+                  SetReg{
+                      .src_val = "21",
+                      .dst_reg = RegId(2, RegSize32),
+                  },
+                  FuncCall{
+                      .label = "id",
+                      .args =
+                          {
+                              {
+                                  .reg = RegId(2, RegSize32),
+                              },
                           },
-                          FuncCall{
-                              .label = "id",
-                              .args =
-                                  {
-                                      {
-                                          .reg = RegId(2, RegSize32),
-                                      },
-                                  },
-                              .res = std::optional<FuncCall::Slot>({
-                                  .reg = RegId(3, RegSize32),
-                              }),
-                          },
-                          MoveReg{
-                              .src_reg = RegId(3, RegSize32),
-                              .dst_reg = RegId(1, RegSize32),
-                          },
-                          PopStack{},
-                          Return{
-                              .res_reg = RegId(1, RegSize32),
-                          }));
+                      .res = std::optional<FuncCall::Slot>({
+                          .reg = RegId(3, RegSize32),
+                      }),
+                  },
+                  MoveReg{
+                      .src_reg = RegId(3, RegSize32),
+                      .dst_reg = RegId(1, RegSize32),
+                  },
+                  Return{
+                      .res_reg = RegId(1, RegSize32),
+                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
@@ -179,31 +174,30 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
   };
 
   EXPECT_THAT(Generate(func, {id_func}),
-              ElementsAre(PushStack{},
-                          SetReg{
-                              .src_val = "21",
-                              .dst_reg = RegId(2, RegSize64),
+              ElementsAre(
+                  SetReg{
+                      .src_val = "21",
+                      .dst_reg = RegId(2, RegSize64),
+                  },
+                  FuncCall{
+                      .label = "id",
+                      .args =
+                          {
+                              {
+                                  .reg = RegId(2, RegSize64),
+                              },
                           },
-                          FuncCall{
-                              .label = "id",
-                              .args =
-                                  {
-                                      {
-                                          .reg = RegId(2, RegSize64),
-                                      },
-                                  },
-                              .res = std::optional<FuncCall::Slot>({
-                                  .reg = RegId(3, RegSize64),
-                              }),
-                          },
-                          MoveReg{
-                              .src_reg = RegId(3, RegSize64),
-                              .dst_reg = RegId(1, RegSize64),
-                          },
-                          PopStack{},
-                          Return{
-                              .res_reg = RegId(1, RegSize64),
-                          }));
+                      .res = std::optional<FuncCall::Slot>({
+                          .reg = RegId(3, RegSize64),
+                      }),
+                  },
+                  MoveReg{
+                      .src_reg = RegId(3, RegSize64),
+                      .dst_reg = RegId(1, RegSize64),
+                  },
+                  Return{
+                      .res_reg = RegId(1, RegSize64),
+                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
@@ -221,28 +215,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "3",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          AddReg{
-                                              .res_reg = RegId(4, RegSize32),
-                                              .lhs_reg = RegId(2, RegSize32),
-                                              .rhs_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "3",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  AddReg{
+                                      .res_reg = RegId(4, RegSize32),
+                                      .lhs_reg = RegId(2, RegSize32),
+                                      .rhs_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
@@ -260,28 +253,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(2, RegSize64),
-                                          },
-                                          SetReg{
-                                              .src_val = "3",
-                                              .dst_reg = RegId(3, RegSize64),
-                                          },
-                                          AddReg{
-                                              .res_reg = RegId(4, RegSize64),
-                                              .lhs_reg = RegId(2, RegSize64),
-                                              .rhs_reg = RegId(3, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize64),
-                                              .dst_reg = RegId(1, RegSize64),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize64),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(2, RegSize64),
+                                  },
+                                  SetReg{
+                                      .src_val = "3",
+                                      .dst_reg = RegId(3, RegSize64),
+                                  },
+                                  AddReg{
+                                      .res_reg = RegId(4, RegSize64),
+                                      .lhs_reg = RegId(2, RegSize64),
+                                      .rhs_reg = RegId(3, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize64),
+                                      .dst_reg = RegId(1, RegSize64),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize64),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
@@ -299,28 +291,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "7",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "5",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          SubReg{
-                                              .res_reg = RegId(4, RegSize32),
-                                              .lhs_reg = RegId(2, RegSize32),
-                                              .rhs_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "7",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "5",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  SubReg{
+                                      .res_reg = RegId(4, RegSize32),
+                                      .lhs_reg = RegId(2, RegSize32),
+                                      .rhs_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
@@ -338,28 +329,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "7",
-                                              .dst_reg = RegId(2, RegSize64),
-                                          },
-                                          SetReg{
-                                              .src_val = "5",
-                                              .dst_reg = RegId(3, RegSize64),
-                                          },
-                                          SubReg{
-                                              .res_reg = RegId(4, RegSize64),
-                                              .lhs_reg = RegId(2, RegSize64),
-                                              .rhs_reg = RegId(3, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize64),
-                                              .dst_reg = RegId(1, RegSize64),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize64),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "7",
+                                      .dst_reg = RegId(2, RegSize64),
+                                  },
+                                  SetReg{
+                                      .src_val = "5",
+                                      .dst_reg = RegId(3, RegSize64),
+                                  },
+                                  SubReg{
+                                      .res_reg = RegId(4, RegSize64),
+                                      .lhs_reg = RegId(2, RegSize64),
+                                      .rhs_reg = RegId(3, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize64),
+                                      .dst_reg = RegId(1, RegSize64),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize64),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
@@ -377,28 +367,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "3",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          MulReg{
-                                              .res_reg = RegId(4, RegSize32),
-                                              .lhs_reg = RegId(2, RegSize32),
-                                              .rhs_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "3",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  MulReg{
+                                      .res_reg = RegId(4, RegSize32),
+                                      .lhs_reg = RegId(2, RegSize32),
+                                      .rhs_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
@@ -416,28 +405,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(2, RegSize64),
-                                          },
-                                          SetReg{
-                                              .src_val = "3",
-                                              .dst_reg = RegId(3, RegSize64),
-                                          },
-                                          MulReg{
-                                              .res_reg = RegId(4, RegSize64),
-                                              .lhs_reg = RegId(2, RegSize64),
-                                              .rhs_reg = RegId(3, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize64),
-                                              .dst_reg = RegId(1, RegSize64),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize64),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(2, RegSize64),
+                                  },
+                                  SetReg{
+                                      .src_val = "3",
+                                      .dst_reg = RegId(3, RegSize64),
+                                  },
+                                  MulReg{
+                                      .res_reg = RegId(4, RegSize64),
+                                      .lhs_reg = RegId(2, RegSize64),
+                                      .rhs_reg = RegId(3, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize64),
+                                      .dst_reg = RegId(1, RegSize64),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize64),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
@@ -455,28 +443,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "8",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          DivReg{
-                                              .res_reg = RegId(4, RegSize32),
-                                              .lhs_reg = RegId(2, RegSize32),
-                                              .rhs_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "8",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  DivReg{
+                                      .res_reg = RegId(4, RegSize32),
+                                      .lhs_reg = RegId(2, RegSize32),
+                                      .rhs_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
@@ -494,28 +481,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "8",
-                                              .dst_reg = RegId(2, RegSize64),
-                                          },
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(3, RegSize64),
-                                          },
-                                          DivReg{
-                                              .res_reg = RegId(4, RegSize64),
-                                              .lhs_reg = RegId(2, RegSize64),
-                                              .rhs_reg = RegId(3, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize64),
-                                              .dst_reg = RegId(1, RegSize64),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize64),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "8",
+                                      .dst_reg = RegId(2, RegSize64),
+                                  },
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(3, RegSize64),
+                                  },
+                                  DivReg{
+                                      .res_reg = RegId(4, RegSize64),
+                                      .lhs_reg = RegId(2, RegSize64),
+                                      .rhs_reg = RegId(3, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize64),
+                                      .dst_reg = RegId(1, RegSize64),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize64),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
@@ -533,28 +519,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "8",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          ModReg{
-                                              .res_reg = RegId(4, RegSize32),
-                                              .lhs_reg = RegId(2, RegSize32),
-                                              .rhs_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "8",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  ModReg{
+                                      .res_reg = RegId(4, RegSize32),
+                                      .lhs_reg = RegId(2, RegSize32),
+                                      .rhs_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
@@ -572,28 +557,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "8",
-                                              .dst_reg = RegId(2, RegSize64),
-                                          },
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(3, RegSize64),
-                                          },
-                                          ModReg{
-                                              .res_reg = RegId(4, RegSize64),
-                                              .lhs_reg = RegId(2, RegSize64),
-                                              .rhs_reg = RegId(3, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize64),
-                                              .dst_reg = RegId(1, RegSize64),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize64),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "8",
+                                      .dst_reg = RegId(2, RegSize64),
+                                  },
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(3, RegSize64),
+                                  },
+                                  ModReg{
+                                      .res_reg = RegId(4, RegSize64),
+                                      .lhs_reg = RegId(2, RegSize64),
+                                      .rhs_reg = RegId(3, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize64),
+                                      .dst_reg = RegId(1, RegSize64),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize64),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
@@ -623,49 +607,48 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "1",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "4",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "5",
-                                              .dst_reg = RegId(4, RegSize32),
-                                          },
-                                          MulReg{
-                                              .res_reg = RegId(5, RegSize32),
-                                              .lhs_reg = RegId(3, RegSize32),
-                                              .rhs_reg = RegId(4, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(5, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(6, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "3",
-                                              .dst_reg = RegId(7, RegSize32),
-                                          },
-                                          AddReg{
-                                              .res_reg = RegId(8, RegSize32),
-                                              .lhs_reg = RegId(6, RegSize32),
-                                              .rhs_reg = RegId(7, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(8, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "1",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "4",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "5",
+                                      .dst_reg = RegId(4, RegSize32),
+                                  },
+                                  MulReg{
+                                      .res_reg = RegId(5, RegSize32),
+                                      .lhs_reg = RegId(3, RegSize32),
+                                      .rhs_reg = RegId(4, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(5, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(6, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "3",
+                                      .dst_reg = RegId(7, RegSize32),
+                                  },
+                                  AddReg{
+                                      .res_reg = RegId(8, RegSize32),
+                                      .lhs_reg = RegId(6, RegSize32),
+                                      .rhs_reg = RegId(7, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(8, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
@@ -697,49 +680,48 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "1",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "4",
-                                              .dst_reg = RegId(6, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "5",
-                                              .dst_reg = RegId(7, RegSize32),
-                                          },
-                                          MulReg{
-                                              .res_reg = RegId(8, RegSize32),
-                                              .lhs_reg = RegId(6, RegSize32),
-                                              .rhs_reg = RegId(7, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(8, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "3",
-                                              .dst_reg = RegId(4, RegSize32),
-                                          },
-                                          AddReg{
-                                              .res_reg = RegId(5, RegSize32),
-                                              .lhs_reg = RegId(3, RegSize32),
-                                              .rhs_reg = RegId(4, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(5, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "1",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "4",
+                                      .dst_reg = RegId(6, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "5",
+                                      .dst_reg = RegId(7, RegSize32),
+                                  },
+                                  MulReg{
+                                      .res_reg = RegId(8, RegSize32),
+                                      .lhs_reg = RegId(6, RegSize32),
+                                      .rhs_reg = RegId(7, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(8, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "3",
+                                      .dst_reg = RegId(4, RegSize32),
+                                  },
+                                  AddReg{
+                                      .res_reg = RegId(5, RegSize32),
+                                      .lhs_reg = RegId(3, RegSize32),
+                                      .rhs_reg = RegId(4, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(5, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
@@ -757,28 +739,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "3",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          GtReg{
-                                              .res_reg = RegId(4, RegSize32),
-                                              .lhs_reg = RegId(2, RegSize32),
-                                              .rhs_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "3",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  GtReg{
+                                      .res_reg = RegId(4, RegSize32),
+                                      .lhs_reg = RegId(2, RegSize32),
+                                      .rhs_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
@@ -806,28 +787,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize32),
-                                              .dst_reg = RegId(4, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize32),
-                                              .dst_reg = RegId(5, RegSize32),
-                                          },
-                                          GtReg{
-                                              .res_reg = RegId(6, RegSize32),
-                                              .lhs_reg = RegId(4, RegSize32),
-                                              .rhs_reg = RegId(5, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(6, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize32),
+                                      .dst_reg = RegId(4, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize32),
+                                      .dst_reg = RegId(5, RegSize32),
+                                  },
+                                  GtReg{
+                                      .res_reg = RegId(6, RegSize32),
+                                      .lhs_reg = RegId(4, RegSize32),
+                                      .rhs_reg = RegId(5, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(6, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
@@ -855,28 +835,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize64),
-                                              .dst_reg = RegId(4, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize64),
-                                              .dst_reg = RegId(5, RegSize64),
-                                          },
-                                          GtReg{
-                                              .res_reg = RegId(6, RegSize32),
-                                              .lhs_reg = RegId(4, RegSize64),
-                                              .rhs_reg = RegId(5, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(6, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize64),
+                                      .dst_reg = RegId(4, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize64),
+                                      .dst_reg = RegId(5, RegSize64),
+                                  },
+                                  GtReg{
+                                      .res_reg = RegId(6, RegSize32),
+                                      .lhs_reg = RegId(4, RegSize64),
+                                      .rhs_reg = RegId(5, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(6, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
@@ -894,28 +873,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "3",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          LtReg{
-                                              .res_reg = RegId(4, RegSize32),
-                                              .lhs_reg = RegId(2, RegSize32),
-                                              .rhs_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "3",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  LtReg{
+                                      .res_reg = RegId(4, RegSize32),
+                                      .lhs_reg = RegId(2, RegSize32),
+                                      .rhs_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
@@ -943,28 +921,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize32),
-                                              .dst_reg = RegId(4, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize32),
-                                              .dst_reg = RegId(5, RegSize32),
-                                          },
-                                          LtReg{
-                                              .res_reg = RegId(6, RegSize32),
-                                              .lhs_reg = RegId(4, RegSize32),
-                                              .rhs_reg = RegId(5, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(6, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize32),
+                                      .dst_reg = RegId(4, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize32),
+                                      .dst_reg = RegId(5, RegSize32),
+                                  },
+                                  LtReg{
+                                      .res_reg = RegId(6, RegSize32),
+                                      .lhs_reg = RegId(4, RegSize32),
+                                      .rhs_reg = RegId(5, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(6, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
@@ -992,28 +969,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize64),
-                                              .dst_reg = RegId(4, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize64),
-                                              .dst_reg = RegId(5, RegSize64),
-                                          },
-                                          LtReg{
-                                              .res_reg = RegId(6, RegSize32),
-                                              .lhs_reg = RegId(4, RegSize64),
-                                              .rhs_reg = RegId(5, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(6, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize64),
+                                      .dst_reg = RegId(4, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize64),
+                                      .dst_reg = RegId(5, RegSize64),
+                                  },
+                                  LtReg{
+                                      .res_reg = RegId(6, RegSize32),
+                                      .lhs_reg = RegId(4, RegSize64),
+                                      .rhs_reg = RegId(5, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(6, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
@@ -1041,28 +1017,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize32),
-                                              .dst_reg = RegId(4, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize32),
-                                              .dst_reg = RegId(5, RegSize32),
-                                          },
-                                          EqReg{
-                                              .res_reg = RegId(6, RegSize32),
-                                              .lhs_reg = RegId(4, RegSize32),
-                                              .rhs_reg = RegId(5, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(6, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize32),
+                                      .dst_reg = RegId(4, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize32),
+                                      .dst_reg = RegId(5, RegSize32),
+                                  },
+                                  EqReg{
+                                      .res_reg = RegId(6, RegSize32),
+                                      .lhs_reg = RegId(4, RegSize32),
+                                      .rhs_reg = RegId(5, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(6, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
@@ -1090,28 +1065,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize64),
-                                              .dst_reg = RegId(4, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize64),
-                                              .dst_reg = RegId(5, RegSize64),
-                                          },
-                                          EqReg{
-                                              .res_reg = RegId(6, RegSize32),
-                                              .lhs_reg = RegId(4, RegSize64),
-                                              .rhs_reg = RegId(5, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(6, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize64),
+                                      .dst_reg = RegId(4, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize64),
+                                      .dst_reg = RegId(5, RegSize64),
+                                  },
+                                  EqReg{
+                                      .res_reg = RegId(6, RegSize32),
+                                      .lhs_reg = RegId(4, RegSize64),
+                                      .rhs_reg = RegId(5, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(6, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
@@ -1139,28 +1113,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize32),
-                                              .dst_reg = RegId(4, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize32),
-                                              .dst_reg = RegId(5, RegSize32),
-                                          },
-                                          NotEqReg{
-                                              .res_reg = RegId(6, RegSize32),
-                                              .lhs_reg = RegId(4, RegSize32),
-                                              .rhs_reg = RegId(5, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(6, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize32),
+                                      .dst_reg = RegId(4, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize32),
+                                      .dst_reg = RegId(5, RegSize32),
+                                  },
+                                  NotEqReg{
+                                      .res_reg = RegId(6, RegSize32),
+                                      .lhs_reg = RegId(4, RegSize32),
+                                      .rhs_reg = RegId(5, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(6, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
@@ -1188,28 +1161,27 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize64),
-                                              .dst_reg = RegId(4, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize64),
-                                              .dst_reg = RegId(5, RegSize64),
-                                          },
-                                          NotEqReg{
-                                              .res_reg = RegId(6, RegSize32),
-                                              .lhs_reg = RegId(4, RegSize64),
-                                              .rhs_reg = RegId(5, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(6, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize64),
+                                      .dst_reg = RegId(4, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize64),
+                                      .dst_reg = RegId(5, RegSize64),
+                                  },
+                                  NotEqReg{
+                                      .res_reg = RegId(6, RegSize32),
+                                      .lhs_reg = RegId(4, RegSize64),
+                                      .rhs_reg = RegId(5, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(6, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
@@ -1230,27 +1202,26 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize32),
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize32),
-                                              .dst_reg = RegId(4, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize32),
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize32),
+                                      .dst_reg = RegId(4, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
@@ -1271,27 +1242,26 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(2, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize64),
-                                              .dst_reg = RegId(3, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize64),
-                                              .dst_reg = RegId(4, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize64),
-                                              .dst_reg = RegId(1, RegSize64),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize64),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(2, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize64),
+                                      .dst_reg = RegId(3, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize64),
+                                      .dst_reg = RegId(4, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize64),
+                                      .dst_reg = RegId(1, RegSize64),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize64),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
@@ -1314,19 +1284,18 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "0",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "0",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
@@ -1349,19 +1318,18 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "0",
-                                              .dst_reg = RegId(2, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize64),
-                                              .dst_reg = RegId(1, RegSize64),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize64),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "0",
+                                      .dst_reg = RegId(2, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize64),
+                                      .dst_reg = RegId(1, RegSize64),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize64),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
@@ -1385,27 +1353,26 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize32),
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize32),
-                                              .dst_reg = RegId(4, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize32),
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize32),
+                                      .dst_reg = RegId(4, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
@@ -1429,27 +1396,26 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(3, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize64),
-                                              .dst_reg = RegId(2, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize64),
-                                              .dst_reg = RegId(4, RegSize64),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize64),
-                                              .dst_reg = RegId(1, RegSize64),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize64),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(3, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize64),
+                                      .dst_reg = RegId(2, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize64),
+                                      .dst_reg = RegId(4, RegSize64),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize64),
+                                      .dst_reg = RegId(1, RegSize64),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize64),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
@@ -1470,27 +1436,26 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "1",
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "2",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "1",
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "2",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
@@ -1531,57 +1496,56 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(PushStack{},
-                                          SetReg{
-                                              .src_val = "0",
-                                              .dst_reg = RegId(2, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(2, RegSize32),
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize32),
-                                              .dst_reg = RegId(5, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "3",
-                                              .dst_reg = RegId(6, RegSize32),
-                                          },
-                                          GtReg{
-                                              .res_reg = RegId(7, RegSize32),
-                                              .lhs_reg = RegId(5, RegSize32),
-                                              .rhs_reg = RegId(6, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize32),
-                                              .dst_reg = RegId(8, RegSize32),
-                                          },
-                                          SetReg{
-                                              .src_val = "1",
-                                              .dst_reg = RegId(9, RegSize32),
-                                          },
-                                          AddReg{
-                                              .res_reg = RegId(10, RegSize32),
-                                              .lhs_reg = RegId(8, RegSize32),
-                                              .rhs_reg = RegId(9, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(10, RegSize32),
-                                              .dst_reg = RegId(3, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(3, RegSize32),
-                                              .dst_reg = RegId(4, RegSize32),
-                                          },
-                                          MoveReg{
-                                              .src_reg = RegId(4, RegSize32),
-                                              .dst_reg = RegId(1, RegSize32),
-                                          },
-                                          PopStack{},
-                                          Return{
-                                              .res_reg = RegId(1, RegSize32),
-                                          }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = "0",
+                                      .dst_reg = RegId(2, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(2, RegSize32),
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize32),
+                                      .dst_reg = RegId(5, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "3",
+                                      .dst_reg = RegId(6, RegSize32),
+                                  },
+                                  GtReg{
+                                      .res_reg = RegId(7, RegSize32),
+                                      .lhs_reg = RegId(5, RegSize32),
+                                      .rhs_reg = RegId(6, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize32),
+                                      .dst_reg = RegId(8, RegSize32),
+                                  },
+                                  SetReg{
+                                      .src_val = "1",
+                                      .dst_reg = RegId(9, RegSize32),
+                                  },
+                                  AddReg{
+                                      .res_reg = RegId(10, RegSize32),
+                                      .lhs_reg = RegId(8, RegSize32),
+                                      .rhs_reg = RegId(9, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(10, RegSize32),
+                                      .dst_reg = RegId(3, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(3, RegSize32),
+                                      .dst_reg = RegId(4, RegSize32),
+                                  },
+                                  MoveReg{
+                                      .src_reg = RegId(4, RegSize32),
+                                      .dst_reg = RegId(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = RegId(1, RegSize32),
+                                  }));
 }
 
 }  // namespace

@@ -286,9 +286,7 @@ HashMap<RegId, int> ColorInterferenceGraph(
   }
   for (const auto& block : am_cfg.blocks()) {
     for (const auto& inst : block.instructions) {
-      if (std::holds_alternative<PushStack>(inst) ||
-          std::holds_alternative<PopStack>(inst)) {
-      } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
+      if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
         reg_scores.Insert(cinst->src_reg, 0);
       } else if (auto* cinst = std::get_if<SetReg>(&inst)) {

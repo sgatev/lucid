@@ -50,6 +50,24 @@ class Arm64BinaryGenerator {
           stack_offsets_[kRegistersToPersist.size() + i - 1] + stack_slots_[i];
     }
 
+    assembler_.Sub(SP, SP, Imm(stack_size_));
+
+    for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
+      assembler_.StrUnsignedOffset(X(kRegistersToPersist[i]), SP,
+                                   Imm(stack_offsets_[i]));
+    }
+
+    for (int param_idx = 1; const auto& param : am_cfg_.params) {
+      switch (param.size) {
+        case RegSize32:
+          assembler_.Mov(W(param.id), W(param_idx++));
+          break;
+        case RegSize64:
+          assembler_.Mov(X(param.id), X(param_idx++));
+          break;
+      }
+    }
+
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
         Vertices(am_cfg_);
     std::sort(block_refs.begin(), block_refs.end(),
@@ -338,30 +356,6 @@ class Arm64BinaryGenerator {
         break;
     }
   }
-
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const PushStack& inst) {
-    assembler_.Sub(SP, SP, Imm(stack_size_));
-
-    for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
-      assembler_.StrUnsignedOffset(X(kRegistersToPersist[i]), SP,
-                                   Imm(stack_offsets_[i]));
-    }
-
-    for (int param_idx = 1; const auto& param : am_cfg_.params) {
-      switch (param.size) {
-        case RegSize32:
-          assembler_.Mov(W(param.id), W(param_idx++));
-          break;
-        case RegSize64:
-          assembler_.Mov(X(param.id), X(param_idx++));
-          break;
-      }
-    }
-  }
-
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const PopStack& inst) {}
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const StoreStack32& inst) {
