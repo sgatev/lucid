@@ -152,11 +152,6 @@ class Arm64BinaryGenerator {
     assembler_.Ret();
   }
 
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const Jump& inst) {
-    assembler_.Bl(inst.label);
-  }
-
   void ProcessPhiFunctions(
       const AbstractMachineControlFlowGraph::Block& block,
       AbstractMachineControlFlowGraph::BlockRef pred_block_ref) {

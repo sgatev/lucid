@@ -96,18 +96,6 @@ struct SetStr {
   }
 };
 
-// Jumps to a labeled location.
-struct Jump {
-  // Label of the location to jump to.
-  std::string_view label;
-
-  bool operator==(const Jump&) const = default;
-
-  friend std::ostream& operator<<(std::ostream& os, const Jump& inst) {
-    return os << "Jump { .label=\"" << inst.label << "\" }";
-  }
-};
-
 // Returns to the location before the last jump.
 struct Return {
   // Result register.
@@ -506,17 +494,16 @@ struct FuncCall {
 
 // An instruction for the Lucid abstract machine.
 using Instruction =
-    std::variant<Nop, MoveReg, SetReg, SetStr, Jump, Return, AddReg, SubReg,
-                 MulReg, DivReg, ModReg, GtReg, LtReg, EqReg, NotEqReg,
-                 PushStack, PopStack, StoreStack32, StoreStackReg32,
-                 StoreStack64, StoreStackReg64, LoadStack32, LoadStackReg32,
-                 LoadStack64, LoadStackReg64, FuncCall>;
+    std::variant<Nop, MoveReg, SetReg, SetStr, Return, AddReg, SubReg, MulReg,
+                 DivReg, ModReg, GtReg, LtReg, EqReg, NotEqReg, PushStack,
+                 PopStack, StoreStack32, StoreStackReg32, StoreStack64,
+                 StoreStackReg64, LoadStack32, LoadStackReg32, LoadStack64,
+                 LoadStackReg64, FuncCall>;
 
 // Returns the source registers used by the given instruction, if any.
 inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
   if (std::holds_alternative<PushStack>(inst) ||
       std::holds_alternative<PopStack>(inst) ||
-      std::holds_alternative<Jump>(inst) ||
       std::holds_alternative<SetReg>(inst) ||
       std::holds_alternative<SetStr>(inst) ||
       std::holds_alternative<LoadStack32>(inst) ||
@@ -570,7 +557,6 @@ inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
 inline std::optional<RegId> GetTargetRegister(const Instruction& inst) {
   if (std::holds_alternative<PushStack>(inst) ||
       std::holds_alternative<PopStack>(inst) ||
-      std::holds_alternative<Jump>(inst) ||
       std::holds_alternative<StoreStack32>(inst) ||
       std::holds_alternative<StoreStackReg32>(inst) ||
       std::holds_alternative<StoreStack64>(inst) ||

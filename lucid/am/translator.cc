@@ -52,7 +52,7 @@ class AbstractMachineFunctionGenerator {
       am_cfg_.first = first_block.ref;
 
       first_block.instructions.push_back(PushStack{});
-      first_block.instructions.push_back(Jump{
+      first_block.instructions.push_back(FuncCall{
           .label = "_print_string",
       });
       first_block.instructions.push_back(SetReg{
@@ -69,7 +69,7 @@ class AbstractMachineFunctionGenerator {
       am_cfg_.first = first_block.ref;
 
       first_block.instructions.push_back(PushStack{});
-      first_block.instructions.push_back(Jump{
+      first_block.instructions.push_back(FuncCall{
           .label = "_sleep",
       });
       first_block.instructions.push_back(SetReg{
