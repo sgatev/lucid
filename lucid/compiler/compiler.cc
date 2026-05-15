@@ -19,6 +19,7 @@
 #include "lucid/arm64/assembler.h"
 #include "lucid/arm64/macho.h"
 #include "lucid/arm64/translator.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/io/file.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/buffered_lexer.h"
@@ -41,6 +42,8 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
   if (!func_defs) return std::unexpected(func_defs.error());
 
   AbstractMachineState am_state;
+  HashMap<StringIndex::Ref, AbstractMachineControlFlowGraph> am_cfgs;
+
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
   for (auto& func : *func_defs) {
@@ -64,8 +67,9 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
     HashMap<RegId, int> am_ig_colors =
         ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
     MergeRegisters(am_ig_colors, am_cfg);
-    GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func.name),
-                              am_state.stack_slots, am_cfg, assembler);
+    GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func.name), am_cfg.stack_slots,
+                              am_cfg, assembler);
+    am_cfgs.Insert(func.name, std::move(am_cfg));
   }
   GenerateArmEndBinary(syn_ctx, am_state.strings, assembler);
   WriteCompiledMachObject(assembler, out);

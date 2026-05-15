@@ -85,6 +85,12 @@ class AbstractMachineControlFlowGraph {
   // Parameters of the function.
   std::vector<RegId> params;
 
+  // Abstract machine stack slots.
+  std::vector<std::size_t> stack_slots;
+
+  // Next free register ID.
+  std::int32_t next_free_reg_id = 1;
+
  private:
   friend std::size_t VertexCount(const AbstractMachineControlFlowGraph&);
   friend std::vector<BlockRef> Vertices(const AbstractMachineControlFlowGraph&);

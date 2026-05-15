@@ -87,12 +87,12 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     if (reg != reg_to_spill) return;
 
     ++pos;
-    reg_stack.Insert(reg, am_state.stack_slots.size());
+    reg_stack.Insert(reg, am_cfg.stack_slots.size());
     instructions.insert(pos, StoreStack32{
-                                 .offset = am_state.stack_slots.size(),
+                                 .offset = am_cfg.stack_slots.size(),
                                  .src_reg = reg,
                              });
-    am_state.stack_slots.push_back(4);
+    am_cfg.stack_slots.push_back(4);
   };
   auto maybe_insert_store64 = [&](std::list<Instruction>& instructions,
                                   std::list<Instruction>::iterator& pos,
@@ -100,12 +100,12 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     if (reg != reg_to_spill) return;
 
     ++pos;
-    reg_stack.Insert(reg, am_state.stack_slots.size());
+    reg_stack.Insert(reg, am_cfg.stack_slots.size());
     instructions.insert(pos, StoreStack64{
-                                 .offset = am_state.stack_slots.size(),
+                                 .offset = am_cfg.stack_slots.size(),
                                  .src_reg = reg,
                              });
-    am_state.stack_slots.push_back(8);
+    am_cfg.stack_slots.push_back(8);
   };
   auto maybe_insert_load32 = [&](std::list<Instruction>& instructions,
                                  std::list<Instruction>::iterator& pos,
@@ -113,7 +113,7 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     if (reg != reg_to_spill) return;
 
     RegId old_reg = reg;
-    reg.id = am_state.next_free_reg_id++;
+    reg.id = am_cfg.next_free_reg_id++;
     reg_rename.Insert(old_reg, reg);
 
     auto offset = reg_stack.Get(old_reg);
@@ -131,7 +131,7 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     if (reg != reg_to_spill) return;
 
     RegId old_reg = reg;
-    reg.id = am_state.next_free_reg_id++;
+    reg.id = am_cfg.next_free_reg_id++;
     reg_rename.Insert(old_reg, reg);
 
     auto offset = reg_stack.Get(old_reg);
