@@ -23,6 +23,7 @@ cc_test(
     deps = [
         ":interpreter",
         "//lucid/am:cfg",
+        "//lucid/am:cfg_builder",
         "//lucid/am:instructions",
         "//lucid/am:state",
         "@googletest//:gtest_main",

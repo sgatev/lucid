@@ -13,6 +13,16 @@ cc_library(
 )
 
 cc_library(
+    name = "cfg_builder",
+    testonly = True,
+    hdrs = ["cfg_builder.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":cfg",
+    ],
+)
+
+cc_library(
     name = "cfg_printer",
     srcs = ["cfg_printer.cc"],
     hdrs = ["cfg_printer.h"],
@@ -83,6 +93,7 @@ cc_test(
     srcs = ["liveness_test.cc"],
     deps = [
         ":cfg",
+        ":cfg_builder",
         ":instructions",
         ":liveness",
         "//lucid/core/dataflow",

@@ -7,6 +7,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "lucid/am/cfg.h"
+#include "lucid/am/cfg_builder.h"
 #include "lucid/am/instructions.h"
 #include "lucid/core/dataflow/dataflow.h"
 
@@ -17,40 +18,18 @@ using ::testing::IsEmpty;
 using ::testing::SizeIs;
 using ::testing::UnorderedElementsAre;
 
-class GraphBuilder {
+class LivenessAnalysisGraphBuilder
+    : public AbstractMachineControlFlowGraphBuilder {
  public:
-  AbstractMachineControlFlowGraph::BlockRef block() { return am_cfg.add().ref; }
-
-  void edge(AbstractMachineControlFlowGraph::BlockRef from,
-            AbstractMachineControlFlowGraph::BlockRef to) {
-    am_cfg.get(from).next.push_back(to);
-    am_cfg.get(to).preds.push_back(from);
-  }
-
-  void inst(AbstractMachineControlFlowGraph::BlockRef ref, Instruction inst) {
-    am_cfg.get(ref).instructions.push_back(std::move(inst));
-  }
-
-  void first(AbstractMachineControlFlowGraph::BlockRef ref) {
-    am_cfg.first = ref;
-  }
-
-  void last(AbstractMachineControlFlowGraph::BlockRef ref) {
-    am_cfg.last = ref;
-  }
-
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-  build() && {
+  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>> run() && {
+    AbstractMachineControlFlowGraph am_cfg = std::move(*this).build();
     AbstractMachineLivenessAnalysis analysis(am_cfg);
     return RunDataflow(Backward(am_cfg), analysis);
   }
-
- private:
-  AbstractMachineControlFlowGraph am_cfg;
 };
 
 TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
-  GraphBuilder g;
+  LivenessAnalysisGraphBuilder g;
 
   auto a = g.block();
   auto z = g.block();
@@ -65,7 +44,7 @@ TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
   g.last(z);
 
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      block_states = std::move(g).build();
+      block_states = std::move(g).run();
   ASSERT_THAT(block_states, SizeIs(2));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
@@ -76,7 +55,7 @@ TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
 }
 
 TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
-  GraphBuilder g;
+  LivenessAnalysisGraphBuilder g;
 
   auto a = g.block();
   auto b = g.block();
@@ -98,7 +77,7 @@ TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
   g.last(z);
 
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      block_states = std::move(g).build();
+      block_states = std::move(g).run();
   ASSERT_THAT(block_states, SizeIs(3));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
@@ -112,7 +91,7 @@ TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
 }
 
 TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
-  GraphBuilder g;
+  LivenessAnalysisGraphBuilder g;
 
   auto a = g.block();
   auto b = g.block();
@@ -153,7 +132,7 @@ TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
   g.last(z);
 
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      block_states = std::move(g).build();
+      block_states = std::move(g).run();
   ASSERT_THAT(block_states, SizeIs(5));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
@@ -174,7 +153,7 @@ TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
 }
 
 TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
-  GraphBuilder g;
+  LivenessAnalysisGraphBuilder g;
 
   auto a = g.block();
   auto b = g.block();
@@ -200,7 +179,7 @@ TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
   g.last(z);
 
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      block_states = std::move(g).build();
+      block_states = std::move(g).run();
   ASSERT_THAT(block_states, SizeIs(3));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
@@ -214,7 +193,7 @@ TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
 }
 
 TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
-  GraphBuilder g;
+  LivenessAnalysisGraphBuilder g;
 
   auto a = g.block();
   auto b = g.block();
@@ -244,7 +223,7 @@ TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
   g.last(z);
 
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      block_states = std::move(g).build();
+      block_states = std::move(g).run();
   ASSERT_THAT(block_states, SizeIs(4));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
