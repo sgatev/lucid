@@ -132,6 +132,7 @@ cc_library(
 cc_library(
     name = "state",
     hdrs = ["state.h"],
+    visibility = ["//lucid:__subpackages__"],
     deps = [
         "//lucid/core/container:hash_map",
         "//lucid/core/string:index",
@@ -152,6 +153,7 @@ cc_library(
         "//lucid/core/string:index",
         "//lucid/syntax:ast",
         "//lucid/syntax:cfg",
+        "//lucid/vm:interpreter",
     ],
 )
 

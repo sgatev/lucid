@@ -1,0 +1,30 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_library(
+    name = "interpreter",
+    srcs = ["interpreter.cc"],
+    hdrs = ["interpreter.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        "//lucid/am:cfg",
+        "//lucid/am:state",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:optional_ref",
+        "//lucid/core/string:index",
+        "//lucid/syntax:ast",
+        "//lucid/syntax:cfg",
+    ],
+)
+
+cc_test(
+    name = "interpreter_test",
+    srcs = ["interpreter_test.cc"],
+    deps = [
+        ":interpreter",
+        "//lucid/am:cfg",
+        "//lucid/am:instructions",
+        "//lucid/am:state",
+        "@googletest//:gtest_main",
+    ],
+)

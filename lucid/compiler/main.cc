@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "lucid/am/cfg.h"
@@ -231,8 +232,8 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   }
   const auto& src = maybe_src.value();
 
-  SyntaxContext sctx;
-  auto maybe_funcs = ParseFuncDefs(src, sctx);
+  SyntaxContext syn_ctx;
+  auto maybe_funcs = ParseFuncDefs(src, syn_ctx);
   if (!maybe_funcs.has_value()) {
     PrintError(ctx.err) << maybe_funcs.error();
     ctx.err << "\n";
@@ -240,34 +241,38 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   }
   auto& func_defs = maybe_funcs.value();
 
+  AbstractMachineState state;
+  HashMap<std::string_view, AbstractMachineControlFlowGraph> am_cfgs;
+
   for (bool has_printed_func = false; auto& func_def : func_defs) {
-    if (auto res = InferExprTypes(sctx, func_defs, func_def);
+    if (auto res = InferExprTypes(syn_ctx, func_defs, func_def);
         !res.has_value()) {
       PrintError(ctx.err) << res.error();
       ctx.err << "\n";
       return 1;
     }
-    SyntaxControlFlowGraph scfg = BuildControlFlowGraph(sctx, func_def);
-    ConvertToStaticSingleAssignment(sctx, scfg);
-    AbstractMachineState state;
-    AbstractMachineControlFlowGraph amcfg =
-        GenerateAbstractMachineFunction(sctx, scfg, state);
-    for (auto& block : amcfg.blocks()) {
+    SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func_def);
+    ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
+
+    AbstractMachineControlFlowGraph am_cfg =
+        GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, state);
+    for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
     static constexpr int kArmRegistersCount = 10;
     if (ctx.flags.Get("regs") == "spill") {
-      SpillRegisters(amcfg, state, kArmRegistersCount);
+      SpillRegisters(am_cfg, state, kArmRegistersCount);
     } else if (ctx.flags.Get("regs") == "merge") {
-      SpillRegisters(amcfg, state, kArmRegistersCount);
-      HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(amcfg);
+      SpillRegisters(am_cfg, state, kArmRegistersCount);
+      HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
       HashMap<RegId, int> am_ig_colors =
-          ColorInterferenceGraph(amcfg, am_ig, kArmRegistersCount);
-      MergeRegisters(am_ig_colors, amcfg);
+          ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
+      MergeRegisters(am_ig_colors, am_cfg);
     }
 
     if (has_printed_func) std::cout << "\n";
-    Print(sctx.DerefIdent(func_def.name), amcfg, ctx.out);
+    Print(syn_ctx.DerefIdent(func_def.name), am_cfg, ctx.out);
+    am_cfgs.Insert(syn_ctx.DerefIdent(func_def.name), std::move(am_cfg));
     has_printed_func = true;
   }
 

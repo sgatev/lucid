@@ -25,7 +25,7 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
     auto graph = BuildControlFlowGraph(syn_ctx_, func);
     AbstractMachineState state;
     AbstractMachineControlFlowGraph am_cfg =
-        GenerateAbstractMachineFunction(syn_ctx_, graph, state);
+        GenerateAbstractMachineFunction(/*am_cfgs=*/{}, syn_ctx_, graph, state);
 
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
         Vertices(am_cfg);

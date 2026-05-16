@@ -18,16 +18,21 @@
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
+#include "lucid/vm/interpreter.h"
 
 namespace lucid {
 namespace {
 
 class AbstractMachineFunctionGenerator {
  public:
-  AbstractMachineFunctionGenerator(const SyntaxContext& syn_ctx,
-                                   const SyntaxControlFlowGraph& syn_cfg,
-                                   AbstractMachineState& am_state)
-      : syn_ctx_(syn_ctx), syn_cfg_(syn_cfg), am_state_(am_state) {
+  AbstractMachineFunctionGenerator(
+      const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
+      const SyntaxContext& syn_ctx, const SyntaxControlFlowGraph& syn_cfg,
+      AbstractMachineState& am_state)
+      : syn_ctx_(syn_ctx),
+        syn_cfg_(syn_cfg),
+        am_state_(am_state),
+        vm_(am_cfgs, am_state) {
     expr_and_stmt_to_reg_.resize(syn_ctx_.Size());
   }
 
@@ -80,7 +85,6 @@ class AbstractMachineFunctionGenerator {
     }
 
     {
-      auto& first_block = am_cfg_.get(am_cfg_.first);
       for (const auto& param_ref : syn_cfg_.func_params) {
         const auto& param = syn_ctx_.DerefParam(param_ref);
         am_cfg_.params.push_back(GetVarReg(param.name, param.type_constraint));
@@ -121,11 +125,27 @@ class AbstractMachineFunctionGenerator {
   void Process(const SyntaxControlFlowGraph::Block& block,
                AbstractMachineControlFlowGraph::Block& am_block) {
     for (const auto& seq : block.sequences) {
+      bool is_comp = false;
+      if (seq.stmt.has_value()) {
+        if (const auto* var_decl_stmt =
+                std::get_if<VarDeclStmt>(&syn_ctx_.DerefStmt(*seq.stmt))) {
+          is_comp = var_decl_stmt->is_comp;
+        }
+      }
+
       for (ExprRef expr : seq.expressions) {
         Process(expr, syn_ctx_.DerefExpr(expr), am_block);
+        if (is_comp) {
+          am_block.instructions.back() =
+              vm_.Interpret(am_block.instructions.back());
+        }
       }
       if (seq.stmt.has_value()) {
         Process(*seq.stmt, syn_ctx_.DerefStmt(*seq.stmt), am_block);
+        if (is_comp) {
+          am_block.instructions.back() =
+              vm_.Interpret(am_block.instructions.back());
+        }
       }
     }
     if (block.branch_cond != Arena<Expr>::kNullRef) {
@@ -508,6 +528,7 @@ class AbstractMachineFunctionGenerator {
   const SyntaxContext& syn_ctx_;
   const SyntaxControlFlowGraph& syn_cfg_;
   AbstractMachineState& am_state_;
+  Interpreter vm_;
   AbstractMachineControlFlowGraph am_cfg_;
   RegId result_reg_;
   HashMap<StringIndex::Ref, RegId> var_to_reg_;
@@ -521,9 +542,10 @@ class AbstractMachineFunctionGenerator {
 }  // namespace
 
 AbstractMachineControlFlowGraph GenerateAbstractMachineFunction(
+    const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
     const SyntaxContext& syn_ctx, const SyntaxControlFlowGraph& syn_cfg,
     AbstractMachineState& am_state) {
-  return AbstractMachineFunctionGenerator(syn_ctx, syn_cfg, am_state)
+  return AbstractMachineFunctionGenerator(am_cfgs, syn_ctx, syn_cfg, am_state)
       .Generate();
 }
 

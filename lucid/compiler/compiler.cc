@@ -42,7 +42,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
   if (!func_defs) return std::unexpected(func_defs.error());
 
   AbstractMachineState am_state;
-  HashMap<StringIndex::Ref, AbstractMachineControlFlowGraph> am_cfgs;
+  HashMap<std::string_view, AbstractMachineControlFlowGraph> am_cfgs;
 
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
@@ -57,7 +57,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
     SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func);
     ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
     AbstractMachineControlFlowGraph am_cfg =
-        GenerateAbstractMachineFunction(syn_ctx, syn_cfg, am_state);
+        GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
     for (auto& block : am_cfg.blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
@@ -69,7 +69,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
     MergeRegisters(am_ig_colors, am_cfg);
     GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func.name), am_cfg.stack_slots,
                               am_cfg, assembler);
-    am_cfgs.Insert(func.name, std::move(am_cfg));
+    am_cfgs.Insert(syn_ctx.DerefIdent(func.name), std::move(am_cfg));
   }
   GenerateArmEndBinary(syn_ctx, am_state.strings, assembler);
   WriteCompiledMachObject(assembler, out);

@@ -9,11 +9,12 @@
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
 
-std::size_t CountInstructions(const lucid::SyntaxContext& ctx,
-                              const lucid::SyntaxControlFlowGraph& scfg,
-                              lucid::AbstractMachineState& state) {
+std::size_t CountInstructions(const lucid::SyntaxContext& syn_ctx,
+                              const lucid::SyntaxControlFlowGraph& syn_cfg,
+                              lucid::AbstractMachineState& am_state) {
   lucid::AbstractMachineControlFlowGraph am_cfg =
-      lucid::GenerateAbstractMachineFunction(ctx, scfg, state);
+      lucid::GenerateAbstractMachineFunction(/*am_cfgs=*/{}, syn_ctx, syn_cfg,
+                                             am_state);
   std::size_t instructions_count = 0;
   for (const auto& block : am_cfg.blocks()) {
     instructions_count += block.instructions.size();

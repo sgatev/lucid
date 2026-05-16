@@ -51,9 +51,9 @@ class AbstractMachineControlFlowGraph {
     std::vector<BlockRef> preds;
 
     // Condition register that determines the block in `next` that follows
-    // this block. If set and the value is zero, control flow proceeds to
-    // the first block in `next`. If set and the value is non-zero`, control
-    // flow proceeds to the second block in `next`.
+    // this block. If set and the value is non-zero, control flow proceeds to
+    // the first block in `next`. If set and the value is zero, control flow
+    // proceeds to the second block in `next`.
     std::optional<RegId> branch_cond;
   };
 

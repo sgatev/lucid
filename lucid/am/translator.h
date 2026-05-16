@@ -1,7 +1,10 @@
 #pragma once
 
+#include <string_view>
+
 #include "lucid/am/cfg.h"
 #include "lucid/am/state.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
 
@@ -14,6 +17,7 @@ namespace lucid {
 // Requires:
 // - `syn_cfg` must be constructed in `syn_ctx`.
 AbstractMachineControlFlowGraph GenerateAbstractMachineFunction(
+    const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
     const SyntaxContext& syn_ctx, const SyntaxControlFlowGraph& syn_cfg,
     AbstractMachineState& am_state);
 
