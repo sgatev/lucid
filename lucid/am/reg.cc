@@ -113,7 +113,7 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     auto offset = reg_stack.Get(old_reg);
     if (!offset.has_value()) return;
 
-    instructions.insert(pos, LoadStack32{
+    instructions.insert(pos, LoadStack{
                                  .offset = *offset,
                                  .dst_reg = reg,
                              });
@@ -131,7 +131,7 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     auto offset = reg_stack.Get(old_reg);
     if (!offset.has_value()) return;
 
-    instructions.insert(pos, LoadStack64{
+    instructions.insert(pos, LoadStack{
                                  .offset = *offset,
                                  .dst_reg = reg,
                              });
@@ -210,12 +210,10 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
       } else if (auto* cinst = std::get_if<StoreStackReg64>(&inst)) {
         maybe_insert_load64(block.instructions, i, cinst->src_reg);
         maybe_insert_load64(block.instructions, i, cinst->offset_reg);
-      } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
+      } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
         maybe_insert_load32(block.instructions, i, cinst->offset_reg);
-        maybe_insert_store(block.instructions, i, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
         maybe_insert_load64(block.instructions, i, cinst->offset_reg);
@@ -322,13 +320,11 @@ HashMap<RegId, int> ColorInterferenceGraph(
       } else if (auto* cinst = std::get_if<StoreStackReg64>(&inst)) {
         reg_scores.Insert(cinst->src_reg, 0);
         reg_scores.Insert(cinst->offset_reg, 0);
-      } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
+      } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
       } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
         reg_scores.Insert(cinst->offset_reg, 0);
-      } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
-        reg_scores.Insert(cinst->dst_reg, 0);
       } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
         reg_scores.Insert(cinst->offset_reg, 0);
@@ -462,12 +458,10 @@ void MergeRegisters(const HashMap<RegId, int>& reg_colors,
       } else if (auto* cinst = std::get_if<StoreStackReg64>(&inst)) {
         UpdateRegister(reg_colors, cinst->src_reg);
         UpdateRegister(reg_colors, cinst->offset_reg);
-      } else if (auto* cinst = std::get_if<LoadStack32>(&inst)) {
+      } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
         UpdateRegister(reg_colors, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
         UpdateRegister(reg_colors, cinst->offset_reg);
-        UpdateRegister(reg_colors, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<LoadStack64>(&inst)) {
         UpdateRegister(reg_colors, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
         UpdateRegister(reg_colors, cinst->offset_reg);

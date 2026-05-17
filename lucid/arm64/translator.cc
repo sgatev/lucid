@@ -388,9 +388,17 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const LoadStack32& inst) {
-    assembler_.LdrUnsignedOffset(W(inst.dst_reg.id), SP,
-                                 Imm(AdjustedOffset(inst.offset)));
+               const LoadStack& inst) {
+    switch (inst.dst_reg.size) {
+      case RegSize32:
+        assembler_.LdrUnsignedOffset(W(inst.dst_reg.id), SP,
+                                     Imm(AdjustedOffset(inst.offset)));
+        break;
+      case RegSize64:
+        assembler_.LdrUnsignedOffset(X(inst.dst_reg.id), SP,
+                                     Imm(AdjustedOffset(inst.offset)));
+        break;
+    }
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
@@ -398,12 +406,6 @@ class Arm64BinaryGenerator {
     assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id),
                    Imm(AdjustedOffset(inst.offset)));
     assembler_.Ldr(W(inst.dst_reg.id), SP, W(inst.offset_reg.id), Extend::Uxtw);
-  }
-
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const LoadStack64& inst) {
-    assembler_.LdrUnsignedOffset(X(inst.dst_reg.id), SP,
-                                 Imm(AdjustedOffset(inst.offset)));
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
