@@ -96,6 +96,105 @@ TEST(InterpretAbstractMachineFunctionTest, AddReg) {
   EXPECT_EQ(result, 63);
 }
 
+TEST(InterpretAbstractMachineFunctionTest, SubReg) {
+  AbstractMachineControlFlowGraphBuilder g;
+
+  auto a = g.block();
+  auto z = g.block();
+
+  g.first(a);
+  g.inst(a, SetReg{
+                .src_val = "60",
+                .dst_reg = RegId(1),
+            });
+  g.inst(a, SetReg{
+                .src_val = "42",
+                .dst_reg = RegId(2),
+            });
+  g.inst(a, SubReg{
+                .res_reg = RegId(3),
+                .lhs_reg = RegId(1),
+                .rhs_reg = RegId(2),
+            });
+  g.edge(a, z);
+
+  g.last(z);
+  g.inst(z, Return{
+                .res_reg = RegId(3),
+            });
+
+  AbstractMachineState am_state;
+  int result = InterpretAbstractMachineFunction(
+      /*am_cfgs=*/{}, std::move(g).build(), /*args=*/{}, am_state);
+  EXPECT_EQ(result, 18);
+}
+
+TEST(InterpretAbstractMachineFunctionTest, MulReg) {
+  AbstractMachineControlFlowGraphBuilder g;
+
+  auto a = g.block();
+  auto z = g.block();
+
+  g.first(a);
+  g.inst(a, SetReg{
+                .src_val = "21",
+                .dst_reg = RegId(1),
+            });
+  g.inst(a, SetReg{
+                .src_val = "2",
+                .dst_reg = RegId(2),
+            });
+  g.inst(a, MulReg{
+                .res_reg = RegId(3),
+                .lhs_reg = RegId(1),
+                .rhs_reg = RegId(2),
+            });
+  g.edge(a, z);
+
+  g.last(z);
+  g.inst(z, Return{
+                .res_reg = RegId(3),
+            });
+
+  AbstractMachineState am_state;
+  int result = InterpretAbstractMachineFunction(
+      /*am_cfgs=*/{}, std::move(g).build(), /*args=*/{}, am_state);
+  EXPECT_EQ(result, 42);
+}
+
+TEST(InterpretAbstractMachineFunctionTest, DivReg) {
+  AbstractMachineControlFlowGraphBuilder g;
+
+  auto a = g.block();
+  auto z = g.block();
+
+  g.first(a);
+  g.inst(a, SetReg{
+                .src_val = "30",
+                .dst_reg = RegId(1),
+            });
+  g.inst(a, SetReg{
+                .src_val = "3",
+                .dst_reg = RegId(2),
+            });
+  g.inst(a, DivReg{
+                .res_reg = RegId(3),
+                .lhs_reg = RegId(1),
+                .rhs_reg = RegId(2),
+            });
+  g.edge(a, z);
+
+  g.last(z);
+  g.inst(z, Return{
+                .res_reg = RegId(3),
+            });
+
+  AbstractMachineState am_state;
+  int result = InterpretAbstractMachineFunction(
+      /*am_cfgs=*/{}, std::move(g).build(), /*args=*/{}, am_state);
+  EXPECT_EQ(result, 10);
+}
+
 TEST(InterpretAbstractMachineFunctionTest, GtReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
@@ -127,6 +226,105 @@ TEST(InterpretAbstractMachineFunctionTest, GtReg) {
   int result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).build(), /*args=*/{}, am_state);
   EXPECT_EQ(result, 0);
+}
+
+TEST(InterpretAbstractMachineFunctionTest, LtReg) {
+  AbstractMachineControlFlowGraphBuilder g;
+
+  auto a = g.block();
+  auto z = g.block();
+
+  g.first(a);
+  g.inst(a, SetReg{
+                .src_val = "21",
+                .dst_reg = RegId(1),
+            });
+  g.inst(a, SetReg{
+                .src_val = "42",
+                .dst_reg = RegId(2),
+            });
+  g.inst(a, LtReg{
+                .res_reg = RegId(3),
+                .lhs_reg = RegId(1),
+                .rhs_reg = RegId(2),
+            });
+  g.edge(a, z);
+
+  g.last(z);
+  g.inst(z, Return{
+                .res_reg = RegId(3),
+            });
+
+  AbstractMachineState am_state;
+  int result = InterpretAbstractMachineFunction(
+      /*am_cfgs=*/{}, std::move(g).build(), /*args=*/{}, am_state);
+  EXPECT_EQ(result, 1);
+}
+
+TEST(InterpretAbstractMachineFunctionTest, EqReg) {
+  AbstractMachineControlFlowGraphBuilder g;
+
+  auto a = g.block();
+  auto z = g.block();
+
+  g.first(a);
+  g.inst(a, SetReg{
+                .src_val = "21",
+                .dst_reg = RegId(1),
+            });
+  g.inst(a, SetReg{
+                .src_val = "42",
+                .dst_reg = RegId(2),
+            });
+  g.inst(a, EqReg{
+                .res_reg = RegId(3),
+                .lhs_reg = RegId(1),
+                .rhs_reg = RegId(2),
+            });
+  g.edge(a, z);
+
+  g.last(z);
+  g.inst(z, Return{
+                .res_reg = RegId(3),
+            });
+
+  AbstractMachineState am_state;
+  int result = InterpretAbstractMachineFunction(
+      /*am_cfgs=*/{}, std::move(g).build(), /*args=*/{}, am_state);
+  EXPECT_EQ(result, 0);
+}
+
+TEST(InterpretAbstractMachineFunctionTest, NotEqReg) {
+  AbstractMachineControlFlowGraphBuilder g;
+
+  auto a = g.block();
+  auto z = g.block();
+
+  g.first(a);
+  g.inst(a, SetReg{
+                .src_val = "21",
+                .dst_reg = RegId(1),
+            });
+  g.inst(a, SetReg{
+                .src_val = "42",
+                .dst_reg = RegId(2),
+            });
+  g.inst(a, NotEqReg{
+                .res_reg = RegId(3),
+                .lhs_reg = RegId(1),
+                .rhs_reg = RegId(2),
+            });
+  g.edge(a, z);
+
+  g.last(z);
+  g.inst(z, Return{
+                .res_reg = RegId(3),
+            });
+
+  AbstractMachineState am_state;
+  int result = InterpretAbstractMachineFunction(
+      /*am_cfgs=*/{}, std::move(g).build(), /*args=*/{}, am_state);
+  EXPECT_EQ(result, 1);
 }
 
 TEST(InterpretAbstractMachineFunctionTest, Sequence) {

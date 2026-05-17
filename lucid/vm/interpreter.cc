@@ -92,10 +92,24 @@ Instruction Interpreter::Interpret(const Instruction& inst) {
     return Interpret(*set_reg);
   } else if (const auto* gt_reg = std::get_if<GtReg>(&inst)) {
     return Interpret(*gt_reg);
+  } else if (const auto* lt_reg = std::get_if<LtReg>(&inst)) {
+    return Interpret(*lt_reg);
+  } else if (const auto* eq_reg = std::get_if<EqReg>(&inst)) {
+    return Interpret(*eq_reg);
+  } else if (const auto* not_eq_reg = std::get_if<NotEqReg>(&inst)) {
+    return Interpret(*not_eq_reg);
   } else if (const auto* ret = std::get_if<Return>(&inst)) {
     return Interpret(*ret);
   } else if (const auto* add_reg = std::get_if<AddReg>(&inst)) {
     return Interpret(*add_reg);
+  } else if (const auto* sub_reg = std::get_if<SubReg>(&inst)) {
+    return Interpret(*sub_reg);
+  } else if (const auto* mul_reg = std::get_if<MulReg>(&inst)) {
+    return Interpret(*mul_reg);
+  } else if (const auto* div_reg = std::get_if<DivReg>(&inst)) {
+    return Interpret(*div_reg);
+  } else if (const auto* mod_reg = std::get_if<ModReg>(&inst)) {
+    return Interpret(*mod_reg);
   }
   assert(false);
   return inst;
@@ -144,6 +158,39 @@ Instruction Interpreter::Interpret(const GtReg& inst) {
   return inst;
 }
 
+Instruction Interpreter::Interpret(const LtReg& inst) {
+  auto lhs_val = values_.Get(inst.lhs_reg);
+  assert(lhs_val.has_value());
+
+  auto rhs_val = values_.Get(inst.rhs_reg);
+  assert(rhs_val.has_value());
+
+  values_.Set(inst.res_reg, *lhs_val < *rhs_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const EqReg& inst) {
+  auto lhs_val = values_.Get(inst.lhs_reg);
+  assert(lhs_val.has_value());
+
+  auto rhs_val = values_.Get(inst.rhs_reg);
+  assert(rhs_val.has_value());
+
+  values_.Set(inst.res_reg, *lhs_val == *rhs_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const NotEqReg& inst) {
+  auto lhs_val = values_.Get(inst.lhs_reg);
+  assert(lhs_val.has_value());
+
+  auto rhs_val = values_.Get(inst.rhs_reg);
+  assert(rhs_val.has_value());
+
+  values_.Set(inst.res_reg, *lhs_val != *rhs_val);
+  return inst;
+}
+
 Instruction Interpreter::Interpret(const Return& inst) {
   auto res_val = values_.Get(inst.res_reg);
   assert(res_val.has_value());
@@ -168,6 +215,50 @@ Instruction Interpreter::Interpret(const AddReg& inst) {
   assert(rhs_val.has_value());
 
   values_.Set(inst.res_reg, *lhs_val + *rhs_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const SubReg& inst) {
+  auto lhs_val = values_.Get(inst.lhs_reg);
+  assert(lhs_val.has_value());
+
+  auto rhs_val = values_.Get(inst.rhs_reg);
+  assert(rhs_val.has_value());
+
+  values_.Set(inst.res_reg, *lhs_val - *rhs_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const MulReg& inst) {
+  auto lhs_val = values_.Get(inst.lhs_reg);
+  assert(lhs_val.has_value());
+
+  auto rhs_val = values_.Get(inst.rhs_reg);
+  assert(rhs_val.has_value());
+
+  values_.Set(inst.res_reg, *lhs_val * *rhs_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const DivReg& inst) {
+  auto lhs_val = values_.Get(inst.lhs_reg);
+  assert(lhs_val.has_value());
+
+  auto rhs_val = values_.Get(inst.rhs_reg);
+  assert(rhs_val.has_value());
+
+  values_.Set(inst.res_reg, *lhs_val / *rhs_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const ModReg& inst) {
+  auto lhs_val = values_.Get(inst.lhs_reg);
+  assert(lhs_val.has_value());
+
+  auto rhs_val = values_.Get(inst.rhs_reg);
+  assert(rhs_val.has_value());
+
+  values_.Set(inst.res_reg, *lhs_val % *rhs_val);
   return inst;
 }
 

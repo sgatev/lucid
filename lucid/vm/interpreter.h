@@ -36,9 +36,16 @@ class Interpreter {
   Instruction Interpret(const FuncCall& inst);
   Instruction Interpret(const MoveReg& inst);
   Instruction Interpret(const GtReg& inst);
+  Instruction Interpret(const LtReg& inst);
+  Instruction Interpret(const EqReg& inst);
+  Instruction Interpret(const NotEqReg& inst);
   Instruction Interpret(const Return& inst);
   Instruction Interpret(const SetReg& inst);
   Instruction Interpret(const AddReg& inst);
+  Instruction Interpret(const SubReg& inst);
+  Instruction Interpret(const MulReg& inst);
+  Instruction Interpret(const DivReg& inst);
+  Instruction Interpret(const ModReg& inst);
 
   const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs_;
   AbstractMachineState& am_state_;
