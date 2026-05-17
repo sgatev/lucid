@@ -4,6 +4,7 @@
 #include <variant>
 #include <vector>
 
+#include "lucid/core/container/hash_set.h"
 #include "lucid/core/container/successive_list.h"
 #include "lucid/syntax/ast.h"
 
@@ -11,7 +12,8 @@ namespace lucid {
 namespace {
 
 std::expected<void, CompError> CheckCompExpr(
-    const std::vector<FuncDefStmt>& func_defs, SyntaxContext& syn_ctx,
+    const std::vector<FuncDefStmt>& func_defs,
+    const HashSet<StringIndex::Ref>& comp_var_names, SyntaxContext& syn_ctx,
     ExprRef expr_ref, bool init_comp) {
   Expr& expr = syn_ctx.DerefExpr(expr_ref);
   if (init_comp) std::visit([](auto& expr) { expr.is_comp = true; }, expr);
@@ -27,24 +29,31 @@ std::expected<void, CompError> CheckCompExpr(
 
     std::expected<void, CompError> result;
     for (const auto& arg : func_call_expr->args) {
-      result = result.and_then(
-          [&] { return CheckCompExpr(func_defs, syn_ctx, arg, init_comp); });
+      result = result.and_then([&] {
+        return CheckCompExpr(func_defs, comp_var_names, syn_ctx, arg,
+                             init_comp);
+      });
     }
     return result;
   } else if (const auto* index_expr = std::get_if<IndexExpr>(&expr)) {
-    return CheckCompExpr(func_defs, syn_ctx, index_expr->base, init_comp)
+    return CheckCompExpr(func_defs, comp_var_names, syn_ctx, index_expr->base,
+                         init_comp)
         .and_then([&] {
-          return CheckCompExpr(func_defs, syn_ctx, index_expr->index,
-                               init_comp);
+          return CheckCompExpr(func_defs, comp_var_names, syn_ctx,
+                               index_expr->index, init_comp);
         });
   } else if (const auto* binary_op_expr = std::get_if<BinaryOpExpr>(&expr)) {
-    return CheckCompExpr(func_defs, syn_ctx, binary_op_expr->lhs, init_comp)
+    return CheckCompExpr(func_defs, comp_var_names, syn_ctx,
+                         binary_op_expr->lhs, init_comp)
         .and_then([&] {
-          return CheckCompExpr(func_defs, syn_ctx, binary_op_expr->rhs,
-                               init_comp);
+          return CheckCompExpr(func_defs, comp_var_names, syn_ctx,
+                               binary_op_expr->rhs, init_comp);
         });
-  } else if (const auto* _ = std::get_if<IdentExpr>(&expr)) {
-    // TODO
+  } else if (const auto* ident_expr = std::get_if<IdentExpr>(&expr)) {
+    if (init_comp && !comp_var_names.Contains(ident_expr->name)) {
+      return std::unexpected(
+          CompError("non-comp identifier not allowed in comp context"));
+    }
   }
   return {};
 }
@@ -65,14 +74,17 @@ std::expected<void, CompError> CheckCompFunc(
     return CheckCompFunc(func_defs, syn_ctx, loop_stmt->stmts);
   } else if (const auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
     if (var_decl_stmt->init.has_value()) {
-      return CheckCompExpr(func_defs, syn_ctx, *var_decl_stmt->init,
+      return CheckCompExpr(func_defs, /*comp_var_names=*/{}, syn_ctx,
+                           *var_decl_stmt->init,
                            /*init_comp=*/false);
     }
   } else if (const auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-    return CheckCompExpr(func_defs, syn_ctx, var_assign_stmt->expr,
+    return CheckCompExpr(func_defs, /*comp_var_names=*/{}, syn_ctx,
+                         var_assign_stmt->expr,
                          /*init_comp=*/false);
   } else if (const auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
-    return CheckCompExpr(func_defs, syn_ctx, return_stmt->value,
+    return CheckCompExpr(func_defs, /*comp_var_names=*/{}, syn_ctx,
+                         return_stmt->value,
                          /*init_comp=*/false);
   } else if (std::holds_alternative<DoStmt>(stmt)) {
     return std::unexpected(
@@ -93,34 +105,44 @@ std::expected<void, CompError> CheckCompFunc(
 }
 
 std::expected<void, CompError> CheckCompVars(
-    const std::vector<FuncDefStmt>& func_defs, SyntaxContext& syn_ctx,
+    const std::vector<FuncDefStmt>& func_defs,
+    HashSet<StringIndex::Ref>& comp_var_names, SyntaxContext& syn_ctx,
     SuccessiveList<StmtRef> stmts);
 
 std::expected<void, CompError> CheckCompVars(
-    const std::vector<FuncDefStmt>& func_defs, SyntaxContext& syn_ctx,
+    const std::vector<FuncDefStmt>& func_defs,
+    HashSet<StringIndex::Ref>& comp_var_names, SyntaxContext& syn_ctx,
     StmtRef stmt_ref) {
   Stmt& stmt = syn_ctx.DerefStmt(stmt_ref);
   if (const auto* if_stmt = std::get_if<IfStmt>(&stmt)) {
-    return CheckCompVars(func_defs, syn_ctx, if_stmt->then_stmts).and_then([&] {
-      return CheckCompVars(func_defs, syn_ctx, if_stmt->else_stmts);
-    });
+    return CheckCompVars(func_defs, comp_var_names, syn_ctx,
+                         if_stmt->then_stmts)
+        .and_then([&] {
+          return CheckCompVars(func_defs, comp_var_names, syn_ctx,
+                               if_stmt->else_stmts);
+        });
   } else if (const auto* loop_stmt = std::get_if<LoopStmt>(&stmt)) {
-    return CheckCompVars(func_defs, syn_ctx, loop_stmt->stmts);
+    return CheckCompVars(func_defs, comp_var_names, syn_ctx, loop_stmt->stmts);
   } else if (const auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-    if (var_decl_stmt->is_comp && var_decl_stmt->init.has_value()) {
-      return CheckCompExpr(func_defs, syn_ctx, *var_decl_stmt->init,
-                           /*init_comp=*/true);
+    if (var_decl_stmt->is_comp) {
+      comp_var_names.Insert(var_decl_stmt->name);
+      if (var_decl_stmt->init.has_value()) {
+        return CheckCompExpr(func_defs, comp_var_names, syn_ctx,
+                             *var_decl_stmt->init,
+                             /*init_comp=*/true);
+      }
     }
   }
   return {};
 }
 
 std::expected<void, CompError> CheckCompVars(
-    const std::vector<FuncDefStmt>& func_defs, SyntaxContext& syn_ctx,
+    const std::vector<FuncDefStmt>& func_defs,
+    HashSet<StringIndex::Ref>& comp_var_names, SyntaxContext& syn_ctx,
     SuccessiveList<StmtRef> stmts) {
   for (StmtRef stmt_ref : stmts) {
     std::expected<void, CompError> res =
-        CheckCompVars(func_defs, syn_ctx, stmt_ref);
+        CheckCompVars(func_defs, comp_var_names, syn_ctx, stmt_ref);
     if (!res.has_value()) return res;
   }
   return {};
@@ -131,8 +153,9 @@ std::expected<void, CompError> CheckCompVars(
 std::expected<void, CompError> CheckComp(
     const std::vector<FuncDefStmt>& func_defs, SyntaxContext& syn_ctx,
     FuncDefStmt& stmt) {
+  HashSet<StringIndex::Ref> comp_var_names;
   std::expected<void, CompError> res =
-      CheckCompVars(func_defs, syn_ctx, stmt.stmts);
+      CheckCompVars(func_defs, comp_var_names, syn_ctx, stmt.stmts);
   if (res.has_value() && stmt.is_comp) {
     res = CheckCompFunc(func_defs, syn_ctx, stmt.stmts);
   }

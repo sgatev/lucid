@@ -110,6 +110,7 @@ cc_library(
     deps = [
         ":ast",
         "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
         "//lucid/core/string:index",
     ],
 )
