@@ -125,23 +125,25 @@ class AbstractMachineFunctionGenerator {
   void Process(const SyntaxControlFlowGraph::Block& block,
                AbstractMachineControlFlowGraph::Block& am_block) {
     for (const auto& seq : block.sequences) {
-      bool is_comp = false;
-      if (seq.stmt.has_value()) {
-        if (const auto* var_decl_stmt =
-                std::get_if<VarDeclStmt>(&syn_ctx_.DerefStmt(*seq.stmt))) {
-          is_comp = var_decl_stmt->is_comp;
-        }
-      }
+      for (ExprRef expr_ref : seq.expressions) {
+        const Expr& expr = syn_ctx_.DerefExpr(expr_ref);
+        Process(expr_ref, expr, am_block);
 
-      for (ExprRef expr : seq.expressions) {
-        Process(expr, syn_ctx_.DerefExpr(expr), am_block);
+        bool is_comp =
+            std::visit([](const auto& expr) { return expr.is_comp; }, expr);
         if (is_comp) {
           am_block.instructions.back() =
               vm_.Interpret(am_block.instructions.back());
         }
       }
       if (seq.stmt.has_value()) {
-        Process(*seq.stmt, syn_ctx_.DerefStmt(*seq.stmt), am_block);
+        const auto& stmt = syn_ctx_.DerefStmt(*seq.stmt);
+        Process(*seq.stmt, stmt, am_block);
+
+        bool is_comp = false;
+        if (const auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
+          is_comp = var_decl_stmt->is_comp;
+        }
         if (is_comp) {
           am_block.instructions.back() =
               vm_.Interpret(am_block.instructions.back());

@@ -28,14 +28,14 @@ class CompCheckTest : public testing::Test, public AstFixture {
       func_defs.push_back(std::move(*ref));
     }
 
-    const FuncDefStmt* test_func_def = nullptr;
-    for (const auto& func_def : func_defs) {
+    FuncDefStmt* test_func_def = nullptr;
+    for (auto& func_def : func_defs) {
       if (syn_ctx_.DerefIdent(func_def.name) == "test") {
         test_func_def = &func_def;
       }
     }
 
-    return lucid::CheckComp(syn_ctx_, func_defs, *test_func_def);
+    return lucid::CheckComp(func_defs, syn_ctx_, *test_func_def);
   }
 };
 

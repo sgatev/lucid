@@ -64,6 +64,9 @@ using ParamRef = Arena<FuncParam>::Ref;
 struct ExprBase {
   // Type of the expression.
   TypeRef type;
+
+  // Whether the expression should be evaluated during compilation.
+  bool is_comp : 1 = false;
 };
 
 // A function parameter.

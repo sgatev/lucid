@@ -25,6 +25,7 @@ class CompError {
   std::string message_;
 };
 
+// Marks sub-expressions of `stmt` that must be evaluated during compilation.
 // Returns an error if `stmt` does not meet compilation requirements.
 //
 // Requires:
@@ -32,7 +33,7 @@ class CompError {
 // - `stmt` must be associated with `syn_ctx`.
 // - All functions called from `stmt` must be in `func_defs`.
 std::expected<void, CompError> CheckComp(
-    const SyntaxContext& syn_ctx, const std::vector<FuncDefStmt>& func_defs,
-    const FuncDefStmt& stmt);
+    const std::vector<FuncDefStmt>& func_defs, SyntaxContext& syn_ctx,
+    FuncDefStmt& stmt);
 
 }  // namespace lucid

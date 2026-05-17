@@ -51,7 +51,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
         !res.has_value()) {
       return std::unexpected(res.error());
     }
-    if (auto res = CheckComp(syn_ctx, *func_defs, func); !res.has_value()) {
+    if (auto res = CheckComp(*func_defs, syn_ctx, func); !res.has_value()) {
       return std::unexpected(res.error());
     }
     SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func);

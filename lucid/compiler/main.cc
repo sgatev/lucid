@@ -251,6 +251,11 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
       ctx.err << "\n";
       return 1;
     }
+    if (auto res = CheckComp(func_defs, syn_ctx, func_def); !res.has_value()) {
+      PrintError(ctx.err) << res.error();
+      ctx.err << "\n";
+      return 1;
+    }
     SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func_def);
     ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
 
