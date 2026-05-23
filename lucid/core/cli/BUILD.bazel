@@ -7,6 +7,7 @@ cc_library(
     hdrs = ["cli.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
+        ":format",
         "//lucid/core/container:hash_map",
         "//lucid/core/string:concat",
     ],

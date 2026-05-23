@@ -2,8 +2,10 @@
 
 #include <functional>
 #include <initializer_list>
+#include <optional>
 #include <ostream>
 #include <span>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -11,21 +13,40 @@
 
 namespace lucid {
 
+struct Command;
+
 // The execution context of a command.
 struct CommandContext {
-  std::vector<std::string_view> path;
+ public:
+  CommandContext(std::vector<std::string_view> path,
+                 std::span<std::string_view> args,
+                 HashMap<std::string_view, std::string_view> flags,
+                 std::ostream& out, std::ostream& err);
 
-  // Arguments passed to the command.
-  std::span<std::string_view> args;
+  // Returns the full name of the command.
+  std::string CurrentCommand() const;
 
-  // Flags passed to the command.
-  HashMap<std::string_view, std::string_view> flags;
+  // Returns the first positional argument to the command, if any.
+  std::optional<std::string_view> TakeArg();
+
+  // Returns the value of the flag with the given name, if any.
+  std::optional<std::string_view> Flag(std::string_view flag_name);
 
   // Standard output stream of the command.
-  std::ostream& out;
+  std::ostream& Out();
 
   // Standard error output stream of the command.
-  std::ostream& err;
+  std::ostream& Err();
+
+ private:
+  friend int RunCommand(std::initializer_list<Command> commands,
+                        CommandContext ctx);
+
+  std::vector<std::string_view> path_;
+  std::span<std::string_view> args_;
+  HashMap<std::string_view, std::string_view> flags_;
+  std::ostream& out_;
+  std::ostream& err_;
 };
 
 // Returns an execution context for a root command.
@@ -57,8 +78,5 @@ struct Command {
 // Requires:
 // - `commands` must not contain more than one command with a given name.
 int RunCommand(std::initializer_list<Command> commands, CommandContext ctx);
-
-// Returns a stream that formats an error string and outputs it in `out`.
-std::ostream& PrintError(std::ostream& out);
 
 }  // namespace lucid

@@ -17,18 +17,17 @@ using ::testing::ElementsAre;
 using ::testing::Pair;
 using ::testing::UnorderedElementsAre;
 
-TEST(RunCommandTest, RunsCommand) {
-  std::vector<std::string_view> args = {"foo", "--foo_flag=foo_value", "bar",
-                                        "--bar_flag=bar_value", "baz"};
+TEST(RunCommandTest, RootCommand) {
+  std::vector<std::string_view> args = {
+      "foo",
+      "--foo_flag=foo_value",
+  };
 
-  std::span<std::string_view> foo_args;
-  HashMap<std::string_view, std::string_view> foo_flags;
-  auto foo = [&foo_args, &foo_flags](CommandContext ctx) {
-    foo_args = ctx.args;
-    foo_flags = ctx.flags;
+  std::optional<std::string_view> foo_flag_value;
+  auto foo = [&](CommandContext ctx) {
+    foo_flag_value = ctx.Flag("foo_flag");
     return 0;
   };
-  auto bar = [](CommandContext) { return 1; };
 
   std::stringstream out, err;
   EXPECT_EQ(RunCommand(
@@ -37,28 +36,62 @@ TEST(RunCommandTest, RunsCommand) {
                         .name = "foo",
                         .handler = foo,
                     },
+                },
+                CommandContext({"test"}, args, {}, out, err)),
+            0);
+  EXPECT_EQ(foo_flag_value, "foo_value");
+  EXPECT_EQ(out.str(), "");
+  EXPECT_EQ(err.str(), "");
+}
+
+TEST(RunCommandTest, NestedCommand) {
+  std::vector<std::string_view> args = {
+      "foo",
+      "--foo_flag=foo_value",
+      "bar",
+      "--bar_flag=bar_value",
+  };
+
+  std::optional<std::string_view> bar_flag_value;
+  auto bar = [&](CommandContext ctx) {
+    bar_flag_value = ctx.Flag("bar_flag");
+    return 0;
+  };
+
+  std::optional<std::string_view> foo_flag_value;
+  auto foo = [&](CommandContext ctx) {
+    foo_flag_value = ctx.Flag("foo_flag");
+    return RunCommand(
+        {
+            {
+                .name = "bar",
+                .handler = bar,
+            },
+        },
+        ctx);
+  };
+
+  std::stringstream out, err;
+  EXPECT_EQ(RunCommand(
+                {
                     {
-                        .name = "bar",
-                        .handler = bar,
+                        .name = "foo",
+                        .handler = foo,
                     },
                 },
-                {
-                    .path = {"test"},
-                    .args = args,
-                    .flags = {},
-                    .out = out,
-                    .err = err,
-                }),
+                CommandContext({"test"}, args, {}, out, err)),
             0);
-
-  EXPECT_THAT(foo_args, ElementsAre("bar", "--bar_flag=bar_value", "baz"));
-  EXPECT_THAT(foo_flags, UnorderedElementsAre(Pair("foo_flag", "foo_value")));
+  EXPECT_EQ(foo_flag_value, "foo_value");
+  EXPECT_EQ(bar_flag_value, "bar_value");
+  EXPECT_EQ(out.str(), "");
+  EXPECT_EQ(err.str(), "");
 }
 
 TEST(RunCommandTest, UnknownCommand) {
-  auto bar = [](CommandContext) { return 0; };
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
-  HashMap<std::string_view, std::string_view> flags = {};
+
+  auto bar = [](CommandContext) { return 0; };
+
   std::stringstream out, err;
   EXPECT_EQ(RunCommand(
                 {
@@ -67,41 +100,118 @@ TEST(RunCommandTest, UnknownCommand) {
                         .handler = bar,
                     },
                 },
-                {
-                    .path = {"test"},
-                    .args = args,
-                    .flags = flags,
-                    .out = out,
-                    .err = err,
-                }),
+                CommandContext({"test"}, args, {}, out, err)),
             1);
+  EXPECT_EQ(out.str(), "");
   EXPECT_EQ(std::string(err.str()),
-            "\033[31mERROR:\033[0m unknown command 'foo'\n");
+            "\33[31mERROR:\33[m unknown command 'foo'\n");
+}
+
+TEST(RunCommandTest, Output) {
+  std::vector<std::string_view> args = {
+      "foo",
+  };
+
+  auto foo = [&](CommandContext ctx) {
+    ctx.Out() << "foo";
+    return 0;
+  };
+
+  std::stringstream out, err;
+  EXPECT_EQ(RunCommand(
+                {
+                    {
+                        .name = "foo",
+                        .handler = foo,
+                    },
+                },
+                CommandContext({"test"}, args, {}, out, err)),
+            0);
+  EXPECT_EQ(out.str(), "foo");
+  EXPECT_EQ(err.str(), "");
+}
+
+TEST(RunCommandTest, Error) {
+  std::vector<std::string_view> args = {
+      "foo",
+  };
+
+  auto foo = [&](CommandContext ctx) {
+    ctx.Err() << "foo";
+    return 0;
+  };
+
+  std::stringstream out, err;
+  EXPECT_EQ(RunCommand(
+                {
+                    {
+                        .name = "foo",
+                        .handler = foo,
+                    },
+                },
+                CommandContext({"test"}, args, {}, out, err)),
+            0);
+  EXPECT_EQ(out.str(), "");
+  EXPECT_EQ(err.str(), "\33[31mERROR:\33[m foo");
+}
+
+TEST(RunCommandTest, CurrentCommand) {
+  std::vector<std::string_view> args = {
+      "foo",
+      "--foo_flag=foo_value",
+      "bar",
+  };
+
+  std::string bar_current_command;
+  auto bar = [&](CommandContext ctx) {
+    bar_current_command = ctx.CurrentCommand();
+    return 0;
+  };
+
+  auto foo = [&](CommandContext ctx) {
+    return RunCommand(
+        {
+            {
+                .name = "bar",
+                .handler = bar,
+            },
+        },
+        ctx);
+  };
+
+  std::stringstream out, err;
+  EXPECT_EQ(RunCommand(
+                {
+                    {
+                        .name = "foo",
+                        .handler = foo,
+                    },
+                },
+                CommandContext({"test"}, args, {}, out, err)),
+            0);
+  EXPECT_EQ(bar_current_command, "test foo bar");
 }
 
 TEST(RunCommandTest, EmptyArgs) {
   auto foo = [](CommandContext) { return 1; };
-  std::vector<std::string_view> args = {};
-  HashMap<std::string_view, std::string_view> flags = {};
+
   std::stringstream out, err;
   EXPECT_EQ(RunCommand(
                 {
-                    {.name = "foo", .handler = foo},
+                    {
+                        .name = "foo",
+                        .help = "bar",
+                        .handler = foo,
+                    },
                 },
-                {
-                    .path = {"test"},
-                    .args = args,
-                    .flags = flags,
-                    .out = out,
-                    .err = err,
-                }),
+                CommandContext({"test"}, {}, {}, out, err)),
             0);
-}
+  EXPECT_EQ(out.str(), R"(Usage: test <command> ...
 
-TEST(PrintErrorTest, Works) {
-  std::stringstream out;
-  PrintError(out) << "foo";
-  EXPECT_EQ(std::string(out.str()), "\033[31mERROR:\033[0m foo");
+Available commands:
+  foo bar
+)");
+  EXPECT_EQ(err.str(), "");
 }
 
 }  // namespace

@@ -2,10 +2,12 @@
 #include <expected>
 #include <filesystem>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "lucid/am/cfg.h"
@@ -18,7 +20,6 @@
 #include "lucid/compiler/version.h"
 #include "lucid/core/cli/cli.h"
 #include "lucid/core/io/file.h"
-#include "lucid/core/string/concat.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_printer.h"
 #include "lucid/syntax/cfg.h"
@@ -31,51 +32,52 @@ namespace lucid {
 namespace {
 
 int HandleCompileCommand(CommandContext ctx) {
-  if (ctx.args.size() != 1) {
-    PrintError(ctx.err) << "'compile' command requires exactly 1 argument\n";
+  std::optional<std::string_view> src_file = ctx.TakeArg();
+  if (!src_file) {
+    ctx.Err() << "'compile' command requires exactly 1 argument\n";
     return 1;
   }
 
-  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  auto src_path = std::filesystem::absolute(*src_file);
   auto out_path = std::filesystem::current_path() / src_path.filename();
   out_path.replace_extension("o");
 
   return CompileCode({.src_path = src_path, .out_path = out_path})
       .and_then([] -> std::expected<int, CompileError> { return 0; })
       .or_else([&](CompileError err) -> std::expected<int, CompileError> {
-        std::visit([&](const auto& err) { PrintError(ctx.err) << err; }, err);
-        ctx.err << "\n";
+        std::visit([&](const auto& err) { ctx.Err() << err << "\n"; }, err);
         return 1;
       })
       .value();
 }
 
 int HandleBuildCommand(CommandContext ctx) {
-  if (ctx.args.size() != 2) {
-    PrintError(ctx.err) << "'build' command requires exactly 2 arguments\n";
+  std::optional<std::string_view> bin_path = ctx.TakeArg();
+  std::optional<std::string_view> src_file = ctx.TakeArg();
+  if (!bin_path || !src_file) {
+    ctx.Err() << "'build' command requires exactly 2 arguments\n";
     return 1;
   }
 
-  auto src_path = std::filesystem::absolute(ctx.args[1]);
-  auto bin_path = ctx.args[0];
+  auto src_path = std::filesystem::absolute(*src_file);
 
-  return BuildCode({.src_path = src_path, .out_path = bin_path})
+  return BuildCode({.src_path = src_path, .out_path = *bin_path})
       .and_then([]() -> std::expected<int, BuildError> { return 0; })
       .or_else([&](BuildError err) -> std::expected<int, BuildError> {
-        std::visit([&](const auto& err) { PrintError(ctx.err) << err; }, err);
-        ctx.err << "\n";
+        std::visit([&](const auto& err) { ctx.Err() << err << "\n"; }, err);
         return 1;
       })
       .value();
 }
 
 int HandleRunCommand(CommandContext ctx) {
-  if (ctx.args.size() != 1) {
-    PrintError(ctx.err) << "'run' command requires exactly 1 argument\n";
+  std::optional<std::string_view> src_file = ctx.TakeArg();
+  if (!src_file) {
+    ctx.Err() << "'run' command requires exactly 1 argument\n";
     return 1;
   }
 
-  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  auto src_path = std::filesystem::absolute(*src_file);
   auto bin_path = std::filesystem::temp_directory_path() / src_path.filename();
   bin_path.replace_extension();
 
@@ -85,20 +87,20 @@ int HandleRunCommand(CommandContext ctx) {
         return WEXITSTATUS(status);
       })
       .or_else([&](BuildError err) -> std::expected<int, BuildError> {
-        std::visit([&](const auto& err) { PrintError(ctx.err) << err; }, err);
-        ctx.err << "\n";
+        std::visit([&](const auto& err) { ctx.Err() << err << "\n"; }, err);
         return 1;
       })
       .value();
 }
 
 int HandleParseCommand(CommandContext ctx) {
-  if (ctx.args.size() != 1) {
-    PrintError(ctx.err) << "'parse' command requires exactly 1 argument\n";
+  std::optional<std::string_view> src_file = ctx.TakeArg();
+  if (!src_file) {
+    ctx.Err() << "'parse' command requires exactly 1 argument\n";
     return 1;
   }
 
-  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  auto src_path = std::filesystem::absolute(*src_file);
 
   return ReadFile(src_path, /*with_trailing_zero=*/true)
       .or_else(
@@ -123,25 +125,25 @@ int HandleParseCommand(CommandContext ctx) {
             return 0;
           })
       .or_else([&](std::string err) -> std::expected<int, std::string> {
-        PrintError(ctx.err) << err;
-        ctx.err << "\n";
+        ctx.Err() << err << "\n";
         return 1;
       })
       .value();
 }
 
 int HandlePrintAstCommand(CommandContext ctx) {
-  if (ctx.args.size() < 1 || ctx.args.size() > 2) {
-    PrintError(ctx.err)
-        << "'print-ast' command requires either 1 or 2 arguments\n";
+  std::optional<std::string_view> src_file = ctx.TakeArg();
+  if (!src_file) {
+    ctx.Err() << "'print-ast' command requires either 1 or 2 arguments\n";
     return 1;
   }
 
-  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  std::optional<std::string_view> id = ctx.TakeArg();
+
+  auto src_path = std::filesystem::absolute(*src_file);
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (!maybe_src.has_value()) {
-    PrintError(ctx.err) << maybe_src.error();
-    ctx.err << "\n";
+    ctx.Err() << maybe_src.error() << "\n";
     return 1;
   }
   const auto& src = maybe_src.value();
@@ -149,47 +151,43 @@ int HandlePrintAstCommand(CommandContext ctx) {
   SyntaxContext sctx;
   auto maybe_funcs = ParseFuncDefs(src, sctx);
   if (!maybe_funcs.has_value()) {
-    PrintError(ctx.err) << maybe_funcs.error();
-    ctx.err << "\n";
+    ctx.Err() << maybe_funcs.error() << "\n";
     return 1;
   }
   const auto& func_defs = maybe_funcs.value();
 
-  if (ctx.args.size() == 2) {
-    std::string_view id = ctx.args[1];
-    if (id[0] == 'S') {
-      id.remove_prefix(1);
-      PrintStmt(sctx, std::stoi(std::string(id)), ctx.out);
-    } else if (id[0] == 'E') {
-      id.remove_prefix(1);
-      PrintExpr(sctx, std::stoi(std::string(id)), ctx.out);
+  if (id) {
+    if (id->front() == 'S') {
+      PrintStmt(sctx, std::stoi(std::string(id->substr(1))), ctx.Out());
+    } else if (id->front() == 'E') {
+      PrintExpr(sctx, std::stoi(std::string(id->substr(1))), ctx.Out());
     } else {
-      PrintError(ctx.err) << "second argument to 'print-ast' command must be "
-                             "either 'S<index>' or 'E<index>'\n";
+      ctx.Err() << "second argument to 'print-ast' command must be "
+                   "either 'S<index>' or 'E<index>'\n";
       return 1;
     }
   } else {
-    for (const auto& func_def : func_defs) Print(sctx, func_def, ctx.out);
+    for (const auto& func_def : func_defs) Print(sctx, func_def, ctx.Out());
   }
 
   return 0;
 }
 
 int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
-  if (ctx.args.size() < 1) {
-    ctx.out << "Usage: " << Concat(ctx.path, " ") << " <path> (<identifier>)\n"
-            << "\n"
-            << "Examples:\n"
-            << "  print-syntax-cfg //my/source/file.lu\n"
-            << "  print-syntax-cfg //my/source/file.lu E2\n";
+  std::optional<std::string_view> src_file = ctx.TakeArg();
+  if (!src_file) {
+    ctx.Out() << "Usage: " << ctx.CurrentCommand() << " <path> (<identifier>)\n"
+              << "\n"
+              << "Examples:\n"
+              << "  print-syntax-cfg //my/source/file.lu\n"
+              << "  print-syntax-cfg //my/source/file.lu E2\n";
     return 0;
   }
 
-  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  auto src_path = std::filesystem::absolute(*src_file);
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (!maybe_src.has_value()) {
-    PrintError(ctx.err) << maybe_src.error();
-    ctx.err << "\n";
+    ctx.Err() << maybe_src.error() << "\n";
     return 1;
   }
   const auto& src = maybe_src.value();
@@ -197,8 +195,7 @@ int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
   SyntaxContext sctx;
   auto maybe_funcs = ParseFuncDefs(src, sctx);
   if (!maybe_funcs.has_value()) {
-    PrintError(ctx.err) << maybe_funcs.error();
-    ctx.err << "\n";
+    ctx.Err() << maybe_funcs.error() << "\n";
     return 1;
   }
   const auto& func_defs = maybe_funcs.value();
@@ -206,28 +203,28 @@ int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
   for (const auto& func_def : func_defs) {
     auto graph = BuildControlFlowGraph(sctx, func_def);
     ConvertToStaticSingleAssignment(sctx, graph);
-    Print(sctx, graph, ctx.out);
+    Print(sctx, graph, ctx.Out());
   }
 
   return 0;
 }
 
 int HandlePrintAmCfgCommand(CommandContext ctx) {
-  if (ctx.args.size() < 1) {
-    ctx.out << "Usage: " << Concat(ctx.path, " ")
-            << " (--regs=spill|merge) <path>\n"
-            << "\n"
-            << "Examples:\n"
-            << "  print-am-cfg //my/source/file.lu\n"
-            << "  print-am-cfg --regs=spill //my/source/file.lu\n";
+  std::optional<std::string_view> src_file = ctx.TakeArg();
+  if (!src_file) {
+    ctx.Out() << "Usage: " << ctx.CurrentCommand()
+              << " (--regs=spill|merge) <path>\n"
+              << "\n"
+              << "Examples:\n"
+              << "  print-am-cfg //my/source/file.lu\n"
+              << "  print-am-cfg --regs=spill //my/source/file.lu\n";
     return 0;
   }
 
-  auto src_path = std::filesystem::absolute(ctx.args[0]);
+  auto src_path = std::filesystem::absolute(*src_file);
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (!maybe_src.has_value()) {
-    PrintError(ctx.err) << maybe_src.error();
-    ctx.err << "\n";
+    ctx.Err() << maybe_src.error() << "\n";
     return 1;
   }
   const auto& src = maybe_src.value();
@@ -235,8 +232,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   SyntaxContext syn_ctx;
   auto maybe_funcs = ParseFuncDefs(src, syn_ctx);
   if (!maybe_funcs.has_value()) {
-    PrintError(ctx.err) << maybe_funcs.error();
-    ctx.err << "\n";
+    ctx.Err() << maybe_funcs.error() << "\n";
     return 1;
   }
   auto& func_defs = maybe_funcs.value();
@@ -247,13 +243,11 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   for (bool has_printed_func = false; auto& func_def : func_defs) {
     if (auto res = InferExprTypes(syn_ctx, func_defs, func_def);
         !res.has_value()) {
-      PrintError(ctx.err) << res.error();
-      ctx.err << "\n";
+      ctx.Err() << res.error() << "\n";
       return 1;
     }
     if (auto res = CheckComp(func_defs, syn_ctx, func_def); !res.has_value()) {
-      PrintError(ctx.err) << res.error();
-      ctx.err << "\n";
+      ctx.Err() << res.error() << "\n";
       return 1;
     }
     SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func_def);
@@ -265,9 +259,9 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
     static constexpr int kArmRegistersCount = 10;
-    if (ctx.flags.Get("regs") == "spill") {
+    if (ctx.Flag("regs") == "spill") {
       SpillRegisters(am_cfg, state, kArmRegistersCount);
-    } else if (ctx.flags.Get("regs") == "merge") {
+    } else if (ctx.Flag("regs") == "merge") {
       SpillRegisters(am_cfg, state, kArmRegistersCount);
       HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
       HashMap<RegId, int> am_ig_colors =
@@ -276,7 +270,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
     }
 
     if (has_printed_func) std::cout << "\n";
-    Print(syn_ctx.DerefIdent(func_def.name), am_cfg, ctx.out);
+    Print(syn_ctx.DerefIdent(func_def.name), am_cfg, ctx.Out());
     am_cfgs.Insert(syn_ctx.DerefIdent(func_def.name), std::move(am_cfg));
     has_printed_func = true;
   }
@@ -285,7 +279,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
 }
 
 int HandleVersionCommand(CommandContext ctx) {
-  ctx.out << "Commit: " << kGitCommit << "\n";
+  ctx.Out() << "Commit: " << kGitCommit << "\n";
 
   return 0;
 }

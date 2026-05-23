@@ -145,7 +145,7 @@ TEST_F(CompilerTest, PrintCfg) {
 MATCHER_P(FormattedError, matcher, "") {
   return ExplainMatchResult(
       matcher,
-      std::string_view(arg).substr(sizeof("\033[31mERROR:\033[0m ") - 1),
+      std::string_view(arg).substr(sizeof("\33[31mERROR:\33[m ") - 1),
       result_listener);
 }
 

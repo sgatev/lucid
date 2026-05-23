@@ -9,6 +9,7 @@ enum class Color {
   Green,
   Blue,
   LightBlue,
+  Red,
 };
 
 // Changes the color of new text printed to `o`.
@@ -21,6 +22,8 @@ inline auto SetColor(Color c) {
         return o << "\33[36m";
       case Color::Blue:
         return o << "\33[34m";
+      case Color::Red:
+        return o << "\33[31m";
     }
   };
 }
