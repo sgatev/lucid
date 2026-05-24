@@ -38,9 +38,9 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
     state.live_in = std::move(state.live_out);
 
     for (RegId from : state.live_in) {
-      am_ig.Insert(from, {});
+      auto& from_nbs = am_ig.Emplace(from);
       for (RegId to : state.live_in) {
-        if (to != from) am_ig.Get(from)->Insert(to);
+        if (to != from) from_nbs.Insert(to);
       }
     }
 
@@ -48,10 +48,8 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
       if (auto target_reg = GetTargetRegister(inst); target_reg.has_value()) {
         for (RegId to : state.live_in) {
           if (to != *target_reg) {
-            am_ig.Insert(*target_reg, {});
-            am_ig.Get(*target_reg)->Insert(to);
-            am_ig.Insert(to, {});
-            am_ig.Get(to)->Insert(*target_reg);
+            am_ig.Emplace(*target_reg).Insert(to);
+            am_ig.Emplace(to).Insert(*target_reg);
           }
         }
       }
@@ -59,32 +57,25 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
       state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
 
       if (auto* cinst = std::get_if<ModReg>(&inst)) {
-        am_ig.Insert(cinst->res_reg, {});
-        am_ig.Insert(cinst->lhs_reg, {});
-        am_ig.Insert(cinst->rhs_reg, {});
+        am_ig.Emplace(cinst->res_reg).Insert(cinst->lhs_reg);
+        am_ig.Emplace(cinst->lhs_reg).Insert(cinst->res_reg);
 
-        am_ig.Get(cinst->res_reg)->Insert(cinst->lhs_reg);
-        am_ig.Get(cinst->lhs_reg)->Insert(cinst->res_reg);
-
-        am_ig.Get(cinst->res_reg)->Insert(cinst->rhs_reg);
-        am_ig.Get(cinst->rhs_reg)->Insert(cinst->res_reg);
+        am_ig.Emplace(cinst->res_reg).Insert(cinst->rhs_reg);
+        am_ig.Emplace(cinst->rhs_reg).Insert(cinst->res_reg);
       }
 
       for (RegId from : state.live_in) {
-        am_ig.Insert(from, {});
+        auto& from_nbs = am_ig.Emplace(from);
         for (RegId to : state.live_in) {
-          if (to != from) am_ig.Get(from)->Insert(to);
+          if (to != from) from_nbs.Insert(to);
         }
       }
     }
 
     for (const auto& phi : block.phis) {
       for (auto source : phi.srcs) {
-        am_ig.Insert(phi.dst, {});
-        am_ig.Get(phi.dst)->Insert(source);
-
-        am_ig.Insert(source, {});
-        am_ig.Get(source)->Insert(phi.dst);
+        am_ig.Emplace(phi.dst).Insert(source);
+        am_ig.Emplace(source).Insert(phi.dst);
       }
     }
   }

@@ -128,13 +128,52 @@ class HashTable {
     return ConstIterator(*this, find_offset(proj));
   }
 
-  // Inserts the given `value` and returns true if `Project(value)` is not
-  // already inserted. Otherwise returns false.
-  inline bool Insert(V value) { return insert<false>(std::move(value)); }
+  // Returns (slot, false) if the table contains a value that corresponds to
+  // `proj`. Otherwise, allocates a new slot for a value and returns (slot,
+  // true).
+  template <typename... Ts>
+  inline std::pair<V*, bool> FindOrAlloc(const P& proj) {
+    if (size_ > (capacity() >> 1)) resize();
 
-  // Inserts the given `value` and returns true if `Project(value)` is not
-  // already inserted. Otherwise overrides the value and returns false.
-  inline bool Set(V value) { return insert<true>(std::move(value)); }
+    const std::size_t proj_hash = Hash(proj);
+    const std::uint8_t proj_meta = proj_hash & 0b01111111;
+
+    std::size_t offset = proj_hash;
+    for (std::size_t i = 0;; ++i) {
+      offset = (offset + i) & capacity_mask_;
+
+      std::uint8_t& offset_meta = *meta(offset);
+      V* offset_slot = slot(offset);
+      if (offset_meta == proj_meta && Project(*offset_slot) == proj) {
+        return std::make_pair(offset_slot, false);
+      }
+      if (!full(offset_meta)) {
+        offset_meta = proj_meta;
+        ++size_;
+        return std::make_pair(offset_slot, true);
+      }
+    }
+  }
+
+  // Inserts the given `val` and returns true if `Project(val)` is not already
+  // inserted. Otherwise returns false.
+  inline bool Insert(V val) {
+    auto [val_slot, allocated] = FindOrAlloc(Project(val));
+    if (allocated) new (val_slot) V(std::move(val));
+    return allocated;
+  }
+
+  // Inserts the given `val` and returns true if `Project(val)` is not already
+  // inserted. Otherwise overrides the value and returns false.
+  inline bool Set(V val) {
+    auto [val_slot, allocated] = FindOrAlloc(Project(val));
+    if (allocated) {
+      new (val_slot) V(std::move(val));
+    } else {
+      *val_slot = std::move(val);
+    }
+    return allocated;
+  }
 
   // Removes the value that corresponds to the given projection and returns it
   // if present. Otherwise returns nullopt.
@@ -214,34 +253,6 @@ class HashTable {
         return offset;
       }
       if (empty(offset_meta)) return capacity();
-    }
-  }
-
-  // Inserts the given `value` and returns true if `Project(value)` is not
-  // already inserted or `OverwriteIfPresent` is true. Otherwise returns false.
-  template <bool OverwriteIfPresent>
-  bool insert(V value) {
-    if (size_ > (capacity() >> 1)) resize();
-
-    const P& proj = Project(value);
-    const std::size_t proj_hash = Hash(proj);
-    const std::uint8_t proj_meta = proj_hash & 0b01111111;
-
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
-
-      const std::uint8_t offset_meta = *meta(offset);
-      if (offset_meta == proj_meta && Project(*slot(offset)) == proj) {
-        if constexpr (OverwriteIfPresent) *slot(offset) = std::move(value);
-        return false;
-      }
-      if (!full(offset_meta)) {
-        *meta(offset) = proj_meta;
-        new (slot(offset)) V(std::move(value));
-        ++size_;
-        return true;
-      }
     }
   }
 

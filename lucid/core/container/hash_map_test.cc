@@ -67,6 +67,13 @@ TEST(HashMap, FindMiss) {
   EXPECT_EQ(map.Get(21), std::nullopt);
 }
 
+TEST(HashMap, Emplace) {
+  HashMap<int, std::pair<int, int>> map;
+
+  EXPECT_THAT(map.Emplace(21, 1, 2), Pair(1, 2));
+  EXPECT_THAT(map.Emplace(21, 2, 4), Pair(1, 2));
+}
+
 TEST(HashMap, Insert) {
   HashMap<int, int> map;
 

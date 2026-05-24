@@ -4,6 +4,20 @@
 #include "benchmark/benchmark.h"
 #include "lucid/core/container/hash_map.h"
 
+static void BM_EmplaceUnique(benchmark::State& state) {
+  lucid::HashMap<int, int> map;
+  for (int i = 0; auto _ : state) map.Emplace(i++, 0);
+}
+BENCHMARK(BM_EmplaceUnique);
+
+static void BM_EmplaceDuplicate(benchmark::State& state) {
+  static constexpr int kCount = 1'000'000;
+  lucid::HashMap<int, int> map;
+  for (int i = 0; i < kCount; ++i) map.Emplace(i, 0);
+  for (int i = 0; auto _ : state) map.Emplace(i++ % kCount, 0);
+}
+BENCHMARK(BM_EmplaceDuplicate);
+
 static void BM_InsertUnique(benchmark::State& state) {
   lucid::HashMap<int, int> map;
   for (int i = 0; auto _ : state) map.Insert(i++, 0);

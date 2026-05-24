@@ -32,6 +32,17 @@ class HashMap {
     return std::nullopt;
   }
 
+  // Finds the value that corresponds to the given `key` if the table contains
+  // it or inserts one that's constructed with the remaining arguments.
+  template <typename... Args>
+  inline V& Emplace(const K& key, Args&&... args) {
+    auto [val_slot, allocated] = table_.FindOrAlloc(key);
+    if (allocated) {
+      new (val_slot) std::pair<K, V>(key, V(std::forward<Args>(args)...));
+    }
+    return val_slot->second;
+  }
+
   // Inserts the given `key` and `val` pair and returns true if `key` is not
   // already inserted. Otherwise returns false.
   inline bool Insert(K key, V val) {
