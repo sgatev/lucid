@@ -92,28 +92,17 @@ class AbstractMachineControlFlowGraph {
   std::int32_t next_free_reg_id = 1;
 
  private:
-  friend std::size_t VertexCount(const AbstractMachineControlFlowGraph&);
-  friend std::vector<BlockRef> Vertices(const AbstractMachineControlFlowGraph&);
-  friend std::vector<BlockRef> NextVertices(
-      const AbstractMachineControlFlowGraph&, BlockRef);
-  friend std::vector<BlockRef> PrevVertices(
-      const AbstractMachineControlFlowGraph&, BlockRef);
-  friend AbstractMachineControlFlowGraph::BlockRef SourceVertex(
-      const AbstractMachineControlFlowGraph&);
-  friend AbstractMachineControlFlowGraph::BlockRef SinkVertex(
-      const AbstractMachineControlFlowGraph&);
-
   Arena<Block> blocks_;
 };
 
 inline std::size_t VertexCount(const AbstractMachineControlFlowGraph& amcfg) {
-  return amcfg.blocks_.Size();
+  return amcfg.blocks().Size();
 }
 
 inline std::vector<AbstractMachineControlFlowGraph::BlockRef> Vertices(
     const AbstractMachineControlFlowGraph& amcfg) {
   std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs;
-  for (const auto& block : amcfg.blocks_) block_refs.push_back(block.ref);
+  for (const auto& block : amcfg.blocks()) block_refs.push_back(block.ref);
   return block_refs;
 }
 
