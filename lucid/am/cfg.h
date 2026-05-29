@@ -65,6 +65,12 @@ class AbstractMachineControlFlowGraph {
     return block;
   }
 
+  // Adds an edge to the control flow graph.
+  void edge(BlockRef from, BlockRef to) {
+    get(from).next.push_back(to);
+    get(to).preds.push_back(from);
+  }
+
   // Returns the block in the control flow graph refererenced by `ref`.
   //
   // `ref` must not be `kNullBlockRef`.
