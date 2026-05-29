@@ -14,8 +14,8 @@ namespace {
 TEST(InterpretAbstractMachineFunctionTest, SetReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -38,8 +38,8 @@ TEST(InterpretAbstractMachineFunctionTest, SetReg) {
 TEST(InterpretAbstractMachineFunctionTest, MoveReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -66,8 +66,8 @@ TEST(InterpretAbstractMachineFunctionTest, MoveReg) {
 TEST(InterpretAbstractMachineFunctionTest, AddReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -99,8 +99,8 @@ TEST(InterpretAbstractMachineFunctionTest, AddReg) {
 TEST(InterpretAbstractMachineFunctionTest, SubReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -132,8 +132,8 @@ TEST(InterpretAbstractMachineFunctionTest, SubReg) {
 TEST(InterpretAbstractMachineFunctionTest, MulReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -165,8 +165,8 @@ TEST(InterpretAbstractMachineFunctionTest, MulReg) {
 TEST(InterpretAbstractMachineFunctionTest, DivReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -198,8 +198,8 @@ TEST(InterpretAbstractMachineFunctionTest, DivReg) {
 TEST(InterpretAbstractMachineFunctionTest, GtReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -231,8 +231,8 @@ TEST(InterpretAbstractMachineFunctionTest, GtReg) {
 TEST(InterpretAbstractMachineFunctionTest, LtReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -264,8 +264,8 @@ TEST(InterpretAbstractMachineFunctionTest, LtReg) {
 TEST(InterpretAbstractMachineFunctionTest, EqReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -297,8 +297,8 @@ TEST(InterpretAbstractMachineFunctionTest, EqReg) {
 TEST(InterpretAbstractMachineFunctionTest, NotEqReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -330,10 +330,10 @@ TEST(InterpretAbstractMachineFunctionTest, NotEqReg) {
 TEST(InterpretAbstractMachineFunctionTest, Sequence) {
   AbstractMachineControlFlowGraphBuilder g;
 
-  auto a = g.block();
-  auto b = g.block();
-  auto c = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto b = g.AddBlock();
+  auto c = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{

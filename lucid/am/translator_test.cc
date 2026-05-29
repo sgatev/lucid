@@ -34,7 +34,7 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
 
     std::vector<Instruction> instructions;
     for (const auto& ref : block_refs) {
-      const auto& block = am_cfg.get(ref);
+      const auto& block = am_cfg.GetBlock(ref);
       instructions.insert(instructions.end(), block.instructions.begin(),
                           block.instructions.end());
     }

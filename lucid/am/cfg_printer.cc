@@ -55,7 +55,7 @@ void Print(std::string_view func_name,
   }
   out << "):\n" << ResetColor;
 
-  for (const auto& block : amcfg.blocks()) {
+  for (const auto& block : amcfg.Blocks()) {
     PrintBlock(kIndentStep, block, out);
   }
 }

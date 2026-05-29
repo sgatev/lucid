@@ -255,7 +255,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
 
     AbstractMachineControlFlowGraph am_cfg =
         GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, state);
-    for (auto& block : am_cfg.blocks()) {
+    for (auto& block : am_cfg.Blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
     static constexpr int kArmRegistersCount = 10;

@@ -18,13 +18,13 @@ HashMap<Reg, HashSet<Reg>> BuildInterferenceGraph(
       liveness_block_states = RunDataflow(Backward(am_cfg), liveness_analysis);
 
   HashMap<Reg, HashSet<Reg>> am_ig;
-  for (const auto& block : am_cfg.blocks()) {
+  for (const auto& block : am_cfg.Blocks()) {
     auto& maybe_state = liveness_block_states[block.ref.id()];
     if (!maybe_state.has_value()) continue;
     auto& state = *maybe_state;
 
     for (const auto& next_block_ref : block.next) {
-      const auto& next_block = am_cfg.get(next_block_ref);
+      const auto& next_block = am_cfg.GetBlock(next_block_ref);
       for (const auto& phi : next_block.phis) {
         for (int i = 0; i < next_block.preds.size(); ++i) {
           if (next_block.preds[i] == block.ref) {

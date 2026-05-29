@@ -72,7 +72,7 @@ class Arm64BinaryGenerator {
         Vertices(am_cfg_);
     std::sort(block_refs.begin(), block_refs.end(),
               CompareReversePostOrder(am_cfg_));
-    for (const auto& ref : block_refs) Process(am_cfg_.get(ref));
+    for (const auto& ref : block_refs) Process(am_cfg_.GetBlock(ref));
   }
 
  private:
@@ -95,13 +95,13 @@ class Arm64BinaryGenerator {
       assembler_.Label(else_label_phi);
       std::string else_label =
           std::string(func_name_) + std::to_string(block.next[1].id());
-      ProcessPhiFunctions(am_cfg_.get(block.next[1]), block.ref);
+      ProcessPhiFunctions(am_cfg_.GetBlock(block.next[1]), block.ref);
       assembler_.B(else_label);
 
       assembler_.Label(then_label_phi);
       std::string then_label =
           std::string(func_name_) + std::to_string(block.next[0].id());
-      ProcessPhiFunctions(am_cfg_.get(block.next[0]), block.ref);
+      ProcessPhiFunctions(am_cfg_.GetBlock(block.next[0]), block.ref);
       assembler_.B(then_label);
     } else if (block.next.size() == 1) {
       std::string phi_label = std::string(func_name_) +
@@ -110,7 +110,7 @@ class Arm64BinaryGenerator {
       assembler_.B(phi_label);
 
       assembler_.Label(phi_label);
-      ProcessPhiFunctions(am_cfg_.get(block.next[0]), block.ref);
+      ProcessPhiFunctions(am_cfg_.GetBlock(block.next[0]), block.ref);
       std::string label =
           std::string(func_name_) + std::to_string(block.next[0].id());
       assembler_.B(label);

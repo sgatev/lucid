@@ -38,7 +38,7 @@ class AbstractMachineFunctionGenerator {
 
   AbstractMachineControlFlowGraph Generate() && {
     for (const auto& block : syn_cfg_.blocks()) {
-      graph_map_.Set(block.ref, am_cfg_.add().ref);
+      graph_map_.Set(block.ref, am_cfg_.AddBlock().ref);
     }
 
     auto scfg_first = graph_map_.Get(syn_cfg_.first);
@@ -53,7 +53,7 @@ class AbstractMachineFunctionGenerator {
                    GetRegSize(syn_cfg_.func_result_type)};
 
     if (syn_ctx_.DerefIdent(syn_cfg_.func_name) == "printString") {
-      auto& first_block = am_cfg_.add();
+      auto& first_block = am_cfg_.AddBlock();
       am_cfg_.first = first_block.ref;
 
       first_block.instructions.push_back(FuncCall{
@@ -68,7 +68,7 @@ class AbstractMachineFunctionGenerator {
       });
       return std::move(am_cfg_);
     } else if (syn_ctx_.DerefIdent(syn_cfg_.func_name) == "sleep") {
-      auto& first_block = am_cfg_.add();
+      auto& first_block = am_cfg_.AddBlock();
       am_cfg_.first = first_block.ref;
 
       first_block.instructions.push_back(FuncCall{
@@ -94,12 +94,12 @@ class AbstractMachineFunctionGenerator {
     for (const auto& block : syn_cfg_.blocks()) {
       auto am_cfg_block_ref = graph_map_.Get(block.ref);
       assert(am_cfg_block_ref.has_value());
-      Process(block, am_cfg_.get(*am_cfg_block_ref));
+      Process(block, am_cfg_.GetBlock(*am_cfg_block_ref));
     }
     for (const auto& block : syn_cfg_.blocks()) {
       auto am_cfg_block_ref = graph_map_.Get(block.ref);
       assert(am_cfg_block_ref.has_value());
-      auto& am_block = am_cfg_.get(*am_cfg_block_ref);
+      auto& am_block = am_cfg_.GetBlock(*am_cfg_block_ref);
       for (auto phi_ref : block.phis) {
         const auto& phi = syn_cfg_.deref(phi_ref);
 
@@ -112,7 +112,7 @@ class AbstractMachineFunctionGenerator {
     }
 
     {
-      auto& last_block = am_cfg_.get(am_cfg_.last);
+      auto& last_block = am_cfg_.GetBlock(am_cfg_.last);
       last_block.instructions.push_back(Return{
           .res_reg = result_reg_,
       });

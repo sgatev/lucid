@@ -30,13 +30,13 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       liveness_block_states = RunDataflow(Backward(am_cfg), liveness_analysis);
 
-  for (const auto& block : am_cfg.blocks()) {
+  for (const auto& block : am_cfg.Blocks()) {
     auto maybe_state = liveness_block_states[block.ref.id()];
     if (!maybe_state.has_value()) continue;
     auto state = *maybe_state;
 
     for (int i = 0; i < block.next.size(); ++i) {
-      const auto& next_block = am_cfg.get(block.next[i]);
+      const auto& next_block = am_cfg.GetBlock(block.next[i]);
       for (const auto& phi : next_block.phis) {
         state.live_out.Insert(phi.srcs[i]);
       }
@@ -143,7 +143,7 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
             CompareReversePostOrder(am_cfg));
 
   for (const auto& block_ref : block_refs) {
-    auto& block = am_cfg.get(block_ref);
+    auto& block = am_cfg.GetBlock(block_ref);
 
     auto i = block.instructions.begin();
     if (block_ref == am_cfg.first) {
@@ -266,7 +266,7 @@ HashMap<Reg, int> ColorInterferenceGraph(
   for (const auto& param : am_cfg.params) {
     reg_scores.Insert(param, 0);
   }
-  for (const auto& block : am_cfg.blocks()) {
+  for (const auto& block : am_cfg.Blocks()) {
     for (const auto& inst : block.instructions) {
       if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
@@ -404,7 +404,7 @@ void UpdateRegister(const HashMap<Reg, int>& reg_colors, Reg& reg) {
 void MergeRegisters(const HashMap<Reg, int>& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg) {
   for (auto& param : am_cfg.params) UpdateRegister(reg_colors, param);
-  for (auto& block : am_cfg.blocks()) {
+  for (auto& block : am_cfg.Blocks()) {
     for (auto& inst : block.instructions) {
       if (auto* cinst = std::get_if<MoveReg>(&inst)) {
         UpdateRegister(reg_colors, cinst->src_reg);

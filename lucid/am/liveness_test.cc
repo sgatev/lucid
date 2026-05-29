@@ -31,8 +31,8 @@ class LivenessAnalysisGraphBuilder
 TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
   LivenessAnalysisGraphBuilder g;
 
-  auto a = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -57,9 +57,9 @@ TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
 TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
   LivenessAnalysisGraphBuilder g;
 
-  auto a = g.block();
-  auto b = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto b = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -93,11 +93,11 @@ TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
 TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
   LivenessAnalysisGraphBuilder g;
 
-  auto a = g.block();
-  auto b = g.block();
-  auto c = g.block();
-  auto d = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto b = g.AddBlock();
+  auto c = g.AddBlock();
+  auto d = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -155,9 +155,9 @@ TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
 TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
   LivenessAnalysisGraphBuilder g;
 
-  auto a = g.block();
-  auto b = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto b = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{
@@ -195,10 +195,10 @@ TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
 TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
   LivenessAnalysisGraphBuilder g;
 
-  auto a = g.block();
-  auto b = g.block();
-  auto c = g.block();
-  auto z = g.block();
+  auto a = g.AddBlock();
+  auto b = g.AddBlock();
+  auto c = g.AddBlock();
+  auto z = g.AddBlock();
 
   g.first(a);
   g.inst(a, SetReg{

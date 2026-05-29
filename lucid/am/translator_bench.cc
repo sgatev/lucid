@@ -16,7 +16,7 @@ std::size_t CountInstructions(const lucid::SyntaxContext& syn_ctx,
       lucid::GenerateAbstractMachineFunction(/*am_cfgs=*/{}, syn_ctx, syn_cfg,
                                              am_state);
   std::size_t instructions_count = 0;
-  for (const auto& block : am_cfg.blocks()) {
+  for (const auto& block : am_cfg.Blocks()) {
     instructions_count += block.instructions.size();
   }
   return instructions_count;

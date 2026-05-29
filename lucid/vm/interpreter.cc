@@ -25,7 +25,7 @@ int InterpretAbstractMachineFunction(
       AbstractMachineControlFlowGraph::kNullBlockRef;
   auto current_block_ref = am_cfg.first;
   while (true) {
-    const auto& current_block = am_cfg.get(current_block_ref);
+    const auto& current_block = am_cfg.GetBlock(current_block_ref);
     for (const auto& phi : current_block.phis) {
       assert(prev_block_ref != AbstractMachineControlFlowGraph::kNullBlockRef);
 

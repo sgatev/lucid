@@ -58,7 +58,7 @@ class AbstractMachineControlFlowGraph {
   };
 
   // Adds a new block to the control flow graph.
-  Block& add() {
+  Block& AddBlock() {
     auto ref = blocks_.Add(Block());
     Block& block = blocks_.Get(ref);
     block.ref = ref;
@@ -66,24 +66,24 @@ class AbstractMachineControlFlowGraph {
   }
 
   // Adds an edge to the control flow graph.
-  void edge(BlockRef from, BlockRef to) {
-    get(from).next.push_back(to);
-    get(to).preds.push_back(from);
+  void AddEdge(BlockRef from, BlockRef to) {
+    GetBlock(from).next.push_back(to);
+    GetBlock(to).preds.push_back(from);
   }
 
   // Returns the block in the control flow graph refererenced by `ref`.
   //
   // `ref` must not be `kNullBlockRef`.
-  Block& get(BlockRef ref) { return blocks_.Get(ref); }
+  Block& GetBlock(BlockRef ref) { return blocks_.Get(ref); }
 
   // Returns the block in the control flow graph refererenced by `ref`.
   //
   // `ref` must not be `kNullBlockRef`.
-  const Block& get(BlockRef ref) const { return blocks_.Get(ref); }
+  const Block& GetBlock(BlockRef ref) const { return blocks_.Get(ref); }
 
   // Returns an arena with all blocks that were added to the graph.
-  Arena<Block>& blocks() { return blocks_; }
-  const Arena<Block>& blocks() const { return blocks_; }
+  Arena<Block>& Blocks() { return blocks_; }
+  const Arena<Block>& Blocks() const { return blocks_; }
 
   BlockRef first = kNullBlockRef;
   BlockRef last = kNullBlockRef;
@@ -102,13 +102,13 @@ class AbstractMachineControlFlowGraph {
 };
 
 inline std::size_t VertexCount(const AbstractMachineControlFlowGraph& amcfg) {
-  return amcfg.blocks().Size();
+  return amcfg.Blocks().Size();
 }
 
 inline std::vector<AbstractMachineControlFlowGraph::BlockRef> Vertices(
     const AbstractMachineControlFlowGraph& amcfg) {
   std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs;
-  for (const auto& block : amcfg.blocks()) block_refs.push_back(block.ref);
+  for (const auto& block : amcfg.Blocks()) block_refs.push_back(block.ref);
   return block_refs;
 }
 
@@ -125,13 +125,13 @@ inline AbstractMachineControlFlowGraph::BlockRef SinkVertex(
 inline std::vector<AbstractMachineControlFlowGraph::BlockRef> NextVertices(
     const AbstractMachineControlFlowGraph& amcfg,
     AbstractMachineControlFlowGraph::BlockRef block_ref) {
-  return amcfg.get(block_ref.id()).next;
+  return amcfg.GetBlock(block_ref.id()).next;
 }
 
 inline std::vector<AbstractMachineControlFlowGraph::BlockRef> PrevVertices(
     const AbstractMachineControlFlowGraph& amcfg,
     AbstractMachineControlFlowGraph::BlockRef block_ref) {
-  return amcfg.get(block_ref.id()).preds;
+  return amcfg.GetBlock(block_ref.id()).preds;
 }
 
 inline std::uint32_t VertexId(

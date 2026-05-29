@@ -30,12 +30,12 @@ constexpr static Reg kReg3 = {
 TEST(BuildInterferenceGraphTest, Empty) {
   AbstractMachineControlFlowGraph am_cfg;
 
-  auto a = am_cfg.add().ref;
-  auto z = am_cfg.add().ref;
+  auto a = am_cfg.AddBlock().ref;
+  auto z = am_cfg.AddBlock().ref;
 
   // Block a:
   am_cfg.first = a;
-  am_cfg.edge(a, z);
+  am_cfg.AddEdge(a, z);
 
   // Block z:
   am_cfg.last = z;
@@ -48,19 +48,19 @@ TEST(BuildInterferenceGraphTest, Empty) {
 TEST(BuildInterferenceGraphTest, Simple) {
   AbstractMachineControlFlowGraph am_cfg;
 
-  auto a = am_cfg.add().ref;
-  auto z = am_cfg.add().ref;
+  auto a = am_cfg.AddBlock().ref;
+  auto z = am_cfg.AddBlock().ref;
 
   // Block a:
   am_cfg.first = a;
-  am_cfg.get(a).instructions.push_back(SetReg{
+  am_cfg.GetBlock(a).instructions.push_back(SetReg{
       .src_val = "1",
       .dst_reg = kReg1,
   });
-  am_cfg.edge(a, z);
+  am_cfg.AddEdge(a, z);
 
   // Block z:
-  am_cfg.get(z).instructions.push_back(Return{
+  am_cfg.GetBlock(z).instructions.push_back(Return{
       .res_reg = kReg1,
   });
   am_cfg.last = z;
@@ -73,23 +73,23 @@ TEST(BuildInterferenceGraphTest, Simple) {
 TEST(BuildInterferenceGraphTest, NonOverlapping) {
   AbstractMachineControlFlowGraph am_cfg;
 
-  auto a = am_cfg.add().ref;
-  auto z = am_cfg.add().ref;
+  auto a = am_cfg.AddBlock().ref;
+  auto z = am_cfg.AddBlock().ref;
 
   // Block a:
   am_cfg.first = a;
-  am_cfg.get(a).instructions.push_back(SetReg{
+  am_cfg.GetBlock(a).instructions.push_back(SetReg{
       .src_val = "1",
       .dst_reg = kReg1,
   });
-  am_cfg.get(a).instructions.push_back(MoveReg{
+  am_cfg.GetBlock(a).instructions.push_back(MoveReg{
       .src_reg = kReg1,
       .dst_reg = kReg2,
   });
-  am_cfg.edge(a, z);
+  am_cfg.AddEdge(a, z);
 
   // Block z:
-  am_cfg.get(z).instructions.push_back(Return{
+  am_cfg.GetBlock(z).instructions.push_back(Return{
       .res_reg = kReg2,
   });
   am_cfg.last = z;
@@ -103,28 +103,28 @@ TEST(BuildInterferenceGraphTest, NonOverlapping) {
 TEST(BuildInterferenceGraphTest, Overlapping) {
   AbstractMachineControlFlowGraph am_cfg;
 
-  auto a = am_cfg.add().ref;
-  auto z = am_cfg.add().ref;
+  auto a = am_cfg.AddBlock().ref;
+  auto z = am_cfg.AddBlock().ref;
 
   // Block a:
   am_cfg.first = a;
-  am_cfg.get(a).instructions.push_back(SetReg{
+  am_cfg.GetBlock(a).instructions.push_back(SetReg{
       .src_val = "1",
       .dst_reg = kReg1,
   });
-  am_cfg.get(a).instructions.push_back(SetReg{
+  am_cfg.GetBlock(a).instructions.push_back(SetReg{
       .src_val = "2",
       .dst_reg = kReg2,
   });
-  am_cfg.get(a).instructions.push_back(AddReg{
+  am_cfg.GetBlock(a).instructions.push_back(AddReg{
       .res_reg = kReg3,
       .lhs_reg = kReg1,
       .rhs_reg = kReg2,
   });
-  am_cfg.edge(a, z);
+  am_cfg.AddEdge(a, z);
 
   // Block z:
-  am_cfg.get(z).instructions.push_back(Return{
+  am_cfg.GetBlock(z).instructions.push_back(Return{
       .res_reg = kReg3,
   });
   am_cfg.last = z;
@@ -140,40 +140,40 @@ TEST(BuildInterferenceGraphTest, Overlapping) {
 TEST(BuildInterferenceGraphTest, BRanching) {
   AbstractMachineControlFlowGraph am_cfg;
 
-  auto a = am_cfg.add().ref;
-  auto b = am_cfg.add().ref;
-  auto c = am_cfg.add().ref;
-  auto z = am_cfg.add().ref;
+  auto a = am_cfg.AddBlock().ref;
+  auto b = am_cfg.AddBlock().ref;
+  auto c = am_cfg.AddBlock().ref;
+  auto z = am_cfg.AddBlock().ref;
 
   // Block a:
   am_cfg.first = a;
-  am_cfg.get(a).instructions.push_back(SetReg{
+  am_cfg.GetBlock(a).instructions.push_back(SetReg{
       .src_val = "1",
       .dst_reg = kReg1,
   });
-  am_cfg.get(a).instructions.push_back(SetReg{
+  am_cfg.GetBlock(a).instructions.push_back(SetReg{
       .src_val = "2",
       .dst_reg = kReg2,
   });
-  am_cfg.edge(a, b);
-  am_cfg.edge(a, c);
+  am_cfg.AddEdge(a, b);
+  am_cfg.AddEdge(a, c);
 
   // Block b:
-  am_cfg.get(b).instructions.push_back(MoveReg{
+  am_cfg.GetBlock(b).instructions.push_back(MoveReg{
       .src_reg = kReg1,
       .dst_reg = kReg3,
   });
-  am_cfg.edge(b, z);
+  am_cfg.AddEdge(b, z);
 
   // Block c:
-  am_cfg.get(c).instructions.push_back(MoveReg{
+  am_cfg.GetBlock(c).instructions.push_back(MoveReg{
       .src_reg = kReg2,
       .dst_reg = kReg3,
   });
-  am_cfg.edge(b, z);
+  am_cfg.AddEdge(b, z);
 
   // Block z:
-  am_cfg.get(z).instructions.push_back(Return{
+  am_cfg.GetBlock(z).instructions.push_back(Return{
       .res_reg = kReg3,
   });
   am_cfg.last = z;

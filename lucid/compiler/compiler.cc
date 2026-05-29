@@ -58,7 +58,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
     ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
     AbstractMachineControlFlowGraph am_cfg =
         GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
-    for (auto& block : am_cfg.blocks()) {
+    for (auto& block : am_cfg.Blocks()) {
       OptimizeAbstractMachineInstructions(block.instructions);
     }
     static constexpr int kArmRegistersCount = 10;
