@@ -54,6 +54,7 @@ cc_test(
     srcs = ["ig_test.cc"],
     deps = [
         ":cfg",
+        ":cfg_builder",
         ":ig",
         "@googletest//:gtest_main",
     ],

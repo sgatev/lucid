@@ -22,7 +22,7 @@ class LivenessAnalysisGraphBuilder
     : public AbstractMachineControlFlowGraphBuilder {
  public:
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>> run() && {
-    AbstractMachineControlFlowGraph am_cfg = std::move(*this).build();
+    AbstractMachineControlFlowGraph am_cfg = std::move(*this).Build();
     AbstractMachineLivenessAnalysis analysis(am_cfg);
     return RunDataflow(Backward(am_cfg), analysis);
   }
@@ -34,14 +34,14 @@ TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
   auto a = g.AddBlock();
   auto z = g.AddBlock();
 
-  g.first(a);
-  g.inst(a, SetReg{
-                .src_val = "1",
-                .dst_reg = Reg(1),
-            });
-  g.edge(a, z);
+  g.SetFirst(a);
+  g.AddInstruction(a, SetReg{
+                          .src_val = "1",
+                          .dst_reg = Reg(1),
+                      });
+  g.AddEdge(a, z);
 
-  g.last(z);
+  g.SetLast(z);
 
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       block_states = std::move(g).run();
@@ -61,20 +61,20 @@ TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
   auto b = g.AddBlock();
   auto z = g.AddBlock();
 
-  g.first(a);
-  g.inst(a, SetReg{
-                .src_val = "1",
-                .dst_reg = Reg(1, RegSize32),
-            });
-  g.edge(a, b);
+  g.SetFirst(a);
+  g.AddInstruction(a, SetReg{
+                          .src_val = "1",
+                          .dst_reg = Reg(1, RegSize32),
+                      });
+  g.AddEdge(a, b);
 
-  g.inst(b, MoveReg{
-                .src_reg = Reg(1, RegSize32),
-                .dst_reg = Reg(2, RegSize32),
-            });
-  g.edge(b, z);
+  g.AddInstruction(b, MoveReg{
+                          .src_reg = Reg(1, RegSize32),
+                          .dst_reg = Reg(2, RegSize32),
+                      });
+  g.AddEdge(b, z);
 
-  g.last(z);
+  g.SetLast(z);
 
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       block_states = std::move(g).run();
@@ -99,37 +99,37 @@ TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
   auto d = g.AddBlock();
   auto z = g.AddBlock();
 
-  g.first(a);
-  g.inst(a, SetReg{
-                .src_val = "1",
-                .dst_reg = Reg(1),
-            });
-  g.inst(a, SetReg{
-                .src_val = "2",
-                .dst_reg = Reg(2),
-            });
-  g.edge(a, b);
-  g.edge(a, c);
+  g.SetFirst(a);
+  g.AddInstruction(a, SetReg{
+                          .src_val = "1",
+                          .dst_reg = Reg(1),
+                      });
+  g.AddInstruction(a, SetReg{
+                          .src_val = "2",
+                          .dst_reg = Reg(2),
+                      });
+  g.AddEdge(a, b);
+  g.AddEdge(a, c);
 
-  g.inst(b, MoveReg{
-                .src_reg = Reg(1, RegSize32),
-                .dst_reg = Reg(3, RegSize32),
-            });
-  g.edge(b, d);
+  g.AddInstruction(b, MoveReg{
+                          .src_reg = Reg(1, RegSize32),
+                          .dst_reg = Reg(3, RegSize32),
+                      });
+  g.AddEdge(b, d);
 
-  g.inst(c, MoveReg{
-                .src_reg = Reg(2, RegSize32),
-                .dst_reg = Reg(3, RegSize32),
-            });
-  g.edge(c, d);
+  g.AddInstruction(c, MoveReg{
+                          .src_reg = Reg(2, RegSize32),
+                          .dst_reg = Reg(3, RegSize32),
+                      });
+  g.AddEdge(c, d);
 
-  g.inst(d, MoveReg{
-                .src_reg = Reg(3, RegSize32),
-                .dst_reg = Reg(4, RegSize32),
-            });
-  g.edge(d, z);
+  g.AddInstruction(d, MoveReg{
+                          .src_reg = Reg(3, RegSize32),
+                          .dst_reg = Reg(4, RegSize32),
+                      });
+  g.AddEdge(d, z);
 
-  g.last(z);
+  g.SetLast(z);
 
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       block_states = std::move(g).run();
@@ -159,24 +159,24 @@ TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
   auto b = g.AddBlock();
   auto z = g.AddBlock();
 
-  g.first(a);
-  g.inst(a, SetReg{
-                .src_val = "1",
-                .dst_reg = Reg(1),
-            });
-  g.inst(a, MoveReg{
-                .src_reg = Reg(1, RegSize32),
-                .dst_reg = Reg(2, RegSize32),
-            });
-  g.edge(a, b);
+  g.SetFirst(a);
+  g.AddInstruction(a, SetReg{
+                          .src_val = "1",
+                          .dst_reg = Reg(1),
+                      });
+  g.AddInstruction(a, MoveReg{
+                          .src_reg = Reg(1, RegSize32),
+                          .dst_reg = Reg(2, RegSize32),
+                      });
+  g.AddEdge(a, b);
 
-  g.inst(b, MoveReg{
-                .src_reg = Reg(2, RegSize32),
-                .dst_reg = Reg(3, RegSize32),
-            });
-  g.edge(b, z);
+  g.AddInstruction(b, MoveReg{
+                          .src_reg = Reg(2, RegSize32),
+                          .dst_reg = Reg(3, RegSize32),
+                      });
+  g.AddEdge(b, z);
 
-  g.last(z);
+  g.SetLast(z);
 
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       block_states = std::move(g).run();
@@ -200,27 +200,27 @@ TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
   auto c = g.AddBlock();
   auto z = g.AddBlock();
 
-  g.first(a);
-  g.inst(a, SetReg{
-                .src_val = "1",
-                .dst_reg = Reg(1),
-            });
-  g.edge(a, b);
+  g.SetFirst(a);
+  g.AddInstruction(a, SetReg{
+                          .src_val = "1",
+                          .dst_reg = Reg(1),
+                      });
+  g.AddEdge(a, b);
 
-  g.inst(b, SetReg{
-                .src_val = "2",
-                .dst_reg = Reg(2),
-            });
-  g.edge(b, c);
+  g.AddInstruction(b, SetReg{
+                          .src_val = "2",
+                          .dst_reg = Reg(2),
+                      });
+  g.AddEdge(b, c);
 
-  g.inst(c, AddReg{
-                .res_reg = Reg(3),
-                .lhs_reg = Reg(1),
-                .rhs_reg = Reg(2),
-            });
-  g.edge(c, z);
+  g.AddInstruction(c, AddReg{
+                          .res_reg = Reg(3),
+                          .lhs_reg = Reg(1),
+                          .rhs_reg = Reg(2),
+                      });
+  g.AddEdge(c, z);
 
-  g.last(z);
+  g.SetLast(z);
 
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       block_states = std::move(g).run();

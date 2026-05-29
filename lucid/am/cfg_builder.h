@@ -13,29 +13,29 @@ class AbstractMachineControlFlowGraphBuilder {
   }
 
   // Adds an edge between blocks in the control flow graph.
-  void edge(AbstractMachineControlFlowGraph::BlockRef from,
-            AbstractMachineControlFlowGraph::BlockRef to) {
-    am_cfg_.GetBlock(from).next.push_back(to);
-    am_cfg_.GetBlock(to).preds.push_back(from);
+  void AddEdge(AbstractMachineControlFlowGraph::BlockRef from,
+               AbstractMachineControlFlowGraph::BlockRef to) {
+    am_cfg_.AddEdge(from, to);
   }
 
   // Adds an instruction to the control flow graph block.
-  void inst(AbstractMachineControlFlowGraph::BlockRef ref, Instruction inst) {
+  void AddInstruction(AbstractMachineControlFlowGraph::BlockRef ref,
+                      Instruction inst) {
     am_cfg_.GetBlock(ref).instructions.push_back(std::move(inst));
   }
 
   // Marks the first block of the control flow graph.
-  void first(AbstractMachineControlFlowGraph::BlockRef ref) {
+  void SetFirst(AbstractMachineControlFlowGraph::BlockRef ref) {
     am_cfg_.first = ref;
   }
 
   // Marks the last block of the control flow graph.
-  void last(AbstractMachineControlFlowGraph::BlockRef ref) {
+  void SetLast(AbstractMachineControlFlowGraph::BlockRef ref) {
     am_cfg_.last = ref;
   }
 
   // Returns the assembled control flow graph.
-  AbstractMachineControlFlowGraph build() && { return std::move(am_cfg_); }
+  AbstractMachineControlFlowGraph Build() && { return std::move(am_cfg_); }
 
  private:
   AbstractMachineControlFlowGraph am_cfg_;
