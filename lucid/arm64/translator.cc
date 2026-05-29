@@ -181,8 +181,8 @@ class Arm64BinaryGenerator {
       }
     }
 
-    HashMap<RegId, RegId> dst_to_srcs;
-    HashSet<RegId> srcs;
+    HashMap<Reg, Reg> dst_to_srcs;
+    HashSet<Reg> srcs;
     for (const auto& phi : block.phis) {
       dst_to_srcs.Insert(phi.dst, phi.srcs[pred_block_idx]);
       srcs.Insert(phi.srcs[pred_block_idx]);
@@ -218,11 +218,11 @@ class Arm64BinaryGenerator {
         }
         for (const auto [t, s] : dst_to_srcs) {
           if (s == target) {
-            dst_to_srcs.Set(t, RegId{.id = 15, .size = target.size});
+            dst_to_srcs.Set(t, Reg{.id = 15, .size = target.size});
           }
         }
         srcs.Remove(target);
-        srcs.Insert(RegId{.id = 15, .size = target.size});
+        srcs.Insert(Reg{.id = 15, .size = target.size});
       }
     }
   }

@@ -14,17 +14,17 @@ using ::testing::ElementsAre;
 TEST(OptimizeAbstractMachineInstructionsTest, RemovesUnnecessaryInstructions) {
   std::list<Instruction> instructions = {
       MoveReg{
-          .src_reg = RegId(1, RegSize32),
-          .dst_reg = RegId(2, RegSize32),
+          .src_reg = Reg(1, RegSize32),
+          .dst_reg = Reg(2, RegSize32),
       },
       MoveReg{
-          .src_reg = RegId(3, RegSize32),
-          .dst_reg = RegId(3, RegSize32),
+          .src_reg = Reg(3, RegSize32),
+          .dst_reg = Reg(3, RegSize32),
       },
       AddReg{
-          .res_reg = RegId(1, RegSize32),
-          .lhs_reg = RegId(2, RegSize32),
-          .rhs_reg = RegId(2, RegSize32),
+          .res_reg = Reg(1, RegSize32),
+          .lhs_reg = Reg(2, RegSize32),
+          .rhs_reg = Reg(2, RegSize32),
       },
   };
 
@@ -32,14 +32,14 @@ TEST(OptimizeAbstractMachineInstructionsTest, RemovesUnnecessaryInstructions) {
 
   EXPECT_THAT(instructions, ElementsAre(
                                 MoveReg{
-                                    .src_reg = RegId(1, RegSize32),
-                                    .dst_reg = RegId(2, RegSize32),
+                                    .src_reg = Reg(1, RegSize32),
+                                    .dst_reg = Reg(2, RegSize32),
                                 },
                                 Nop{},
                                 AddReg{
-                                    .res_reg = RegId(1, RegSize32),
-                                    .lhs_reg = RegId(2, RegSize32),
-                                    .rhs_reg = RegId(2, RegSize32),
+                                    .res_reg = Reg(1, RegSize32),
+                                    .lhs_reg = Reg(2, RegSize32),
+                                    .rhs_reg = Reg(2, RegSize32),
                                 }));
 }
 

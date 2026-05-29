@@ -27,10 +27,10 @@ class AbstractMachineControlFlowGraph {
   // A phi function in the control flow graph.
   struct Phi {
     // Destination for the result of the phi function.
-    RegId dst;
+    Reg dst;
 
     // Arguments to the phi function.
-    std::vector<RegId> srcs;
+    std::vector<Reg> srcs;
   };
 
   // A basic block in the control flow graph.
@@ -54,7 +54,7 @@ class AbstractMachineControlFlowGraph {
     // this block. If set and the value is non-zero, control flow proceeds to
     // the first block in `next`. If set and the value is zero, control flow
     // proceeds to the second block in `next`.
-    std::optional<RegId> branch_cond;
+    std::optional<Reg> branch_cond;
   };
 
   // Adds a new block to the control flow graph.
@@ -89,7 +89,7 @@ class AbstractMachineControlFlowGraph {
   BlockRef last = kNullBlockRef;
 
   // Parameters of the function.
-  std::vector<RegId> params;
+  std::vector<Reg> params;
 
   // Abstract machine stack slots.
   std::vector<std::size_t> stack_slots;

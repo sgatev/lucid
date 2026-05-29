@@ -26,9 +26,9 @@ class Interpreter {
 
   int Result() const;
 
-  OptionalRef<const int> Get(RegId reg) const;
+  OptionalRef<const int> Get(Reg reg) const;
 
-  void Set(RegId reg, int value);
+  void Set(Reg reg, int value);
 
   Instruction Interpret(const Instruction& inst);
 
@@ -49,7 +49,7 @@ class Interpreter {
 
   const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs_;
   AbstractMachineState& am_state_;
-  HashMap<RegId, int> values_;
+  HashMap<Reg, int> values_;
   int result_;
 };
 

@@ -12,17 +12,17 @@ using ::testing::IsEmpty;
 using ::testing::Pair;
 using ::testing::UnorderedElementsAre;
 
-constexpr static RegId kReg1 = {
+constexpr static Reg kReg1 = {
     .id = 1,
     .size = RegSize32,
 };
 
-constexpr static RegId kReg2 = {
+constexpr static Reg kReg2 = {
     .id = 2,
     .size = RegSize32,
 };
 
-constexpr static RegId kReg3 = {
+constexpr static Reg kReg3 = {
     .id = 3,
     .size = RegSize32,
 };

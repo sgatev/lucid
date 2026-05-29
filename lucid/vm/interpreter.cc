@@ -77,11 +77,11 @@ Interpreter::Interpreter(
 
 int Interpreter::Result() const { return result_; }
 
-OptionalRef<const int> Interpreter::Get(RegId reg) const {
+OptionalRef<const int> Interpreter::Get(Reg reg) const {
   return values_.Get(reg);
 }
 
-void Interpreter::Set(RegId reg, int value) { values_.Set(reg, value); }
+void Interpreter::Set(Reg reg, int value) { values_.Set(reg, value); }
 
 Instruction Interpreter::Interpret(const Instruction& inst) {
   if (const auto* func_call = std::get_if<FuncCall>(&inst)) {

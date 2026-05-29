@@ -15,10 +15,10 @@ class AbstractMachineLivenessAnalysis {
     bool operator==(const State&) const = default;
 
     // Registers that are live before entering the block modeled by this state.
-    HashSet<RegId> live_in;
+    HashSet<Reg> live_in;
 
     // Registers that are live after exiting the block modeled by this state.
-    HashSet<RegId> live_out;
+    HashSet<Reg> live_out;
   };
 
   static State Transfer(State state, Instruction inst);

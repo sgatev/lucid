@@ -13,11 +13,11 @@ namespace lucid {
 void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
                     AbstractMachineState& am_state, int max_clique_size);
 
-HashMap<RegId, int> ColorInterferenceGraph(
+HashMap<Reg, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
-    const HashMap<RegId, HashSet<RegId>>& am_ig, int colors_count);
+    const HashMap<Reg, HashSet<Reg>>& am_ig, int colors_count);
 
-void MergeRegisters(const HashMap<RegId, int>& reg_colors,
+void MergeRegisters(const HashMap<Reg, int>& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg);
 
 }  // namespace lucid

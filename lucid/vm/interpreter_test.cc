@@ -20,13 +20,13 @@ TEST(InterpretAbstractMachineFunctionTest, SetReg) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "21",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.edge(a, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(1),
+                .res_reg = Reg(1),
             });
 
   AbstractMachineState am_state;
@@ -44,17 +44,17 @@ TEST(InterpretAbstractMachineFunctionTest, MoveReg) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "21",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, MoveReg{
-                .src_reg = RegId(1),
-                .dst_reg = RegId(2),
+                .src_reg = Reg(1),
+                .dst_reg = Reg(2),
             });
   g.edge(a, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(2),
+                .res_reg = Reg(2),
             });
 
   AbstractMachineState am_state;
@@ -72,22 +72,22 @@ TEST(InterpretAbstractMachineFunctionTest, AddReg) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "21",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, SetReg{
                 .src_val = "42",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.inst(a, AddReg{
-                .res_reg = RegId(3),
-                .lhs_reg = RegId(1),
-                .rhs_reg = RegId(2),
+                .res_reg = Reg(3),
+                .lhs_reg = Reg(1),
+                .rhs_reg = Reg(2),
             });
   g.edge(a, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(3),
+                .res_reg = Reg(3),
             });
 
   AbstractMachineState am_state;
@@ -105,22 +105,22 @@ TEST(InterpretAbstractMachineFunctionTest, SubReg) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "60",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, SetReg{
                 .src_val = "42",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.inst(a, SubReg{
-                .res_reg = RegId(3),
-                .lhs_reg = RegId(1),
-                .rhs_reg = RegId(2),
+                .res_reg = Reg(3),
+                .lhs_reg = Reg(1),
+                .rhs_reg = Reg(2),
             });
   g.edge(a, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(3),
+                .res_reg = Reg(3),
             });
 
   AbstractMachineState am_state;
@@ -138,22 +138,22 @@ TEST(InterpretAbstractMachineFunctionTest, MulReg) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "21",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, SetReg{
                 .src_val = "2",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.inst(a, MulReg{
-                .res_reg = RegId(3),
-                .lhs_reg = RegId(1),
-                .rhs_reg = RegId(2),
+                .res_reg = Reg(3),
+                .lhs_reg = Reg(1),
+                .rhs_reg = Reg(2),
             });
   g.edge(a, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(3),
+                .res_reg = Reg(3),
             });
 
   AbstractMachineState am_state;
@@ -171,22 +171,22 @@ TEST(InterpretAbstractMachineFunctionTest, DivReg) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "30",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, SetReg{
                 .src_val = "3",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.inst(a, DivReg{
-                .res_reg = RegId(3),
-                .lhs_reg = RegId(1),
-                .rhs_reg = RegId(2),
+                .res_reg = Reg(3),
+                .lhs_reg = Reg(1),
+                .rhs_reg = Reg(2),
             });
   g.edge(a, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(3),
+                .res_reg = Reg(3),
             });
 
   AbstractMachineState am_state;
@@ -204,22 +204,22 @@ TEST(InterpretAbstractMachineFunctionTest, GtReg) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "21",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, SetReg{
                 .src_val = "42",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.inst(a, GtReg{
-                .res_reg = RegId(3),
-                .lhs_reg = RegId(1),
-                .rhs_reg = RegId(2),
+                .res_reg = Reg(3),
+                .lhs_reg = Reg(1),
+                .rhs_reg = Reg(2),
             });
   g.edge(a, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(3),
+                .res_reg = Reg(3),
             });
 
   AbstractMachineState am_state;
@@ -237,22 +237,22 @@ TEST(InterpretAbstractMachineFunctionTest, LtReg) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "21",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, SetReg{
                 .src_val = "42",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.inst(a, LtReg{
-                .res_reg = RegId(3),
-                .lhs_reg = RegId(1),
-                .rhs_reg = RegId(2),
+                .res_reg = Reg(3),
+                .lhs_reg = Reg(1),
+                .rhs_reg = Reg(2),
             });
   g.edge(a, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(3),
+                .res_reg = Reg(3),
             });
 
   AbstractMachineState am_state;
@@ -270,22 +270,22 @@ TEST(InterpretAbstractMachineFunctionTest, EqReg) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "21",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, SetReg{
                 .src_val = "42",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.inst(a, EqReg{
-                .res_reg = RegId(3),
-                .lhs_reg = RegId(1),
-                .rhs_reg = RegId(2),
+                .res_reg = Reg(3),
+                .lhs_reg = Reg(1),
+                .rhs_reg = Reg(2),
             });
   g.edge(a, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(3),
+                .res_reg = Reg(3),
             });
 
   AbstractMachineState am_state;
@@ -303,22 +303,22 @@ TEST(InterpretAbstractMachineFunctionTest, NotEqReg) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "21",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, SetReg{
                 .src_val = "42",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.inst(a, NotEqReg{
-                .res_reg = RegId(3),
-                .lhs_reg = RegId(1),
-                .rhs_reg = RegId(2),
+                .res_reg = Reg(3),
+                .lhs_reg = Reg(1),
+                .rhs_reg = Reg(2),
             });
   g.edge(a, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(3),
+                .res_reg = Reg(3),
             });
 
   AbstractMachineState am_state;
@@ -338,26 +338,26 @@ TEST(InterpretAbstractMachineFunctionTest, Sequence) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "21",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.edge(a, b);
 
   g.inst(b, SetReg{
                 .src_val = "42",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.edge(b, c);
 
   g.inst(c, AddReg{
-                .res_reg = RegId(3),
-                .lhs_reg = RegId(1),
-                .rhs_reg = RegId(2),
+                .res_reg = Reg(3),
+                .lhs_reg = Reg(1),
+                .rhs_reg = Reg(2),
             });
   g.edge(c, z);
 
   g.last(z);
   g.inst(z, Return{
-                .res_reg = RegId(3),
+                .res_reg = Reg(3),
             });
 
   AbstractMachineState am_state;

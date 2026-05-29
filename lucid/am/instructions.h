@@ -16,13 +16,13 @@ namespace lucid {
 enum RegSize { RegSize32, RegSize64 };
 
 // A register in the Lucid abstract machine.
-struct RegId {
+struct Reg {
   std::int32_t id;
   RegSize size;
 
-  bool operator==(const RegId&) const = default;
+  bool operator==(const Reg&) const = default;
 
-  friend std::ostream& operator<<(std::ostream& os, const RegId& reg) {
+  friend std::ostream& operator<<(std::ostream& os, const Reg& reg) {
     os << reg.id << "(";
     switch (reg.size) {
       case RegSize32:
@@ -37,7 +37,7 @@ struct RegId {
   }
 };
 
-inline std::size_t Hash(const RegId& reg) { return Hash(reg.id); }
+inline std::size_t Hash(const Reg& reg) { return Hash(reg.id); }
 
 // A no op instruction.
 struct Nop {
@@ -51,10 +51,10 @@ struct Nop {
 // Moves the value of a register into another one.
 struct MoveReg {
   // Source register.
-  RegId src_reg;
+  Reg src_reg;
 
   // Destination register.
-  RegId dst_reg;
+  Reg dst_reg;
 
   bool operator==(const MoveReg&) const = default;
 
@@ -70,7 +70,7 @@ struct SetReg {
   std::string_view src_val;
 
   // Destination register.
-  RegId dst_reg;
+  Reg dst_reg;
 
   bool operator==(const SetReg&) const = default;
 
@@ -86,7 +86,7 @@ struct SetStr {
   std::uintptr_t src_val;
 
   // Destination register.
-  RegId dst_reg;
+  Reg dst_reg;
 
   bool operator==(const SetStr&) const = default;
 
@@ -99,7 +99,7 @@ struct SetStr {
 // Returns to the location before the last jump.
 struct Return {
   // Result register.
-  RegId res_reg;
+  Reg res_reg;
 
   bool operator==(const Return&) const = default;
 
@@ -111,13 +111,13 @@ struct Return {
 // Adds the contents of two registers.
 struct AddReg {
   // Result register.
-  RegId res_reg;
+  Reg res_reg;
 
   // First operand source register.
-  RegId lhs_reg;
+  Reg lhs_reg;
 
   // Second operand source register.
-  RegId rhs_reg;
+  Reg rhs_reg;
 
   bool operator==(const AddReg&) const = default;
 
@@ -131,13 +131,13 @@ struct AddReg {
 // Subtracts the contents of one register from another.
 struct SubReg {
   // Result register.
-  RegId res_reg;
+  Reg res_reg;
 
   // First operand register.
-  RegId lhs_reg;
+  Reg lhs_reg;
 
   // Second operand register.
-  RegId rhs_reg;
+  Reg rhs_reg;
 
   bool operator==(const SubReg&) const = default;
 
@@ -151,13 +151,13 @@ struct SubReg {
 // Multiplies the contents of two registers.
 struct MulReg {
   // Result register.
-  RegId res_reg;
+  Reg res_reg;
 
   // First operand register.
-  RegId lhs_reg;
+  Reg lhs_reg;
 
   // Second operand register.
-  RegId rhs_reg;
+  Reg rhs_reg;
 
   bool operator==(const MulReg&) const = default;
 
@@ -171,13 +171,13 @@ struct MulReg {
 // Divides the contents of one register by another.
 struct DivReg {
   // Result register.
-  RegId res_reg;
+  Reg res_reg;
 
   // First operand register.
-  RegId lhs_reg;
+  Reg lhs_reg;
 
   // Second operand register.
-  RegId rhs_reg;
+  Reg rhs_reg;
 
   bool operator==(const DivReg&) const = default;
 
@@ -192,13 +192,13 @@ struct DivReg {
 // another.
 struct ModReg {
   // Result register.
-  RegId res_reg;
+  Reg res_reg;
 
   // First operand register.
-  RegId lhs_reg;
+  Reg lhs_reg;
 
   // Second operand register.
-  RegId rhs_reg;
+  Reg rhs_reg;
 
   bool operator==(const ModReg&) const = default;
 
@@ -212,13 +212,13 @@ struct ModReg {
 // Tests the values in two registers for a "greater than" relationship.
 struct GtReg {
   // Result register.
-  RegId res_reg;
+  Reg res_reg;
 
   // First operand register.
-  RegId lhs_reg;
+  Reg lhs_reg;
 
   // Second operand register.
-  RegId rhs_reg;
+  Reg rhs_reg;
 
   bool operator==(const GtReg&) const = default;
 
@@ -232,13 +232,13 @@ struct GtReg {
 // Tests the values in two registers for a "less than" relationship.
 struct LtReg {
   // Result register.
-  RegId res_reg;
+  Reg res_reg;
 
   // First operand register.
-  RegId lhs_reg;
+  Reg lhs_reg;
 
   // Second operand register.
-  RegId rhs_reg;
+  Reg rhs_reg;
 
   bool operator==(const LtReg&) const = default;
 
@@ -252,13 +252,13 @@ struct LtReg {
 // Tests the values in two registers for an "equals" relationship.
 struct EqReg {
   // Result register.
-  RegId res_reg;
+  Reg res_reg;
 
   // First operand register.
-  RegId lhs_reg;
+  Reg lhs_reg;
 
   // Second operand register.
-  RegId rhs_reg;
+  Reg rhs_reg;
 
   bool operator==(const EqReg&) const = default;
 
@@ -272,13 +272,13 @@ struct EqReg {
 // Tests the values in two registers for a "not equals" relationship.
 struct NotEqReg {
   // Result register.
-  RegId res_reg;
+  Reg res_reg;
 
   // First operand register.
-  RegId lhs_reg;
+  Reg lhs_reg;
 
   // Second operand register.
-  RegId rhs_reg;
+  Reg rhs_reg;
 
   bool operator==(const NotEqReg&) const = default;
 
@@ -295,7 +295,7 @@ struct StoreStack {
   std::size_t offset;
 
   // Source register.
-  RegId src_reg;
+  Reg src_reg;
 
   bool operator==(const StoreStack&) const = default;
 
@@ -312,10 +312,10 @@ struct StoreStackReg32 {
 
   // 32-bit register whose value is added to `offset` to reach the destination
   // address.
-  RegId offset_reg;
+  Reg offset_reg;
 
   // Source register.
-  RegId src_reg;
+  Reg src_reg;
 
   bool operator==(const StoreStackReg32&) const = default;
 
@@ -334,10 +334,10 @@ struct StoreStackReg64 {
 
   // 64-bit register whose value is added to `offset` to reach the destination
   // address.
-  RegId offset_reg;
+  Reg offset_reg;
 
   // Source register.
-  RegId src_reg;
+  Reg src_reg;
 
   bool operator==(const StoreStackReg64&) const = default;
 
@@ -355,7 +355,7 @@ struct LoadStack {
   std::size_t offset;
 
   // Destination register.
-  RegId dst_reg;
+  Reg dst_reg;
 
   bool operator==(const LoadStack&) const = default;
 
@@ -372,10 +372,10 @@ struct LoadStackReg32 {
 
   // 32-bit register whose value is added to `offset` to reach the address of
   // the value.
-  RegId offset_reg;
+  Reg offset_reg;
 
   // Destination register.
-  RegId dst_reg;
+  Reg dst_reg;
 
   bool operator==(const LoadStackReg32&) const = default;
 
@@ -394,10 +394,10 @@ struct LoadStackReg64 {
 
   // 64-bit register whose value is added to `offset` to reach the address of
   // the value.
-  RegId offset_reg;
+  Reg offset_reg;
 
   // Destination register.
-  RegId dst_reg;
+  Reg dst_reg;
 
   bool operator==(const LoadStackReg64&) const = default;
 
@@ -415,7 +415,7 @@ struct FuncCall {
   std::string_view label;
 
   struct Slot {
-    RegId reg;
+    Reg reg;
 
     bool operator==(const Slot&) const = default;
   };
@@ -450,7 +450,7 @@ using Instruction =
                  LoadStackReg64, FuncCall>;
 
 // Returns the source registers used by the given instruction, if any.
-inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
+inline std::vector<Reg> GetSourceRegisters(const Instruction& inst) {
   if (std::holds_alternative<SetReg>(inst) ||
       std::holds_alternative<SetStr>(inst) ||
       std::holds_alternative<LoadStack>(inst)) {
@@ -486,7 +486,7 @@ inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
   } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
     return {cinst->offset_reg};
   } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-    std::vector<RegId> source_regs;
+    std::vector<Reg> source_regs;
     for (const auto& arg : cinst->args) source_regs.push_back(arg.reg);
     return source_regs;
   } else if (auto* cinst = std::get_if<Return>(&inst)) {
@@ -498,7 +498,7 @@ inline std::vector<RegId> GetSourceRegisters(const Instruction& inst) {
 }
 
 // Returns the target register used by the given instruction, if any.
-inline std::optional<RegId> GetTargetRegister(const Instruction& inst) {
+inline std::optional<Reg> GetTargetRegister(const Instruction& inst) {
   if (std::holds_alternative<StoreStack>(inst) ||
       std::holds_alternative<StoreStackReg32>(inst) ||
       std::holds_alternative<StoreStackReg64>(inst) ||

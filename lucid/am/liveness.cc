@@ -62,7 +62,7 @@ State AbstractMachineLivenessAnalysis::Transfer(
 State AbstractMachineLivenessAnalysis::Join(State left, State right) {
   State state;
   state.live_in = std::move(left.live_in);
-  for (RegId reg : right.live_in) state.live_in.Insert(reg);
+  for (Reg reg : right.live_in) state.live_in.Insert(reg);
   return state;
 }
 

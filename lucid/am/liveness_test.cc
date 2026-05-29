@@ -37,7 +37,7 @@ TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "1",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.edge(a, z);
 
@@ -64,13 +64,13 @@ TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "1",
-                .dst_reg = RegId(1, RegSize32),
+                .dst_reg = Reg(1, RegSize32),
             });
   g.edge(a, b);
 
   g.inst(b, MoveReg{
-                .src_reg = RegId(1, RegSize32),
-                .dst_reg = RegId(2, RegSize32),
+                .src_reg = Reg(1, RegSize32),
+                .dst_reg = Reg(2, RegSize32),
             });
   g.edge(b, z);
 
@@ -81,9 +81,9 @@ TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
   ASSERT_THAT(block_states, SizeIs(3));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsAre(RegId(1)));
+  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsAre(Reg(1)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(RegId(1)));
+  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(Reg(1)));
   EXPECT_THAT(block_states[b.id()]->live_out, IsEmpty());
 
   EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
@@ -102,30 +102,30 @@ TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "1",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, SetReg{
                 .src_val = "2",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.edge(a, b);
   g.edge(a, c);
 
   g.inst(b, MoveReg{
-                .src_reg = RegId(1, RegSize32),
-                .dst_reg = RegId(3, RegSize32),
+                .src_reg = Reg(1, RegSize32),
+                .dst_reg = Reg(3, RegSize32),
             });
   g.edge(b, d);
 
   g.inst(c, MoveReg{
-                .src_reg = RegId(2, RegSize32),
-                .dst_reg = RegId(3, RegSize32),
+                .src_reg = Reg(2, RegSize32),
+                .dst_reg = Reg(3, RegSize32),
             });
   g.edge(c, d);
 
   g.inst(d, MoveReg{
-                .src_reg = RegId(3, RegSize32),
-                .dst_reg = RegId(4, RegSize32),
+                .src_reg = Reg(3, RegSize32),
+                .dst_reg = Reg(4, RegSize32),
             });
   g.edge(d, z);
 
@@ -137,15 +137,15 @@ TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
   EXPECT_THAT(block_states[a.id()]->live_out,
-              UnorderedElementsAre(RegId(1), RegId(2)));
+              UnorderedElementsAre(Reg(1), Reg(2)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(RegId(1)));
-  EXPECT_THAT(block_states[b.id()]->live_out, UnorderedElementsAre(RegId(3)));
+  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(Reg(1)));
+  EXPECT_THAT(block_states[b.id()]->live_out, UnorderedElementsAre(Reg(3)));
 
-  EXPECT_THAT(block_states[c.id()]->live_in, UnorderedElementsAre(RegId(2)));
-  EXPECT_THAT(block_states[c.id()]->live_out, UnorderedElementsAre(RegId(3)));
+  EXPECT_THAT(block_states[c.id()]->live_in, UnorderedElementsAre(Reg(2)));
+  EXPECT_THAT(block_states[c.id()]->live_out, UnorderedElementsAre(Reg(3)));
 
-  EXPECT_THAT(block_states[d.id()]->live_in, UnorderedElementsAre(RegId(3)));
+  EXPECT_THAT(block_states[d.id()]->live_in, UnorderedElementsAre(Reg(3)));
   EXPECT_THAT(block_states[d.id()]->live_out, IsEmpty());
 
   EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
@@ -162,17 +162,17 @@ TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "1",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.inst(a, MoveReg{
-                .src_reg = RegId(1, RegSize32),
-                .dst_reg = RegId(2, RegSize32),
+                .src_reg = Reg(1, RegSize32),
+                .dst_reg = Reg(2, RegSize32),
             });
   g.edge(a, b);
 
   g.inst(b, MoveReg{
-                .src_reg = RegId(2, RegSize32),
-                .dst_reg = RegId(3, RegSize32),
+                .src_reg = Reg(2, RegSize32),
+                .dst_reg = Reg(3, RegSize32),
             });
   g.edge(b, z);
 
@@ -183,9 +183,9 @@ TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
   ASSERT_THAT(block_states, SizeIs(3));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsAre(RegId(2)));
+  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsAre(Reg(2)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(RegId(2)));
+  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(Reg(2)));
   EXPECT_THAT(block_states[b.id()]->live_out, IsEmpty());
 
   EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
@@ -203,20 +203,20 @@ TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
   g.first(a);
   g.inst(a, SetReg{
                 .src_val = "1",
-                .dst_reg = RegId(1),
+                .dst_reg = Reg(1),
             });
   g.edge(a, b);
 
   g.inst(b, SetReg{
                 .src_val = "2",
-                .dst_reg = RegId(2),
+                .dst_reg = Reg(2),
             });
   g.edge(b, c);
 
   g.inst(c, AddReg{
-                .res_reg = RegId(3),
-                .lhs_reg = RegId(1),
-                .rhs_reg = RegId(2),
+                .res_reg = Reg(3),
+                .lhs_reg = Reg(1),
+                .rhs_reg = Reg(2),
             });
   g.edge(c, z);
 
@@ -227,14 +227,14 @@ TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
   ASSERT_THAT(block_states, SizeIs(4));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsAre(RegId(1)));
+  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsAre(Reg(1)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(RegId(1)));
+  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(Reg(1)));
   EXPECT_THAT(block_states[b.id()]->live_out,
-              UnorderedElementsAre(RegId(1), RegId(2)));
+              UnorderedElementsAre(Reg(1), Reg(2)));
 
   EXPECT_THAT(block_states[c.id()]->live_in,
-              UnorderedElementsAre(RegId(1), RegId(2)));
+              UnorderedElementsAre(Reg(1), Reg(2)));
   EXPECT_THAT(block_states[c.id()]->live_out, IsEmpty());
 
   EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());

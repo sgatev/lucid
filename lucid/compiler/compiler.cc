@@ -63,8 +63,8 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
     }
     static constexpr int kArmRegistersCount = 10;
     SpillRegisters(am_cfg, am_state, kArmRegistersCount);
-    HashMap<RegId, HashSet<RegId>> am_ig = BuildInterferenceGraph(am_cfg);
-    HashMap<RegId, int> am_ig_colors =
+    HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);
+    HashMap<Reg, int> am_ig_colors =
         ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
     MergeRegisters(am_ig_colors, am_cfg);
     GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func.name), am_cfg.stack_slots,

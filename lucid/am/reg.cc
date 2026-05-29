@@ -24,9 +24,8 @@
 namespace lucid {
 namespace {
 
-std::optional<RegId> FindRegToSpill(
-    const AbstractMachineControlFlowGraph& am_cfg, HashSet<RegId>& spilled,
-    int max_clique_size) {
+std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
+                                  HashSet<Reg>& spilled, int max_clique_size) {
   AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       liveness_block_states = RunDataflow(Backward(am_cfg), liveness_analysis);
@@ -76,14 +75,14 @@ std::optional<RegId> FindRegToSpill(
   return std::nullopt;
 }
 
-void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
+void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
                     AbstractMachineState& am_state) {
-  HashMap<RegId, std::size_t> reg_stack;
-  HashMap<RegId, RegId> reg_rename;
+  HashMap<Reg, std::size_t> reg_stack;
+  HashMap<Reg, Reg> reg_rename;
 
   auto maybe_insert_store = [&](std::list<Instruction>& instructions,
                                 std::list<Instruction>::iterator& pos,
-                                RegId reg) {
+                                Reg reg) {
     if (reg != reg_to_spill) return;
 
     ++pos;
@@ -103,10 +102,10 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
   };
   auto maybe_insert_load32 = [&](std::list<Instruction>& instructions,
                                  std::list<Instruction>::iterator& pos,
-                                 RegId& reg) {
+                                 Reg& reg) {
     if (reg != reg_to_spill) return;
 
-    RegId old_reg = reg;
+    Reg old_reg = reg;
     reg.id = am_cfg.next_free_reg_id++;
     reg_rename.Insert(old_reg, reg);
 
@@ -121,10 +120,10 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
   };
   auto maybe_insert_load64 = [&](std::list<Instruction>& instructions,
                                  std::list<Instruction>::iterator& pos,
-                                 RegId& reg) {
+                                 Reg& reg) {
     if (reg != reg_to_spill) return;
 
-    RegId old_reg = reg;
+    Reg old_reg = reg;
     reg.id = am_cfg.next_free_reg_id++;
     reg_rename.Insert(old_reg, reg);
 
@@ -248,9 +247,9 @@ void SpillRegisters(RegId reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 
 void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
                     AbstractMachineState& am_state, int max_clique_size) {
-  HashSet<RegId> spilt_regs;
+  HashSet<Reg> spilt_regs;
   while (true) {
-    std::optional<RegId> reg_to_spill =
+    std::optional<Reg> reg_to_spill =
         FindRegToSpill(am_cfg, spilt_regs, max_clique_size);
     if (!reg_to_spill.has_value()) break;
 
@@ -260,10 +259,10 @@ void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
   }
 }
 
-HashMap<RegId, int> ColorInterferenceGraph(
+HashMap<Reg, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
-    const HashMap<RegId, HashSet<RegId>>& am_ig, int colors_count) {
-  HashMap<RegId, int> reg_scores;
+    const HashMap<Reg, HashSet<Reg>>& am_ig, int colors_count) {
+  HashMap<Reg, int> reg_scores;
   for (const auto& param : am_cfg.params) {
     reg_scores.Insert(param, 0);
   }
@@ -346,10 +345,10 @@ HashMap<RegId, int> ColorInterferenceGraph(
     }
   }
 
-  HashSet<RegId> visited;
-  std::vector<RegId> seo;
+  HashSet<Reg> visited;
+  std::vector<Reg> seo;
   while (!reg_scores.empty()) {
-    RegId max_reg = reg_scores.begin()->first;
+    Reg max_reg = reg_scores.begin()->first;
     int max_score = reg_scores.begin()->second;
     for (const auto& [reg, score] : reg_scores) {
       if (score >= max_score) {
@@ -372,8 +371,8 @@ HashMap<RegId, int> ColorInterferenceGraph(
     }
   }
 
-  HashMap<RegId, int> ig_colors;
-  for (RegId reg : seo) {
+  HashMap<Reg, int> ig_colors;
+  for (Reg reg : seo) {
     HashSet<int> colors;
     for (int i = 0; i < colors_count; ++i) colors.Insert(19 + i);
 
@@ -396,13 +395,13 @@ HashMap<RegId, int> ColorInterferenceGraph(
   return ig_colors;
 }
 
-void UpdateRegister(const HashMap<RegId, int>& reg_colors, RegId& reg) {
+void UpdateRegister(const HashMap<Reg, int>& reg_colors, Reg& reg) {
   OptionalRef<const int> color = reg_colors.Get(reg);
   assert(color.has_value());
   reg.id = *color;
 }
 
-void MergeRegisters(const HashMap<RegId, int>& reg_colors,
+void MergeRegisters(const HashMap<Reg, int>& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg) {
   for (auto& param : am_cfg.params) UpdateRegister(reg_colors, param);
   for (auto& block : am_cfg.blocks()) {

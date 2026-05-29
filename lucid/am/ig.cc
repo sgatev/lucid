@@ -11,13 +11,13 @@
 
 namespace lucid {
 
-HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
+HashMap<Reg, HashSet<Reg>> BuildInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg) {
   AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
       liveness_block_states = RunDataflow(Backward(am_cfg), liveness_analysis);
 
-  HashMap<RegId, HashSet<RegId>> am_ig;
+  HashMap<Reg, HashSet<Reg>> am_ig;
   for (const auto& block : am_cfg.blocks()) {
     auto& maybe_state = liveness_block_states[block.ref.id()];
     if (!maybe_state.has_value()) continue;
@@ -37,16 +37,16 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
 
     state.live_in = std::move(state.live_out);
 
-    for (RegId from : state.live_in) {
+    for (Reg from : state.live_in) {
       auto& from_nbs = am_ig.Emplace(from);
-      for (RegId to : state.live_in) {
+      for (Reg to : state.live_in) {
         if (to != from) from_nbs.Insert(to);
       }
     }
 
     for (const auto& inst : block.instructions | std::views::reverse) {
       if (auto target_reg = GetTargetRegister(inst); target_reg.has_value()) {
-        for (RegId to : state.live_in) {
+        for (Reg to : state.live_in) {
           if (to != *target_reg) {
             am_ig.Emplace(*target_reg).Insert(to);
             am_ig.Emplace(to).Insert(*target_reg);
@@ -64,9 +64,9 @@ HashMap<RegId, HashSet<RegId>> BuildInterferenceGraph(
         am_ig.Emplace(cinst->rhs_reg).Insert(cinst->res_reg);
       }
 
-      for (RegId from : state.live_in) {
+      for (Reg from : state.live_in) {
         auto& from_nbs = am_ig.Emplace(from);
-        for (RegId to : state.live_in) {
+        for (Reg to : state.live_in) {
           if (to != from) from_nbs.Insert(to);
         }
       }
