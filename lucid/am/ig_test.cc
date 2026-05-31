@@ -134,7 +134,7 @@ TEST(BuildInterferenceGraphTest, Overlapping) {
                                    Pair(kReg3, IsEmpty())));
 }
 
-TEST(BuildInterferenceGraphTest, BRanching) {
+TEST(BuildInterferenceGraphTest, Branching) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -179,6 +179,50 @@ TEST(BuildInterferenceGraphTest, BRanching) {
               UnorderedElementsAre(Pair(kReg1, UnorderedElementsAre(kReg2)),
                                    Pair(kReg2, UnorderedElementsAre(kReg1)),
                                    Pair(kReg3, IsEmpty())));
+}
+
+TEST(BuildInterferenceGraphTest, Merging) {
+  AbstractMachineControlFlowGraphBuilder g;
+
+  auto a = g.AddBlock();
+  auto b = g.AddBlock();
+  auto c = g.AddBlock();
+  auto z = g.AddBlock();
+
+  // Block a:
+  g.SetFirst(a);
+  g.AddInstruction(a, SetReg{
+                          .src_val = "1",
+                          .dst_reg = kReg1,
+                      });
+  g.AddEdge(a, b);
+
+  // Block b:
+  g.AddPhi(b, {
+                  .dst = kReg3,
+                  .srcs = {kReg1, kReg2},
+              });
+  g.AddEdge(b, c);
+  g.AddEdge(b, z);
+
+  // Block c:
+  g.AddInstruction(c, SetReg{
+                          .src_val = "2",
+                          .dst_reg = kReg2,
+                      });
+  g.AddEdge(c, b);
+
+  // Block z:
+  g.AddInstruction(z, Return{
+                          .res_reg = kReg3,
+                      });
+  g.SetLast(z);
+
+  EXPECT_THAT(
+      BuildInterferenceGraph(std::move(g).Build()),
+      UnorderedElementsAre(Pair(kReg1, UnorderedElementsAre(kReg3)),
+                           Pair(kReg2, UnorderedElementsAre(kReg3)),
+                           Pair(kReg3, UnorderedElementsAre(kReg1, kReg2))));
 }
 
 }  // namespace

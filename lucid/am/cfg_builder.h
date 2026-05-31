@@ -24,6 +24,12 @@ class AbstractMachineControlFlowGraphBuilder {
     am_cfg_.GetBlock(ref).instructions.push_back(std::move(inst));
   }
 
+  // Adds a phi function to the control flow graph block.
+  void AddPhi(AbstractMachineControlFlowGraph::BlockRef ref,
+              AbstractMachineControlFlowGraph::Phi phi) {
+    am_cfg_.GetBlock(ref).phis.push_back(std::move(phi));
+  }
+
   // Marks the first block of the control flow graph.
   void SetFirst(AbstractMachineControlFlowGraph::BlockRef ref) {
     am_cfg_.first = ref;
