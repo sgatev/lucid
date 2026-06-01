@@ -203,12 +203,9 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
         maybe_insert_load32(block.instructions, i, cinst->src_reg);
-      } else if (auto* cinst = std::get_if<StoreStackReg32>(&inst)) {
+      } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
         maybe_insert_load32(block.instructions, i, cinst->src_reg);
         maybe_insert_load32(block.instructions, i, cinst->offset_reg);
-      } else if (auto* cinst = std::get_if<StoreStackReg64>(&inst)) {
-        maybe_insert_load64(block.instructions, i, cinst->src_reg);
-        maybe_insert_load64(block.instructions, i, cinst->offset_reg);
       } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
@@ -313,10 +310,7 @@ HashMap<Reg, int> ColorInterferenceGraph(
         reg_scores.Insert(cinst->rhs_reg, 0);
       } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
         reg_scores.Insert(cinst->src_reg, 0);
-      } else if (auto* cinst = std::get_if<StoreStackReg32>(&inst)) {
-        reg_scores.Insert(cinst->src_reg, 0);
-        reg_scores.Insert(cinst->offset_reg, 0);
-      } else if (auto* cinst = std::get_if<StoreStackReg64>(&inst)) {
+      } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
         reg_scores.Insert(cinst->src_reg, 0);
         reg_scores.Insert(cinst->offset_reg, 0);
       } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
@@ -451,10 +445,7 @@ void MergeRegisters(const HashMap<Reg, int>& reg_colors,
         UpdateRegister(reg_colors, cinst->res_reg);
       } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
         UpdateRegister(reg_colors, cinst->src_reg);
-      } else if (auto* cinst = std::get_if<StoreStackReg32>(&inst)) {
-        UpdateRegister(reg_colors, cinst->src_reg);
-        UpdateRegister(reg_colors, cinst->offset_reg);
-      } else if (auto* cinst = std::get_if<StoreStackReg64>(&inst)) {
+      } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
         UpdateRegister(reg_colors, cinst->src_reg);
         UpdateRegister(reg_colors, cinst->offset_reg);
       } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {

@@ -448,7 +448,7 @@ class AbstractMachineFunctionGenerator {
           .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
       });
 
-      am_block.instructions.push_back(StoreStackReg32{
+      am_block.instructions.push_back(StoreStackReg{
           .offset = *stmt_offset,
           .offset_reg = offset_reg,
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
@@ -465,7 +465,7 @@ class AbstractMachineFunctionGenerator {
           .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
       });
 
-      am_block.instructions.push_back(StoreStackReg64{
+      am_block.instructions.push_back(StoreStackReg{
           .offset = *stmt_offset,
           .offset_reg = offset_reg,
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
@@ -482,7 +482,7 @@ class AbstractMachineFunctionGenerator {
           .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
       });
 
-      am_block.instructions.push_back(StoreStackReg32{
+      am_block.instructions.push_back(StoreStackReg{
           .offset = *stmt_offset,
           .offset_reg = offset_reg,
           .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
