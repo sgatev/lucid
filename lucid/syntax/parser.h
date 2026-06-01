@@ -621,16 +621,11 @@ class Parser {
       };
     }
 
-    if (ident == syn_ctx_.AddIdent("true") ||
-        ident == syn_ctx_.AddIdent("false")) {
-      return BoolLitExpr{
-          .value = ident,
-      };
-    }
+    bool is_true = ident == syn_ctx_.AddIdent("true");
+    bool is_false = ident == syn_ctx_.AddIdent("false");
+    if (is_true || is_false) return BoolLitExpr{.value = is_true};
 
-    return IdentExpr{
-        .name = ident,
-    };
+    return IdentExpr{.name = ident};
   }
 
   std::variant<IntLitExpr, ParserError> ParseIntLitExpr() {

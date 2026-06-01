@@ -36,7 +36,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
               .init = E(IntLitExpr{.value = 21}),
           }),
           S(IfStmt{
-              .cond = E(BoolLitExpr{.value = I("true")}),
+              .cond = E(BoolLitExpr{.value = true}),
               .then_stmts = StmtListOf({
                   S(VarAssignStmt{
                       .name = I("x"),
@@ -93,10 +93,10 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
               .init = E(IntLitExpr{.value = 21}),
           }),
           S(IfStmt{
-              .cond = E(BoolLitExpr{.value = I("true")}),
+              .cond = E(BoolLitExpr{.value = true}),
               .then_stmts = StmtListOf({
                   S(IfStmt{
-                      .cond = E(BoolLitExpr{.value = I("true")}),
+                      .cond = E(BoolLitExpr{.value = true}),
                       .then_stmts = StmtListOf({
                           S(VarAssignStmt{
                               .name = I("x"),
@@ -179,7 +179,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
               .init = E(IntLitExpr{.value = 2}),
           }),
           S(IfStmt{
-              .cond = E(BoolLitExpr{.value = I("true")}),
+              .cond = E(BoolLitExpr{.value = true}),
               .then_stmts = StmtListOf({
                   S(VarAssignStmt{
                       .name = I("x"),
@@ -238,7 +238,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
           S(LoopStmt{
               .stmts = StmtListOf({
                   S(IfStmt{
-                      .cond = E(BoolLitExpr{.value = I("true")}),
+                      .cond = E(BoolLitExpr{.value = true}),
                       .then_stmts = StmtListOf({
                           S(VarAssignStmt{
                               .name = I("x"),

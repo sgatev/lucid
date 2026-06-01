@@ -116,7 +116,7 @@ struct IntLitExprPattern {
 };
 
 struct BoolLitExprPattern {
-  StringIndex::Ref value;
+  bool value;
 
   bool operator()(const BoolLitExpr& expr) const { return value == expr.value; }
 };

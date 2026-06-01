@@ -463,7 +463,7 @@ TEST_F(ParserTest, ReturnTrueBoolLit) {
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesBoolLitExpr({
-                              .value = I("true"),
+                              .value = true,
                           }),
                       }),
                   }},
@@ -483,7 +483,7 @@ TEST_F(ParserTest, ReturnFalseBoolLit) {
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesBoolLitExpr({
-                              .value = I("false"),
+                              .value = false,
                           }),
                       }),
                   }},
@@ -506,7 +506,7 @@ TEST_F(ParserTest, IfStmt) {
                   .body = {{
                       MatchesIfStmt({
                           .cond = MatchesBoolLitExpr({
-                              .value = I("true"),
+                              .value = true,
                           }),
                           .then_body = {{
                               MatchesReturnStmt({
@@ -546,7 +546,7 @@ TEST_F(ParserTest, IfElseStmt) {
                   .body = {{
                       MatchesIfStmt({
                           .cond = MatchesBoolLitExpr({
-                              .value = I("true"),
+                              .value = true,
                           }),
                           .then_body = {{
                               MatchesReturnStmt({

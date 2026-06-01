@@ -182,7 +182,7 @@ class AbstractMachineFunctionGenerator {
                    AbstractMachineControlFlowGraph::Block& am_block) {
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(SetReg{
-        .src_val = syn_ctx_.DerefIdent(expr.value) == "true" ? 1 : 0,
+        .src_val = expr.value ? 1 : 0,
         .dst_reg = reg,
     });
     expr_and_stmt_to_reg_[ref.id()] = reg;

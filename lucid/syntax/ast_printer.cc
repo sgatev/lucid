@@ -206,10 +206,8 @@ class AstPrinter {
 
   void Print(const BoolLitExpr& expr) {
     Out() << "BoolLitExpr {\n";
-    Nested([&] {
-      Out() << Indent(indent_) << ".value = " << ctx_.DerefIdent(expr.value)
-            << "\n";
-    });
+    Nested(
+        [&] { Out() << Indent(indent_) << ".value = " << expr.value << "\n"; });
     Out() << Indent(indent_) << "}\n";
   }
 

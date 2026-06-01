@@ -124,7 +124,7 @@ struct IntLitExpr : public ExprBase {
 // An expression that represents a boolean literal.
 struct BoolLitExpr : public ExprBase {
   // Value of the boolean.
-  StringIndex::Ref value;
+  bool value;
 };
 
 // An expression that represents a string literal.
