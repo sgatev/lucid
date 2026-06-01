@@ -723,5 +723,24 @@ TEST_F(CompilerTest, ManyLiveVariables) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(210));
 }
 
+TEST_F(CompilerTest, Comp) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp let max = (a: Int32, b: Int32) -> Int32 {
+      let m: Int32 = a
+      if b > m {
+        m = b
+      }
+      return m
+    }
+
+    let main = () -> Int32 {
+      comp let round1: Int32 = max(21, 105)
+      comp let round2: Int32 = max(210, round1)
+      return round2
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(210));
+}
+
 }  // namespace
 }  // namespace lucid
