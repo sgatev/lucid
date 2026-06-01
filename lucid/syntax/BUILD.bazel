@@ -138,6 +138,7 @@ cc_library(
     visibility = ["//lucid:__subpackages__"],
     deps = [
         ":ast",
+        ":type_repository",
         "//lucid/core/container:arena",
         "//lucid/core/string:index",
     ],
@@ -332,6 +333,28 @@ cc_test(
         ":ast",
         ":ast_fixture",
         ":type",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "type_repository",
+    srcs = ["type_repository.cc"],
+    hdrs = ["type_repository.h"],
+    deps = [
+        ":ast",
+        "//lucid/core/container:arena",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/string:index",
+    ],
+)
+
+cc_test(
+    name = "type_repository_test",
+    srcs = ["type_repository_test.cc"],
+    deps = [
+        ":type_repository",
+        "//lucid/core/string:index",
         "@googletest//:gtest_main",
     ],
 )

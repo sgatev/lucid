@@ -59,7 +59,7 @@ class ExprTypeInferenceEngine {
     for (auto int_lit_expr : int_lit_exprs_) {
       if (!expr_from_type_.Get(int_lit_expr).has_value()) {
         expr_from_type_.Set(int_lit_expr,
-                            ResolveType(syn_ctx_.AddIdent("Int32")));
+                            syn_ctx_.ResolveType(syn_ctx_.AddIdent("Int32")));
       }
     }
 
@@ -96,7 +96,8 @@ class ExprTypeInferenceEngine {
   void ProcessPendingStmt(StmtRef stmt_ref, const IfStmt& stmt) {
     AddPendingStmts(std::ranges::reverse_view(stmt.else_stmts));
     AddPendingStmts(std::ranges::reverse_view(stmt.then_stmts));
-    RequireTypeForExpr(stmt.cond, ResolveType(syn_ctx_.AddIdent("Bool")));
+    RequireTypeForExpr(stmt.cond,
+                       syn_ctx_.ResolveType(syn_ctx_.AddIdent("Bool")));
     AddPendingExpr(stmt.cond);
   }
 
@@ -155,7 +156,8 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
-    RequireTypeForExpr(expr_ref, ResolveType(syn_ctx_.AddIdent("Bool")));
+    RequireTypeForExpr(expr_ref,
+                       syn_ctx_.ResolveType(syn_ctx_.AddIdent("Bool")));
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const IntLitExpr& expr) {
@@ -177,7 +179,8 @@ class ExprTypeInferenceEngine {
         expr.op == BinaryOp::Gt || expr.op == BinaryOp::NotEq) {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr.lhs, expr.rhs);
-      RequireTypeForExpr(expr_ref, ResolveType(syn_ctx_.AddIdent("Bool")));
+      RequireTypeForExpr(expr_ref,
+                         syn_ctx_.ResolveType(syn_ctx_.AddIdent("Bool")));
     } else {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr_ref, expr.rhs);
@@ -282,47 +285,6 @@ class ExprTypeInferenceEngine {
   std::optional<std::string> GetError() {
     if (errors_.empty()) return std::nullopt;
     return std::move(errors_[0]);
-  }
-
-  TypeRef ResolveType(StringIndex::Ref name_ref) {
-    std::string_view name = syn_ctx_.DerefIdent(name_ref);
-    if (name == "Int32") {
-      return syn_ctx_.Add(BasicType{
-          .name = name_ref,
-          .size = 4,
-      });
-    }
-    if (name == "Int64") {
-      return syn_ctx_.Add(BasicType{
-          .name = name_ref,
-          .size = 8,
-      });
-    }
-    if (name == "Bool") {
-      return syn_ctx_.Add(BasicType{
-          .name = name_ref,
-          .size = 4,
-      });
-    }
-    if (name == "Void") {
-      return syn_ctx_.Add(BasicType{
-          .name = name_ref,
-          .size = 0,
-      });
-    }
-    if (name == "Double") {
-      return syn_ctx_.Add(BasicType{
-          .name = name_ref,
-          .size = 8,
-      });
-    }
-    if (name == "String") {
-      return syn_ctx_.Add(BasicType{
-          .name = name_ref,
-          .size = 8,
-      });
-    }
-    assert(false);
   }
 
   SyntaxContext& syn_ctx_;

@@ -104,5 +104,14 @@ TEST(OptionalRef, Transform) {
   EXPECT_EQ(*o2, "foobar");
 }
 
+TEST(OptionalRef, ValueOr) {
+  OptionalRef<int> o1;
+  EXPECT_EQ(o1.value_or(21), 21);
+
+  int v = 42;
+  OptionalRef<int> o2 = v;
+  EXPECT_EQ(o2.value_or(21), 42);
+}
+
 }  // namespace
 }  // namespace lucid

@@ -9,12 +9,15 @@
 #include "lucid/core/container/arena.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
+#include "lucid/syntax/type_repository.h"
 
 namespace lucid {
 
 // A context for syntactic operations.
 class SyntaxContext {
  public:
+  SyntaxContext() : types_(idents_) {}
+
   // Adds `stmt` to the context.
   StmtRef Add(Stmt stmt) { return stmts_.Add(std::move(stmt)); }
 
@@ -55,9 +58,13 @@ class SyntaxContext {
   Expr& DerefExpr(ExprRef ref) { return exprs_.Get(ref); }
   const Expr& DerefExpr(ExprRef ref) const { return exprs_.Get(ref); }
 
+  // Returns a reference to the type that `name` resolves to.
+  TypeRef ResolveType(StringIndex::Ref name) const {
+    return types_.Resolve(name);
+  }
+
   // Returns the type that `ref` refers to.
-  Type& DerefType(TypeRef ref) { return types_.Get(ref); }
-  const Type& DerefType(TypeRef ref) const { return types_.Get(ref); }
+  const Type& DerefType(TypeRef ref) const { return types_.Deref(ref); }
 
   // Returns the parameter that `ref` refers to.
   FuncParam& DerefParam(ParamRef ref) { return params_.Get(ref); }
@@ -89,10 +96,10 @@ class SyntaxContext {
  private:
   Arena<Stmt> stmts_;
   Arena<Expr> exprs_;
-  Arena<Type> types_;
   Arena<FuncParam> params_;
   std::list<std::string> unique_idents_;
   StringIndex idents_;
+  TypeRepository types_;
 };
 
 }  // namespace lucid

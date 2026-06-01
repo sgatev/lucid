@@ -64,6 +64,12 @@ class OptionalRef {
     return value_ == nullptr ? std::nullopt : OptionalRef<U>(f(*value_));
   }
 
+  // Returns a copy of the referenced object if any. Otherwise returns
+  // `substitute`.
+  T value_or(T substitute) const {
+    return value_ == nullptr ? substitute : *value_;
+  }
+
  private:
   T* value_ = nullptr;
 };
