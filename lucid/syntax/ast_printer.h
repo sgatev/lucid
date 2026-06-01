@@ -3,6 +3,7 @@
 #include <ostream>
 
 #include "lucid/syntax/ast.h"
+#include "lucid/syntax/context.h"
 
 namespace lucid {
 

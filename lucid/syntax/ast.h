@@ -1,10 +1,8 @@
 #pragma once
 
 #include <cstddef>
-#include <list>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <variant>
 
 #include "lucid/core/container/arena.h"
@@ -49,16 +47,24 @@ using Stmt =
 // object.
 using StmtRef = Arena<Stmt>::Ref;
 
+inline std::size_t Hash(const lucid::StmtRef& ref) { return Hash(ref.id()); }
+
 // A reference to an expression that can be dereferenced using an `Arena<Expr>`
 // object.
 using ExprRef = Arena<Expr>::Ref;
 
+inline std::size_t Hash(const lucid::ExprRef& ref) { return Hash(ref.id()); }
+
 // A reference to a type that can be dereferenced using an `Arena<Type>` object.
 using TypeRef = Arena<Type>::Ref;
+
+inline std::size_t Hash(const lucid::TypeRef& ref) { return Hash(ref.id()); }
 
 // A reference to a function parameter that can be dereferenced using an
 // `Arena<FuncParam>` object.
 using ParamRef = Arena<FuncParam>::Ref;
+
+inline std::size_t Hash(const lucid::ParamRef& ref) { return Hash(ref.id()); }
 
 // A common base of all expressions.
 struct ExprBase {
@@ -300,93 +306,5 @@ inline TypeRef GetType(const Expr& expr) {
 inline void SetType(Expr& expr, TypeRef type) {
   std::visit([type](auto& expr) { expr.type = type; }, expr);
 }
-
-// A context for syntactic operations.
-class SyntaxContext {
- public:
-  // Adds `stmt` to the context.
-  StmtRef Add(Stmt stmt) { return stmts_.Add(std::move(stmt)); }
-
-  // Adds `expr` to the context.
-  ExprRef Add(Expr expr) { return exprs_.Add(std::move(expr)); }
-
-  // Adds `type` to the context.
-  TypeRef Add(Type type) { return types_.Add(std::move(type)); }
-
-  // Adds `param` to the context.
-  ParamRef Add(FuncParam param) { return params_.Add(std::move(param)); }
-
-  // Adds `ident` to the context.
-  StringIndex::Ref AddIdent(std::string_view ident) {
-    return idents_.ref(ident);
-  }
-
-  // Adds a unique ident to the context.
-  StringIndex::Ref AddUniqueIdent() {
-    unique_idents_.push_back("$" + std::to_string(unique_idents_.size()));
-    return idents_.ref(unique_idents_.back());
-  }
-
-  // Creates an alias of `ref` in the context.
-  StmtRef AliasStmt(StmtRef ref) { return stmts_.Alias(ref); }
-
-  // Creates an alias of `ref` in the context.
-  ExprRef AliasExpr(ExprRef ref) { return exprs_.Alias(ref); }
-
-  // Creates an alias of `ref` in the context.
-  ParamRef AliasParam(ParamRef ref) { return params_.Alias(ref); }
-
-  // Returns the statement that `ref` refers to.
-  Stmt& DerefStmt(StmtRef ref) { return stmts_.Get(ref); }
-  const Stmt& DerefStmt(StmtRef ref) const { return stmts_.Get(ref); }
-
-  // Returns the expression that `ref` refers to.
-  Expr& DerefExpr(ExprRef ref) { return exprs_.Get(ref); }
-  const Expr& DerefExpr(ExprRef ref) const { return exprs_.Get(ref); }
-
-  // Returns the type that `ref` refers to.
-  Type& DerefType(TypeRef ref) { return types_.Get(ref); }
-  const Type& DerefType(TypeRef ref) const { return types_.Get(ref); }
-
-  // Returns the parameter that `ref` refers to.
-  FuncParam& DerefParam(ParamRef ref) { return params_.Get(ref); }
-  const FuncParam& DerefParam(ParamRef ref) const { return params_.Get(ref); }
-
-  // Returns the identifier that `ref` refers to.
-  std::string_view DerefIdent(StringIndex::Ref ref) const {
-    return idents_.deref(ref);
-  }
-
-  // Returns true if and only if `lhs` and `rhs` refer to equivalent statements.
-  bool EquivStmts(StmtRef lhs, StmtRef rhs) const {
-    return stmts_.Equiv(lhs, rhs);
-  }
-
-  // Returns true if and only if `lhs` and `rhs` refer to equivalent statements.
-  bool Equiv(StmtRef lhs, StmtRef rhs) const { return stmts_.Equiv(lhs, rhs); }
-
-  // Returns true if and only if `lhs` and `rhs` refer to equivalent function
-  // parameters.
-  bool Equiv(ParamRef lhs, ParamRef rhs) const {
-    return params_.Equiv(lhs, rhs);
-  }
-
-  std::size_t Size() const {
-    return stmts_.Size() + exprs_.Size() + types_.Size();
-  }
-
- private:
-  Arena<Stmt> stmts_;
-  Arena<Expr> exprs_;
-  Arena<Type> types_;
-  Arena<FuncParam> params_;
-  std::list<std::string> unique_idents_;
-  StringIndex idents_;
-};
-
-inline std::size_t Hash(const lucid::ExprRef& ref) { return Hash(ref.id()); }
-inline std::size_t Hash(const lucid::StmtRef& ref) { return Hash(ref.id()); }
-inline std::size_t Hash(const lucid::TypeRef& ref) { return Hash(ref.id()); }
-inline std::size_t Hash(const lucid::ParamRef& ref) { return Hash(ref.id()); }
 
 }  // namespace lucid

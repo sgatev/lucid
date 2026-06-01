@@ -7,7 +7,7 @@
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"
-#include "lucid/syntax/ast.h"
+#include "lucid/syntax/context.h"
 
 namespace lucid {
 

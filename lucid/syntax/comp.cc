@@ -7,6 +7,7 @@
 #include "lucid/core/container/hash_set.h"
 #include "lucid/core/container/successive_list.h"
 #include "lucid/syntax/ast.h"
+#include "lucid/syntax/context.h"
 
 namespace lucid {
 namespace {

@@ -6,6 +6,7 @@
 
 #include "lucid/core/cli/format.h"
 #include "lucid/syntax/ast.h"
+#include "lucid/syntax/context.h"
 
 namespace lucid {
 namespace {

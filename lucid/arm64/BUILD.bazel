@@ -45,6 +45,7 @@ cc_library(
         "//lucid/core/container/graph:order",
         "//lucid/core/string:index",
         "//lucid/syntax:ast",
+        "//lucid/syntax:context",
     ],
 )
 

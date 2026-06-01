@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "lucid/syntax/cfg.h"
+#include "lucid/syntax/context.h"
 
 namespace lucid {
 
