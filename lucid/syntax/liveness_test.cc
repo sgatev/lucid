@@ -34,7 +34,7 @@ class SyntaxLivenessAnalysisTest : public testing::Test, public AstFixture {
 TEST_F(SyntaxLivenessAnalysisTest, EmptyFunc) {
   auto func_def = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Void")}),
+      .result_type = T("Void"),
   };
 
   EXPECT_THAT(AnalyzeReachability(func_def),

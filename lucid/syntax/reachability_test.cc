@@ -34,7 +34,7 @@ class SyntaxReachabilityAnalysisTest : public testing::Test, public AstFixture {
 TEST_F(SyntaxReachabilityAnalysisTest, EmptyFunc) {
   auto func_def = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Void")}),
+      .result_type = T("Void"),
   };
 
   EXPECT_THAT(AnalyzeReachability(func_def),
@@ -51,7 +51,7 @@ TEST_F(SyntaxReachabilityAnalysisTest, Param) {
   auto x_name = I("x");
   auto x_ref = P(FuncParam{
       .name = x_name,
-      .type_constraint = T(BasicType{.name = I("Int64")}),
+      .type_constraint = T("Int64"),
   });
 
   auto func_def = FuncDefStmt{
@@ -59,7 +59,7 @@ TEST_F(SyntaxReachabilityAnalysisTest, Param) {
       .params = ParamListOf({
           x_ref,
       }),
-      .result_type = T(BasicType{.name = I("Void")}),
+      .result_type = T("Void"),
   };
 
   EXPECT_THAT(

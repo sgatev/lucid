@@ -8,7 +8,6 @@
 #include <functional>
 #include <optional>
 #include <ostream>
-#include <string>
 #include <string_view>
 #include <utility>
 #include <variant>
@@ -688,16 +687,13 @@ class Parser {
       }
 
       return syn_ctx_.Add(ArrayType{
-          .element_type_constraint = syn_ctx_.Add(BasicType{
-              .name = std::get<StringIndex::Ref>(maybe_type),
-          }),
+          .element_type_constraint =
+              ResolveType(std::get<StringIndex::Ref>(maybe_type)),
           .size = std::get<IntLitExpr>(maybe_size),
       });
     }
 
-    return syn_ctx_.Add(BasicType{
-        .name = std::get<StringIndex::Ref>(maybe_type),
-    });
+    return ResolveType(std::get<StringIndex::Ref>(maybe_type));
   }
 
   Expr MakeBinaryOpExpr(BinaryOp op, ExprRef lhs, ExprRef rhs) {
@@ -756,6 +752,47 @@ class Parser {
 
   bool IsError(const std::optional<ParserError>& r) const {
     return r.has_value();
+  }
+
+  TypeRef ResolveType(StringIndex::Ref name_ref) {
+    std::string_view name = syn_ctx_.DerefIdent(name_ref);
+    if (name == "Int32") {
+      return syn_ctx_.Add(BasicType{
+          .name = name_ref,
+          .size = 4,
+      });
+    }
+    if (name == "Int64") {
+      return syn_ctx_.Add(BasicType{
+          .name = name_ref,
+          .size = 8,
+      });
+    }
+    if (name == "Bool") {
+      return syn_ctx_.Add(BasicType{
+          .name = name_ref,
+          .size = 4,
+      });
+    }
+    if (name == "Void") {
+      return syn_ctx_.Add(BasicType{
+          .name = name_ref,
+          .size = 0,
+      });
+    }
+    if (name == "Double") {
+      return syn_ctx_.Add(BasicType{
+          .name = name_ref,
+          .size = 8,
+      });
+    }
+    if (name == "String") {
+      return syn_ctx_.Add(BasicType{
+          .name = name_ref,
+          .size = 8,
+      });
+    }
+    assert(false);
   }
 
   SyntaxContext& syn_ctx_;

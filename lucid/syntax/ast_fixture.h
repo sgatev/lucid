@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <functional>
 #include <iterator>
@@ -231,10 +232,29 @@ class AstFixture {
     return syn_ctx_.Add(expr);
   }
 
-  // Allocates the type `type` on an arena.
-  template <typename X>
-  TypeRef T(X type) {
-    return syn_ctx_.Add(type);
+  // Resolves the type with the given `type_name`.
+  TypeRef T(std::string_view type_name) {
+    if (type_name == "Int32") {
+      return syn_ctx_.Add(BasicType{.name = I("Int32"), .size = 4});
+    }
+    if (type_name == "Int64") {
+      return syn_ctx_.Add(BasicType{.name = I("Int64"), .size = 8});
+    }
+    if (type_name == "Bool") {
+      return syn_ctx_.Add(BasicType{.name = I("Bool"), .size = 4});
+    }
+    if (type_name == "Void") {
+      return syn_ctx_.Add(BasicType{.name = I("Void"), .size = 0});
+    }
+    assert(false);
+  }
+
+  // Allocates an ArrayType with `size` elements of `element_type`.
+  TypeRef T(TypeRef element_type, int size) {
+    return syn_ctx_.Add(ArrayType{
+        .element_type_constraint = element_type,
+        .size = IntLitExpr{.value = size},
+    });
   }
 
   // Allocates the type `param` on an arena.

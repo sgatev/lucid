@@ -285,6 +285,9 @@ struct BasicType {
   // Name of the basic type.
   StringIndex::Ref name;
 
+  // Size of the basic type in memory.
+  std::size_t size;
+
   bool operator==(const BasicType&) const = default;
 };
 

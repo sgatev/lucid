@@ -45,7 +45,7 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
 TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(IntLitExpr{.value = 21}),
@@ -70,7 +70,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
 TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(IntLitExpr{.value = 21}),
@@ -98,15 +98,15 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
   };
 
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(FuncCallExpr{
@@ -152,15 +152,15 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
   };
 
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(FuncCallExpr{
@@ -203,7 +203,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
 TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -241,7 +241,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -279,7 +279,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -317,7 +317,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -355,7 +355,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -393,7 +393,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -431,7 +431,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -469,7 +469,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -507,7 +507,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -545,7 +545,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -583,7 +583,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(IfStmt{
               .cond = E(BoolLitExpr{.value = I("true")}),
@@ -654,7 +654,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
 TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(IfStmt{
               .cond = E(BoolLitExpr{.value = I("true")}),
@@ -727,7 +727,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
 TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Bool")}),
+      .result_type = T("Bool"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -768,14 +768,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
           P(FuncParam{
               .name = I("y"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Bool")}),
+      .result_type = T("Bool"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -816,14 +816,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
           P(FuncParam{
               .name = I("y"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Bool")}),
+      .result_type = T("Bool"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -861,7 +861,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Bool")}),
+      .result_type = T("Bool"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -902,14 +902,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
           P(FuncParam{
               .name = I("y"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Bool")}),
+      .result_type = T("Bool"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -950,14 +950,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
           P(FuncParam{
               .name = I("y"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Bool")}),
+      .result_type = T("Bool"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -998,14 +998,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
           P(FuncParam{
               .name = I("y"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Bool")}),
+      .result_type = T("Bool"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -1046,14 +1046,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
           P(FuncParam{
               .name = I("y"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Bool")}),
+      .result_type = T("Bool"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -1094,14 +1094,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
           P(FuncParam{
               .name = I("y"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Bool")}),
+      .result_type = T("Bool"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -1142,14 +1142,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
           P(FuncParam{
               .name = I("y"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Bool")}),
+      .result_type = T("Bool"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
@@ -1187,11 +1187,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
               .init = E(IntLitExpr{.value = 2}),
           }),
           S(ReturnStmt{
@@ -1227,11 +1227,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
               .init = E(IntLitExpr{.value = 2}),
           }),
           S(ReturnStmt{
@@ -1267,14 +1267,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = I("x"),
-              .type_constraint = T(ArrayType{
-                  .element_type_constraint = T(BasicType{.name = I("Int32")}),
-                  .size = IntLitExpr{.value = 10},
-              }),
+              .type_constraint = T(T("Int32"), 10),
           }),
           S(ReturnStmt{
               .value = E(IntLitExpr{
@@ -1301,14 +1298,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
 TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = I("x"),
-              .type_constraint = T(ArrayType{
-                  .element_type_constraint = T(BasicType{.name = I("Int64")}),
-                  .size = IntLitExpr{.value = 10},
-              }),
+              .type_constraint = T(T("Int64"), 10),
           }),
           S(ReturnStmt{
               .value = E(IntLitExpr{
@@ -1338,10 +1332,10 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(VarAssignStmt{
               .name = I("x"),
@@ -1381,10 +1375,10 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Int64")}),
+      .result_type = T("Int64"),
       .stmts = StmtListOf({
           S(VarAssignStmt{
               .name = I("x"),
@@ -1421,7 +1415,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
 TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(LoopStmt{
               .stmts = StmtListOf({
@@ -1461,11 +1455,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
 TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = I("n"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
               .init = E(IntLitExpr{
                   .value = 0,
               }),

@@ -27,7 +27,7 @@ class InferExprTypesTest : public testing::Test, public AstFixture {
 TEST_F(InferExprTypesTest, ReturnValueFromResultType) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(IntLitExpr{
@@ -56,11 +56,11 @@ TEST_F(InferExprTypesTest, ReturnValueFromResultType) {
 TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Void")}),
+      .result_type = T("Void"),
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
               .init = E(IntLitExpr{
                   .value = 21,
               }),
@@ -93,10 +93,10 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Void")}),
+      .result_type = T("Void"),
       .stmts = StmtListOf({
           S(VarAssignStmt{
               .name = I("x"),
@@ -138,10 +138,10 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("n"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Void")}),
+      .result_type = T("Void"),
       .stmts = StmtListOf({
           S(IfStmt{
               .cond = E(BinaryOpExpr{
@@ -183,11 +183,11 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
 TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Void")}),
+      .result_type = T("Void"),
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
               .init = E(BinaryOpExpr{
                   .op = BinaryOp::Add,
                   .lhs = E(IntLitExpr{
@@ -234,15 +234,15 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
       .params = ParamListOf({
           P(FuncParam{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
           }),
       }),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
   };
 
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
+      .result_type = T("Int32"),
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(FuncCallExpr{
@@ -287,7 +287,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
 TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Void")}),
+      .result_type = T("Void"),
       .stmts = StmtListOf({
           S(IfStmt{
               .cond = E(BinaryOpExpr{
@@ -328,24 +328,20 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
 }
 
 TEST_F(InferExprTypesTest, ArrayIndex) {
-  auto func = FuncDefStmt{
-      .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Int32")}),
-      .stmts = StmtListOf({
-          S(VarDeclStmt{
-              .name = I("a"),
-              .type_constraint = T(ArrayType{
-                  .element_type_constraint = T(BasicType{.name = I("Int32")}),
-                  .size = IntLitExpr{.value = 10},
-              }),
-          }),
-          S(ReturnStmt{
-              .value = E(IndexExpr{
-                  .base = E(IdentExpr{.name = I("a")}),
-                  .index = E(IntLitExpr{.value = 2}),
-              }),
-          }),
-      })};
+  auto func = FuncDefStmt{.name = I("foo"),
+                          .result_type = T("Int32"),
+                          .stmts = StmtListOf({
+                              S(VarDeclStmt{
+                                  .name = I("a"),
+                                  .type_constraint = T(T("Int32"), 10),
+                              }),
+                              S(ReturnStmt{
+                                  .value = E(IndexExpr{
+                                      .base = E(IdentExpr{.name = I("a")}),
+                                      .index = E(IntLitExpr{.value = 2}),
+                                  }),
+                              }),
+                          })};
 
   EXPECT_TRUE(InferExprTypes(func).has_value());
   EXPECT_THAT(
@@ -385,11 +381,11 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
 TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Void")}),
+      .result_type = T("Void"),
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
               .init = E(BoolLitExpr{
                   .value = I("true"),
               }),
@@ -405,18 +401,18 @@ TEST_F(InferExprTypesTest, ErrorBoolLitAsInt32) {
 TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
-      .result_type = T(BasicType{.name = I("Void")}),
+      .result_type = T("Void"),
       .stmts = StmtListOf({
           S(VarDeclStmt{
               .name = I("x"),
-              .type_constraint = T(BasicType{.name = I("Int32")}),
+              .type_constraint = T("Int32"),
               .init = E(IntLitExpr{
                   .value = 2,
               }),
           }),
           S(VarDeclStmt{
               .name = I("y"),
-              .type_constraint = T(BasicType{.name = I("Int64")}),
+              .type_constraint = T("Int64"),
               .init = E(IdentExpr{
                   .name = I("x"),
               }),

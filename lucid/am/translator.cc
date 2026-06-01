@@ -1,12 +1,10 @@
 #include "lucid/am/translator.h"
 
 #include <cassert>
-#include <charconv>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <string_view>
-#include <system_error>
 #include <utility>
 #include <variant>
 
@@ -238,60 +236,22 @@ class AbstractMachineFunctionGenerator {
                    AbstractMachineControlFlowGraph::Block& am_block) {
     std::size_t base_offset = GetStackOffset(expr.base);
     auto expr_type = std::get<BasicType>(syn_ctx_.DerefType(expr.type));
-    std::string_view expr_type_name = syn_ctx_.DerefIdent(expr_type.name);
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
-    if (expr_type_name == "Int32") {
-      Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg{
-          .src_val = 4,
-          .dst_reg = offset_reg,
-      });
-      am_block.instructions.push_back(MulReg{
-          .res_reg = offset_reg,
-          .lhs_reg = offset_reg,
-          .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
-      });
-
-      am_block.instructions.push_back(LoadStackReg{
-          .offset = base_offset,
-          .offset_reg = offset_reg,
-          .dst_reg = reg,
-      });
-    } else if (expr_type_name == "Int64") {
-      Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg{
-          .src_val = 8,
-          .dst_reg = offset_reg,
-      });
-      am_block.instructions.push_back(MulReg{
-          .res_reg = offset_reg,
-          .lhs_reg = offset_reg,
-          .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
-      });
-
-      am_block.instructions.push_back(LoadStackReg{
-          .offset = base_offset,
-          .offset_reg = offset_reg,
-          .dst_reg = reg,
-      });
-    } else if (expr_type_name == "Bool") {
-      Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg{
-          .src_val = 4,
-          .dst_reg = offset_reg,
-      });
-      am_block.instructions.push_back(MulReg{
-          .res_reg = offset_reg,
-          .lhs_reg = offset_reg,
-          .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
-      });
-
-      am_block.instructions.push_back(LoadStackReg{
-          .offset = base_offset,
-          .offset_reg = offset_reg,
-          .dst_reg = reg,
-      });
-    }
+    Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
+    am_block.instructions.push_back(SetReg{
+        .src_val = static_cast<int>(expr_type.size),
+        .dst_reg = offset_reg,
+    });
+    am_block.instructions.push_back(MulReg{
+        .res_reg = offset_reg,
+        .lhs_reg = offset_reg,
+        .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
+    });
+    am_block.instructions.push_back(LoadStackReg{
+        .offset = base_offset,
+        .offset_reg = offset_reg,
+        .dst_reg = reg,
+    });
     expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
@@ -401,16 +361,10 @@ class AbstractMachineFunctionGenerator {
           std::get<ArrayType>(syn_ctx_.DerefType(stmt.type_constraint));
       const auto& var_decl_type = std::get<BasicType>(
           syn_ctx_.DerefType(array_type.element_type_constraint));
-      std::string_view var_decl_type_name =
-          syn_ctx_.DerefIdent(var_decl_type.name);
       std::size_t size = array_type.size.value;
       auto stack_offset = am_cfg_.stack_slots.size();
       for (int i = 0; i < size; ++i) {
-        if (var_decl_type_name == "Int32" || var_decl_type_name == "Bool") {
-          am_cfg_.stack_slots.push_back(4);
-        } else if (var_decl_type_name == "Int64") {
-          am_cfg_.stack_slots.push_back(8);
-        }
+        am_cfg_.stack_slots.push_back(var_decl_type.size);
       }
       var_stack_.Set(stmt.name, stack_offset);
       return;
@@ -426,63 +380,27 @@ class AbstractMachineFunctionGenerator {
 
   void Process(StmtRef ref, const ArrayAssignStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
-    auto expr_type = std::get<BasicType>(
-        syn_ctx_.DerefType(GetType(syn_ctx_.DerefExpr(stmt.expr))));
-    std::string_view expr_type_name = syn_ctx_.DerefIdent(expr_type.name);
     auto stmt_offset = var_stack_.Get(stmt.name);
     assert(stmt_offset.has_value());
-    if (expr_type_name == "Int32") {
-      Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg{
-          .src_val = 4,
-          .dst_reg = offset_reg,
-      });
-      am_block.instructions.push_back(MulReg{
-          .res_reg = offset_reg,
-          .lhs_reg = offset_reg,
-          .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
-      });
 
-      am_block.instructions.push_back(StoreStackReg{
-          .offset = *stmt_offset,
-          .offset_reg = offset_reg,
-          .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
-      });
-    } else if (expr_type_name == "Int64") {
-      Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg{
-          .src_val = 8,
-          .dst_reg = offset_reg,
-      });
-      am_block.instructions.push_back(MulReg{
-          .res_reg = offset_reg,
-          .lhs_reg = offset_reg,
-          .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
-      });
+    auto expr_type = std::get<BasicType>(
+        syn_ctx_.DerefType(GetType(syn_ctx_.DerefExpr(stmt.expr))));
 
-      am_block.instructions.push_back(StoreStackReg{
-          .offset = *stmt_offset,
-          .offset_reg = offset_reg,
-          .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
-      });
-    } else if (expr_type_name == "Bool") {
-      Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg{
-          .src_val = 4,
-          .dst_reg = offset_reg,
-      });
-      am_block.instructions.push_back(MulReg{
-          .res_reg = offset_reg,
-          .lhs_reg = offset_reg,
-          .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
-      });
-
-      am_block.instructions.push_back(StoreStackReg{
-          .offset = *stmt_offset,
-          .offset_reg = offset_reg,
-          .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
-      });
-    }
+    Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
+    am_block.instructions.push_back(SetReg{
+        .src_val = static_cast<int>(expr_type.size),
+        .dst_reg = offset_reg,
+    });
+    am_block.instructions.push_back(MulReg{
+        .res_reg = offset_reg,
+        .lhs_reg = offset_reg,
+        .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
+    });
+    am_block.instructions.push_back(StoreStackReg{
+        .offset = *stmt_offset,
+        .offset_reg = offset_reg,
+        .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
+    });
   }
 
   void Process(StmtRef ref, const FuncDefStmt& stmt,
@@ -515,11 +433,14 @@ class AbstractMachineFunctionGenerator {
 
   RegSize GetRegSize(TypeRef type_ref) {
     auto expr_type = std::get<BasicType>(syn_ctx_.DerefType(type_ref));
-    std::string_view type_name = syn_ctx_.DerefIdent(expr_type.name);
-    if (type_name == "Int64" || type_name == "String") {
-      return RegSize::RegSize64;
+    switch (expr_type.size) {
+      case 4:
+        return RegSize32;
+      case 8:
+        return RegSize64;
+      default:
+        assert(false);
     }
-    return RegSize::RegSize32;
   }
 
   const SyntaxContext& syn_ctx_;
