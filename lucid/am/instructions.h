@@ -342,45 +342,22 @@ struct LoadStack {
   }
 };
 
-// Loads a value from the stack into a 32-bit register.
-struct LoadStackReg32 {
+// Loads a value from the stack into a register.
+struct LoadStackReg {
   // Initial offset from the top of the stack.
   std::size_t offset;
 
-  // 32-bit register whose value is added to `offset` to reach the address of
-  // the value.
+  // Register whose value is added to `offset` to reach the address of the
+  // value.
   Reg offset_reg;
 
   // Destination register.
   Reg dst_reg;
 
-  bool operator==(const LoadStackReg32&) const = default;
+  bool operator==(const LoadStackReg&) const = default;
 
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const LoadStackReg32& inst) {
-    return os << "LoadStackReg32 { .offset=" << inst.offset
-              << ", .offset_reg=" << inst.offset_reg
-              << ", .dst_reg=" << inst.dst_reg << " }";
-  }
-};
-
-// Loads a value from the stack into a 64-bit register.
-struct LoadStackReg64 {
-  // Initial offset from the top of the stack.
-  std::size_t offset;
-
-  // 64-bit register whose value is added to `offset` to reach the address of
-  // the value.
-  Reg offset_reg;
-
-  // Destination register.
-  Reg dst_reg;
-
-  bool operator==(const LoadStackReg64&) const = default;
-
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const LoadStackReg64& inst) {
-    return os << "LoadStackReg64 { .offset=" << inst.offset
+  friend std::ostream& operator<<(std::ostream& os, const LoadStackReg& inst) {
+    return os << "LoadStackReg { .offset=" << inst.offset
               << ", .offset_reg=" << inst.offset_reg
               << ", .dst_reg=" << inst.dst_reg << " }";
   }
@@ -423,8 +400,7 @@ struct FuncCall {
 using Instruction =
     std::variant<Nop, MoveReg, SetReg, SetStr, Return, AddReg, SubReg, MulReg,
                  DivReg, ModReg, GtReg, LtReg, EqReg, NotEqReg, StoreStack,
-                 StoreStackReg, LoadStack, LoadStackReg32, LoadStackReg64,
-                 FuncCall>;
+                 StoreStackReg, LoadStack, LoadStackReg, FuncCall>;
 
 // Returns the source registers used by the given instruction, if any.
 inline std::vector<Reg> GetSourceRegisters(const Instruction& inst) {
@@ -456,9 +432,7 @@ inline std::vector<Reg> GetSourceRegisters(const Instruction& inst) {
     return {cinst->src_reg};
   } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
     return {cinst->src_reg, cinst->offset_reg};
-  } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
-    return {cinst->offset_reg};
-  } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
+  } else if (auto* cinst = std::get_if<LoadStackReg>(&inst)) {
     return {cinst->offset_reg};
   } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
     std::vector<Reg> source_regs;
@@ -504,9 +478,7 @@ inline std::optional<Reg> GetTargetRegister(const Instruction& inst) {
     return cinst->res_reg;
   } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
     return cinst->dst_reg;
-  } else if (auto* cinst = std::get_if<LoadStackReg32>(&inst)) {
-    return cinst->dst_reg;
-  } else if (auto* cinst = std::get_if<LoadStackReg64>(&inst)) {
+  } else if (auto* cinst = std::get_if<LoadStackReg>(&inst)) {
     return cinst->dst_reg;
   } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
     if (cinst->res.has_value()) return cinst->res->reg;
