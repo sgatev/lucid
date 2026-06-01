@@ -1,12 +1,14 @@
 #pragma once
 
 #include <array>
+#include <charconv>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
 #include <functional>
 #include <optional>
 #include <ostream>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <variant>
@@ -637,8 +639,16 @@ class Parser {
     if (token.kind != Token::Kind::Number) [[unlikely]] {
       return MakeError(ParserError::Kind::ExpectedNumber, token);
     }
+
+    std::string_view value_string = TokenString(token);
+    int value;
+    auto res = std::from_chars(value_string.begin(), value_string.end(), value);
+    if (res.ec != std::errc()) {
+      return MakeError(ParserError::Kind::ExpectedNumber, token);
+    }
+
     return IntLitExpr{
-        .value = syn_ctx_.AddIdent(TokenString(token)),
+        .value = value,
     };
   }
 

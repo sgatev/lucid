@@ -72,7 +72,7 @@ TEST_F(ParserTest, ReturnIntLitExpr) {
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesIntLitExpr({
-                              .value = I("0"),
+                              .value = 0,
                           }),
                       }),
                   }},
@@ -93,7 +93,7 @@ TEST_F(ParserTest, CompFuncDef) {
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesIntLitExpr({
-                              .value = I("0"),
+                              .value = 0,
                           }),
                       }),
                   }},
@@ -117,7 +117,7 @@ TEST_F(ParserTest, Comment) {
                   .body = {{
                       MatchesReturnStmt({
                           .value = MatchesIntLitExpr({
-                              .value = I("0"),
+                              .value = 0,
                           }),
                       }),
                   }},
@@ -139,10 +139,10 @@ TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
                           .value = MatchesBinaryOpExpr({
                               .op = BinaryOp::Add,
                               .lhs = MatchesIntLitExpr({
-                                  .value = I("3"),
+                                  .value = 3,
                               }),
                               .rhs = MatchesIntLitExpr({
-                                  .value = I("2"),
+                                  .value = 2,
                               }),
                           }),
                       }),
@@ -165,10 +165,10 @@ TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
                           .value = MatchesBinaryOpExpr({
                               .op = BinaryOp::Sub,
                               .lhs = MatchesIntLitExpr({
-                                  .value = I("3"),
+                                  .value = 3,
                               }),
                               .rhs = MatchesIntLitExpr({
-                                  .value = I("2"),
+                                  .value = 2,
                               }),
                           }),
                       }),
@@ -191,10 +191,10 @@ TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
                           .value = MatchesBinaryOpExpr({
                               .op = BinaryOp::Mul,
                               .lhs = MatchesIntLitExpr({
-                                  .value = I("3"),
+                                  .value = 3,
                               }),
                               .rhs = MatchesIntLitExpr({
-                                  .value = I("2"),
+                                  .value = 2,
                               }),
                           }),
                       }),
@@ -217,10 +217,10 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
                           .value = MatchesBinaryOpExpr({
                               .op = BinaryOp::Div,
                               .lhs = MatchesIntLitExpr({
-                                  .value = I("3"),
+                                  .value = 3,
                               }),
                               .rhs = MatchesIntLitExpr({
-                                  .value = I("2"),
+                                  .value = 2,
                               }),
                           }),
                       }),
@@ -243,10 +243,10 @@ TEST_F(ParserTest, ReturnModBinaryOpExpr) {
                           .value = MatchesBinaryOpExpr({
                               .op = BinaryOp::Mod,
                               .lhs = MatchesIntLitExpr({
-                                  .value = I("3"),
+                                  .value = 3,
                               }),
                               .rhs = MatchesIntLitExpr({
-                                  .value = I("2"),
+                                  .value = 2,
                               }),
                           }),
                       }),
@@ -269,10 +269,10 @@ TEST_F(ParserTest, ReturnGtBinaryOpExpr) {
                           .value = MatchesBinaryOpExpr({
                               .op = BinaryOp::Gt,
                               .lhs = MatchesIntLitExpr({
-                                  .value = I("3"),
+                                  .value = 3,
                               }),
                               .rhs = MatchesIntLitExpr({
-                                  .value = I("2"),
+                                  .value = 2,
                               }),
                           }),
                       }),
@@ -353,7 +353,7 @@ TEST_F(ParserTest, FuncCallExprIntLitArg) {
                               .func_name = I("bar"),
                               .args =
                                   {
-                                      MatchesIntLitExpr({.value = I("3")}),
+                                      MatchesIntLitExpr({.value = 3}),
                                   },
                           }),
                       }),
@@ -407,16 +407,16 @@ TEST_F(ParserTest, FuncCallExprNestedArg) {
                                   .func_name = I("baz"),
                                   .args =
                                       {
-                                          MatchesIntLitExpr({.value = I("1")}),
-                                          MatchesIntLitExpr({.value = I("2")}),
+                                          MatchesIntLitExpr({.value = 1}),
+                                          MatchesIntLitExpr({.value = 2}),
                                       },
                               }),
                               MatchesFuncCallExpr({
                                   .func_name = I("qux"),
                                   .args =
                                       {
-                                          MatchesIntLitExpr({.value = I("3")}),
-                                          MatchesIntLitExpr({.value = I("4")}),
+                                          MatchesIntLitExpr({.value = 3}),
+                                          MatchesIntLitExpr({.value = 4}),
                                       },
                               }),
                           },
@@ -442,7 +442,7 @@ TEST_F(ParserTest, ReturnFuncCallExpr) {
                               .func_name = I("id"),
                               .args =
                                   {
-                                      MatchesIntLitExpr({.value = I("21")}),
+                                      MatchesIntLitExpr({.value = 21}),
                                   },
                           }),
                       }),
@@ -499,35 +499,34 @@ TEST_F(ParserTest, IfStmt) {
       return 4 * 5
     }
   )";
-  EXPECT_THAT(
-      Parse(src),
-      HoldsFuncDef(MatchesFuncDefStmt({
-          .name = I("foo"),
-          .result_type = MatchesBasicType({.name = I("Int32")}),
-          .body = {{
-              MatchesIfStmt({
-                  .cond = MatchesBoolLitExpr({
-                      .value = I("true"),
-                  }),
-                  .then_body = {{
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = I("foo"),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
+                  .body = {{
+                      MatchesIfStmt({
+                          .cond = MatchesBoolLitExpr({
+                              .value = I("true"),
+                          }),
+                          .then_body = {{
+                              MatchesReturnStmt({
+                                  .value = MatchesBinaryOpExpr({
+                                      .op = BinaryOp::Add,
+                                      .lhs = MatchesIntLitExpr({.value = 2}),
+                                      .rhs = MatchesIntLitExpr({.value = 3}),
+                                  }),
+                              }),
+                          }},
+                      }),
                       MatchesReturnStmt({
                           .value = MatchesBinaryOpExpr({
-                              .op = BinaryOp::Add,
-                              .lhs = MatchesIntLitExpr({.value = I("2")}),
-                              .rhs = MatchesIntLitExpr({.value = I("3")}),
+                              .op = BinaryOp::Mul,
+                              .lhs = MatchesIntLitExpr({.value = 4}),
+                              .rhs = MatchesIntLitExpr({.value = 5}),
                           }),
                       }),
                   }},
-              }),
-              MatchesReturnStmt({
-                  .value = MatchesBinaryOpExpr({
-                      .op = BinaryOp::Mul,
-                      .lhs = MatchesIntLitExpr({.value = I("4")}),
-                      .rhs = MatchesIntLitExpr({.value = I("5")}),
-                  }),
-              }),
-          }},
-      })));
+              })));
 }
 
 TEST_F(ParserTest, IfElseStmt) {
@@ -540,37 +539,36 @@ TEST_F(ParserTest, IfElseStmt) {
       }
     }
   )";
-  EXPECT_THAT(
-      Parse(src),
-      HoldsFuncDef(MatchesFuncDefStmt({
-          .name = I("foo"),
-          .result_type = MatchesBasicType({.name = I("Int32")}),
-          .body = {{
-              MatchesIfStmt({
-                  .cond = MatchesBoolLitExpr({
-                      .value = I("true"),
-                  }),
-                  .then_body = {{
-                      MatchesReturnStmt({
-                          .value = MatchesBinaryOpExpr({
-                              .op = BinaryOp::Add,
-                              .lhs = MatchesIntLitExpr({.value = I("2")}),
-                              .rhs = MatchesIntLitExpr({.value = I("3")}),
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = I("foo"),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
+                  .body = {{
+                      MatchesIfStmt({
+                          .cond = MatchesBoolLitExpr({
+                              .value = I("true"),
                           }),
+                          .then_body = {{
+                              MatchesReturnStmt({
+                                  .value = MatchesBinaryOpExpr({
+                                      .op = BinaryOp::Add,
+                                      .lhs = MatchesIntLitExpr({.value = 2}),
+                                      .rhs = MatchesIntLitExpr({.value = 3}),
+                                  }),
+                              }),
+                          }},
+                          .else_body = {{
+                              MatchesReturnStmt({
+                                  .value = MatchesBinaryOpExpr({
+                                      .op = BinaryOp::Mul,
+                                      .lhs = MatchesIntLitExpr({.value = 4}),
+                                      .rhs = MatchesIntLitExpr({.value = 5}),
+                                  }),
+                              }),
+                          }},
                       }),
                   }},
-                  .else_body = {{
-                      MatchesReturnStmt({
-                          .value = MatchesBinaryOpExpr({
-                              .op = BinaryOp::Mul,
-                              .lhs = MatchesIntLitExpr({.value = I("4")}),
-                              .rhs = MatchesIntLitExpr({.value = I("5")}),
-                          }),
-                      }),
-                  }},
-              }),
-          }},
-      })));
+              })));
 }
 
 TEST_F(ParserTest, IfElseIfElseStmt) {
@@ -602,11 +600,11 @@ TEST_F(ParserTest, IfElseIfElseStmt) {
                   .cond = MatchesBinaryOpExpr({
                       .op = BinaryOp::Gt,
                       .lhs = MatchesIdentExpr({.name = I("x")}),
-                      .rhs = MatchesIntLitExpr({.value = I("0")}),
+                      .rhs = MatchesIntLitExpr({.value = 0}),
                   }),
                   .then_body = {{
                       MatchesReturnStmt({
-                          .value = MatchesIntLitExpr({.value = I("1")}),
+                          .value = MatchesIntLitExpr({.value = 1}),
                       }),
                   }},
                   .else_body = {{
@@ -614,16 +612,16 @@ TEST_F(ParserTest, IfElseIfElseStmt) {
                           .cond = MatchesBinaryOpExpr({
                               .op = BinaryOp::Lt,
                               .lhs = MatchesIdentExpr({.name = I("x")}),
-                              .rhs = MatchesIntLitExpr({.value = I("0")}),
+                              .rhs = MatchesIntLitExpr({.value = 0}),
                           }),
                           .then_body = {{
                               MatchesReturnStmt({
-                                  .value = MatchesIntLitExpr({.value = I("2")}),
+                                  .value = MatchesIntLitExpr({.value = 2}),
                               }),
                           }},
                           .else_body = {{
                               MatchesReturnStmt({
-                                  .value = MatchesIntLitExpr({.value = I("3")}),
+                                  .value = MatchesIntLitExpr({.value = 3}),
                               }),
                           }},
                       }),
@@ -792,7 +790,7 @@ TEST_F(ParserTest, VarDecl) {
               MatchesVarDeclStmt({
                   .name = I("m"),
                   .type_constraint = MatchesBasicType({.name = I("Int32")}),
-                  .init = MatchesIntLitExpr({.value = I("1")}),
+                  .init = MatchesIntLitExpr({.value = 1}),
               }),
               MatchesReturnStmt({
                   .value = MatchesBinaryOpExpr({
@@ -828,7 +826,7 @@ TEST_F(ParserTest, CompVarDecl) {
               MatchesVarDeclStmt({
                   .name = I("m"),
                   .type_constraint = MatchesBasicType({.name = I("Int32")}),
-                  .init = MatchesIntLitExpr({.value = I("1")}),
+                  .init = MatchesIntLitExpr({.value = 1}),
                   .is_comp = true,
               }),
               MatchesReturnStmt({
@@ -863,7 +861,7 @@ TEST_F(ParserTest, VarAssignment) {
           .body = {{
               MatchesVarAssignStmt({
                   .name = I("n"),
-                  .expr = MatchesIntLitExpr({.value = I("3")}),
+                  .expr = MatchesIntLitExpr({.value = 3}),
               }),
           }},
       })));
@@ -889,7 +887,7 @@ TEST_F(ParserTest, LoopAndBreakStmt) {
                           }},
                       }),
                       MatchesReturnStmt({
-                          .value = MatchesIntLitExpr({.value = I("2")}),
+                          .value = MatchesIntLitExpr({.value = 2}),
                       }),
                   }},
               })));
@@ -934,17 +932,17 @@ TEST_F(ParserTest, EqOverMod) {
                           }),
                       }),
                       .rhs = MatchesIntLitExpr({
-                          .value = I("10"),
+                          .value = 10,
                       }),
                   }),
                   .then_body = {{
                       MatchesReturnStmt({
-                          .value = MatchesIntLitExpr({.value = I("1")}),
+                          .value = MatchesIntLitExpr({.value = 1}),
                       }),
                   }},
               }),
               MatchesReturnStmt({
-                  .value = MatchesIntLitExpr({.value = I("2")}),
+                  .value = MatchesIntLitExpr({.value = 2}),
               }),
           }},
       })));
@@ -989,17 +987,17 @@ TEST_F(ParserTest, NotEqOverAdd) {
                           }),
                       }),
                       .rhs = MatchesIntLitExpr({
-                          .value = I("10"),
+                          .value = 10,
                       }),
                   }),
                   .then_body = {{
                       MatchesReturnStmt({
-                          .value = MatchesIntLitExpr({.value = I("1")}),
+                          .value = MatchesIntLitExpr({.value = 1}),
                       }),
                   }},
               }),
               MatchesReturnStmt({
-                  .value = MatchesIntLitExpr({.value = I("2")}),
+                  .value = MatchesIntLitExpr({.value = 2}),
               }),
           }},
       })));
@@ -1044,17 +1042,17 @@ TEST_F(ParserTest, GtOverMul) {
                           }),
                       }),
                       .rhs = MatchesIntLitExpr({
-                          .value = I("10"),
+                          .value = 10,
                       }),
                   }),
                   .then_body = {{
                       MatchesReturnStmt({
-                          .value = MatchesIntLitExpr({.value = I("1")}),
+                          .value = MatchesIntLitExpr({.value = 1}),
                       }),
                   }},
               }),
               MatchesReturnStmt({
-                  .value = MatchesIntLitExpr({.value = I("2")}),
+                  .value = MatchesIntLitExpr({.value = 2}),
               }),
           }},
       })));
@@ -1099,17 +1097,17 @@ TEST_F(ParserTest, LtOverSub) {
                           }),
                       }),
                       .rhs = MatchesIntLitExpr({
-                          .value = I("10"),
+                          .value = 10,
                       }),
                   }),
                   .then_body = {{
                       MatchesReturnStmt({
-                          .value = MatchesIntLitExpr({.value = I("1")}),
+                          .value = MatchesIntLitExpr({.value = 1}),
                       }),
                   }},
               }),
               MatchesReturnStmt({
-                  .value = MatchesIntLitExpr({.value = I("2")}),
+                  .value = MatchesIntLitExpr({.value = 2}),
               }),
           }},
       })));
@@ -1131,7 +1129,7 @@ TEST_F(ParserTest, ArrayParam) {
                               .type_constraint = MatchesArrayType({
                                   .element_type_constraint =
                                       MatchesBasicType({.name = I("Int32")}),
-                                  .size = {.value = I("10")},
+                                  .size = {.value = 10},
                               }),
                           }),
                       },
@@ -1140,7 +1138,7 @@ TEST_F(ParserTest, ArrayParam) {
                       MatchesReturnStmt({
                           .value = MatchesIndexExpr({
                               .base = MatchesIdentExpr({.name = I("a")}),
-                              .index = MatchesIntLitExpr({.value = I("2")}),
+                              .index = MatchesIntLitExpr({.value = 2}),
                           }),
                       }),
                   }},

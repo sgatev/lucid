@@ -46,7 +46,7 @@ void PrintSequence(int indent, const SyntaxContext& ctx,
     if (std::holds_alternative<FuncCallExpr>(expr)) {
       out << "FuncCallExpr";
     } else if (auto* s = std::get_if<IntLitExpr>(&expr)) {
-      out << "IntLitExpr { .value = " << ctx.DerefIdent(s->value) << " }";
+      out << "IntLitExpr { .value = " << s->value << " }";
     } else if (std::holds_alternative<BoolLitExpr>(expr)) {
       out << "BoolLitExpr";
     } else if (std::holds_alternative<StringLitExpr>(expr)) {

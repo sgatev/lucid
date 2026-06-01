@@ -118,7 +118,7 @@ struct DoStmt {
 // An expression that represents an integer literal.
 struct IntLitExpr : public ExprBase {
   // Value of the integer.
-  StringIndex::Ref value;
+  int value;
 };
 
 // An expression that represents a boolean literal.

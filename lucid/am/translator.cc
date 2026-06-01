@@ -60,7 +60,7 @@ class AbstractMachineFunctionGenerator {
           .label = "_print_string",
       });
       first_block.instructions.push_back(SetReg{
-          .src_val = "0",
+          .src_val = 0,
           .dst_reg = result_reg_,
       });
       first_block.instructions.push_back(Return{
@@ -75,7 +75,7 @@ class AbstractMachineFunctionGenerator {
           .label = "_sleep",
       });
       first_block.instructions.push_back(SetReg{
-          .src_val = "0",
+          .src_val = 0,
           .dst_reg = result_reg_,
       });
       first_block.instructions.push_back(Return{
@@ -174,7 +174,7 @@ class AbstractMachineFunctionGenerator {
                    AbstractMachineControlFlowGraph::Block& am_block) {
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(SetReg{
-        .src_val = syn_ctx_.DerefIdent(expr.value),
+        .src_val = expr.value,
         .dst_reg = reg,
     });
     expr_and_stmt_to_reg_[ref.id()] = reg;
@@ -184,7 +184,7 @@ class AbstractMachineFunctionGenerator {
                    AbstractMachineControlFlowGraph::Block& am_block) {
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(SetReg{
-        .src_val = syn_ctx_.DerefIdent(expr.value) == "true" ? "1" : "0",
+        .src_val = syn_ctx_.DerefIdent(expr.value) == "true" ? 1 : 0,
         .dst_reg = reg,
     });
     expr_and_stmt_to_reg_[ref.id()] = reg;
@@ -243,7 +243,7 @@ class AbstractMachineFunctionGenerator {
     if (expr_type_name == "Int32") {
       Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
-          .src_val = "4",
+          .src_val = 4,
           .dst_reg = offset_reg,
       });
       am_block.instructions.push_back(MulReg{
@@ -260,7 +260,7 @@ class AbstractMachineFunctionGenerator {
     } else if (expr_type_name == "Int64") {
       Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
-          .src_val = "8",
+          .src_val = 8,
           .dst_reg = offset_reg,
       });
       am_block.instructions.push_back(MulReg{
@@ -277,7 +277,7 @@ class AbstractMachineFunctionGenerator {
     } else if (expr_type_name == "Bool") {
       Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
-          .src_val = "4",
+          .src_val = 4,
           .dst_reg = offset_reg,
       });
       am_block.instructions.push_back(MulReg{
@@ -403,21 +403,16 @@ class AbstractMachineFunctionGenerator {
           syn_ctx_.DerefType(array_type.element_type_constraint));
       std::string_view var_decl_type_name =
           syn_ctx_.DerefIdent(var_decl_type.name);
-      std::string_view array_size = syn_ctx_.DerefIdent(array_type.size.value);
-      std::size_t size;
-      auto res = std::from_chars(array_size.data(),
-                                 array_size.data() + array_size.size(), size);
-      if (res.ec == std::errc()) {
-        auto stack_offset = am_cfg_.stack_slots.size();
-        for (int i = 0; i < size; ++i) {
-          if (var_decl_type_name == "Int32" || var_decl_type_name == "Bool") {
-            am_cfg_.stack_slots.push_back(4);
-          } else if (var_decl_type_name == "Int64") {
-            am_cfg_.stack_slots.push_back(8);
-          }
+      std::size_t size = array_type.size.value;
+      auto stack_offset = am_cfg_.stack_slots.size();
+      for (int i = 0; i < size; ++i) {
+        if (var_decl_type_name == "Int32" || var_decl_type_name == "Bool") {
+          am_cfg_.stack_slots.push_back(4);
+        } else if (var_decl_type_name == "Int64") {
+          am_cfg_.stack_slots.push_back(8);
         }
-        var_stack_.Set(stmt.name, stack_offset);
       }
+      var_stack_.Set(stmt.name, stack_offset);
       return;
     }
 
@@ -439,7 +434,7 @@ class AbstractMachineFunctionGenerator {
     if (expr_type_name == "Int32") {
       Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
-          .src_val = "4",
+          .src_val = 4,
           .dst_reg = offset_reg,
       });
       am_block.instructions.push_back(MulReg{
@@ -456,7 +451,7 @@ class AbstractMachineFunctionGenerator {
     } else if (expr_type_name == "Int64") {
       Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
-          .src_val = "8",
+          .src_val = 8,
           .dst_reg = offset_reg,
       });
       am_block.instructions.push_back(MulReg{
@@ -473,7 +468,7 @@ class AbstractMachineFunctionGenerator {
     } else if (expr_type_name == "Bool") {
       Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
-          .src_val = "4",
+          .src_val = 4,
           .dst_reg = offset_reg,
       });
       am_block.instructions.push_back(MulReg{

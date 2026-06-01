@@ -36,7 +36,7 @@ TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "1",
+                          .src_val = 1,
                           .dst_reg = Reg(1),
                       });
   g.AddEdge(a, z);
@@ -63,7 +63,7 @@ TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "1",
+                          .src_val = 1,
                           .dst_reg = Reg(1, RegSize32),
                       });
   g.AddEdge(a, b);
@@ -101,11 +101,11 @@ TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "1",
+                          .src_val = 1,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "2",
+                          .src_val = 2,
                           .dst_reg = Reg(2),
                       });
   g.AddEdge(a, b);
@@ -161,7 +161,7 @@ TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "1",
+                          .src_val = 1,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, MoveReg{
@@ -202,13 +202,13 @@ TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "1",
+                          .src_val = 1,
                           .dst_reg = Reg(1),
                       });
   g.AddEdge(a, b);
 
   g.AddInstruction(b, SetReg{
-                          .src_val = "2",
+                          .src_val = 2,
                           .dst_reg = Reg(2),
                       });
   g.AddEdge(b, c);

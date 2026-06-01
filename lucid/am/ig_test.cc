@@ -55,7 +55,7 @@ TEST(BuildInterferenceGraphTest, Simple) {
   // Block a:
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "1",
+                          .src_val = 1,
                           .dst_reg = kReg1,
                       });
   g.AddEdge(a, z);
@@ -79,7 +79,7 @@ TEST(BuildInterferenceGraphTest, NonOverlapping) {
   // Block a:
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "1",
+                          .src_val = 1,
                           .dst_reg = kReg1,
                       });
   g.AddInstruction(a, MoveReg{
@@ -108,11 +108,11 @@ TEST(BuildInterferenceGraphTest, Overlapping) {
   // Block a:
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "1",
+                          .src_val = 1,
                           .dst_reg = kReg1,
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "2",
+                          .src_val = 2,
                           .dst_reg = kReg2,
                       });
   g.AddInstruction(a, AddReg{
@@ -145,11 +145,11 @@ TEST(BuildInterferenceGraphTest, Branching) {
   // Block a:
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "1",
+                          .src_val = 1,
                           .dst_reg = kReg1,
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "2",
+                          .src_val = 2,
                           .dst_reg = kReg2,
                       });
   g.AddEdge(a, b);
@@ -192,7 +192,7 @@ TEST(BuildInterferenceGraphTest, Merging) {
   // Block a:
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "1",
+                          .src_val = 1,
                           .dst_reg = kReg1,
                       });
   g.AddEdge(a, b);
@@ -207,7 +207,7 @@ TEST(BuildInterferenceGraphTest, Merging) {
 
   // Block c:
   g.AddInstruction(c, SetReg{
-                          .src_val = "2",
+                          .src_val = 2,
                           .dst_reg = kReg2,
                       });
   g.AddEdge(c, b);

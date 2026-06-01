@@ -33,7 +33,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
           S(VarDeclStmt{
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
-              .init = E(IntLitExpr{.value = I("21")}),
+              .init = E(IntLitExpr{.value = 21}),
           }),
           S(IfStmt{
               .cond = E(BoolLitExpr{.value = I("true")}),
@@ -43,7 +43,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Mul,
                           .lhs = E(IdentExpr{.name = I("x")}),
-                          .rhs = E(IntLitExpr{.value = I("2")}),
+                          .rhs = E(IntLitExpr{.value = 2}),
                       }),
                   }),
               }),
@@ -53,7 +53,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
                           .lhs = E(IdentExpr{.name = I("x")}),
-                          .rhs = E(IntLitExpr{.value = I("1")}),
+                          .rhs = E(IntLitExpr{.value = 1}),
                       }),
                   }),
               }),
@@ -90,7 +90,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
           S(VarDeclStmt{
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
-              .init = E(IntLitExpr{.value = I("21")}),
+              .init = E(IntLitExpr{.value = 21}),
           }),
           S(IfStmt{
               .cond = E(BoolLitExpr{.value = I("true")}),
@@ -103,7 +103,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
                               .expr = E(BinaryOpExpr{
                                   .op = BinaryOp::Mul,
                                   .lhs = E(IdentExpr{.name = I("x")}),
-                                  .rhs = E(IntLitExpr{.value = I("2")}),
+                                  .rhs = E(IntLitExpr{.value = 2}),
                               }),
                           }),
                       }),
@@ -113,7 +113,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
                               .expr = E(BinaryOpExpr{
                                   .op = BinaryOp::Add,
                                   .lhs = E(IdentExpr{.name = I("x")}),
-                                  .rhs = E(IntLitExpr{.value = I("1")}),
+                                  .rhs = E(IntLitExpr{.value = 1}),
                               }),
                           }),
                       }),
@@ -125,7 +125,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Sub,
                           .lhs = E(IdentExpr{.name = I("x")}),
-                          .rhs = E(IntLitExpr{.value = I("3")}),
+                          .rhs = E(IntLitExpr{.value = 3}),
                       }),
                   }),
               }),
@@ -171,12 +171,12 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
           S(VarDeclStmt{
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
-              .init = E(IntLitExpr{.value = I("21")}),
+              .init = E(IntLitExpr{.value = 21}),
           }),
           S(VarDeclStmt{
               .name = I("y"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
-              .init = E(IntLitExpr{.value = I("2")}),
+              .init = E(IntLitExpr{.value = 2}),
           }),
           S(IfStmt{
               .cond = E(BoolLitExpr{.value = I("true")}),
@@ -186,7 +186,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Mul,
                           .lhs = E(IdentExpr{.name = I("x")}),
-                          .rhs = E(IntLitExpr{.value = I("2")}),
+                          .rhs = E(IntLitExpr{.value = 2}),
                       }),
                   }),
               }),
@@ -196,7 +196,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
                           .lhs = E(IdentExpr{.name = I("x")}),
-                          .rhs = E(IntLitExpr{.value = I("1")}),
+                          .rhs = E(IntLitExpr{.value = 1}),
                       }),
                   }),
               }),
@@ -233,7 +233,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
           S(VarDeclStmt{
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
-              .init = E(IntLitExpr{.value = I("21")}),
+              .init = E(IntLitExpr{.value = 21}),
           }),
           S(LoopStmt{
               .stmts = StmtListOf({
@@ -245,7 +245,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
                               .expr = E(BinaryOpExpr{
                                   .op = BinaryOp::Mul,
                                   .lhs = E(IdentExpr{.name = I("x")}),
-                                  .rhs = E(IntLitExpr{.value = I("2")}),
+                                  .rhs = E(IntLitExpr{.value = 2}),
                               }),
                           }),
                       }),

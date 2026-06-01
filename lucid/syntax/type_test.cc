@@ -31,7 +31,7 @@ TEST_F(InferExprTypesTest, ReturnValueFromResultType) {
       .stmts = StmtListOf({
           S(ReturnStmt{
               .value = E(IntLitExpr{
-                  .value = I("21"),
+                  .value = 21,
               }),
           }),
       }),
@@ -46,7 +46,7 @@ TEST_F(InferExprTypesTest, ReturnValueFromResultType) {
                       MatchesReturnStmt({
                           .value = MatchesIntLitExpr({
                               .type = MatchesBasicType({.name = I("Int32")}),
-                              .value = I("21"),
+                              .value = 21,
                           }),
                       }),
                   }},
@@ -62,7 +62,7 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int64")}),
               .init = E(IntLitExpr{
-                  .value = I("21"),
+                  .value = 21,
               }),
           }),
       }),
@@ -80,7 +80,7 @@ TEST_F(InferExprTypesTest, InitExprFromVarDeclType) {
                   .type_constraint = MatchesBasicType({.name = I("Int64")}),
                   .init = MatchesIntLitExpr({
                       .type = MatchesBasicType({.name = I("Int64")}),
-                      .value = I("21"),
+                      .value = 21,
                   }),
               }),
           }},
@@ -101,7 +101,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
           S(VarAssignStmt{
               .name = I("x"),
               .expr = E(IntLitExpr{
-                  .value = I("21"),
+                  .value = 21,
               }),
           }),
       }),
@@ -125,7 +125,7 @@ TEST_F(InferExprTypesTest, AssignedExprFromVarType) {
                   .name = I("x"),
                   .expr = MatchesIntLitExpr({
                       .type = MatchesBasicType({.name = I("Int64")}),
-                      .value = I("21"),
+                      .value = 21,
                   }),
               }),
           }},
@@ -147,7 +147,7 @@ TEST_F(InferExprTypesTest, IfStmtCond) {
               .cond = E(BinaryOpExpr{
                   .op = BinaryOp::Eq,
                   .lhs = E(IdentExpr{.name = I("n")}),
-                  .rhs = E(IntLitExpr{.value = I("1")}),
+                  .rhs = E(IntLitExpr{.value = 1}),
               }),
 
           }),
@@ -191,10 +191,10 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
               .init = E(BinaryOpExpr{
                   .op = BinaryOp::Add,
                   .lhs = E(IntLitExpr{
-                      .value = I("2"),
+                      .value = 2,
                   }),
                   .rhs = E(IntLitExpr{
-                      .value = I("3"),
+                      .value = 3,
                   }),
               }),
           }),
@@ -216,11 +216,11 @@ TEST_F(InferExprTypesTest, ThroughAssignedBinaryOpExprFromVarType) {
                       .op = BinaryOp::Add,
                       .lhs = MatchesIntLitExpr({
                           .type = MatchesBasicType({.name = I("Int64")}),
-                          .value = I("2"),
+                          .value = 2,
                       }),
                       .rhs = MatchesIntLitExpr({
                           .type = MatchesBasicType({.name = I("Int64")}),
-                          .value = I("3"),
+                          .value = 3,
                       }),
                   }),
               }),
@@ -249,7 +249,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
                   .func_name = I("id"),
                   .args = ExprListOf({
                       E(IntLitExpr{
-                          .value = I("21"),
+                          .value = 21,
                       }),
                   }),
               }),
@@ -276,7 +276,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
                                                                      .type = MatchesBasicType(
                                                                          {.name =
                                                                               I("Int32")}),
-                                                                     .value = I("21"),
+                                                                     .value = 21,
                                                                  }),
                                                          }}),
                         }),
@@ -293,10 +293,10 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
               .cond = E(BinaryOpExpr{
                   .op = BinaryOp::Lt,
                   .lhs = E(IntLitExpr{
-                      .value = I("2"),
+                      .value = 2,
                   }),
                   .rhs = E(IntLitExpr{
-                      .value = I("3"),
+                      .value = 3,
                   }),
               }),
           }),
@@ -315,11 +315,11 @@ TEST_F(InferExprTypesTest, UnconstrainedIntLit) {
                             .op = BinaryOp::Lt,
                             .lhs = MatchesIntLitExpr({
                                 .type = MatchesBasicType({.name = I("Int32")}),
-                                .value = I("2"),
+                                .value = 2,
                             }),
                             .rhs = MatchesIntLitExpr({
                                 .type = MatchesBasicType({.name = I("Int32")}),
-                                .value = I("3"),
+                                .value = 3,
                             }),
                         }),
                     }),
@@ -336,13 +336,13 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
               .name = I("a"),
               .type_constraint = T(ArrayType{
                   .element_type_constraint = T(BasicType{.name = I("Int32")}),
-                  .size = IntLitExpr{.value = I("10")},
+                  .size = IntLitExpr{.value = 10},
               }),
           }),
           S(ReturnStmt{
               .value = E(IndexExpr{
                   .base = E(IdentExpr{.name = I("a")}),
-                  .index = E(IntLitExpr{.value = I("2")}),
+                  .index = E(IntLitExpr{.value = 2}),
               }),
           }),
       })};
@@ -358,7 +358,7 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
                         .type_constraint = MatchesArrayType({
                             .element_type_constraint =
                                 MatchesBasicType({.name = I("Int32")}),
-                            .size = {.value = I("10")},
+                            .size = {.value = 10},
                         }),
                     }),
                     MatchesReturnStmt({
@@ -368,13 +368,13 @@ TEST_F(InferExprTypesTest, ArrayIndex) {
                                 .type = MatchesArrayType({
                                     .element_type_constraint =
                                         MatchesBasicType({.name = I("Int32")}),
-                                    .size = {.value = I("10")},
+                                    .size = {.value = 10},
                                 }),
                                 .name = I("a"),
                             }),
                             .index = MatchesIntLitExpr({
                                 .type = MatchesBasicType({.name = I("Int32")}),
-                                .value = I("2"),
+                                .value = 2,
                             }),
                         }),
                     }),
@@ -411,7 +411,7 @@ TEST_F(InferExprTypesTest, ErrorInt64FromInt32) {
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
               .init = E(IntLitExpr{
-                  .value = I("2"),
+                  .value = 2,
               }),
           }),
           S(VarDeclStmt{

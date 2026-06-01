@@ -48,14 +48,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
       .result_type = T(BasicType{.name = I("Int32")}),
       .stmts = StmtListOf({
           S(ReturnStmt{
-              .value = E(IntLitExpr{.value = I("21")}),
+              .value = E(IntLitExpr{.value = 21}),
           }),
       }),
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "21",
+                                      .src_val = 21,
                                       .dst_reg = Reg(2, RegSize::RegSize32),
                                   },
                                   MoveReg{
@@ -73,14 +73,14 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
       .result_type = T(BasicType{.name = I("Int64")}),
       .stmts = StmtListOf({
           S(ReturnStmt{
-              .value = E(IntLitExpr{.value = I("21")}),
+              .value = E(IntLitExpr{.value = 21}),
           }),
       }),
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "21",
+                                      .src_val = 21,
                                       .dst_reg = Reg(2, RegSize::RegSize64),
                                   },
                                   MoveReg{
@@ -112,7 +112,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
               .value = E(FuncCallExpr{
                   .func_name = I("id"),
                   .args = ExprListOf({
-                      E(IntLitExpr{.value = I("21")}),
+                      E(IntLitExpr{.value = 21}),
                   }),
               }),
           }),
@@ -122,7 +122,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
   EXPECT_THAT(Generate(func, {id_func}),
               ElementsAre(
                   SetReg{
-                      .src_val = "21",
+                      .src_val = 21,
                       .dst_reg = Reg(2, RegSize32),
                   },
                   FuncCall{
@@ -166,7 +166,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
               .value = E(FuncCallExpr{
                   .func_name = I("id"),
                   .args = ExprListOf({
-                      E(IntLitExpr{.value = I("21")}),
+                      E(IntLitExpr{.value = 21}),
                   }),
               }),
           }),
@@ -176,7 +176,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
   EXPECT_THAT(Generate(func, {id_func}),
               ElementsAre(
                   SetReg{
-                      .src_val = "21",
+                      .src_val = 21,
                       .dst_reg = Reg(2, RegSize64),
                   },
                   FuncCall{
@@ -208,8 +208,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Add,
-                  .lhs = E(IntLitExpr{.value = I("2")}),
-                  .rhs = E(IntLitExpr{.value = I("3")}),
+                  .lhs = E(IntLitExpr{.value = 2}),
+                  .rhs = E(IntLitExpr{.value = 3}),
               }),
           }),
       }),
@@ -217,11 +217,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "3",
+                                      .src_val = 3,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   AddReg{
@@ -246,8 +246,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Add,
-                  .lhs = E(IntLitExpr{.value = I("2")}),
-                  .rhs = E(IntLitExpr{.value = I("3")}),
+                  .lhs = E(IntLitExpr{.value = 2}),
+                  .rhs = E(IntLitExpr{.value = 3}),
               }),
           }),
       }),
@@ -255,11 +255,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(2, RegSize64),
                                   },
                                   SetReg{
-                                      .src_val = "3",
+                                      .src_val = 3,
                                       .dst_reg = Reg(3, RegSize64),
                                   },
                                   AddReg{
@@ -284,8 +284,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Sub,
-                  .lhs = E(IntLitExpr{.value = I("7")}),
-                  .rhs = E(IntLitExpr{.value = I("5")}),
+                  .lhs = E(IntLitExpr{.value = 7}),
+                  .rhs = E(IntLitExpr{.value = 5}),
               }),
           }),
       }),
@@ -293,11 +293,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "7",
+                                      .src_val = 7,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "5",
+                                      .src_val = 5,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   SubReg{
@@ -322,8 +322,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Sub,
-                  .lhs = E(IntLitExpr{.value = I("7")}),
-                  .rhs = E(IntLitExpr{.value = I("5")}),
+                  .lhs = E(IntLitExpr{.value = 7}),
+                  .rhs = E(IntLitExpr{.value = 5}),
               }),
           }),
       }),
@@ -331,11 +331,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "7",
+                                      .src_val = 7,
                                       .dst_reg = Reg(2, RegSize64),
                                   },
                                   SetReg{
-                                      .src_val = "5",
+                                      .src_val = 5,
                                       .dst_reg = Reg(3, RegSize64),
                                   },
                                   SubReg{
@@ -360,8 +360,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Mul,
-                  .lhs = E(IntLitExpr{.value = I("2")}),
-                  .rhs = E(IntLitExpr{.value = I("3")}),
+                  .lhs = E(IntLitExpr{.value = 2}),
+                  .rhs = E(IntLitExpr{.value = 3}),
               }),
           }),
       }),
@@ -369,11 +369,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "3",
+                                      .src_val = 3,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   MulReg{
@@ -398,8 +398,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Mul,
-                  .lhs = E(IntLitExpr{.value = I("2")}),
-                  .rhs = E(IntLitExpr{.value = I("3")}),
+                  .lhs = E(IntLitExpr{.value = 2}),
+                  .rhs = E(IntLitExpr{.value = 3}),
               }),
           }),
       }),
@@ -407,11 +407,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(2, RegSize64),
                                   },
                                   SetReg{
-                                      .src_val = "3",
+                                      .src_val = 3,
                                       .dst_reg = Reg(3, RegSize64),
                                   },
                                   MulReg{
@@ -436,8 +436,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Div,
-                  .lhs = E(IntLitExpr{.value = I("8")}),
-                  .rhs = E(IntLitExpr{.value = I("2")}),
+                  .lhs = E(IntLitExpr{.value = 8}),
+                  .rhs = E(IntLitExpr{.value = 2}),
               }),
           }),
       }),
@@ -445,11 +445,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "8",
+                                      .src_val = 8,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   DivReg{
@@ -474,8 +474,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Div,
-                  .lhs = E(IntLitExpr{.value = I("8")}),
-                  .rhs = E(IntLitExpr{.value = I("2")}),
+                  .lhs = E(IntLitExpr{.value = 8}),
+                  .rhs = E(IntLitExpr{.value = 2}),
               }),
           }),
       }),
@@ -483,11 +483,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "8",
+                                      .src_val = 8,
                                       .dst_reg = Reg(2, RegSize64),
                                   },
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(3, RegSize64),
                                   },
                                   DivReg{
@@ -512,8 +512,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Mod,
-                  .lhs = E(IntLitExpr{.value = I("8")}),
-                  .rhs = E(IntLitExpr{.value = I("2")}),
+                  .lhs = E(IntLitExpr{.value = 8}),
+                  .rhs = E(IntLitExpr{.value = 2}),
               }),
           }),
       }),
@@ -521,11 +521,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "8",
+                                      .src_val = 8,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   ModReg{
@@ -550,8 +550,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Mod,
-                  .lhs = E(IntLitExpr{.value = I("8")}),
-                  .rhs = E(IntLitExpr{.value = I("2")}),
+                  .lhs = E(IntLitExpr{.value = 8}),
+                  .rhs = E(IntLitExpr{.value = 2}),
               }),
           }),
       }),
@@ -559,11 +559,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "8",
+                                      .src_val = 8,
                                       .dst_reg = Reg(2, RegSize64),
                                   },
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(3, RegSize64),
                                   },
                                   ModReg{
@@ -591,8 +591,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                   S(ReturnStmt{
                       .value = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
-                          .lhs = E(IntLitExpr{.value = I("2")}),
-                          .rhs = E(IntLitExpr{.value = I("3")}),
+                          .lhs = E(IntLitExpr{.value = 2}),
+                          .rhs = E(IntLitExpr{.value = 3}),
                       }),
                   }),
               }),
@@ -600,8 +600,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Mul,
-                  .lhs = E(IntLitExpr{.value = I("4")}),
-                  .rhs = E(IntLitExpr{.value = I("5")}),
+                  .lhs = E(IntLitExpr{.value = 4}),
+                  .rhs = E(IntLitExpr{.value = 5}),
               }),
           }),
       }),
@@ -609,15 +609,15 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "1",
+                                      .src_val = 1,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "4",
+                                      .src_val = 4,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "5",
+                                      .src_val = 5,
                                       .dst_reg = Reg(4, RegSize32),
                                   },
                                   MulReg{
@@ -630,11 +630,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                       .dst_reg = Reg(1, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(6, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "3",
+                                      .src_val = 3,
                                       .dst_reg = Reg(7, RegSize32),
                                   },
                                   AddReg{
@@ -662,8 +662,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                   S(ReturnStmt{
                       .value = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
-                          .lhs = E(IntLitExpr{.value = I("2")}),
-                          .rhs = E(IntLitExpr{.value = I("3")}),
+                          .lhs = E(IntLitExpr{.value = 2}),
+                          .rhs = E(IntLitExpr{.value = 3}),
                       }),
                   }),
               }),
@@ -671,8 +671,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                   S(ReturnStmt{
                       .value = E(BinaryOpExpr{
                           .op = BinaryOp::Mul,
-                          .lhs = E(IntLitExpr{.value = I("4")}),
-                          .rhs = E(IntLitExpr{.value = I("5")}),
+                          .lhs = E(IntLitExpr{.value = 4}),
+                          .rhs = E(IntLitExpr{.value = 5}),
                       }),
                   }),
               }),
@@ -682,15 +682,15 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "1",
+                                      .src_val = 1,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "4",
+                                      .src_val = 4,
                                       .dst_reg = Reg(6, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "5",
+                                      .src_val = 5,
                                       .dst_reg = Reg(7, RegSize32),
                                   },
                                   MulReg{
@@ -703,11 +703,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                       .dst_reg = Reg(1, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "3",
+                                      .src_val = 3,
                                       .dst_reg = Reg(4, RegSize32),
                                   },
                                   AddReg{
@@ -732,8 +732,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Gt,
-                  .lhs = E(IntLitExpr{.value = I("3")}),
-                  .rhs = E(IntLitExpr{.value = I("2")}),
+                  .lhs = E(IntLitExpr{.value = 3}),
+                  .rhs = E(IntLitExpr{.value = 2}),
               }),
           }),
       }),
@@ -741,11 +741,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "3",
+                                      .src_val = 3,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   GtReg{
@@ -866,8 +866,8 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
           S(ReturnStmt{
               .value = E(BinaryOpExpr{
                   .op = BinaryOp::Lt,
-                  .lhs = E(IntLitExpr{.value = I("3")}),
-                  .rhs = E(IntLitExpr{.value = I("2")}),
+                  .lhs = E(IntLitExpr{.value = 3}),
+                  .rhs = E(IntLitExpr{.value = 2}),
               }),
           }),
       }),
@@ -875,11 +875,11 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "3",
+                                      .src_val = 3,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   LtReg{
@@ -1192,7 +1192,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
           S(VarDeclStmt{
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
-              .init = E(IntLitExpr{.value = I("2")}),
+              .init = E(IntLitExpr{.value = 2}),
           }),
           S(ReturnStmt{
               .value = E(IdentExpr{
@@ -1204,7 +1204,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   MoveReg{
@@ -1232,7 +1232,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
           S(VarDeclStmt{
               .name = I("x"),
               .type_constraint = T(BasicType{.name = I("Int64")}),
-              .init = E(IntLitExpr{.value = I("2")}),
+              .init = E(IntLitExpr{.value = 2}),
           }),
           S(ReturnStmt{
               .value = E(IdentExpr{
@@ -1244,7 +1244,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(2, RegSize64),
                                   },
                                   MoveReg{
@@ -1273,12 +1273,12 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
               .name = I("x"),
               .type_constraint = T(ArrayType{
                   .element_type_constraint = T(BasicType{.name = I("Int32")}),
-                  .size = IntLitExpr{.value = I("10")},
+                  .size = IntLitExpr{.value = 10},
               }),
           }),
           S(ReturnStmt{
               .value = E(IntLitExpr{
-                  .value = I("0"),
+                  .value = 0,
               }),
           }),
       }),
@@ -1286,7 +1286,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "0",
+                                      .src_val = 0,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   MoveReg{
@@ -1307,12 +1307,12 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
               .name = I("x"),
               .type_constraint = T(ArrayType{
                   .element_type_constraint = T(BasicType{.name = I("Int64")}),
-                  .size = IntLitExpr{.value = I("10")},
+                  .size = IntLitExpr{.value = 10},
               }),
           }),
           S(ReturnStmt{
               .value = E(IntLitExpr{
-                  .value = I("0"),
+                  .value = 0,
               }),
           }),
       }),
@@ -1320,7 +1320,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "0",
+                                      .src_val = 0,
                                       .dst_reg = Reg(2, RegSize64),
                                   },
                                   MoveReg{
@@ -1345,7 +1345,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
       .stmts = StmtListOf({
           S(VarAssignStmt{
               .name = I("x"),
-              .expr = E(IntLitExpr{.value = I("2")}),
+              .expr = E(IntLitExpr{.value = 2}),
           }),
           S(ReturnStmt{
               .value = E(IdentExpr{.name = I("x")}),
@@ -1355,7 +1355,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   MoveReg{
@@ -1388,7 +1388,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
       .stmts = StmtListOf({
           S(VarAssignStmt{
               .name = I("x"),
-              .expr = E(IntLitExpr{.value = I("2")}),
+              .expr = E(IntLitExpr{.value = 2}),
           }),
           S(ReturnStmt{
               .value = E(IdentExpr{.name = I("x")}),
@@ -1398,7 +1398,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(3, RegSize64),
                                   },
                                   MoveReg{
@@ -1426,19 +1426,19 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
           S(LoopStmt{
               .stmts = StmtListOf({
                   S(ReturnStmt{
-                      .value = E(IntLitExpr{.value = I("1")}),
+                      .value = E(IntLitExpr{.value = 1}),
                   }),
               }),
           }),
           S(ReturnStmt{
-              .value = E(IntLitExpr{.value = I("2")}),
+              .value = E(IntLitExpr{.value = 2}),
           }),
       }),
   };
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "1",
+                                      .src_val = 1,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
                                   MoveReg{
@@ -1449,7 +1449,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                       .res_reg = Reg(1, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "2",
+                                      .src_val = 2,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   MoveReg{
@@ -1467,7 +1467,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
               .name = I("n"),
               .type_constraint = T(BasicType{.name = I("Int32")}),
               .init = E(IntLitExpr{
-                  .value = I("0"),
+                  .value = 0,
               }),
           }),
           S(LoopStmt{
@@ -1476,7 +1476,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                       .cond = E(BinaryOpExpr{
                           .op = BinaryOp::Gt,
                           .lhs = E(IdentExpr{.name = I("n")}),
-                          .rhs = E(IntLitExpr{.value = I("3")}),
+                          .rhs = E(IntLitExpr{.value = 3}),
                       }),
                       .then_stmts = StmtListOf({S(BreakStmt{})}),
                   }),
@@ -1485,7 +1485,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                       .expr = E(BinaryOpExpr{
                           .op = BinaryOp::Add,
                           .lhs = E(IdentExpr{.name = I("n")}),
-                          .rhs = E(IntLitExpr{.value = I("1")}),
+                          .rhs = E(IntLitExpr{.value = 1}),
                       }),
                   }),
               }),
@@ -1498,7 +1498,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
 
   EXPECT_THAT(Generate(func), ElementsAre(
                                   SetReg{
-                                      .src_val = "0",
+                                      .src_val = 0,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
                                   MoveReg{
@@ -1510,7 +1510,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                       .dst_reg = Reg(5, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "3",
+                                      .src_val = 3,
                                       .dst_reg = Reg(6, RegSize32),
                                   },
                                   GtReg{
@@ -1523,7 +1523,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                       .dst_reg = Reg(8, RegSize32),
                                   },
                                   SetReg{
-                                      .src_val = "1",
+                                      .src_val = 1,
                                       .dst_reg = Reg(9, RegSize32),
                                   },
                                   AddReg{

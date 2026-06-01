@@ -67,7 +67,7 @@ struct MoveReg {
 // Sets a value in a register.
 struct SetReg {
   // Source value.
-  std::string_view src_val;
+  int src_val;
 
   // Destination register.
   Reg dst_reg;
@@ -75,8 +75,8 @@ struct SetReg {
   bool operator==(const SetReg&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const SetReg& inst) {
-    return os << "SetReg { .src_val=\"" << inst.src_val
-              << "\", .dst_reg=" << inst.dst_reg << " }";
+    return os << "SetReg { .src_val=" << inst.src_val
+              << ", .dst_reg=" << inst.dst_reg << " }";
   }
 };
 

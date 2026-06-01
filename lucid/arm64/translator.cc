@@ -142,10 +142,10 @@ class Arm64BinaryGenerator {
                const SetReg& inst) {
     switch (inst.dst_reg.size) {
       case RegSize32:
-        assembler_.Mov(W(inst.dst_reg.id), ParseImm(inst.src_val));
+        assembler_.Mov(W(inst.dst_reg.id), Imm(inst.src_val));
         break;
       case RegSize64:
-        assembler_.Mov(X(inst.dst_reg.id), ParseImm(inst.src_val));
+        assembler_.Mov(X(inst.dst_reg.id), Imm(inst.src_val));
         break;
     }
   }

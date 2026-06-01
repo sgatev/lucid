@@ -1,8 +1,6 @@
 #include "lucid/vm/interpreter.h"
 
 #include <cassert>
-#include <charconv>
-#include <string>
 #include <variant>
 #include <vector>
 
@@ -132,9 +130,8 @@ Instruction Interpreter::Interpret(const FuncCall& inst) {
 
   values_.Set(inst.res->reg, result);
 
-  am_state_.literals.push_back(std::to_string(result));
   return SetReg{
-      .src_val = am_state_.literals.back(),
+      .src_val = result,
       .dst_reg = inst.res->reg,
   };
 }
@@ -200,10 +197,7 @@ Instruction Interpreter::Interpret(const Return& inst) {
 }
 
 Instruction Interpreter::Interpret(const SetReg& inst) {
-  int src_val;
-  std::from_chars(inst.src_val.begin(), inst.src_val.end(), src_val);
-
-  values_.Set(inst.dst_reg, src_val);
+  values_.Set(inst.dst_reg, inst.src_val);
   return inst;
 }
 

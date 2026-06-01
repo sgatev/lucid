@@ -106,7 +106,7 @@ struct LoopStmtPattern {
 
 struct IntLitExprPattern {
   TypeRefMatcher type;
-  StringIndex::Ref value;
+  int value;
 
   bool operator()(const IntLitExpr& expr) const {
     if (type != nullptr && !type(expr.type)) return false;

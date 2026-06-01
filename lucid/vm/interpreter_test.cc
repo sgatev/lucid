@@ -19,7 +19,7 @@ TEST(InterpretAbstractMachineFunctionTest, SetReg) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "21",
+                          .src_val = 21,
                           .dst_reg = Reg(1),
                       });
   g.AddEdge(a, z);
@@ -43,7 +43,7 @@ TEST(InterpretAbstractMachineFunctionTest, MoveReg) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "21",
+                          .src_val = 21,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, MoveReg{
@@ -71,11 +71,11 @@ TEST(InterpretAbstractMachineFunctionTest, AddReg) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "21",
+                          .src_val = 21,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "42",
+                          .src_val = 42,
                           .dst_reg = Reg(2),
                       });
   g.AddInstruction(a, AddReg{
@@ -104,11 +104,11 @@ TEST(InterpretAbstractMachineFunctionTest, SubReg) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "60",
+                          .src_val = 60,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "42",
+                          .src_val = 42,
                           .dst_reg = Reg(2),
                       });
   g.AddInstruction(a, SubReg{
@@ -137,11 +137,11 @@ TEST(InterpretAbstractMachineFunctionTest, MulReg) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "21",
+                          .src_val = 21,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "2",
+                          .src_val = 2,
                           .dst_reg = Reg(2),
                       });
   g.AddInstruction(a, MulReg{
@@ -170,11 +170,11 @@ TEST(InterpretAbstractMachineFunctionTest, DivReg) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "30",
+                          .src_val = 30,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "3",
+                          .src_val = 3,
                           .dst_reg = Reg(2),
                       });
   g.AddInstruction(a, DivReg{
@@ -203,11 +203,11 @@ TEST(InterpretAbstractMachineFunctionTest, GtReg) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "21",
+                          .src_val = 21,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "42",
+                          .src_val = 42,
                           .dst_reg = Reg(2),
                       });
   g.AddInstruction(a, GtReg{
@@ -236,11 +236,11 @@ TEST(InterpretAbstractMachineFunctionTest, LtReg) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "21",
+                          .src_val = 21,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "42",
+                          .src_val = 42,
                           .dst_reg = Reg(2),
                       });
   g.AddInstruction(a, LtReg{
@@ -269,11 +269,11 @@ TEST(InterpretAbstractMachineFunctionTest, EqReg) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "21",
+                          .src_val = 21,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "42",
+                          .src_val = 42,
                           .dst_reg = Reg(2),
                       });
   g.AddInstruction(a, EqReg{
@@ -302,11 +302,11 @@ TEST(InterpretAbstractMachineFunctionTest, NotEqReg) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "21",
+                          .src_val = 21,
                           .dst_reg = Reg(1),
                       });
   g.AddInstruction(a, SetReg{
-                          .src_val = "42",
+                          .src_val = 42,
                           .dst_reg = Reg(2),
                       });
   g.AddInstruction(a, NotEqReg{
@@ -337,13 +337,13 @@ TEST(InterpretAbstractMachineFunctionTest, Sequence) {
 
   g.SetFirst(a);
   g.AddInstruction(a, SetReg{
-                          .src_val = "21",
+                          .src_val = 21,
                           .dst_reg = Reg(1),
                       });
   g.AddEdge(a, b);
 
   g.AddInstruction(b, SetReg{
-                          .src_val = "42",
+                          .src_val = 42,
                           .dst_reg = Reg(2),
                       });
   g.AddEdge(b, c);
