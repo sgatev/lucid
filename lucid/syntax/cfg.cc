@@ -196,6 +196,11 @@ class ControlFlowGraphBuilder {
     // TODO: Does it make sense to have a `FuncDefStmt` as a nested statement?
   }
 
+  void ProcessStmt(const TypeDefStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {
+    // TODO: Does it make sense to have a `TypeDefStmt` as a nested statement?
+  }
+
   void ProcessStmt(const LoopStmt& stmt, Sequence& seq, BlockRef block,
                    BlockRef end) {}
 

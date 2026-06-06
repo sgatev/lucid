@@ -107,11 +107,6 @@ class Parser {
       return std::unexpected(std::get<ParserError>(maybe_name));
     }
 
-    FuncDefStmt stmt = {
-        .name = std::get<StringIndex::Ref>(maybe_name),
-        .is_comp = is_comp,
-    };
-
     SkipSpace();
 
     if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) {
@@ -119,6 +114,53 @@ class Parser {
     }
 
     SkipSpace();
+
+    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "tuple") {
+      Read();
+
+      SkipSpace();
+
+      std::uint8_t params_size = 0;
+      ParamRef first_param = Arena<FuncParam>::kNullRef;
+      if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) {
+        return std::unexpected(*r);
+      }
+      while (true) {
+        if (Peek().kind == Token::Kind::Comma) {
+          Read();
+
+          SkipSpace();
+        } else if (Peek().kind == Token::Kind::CloseParen) {
+          Read();
+          break;
+        }
+
+        if (Peek().kind != Token::Kind::Ident) {
+          return std::unexpected(MakeError(
+              ParserError::Kind::ExpectedClosingParenOrParam, Peek()));
+        }
+
+        auto maybe_param = ParseParam();
+        if (IsError(maybe_param)) {
+          return std::unexpected(std::get<ParserError>(maybe_param));
+        }
+        if (params_size == 0) first_param = std::get<ParamRef>(maybe_param);
+        ++params_size;
+      }
+
+      TypeRef type = syn_ctx_.Add(TupleType{
+          .fields = SuccessiveList<ParamRef>(params_size, first_param),
+      });
+      return TypeDefStmt{
+          .name = std::get<StringIndex::Ref>(maybe_name),
+          .type = type,
+      };
+    }
+
+    FuncDefStmt stmt = {
+        .name = std::get<StringIndex::Ref>(maybe_name),
+        .is_comp = is_comp,
+    };
 
     std::uint8_t params_size = 0;
     ParamRef first_param = Arena<FuncParam>::kNullRef;

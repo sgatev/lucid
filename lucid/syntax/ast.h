@@ -12,6 +12,7 @@
 namespace lucid {
 
 struct FuncDefStmt;
+struct TypeDefStmt;
 struct ReturnStmt;
 struct DoStmt;
 struct IntLitExpr;
@@ -28,11 +29,12 @@ struct IfStmt;
 struct LoopStmt;
 struct BasicType;
 struct ArrayType;
+struct TupleType;
 struct BreakStmt;
 struct FuncParam;
 
 // A type expression in the Lucid language.
-using Type = std::variant<BasicType, ArrayType>;
+using Type = std::variant<BasicType, ArrayType, TupleType>;
 
 // An expression in the Lucid language.
 using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
@@ -41,10 +43,10 @@ using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
 // A statement in the Lucid language.
 using Stmt =
     std::variant<VarDeclStmt, VarAssignStmt, ArrayAssignStmt, FuncDefStmt,
-                 ReturnStmt, DoStmt, IfStmt, LoopStmt, BreakStmt>;
+                 TypeDefStmt, ReturnStmt, DoStmt, IfStmt, LoopStmt, BreakStmt>;
 
 // A definition in the Lucid language.
-using Def = std::variant<FuncDefStmt>;
+using Def = std::variant<FuncDefStmt, TypeDefStmt>;
 
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
@@ -103,6 +105,15 @@ struct FuncDefStmt {
 
   // Whether the function can be evaluated during compilation.
   bool is_comp = false;
+};
+
+// A statement that represents a type definition.
+struct TypeDefStmt {
+  // Name of the type.
+  StringIndex::Ref name;
+
+  // Definition of the type.
+  TypeRef type;
 };
 
 // A statement that represents a return point in a function.
@@ -301,6 +312,12 @@ struct ArrayType {
 
   // Number of elements in the array.
   IntLitExpr size;
+};
+
+// A tuple type in the Lucid language.
+struct TupleType {
+  // Fields of the tuple.
+  SuccessiveList<ParamRef> fields;
 };
 
 // Returns the type of `expr`.

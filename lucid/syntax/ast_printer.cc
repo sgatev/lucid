@@ -13,20 +13,20 @@ namespace {
 
 class AstPrinter {
  public:
-  AstPrinter(const SyntaxContext& ctx, std::ostream& out)
-      : ctx_(ctx), out_(out) {}
+  AstPrinter(const SyntaxContext& syn_ctx, std::ostream& out)
+      : syn_ctx_(syn_ctx), out_(out) {}
 
   void Print(const FuncDefStmt& stmt) {
     Out() << Indent(indent_) << "FuncDefStmt {\n";
     Nested([&] {
-      Out() << Indent(indent_) << ".name = \"" << ctx_.DerefIdent(stmt.name)
+      Out() << Indent(indent_) << ".name = \"" << syn_ctx_.DerefIdent(stmt.name)
             << "\"\n";
 
       if (stmt.params.size() > 0) {
         Out() << Indent(indent_) << ".params = [\n";
         Nested([&] {
           for (ParamRef param_ref : stmt.params) {
-            Print(ctx_.DerefParam(param_ref));
+            Print(syn_ctx_.DerefParam(param_ref));
           }
         });
         Out() << Indent(indent_) << "]\n";
@@ -45,6 +45,32 @@ class AstPrinter {
     Out() << Indent(indent_) << "}\n";
   }
 
+  void Print(const TypeDefStmt& stmt) {
+    Out() << Indent(indent_) << "TypeDefStmt {\n";
+    Nested([&] {
+      Out() << Indent(indent_) << ".name = \"" << syn_ctx_.DerefIdent(stmt.name)
+            << "\"\n";
+
+      const Type& type = syn_ctx_.DerefType(stmt.type);
+      if (const auto* tuple = std::get_if<TupleType>(&type)) {
+        Out() << Indent(indent_) << ".type = tuple {\n";
+        Nested([&] {
+          if (tuple->fields.size() > 0) {
+            Out() << Indent(indent_) << ".fields = [\n";
+            Nested([&] {
+              for (ParamRef param_ref : tuple->fields) {
+                Print(syn_ctx_.DerefParam(param_ref));
+              }
+            });
+            Out() << Indent(indent_) << "]\n";
+          }
+        });
+        Out() << Indent(indent_) << "}\n";
+      }
+    });
+    Out() << Indent(indent_) << "}\n";
+  }
+
   void PrintStmt(StmtRef ref) {
     std::visit(
         [&](const auto& stmt) {
@@ -52,7 +78,7 @@ class AstPrinter {
                 << ": " << ResetColor;
           Print(stmt);
         },
-        ctx_.DerefStmt(ref));
+        syn_ctx_.DerefStmt(ref));
   }
 
   void PrintExpr(ExprRef ref) {
@@ -62,15 +88,15 @@ class AstPrinter {
                 << ": " << ResetColor;
           Print(expr);
         },
-        ctx_.DerefExpr(ref));
+        syn_ctx_.DerefExpr(ref));
   }
 
  private:
   void Print(const FuncParam& param) {
     Out() << Indent(indent_) << "FuncParam {\n";
     Nested([&] {
-      Out() << Indent(indent_) << ".name = \"" << ctx_.DerefIdent(param.name)
-            << "\"\n";
+      Out() << Indent(indent_) << ".name = \""
+            << syn_ctx_.DerefIdent(param.name) << "\"\n";
     });
     Out() << Indent(indent_) << "}\n";
   }
@@ -78,7 +104,7 @@ class AstPrinter {
   void Print(const VarDeclStmt& stmt) {
     Out() << "VarDeclStmt {\n";
     Nested([&] {
-      Out() << Indent(indent_) << ".name = \"" << ctx_.DerefIdent(stmt.name)
+      Out() << Indent(indent_) << ".name = \"" << syn_ctx_.DerefIdent(stmt.name)
             << "\"\n";
 
       if (stmt.init.has_value()) {
@@ -93,7 +119,7 @@ class AstPrinter {
   void Print(const VarAssignStmt& stmt) {
     Out() << "VarAssignStmt {\n";
     Nested([&] {
-      Out() << Indent(indent_) << ".name = \"" << ctx_.DerefIdent(stmt.name)
+      Out() << Indent(indent_) << ".name = \"" << syn_ctx_.DerefIdent(stmt.name)
             << "\"\n";
 
       Out() << Indent(indent_) << ".expr = {\n";
@@ -106,7 +132,7 @@ class AstPrinter {
   void Print(const ArrayAssignStmt& stmt) {
     Out() << "ArrayAssignStmt {\n";
     Nested([&] {
-      Out() << Indent(indent_) << ".name = \"" << ctx_.DerefIdent(stmt.name)
+      Out() << Indent(indent_) << ".name = \"" << syn_ctx_.DerefIdent(stmt.name)
             << "\"\n";
 
       Out() << Indent(indent_) << ".index = {\n";
@@ -182,7 +208,7 @@ class AstPrinter {
     Out() << "FuncCallExpr {\n";
     Nested([&] {
       Out() << Indent(indent_) << ".func_name = \""
-            << ctx_.DerefIdent(expr.func_name) << "\"\n";
+            << syn_ctx_.DerefIdent(expr.func_name) << "\"\n";
 
       if (expr.args.size() > 0) {
         Out() << Indent(indent_) << ".args = [\n";
@@ -215,7 +241,7 @@ class AstPrinter {
     Out() << "StringLitExpr {\n";
     Nested([&] {
       Out() << Indent(indent_) << ".value = " << SetColor(Color::Green)
-            << ctx_.DerefIdent(expr.value) << ResetColor << "\n";
+            << syn_ctx_.DerefIdent(expr.value) << ResetColor << "\n";
     });
     Out() << Indent(indent_) << "}\n";
   }
@@ -223,7 +249,7 @@ class AstPrinter {
   void Print(const IdentExpr& expr) {
     Out() << "IdentExpr {\n";
     Nested([&] {
-      Out() << Indent(indent_) << ".name = \"" << ctx_.DerefIdent(expr.name)
+      Out() << Indent(indent_) << ".name = \"" << syn_ctx_.DerefIdent(expr.name)
             << "\"\n";
     });
     Out() << Indent(indent_) << "}\n";
@@ -295,7 +321,7 @@ class AstPrinter {
 
   std::ostream& Out() { return out_; }
 
-  const SyntaxContext ctx_;
+  const SyntaxContext syn_ctx_;
   std::ostream& out_;
   int indent_ = 0;
 };

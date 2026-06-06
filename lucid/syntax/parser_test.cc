@@ -23,6 +23,16 @@ MATCHER_P(HoldsFuncDef, match_stmt, "") {
   return match_stmt(*func_def);
 }
 
+MATCHER_P(HoldsTypeDef, match_stmt, "") {
+  auto* def = std::get_if<lucid::Def>(&arg);
+  if (def == nullptr) return false;
+
+  auto* type_def = std::get_if<lucid::TypeDefStmt>(def);
+  if (type_def == nullptr) return false;
+
+  return match_stmt(*type_def);
+}
+
 MATCHER_P(HoldsError, match_err, "") {
   auto* err = std::get_if<std::string>(&arg);
   if (err == nullptr) return false;
@@ -1154,6 +1164,44 @@ TEST_F(ParserTest, ArrayParam) {
               })));
 }
 
+TEST_F(ParserTest, EmptyTuple) {
+  std::string_view src = R"(
+    let Empty = tuple ()
+  )";
+  EXPECT_THAT(Parse(src), HoldsTypeDef(MatchesTypeDefStmt({
+                              .name = I("Empty"),
+                              .type = MatchesTupleType({
+                                  .fields = {},
+                              }),
+                          })));
+}
+
+TEST_F(ParserTest, Tuple) {
+  std::string_view src = R"(
+    let Point = tuple (x: Int32, y: Int32)
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsTypeDef(MatchesTypeDefStmt({
+                  .name = I("Point"),
+                  .type = MatchesTupleType({
+                      .fields =
+                          {
+                              MatchesFuncParam({
+                                  .name = I("x"),
+                                  .type_constraint =
+                                      MatchesBasicType({.name = I("Int32")}),
+                              }),
+                              MatchesFuncParam({
+                                  .name = I("y"),
+                                  .type_constraint =
+                                      MatchesBasicType({.name = I("Int32")}),
+                              }),
+                          },
+
+                  }),
+              })));
+}
+
 TEST_F(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
     = () -> Void {
@@ -1425,6 +1473,82 @@ TEST_F(ParserTest, MissingLoopCloseBrace) {
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 7, column 3"));
+}
+
+TEST_F(ParserTest, TupleDefMissingLet) {
+  std::string_view src = R"(
+    = tuple (x: Int32, y: Int32)
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected 'let' keyword at line 2, column 5"));
+}
+
+TEST_F(ParserTest, TupleDefMissingName) {
+  std::string_view src = R"(
+    let = ()
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected identifier at line 2, column 9"));
+}
+
+TEST_F(ParserTest, TupleDefMissingEqual) {
+  std::string_view src = R"(
+    let Foo ()
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 13"));
+}
+
+TEST_F(ParserTest, TupleDefMissingOpeningParen) {
+  std::string_view src = R"(
+    let Foo = )
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 15"));
+}
+
+TEST_F(ParserTest, TupleDefMissingParamName) {
+  std::string_view src = R"(
+    let Foo = (: Int32)
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
+                                     "parameter at line 2, column 16"));
+}
+
+TEST_F(ParserTest, TupleDefMissingParamColon) {
+  std::string_view src = R"(
+    let Foo = (x Int32)
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 17"));
+}
+
+TEST_F(ParserTest, TupleDefMissingParamType) {
+  std::string_view src = R"(
+    let Foo = (x:)
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected identifier at line 2, column 18"));
+}
+
+TEST_F(ParserTest, TupleDefMissingParamColonAndType) {
+  std::string_view src = R"(
+    let id = (x)
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 16"));
+}
+
+TEST_F(ParserTest, TupleDefMissingNextParam) {
+  std::string_view src = R"(
+    let Foo = (x: Int32,)
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
+                                     "parameter at line 2, column 25"));
+}
+
+TEST_F(ParserTest, TupleDefMissingClosingParen) {
+  std::string_view src = R"(
+    let main = (
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
+                                     "parameter at line 2, column 17"));
 }
 
 }  // namespace

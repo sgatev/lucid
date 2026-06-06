@@ -74,6 +74,16 @@ struct FuncDefStmtPattern {
   }
 };
 
+struct TypeDefStmtPattern {
+  StringIndex::Ref name;
+  TypeRefMatcher type;
+
+  bool operator()(const TypeDefStmt& stmt) const {
+    if (type != nullptr && !type(stmt.type)) return false;
+    return name == stmt.name;
+  }
+};
+
 struct DoStmtPattern {
   ExprRefMatcher expr;
 
@@ -218,6 +228,14 @@ struct ArrayTypePattern {
   }
 };
 
+struct TupleTypePattern {
+  std::vector<ParamRefMatcher> fields;
+
+  bool operator()(const TupleType& type) const {
+    return AllMatch(type.fields, fields);
+  }
+};
+
 class AstFixture {
  protected:
   // Allocates the statement `stmt` on an arena.
@@ -325,6 +343,11 @@ class AstFixture {
     return [pattern](FuncDefStmt stmt) { return pattern(stmt); };
   }
 
+  std::function<bool(TypeDefStmt)> MatchesTypeDefStmt(
+      TypeDefStmtPattern pattern) {
+    return [pattern](TypeDefStmt stmt) { return pattern(stmt); };
+  }
+
   StmtRefMatcher MatchesDoStmt(DoStmtPattern pattern) {
     return MatchesStmt<DoStmt>(std::move(pattern));
   }
@@ -385,6 +408,10 @@ class AstFixture {
 
   TypeRefMatcher MatchesArrayType(ArrayTypePattern pattern) {
     return MatchesType<ArrayType>(std::move(pattern));
+  }
+
+  TypeRefMatcher MatchesTupleType(TupleTypePattern pattern) {
+    return MatchesType<TupleType>(std::move(pattern));
   }
 
   ParamRefMatcher MatchesFuncParam(FuncParamPattern pattern) {
