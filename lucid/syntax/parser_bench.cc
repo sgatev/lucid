@@ -1,6 +1,9 @@
 #include <cstddef>
+#include <expected>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "benchmark/benchmark.h"
 #include "lucid/syntax/ast.h"
@@ -26,7 +29,14 @@ void Benchmark(benchmark::State& state, std::string_view snippet) {
     lucid::Parser parser(ctx, code, lexer);
     std::size_t count = 0;
     for (int i = 0; i < kSnippetRepetitions; ++i) {
-      if (parser.ParseFuncDef().has_value()) ++count;
+      std::expected<std::optional<lucid::Def>, lucid::ParserError>
+          def_or_error = parser.ParseDef();
+      if (!def_or_error.has_value()) break;
+
+      std::optional<lucid::Def> maybe_def = std::move(def_or_error).value();
+      if (!maybe_def.has_value()) break;
+
+      ++count;
     }
     benchmark::DoNotOptimize(count);
   }

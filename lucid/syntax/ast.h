@@ -43,6 +43,9 @@ using Stmt =
     std::variant<VarDeclStmt, VarAssignStmt, ArrayAssignStmt, FuncDefStmt,
                  ReturnStmt, DoStmt, IfStmt, LoopStmt, BreakStmt>;
 
+// A definition in the Lucid language.
+using Def = std::variant<FuncDefStmt>;
+
 // A reference to a statement that can be dereferenced using an `Arena<Stmt>`
 // object.
 using StmtRef = Arena<Stmt>::Ref;

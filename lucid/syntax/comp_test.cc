@@ -1,6 +1,10 @@
 #include "lucid/syntax/comp.h"
 
+#include <cassert>
+#include <expected>
+#include <optional>
 #include <utility>
+#include <variant>
 
 #include "gtest/gtest.h"
 #include "lucid/syntax/ast.h"
@@ -21,11 +25,20 @@ class CompCheckTest : public testing::Test, public AstFixture {
 
     std::vector<FuncDefStmt> func_defs;
     for (Parser parser(syn_ctx_, src, Lexer(code_with_null));;) {
-      auto maybe_func_def_stmt = parser.ParseFuncDef();
-      auto ref = std::move(maybe_func_def_stmt).value();
-      if (!ref.has_value()) break;
+      std::expected<std::optional<Def>, ParserError> def_or_error =
+          parser.ParseDef();
+      if (!def_or_error.has_value()) {
+        return std::unexpected(CompError("failed to parse definition"));
+      }
 
-      func_defs.push_back(std::move(*ref));
+      std::optional<Def> maybe_def = std::move(def_or_error).value();
+      if (!maybe_def.has_value()) break;
+
+      Def def = std::move(maybe_def).value();
+      assert(std::holds_alternative<FuncDefStmt>(def));
+
+      auto func_def = std::get<FuncDefStmt>(std::move(def));
+      func_defs.push_back(std::move(func_def));
     }
 
     FuncDefStmt* test_func_def = nullptr;

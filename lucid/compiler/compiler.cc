@@ -1,5 +1,6 @@
 #include "lucid/compiler/compiler.h"
 
+#include <cassert>
 #include <cstdlib>
 #include <expected>
 #include <format>
@@ -9,6 +10,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "lucid/am/cfg.h"
@@ -84,11 +86,18 @@ std::expected<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
   BufferedLexer<Lexer> lexer(Lexer{src});
   Parser parser(ctx, src, lexer);
   while (true) {
-    std::expected<std::optional<FuncDefStmt>, ParserError> func_def =
-        parser.ParseFuncDef();
-    if (!func_def.has_value()) return std::unexpected(func_def.error());
-    if (!func_def->has_value()) break;
-    func_defs.push_back(std::move(func_def)->value());
+    std::expected<std::optional<Def>, ParserError> def_or_error =
+        parser.ParseDef();
+    if (!def_or_error.has_value()) return std::unexpected(def_or_error.error());
+
+    std::optional<Def> maybe_def = std::move(def_or_error).value();
+    if (!maybe_def.has_value()) break;
+
+    Def def = std::move(maybe_def).value();
+    assert(std::holds_alternative<FuncDefStmt>(def));
+
+    auto func_def = std::get<FuncDefStmt>(std::move(def));
+    func_defs.push_back(std::move(func_def));
   }
   return func_defs;
 }

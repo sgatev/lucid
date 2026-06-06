@@ -1,5 +1,6 @@
 #include "lucid/syntax/parser.h"
 
+#include <expected>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -13,9 +14,13 @@
 #include "lucid/syntax/lexer.h"
 
 MATCHER_P(HoldsFuncDef, match_stmt, "") {
-  auto* stmt = std::get_if<lucid::FuncDefStmt>(&arg);
-  if (stmt == nullptr) return false;
-  return match_stmt(*stmt);
+  auto* def = std::get_if<lucid::Def>(&arg);
+  if (def == nullptr) return false;
+
+  auto* func_def = std::get_if<lucid::FuncDefStmt>(def);
+  if (func_def == nullptr) return false;
+
+  return match_stmt(*func_def);
 }
 
 MATCHER_P(HoldsError, match_err, "") {
@@ -31,18 +36,22 @@ using namespace std::string_literals;
 
 class ParserTest : public testing::Test, public AstFixture {
  protected:
-  std::variant<FuncDefStmt, std::string> Parse(std::string_view src) {
+  std::variant<Def, std::string> Parse(std::string_view src) {
     std::string code_with_null(src);
     code_with_null.append("\0"s);
 
-    auto maybe_func_def_stmt =
-        Parser(syn_ctx_, src, Lexer(code_with_null)).ParseFuncDef();
-    if (!maybe_func_def_stmt.has_value()) {
+    std::expected<std::optional<Def>, ParserError> def_or_error =
+        Parser(syn_ctx_, src, Lexer(code_with_null)).ParseDef();
+    if (!def_or_error.has_value()) {
       std::stringstream out;
-      out << maybe_func_def_stmt.error();
+      out << def_or_error.error();
       return out.str();
     }
-    return maybe_func_def_stmt.value().value();
+
+    std::optional<Def> maybe_def = std::move(def_or_error).value();
+    if (!maybe_def.has_value()) return "no definition";
+
+    return maybe_def.value();
   }
 };
 

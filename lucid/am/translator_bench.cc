@@ -1,6 +1,9 @@
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <string_view>
+#include <utility>
+#include <variant>
 
 #include "benchmark/benchmark.h"
 #include "lucid/am/translator.h"
@@ -24,13 +27,24 @@ std::size_t CountInstructions(const lucid::SyntaxContext& syn_ctx,
 
 void Benchmark(benchmark::State& state, std::string_view code) {
   lucid::SyntaxContext ctx;
-  auto func_def =
-      lucid::Parser(ctx, code, lucid::Lexer(code)).ParseFuncDef().value();
-  auto graph = BuildControlFlowGraph(ctx, func_def.value());
+
+  std::expected<std::optional<lucid::Def>, lucid::ParserError> def_or_error =
+      lucid::Parser(ctx, code, lucid::Lexer(code)).ParseDef();
+  assert(def_or_error.has_value());
+
+  std::optional<lucid::Def> maybe_def = std::move(def_or_error).value();
+  assert(maybe_def.has_value());
+
+  lucid::Def def = std::move(maybe_def).value();
+  assert(std::holds_alternative<lucid::FuncDefStmt>(def));
+
+  auto func_def = std::get<lucid::FuncDefStmt>(std::move(def));
+  lucid::SyntaxControlFlowGraph syn_cfg =
+      lucid::BuildControlFlowGraph(ctx, func_def);
   lucid::AbstractMachineState am_state;
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(CountInstructions(ctx, graph, am_state));
+    benchmark::DoNotOptimize(CountInstructions(ctx, syn_cfg, am_state));
   }
 
   state.SetBytesProcessed(std::int64_t(state.iterations()) *

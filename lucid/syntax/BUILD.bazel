@@ -232,7 +232,6 @@ cc_binary(
     name = "parser_bench",
     srcs = ["parser_bench.cc"],
     deps = [
-        ":ast",
         ":buffered_lexer",
         ":lexer",
         ":parser",

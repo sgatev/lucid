@@ -83,7 +83,7 @@ class Parser {
         lexer_(std::move(lexer)),
         next_(lexer_.next()) {}
 
-  std::expected<std::optional<FuncDefStmt>, ParserError> ParseFuncDef() {
+  std::expected<std::optional<Def>, ParserError> ParseDef() {
     SkipSpace();
 
     if (Peek().kind == Token::Kind::End) return std::optional<FuncDefStmt>();
