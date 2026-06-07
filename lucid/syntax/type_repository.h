@@ -17,11 +17,14 @@ class TypeRepository {
   // Adds a type to the repository.
   TypeRef Add(Type type);
 
-  // Returns a reference to the type that `name` resolves to.
-  TypeRef Resolve(StringIndex::Ref name) const;
-
   // Returns the type that `ref` refers to.
   const Type& Deref(TypeRef ref) const;
+
+  // Registers a type with the given name.
+  void Register(StringIndex::Ref name, TypeRef ref);
+
+  // Returns a reference to the type that `name` resolves to.
+  TypeRef Resolve(StringIndex::Ref name) const;
 
   // Returns the number of types in the repository.
   std::size_t Size() const;

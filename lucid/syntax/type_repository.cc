@@ -1,6 +1,5 @@
 #include "lucid/syntax/type_repository.h"
 
-#include <optional>
 #include <string_view>
 #include <utility>
 #include <variant>
@@ -21,25 +20,23 @@ TypeRepository::TypeRepository(StringIndex& idents) : idents_(idents) {
       {.name = "Double", .size = 8}, {.name = "String", .size = 8},
   };
   for (const auto& type : kBuiltinTypes) {
-    Add(BasicType{.name = idents_.ref(type.name), .size = type.size});
+    StringIndex::Ref name = idents_.ref(type.name);
+    TypeRef ref = Add(BasicType{.name = name, .size = type.size});
+    Register(name, ref);
   }
 }
 
-TypeRef TypeRepository::Add(Type type) {
-  std::optional<StringIndex::Ref> name;
-  if (const auto* basic_type = std::get_if<BasicType>(&type)) {
-    name = basic_type->name;
-  }
-  TypeRef ref = types_.Add(std::move(type));
-  if (name.has_value()) name_to_type_.Insert(*name, ref);
-  return ref;
+TypeRef TypeRepository::Add(Type type) { return types_.Add(std::move(type)); }
+
+const Type& TypeRepository::Deref(TypeRef ref) const { return types_.Get(ref); }
+
+void TypeRepository::Register(StringIndex::Ref name, TypeRef ref) {
+  name_to_type_.Insert(name, ref);
 }
 
 TypeRef TypeRepository::Resolve(StringIndex::Ref name) const {
   return name_to_type_.Get(name).value_or(Arena<Type>::kNullRef);
 }
-
-const Type& TypeRepository::Deref(TypeRef ref) const { return types_.Get(ref); }
 
 std::size_t TypeRepository::Size() const { return types_.Size(); }
 

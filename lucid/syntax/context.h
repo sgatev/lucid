@@ -100,6 +100,11 @@ class SyntaxContext {
     return **func_defs_.Get(name);
   }
 
+  // Registers a type with the given name.
+  void RegisterType(StringIndex::Ref name, TypeRef ref) {
+    types_.Register(name, ref);
+  }
+
   std::size_t Size() const {
     return stmts_.Size() + exprs_.Size() + types_.Size();
   }

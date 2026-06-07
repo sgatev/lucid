@@ -74,6 +74,8 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func_def->name),
                                 am_cfg.stack_slots, am_cfg, assembler);
       am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), std::move(am_cfg));
+    } else if (const auto* type_def = std::get_if<TypeDefStmt>(&def)) {
+      syn_ctx.RegisterType(type_def->name, type_def->type);
     }
   }
   GenerateArmEndBinary(syn_ctx, am_state.strings, assembler);

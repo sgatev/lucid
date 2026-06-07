@@ -284,6 +284,8 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
       Print(syn_ctx.DerefIdent(func_def->name), am_cfg, ctx.Out());
       am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), std::move(am_cfg));
       has_printed_func = true;
+    } else if (const auto* type_def = std::get_if<TypeDefStmt>(&def)) {
+      syn_ctx.RegisterType(type_def->name, type_def->type);
     }
   }
 

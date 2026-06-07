@@ -41,13 +41,11 @@ TEST(TypeRepositoryTest, ResolveCustom) {
   StringIndex i;
   TypeRepository r(i);
 
-  TypeRef foo_ref = r.Add(BasicType{.name = i.ref("Foo"), .size = 4});
+  TypeRef foo_ref = r.Add(TupleType{});
+  r.Register(i.ref("Foo"), foo_ref);
   EXPECT_EQ(r.Size(), 7);
   EXPECT_EQ(r.Resolve(i.ref("Foo")), foo_ref);
-  EXPECT_THAT(r.Deref(foo_ref), VariantWith<BasicType>(BasicType{
-                                    .name = i.ref("Foo"),
-                                    .size = 4,
-                                }));
+  EXPECT_THAT(r.Deref(foo_ref), VariantWith<TupleType>(TupleType{}));
 }
 
 }  // namespace

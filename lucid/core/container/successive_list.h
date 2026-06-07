@@ -70,6 +70,10 @@ class SuccessiveList {
 
   SuccessiveList(std::uint32_t size, T first) : size_(size), first_(first) {}
 
+  bool operator==(const SuccessiveList& other) const {
+    return begin() == other.begin() && end() == other.end();
+  }
+
   // Returns the value at the given index.
   T operator[](std::uint32_t i) const { return first_ + i; }
 

@@ -318,6 +318,8 @@ struct ArrayType {
 struct TupleType {
   // Fields of the tuple.
   SuccessiveList<ParamRef> fields;
+
+  bool operator==(const TupleType&) const = default;
 };
 
 // Returns the type of `expr`.
