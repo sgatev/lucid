@@ -4,7 +4,6 @@
 #include <ostream>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/context.h"
@@ -30,11 +29,9 @@ class CompError {
 // Returns an error if `stmt` does not meet compilation requirements.
 //
 // Requires:
-// - `func_defs` must be associated with `syn_ctx`.
 // - `stmt` must be associated with `syn_ctx`.
 // - All functions called from `stmt` must be in `func_defs`.
-std::expected<void, CompError> CheckComp(
-    const std::vector<FuncDefStmt>& func_defs, SyntaxContext& syn_ctx,
-    FuncDefStmt& stmt);
+std::expected<void, CompError> CheckComp(SyntaxContext& syn_ctx,
+                                         FuncDefStmt& stmt);
 
 }  // namespace lucid

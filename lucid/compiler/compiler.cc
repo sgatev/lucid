@@ -43,26 +43,22 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       ParseDefs(src, syn_ctx);
   if (!defs_or_error) return std::unexpected(defs_or_error.error());
 
-  std::vector<FuncDefStmt> func_defs;
-  func_defs.reserve(defs_or_error->size());
   AbstractMachineState am_state;
   HashMap<std::string_view, AbstractMachineControlFlowGraph> am_cfgs;
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
   for (auto& def : *defs_or_error) {
-    if (auto* fd = std::get_if<FuncDefStmt>(&def)) {
-      func_defs.push_back(std::move(*fd));
-      auto& func_def = func_defs.back();
+    if (auto* func_def = std::get_if<FuncDefStmt>(&def)) {
+      syn_ctx.AddFuncDef(*func_def);
 
-      if (auto res = InferExprTypes(syn_ctx, func_defs, func_def);
-          !res.has_value()) {
+      if (auto res = InferExprTypes(syn_ctx, *func_def); !res.has_value()) {
         return std::unexpected(res.error());
       }
-      if (auto res = CheckComp(func_defs, syn_ctx, func_def);
-          !res.has_value()) {
+      if (auto res = CheckComp(syn_ctx, *func_def); !res.has_value()) {
         return std::unexpected(res.error());
       }
-      SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func_def);
+      SyntaxControlFlowGraph syn_cfg =
+          BuildControlFlowGraph(syn_ctx, *func_def);
       ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
       AbstractMachineControlFlowGraph am_cfg =
           GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
@@ -75,9 +71,9 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       HashMap<Reg, int> am_ig_colors =
           ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
       MergeRegisters(am_ig_colors, am_cfg);
-      GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func_def.name),
+      GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func_def->name),
                                 am_cfg.stack_slots, am_cfg, assembler);
-      am_cfgs.Insert(syn_ctx.DerefIdent(func_def.name), std::move(am_cfg));
+      am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), std::move(am_cfg));
     }
   }
   GenerateArmEndBinary(syn_ctx, am_state.strings, assembler);

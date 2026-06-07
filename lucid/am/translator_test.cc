@@ -19,9 +19,8 @@ using ::testing::ElementsAre;
 class GenerateAbstractMachineFunctionTest : public testing::Test,
                                             public AstFixture {
  protected:
-  std::vector<Instruction> Generate(
-      FuncDefStmt& func, const std::vector<FuncDefStmt>& func_defs = {}) {
-    InferExprTypes(syn_ctx_, func_defs, func);
+  std::vector<Instruction> Generate(FuncDefStmt& func) {
+    InferExprTypes(syn_ctx_, func);
     auto graph = BuildControlFlowGraph(syn_ctx_, func);
     AbstractMachineState state;
     AbstractMachineControlFlowGraph am_cfg =
@@ -103,6 +102,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
       }),
       .result_type = T("Int32"),
   };
+  syn_ctx_.AddFuncDef(id_func);
 
   auto func = FuncDefStmt{
       .name = I("foo"),
@@ -119,31 +119,30 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
       }),
   };
 
-  EXPECT_THAT(Generate(func, {id_func}),
-              ElementsAre(
-                  SetReg{
-                      .src_val = 21,
-                      .dst_reg = Reg(2, RegSize32),
-                  },
-                  FuncCall{
-                      .label = "id",
-                      .args =
-                          {
-                              {
-                                  .reg = Reg(2, RegSize32),
-                              },
-                          },
-                      .res = std::optional<FuncCall::Slot>({
-                          .reg = Reg(3, RegSize32),
-                      }),
-                  },
-                  MoveReg{
-                      .src_reg = Reg(3, RegSize32),
-                      .dst_reg = Reg(1, RegSize32),
-                  },
-                  Return{
-                      .res_reg = Reg(1, RegSize32),
-                  }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = 21,
+                                      .dst_reg = Reg(2, RegSize32),
+                                  },
+                                  FuncCall{
+                                      .label = "id",
+                                      .args =
+                                          {
+                                              {
+                                                  .reg = Reg(2, RegSize32),
+                                              },
+                                          },
+                                      .res = std::optional<FuncCall::Slot>({
+                                          .reg = Reg(3, RegSize32),
+                                      }),
+                                  },
+                                  MoveReg{
+                                      .src_reg = Reg(3, RegSize32),
+                                      .dst_reg = Reg(1, RegSize32),
+                                  },
+                                  Return{
+                                      .res_reg = Reg(1, RegSize32),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
@@ -157,6 +156,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
       }),
       .result_type = T("Int64"),
   };
+  syn_ctx_.AddFuncDef(id_func);
 
   auto func = FuncDefStmt{
       .name = I("foo"),
@@ -173,31 +173,30 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
       }),
   };
 
-  EXPECT_THAT(Generate(func, {id_func}),
-              ElementsAre(
-                  SetReg{
-                      .src_val = 21,
-                      .dst_reg = Reg(2, RegSize64),
-                  },
-                  FuncCall{
-                      .label = "id",
-                      .args =
-                          {
-                              {
-                                  .reg = Reg(2, RegSize64),
-                              },
-                          },
-                      .res = std::optional<FuncCall::Slot>({
-                          .reg = Reg(3, RegSize64),
-                      }),
-                  },
-                  MoveReg{
-                      .src_reg = Reg(3, RegSize64),
-                      .dst_reg = Reg(1, RegSize64),
-                  },
-                  Return{
-                      .res_reg = Reg(1, RegSize64),
-                  }));
+  EXPECT_THAT(Generate(func), ElementsAre(
+                                  SetReg{
+                                      .src_val = 21,
+                                      .dst_reg = Reg(2, RegSize64),
+                                  },
+                                  FuncCall{
+                                      .label = "id",
+                                      .args =
+                                          {
+                                              {
+                                                  .reg = Reg(2, RegSize64),
+                                              },
+                                          },
+                                      .res = std::optional<FuncCall::Slot>({
+                                          .reg = Reg(3, RegSize64),
+                                      }),
+                                  },
+                                  MoveReg{
+                                      .src_reg = Reg(3, RegSize64),
+                                      .dst_reg = Reg(1, RegSize64),
+                                  },
+                                  Return{
+                                      .res_reg = Reg(1, RegSize64),
+                                  }));
 }
 
 TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {

@@ -19,12 +19,8 @@ namespace {
 
 class ExprTypeInferenceEngine {
  public:
-  ExprTypeInferenceEngine(SyntaxContext& syn_ctx,
-                          const std::vector<FuncDefStmt>& func_defs,
-                          FuncDefStmt& func_def)
-      : syn_ctx_(syn_ctx), func_def_(func_def) {
-    for (const auto& func : func_defs) func_defs_.Set(func.name, &func);
-  }
+  ExprTypeInferenceEngine(SyntaxContext& syn_ctx, FuncDefStmt& func_def)
+      : syn_ctx_(syn_ctx), func_def_(func_def) {}
 
   std::expected<void, TypeError> InferTypes() {
     for (const auto& param_ref : func_def_.params) {
@@ -145,14 +141,14 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
-    const auto& func_def = *func_defs_.Get(expr.func_name);
+    const auto& func_def = syn_ctx_.GetFuncDef(expr.func_name);
     for (std::uint32_t i = 0; i < expr.args.size(); ++i) {
-      const auto& param = syn_ctx_.DerefParam(func_def->params[i]);
+      const auto& param = syn_ctx_.DerefParam(func_def.params[i]);
       ExprRef arg = expr.args[i];
       RequireTypeForExpr(arg, param.type_constraint);
       AddPendingExpr(arg);
     }
-    RequireTypeForExpr(expr_ref, func_def->result_type);
+    RequireTypeForExpr(expr_ref, func_def.result_type);
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
@@ -288,7 +284,6 @@ class ExprTypeInferenceEngine {
   }
 
   SyntaxContext& syn_ctx_;
-  HashMap<StringIndex::Ref, const FuncDefStmt*> func_defs_;
   FuncDefStmt& func_def_;
 
   HashMap<ExprRef, ExprRef> expr_from_expr_;
@@ -305,10 +300,9 @@ class ExprTypeInferenceEngine {
 
 }  // namespace
 
-std::expected<void, TypeError> InferExprTypes(
-    SyntaxContext& syn_ctx, const std::vector<FuncDefStmt>& func_defs,
-    FuncDefStmt& func_def) {
-  return ExprTypeInferenceEngine(syn_ctx, func_defs, func_def).InferTypes();
+std::expected<void, TypeError> InferExprTypes(SyntaxContext& syn_ctx,
+                                              FuncDefStmt& func_def) {
+  return ExprTypeInferenceEngine(syn_ctx, func_def).InferTypes();
 }
 
 }  // namespace lucid

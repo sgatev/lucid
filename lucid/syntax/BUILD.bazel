@@ -31,6 +31,7 @@ cc_library(
         ":ast",
         ":context",
         "//lucid/core/container:arena",
+        "//lucid/core/container:hash_map",
         "//lucid/core/container:successive_list",
         "//lucid/core/string:index",
         "@googletest//:gtest",

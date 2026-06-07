@@ -18,9 +18,8 @@ MATCHER_P(HoldsFuncDef, match_stmt, "") { return match_stmt(arg); }
 
 class InferExprTypesTest : public testing::Test, public AstFixture {
  protected:
-  std::expected<void, TypeError> InferExprTypes(
-      FuncDefStmt& stmt, const std::vector<FuncDefStmt>& func_defs = {}) {
-    return ::lucid::InferExprTypes(syn_ctx_, func_defs, stmt);
+  std::expected<void, TypeError> InferExprTypes(FuncDefStmt& stmt) {
+    return ::lucid::InferExprTypes(syn_ctx_, stmt);
   }
 };
 
@@ -239,6 +238,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
       }),
       .result_type = T("Int32"),
   };
+  syn_ctx_.AddFuncDef(id_func);
 
   auto func = FuncDefStmt{
       .name = I("foo"),
@@ -257,7 +257,7 @@ TEST_F(InferExprTypesTest, FuncArgFromParamType) {
       }),
   };
 
-  EXPECT_TRUE(InferExprTypes(func, {id_func}).has_value());
+  EXPECT_TRUE(InferExprTypes(func).has_value());
   EXPECT_THAT(
       func, HoldsFuncDef(
                 MatchesFuncDefStmt({

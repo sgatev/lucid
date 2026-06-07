@@ -4,7 +4,6 @@
 #include <ostream>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/context.h"
@@ -31,11 +30,9 @@ class TypeError {
 // Returns an error if types in `stmt` are incompatible.
 //
 // Requires:
-// - `func_defs` must be associated with `syn_ctx`.
 // - `stmt` must be associated with `syn_ctx`.
 // - All functions called from `stmt` must be in `func_defs`.
-std::expected<void, TypeError> InferExprTypes(
-    SyntaxContext& syn_ctx, const std::vector<FuncDefStmt>& func_defs,
-    FuncDefStmt& stmt);
+std::expected<void, TypeError> InferExprTypes(SyntaxContext& syn_ctx,
+                                              FuncDefStmt& stmt);
 
 }  // namespace lucid

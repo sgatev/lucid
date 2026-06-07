@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "lucid/core/container/arena.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/type_repository.h"
@@ -89,6 +90,16 @@ class SyntaxContext {
     return params_.Equiv(lhs, rhs);
   }
 
+  // Adds a function definition.
+  void AddFuncDef(const FuncDefStmt& func_def) {
+    func_defs_.Set(func_def.name, &func_def);
+  }
+
+  // Returns the definition of the function with the given name.
+  const FuncDefStmt& GetFuncDef(StringIndex::Ref name) const {
+    return **func_defs_.Get(name);
+  }
+
   std::size_t Size() const {
     return stmts_.Size() + exprs_.Size() + types_.Size();
   }
@@ -100,6 +111,7 @@ class SyntaxContext {
   std::list<std::string> unique_idents_;
   StringIndex idents_;
   TypeRepository types_;
+  HashMap<StringIndex::Ref, const FuncDefStmt*> func_defs_;
 };
 
 }  // namespace lucid

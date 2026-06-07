@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <expected>
+#include <list>
 #include <optional>
 #include <utility>
 #include <variant>
@@ -23,7 +24,7 @@ class CompCheckTest : public testing::Test, public AstFixture {
     std::string code_with_null(src);
     code_with_null.append("\0"s);
 
-    std::vector<FuncDefStmt> func_defs;
+    std::list<FuncDefStmt> func_defs;
     for (Parser parser(syn_ctx_, src, Lexer(code_with_null));;) {
       std::expected<std::optional<Def>, ParserError> def_or_error =
           parser.ParseDef();
@@ -39,6 +40,7 @@ class CompCheckTest : public testing::Test, public AstFixture {
 
       auto func_def = std::get<FuncDefStmt>(std::move(def));
       func_defs.push_back(std::move(func_def));
+      syn_ctx_.AddFuncDef(func_defs.back());
     }
 
     FuncDefStmt* test_func_def = nullptr;
@@ -48,7 +50,7 @@ class CompCheckTest : public testing::Test, public AstFixture {
       }
     }
 
-    return lucid::CheckComp(func_defs, syn_ctx_, *test_func_def);
+    return lucid::CheckComp(syn_ctx_, *test_func_def);
   }
 };
 

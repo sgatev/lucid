@@ -245,27 +245,23 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   }
   auto& defs = defs_or_error.value();
 
-  std::vector<FuncDefStmt> func_defs;
-  func_defs.reserve(defs_or_error->size());
   AbstractMachineState am_state;
   HashMap<std::string_view, AbstractMachineControlFlowGraph> am_cfgs;
 
   for (bool has_printed_func = false; auto& def : defs) {
-    if (auto* fd = std::get_if<FuncDefStmt>(&def)) {
-      func_defs.push_back(std::move(*fd));
-      auto& func_def = func_defs.back();
+    if (auto* func_def = std::get_if<FuncDefStmt>(&def)) {
+      syn_ctx.AddFuncDef(*func_def);
 
-      if (auto res = InferExprTypes(syn_ctx, func_defs, func_def);
-          !res.has_value()) {
+      if (auto res = InferExprTypes(syn_ctx, *func_def); !res.has_value()) {
         ctx.Err() << res.error() << "\n";
         return 1;
       }
-      if (auto res = CheckComp(func_defs, syn_ctx, func_def);
-          !res.has_value()) {
+      if (auto res = CheckComp(syn_ctx, *func_def); !res.has_value()) {
         ctx.Err() << res.error() << "\n";
         return 1;
       }
-      SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func_def);
+      SyntaxControlFlowGraph syn_cfg =
+          BuildControlFlowGraph(syn_ctx, *func_def);
       ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
 
       AbstractMachineControlFlowGraph am_cfg =
@@ -285,8 +281,8 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
       }
 
       if (has_printed_func) std::cout << "\n";
-      Print(syn_ctx.DerefIdent(func_def.name), am_cfg, ctx.Out());
-      am_cfgs.Insert(syn_ctx.DerefIdent(func_def.name), std::move(am_cfg));
+      Print(syn_ctx.DerefIdent(func_def->name), am_cfg, ctx.Out());
+      am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), std::move(am_cfg));
       has_printed_func = true;
     }
   }
