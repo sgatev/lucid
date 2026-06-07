@@ -14,8 +14,8 @@ namespace lucid {
 template <typename... Ts>
 using CompositeError = std::variant<Ts...>;
 
-std::expected<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
-    std::string_view src, SyntaxContext& ctx);
+std::expected<std::vector<Def>, ParserError> ParseDefs(std::string_view src,
+                                                       SyntaxContext& ctx);
 
 struct CompileConfig {
   std::filesystem::path src_path;

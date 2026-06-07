@@ -109,21 +109,19 @@ int HandleParseCommand(CommandContext ctx) {
             ss << err;
             return std::unexpected(ss.str());
           })
-      .and_then([](std::string src)
-                    -> std::expected<std::vector<FuncDefStmt>, std::string> {
-        SyntaxContext sctx;
-        return ParseFuncDefs(src, sctx).or_else(
-            [](ParserError err)
-                -> std::expected<std::vector<FuncDefStmt>, std::string> {
-              std::stringstream ss;
-              ss << err;
-              return std::unexpected(ss.str());
-            });
-      })
       .and_then(
-          [](std::vector<FuncDefStmt>) -> std::expected<int, std::string> {
-            return 0;
+          [](std::string src) -> std::expected<std::vector<Def>, std::string> {
+            SyntaxContext syn_ctx;
+            return ParseDefs(src, syn_ctx)
+                .or_else([](ParserError err)
+                             -> std::expected<std::vector<Def>, std::string> {
+                  std::stringstream ss;
+                  ss << err;
+                  return std::unexpected(ss.str());
+                });
           })
+      .and_then(
+          [](std::vector<Def>) -> std::expected<int, std::string> { return 0; })
       .or_else([&](std::string err) -> std::expected<int, std::string> {
         ctx.Err() << err << "\n";
         return 1;
@@ -148,26 +146,31 @@ int HandlePrintAstCommand(CommandContext ctx) {
   }
   const auto& src = maybe_src.value();
 
-  SyntaxContext sctx;
-  auto maybe_funcs = ParseFuncDefs(src, sctx);
-  if (!maybe_funcs.has_value()) {
-    ctx.Err() << maybe_funcs.error() << "\n";
+  SyntaxContext syn_ctx;
+  std::expected<std::vector<Def>, ParserError> defs_or_error =
+      ParseDefs(src, syn_ctx);
+  if (!defs_or_error.has_value()) {
+    ctx.Err() << defs_or_error.error() << "\n";
     return 1;
   }
-  const auto& func_defs = maybe_funcs.value();
+  const auto& defs = defs_or_error.value();
 
   if (id) {
     if (id->front() == 'S') {
-      PrintStmt(sctx, std::stoi(std::string(id->substr(1))), ctx.Out());
+      PrintStmt(syn_ctx, std::stoi(std::string(id->substr(1))), ctx.Out());
     } else if (id->front() == 'E') {
-      PrintExpr(sctx, std::stoi(std::string(id->substr(1))), ctx.Out());
+      PrintExpr(syn_ctx, std::stoi(std::string(id->substr(1))), ctx.Out());
     } else {
       ctx.Err() << "second argument to 'print-ast' command must be "
                    "either 'S<index>' or 'E<index>'\n";
       return 1;
     }
   } else {
-    for (const auto& func_def : func_defs) Print(sctx, func_def, ctx.Out());
+    for (const auto& def : defs) {
+      if (const auto* func_def = std::get_if<FuncDefStmt>(&def)) {
+        Print(syn_ctx, *func_def, ctx.Out());
+      }
+    }
   }
 
   return 0;
@@ -192,18 +195,22 @@ int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
   }
   const auto& src = maybe_src.value();
 
-  SyntaxContext sctx;
-  auto maybe_funcs = ParseFuncDefs(src, sctx);
-  if (!maybe_funcs.has_value()) {
-    ctx.Err() << maybe_funcs.error() << "\n";
+  SyntaxContext syn_ctx;
+  std::expected<std::vector<Def>, ParserError> defs_or_error =
+      ParseDefs(src, syn_ctx);
+  if (!defs_or_error.has_value()) {
+    ctx.Err() << defs_or_error.error() << "\n";
     return 1;
   }
-  const auto& func_defs = maybe_funcs.value();
+  const auto& defs = defs_or_error.value();
 
-  for (const auto& func_def : func_defs) {
-    auto graph = BuildControlFlowGraph(sctx, func_def);
-    ConvertToStaticSingleAssignment(sctx, graph);
-    Print(sctx, graph, ctx.Out());
+  for (const auto& def : defs) {
+    if (const auto* func_def = std::get_if<FuncDefStmt>(&def)) {
+      SyntaxControlFlowGraph syn_cfg =
+          BuildControlFlowGraph(syn_ctx, *func_def);
+      ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
+      Print(syn_ctx, syn_cfg, ctx.Out());
+    }
   }
 
   return 0;
@@ -230,49 +237,58 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   const auto& src = maybe_src.value();
 
   SyntaxContext syn_ctx;
-  auto maybe_funcs = ParseFuncDefs(src, syn_ctx);
-  if (!maybe_funcs.has_value()) {
-    ctx.Err() << maybe_funcs.error() << "\n";
+  std::expected<std::vector<Def>, ParserError> defs_or_error =
+      ParseDefs(src, syn_ctx);
+  if (!defs_or_error.has_value()) {
+    ctx.Err() << defs_or_error.error() << "\n";
     return 1;
   }
-  auto& func_defs = maybe_funcs.value();
+  auto& defs = defs_or_error.value();
 
-  AbstractMachineState state;
+  std::vector<FuncDefStmt> func_defs;
+  func_defs.reserve(defs_or_error->size());
+  AbstractMachineState am_state;
   HashMap<std::string_view, AbstractMachineControlFlowGraph> am_cfgs;
 
-  for (bool has_printed_func = false; auto& func_def : func_defs) {
-    if (auto res = InferExprTypes(syn_ctx, func_defs, func_def);
-        !res.has_value()) {
-      ctx.Err() << res.error() << "\n";
-      return 1;
-    }
-    if (auto res = CheckComp(func_defs, syn_ctx, func_def); !res.has_value()) {
-      ctx.Err() << res.error() << "\n";
-      return 1;
-    }
-    SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func_def);
-    ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
+  for (bool has_printed_func = false; auto& def : defs) {
+    if (auto* fd = std::get_if<FuncDefStmt>(&def)) {
+      func_defs.push_back(std::move(*fd));
+      auto& func_def = func_defs.back();
 
-    AbstractMachineControlFlowGraph am_cfg =
-        GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, state);
-    for (auto& block : am_cfg.Blocks()) {
-      OptimizeAbstractMachineInstructions(block.instructions);
-    }
-    static constexpr int kArmRegistersCount = 10;
-    if (ctx.Flag("regs") == "spill") {
-      SpillRegisters(am_cfg, state, kArmRegistersCount);
-    } else if (ctx.Flag("regs") == "merge") {
-      SpillRegisters(am_cfg, state, kArmRegistersCount);
-      HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);
-      HashMap<Reg, int> am_ig_colors =
-          ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
-      MergeRegisters(am_ig_colors, am_cfg);
-    }
+      if (auto res = InferExprTypes(syn_ctx, func_defs, func_def);
+          !res.has_value()) {
+        ctx.Err() << res.error() << "\n";
+        return 1;
+      }
+      if (auto res = CheckComp(func_defs, syn_ctx, func_def);
+          !res.has_value()) {
+        ctx.Err() << res.error() << "\n";
+        return 1;
+      }
+      SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func_def);
+      ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
 
-    if (has_printed_func) std::cout << "\n";
-    Print(syn_ctx.DerefIdent(func_def.name), am_cfg, ctx.Out());
-    am_cfgs.Insert(syn_ctx.DerefIdent(func_def.name), std::move(am_cfg));
-    has_printed_func = true;
+      AbstractMachineControlFlowGraph am_cfg =
+          GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
+      for (auto& block : am_cfg.Blocks()) {
+        OptimizeAbstractMachineInstructions(block.instructions);
+      }
+      static constexpr int kArmRegistersCount = 10;
+      if (ctx.Flag("regs") == "spill") {
+        SpillRegisters(am_cfg, am_state, kArmRegistersCount);
+      } else if (ctx.Flag("regs") == "merge") {
+        SpillRegisters(am_cfg, am_state, kArmRegistersCount);
+        HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);
+        HashMap<Reg, int> am_ig_colors =
+            ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
+        MergeRegisters(am_ig_colors, am_cfg);
+      }
+
+      if (has_printed_func) std::cout << "\n";
+      Print(syn_ctx.DerefIdent(func_def.name), am_cfg, ctx.Out());
+      am_cfgs.Insert(syn_ctx.DerefIdent(func_def.name), std::move(am_cfg));
+      has_printed_func = true;
+    }
   }
 
   return 0;

@@ -39,39 +39,46 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
                                                 std::ostream& out) {
   SyntaxContext syn_ctx;
 
-  std::expected<std::vector<FuncDefStmt>, CompileError> func_defs =
-      ParseFuncDefs(src, syn_ctx);
-  if (!func_defs) return std::unexpected(func_defs.error());
+  std::expected<std::vector<Def>, CompileError> defs_or_error =
+      ParseDefs(src, syn_ctx);
+  if (!defs_or_error) return std::unexpected(defs_or_error.error());
 
+  std::vector<FuncDefStmt> func_defs;
+  func_defs.reserve(defs_or_error->size());
   AbstractMachineState am_state;
   HashMap<std::string_view, AbstractMachineControlFlowGraph> am_cfgs;
-
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
-  for (auto& func : *func_defs) {
-    if (auto res = InferExprTypes(syn_ctx, *func_defs, func);
-        !res.has_value()) {
-      return std::unexpected(res.error());
+  for (auto& def : *defs_or_error) {
+    if (auto* fd = std::get_if<FuncDefStmt>(&def)) {
+      func_defs.push_back(std::move(*fd));
+      auto& func_def = func_defs.back();
+
+      if (auto res = InferExprTypes(syn_ctx, func_defs, func_def);
+          !res.has_value()) {
+        return std::unexpected(res.error());
+      }
+      if (auto res = CheckComp(func_defs, syn_ctx, func_def);
+          !res.has_value()) {
+        return std::unexpected(res.error());
+      }
+      SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func_def);
+      ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
+      AbstractMachineControlFlowGraph am_cfg =
+          GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
+      for (auto& block : am_cfg.Blocks()) {
+        OptimizeAbstractMachineInstructions(block.instructions);
+      }
+      static constexpr int kArmRegistersCount = 10;
+      SpillRegisters(am_cfg, am_state, kArmRegistersCount);
+      HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);
+      HashMap<Reg, int> am_ig_colors =
+          ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
+      MergeRegisters(am_ig_colors, am_cfg);
+      GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func_def.name),
+                                am_cfg.stack_slots, am_cfg, assembler);
+      am_cfgs.Insert(syn_ctx.DerefIdent(func_def.name), std::move(am_cfg));
     }
-    if (auto res = CheckComp(*func_defs, syn_ctx, func); !res.has_value()) {
-      return std::unexpected(res.error());
-    }
-    SyntaxControlFlowGraph syn_cfg = BuildControlFlowGraph(syn_ctx, func);
-    ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
-    AbstractMachineControlFlowGraph am_cfg =
-        GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
-    for (auto& block : am_cfg.Blocks()) {
-      OptimizeAbstractMachineInstructions(block.instructions);
-    }
-    static constexpr int kArmRegistersCount = 10;
-    SpillRegisters(am_cfg, am_state, kArmRegistersCount);
-    HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);
-    HashMap<Reg, int> am_ig_colors =
-        ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
-    MergeRegisters(am_ig_colors, am_cfg);
-    GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func.name), am_cfg.stack_slots,
-                              am_cfg, assembler);
-    am_cfgs.Insert(syn_ctx.DerefIdent(func.name), std::move(am_cfg));
   }
   GenerateArmEndBinary(syn_ctx, am_state.strings, assembler);
   WriteCompiledMachObject(assembler, out);
@@ -80,9 +87,9 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
 
 }  // namespace
 
-std::expected<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
-    std::string_view src, SyntaxContext& ctx) {
-  std::vector<FuncDefStmt> func_defs;
+std::expected<std::vector<Def>, ParserError> ParseDefs(std::string_view src,
+                                                       SyntaxContext& ctx) {
+  std::vector<Def> defs;
   BufferedLexer<Lexer> lexer(Lexer{src});
   Parser parser(ctx, src, lexer);
   while (true) {
@@ -93,13 +100,9 @@ std::expected<std::vector<FuncDefStmt>, ParserError> ParseFuncDefs(
     std::optional<Def> maybe_def = std::move(def_or_error).value();
     if (!maybe_def.has_value()) break;
 
-    Def def = std::move(maybe_def).value();
-    assert(std::holds_alternative<FuncDefStmt>(def));
-
-    auto func_def = std::get<FuncDefStmt>(std::move(def));
-    func_defs.push_back(std::move(func_def));
+    defs.push_back(std::move(maybe_def).value());
   }
-  return func_defs;
+  return defs;
 }
 
 std::expected<void, CompileError> CompileCode(CompileConfig config) {
