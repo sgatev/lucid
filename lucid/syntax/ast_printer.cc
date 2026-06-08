@@ -146,6 +146,21 @@ class AstPrinter {
     Out() << Indent(indent_) << "}\n";
   }
 
+  void Print(const FieldAssignStmt& stmt) {
+    Out() << "TupleFieldAssignStmt {\n";
+    Nested([&] {
+      Out() << Indent(indent_) << ".tuple_name = E" << stmt.base << "\n";
+
+      Out() << Indent(indent_) << ".field_name = \""
+            << syn_ctx_.DerefIdent(stmt.field_name) << "\"\n";
+
+      Out() << Indent(indent_) << ".expr = {\n";
+      Nested([&] { PrintExpr(stmt.expr); });
+      Out() << Indent(indent_) << "}\n";
+    });
+    Out() << Indent(indent_) << "}\n";
+  }
+
   void Print(const ReturnStmt& stmt) {
     Out() << "ReturnStmt {\n";
     Nested([&] {
@@ -265,6 +280,19 @@ class AstPrinter {
       Out() << Indent(indent_) << ".index = {\n";
       Nested([&] { PrintExpr(expr.index); });
       Out() << Indent(indent_) << "}\n";
+    });
+    Out() << Indent(indent_) << "}\n";
+  }
+
+  void Print(const FieldAccessExpr& expr) {
+    Out() << "FieldAccessExpr {\n";
+    Nested([&] {
+      Out() << Indent(indent_) << ".base = {\n";
+      Nested([&] { PrintExpr(expr.base); });
+      Out() << Indent(indent_) << "}\n";
+
+      Out() << Indent(indent_) << ".field_name = '"
+            << syn_ctx_.DerefIdent(expr.field_name) << "'\n";
     });
     Out() << Indent(indent_) << "}\n";
   }

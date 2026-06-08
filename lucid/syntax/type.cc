@@ -1,5 +1,6 @@
 #include "lucid/syntax/type.h"
 
+#include <cassert>
 #include <cstdint>
 #include <expected>
 #include <optional>
@@ -82,6 +83,9 @@ class ExprTypeInferenceEngine {
       ProcessPendingStmt(stmt_ref, *var_assign_stmt);
     } else if (auto* array_assign_stmt = std::get_if<ArrayAssignStmt>(&stmt)) {
       ProcessPendingStmt(stmt_ref, *array_assign_stmt);
+    } else if (auto* tuple_field_assign_stmt =
+                   std::get_if<FieldAssignStmt>(&stmt)) {
+      ProcessPendingStmt(stmt_ref, *tuple_field_assign_stmt);
     }
   }
 
@@ -124,6 +128,12 @@ class ExprTypeInferenceEngine {
     AddPendingExpr(stmt.expr);
   }
 
+  void ProcessPendingStmt(StmtRef stmt_ref, const FieldAssignStmt& stmt) {
+    AddPendingExpr(stmt.base);
+    RequireFieldTypeForExpr(stmt.expr, stmt.base, stmt.field_name);
+    AddPendingExpr(stmt.expr);
+  }
+
   void ProcessPendingExpr(ExprRef expr_ref, const Expr& expr) {
     if (auto* func_call_expr = std::get_if<FuncCallExpr>(&expr)) {
       ProcessPendingExpr(expr_ref, *func_call_expr);
@@ -135,6 +145,8 @@ class ExprTypeInferenceEngine {
       ProcessPendingExpr(expr_ref, *ident_expr);
     } else if (auto* index_expr = std::get_if<IndexExpr>(&expr)) {
       ProcessPendingExpr(expr_ref, *index_expr);
+    } else if (auto* field_access_expr = std::get_if<FieldAccessExpr>(&expr)) {
+      ProcessPendingExpr(expr_ref, *field_access_expr);
     } else if (auto* binary_op_expr = std::get_if<BinaryOpExpr>(&expr)) {
       ProcessPendingExpr(expr_ref, *binary_op_expr);
     }
@@ -168,6 +180,11 @@ class ExprTypeInferenceEngine {
     AddPendingExpr(expr.base);
     RequireArrayElementTypeForExpr(expr_ref, expr.base);
     AddPendingExpr(expr.index);
+  }
+
+  void ProcessPendingExpr(ExprRef expr_ref, const FieldAccessExpr& expr) {
+    AddPendingExpr(expr.base);
+    RequireFieldTypeForExpr(expr_ref, expr.base, expr.field_name);
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {
@@ -207,6 +224,11 @@ class ExprTypeInferenceEngine {
 
   void RequireArrayElementTypeForExpr(ExprRef element, ExprRef array) {
     expr_from_array_.Set(element, array);
+  }
+
+  void RequireFieldTypeForExpr(ExprRef element, ExprRef base,
+                               StringIndex::Ref field_name) {
+    expr_from_field_.Set(element, std::make_pair(base, field_name));
   }
 
   void SetIdentType(StringIndex::Ref ident, TypeRef type_ref) {
@@ -265,6 +287,21 @@ class ExprTypeInferenceEngine {
         }
       }
 
+      for (auto [element, base_field] : expr_from_field_) {
+        auto [base, field_name] = base_field;
+        if (auto it = expr_from_type_.Get(base); it.has_value()) {
+          if (const auto* tuple_type =
+                  std::get_if<TupleType>(&syn_ctx_.DerefType(*it))) {
+            for (const auto& field_ref : tuple_type->fields) {
+              const auto& field = syn_ctx_.DerefParam(field_ref);
+              if (field.name == field_name) {
+                expr_from_type_.Set(element, field.type_constraint);
+              }
+            }
+          }
+        }
+      }
+
       HashMap<ExprRef, ExprRef> next_expr_from_expr;
       for (auto [lhs, rhs] : expr_from_expr_) {
         if (auto it = expr_from_type_.Get(rhs); it.has_value()) {
@@ -290,6 +327,7 @@ class ExprTypeInferenceEngine {
   HashMap<ExprRef, TypeRef> expr_from_type_;
   HashMap<StringIndex::Ref, TypeRef> ident_from_type_;
   HashMap<ExprRef, ExprRef> expr_from_array_;
+  HashMap<ExprRef, std::pair<ExprRef, StringIndex::Ref>> expr_from_field_;
 
   std::vector<StmtRef> pending_stmts_;
   std::vector<ExprRef> pending_exprs_;

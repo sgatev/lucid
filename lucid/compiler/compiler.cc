@@ -6,6 +6,7 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <list>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -39,16 +40,25 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
                                                 std::ostream& out) {
   SyntaxContext syn_ctx;
 
-  std::expected<std::vector<Def>, CompileError> defs_or_error =
-      ParseDefs(src, syn_ctx);
-  if (!defs_or_error) return std::unexpected(defs_or_error.error());
+  std::list<Def> defs;
+  BufferedLexer<Lexer> lexer(Lexer{src});
+  Parser parser(syn_ctx, src, lexer);
 
   AbstractMachineState am_state;
   HashMap<std::string_view, AbstractMachineControlFlowGraph> am_cfgs;
   arm64::Assembler assembler;
   GenerateArmStartBinary(assembler);
-  for (auto& def : *defs_or_error) {
-    if (auto* func_def = std::get_if<FuncDefStmt>(&def)) {
+  while (true) {
+    std::expected<std::optional<Def>, ParserError> def_or_error =
+        parser.ParseDef();
+    if (!def_or_error.has_value()) return std::unexpected(def_or_error.error());
+
+    std::optional<Def> maybe_def = std::move(def_or_error).value();
+    if (!maybe_def.has_value()) break;
+
+    defs.push_back(std::move(maybe_def).value());
+
+    if (auto* func_def = std::get_if<FuncDefStmt>(&defs.back())) {
       syn_ctx.AddFuncDef(*func_def);
 
       if (auto res = InferExprTypes(syn_ctx, *func_def); !res.has_value()) {
@@ -74,7 +84,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func_def->name),
                                 am_cfg.stack_slots, am_cfg, assembler);
       am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), std::move(am_cfg));
-    } else if (const auto* type_def = std::get_if<TypeDefStmt>(&def)) {
+    } else if (const auto* type_def = std::get_if<TypeDefStmt>(&defs.back())) {
       syn_ctx.RegisterType(type_def->name, type_def->type);
     }
   }

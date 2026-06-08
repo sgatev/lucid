@@ -55,6 +55,8 @@ void PrintSequence(int indent, const SyntaxContext& ctx,
       out << "IdentExpr { .name = '" << ctx.DerefIdent(e->name) << "' }";
     } else if (std::holds_alternative<IndexExpr>(expr)) {
       out << "IndexExpr";
+    } else if (std::holds_alternative<FieldAccessExpr>(expr)) {
+      out << "FieldAccessExpr";
     } else if (auto* s = std::get_if<BinaryOpExpr>(&expr)) {
       out << "BinaryOpExpr { .op = " << to_string(s->op) << ", .lhs = E"
           << s->lhs << ", .rhs = E" << s->rhs << " }";
@@ -76,6 +78,9 @@ void PrintSequence(int indent, const SyntaxContext& ctx,
           << "', .expr = E" << s->expr << " }";
     } else if (std::holds_alternative<ArrayAssignStmt>(stmt)) {
       out << "ArrayAssignStmt";
+    } else if (auto* s = std::get_if<FieldAssignStmt>(&stmt)) {
+      out << "TupleFieldAssignStmt { .tuple = E" << s->base
+          << ", .field_name = '" << ctx.DerefIdent(s->field_name) << "' }";
     } else if (std::holds_alternative<FuncDefStmt>(stmt)) {
       out << "FuncDefStmt";
     } else if (auto* s = std::get_if<ReturnStmt>(&stmt)) {

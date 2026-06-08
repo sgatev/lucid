@@ -156,6 +156,10 @@ class ControlFlowGraphBuilder {
     ProcessSubExpr(expr.index);
   }
 
+  void ProcessExpr(const FieldAccessExpr& expr, BlockRef block, BlockRef end) {
+    ProcessSubExpr(expr.base);
+  }
+
   void ProcessExpr(const BinaryOpExpr& expr, BlockRef block, BlockRef end) {
     ProcessSubExpr(expr.lhs);
     ProcessSubExpr(expr.rhs);
@@ -188,6 +192,12 @@ class ControlFlowGraphBuilder {
   void ProcessStmt(const ArrayAssignStmt& stmt, Sequence& seq, BlockRef block,
                    BlockRef end) {
     ProcessSubExpr(stmt.index);
+    ProcessSubExpr(stmt.expr);
+  }
+
+  void ProcessStmt(const FieldAssignStmt& stmt, Sequence& seq, BlockRef block,
+                   BlockRef end) {
+    ProcessSubExpr(stmt.base);
     ProcessSubExpr(stmt.expr);
   }
 

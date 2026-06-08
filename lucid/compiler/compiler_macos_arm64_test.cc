@@ -742,5 +742,19 @@ TEST_F(CompilerTest, Comp) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(210));
 }
 
+TEST_F(CompilerTest, Tuple) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    let Point = tuple (x: Int32, y: Int32)
+
+    let main = () -> Int32 {
+      let p: Point
+      p.x = 21
+      p.y = 42
+      return p.x + p.y
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(63));
+}
+
 }  // namespace
 }  // namespace lucid

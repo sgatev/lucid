@@ -453,6 +453,34 @@ class Parser {
       return MakeError(ParserError::Kind::UnexpectedToken, Peek());
     }
 
+    if (Peek().kind == Token::Kind::Dot) {
+      Read();
+
+      const auto maybe_field_name = ParseIdent();
+      if (IsError(maybe_field_name)) {
+        return std::get<ParserError>(maybe_field_name);
+      }
+
+      SkipSpace();
+
+      if (Peek().kind == Token::Kind::Equal) {
+        Read();
+
+        SkipSpace();
+
+        const auto expr = ParseExpr();
+        if (IsError(expr)) return std::get<ParserError>(expr);
+
+        return FieldAssignStmt{
+            .base = syn_ctx_.Add(IdentExpr{.name = ident}),
+            .field_name = std::get<StringIndex::Ref>(maybe_field_name),
+            .expr = syn_ctx_.Add(std::get<Expr>(expr)),
+        };
+      }
+
+      return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+    }
+
     SkipSpace();
 
     if (Peek().kind == Token::Kind::Equal) {
@@ -568,6 +596,24 @@ class Parser {
           .base = syn_ctx_.Add(std::get<Expr>(maybe_expr)),
           .index = syn_ctx_.Add(std::get<Expr>(maybe_size)),
       };
+
+      SkipSpace();
+    }
+
+    if (Peek().kind == Token::Kind::Dot) {
+      Read();
+
+      const auto maybe_field_name = ParseIdent();
+      if (IsError(maybe_field_name)) {
+        return std::get<ParserError>(maybe_field_name);
+      }
+
+      maybe_expr = FieldAccessExpr{
+          .base = syn_ctx_.Add(std::get<Expr>(maybe_expr)),
+          .field_name = std::get<StringIndex::Ref>(maybe_field_name),
+      };
+
+      SkipSpace();
     }
 
     if (Peek().kind == Token::Kind::Plus) {

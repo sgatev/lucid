@@ -21,9 +21,11 @@ struct StringLitExpr;
 struct FuncCallExpr;
 struct VarDeclStmt;
 struct ArrayAssignStmt;
+struct FieldAssignStmt;
 struct VarAssignStmt;
 struct IdentExpr;
 struct IndexExpr;
+struct FieldAccessExpr;
 struct BinaryOpExpr;
 struct IfStmt;
 struct LoopStmt;
@@ -38,12 +40,12 @@ using Type = std::variant<BasicType, ArrayType, TupleType>;
 
 // An expression in the Lucid language.
 using Expr = std::variant<FuncCallExpr, IntLitExpr, BoolLitExpr, StringLitExpr,
-                          IdentExpr, IndexExpr, BinaryOpExpr>;
+                          IdentExpr, IndexExpr, FieldAccessExpr, BinaryOpExpr>;
 
 // A statement in the Lucid language.
-using Stmt =
-    std::variant<VarDeclStmt, VarAssignStmt, ArrayAssignStmt, FuncDefStmt,
-                 TypeDefStmt, ReturnStmt, DoStmt, IfStmt, LoopStmt, BreakStmt>;
+using Stmt = std::variant<VarDeclStmt, VarAssignStmt, ArrayAssignStmt,
+                          FieldAssignStmt, FuncDefStmt, TypeDefStmt, ReturnStmt,
+                          DoStmt, IfStmt, LoopStmt, BreakStmt>;
 
 // A definition in the Lucid language.
 using Def = std::variant<FuncDefStmt, TypeDefStmt>;
@@ -192,6 +194,18 @@ struct ArrayAssignStmt {
   ExprRef expr;
 };
 
+// A statement that represents assignment of an expression to a field.
+struct FieldAssignStmt {
+  // Base of the field.
+  ExprRef base;
+
+  // Name of the field.
+  StringIndex::Ref field_name;
+
+  // Assigned expression.
+  ExprRef expr;
+};
+
 // An expression that represents an identifier.
 struct IdentExpr : public ExprBase {
   // Name of the identifier.
@@ -205,6 +219,15 @@ struct IndexExpr : public ExprBase {
 
   // Index of the indexing operation.
   ExprRef index;
+};
+
+// An expression that represents a field access operation.
+struct FieldAccessExpr : public ExprBase {
+  // Base of the field.
+  ExprRef base;
+
+  // Name of the field.
+  StringIndex::Ref field_name;
 };
 
 // A binary operation kind.
