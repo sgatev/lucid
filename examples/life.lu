@@ -1,12 +1,12 @@
-let printString = (s: String) -> Int32 {
+fun printString(s: String): Int32 {
   return 0
 }
 
-let sleep = (n: Int32) -> Int32 {
+fun sleep(n: Int32): Int32 {
   return 0
 }
 
-let main = () -> Int32 {
+fun main(): Int32 {
   let current: Int32[200]
   let next: Int32[200]
 

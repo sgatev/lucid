@@ -32,7 +32,7 @@ Available commands:
 
 TEST_F(CompilerTest, PrintAst) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return 0
     }
   )"));
@@ -54,7 +54,7 @@ TEST_F(CompilerTest, PrintAst) {
 
 TEST_F(CompilerTest, PrintAstNode) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return 0
     }
   )"));
@@ -67,7 +67,7 @@ TEST_F(CompilerTest, PrintAstNode) {
 
 TEST_F(CompilerTest, PrintCfg) {
   ASSERT_TRUE(CreateFile("max.lu", R"(
-    let max = (a: Int32, b: Int32) -> Int32 {
+    fun max(a: Int32, b: Int32): Int32 {
       let c: Int32 = 0
       if a > b {
         c = a
@@ -173,19 +173,19 @@ TEST_F(CompilerTest, UnknownFile) {
 
 TEST_F(CompilerTest, ParseError) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let main = ( -> Int32 {
+    fun main(: Int32 {
       return 0
     }
   )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
               AllOf(ReturnsCode(1), PrintsError(FormattedError(StartsWith(
                                         "expected closing parenthesis or "
-                                        "parameter at line 2, column 17\n")))));
+                                        "parameter at line 2, column 14\n")))));
 }
 
 TEST_F(CompilerTest, TypeError) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return true
     }
   )"));

@@ -1,4 +1,4 @@
-let gcd = (a: Int32, b: Int32) -> Int32 {
+fun gcd(a: Int32, b: Int32): Int32 {
   loop {
     if a == b {
       break
@@ -11,6 +11,6 @@ let gcd = (a: Int32, b: Int32) -> Int32 {
   return a
 }
 
-let main = () -> Int32 {
+fun main(): Int32 {
   return gcd(252, 105)
 }

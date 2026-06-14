@@ -1,8 +1,8 @@
-let printString = (s: String) -> Int32 {
+fun printString(s: String): Int32 {
   return 0
 }
 
-let rule = (a: Int32, b: Int32, c: Int32) -> Int32 {
+fun rule(a: Int32, b: Int32, c: Int32): Int32 {
   if a == 1 {
     if b == 1 {
       if c == 1 {
@@ -34,7 +34,7 @@ let rule = (a: Int32, b: Int32, c: Int32) -> Int32 {
   }
 }
 
-let main = () -> Int32 {
+fun main(): Int32 {
   let buffer: Int32[101]
 
   let col: Int32 = 0

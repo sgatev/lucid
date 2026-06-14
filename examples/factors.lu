@@ -1,8 +1,8 @@
-let printString = (s: String) -> Int32 {
+fun printString(s: String): Int32 {
   return 0
 }
 
-let printInt32 = (i: Int32) -> Int32 {
+fun printInt32(i: Int32): Int32 {
   if i > 9 { do printInt32(i / 10) }
 
   let j: Int32 = i % 10
@@ -19,7 +19,7 @@ let printInt32 = (i: Int32) -> Int32 {
   return 0
 }
 
-let factors = (n: Int32) -> Int32 {
+fun factors(n: Int32): Int32 {
   let i: Int32 = 2
   loop {
     if i == n {
@@ -36,7 +36,7 @@ let factors = (n: Int32) -> Int32 {
   return 0
 }
 
-let main = () -> Int32 {
+fun main(): Int32 {
   do factors(42)
   return 0
 }

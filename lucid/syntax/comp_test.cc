@@ -56,7 +56,7 @@ class CompCheckTest : public testing::Test, public AstFixture {
 
 TEST_F(CompCheckTest, EmptyNonCompFunc) {
   std::string_view src = R"(
-    let test = () -> Int32 {
+    fun test(): Int32 {
       return 0
     }
   )";
@@ -66,7 +66,7 @@ TEST_F(CompCheckTest, EmptyNonCompFunc) {
 
 TEST_F(CompCheckTest, EmptyCompFunc) {
   std::string_view src = R"(
-    comp let test = () -> Int32 {
+    comp fun test(): Int32 {
       return 0
     }
   )";
@@ -76,11 +76,11 @@ TEST_F(CompCheckTest, EmptyCompFunc) {
 
 TEST_F(CompCheckTest, DoStmtInCompFunc) {
   std::string_view src = R"(
-    let effect = () -> Int32 {
+    fun effect(): Int32 {
       return 0
     }
 
-    comp let test = () -> Int32 {
+    comp fun test(): Int32 {
       do effect()
       return 0
     }
@@ -91,11 +91,11 @@ TEST_F(CompCheckTest, DoStmtInCompFunc) {
 
 TEST_F(CompCheckTest, DoStmtOnCompInCompFunc) {
   std::string_view src = R"(
-    comp let pure = () -> Int32 {
+    comp fun pure(): Int32 {
       return 0
     }
 
-    comp let test = () -> Int32 {
+    comp fun test(): Int32 {
       do pure()
       return 0
     }
@@ -106,11 +106,11 @@ TEST_F(CompCheckTest, DoStmtOnCompInCompFunc) {
 
 TEST_F(CompCheckTest, NestedDoStmtInConstFunc) {
   std::string_view src = R"(
-    let effect = () -> Int32 {
+    fun effect(): Int32 {
       return 0
     }
 
-    comp let test = (b1: Bool, b2: Bool) -> Int32 {
+    comp fun test(b1: Bool, b2: Bool): Int32 {
       loop {
         if b1 {
         } else {
@@ -128,11 +128,11 @@ TEST_F(CompCheckTest, NestedDoStmtInConstFunc) {
 
 TEST_F(CompCheckTest, NonCompVarDeclNonCompInit) {
   std::string_view src = R"(
-    let foo = () -> Int32 {
+    fun foo(): Int32 {
       return 0
     }
 
-    let test = () -> Int32 {
+    fun test(): Int32 {
       let x: Int32 = foo()
       return 0
     }
@@ -143,11 +143,11 @@ TEST_F(CompCheckTest, NonCompVarDeclNonCompInit) {
 
 TEST_F(CompCheckTest, CompVarDeclNonCompInit) {
   std::string_view src = R"(
-    let foo = () -> Int32 {
+    fun foo(): Int32 {
       return 0
     }
 
-    let test = () -> Int32 {
+    fun test(): Int32 {
       comp let x: Int32 = foo()
       return 0
     }
@@ -158,11 +158,11 @@ TEST_F(CompCheckTest, CompVarDeclNonCompInit) {
 
 TEST_F(CompCheckTest, CompVarDeclCompFuncCallInit) {
   std::string_view src = R"(
-    comp let foo = () -> Int32 {
+    comp fun foo(): Int32 {
       return 0
     }
 
-    let test = () -> Int32 {
+    fun test(): Int32 {
       comp let x: Int32 = foo()
       return 0
     }
@@ -173,7 +173,7 @@ TEST_F(CompCheckTest, CompVarDeclCompFuncCallInit) {
 
 TEST_F(CompCheckTest, CompVarDeclCompIntLitInit) {
   std::string_view src = R"(
-    let test = () -> Int32 {
+    fun test(): Int32 {
       comp let x: Int32 = 21
       return 0
     }
@@ -184,7 +184,7 @@ TEST_F(CompCheckTest, CompVarDeclCompIntLitInit) {
 
 TEST_F(CompCheckTest, CompVarDeclCompBoolLitInit) {
   std::string_view src = R"(
-    let test = () -> Int32 {
+    fun test(): Int32 {
       comp let x: Bool = true
       return 0
     }

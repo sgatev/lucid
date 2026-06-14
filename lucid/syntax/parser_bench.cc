@@ -46,7 +46,7 @@ void Benchmark(benchmark::State& state, std::string_view snippet) {
 
 static void BM_Function(benchmark::State& state) {
   Benchmark(state, R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return 0
     }
   )");
@@ -56,7 +56,7 @@ BENCHMARK(BM_Function);
 static void BM_Comment(benchmark::State& state) {
   Benchmark(state, R"(
     # Returns the sum of two integers.
-    let sum = (a: Int32, b: Int32) -> Int32 {
+    fun sum(a: Int32, b: Int32): Int32 {
       return a + b # can overflow
     }
   )");
@@ -65,7 +65,7 @@ BENCHMARK(BM_Comment);
 
 static void BM_Branches(benchmark::State& state) {
   Benchmark(state, R"(
-    let gcd = (a: Int32, b: Int32) -> Int32 {
+    fun gcd(a: Int32, b: Int32): Int32 {
       loop {
         if a == b {
           break

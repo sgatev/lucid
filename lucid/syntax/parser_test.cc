@@ -67,7 +67,7 @@ class ParserTest : public testing::Test, public AstFixture {
 
 TEST_F(ParserTest, EmptyFuncDefStmt) {
   std::string_view src = R"(
-    let main = () -> Void {
+    fun main(): Void {
     }
   )";
   EXPECT_THAT(Parse(src),
@@ -79,7 +79,7 @@ TEST_F(ParserTest, EmptyFuncDefStmt) {
 
 TEST_F(ParserTest, ReturnIntLitExpr) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return 0
     }
   )";
@@ -100,7 +100,7 @@ TEST_F(ParserTest, ReturnIntLitExpr) {
 
 TEST_F(ParserTest, CompFuncDef) {
   std::string_view src = R"(
-    comp let main = () -> Int32 {
+    comp fun main(): Int32 {
       return 0
     }
   )";
@@ -123,7 +123,7 @@ TEST_F(ParserTest, CompFuncDef) {
 TEST_F(ParserTest, Comment) {
   std::string_view src = R"(
     # comment
-    let main = () -> Int32 { # comment
+    fun main(): Int32 { # comment
       return 0 # comment
     } # comment
     # comment
@@ -145,7 +145,7 @@ TEST_F(ParserTest, Comment) {
 
 TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return 3 + 2
     }
   )";
@@ -171,7 +171,7 @@ TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
 
 TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return 3 - 2
     }
   )";
@@ -197,7 +197,7 @@ TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
 
 TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return 3 * 2
     }
   )";
@@ -223,7 +223,7 @@ TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
 
 TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return 3 / 2
     }
   )";
@@ -249,7 +249,7 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
 
 TEST_F(ParserTest, ReturnModBinaryOpExpr) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return 3 % 2
     }
   )";
@@ -275,7 +275,7 @@ TEST_F(ParserTest, ReturnModBinaryOpExpr) {
 
 TEST_F(ParserTest, ReturnGtBinaryOpExpr) {
   std::string_view src = R"(
-    let foo = () -> Bool {
+    fun foo(): Bool {
       return 3 > 2
     }
   )";
@@ -301,7 +301,7 @@ TEST_F(ParserTest, ReturnGtBinaryOpExpr) {
 
 TEST_F(ParserTest, SingleFuncParam) {
   std::string_view src = R"(
-    let id = (x: Int32) -> Int32 {
+    fun id(x: Int32): Int32 {
       return x
     }
   )";
@@ -329,7 +329,7 @@ TEST_F(ParserTest, SingleFuncParam) {
 
 TEST_F(ParserTest, MultipleFuncParams) {
   std::string_view src = R"(
-    let foo = (a: Int32, b: Double, c: Bool) -> Void {
+    fun foo(a: Int32, b: Double, c: Bool): Void {
     }
   )";
   EXPECT_THAT(
@@ -358,7 +358,7 @@ TEST_F(ParserTest, MultipleFuncParams) {
 
 TEST_F(ParserTest, FuncCallExprIntLitArg) {
   std::string_view src = R"(
-    let foo = () -> Void {
+    fun foo(): Void {
       do bar(3)
     }
   )";
@@ -382,7 +382,7 @@ TEST_F(ParserTest, FuncCallExprIntLitArg) {
 
 TEST_F(ParserTest, FuncCallExprStringLitArg) {
   std::string_view src = R"(
-    let foo = () -> Void {
+    fun foo(): Void {
       do bar("foo")
     }
   )";
@@ -407,7 +407,7 @@ TEST_F(ParserTest, FuncCallExprStringLitArg) {
 
 TEST_F(ParserTest, FuncCallExprNestedArg) {
   std::string_view src = R"(
-    let foo = () -> Void {
+    fun foo(): Void {
       do bar(baz(1, 2), qux(3, 4))
     }
   )";
@@ -447,7 +447,7 @@ TEST_F(ParserTest, FuncCallExprNestedArg) {
 
 TEST_F(ParserTest, ReturnFuncCallExpr) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return id(21)
     }
   )";
@@ -471,7 +471,7 @@ TEST_F(ParserTest, ReturnFuncCallExpr) {
 
 TEST_F(ParserTest, ReturnTrueBoolLit) {
   std::string_view src = R"(
-    let truth = () -> Bool {
+    fun truth(): Bool {
       return true
     }
   )";
@@ -491,7 +491,7 @@ TEST_F(ParserTest, ReturnTrueBoolLit) {
 
 TEST_F(ParserTest, ReturnFalseBoolLit) {
   std::string_view src = R"(
-    let falsity = () -> Bool {
+    fun falsity(): Bool {
       return false
     }
   )";
@@ -511,7 +511,7 @@ TEST_F(ParserTest, ReturnFalseBoolLit) {
 
 TEST_F(ParserTest, IfStmt) {
   std::string_view src = R"(
-    let foo = () -> Int32 {
+    fun foo(): Int32 {
       if true {
         return 2 + 3
       }
@@ -550,7 +550,7 @@ TEST_F(ParserTest, IfStmt) {
 
 TEST_F(ParserTest, IfElseStmt) {
   std::string_view src = R"(
-    let foo = () -> Int32 {
+    fun foo(): Int32 {
       if true {
         return 2 + 3
       } else {
@@ -592,7 +592,7 @@ TEST_F(ParserTest, IfElseStmt) {
 
 TEST_F(ParserTest, IfElseIfElseStmt) {
   std::string_view src = R"(
-    let foo = (x: Int32) -> Int32 {
+    fun foo(x: Int32): Int32 {
       if x > 0 {
         return 1
       } else if x < 0 {
@@ -652,7 +652,7 @@ TEST_F(ParserTest, IfElseIfElseStmt) {
 
 TEST_F(ParserTest, GtInts) {
   std::string_view src = R"(
-    let gt = (x: Int32, y: Int32) -> Bool {
+    fun gt(x: Int32, y: Int32): Bool {
       return x > y
     }
   )";
@@ -686,7 +686,7 @@ TEST_F(ParserTest, GtInts) {
 
 TEST_F(ParserTest, LtInts) {
   std::string_view src = R"(
-    let lt = (x: Int32, y: Int32) -> Bool {
+    fun lt(x: Int32, y: Int32): Bool {
       return x < y
     }
   )";
@@ -720,7 +720,7 @@ TEST_F(ParserTest, LtInts) {
 
 TEST_F(ParserTest, EqInts) {
   std::string_view src = R"(
-    let eq = (x: Int32, y: Int32) -> Bool {
+    fun eq(x: Int32, y: Int32): Bool {
       return x == y
     }
   )";
@@ -754,7 +754,7 @@ TEST_F(ParserTest, EqInts) {
 
 TEST_F(ParserTest, NotEqInts) {
   std::string_view src = R"(
-    let neq = (x: Int32, y: Int32) -> Bool {
+    fun neq(x: Int32, y: Int32): Bool {
       return x != y
     }
   )";
@@ -788,7 +788,7 @@ TEST_F(ParserTest, NotEqInts) {
 
 TEST_F(ParserTest, VarDecl) {
   std::string_view src = R"(
-    let inc = (n: Int32) -> Int32 {
+    fun inc(n: Int32): Int32 {
       let m: Int32 = 1
       return n + m 
     }
@@ -824,7 +824,7 @@ TEST_F(ParserTest, VarDecl) {
 
 TEST_F(ParserTest, CompVarDecl) {
   std::string_view src = R"(
-    let inc = (n: Int32) -> Int32 {
+    fun inc(n: Int32): Int32 {
       comp let m: Int32 = 1
       return n + m
     }
@@ -861,7 +861,7 @@ TEST_F(ParserTest, CompVarDecl) {
 
 TEST_F(ParserTest, VarAssignment) {
   std::string_view src = R"(
-    let foo = (n: Int32) -> Void {
+    fun foo(n: Int32): Void {
       n = 3
     }
   )";
@@ -888,7 +888,7 @@ TEST_F(ParserTest, VarAssignment) {
 
 TEST_F(ParserTest, LoopAndBreakStmt) {
   std::string_view src = R"(
-    let foo = () -> Int32 {
+    fun foo(): Int32 {
       loop {
         break
       }
@@ -914,7 +914,7 @@ TEST_F(ParserTest, LoopAndBreakStmt) {
 
 TEST_F(ParserTest, EqOverMod) {
   std::string_view src = R"(
-    let foo = (a: Int32, b: Int32) -> Int32 {
+    fun foo(a: Int32, b: Int32): Int32 {
       if a % b == 10 {
         return 1
       }
@@ -969,7 +969,7 @@ TEST_F(ParserTest, EqOverMod) {
 
 TEST_F(ParserTest, NotEqOverAdd) {
   std::string_view src = R"(
-    let foo = (a: Int32, b: Int32) -> Int32 {
+    fun foo(a: Int32, b: Int32): Int32 {
       if a + b != 10 {
         return 1
       }
@@ -1024,7 +1024,7 @@ TEST_F(ParserTest, NotEqOverAdd) {
 
 TEST_F(ParserTest, GtOverMul) {
   std::string_view src = R"(
-    let foo = (a: Int32, b: Int32) -> Int32 {
+    fun foo(a: Int32, b: Int32): Int32 {
       if a * b > 10 {
         return 1
       }
@@ -1079,7 +1079,7 @@ TEST_F(ParserTest, GtOverMul) {
 
 TEST_F(ParserTest, LtOverSub) {
   std::string_view src = R"(
-    let foo = (a: Int32, b: Int32) -> Int32 {
+    fun foo(a: Int32, b: Int32): Int32 {
       if a - b < 10 {
         return 1
       }
@@ -1134,7 +1134,7 @@ TEST_F(ParserTest, LtOverSub) {
 
 TEST_F(ParserTest, ArrayParam) {
   std::string_view src = R"(
-    let len = (a: Int32[10]) -> Int32 {
+    fun len(a: Int32[10]): Int32 {
       return a[2]
     }
   )";
@@ -1204,7 +1204,7 @@ TEST_F(ParserTest, Tuple) {
 
 TEST_F(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
-    = () -> Void {
+    = () Void {
     }
   )";
   EXPECT_THAT(Parse(src),
@@ -1213,114 +1213,98 @@ TEST_F(ParserTest, FuncDefMissingLet) {
 
 TEST_F(ParserTest, FuncDefMissingName) {
   std::string_view src = R"(
-    let = () -> Void {
+    fun = () Void {
     }
   )";
   EXPECT_THAT(Parse(src),
               HoldsError("expected identifier at line 2, column 9"));
 }
 
-TEST_F(ParserTest, FuncDefMissingEqual) {
+TEST_F(ParserTest, FuncDefMissingOpeningParen) {
   std::string_view src = R"(
-    let main () -> Void {
+    fun main ) Void {
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 14"));
 }
 
-TEST_F(ParserTest, FuncDefMissingOpeningParen) {
-  std::string_view src = R"(
-    let main = ) -> Void {
-    }
-  )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 16"));
-}
-
 TEST_F(ParserTest, FuncDefMissingParamName) {
   std::string_view src = R"(
-    let id = (: Int32) -> Int32 {
+    fun id(: Int32) Int32 {
       return x
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 15"));
+                                     "parameter at line 2, column 12"));
 }
 
 TEST_F(ParserTest, FuncDefMissingParamColon) {
   std::string_view src = R"(
-    let id = (x Int32) -> Int32 {
+    fun id(x Int32) Int32 {
       return x
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 13"));
+}
+
+TEST_F(ParserTest, FuncDefMissingParamType) {
+  std::string_view src = R"(
+    fun id(x:) Int32 {
+      return x
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected identifier at line 2, column 14"));
+}
+
+TEST_F(ParserTest, FuncDefMissingParamColonAndType) {
+  std::string_view src = R"(
+    fun id(x) Int32 {
+      return x
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 13"));
+}
+
+TEST_F(ParserTest, FuncDefMissingNextParam) {
+  std::string_view src = R"(
+    fun id(x: Int32,) Int32 {
+      return x
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
+                                     "parameter at line 2, column 21"));
+}
+
+TEST_F(ParserTest, FuncDefMissingClosingParen) {
+  std::string_view src = R"(
+    fun main( Void {
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
+                                     "parameter at line 2, column 14"));
+}
+
+TEST_F(ParserTest, FuncDefMissingResultColon) {
+  std::string_view src = R"(
+    fun main() Void {
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 16"));
 }
 
-TEST_F(ParserTest, FuncDefMissingParamType) {
+TEST_F(ParserTest, FuncDefMissingResultType) {
   std::string_view src = R"(
-    let id = (x:) -> Int32 {
-      return x
+    fun main(): {
     }
   )";
   EXPECT_THAT(Parse(src),
               HoldsError("expected identifier at line 2, column 17"));
 }
 
-TEST_F(ParserTest, FuncDefMissingParamColonAndType) {
-  std::string_view src = R"(
-    let id = (x) -> Int32 {
-      return x
-    }
-  )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 16"));
-}
-
-TEST_F(ParserTest, FuncDefMissingNextParam) {
-  std::string_view src = R"(
-    let id = (x: Int32,) -> Int32 {
-      return x
-    }
-  )";
-  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 24"));
-}
-
-TEST_F(ParserTest, FuncDefMissingClosingParen) {
-  std::string_view src = R"(
-    let main = ( -> Void {
-    }
-  )";
-  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 17"));
-}
-
-TEST_F(ParserTest, FuncDefMissingResultArrowDash) {
-  std::string_view src = R"(
-    let main = () > Void {
-    }
-  )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 19"));
-}
-
-TEST_F(ParserTest, FuncDefMissingResultArrowHead) {
-  std::string_view src = R"(
-    let main = () - Void {
-    }
-  )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 20"));
-}
-
-TEST_F(ParserTest, FuncDefMissingResultType) {
-  std::string_view src = R"(
-    let main = () -> {
-    }
-  )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("expected identifier at line 2, column 22"));
-}
-
 TEST_F(ParserTest, FuncDefMissingOpenBrace) {
   std::string_view src = R"(
-    let main = () -> Void
+    fun main(): Void
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 5"));
@@ -1328,14 +1312,14 @@ TEST_F(ParserTest, FuncDefMissingOpenBrace) {
 
 TEST_F(ParserTest, FuncDefMissingClosingBrace) {
   std::string_view src = R"(
-    let main = () -> Void {
+    fun main(): Void {
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 3"));
 }
 
 TEST_F(ParserTest, ReturnMissingValue) {
   std::string_view src = R"(
-    let id = (x: Int32) -> Int32 {
+    fun id(x: Int32): Int32 {
       return
     }
   )";
@@ -1344,7 +1328,7 @@ TEST_F(ParserTest, ReturnMissingValue) {
 
 TEST_F(ParserTest, VarDeclMissingLet) {
   std::string_view src = R"(
-    let main = () -> Void {
+    fun main(): Void {
       m: Int32 = 1
     }
   )";
@@ -1353,7 +1337,7 @@ TEST_F(ParserTest, VarDeclMissingLet) {
 
 TEST_F(ParserTest, VarDeclMissingName) {
   std::string_view src = R"(
-    let main = () -> Void {
+    fun main(): Void {
       let : Int32 = 1
     }
   )";
@@ -1363,7 +1347,7 @@ TEST_F(ParserTest, VarDeclMissingName) {
 
 TEST_F(ParserTest, VarDeclMissingColon) {
   std::string_view src = R"(
-    let main = () -> Void {
+    fun main(): Void {
       let m Int32 = 1
     }
   )";
@@ -1372,7 +1356,7 @@ TEST_F(ParserTest, VarDeclMissingColon) {
 
 TEST_F(ParserTest, VarDeclMissingType) {
   std::string_view src = R"(
-    let main = () -> Void {
+    fun main(): Void {
       let m: = 1
     }
   )";
@@ -1382,7 +1366,7 @@ TEST_F(ParserTest, VarDeclMissingType) {
 
 TEST_F(ParserTest, VarDeclMissingColonAndType) {
   std::string_view src = R"(
-    let main = () -> Void {
+    fun main(): Void {
       let m = 1
     }
   )";
@@ -1391,7 +1375,7 @@ TEST_F(ParserTest, VarDeclMissingColonAndType) {
 
 TEST_F(ParserTest, VarDeclMissingEqual) {
   std::string_view src = R"(
-    let main = () -> Void {
+    fun main(): Void {
       let m: Int32 1
     }
   )";
@@ -1400,7 +1384,7 @@ TEST_F(ParserTest, VarDeclMissingEqual) {
 
 TEST_F(ParserTest, VarDeclMissingInit) {
   std::string_view src = R"(
-    let main = () -> Void {
+    fun main(): Void {
       let m: Int32 =
     }
   )";
@@ -1409,7 +1393,7 @@ TEST_F(ParserTest, VarDeclMissingInit) {
 
 TEST_F(ParserTest, VarAssignMissingValue) {
   std::string_view src = R"(
-    let foo = (n: Int32) -> Void {
+    fun foo(n: Int32): Void {
       n =
     }
   )";
@@ -1418,7 +1402,7 @@ TEST_F(ParserTest, VarAssignMissingValue) {
 
 TEST_F(ParserTest, MissingEqualSign) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       if 1 = 1 {
         return 2
       } else {
@@ -1431,7 +1415,7 @@ TEST_F(ParserTest, MissingEqualSign) {
 
 TEST_F(ParserTest, SpaceBetweenEqualSigns) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       if 1 = = 1 {
         return 2
       } else {
@@ -1444,7 +1428,7 @@ TEST_F(ParserTest, SpaceBetweenEqualSigns) {
 
 TEST_F(ParserTest, MissingStringClosingQuote) {
   std::string_view src = R"(
-    let foo = () -> Void {
+    fun foo(): Void {
       do bar("foo)
     }
   )";
@@ -1454,7 +1438,7 @@ TEST_F(ParserTest, MissingStringClosingQuote) {
 
 TEST_F(ParserTest, MissingLoopOpenBrace) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       loop
         return 1
       } 
@@ -1466,7 +1450,7 @@ TEST_F(ParserTest, MissingLoopOpenBrace) {
 
 TEST_F(ParserTest, MissingLoopCloseBrace) {
   std::string_view src = R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       loop {
         return 1
       return 2
@@ -1493,62 +1477,70 @@ TEST_F(ParserTest, TupleDefMissingName) {
 
 TEST_F(ParserTest, TupleDefMissingEqual) {
   std::string_view src = R"(
-    let Foo ()
+    let Foo tuple ()
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 13"));
 }
 
+TEST_F(ParserTest, TupleDefMissingType) {
+  std::string_view src = R"(
+    let Foo = ()
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsError("expected 'tuple' keyword at line 2, column 15"));
+}
+
 TEST_F(ParserTest, TupleDefMissingOpeningParen) {
   std::string_view src = R"(
-    let Foo = )
+    let Foo = tuple )
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 15"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 21"));
 }
 
 TEST_F(ParserTest, TupleDefMissingParamName) {
   std::string_view src = R"(
-    let Foo = (: Int32)
+    let Foo = tuple (: Int32)
   )";
   EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 16"));
+                                     "parameter at line 2, column 22"));
 }
 
 TEST_F(ParserTest, TupleDefMissingParamColon) {
   std::string_view src = R"(
-    let Foo = (x Int32)
+    let Foo = tuple (x Int32)
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 17"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 23"));
 }
 
 TEST_F(ParserTest, TupleDefMissingParamType) {
   std::string_view src = R"(
-    let Foo = (x:)
+    let Foo = tuple (x:)
   )";
   EXPECT_THAT(Parse(src),
-              HoldsError("expected identifier at line 2, column 18"));
+              HoldsError("expected identifier at line 2, column 24"));
 }
 
 TEST_F(ParserTest, TupleDefMissingParamColonAndType) {
   std::string_view src = R"(
-    let id = (x)
+    let id = tuple (x)
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 16"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 22"));
 }
 
 TEST_F(ParserTest, TupleDefMissingNextParam) {
   std::string_view src = R"(
-    let Foo = (x: Int32,)
+    let Foo = tuple (x: Int32,)
   )";
   EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 25"));
+                                     "parameter at line 2, column 31"));
 }
 
 TEST_F(ParserTest, TupleDefMissingClosingParen) {
   std::string_view src = R"(
-    let main = (
+    let main = tuple (
   )";
   EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 17"));
+                                     "parameter at line 2, column 23"));
 }
 
 }  // namespace

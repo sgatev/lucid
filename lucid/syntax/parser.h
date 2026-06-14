@@ -33,6 +33,7 @@ class ParserError {
     ExpectedClosingParenOrParam,
     ExpectedClosingParenOrExpr,
     ExpectedLetKeyword,
+    ExpectedTupleKeyword,
     IncompleteStringLiteral,
   };
 
@@ -63,6 +64,8 @@ class ParserError {
         return "expected closing parenthesis or expression";
       case Kind::ExpectedLetKeyword:
         return "expected 'let' keyword";
+      case Kind::ExpectedTupleKeyword:
+        return "expected 'tuple' keyword";
       case Kind::IncompleteStringLiteral:
         return "incomplete string literal";
     }
@@ -95,30 +98,22 @@ class Parser {
       is_comp = true;
     }
 
-    if (auto r = ExpectIdent("let", ParserError::Kind::ExpectedLetKeyword);
-        IsError(r)) {
-      return std::unexpected(*r);
-    }
-
-    SkipSpace();
-
-    const auto maybe_name = ParseIdent();
-    if (IsError(maybe_name)) {
-      return std::unexpected(std::get<ParserError>(maybe_name));
-    }
-
-    SkipSpace();
-
-    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) {
-      return std::unexpected(*r);
-    }
-
-    SkipSpace();
-
-    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "tuple") {
+    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "fun") {
       Read();
 
       SkipSpace();
+
+      const auto maybe_name = ParseIdent();
+      if (IsError(maybe_name)) {
+        return std::unexpected(std::get<ParserError>(maybe_name));
+      }
+
+      SkipSpace();
+
+      FuncDefStmt stmt = {
+          .name = std::get<StringIndex::Ref>(maybe_name),
+          .is_comp = is_comp,
+      };
 
       std::uint8_t params_size = 0;
       ParamRef first_param = Arena<FuncParam>::kNullRef;
@@ -147,20 +142,57 @@ class Parser {
         if (params_size == 0) first_param = std::get<ParamRef>(maybe_param);
         ++params_size;
       }
+      stmt.params = SuccessiveList<ParamRef>(params_size, first_param);
 
-      TypeRef type = syn_ctx_.Add(TupleType{
-          .fields = SuccessiveList<ParamRef>(params_size, first_param),
-      });
-      return TypeDefStmt{
-          .name = std::get<StringIndex::Ref>(maybe_name),
-          .type = type,
-      };
+      SkipSpace();
+
+      if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) {
+        return std::unexpected(*r);
+      }
+
+      SkipSpace();
+
+      const auto maybe_result_type = ParseType();
+      if (IsError(maybe_result_type)) {
+        return std::unexpected(std::get<ParserError>(maybe_result_type));
+      }
+      stmt.result_type = std::get<TypeRef>(maybe_result_type);
+
+      auto maybe_body = ParseCompoundStmt();
+      if (IsError(maybe_body)) {
+        return std::unexpected(std::get<ParserError>(maybe_body));
+      }
+      stmt.stmts = std::get<SuccessiveList<StmtRef>>(std::move(maybe_body));
+
+      return std::optional<FuncDefStmt>(stmt);
     }
 
-    FuncDefStmt stmt = {
-        .name = std::get<StringIndex::Ref>(maybe_name),
-        .is_comp = is_comp,
-    };
+    if (auto r = ExpectIdent("let", ParserError::Kind::ExpectedLetKeyword);
+        IsError(r)) {
+      return std::unexpected(*r);
+    }
+
+    SkipSpace();
+
+    const auto maybe_name = ParseIdent();
+    if (IsError(maybe_name)) {
+      return std::unexpected(std::get<ParserError>(maybe_name));
+    }
+
+    SkipSpace();
+
+    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) {
+      return std::unexpected(*r);
+    }
+
+    SkipSpace();
+
+    if (auto r = ExpectIdent("tuple", ParserError::Kind::ExpectedTupleKeyword);
+        IsError(r)) {
+      return std::unexpected(*r);
+    }
+
+    SkipSpace();
 
     std::uint8_t params_size = 0;
     ParamRef first_param = Arena<FuncParam>::kNullRef;
@@ -189,32 +221,14 @@ class Parser {
       if (params_size == 0) first_param = std::get<ParamRef>(maybe_param);
       ++params_size;
     }
-    stmt.params = SuccessiveList<ParamRef>(params_size, first_param);
 
-    SkipSpace();
-
-    if (auto r = ExpectToken(Token::Kind::Minus); IsError(r)) {
-      return std::unexpected(*r);
-    }
-    if (auto r = ExpectToken(Token::Kind::Greater); IsError(r)) {
-      return std::unexpected(*r);
-    }
-
-    SkipSpace();
-
-    const auto maybe_result_type = ParseType();
-    if (IsError(maybe_result_type)) {
-      return std::unexpected(std::get<ParserError>(maybe_result_type));
-    }
-    stmt.result_type = std::get<TypeRef>(maybe_result_type);
-
-    auto maybe_body = ParseCompoundStmt();
-    if (IsError(maybe_body)) {
-      return std::unexpected(std::get<ParserError>(maybe_body));
-    }
-    stmt.stmts = std::get<SuccessiveList<StmtRef>>(std::move(maybe_body));
-
-    return std::optional<FuncDefStmt>(stmt);
+    TypeRef type = syn_ctx_.Add(TupleType{
+        .fields = SuccessiveList<ParamRef>(params_size, first_param),
+    });
+    return TypeDefStmt{
+        .name = std::get<StringIndex::Ref>(maybe_name),
+        .type = type,
+    };
   }
 
  private:
