@@ -33,7 +33,7 @@ class ParserError {
     ExpectedClosingParenOrParam,
     ExpectedClosingParenOrExpr,
     ExpectedLetKeyword,
-    ExpectedTupleKeyword,
+    ExpectedTypeKeyword,
     IncompleteStringLiteral,
   };
 
@@ -64,8 +64,8 @@ class ParserError {
         return "expected closing parenthesis or expression";
       case Kind::ExpectedLetKeyword:
         return "expected 'let' keyword";
-      case Kind::ExpectedTupleKeyword:
-        return "expected 'tuple' keyword";
+      case Kind::ExpectedTypeKeyword:
+        return "expected 'Type' keyword";
       case Kind::IncompleteStringLiteral:
         return "incomplete string literal";
     }
@@ -167,7 +167,7 @@ class Parser {
       return std::optional<FuncDefStmt>(stmt);
     }
 
-    if (auto r = ExpectIdent("let", ParserError::Kind::ExpectedLetKeyword);
+    if (auto r = ExpectIdent("val", ParserError::Kind::ExpectedLetKeyword);
         IsError(r)) {
       return std::unexpected(*r);
     }
@@ -181,14 +181,20 @@ class Parser {
 
     SkipSpace();
 
-    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) {
+    if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) {
       return std::unexpected(*r);
     }
 
     SkipSpace();
 
-    if (auto r = ExpectIdent("tuple", ParserError::Kind::ExpectedTupleKeyword);
+    if (auto r = ExpectIdent("Type", ParserError::Kind::ExpectedTypeKeyword);
         IsError(r)) {
+      return std::unexpected(*r);
+    }
+
+    SkipSpace();
+
+    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) {
       return std::unexpected(*r);
     }
 

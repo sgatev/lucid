@@ -1166,7 +1166,7 @@ TEST_F(ParserTest, ArrayParam) {
 
 TEST_F(ParserTest, EmptyTuple) {
   std::string_view src = R"(
-    let Empty = tuple ()
+    comp val Empty: Type = ()
   )";
   EXPECT_THAT(Parse(src), HoldsTypeDef(MatchesTypeDefStmt({
                               .name = I("Empty"),
@@ -1178,7 +1178,7 @@ TEST_F(ParserTest, EmptyTuple) {
 
 TEST_F(ParserTest, Tuple) {
   std::string_view src = R"(
-    let Point = tuple (x: Int32, y: Int32)
+    comp val Point: Type = (x: Int32, y: Int32)
   )";
   EXPECT_THAT(Parse(src),
               HoldsTypeDef(MatchesTypeDefStmt({
@@ -1459,9 +1459,9 @@ TEST_F(ParserTest, MissingLoopCloseBrace) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 7, column 3"));
 }
 
-TEST_F(ParserTest, TupleDefMissingLet) {
+TEST_F(ParserTest, TupleDefMissingCompVal) {
   std::string_view src = R"(
-    = tuple (x: Int32, y: Int32)
+    : Type = (x: Int32, y: Int32)
   )";
   EXPECT_THAT(Parse(src),
               HoldsError("expected 'let' keyword at line 2, column 5"));
@@ -1469,78 +1469,85 @@ TEST_F(ParserTest, TupleDefMissingLet) {
 
 TEST_F(ParserTest, TupleDefMissingName) {
   std::string_view src = R"(
-    let = ()
+    comp val : Type = ()
   )";
   EXPECT_THAT(Parse(src),
-              HoldsError("expected identifier at line 2, column 9"));
+              HoldsError("expected identifier at line 2, column 14"));
 }
 
-TEST_F(ParserTest, TupleDefMissingEqual) {
+TEST_F(ParserTest, TupleDefMissingColon) {
   std::string_view src = R"(
-    let Foo tuple ()
+    comp val Foo Type = ()
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 13"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 18"));
 }
 
 TEST_F(ParserTest, TupleDefMissingType) {
   std::string_view src = R"(
-    let Foo = ()
+    comp val Foo: = ()
   )";
   EXPECT_THAT(Parse(src),
-              HoldsError("expected 'tuple' keyword at line 2, column 15"));
+              HoldsError("expected 'Type' keyword at line 2, column 19"));
+}
+
+TEST_F(ParserTest, TupleDefMissingEqual) {
+  std::string_view src = R"(
+    comp val Foo: Type ()
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 24"));
 }
 
 TEST_F(ParserTest, TupleDefMissingOpeningParen) {
   std::string_view src = R"(
-    let Foo = tuple )
+    comp val Foo: Type = )
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 21"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 26"));
 }
 
 TEST_F(ParserTest, TupleDefMissingParamName) {
   std::string_view src = R"(
-    let Foo = tuple (: Int32)
+    comp val Foo: Type = (: Int32)
   )";
   EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 22"));
+                                     "parameter at line 2, column 27"));
 }
 
 TEST_F(ParserTest, TupleDefMissingParamColon) {
   std::string_view src = R"(
-    let Foo = tuple (x Int32)
+    comp val Foo: Type = (x Int32)
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 23"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 28"));
 }
 
 TEST_F(ParserTest, TupleDefMissingParamType) {
   std::string_view src = R"(
-    let Foo = tuple (x:)
+    comp val Foo: Type = (x:)
   )";
   EXPECT_THAT(Parse(src),
-              HoldsError("expected identifier at line 2, column 24"));
+              HoldsError("expected identifier at line 2, column 29"));
 }
 
 TEST_F(ParserTest, TupleDefMissingParamColonAndType) {
   std::string_view src = R"(
-    let id = tuple (x)
+    comp val Id: Type = (x)
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 22"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 27"));
 }
 
 TEST_F(ParserTest, TupleDefMissingNextParam) {
   std::string_view src = R"(
-    let Foo = tuple (x: Int32,)
+    comp val Foo: Type = (x: Int32,)
   )";
   EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 31"));
+                                     "parameter at line 2, column 36"));
 }
 
 TEST_F(ParserTest, TupleDefMissingClosingParen) {
   std::string_view src = R"(
-    let main = tuple (
+    comp val Foo: Type = (
   )";
   EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 23"));
+                                     "parameter at line 2, column 27"));
 }
 
 }  // namespace

@@ -744,7 +744,7 @@ TEST_F(CompilerTest, Comp) {
 
 TEST_F(CompilerTest, Tuple) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    let Point = tuple (x: Int32, y: Int32)
+    comp val Point: Type = (x: Int32, y: Int32)
 
     fun main(): Int32 {
       let p: Point
