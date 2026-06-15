@@ -89,7 +89,7 @@ class Parser {
   std::expected<std::optional<Def>, ParserError> ParseDef() {
     SkipSpace();
 
-    if (Peek().kind == Token::Kind::End) return std::optional<FuncDefStmt>();
+    if (Peek().kind == Token::Kind::End) return std::nullopt;
 
     bool is_comp = false;
     if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "comp") {
@@ -98,75 +98,101 @@ class Parser {
       is_comp = true;
     }
 
-    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "fun") {
-      Read();
-
-      SkipSpace();
-
-      const auto maybe_name = ParseIdent();
-      if (IsError(maybe_name)) {
-        return std::unexpected(std::get<ParserError>(maybe_name));
-      }
-
-      SkipSpace();
-
-      FuncDefStmt stmt = {
-          .name = std::get<StringIndex::Ref>(maybe_name),
-          .is_comp = is_comp,
-      };
-
-      std::uint8_t params_size = 0;
-      ParamRef first_param = Arena<FuncParam>::kNullRef;
-      if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) {
-        return std::unexpected(*r);
-      }
-      while (true) {
-        if (Peek().kind == Token::Kind::Comma) {
-          Read();
-
-          SkipSpace();
-        } else if (Peek().kind == Token::Kind::CloseParen) {
-          Read();
-          break;
-        }
-
-        if (Peek().kind != Token::Kind::Ident) {
-          return std::unexpected(MakeError(
-              ParserError::Kind::ExpectedClosingParenOrParam, Peek()));
-        }
-
-        auto maybe_param = ParseParam();
-        if (IsError(maybe_param)) {
-          return std::unexpected(std::get<ParserError>(maybe_param));
-        }
-        if (params_size == 0) first_param = std::get<ParamRef>(maybe_param);
-        ++params_size;
-      }
-      stmt.params = SuccessiveList<ParamRef>(params_size, first_param);
-
-      SkipSpace();
-
-      if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) {
-        return std::unexpected(*r);
-      }
-
-      SkipSpace();
-
-      const auto maybe_result_type = ParseType();
-      if (IsError(maybe_result_type)) {
-        return std::unexpected(std::get<ParserError>(maybe_result_type));
-      }
-      stmt.result_type = std::get<TypeRef>(maybe_result_type);
-
-      auto maybe_body = ParseCompoundStmt();
-      if (IsError(maybe_body)) {
-        return std::unexpected(std::get<ParserError>(maybe_body));
-      }
-      stmt.stmts = std::get<SuccessiveList<StmtRef>>(std::move(maybe_body));
-
-      return std::optional<FuncDefStmt>(stmt);
+    if (Peek().kind != Token::Kind::Ident) {
+      return std::unexpected(
+          MakeError(ParserError::Kind::UnexpectedToken, Peek()));
     }
 
+    using namespace std::literals::string_view_literals;
+    static constexpr FixedMap parselets(
+        std::array{
+            std::pair{"fun"sv, &Parser::ParseFuncDef},
+            std::pair{"val"sv, &Parser::ParseValDef},
+        },
+        &Parser::UnknownDef);
+    return std::invoke(parselets[TokenString(Peek())], this, is_comp)
+        .and_then(
+            [](Def def) -> std::expected<std::optional<Def>, ParserError> {
+              return std::optional<Def>(std::move(def));
+            });
+  }
+
+ private:
+  std::expected<Def, ParserError> UnknownDef(bool is_comp) {
+    return std::unexpected(
+        MakeError(ParserError::Kind::UnexpectedToken, Peek()));
+  }
+
+  std::expected<Def, ParserError> ParseFuncDef(bool is_comp) {
+    Read();
+
+    SkipSpace();
+
+    const auto maybe_name = ParseIdent();
+    if (IsError(maybe_name)) {
+      return std::unexpected(std::get<ParserError>(maybe_name));
+    }
+
+    SkipSpace();
+
+    FuncDefStmt stmt = {
+        .name = std::get<StringIndex::Ref>(maybe_name),
+        .is_comp = is_comp,
+    };
+
+    std::uint8_t params_size = 0;
+    ParamRef first_param = Arena<FuncParam>::kNullRef;
+    if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) {
+      return std::unexpected(*r);
+    }
+    while (true) {
+      if (Peek().kind == Token::Kind::Comma) {
+        Read();
+
+        SkipSpace();
+      } else if (Peek().kind == Token::Kind::CloseParen) {
+        Read();
+        break;
+      }
+
+      if (Peek().kind != Token::Kind::Ident) {
+        return std::unexpected(
+            MakeError(ParserError::Kind::ExpectedClosingParenOrParam, Peek()));
+      }
+
+      auto maybe_param = ParseParam();
+      if (IsError(maybe_param)) {
+        return std::unexpected(std::get<ParserError>(maybe_param));
+      }
+      if (params_size == 0) first_param = std::get<ParamRef>(maybe_param);
+      ++params_size;
+    }
+    stmt.params = SuccessiveList<ParamRef>(params_size, first_param);
+
+    SkipSpace();
+
+    if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) {
+      return std::unexpected(*r);
+    }
+
+    SkipSpace();
+
+    const auto maybe_result_type = ParseType();
+    if (IsError(maybe_result_type)) {
+      return std::unexpected(std::get<ParserError>(maybe_result_type));
+    }
+    stmt.result_type = std::get<TypeRef>(maybe_result_type);
+
+    auto maybe_body = ParseCompoundStmt();
+    if (IsError(maybe_body)) {
+      return std::unexpected(std::get<ParserError>(maybe_body));
+    }
+    stmt.stmts = std::get<SuccessiveList<StmtRef>>(std::move(maybe_body));
+
+    return stmt;
+  }
+
+  std::expected<Def, ParserError> ParseValDef(bool is_comp) {
     if (auto r = ExpectIdent("val", ParserError::Kind::ExpectedLetKeyword);
         IsError(r)) {
       return std::unexpected(*r);
@@ -237,7 +263,6 @@ class Parser {
     };
   }
 
- private:
   std::variant<ParamRef, ParserError> ParseParam() {
     const auto maybe_name = ParseIdent();
     if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);

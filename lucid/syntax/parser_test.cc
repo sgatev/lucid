@@ -1208,7 +1208,7 @@ TEST_F(ParserTest, FuncDefMissingLet) {
     }
   )";
   EXPECT_THAT(Parse(src),
-              HoldsError("expected 'let' keyword at line 2, column 5"));
+              HoldsError("unexpected token at line 2, column 5"));
 }
 
 TEST_F(ParserTest, FuncDefMissingName) {
@@ -1464,7 +1464,7 @@ TEST_F(ParserTest, TupleDefMissingCompVal) {
     : Type = (x: Int32, y: Int32)
   )";
   EXPECT_THAT(Parse(src),
-              HoldsError("expected 'let' keyword at line 2, column 5"));
+              HoldsError("unexpected token at line 2, column 5"));
 }
 
 TEST_F(ParserTest, TupleDefMissingName) {
