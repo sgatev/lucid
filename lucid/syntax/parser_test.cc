@@ -143,7 +143,7 @@ TEST_F(ParserTest, Comment) {
               })));
 }
 
-TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
+TEST_F(ParserTest, ReturnAddExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 3 + 2
@@ -169,7 +169,7 @@ TEST_F(ParserTest, ReturnAddBinaryOpExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
+TEST_F(ParserTest, ReturnSubExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 3 - 2
@@ -195,7 +195,7 @@ TEST_F(ParserTest, ReturnSubBinaryOpExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
+TEST_F(ParserTest, ReturnMulExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 3 * 2
@@ -221,7 +221,7 @@ TEST_F(ParserTest, ReturnMulBinaryOpExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
+TEST_F(ParserTest, ReturnDivExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 3 / 2
@@ -247,7 +247,7 @@ TEST_F(ParserTest, ReturnDivBinaryOpExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnModBinaryOpExpr) {
+TEST_F(ParserTest, ReturnModExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 3 % 2
@@ -273,7 +273,7 @@ TEST_F(ParserTest, ReturnModBinaryOpExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnGtBinaryOpExpr) {
+TEST_F(ParserTest, ReturnGtExpr) {
   std::string_view src = R"(
     fun foo(): Bool {
       return 3 > 2
@@ -297,6 +297,64 @@ TEST_F(ParserTest, ReturnGtBinaryOpExpr) {
                       }),
                   }},
               })));
+}
+
+TEST_F(ParserTest, Precedence) {
+  std::string_view src = R"(
+    fun foo(x: Int32): Bool {
+      return 2 * x + 4 > 5 - 6 / 7
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = I("foo"),
+          .params =
+              {
+                  MatchesFuncParam({
+                      .name = I("x"),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
+                  }),
+              },
+          .result_type = MatchesBasicType({.name = I("Bool")}),
+          .body = {{
+              MatchesReturnStmt({
+                  .value = MatchesBinaryOpExpr({
+                      .op = BinaryOp::Gt,
+                      .lhs = MatchesBinaryOpExpr({
+                          .op = BinaryOp::Add,
+                          .lhs = MatchesBinaryOpExpr({
+                              .op = BinaryOp::Mul,
+                              .lhs = MatchesIntLitExpr({
+                                  .value = 2,
+                              }),
+                              .rhs = MatchesIdentExpr({
+                                  .name = I("x"),
+                              }),
+                          }),
+                          .rhs = MatchesIntLitExpr({
+                              .value = 4,
+                          }),
+                      }),
+                      .rhs = MatchesBinaryOpExpr({
+                          .op = BinaryOp::Sub,
+                          .lhs = MatchesIntLitExpr({
+                              .value = 5,
+                          }),
+                          .rhs = MatchesBinaryOpExpr({
+                              .op = BinaryOp::Div,
+                              .lhs = MatchesIntLitExpr({
+                                  .value = 6,
+                              }),
+                              .rhs = MatchesIntLitExpr({
+                                  .value = 7,
+                              }),
+                          }),
+                      }),
+                  }),
+              }),
+          }},
+      })));
 }
 
 TEST_F(ParserTest, SingleFuncParam) {
@@ -1207,8 +1265,7 @@ TEST_F(ParserTest, FuncDefMissingLet) {
     = () Void {
     }
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("unexpected token at line 2, column 5"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 5"));
 }
 
 TEST_F(ParserTest, FuncDefMissingName) {
@@ -1463,8 +1520,7 @@ TEST_F(ParserTest, TupleDefMissingCompVal) {
   std::string_view src = R"(
     : Type = (x: Int32, y: Int32)
   )";
-  EXPECT_THAT(Parse(src),
-              HoldsError("unexpected token at line 2, column 5"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 5"));
 }
 
 TEST_F(ParserTest, TupleDefMissingName) {
