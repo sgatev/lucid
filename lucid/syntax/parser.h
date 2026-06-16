@@ -32,7 +32,7 @@ class ParserError {
     UnexpectedToken,
     ExpectedClosingParenOrParam,
     ExpectedClosingParenOrExpr,
-    ExpectedLetKeyword,
+    ExpectedValKeyword,
     ExpectedTypeKeyword,
     IncompleteStringLiteral,
   };
@@ -62,8 +62,8 @@ class ParserError {
         return "expected closing parenthesis or parameter";
       case Kind::ExpectedClosingParenOrExpr:
         return "expected closing parenthesis or expression";
-      case Kind::ExpectedLetKeyword:
-        return "expected 'let' keyword";
+      case Kind::ExpectedValKeyword:
+        return "expected 'val' keyword";
       case Kind::ExpectedTypeKeyword:
         return "expected 'Type' keyword";
       case Kind::IncompleteStringLiteral:
@@ -193,7 +193,7 @@ class Parser {
   }
 
   std::expected<Def, ParserError> ParseValDef(bool is_comp) {
-    if (auto r = ExpectIdent("val", ParserError::Kind::ExpectedLetKeyword);
+    if (auto r = ExpectIdent("val", ParserError::Kind::ExpectedValKeyword);
         IsError(r)) {
       return std::unexpected(*r);
     }
@@ -333,7 +333,7 @@ class Parser {
             std::pair{"return"sv, &Parser::ParseReturnStmt},
             std::pair{"loop"sv, &Parser::ParseLoopStmt},
             std::pair{"if"sv, &Parser::ParseIfStmt},
-            std::pair{"let"sv, &Parser::ParseLetStmt},
+            std::pair{"val"sv, &Parser::ParseValStmt},
             std::pair{"comp"sv, &Parser::ParseCompStmt},
             std::pair{"break"sv, &Parser::ParseBreakStmt},
         },
@@ -416,14 +416,14 @@ class Parser {
   std::variant<Stmt, ParserError> ParseCompStmt() {
     Read();
     SkipSpace();
-    return ParseLet(/*is_comp=*/true);
+    return ParseVal(/*is_comp=*/true);
   }
 
-  std::variant<Stmt, ParserError> ParseLetStmt() {
-    return ParseLet(/*is_comp=*/false);
+  std::variant<Stmt, ParserError> ParseValStmt() {
+    return ParseVal(/*is_comp=*/false);
   }
 
-  std::variant<Stmt, ParserError> ParseLet(bool is_comp) {
+  std::variant<Stmt, ParserError> ParseVal(bool is_comp) {
     Read();
 
     SkipSpace();

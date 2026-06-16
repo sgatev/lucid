@@ -68,7 +68,7 @@ TEST_F(CompilerTest, PrintAstNode) {
 TEST_F(CompilerTest, PrintCfg) {
   ASSERT_TRUE(CreateFile("max.lu", R"(
     fun max(a: Int32, b: Int32): Int32 {
-      let c: Int32 = 0
+      val c: Int32 = 0
       if a > b {
         c = a
       } else {

@@ -189,8 +189,11 @@ cc_binary(
     deps = [
         ":translator",
         "//lucid/syntax:cfg",
+        "//lucid/syntax:comp",
         "//lucid/syntax:lexer",
         "//lucid/syntax:parser",
+        "//lucid/syntax:ssa",
+        "//lucid/syntax:type",
         "@google_benchmark//:benchmark",
     ],
 )

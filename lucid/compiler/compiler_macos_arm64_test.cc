@@ -143,7 +143,7 @@ TEST_F(CompilerTest, IfStmtThenBranch) {
 TEST_F(CompilerTest, IfStmtElseIfBranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      let x: Int32 = 2
+      val x: Int32 = 2
       if x == 1 {
         return 3
       } else if x == 2 {
@@ -333,8 +333,8 @@ TEST_F(CompilerTest, EqFalse) {
 TEST_F(CompilerTest, VarDecl) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      let x: Int32 = 2
-      let y: Int32 = 3
+      val x: Int32 = 2
+      val y: Int32 = 3
       return x + y
     }
   )"));
@@ -344,8 +344,8 @@ TEST_F(CompilerTest, VarDecl) {
 TEST_F(CompilerTest, VarDeclFromVar) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      let x: Int32 = 2
-      let y: Int32 = x
+      val x: Int32 = 2
+      val y: Int32 = x
       return y
     }
   )"));
@@ -428,14 +428,14 @@ TEST_F(CompilerTest, FibRec) {
 TEST_F(CompilerTest, FibIter) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun fib(n: Int32): Int32 {
-      let a: Int32 = 0
-      let b: Int32 = 1
+      val a: Int32 = 0
+      val b: Int32 = 1
       loop {
         if n == 0 {
           return a
         }
 
-        let c: Int32 = a
+        val c: Int32 = a
         a = b
         b = c + b
         n = n - 1
@@ -460,7 +460,7 @@ TEST_F(CompilerTest, PrintInt32) {
         do printInt32(i / 10)
       }
 
-      let j: Int32 = i % 10
+      val j: Int32 = i % 10
       if      j == 0 { do printString("0") }
       else if j == 1 { do printString("1") }
       else if j == 2 { do printString("2") }
@@ -507,7 +507,7 @@ TEST_F(CompilerTest, PrintMultipleValues) {
     fun printInt32(i: Int32): Int32 {
       if i > 9 { do printInt32(i / 10) }
 
-      let j: Int32 = i % 10
+      val j: Int32 = i % 10
       if      j == 0 { do printString("0") }
       else if j == 1 { do printString("1") }
       else if j == 2 { do printString("2") }
@@ -536,7 +536,7 @@ TEST_F(CompilerTest, PrintMultipleValues) {
 TEST_F(CompilerTest, LoopAndBreak) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun four(): Int32 {
-      let n: Int32 = 0
+      val n: Int32 = 0
       loop {
         if n > 3 {
           break
@@ -557,9 +557,9 @@ TEST_F(CompilerTest, LoopAndBreak) {
 TEST_F(CompilerTest, Int32Array) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      let a: Int32[10]
+      val a: Int32[10]
 
-      let i: Int32 = 0
+      val i: Int32 = 0
       loop {
         if i == 10 {
           break
@@ -570,7 +570,7 @@ TEST_F(CompilerTest, Int32Array) {
         i = i + 1
       }
 
-      let r: Int32 = 0
+      val r: Int32 = 0
       i = 0
       loop {
         if i == 10 {
@@ -591,9 +591,9 @@ TEST_F(CompilerTest, Int32Array) {
 TEST_F(CompilerTest, Int64Array) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
-      let a: Int64[10]
+      val a: Int64[10]
 
-      let i: Int64 = 0
+      val i: Int64 = 0
       loop {
         if i == 10 {
           break
@@ -604,7 +604,7 @@ TEST_F(CompilerTest, Int64Array) {
         i = i + 1
       }
 
-      let r: Int64 = 0
+      val r: Int64 = 0
       i = 0
       loop {
         if i == 10 {
@@ -625,9 +625,9 @@ TEST_F(CompilerTest, Int64Array) {
 TEST_F(CompilerTest, BoolArray) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      let a: Bool[10]
+      val a: Bool[10]
 
-      let i: Int32 = 0
+      val i: Int32 = 0
       loop {
         if i == 10 {
           break
@@ -642,7 +642,7 @@ TEST_F(CompilerTest, BoolArray) {
         i = i + 1
       }
 
-      let r: Int32 = 0
+      val r: Int32 = 0
       i = 0
       loop {
         if i == 10 {
@@ -665,26 +665,26 @@ TEST_F(CompilerTest, BoolArray) {
 TEST_F(CompilerTest, LongDependencyChain) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      let a1: Int32 = 1
-      let a2: Int32 = a1 + 1
-      let a3: Int32 = a2 + 1
-      let a4: Int32 = a3 + 1
-      let a5: Int32 = a4 + 1
-      let a6: Int32 = a5 + 1
-      let a7: Int32 = a6 + 1
-      let a8: Int32 = a7 + 1
-      let a9: Int32 = a8 + 1
-      let a10: Int32 = a9 + 1
-      let a11: Int32 = a10 + 1
-      let a12: Int32 = a11 + 1
-      let a13: Int32 = a12 + 1
-      let a14: Int32 = a13 + 1
-      let a15: Int32 = a14 + 1
-      let a16: Int32 = a15 + 1
-      let a17: Int32 = a16 + 1
-      let a18: Int32 = a17 + 1
-      let a19: Int32 = a18 + 1
-      let a20: Int32 = a19 + 1
+      val a1: Int32 = 1
+      val a2: Int32 = a1 + 1
+      val a3: Int32 = a2 + 1
+      val a4: Int32 = a3 + 1
+      val a5: Int32 = a4 + 1
+      val a6: Int32 = a5 + 1
+      val a7: Int32 = a6 + 1
+      val a8: Int32 = a7 + 1
+      val a9: Int32 = a8 + 1
+      val a10: Int32 = a9 + 1
+      val a11: Int32 = a10 + 1
+      val a12: Int32 = a11 + 1
+      val a13: Int32 = a12 + 1
+      val a14: Int32 = a13 + 1
+      val a15: Int32 = a14 + 1
+      val a16: Int32 = a15 + 1
+      val a17: Int32 = a16 + 1
+      val a18: Int32 = a17 + 1
+      val a19: Int32 = a18 + 1
+      val a20: Int32 = a19 + 1
       return a20
     }
   )"));
@@ -694,26 +694,26 @@ TEST_F(CompilerTest, LongDependencyChain) {
 TEST_F(CompilerTest, ManyLiveVariables) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      let a1: Int32 = 1
-      let a2: Int32 = 2
-      let a3: Int32 = 3
-      let a4: Int32 = 4
-      let a5: Int32 = 5
-      let a6: Int32 = 6
-      let a7: Int32 = 7
-      let a8: Int32 = 8
-      let a9: Int32 = 9
-      let a10: Int32 = 10
-      let a11: Int32 = 11
-      let a12: Int32 = 12
-      let a13: Int32 = 13
-      let a14: Int32 = 14
-      let a15: Int32 = 15
-      let a16: Int32 = 16
-      let a17: Int32 = 17
-      let a18: Int32 = 18
-      let a19: Int32 = 19
-      let a20: Int32 = 20
+      val a1: Int32 = 1
+      val a2: Int32 = 2
+      val a3: Int32 = 3
+      val a4: Int32 = 4
+      val a5: Int32 = 5
+      val a6: Int32 = 6
+      val a7: Int32 = 7
+      val a8: Int32 = 8
+      val a9: Int32 = 9
+      val a10: Int32 = 10
+      val a11: Int32 = 11
+      val a12: Int32 = 12
+      val a13: Int32 = 13
+      val a14: Int32 = 14
+      val a15: Int32 = 15
+      val a16: Int32 = 16
+      val a17: Int32 = 17
+      val a18: Int32 = 18
+      val a19: Int32 = 19
+      val a20: Int32 = 20
       return a1  + a2  + a3  + a4  + a5 +
              a6  + a7  + a8  + a9  + a10 +
              a11 + a12 + a13 + a14 + a15 +
@@ -726,7 +726,7 @@ TEST_F(CompilerTest, ManyLiveVariables) {
 TEST_F(CompilerTest, Comp) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     comp fun max(a: Int32, b: Int32): Int32 {
-      let m: Int32 = a
+      val m: Int32 = a
       if b > m {
         m = b
       }
@@ -734,8 +734,8 @@ TEST_F(CompilerTest, Comp) {
     }
 
     fun main(): Int32 {
-      comp let round1: Int32 = max(21, 105)
-      comp let round2: Int32 = max(210, round1)
+      comp val round1: Int32 = max(21, 105)
+      comp val round2: Int32 = max(210, round1)
       return round2
     }
   )"));
@@ -747,7 +747,7 @@ TEST_F(CompilerTest, Tuple) {
     comp val Point: Type = (x: Int32, y: Int32)
 
     fun main(): Int32 {
-      let p: Point
+      val p: Point
       p.x = 21
       p.y = 42
       return p.x + p.y

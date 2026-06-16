@@ -5,7 +5,6 @@
 #include "lucid/am/cfg.h"
 #include "lucid/am/state.h"
 #include "lucid/core/container/hash_map.h"
-#include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
 
 namespace lucid {

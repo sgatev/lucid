@@ -133,7 +133,7 @@ TEST_F(CompCheckTest, NonCompVarDeclNonCompInit) {
     }
 
     fun test(): Int32 {
-      let x: Int32 = foo()
+      val x: Int32 = foo()
       return 0
     }
   )";
@@ -148,7 +148,7 @@ TEST_F(CompCheckTest, CompVarDeclNonCompInit) {
     }
 
     fun test(): Int32 {
-      comp let x: Int32 = foo()
+      comp val x: Int32 = foo()
       return 0
     }
   )";
@@ -163,7 +163,7 @@ TEST_F(CompCheckTest, CompVarDeclCompFuncCallInit) {
     }
 
     fun test(): Int32 {
-      comp let x: Int32 = foo()
+      comp val x: Int32 = foo()
       return 0
     }
   )";
@@ -174,7 +174,7 @@ TEST_F(CompCheckTest, CompVarDeclCompFuncCallInit) {
 TEST_F(CompCheckTest, CompVarDeclCompIntLitInit) {
   std::string_view src = R"(
     fun test(): Int32 {
-      comp let x: Int32 = 21
+      comp val x: Int32 = 21
       return 0
     }
   )";
@@ -185,7 +185,7 @@ TEST_F(CompCheckTest, CompVarDeclCompIntLitInit) {
 TEST_F(CompCheckTest, CompVarDeclCompBoolLitInit) {
   std::string_view src = R"(
     fun test(): Int32 {
-      comp let x: Bool = true
+      comp val x: Bool = true
       return 0
     }
   )";

@@ -9,12 +9,17 @@
 #include "lucid/am/translator.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
+#include "lucid/syntax/comp.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
+#include "lucid/syntax/ssa.h"
+#include "lucid/syntax/type.h"
+
+using namespace std::string_literals;
 
 std::size_t CountInstructions(const lucid::SyntaxContext& syn_ctx,
-                              const lucid::SyntaxControlFlowGraph& syn_cfg,
-                              lucid::AbstractMachineState& am_state) {
+                              const lucid::SyntaxControlFlowGraph& syn_cfg) {
+  lucid::AbstractMachineState am_state;
   lucid::AbstractMachineControlFlowGraph am_cfg =
       lucid::GenerateAbstractMachineFunction(/*am_cfgs=*/{}, syn_ctx, syn_cfg,
                                              am_state);
@@ -25,11 +30,15 @@ std::size_t CountInstructions(const lucid::SyntaxContext& syn_ctx,
   return instructions_count;
 }
 
-void Benchmark(benchmark::State& state, std::string_view code) {
-  lucid::SyntaxContext ctx;
+void Benchmark(benchmark::State& state, std::string_view snippet) {
+  std::string code;
+  code.append(snippet);
+  code.append("\0"s);
+
+  lucid::SyntaxContext syn_ctx;
 
   std::expected<std::optional<lucid::Def>, lucid::ParserError> def_or_error =
-      lucid::Parser(ctx, code, lucid::Lexer(code)).ParseDef();
+      lucid::Parser(syn_ctx, code, lucid::Lexer(code)).ParseDef();
   assert(def_or_error.has_value());
 
   std::optional<lucid::Def> maybe_def = std::move(def_or_error).value();
@@ -39,12 +48,19 @@ void Benchmark(benchmark::State& state, std::string_view code) {
   assert(std::holds_alternative<lucid::FuncDefStmt>(def));
 
   auto func_def = std::get<lucid::FuncDefStmt>(std::move(def));
+
+  auto infer_types_res = lucid::InferExprTypes(syn_ctx, func_def);
+  assert(infer_types_res.has_value());
+
+  auto check_comp_res = lucid::CheckComp(syn_ctx, func_def);
+  assert(check_comp_res.has_value());
+
   lucid::SyntaxControlFlowGraph syn_cfg =
-      lucid::BuildControlFlowGraph(ctx, func_def);
-  lucid::AbstractMachineState am_state;
+      lucid::BuildControlFlowGraph(syn_ctx, func_def);
+  lucid::ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(CountInstructions(ctx, syn_cfg, am_state));
+    benchmark::DoNotOptimize(CountInstructions(syn_ctx, syn_cfg));
   }
 
   state.SetBytesProcessed(std::int64_t(state.iterations()) *
@@ -53,7 +69,7 @@ void Benchmark(benchmark::State& state, std::string_view code) {
 
 static void BM_Function(benchmark::State& state) {
   Benchmark(state, R"(
-    let main = () -> Int32 {
+    fun main(): Int32 {
       return 2 + 3
     }
   )");

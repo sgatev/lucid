@@ -789,7 +789,7 @@ TEST_F(ParserTest, NotEqInts) {
 TEST_F(ParserTest, VarDecl) {
   std::string_view src = R"(
     fun inc(n: Int32): Int32 {
-      let m: Int32 = 1
+      val m: Int32 = 1
       return n + m 
     }
   )";
@@ -825,7 +825,7 @@ TEST_F(ParserTest, VarDecl) {
 TEST_F(ParserTest, CompVarDecl) {
   std::string_view src = R"(
     fun inc(n: Int32): Int32 {
-      comp let m: Int32 = 1
+      comp val m: Int32 = 1
       return n + m
     }
   )";
@@ -1338,7 +1338,7 @@ TEST_F(ParserTest, VarDeclMissingLet) {
 TEST_F(ParserTest, VarDeclMissingName) {
   std::string_view src = R"(
     fun main(): Void {
-      let : Int32 = 1
+      val : Int32 = 1
     }
   )";
   EXPECT_THAT(Parse(src),
@@ -1348,7 +1348,7 @@ TEST_F(ParserTest, VarDeclMissingName) {
 TEST_F(ParserTest, VarDeclMissingColon) {
   std::string_view src = R"(
     fun main(): Void {
-      let m Int32 = 1
+      val m Int32 = 1
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
@@ -1357,7 +1357,7 @@ TEST_F(ParserTest, VarDeclMissingColon) {
 TEST_F(ParserTest, VarDeclMissingType) {
   std::string_view src = R"(
     fun main(): Void {
-      let m: = 1
+      val m: = 1
     }
   )";
   EXPECT_THAT(Parse(src),
@@ -1367,7 +1367,7 @@ TEST_F(ParserTest, VarDeclMissingType) {
 TEST_F(ParserTest, VarDeclMissingColonAndType) {
   std::string_view src = R"(
     fun main(): Void {
-      let m = 1
+      val m = 1
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
@@ -1376,7 +1376,7 @@ TEST_F(ParserTest, VarDeclMissingColonAndType) {
 TEST_F(ParserTest, VarDeclMissingEqual) {
   std::string_view src = R"(
     fun main(): Void {
-      let m: Int32 1
+      val m: Int32 1
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 20"));
@@ -1385,7 +1385,7 @@ TEST_F(ParserTest, VarDeclMissingEqual) {
 TEST_F(ParserTest, VarDeclMissingInit) {
   std::string_view src = R"(
     fun main(): Void {
-      let m: Int32 =
+      val m: Int32 =
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));

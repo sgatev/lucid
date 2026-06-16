@@ -31,7 +31,7 @@ void Benchmark(benchmark::State& state, std::string_view snippet) {
 
 static void BM_Function(benchmark::State& state) {
   Benchmark(state, R"(
-    let main = () -> Void {
+    fun main(): Void {
       print("Hello, world!")
     }
   )");
@@ -40,7 +40,7 @@ BENCHMARK(BM_Function);
 
 static void BM_Tuple(benchmark::State& state) {
   Benchmark(state, R"(
-    let Point = (
+    comp val Point: Type = (
       x: Int32,
       y: Int32,
     )
@@ -50,8 +50,8 @@ BENCHMARK(BM_Tuple);
 
 static void BM_Lambda(benchmark::State& state) {
   Benchmark(state, R"(
-    let sortByLength = (mut names: List(String)) -> Void {
-      sort(mut names, (a: String, b: String) -> Bool {
+    fun sortByLength(ref names: List(String)): Void {
+      sort(&names, (val a: String, val b: String): Bool {
         return a.len < b.len
       })
     }
@@ -61,9 +61,9 @@ BENCHMARK(BM_Lambda);
 
 static void BM_Union(benchmark::State& state) {
   Benchmark(state, R"(
-    let Nothing = ()
+    comp val Nothing: Type = ()
 
-    let Optional = (T: Type) -> Type {
+    comp fun Optional(val T: Type): Type {
       return T | Nothing
     }
   )");
@@ -73,7 +73,7 @@ BENCHMARK(BM_Union);
 static void BM_Comment(benchmark::State& state) {
   Benchmark(state, R"(
     # Returns the sum of two integers.
-    let sum = (a: Int32, b: Int32) -> Int32 {
+    fun sum(val a: Int32, val b: Int32): Int32 {
       return a + b # can overflow
     }
   )");
@@ -82,14 +82,14 @@ BENCHMARK(BM_Comment);
 
 static void BM_Number(benchmark::State& state) {
   Benchmark(state, R"(
-    let c = sum(21738572173857, 3229017232290172)
+    comp val c: Int64 = sum(21738572173857, 3229017232290172)
   )");
 }
 BENCHMARK(BM_Number);
 
 static void BM_Branches(benchmark::State& state) {
   Benchmark(state, R"(
-    let gcd = (a: Int32, b: Int32) -> Int32 {
+    fun gcd(var a: Int32, var b: Int32): Int32 {
       loop {
         if a == b {
           break
