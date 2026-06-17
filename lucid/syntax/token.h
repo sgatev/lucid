@@ -10,12 +10,13 @@ namespace lucid {
 // A token in the Lucid language.
 struct Token {
   enum class Kind : std::uint8_t {
+    Comment,
+    Space,
     Bar,
     CloseBrace,
     CloseParen,
     Colon,
     Comma,
-    Comment,
     Dot,
     End,
     Equal,
@@ -35,8 +36,9 @@ struct Token {
     Percent,
     OpenBracket,
     CloseBracket,
-    Space,
   };
+
+  static constexpr Kind kFirstSemanticKind = Kind::Bar;
 
   constexpr Token() : kind(Kind::End), start_pos(0), end_pos(0) {}
 

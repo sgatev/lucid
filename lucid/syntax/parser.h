@@ -87,20 +87,18 @@ class Parser {
         next_(lexer_.next()) {}
 
   std::expected<std::optional<Def>, ParserError> ParseDef() {
-    SkipSpace();
-
-    if (Peek().kind == Token::Kind::End) return std::nullopt;
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::End) return std::nullopt;
 
     bool is_comp = false;
-    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "comp") {
-      Read();
-      SkipSpace();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::Ident &&
+        TokenString(PeekIgnoringNonSemantic()) == "comp") {
+      ReadIgnoringNonSemantic();
       is_comp = true;
     }
 
-    if (Peek().kind != Token::Kind::Ident) {
-      return std::unexpected(
-          MakeError(ParserError::Kind::UnexpectedToken, Peek()));
+    if (PeekIgnoringNonSemantic().kind != Token::Kind::Ident) {
+      return std::unexpected(MakeError(ParserError::Kind::UnexpectedToken,
+                                       PeekIgnoringNonSemantic()));
     }
 
     using namespace std::literals::string_view_literals;
@@ -110,7 +108,8 @@ class Parser {
             std::pair{"val"sv, &Parser::ParseValDef},
         },
         &Parser::UnknownDef);
-    return std::invoke(parselets[TokenString(Peek())], this, is_comp)
+    return std::invoke(parselets[TokenString(PeekIgnoringNonSemantic())], this,
+                       is_comp)
         .and_then(
             [](Def def) -> std::expected<std::optional<Def>, ParserError> {
               return std::optional<Def>(std::move(def));
@@ -119,21 +118,17 @@ class Parser {
 
  private:
   std::expected<Def, ParserError> UnknownDef(bool is_comp) {
-    return std::unexpected(
-        MakeError(ParserError::Kind::UnexpectedToken, Peek()));
+    return std::unexpected(MakeError(ParserError::Kind::UnexpectedToken,
+                                     PeekIgnoringNonSemantic()));
   }
 
   std::expected<Def, ParserError> ParseFuncDef(bool is_comp) {
-    Read();
-
-    SkipSpace();
+    ReadIgnoringNonSemantic();
 
     const auto maybe_name = ParseIdent();
     if (IsError(maybe_name)) {
       return std::unexpected(std::get<ParserError>(maybe_name));
     }
-
-    SkipSpace();
 
     FuncDefStmt stmt = {
         .name = std::get<StringIndex::Ref>(maybe_name),
@@ -142,22 +137,22 @@ class Parser {
 
     std::uint8_t params_size = 0;
     ParamRef first_param = Arena<FuncParam>::kNullRef;
-    if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) {
+    if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::OpenParen);
+        IsError(r)) {
       return std::unexpected(*r);
     }
     while (true) {
-      if (Peek().kind == Token::Kind::Comma) {
-        Read();
-
-        SkipSpace();
-      } else if (Peek().kind == Token::Kind::CloseParen) {
-        Read();
+      if (PeekIgnoringNonSemantic().kind == Token::Kind::Comma) {
+        ReadIgnoringNonSemantic();
+      } else if (PeekIgnoringNonSemantic().kind == Token::Kind::CloseParen) {
+        ReadIgnoringNonSemantic();
         break;
       }
 
-      if (Peek().kind != Token::Kind::Ident) {
+      if (PeekIgnoringNonSemantic().kind != Token::Kind::Ident) {
         return std::unexpected(
-            MakeError(ParserError::Kind::ExpectedClosingParenOrParam, Peek()));
+            MakeError(ParserError::Kind::ExpectedClosingParenOrParam,
+                      PeekIgnoringNonSemantic()));
       }
 
       auto maybe_param = ParseParam();
@@ -169,13 +164,10 @@ class Parser {
     }
     stmt.params = SuccessiveList<ParamRef>(params_size, first_param);
 
-    SkipSpace();
-
-    if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) {
+    if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::Colon);
+        IsError(r)) {
       return std::unexpected(*r);
     }
-
-    SkipSpace();
 
     const auto maybe_result_type = ParseType();
     if (IsError(maybe_result_type)) {
@@ -193,57 +185,52 @@ class Parser {
   }
 
   std::expected<Def, ParserError> ParseValDef(bool is_comp) {
-    if (auto r = ExpectIdent("val", ParserError::Kind::ExpectedValKeyword);
+    if (auto r = ExpectIdentIgnoringNonSemantic(
+            "val", ParserError::Kind::ExpectedValKeyword);
         IsError(r)) {
       return std::unexpected(*r);
     }
-
-    SkipSpace();
 
     const auto maybe_name = ParseIdent();
     if (IsError(maybe_name)) {
       return std::unexpected(std::get<ParserError>(maybe_name));
     }
 
-    SkipSpace();
-
-    if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) {
-      return std::unexpected(*r);
-    }
-
-    SkipSpace();
-
-    if (auto r = ExpectIdent("Type", ParserError::Kind::ExpectedTypeKeyword);
+    if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::Colon);
         IsError(r)) {
       return std::unexpected(*r);
     }
 
-    SkipSpace();
-
-    if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) {
+    if (auto r = ExpectIdentIgnoringNonSemantic(
+            "Type", ParserError::Kind::ExpectedTypeKeyword);
+        IsError(r)) {
       return std::unexpected(*r);
     }
 
-    SkipSpace();
+    if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::Equal);
+        IsError(r)) {
+      return std::unexpected(*r);
+    }
 
     std::uint8_t params_size = 0;
     ParamRef first_param = Arena<FuncParam>::kNullRef;
-    if (auto r = ExpectToken(Token::Kind::OpenParen); IsError(r)) {
+    if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::OpenParen);
+        IsError(r)) {
       return std::unexpected(*r);
     }
     while (true) {
-      if (Peek().kind == Token::Kind::Comma) {
-        Read();
+      if (PeekIgnoringNonSemantic().kind == Token::Kind::Comma) {
+        ReadIgnoringNonSemantic();
 
-        SkipSpace();
-      } else if (Peek().kind == Token::Kind::CloseParen) {
-        Read();
+      } else if (PeekIgnoringNonSemantic().kind == Token::Kind::CloseParen) {
+        ReadIgnoringNonSemantic();
         break;
       }
 
-      if (Peek().kind != Token::Kind::Ident) {
+      if (PeekIgnoringNonSemantic().kind != Token::Kind::Ident) {
         return std::unexpected(
-            MakeError(ParserError::Kind::ExpectedClosingParenOrParam, Peek()));
+            MakeError(ParserError::Kind::ExpectedClosingParenOrParam,
+                      PeekIgnoringNonSemantic()));
       }
 
       auto maybe_param = ParseParam();
@@ -267,9 +254,10 @@ class Parser {
     const auto maybe_name = ParseIdent();
     if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
 
-    if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) return *r;
-
-    SkipSpace();
+    if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::Colon);
+        IsError(r)) {
+      return *r;
+    }
 
     const auto maybe_type = ParseType();
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
@@ -281,7 +269,7 @@ class Parser {
   }
 
   std::variant<StringIndex::Ref, ParserError> ParseIdent() {
-    Token token = Read();
+    Token token = ReadIgnoringNonSemantic();
     if (token.kind == Token::Kind::Ident) [[likely]] {
       return syn_ctx_.AddIdent(TokenString(token));
     }
@@ -289,22 +277,21 @@ class Parser {
   }
 
   std::variant<SuccessiveList<StmtRef>, ParserError> ParseCompoundStmt() {
-    SkipSpace();
-
-    if (auto r = ExpectToken(Token::Kind::OpenBrace); IsError(r)) return *r;
+    if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::OpenBrace);
+        IsError(r)) {
+      return *r;
+    }
 
     const auto start_idx = pending_stmts_.size();
     while (true) {
-      SkipSpace();
-
-      if (Peek().kind == Token::Kind::CloseBrace) break;
+      if (PeekIgnoringNonSemantic().kind == Token::Kind::CloseBrace) break;
 
       auto maybe_stmt = ParseStmt();
       if (IsError(maybe_stmt)) return std::get<ParserError>(maybe_stmt);
       pending_stmts_.push_back(std::get<Stmt>(std::move(maybe_stmt)));
     }
 
-    Read();
+    ReadIgnoringNonSemantic();
 
     const std::uint8_t args_size = pending_stmts_.size() - start_idx;
     StmtRef args_first = Arena<Stmt>::kNullRef;
@@ -322,8 +309,9 @@ class Parser {
   }
 
   std::variant<Stmt, ParserError> ParseStmt() {
-    if (Peek().kind != Token::Kind::Ident) {
-      return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+    if (PeekIgnoringNonSemantic().kind != Token::Kind::Ident) {
+      return MakeError(ParserError::Kind::UnexpectedToken,
+                       PeekIgnoringNonSemantic());
     }
 
     using namespace std::literals::string_view_literals;
@@ -338,11 +326,11 @@ class Parser {
             std::pair{"break"sv, &Parser::ParseBreakStmt},
         },
         &Parser::ParseAssignStmt);
-    return std::invoke(parselets[TokenString(Peek())], this);
+    return std::invoke(parselets[TokenString(PeekIgnoringNonSemantic())], this);
   }
 
   std::variant<Stmt, ParserError> ParseDoStmt() {
-    Read();
+    ReadIgnoringNonSemantic();
 
     const auto maybe_value = ParseExpr();
     if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
@@ -353,7 +341,7 @@ class Parser {
   }
 
   std::variant<Stmt, ParserError> ParseReturnStmt() {
-    Read();
+    ReadIgnoringNonSemantic();
 
     const auto maybe_value = ParseExpr();
     if (IsError(maybe_value)) return std::get<ParserError>(maybe_value);
@@ -364,7 +352,7 @@ class Parser {
   }
 
   std::variant<Stmt, ParserError> ParseLoopStmt() {
-    Read();
+    ReadIgnoringNonSemantic();
 
     LoopStmt loop_stmt;
 
@@ -377,9 +365,7 @@ class Parser {
   }
 
   std::variant<Stmt, ParserError> ParseIfStmt() {
-    Read();
-
-    SkipSpace();
+    ReadIgnoringNonSemantic();
 
     IfStmt if_stmt;
 
@@ -391,14 +377,12 @@ class Parser {
     if (IsError(then_body)) return std::get<ParserError>(then_body);
     if_stmt.then_stmts = std::get<SuccessiveList<StmtRef>>(then_body);
 
-    SkipSpace();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::Ident &&
+        TokenString(PeekIgnoringNonSemantic()) == "else") {
+      ReadIgnoringNonSemantic();
 
-    if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "else") {
-      Read();
-
-      SkipSpace();
-
-      if (Peek().kind == Token::Kind::Ident && TokenString(Peek()) == "if") {
+      if (PeekIgnoringNonSemantic().kind == Token::Kind::Ident &&
+          TokenString(PeekIgnoringNonSemantic()) == "if") {
         const auto stmt = ParseStmt();
         if (IsError(stmt)) return std::get<ParserError>(stmt);
         if_stmt.else_stmts =
@@ -414,8 +398,7 @@ class Parser {
   }
 
   std::variant<Stmt, ParserError> ParseCompStmt() {
-    Read();
-    SkipSpace();
+    ReadIgnoringNonSemantic();
     return ParseVal(/*is_comp=*/true);
   }
 
@@ -424,27 +407,22 @@ class Parser {
   }
 
   std::variant<Stmt, ParserError> ParseVal(bool is_comp) {
-    Read();
-
-    SkipSpace();
+    ReadIgnoringNonSemantic();
 
     const auto maybe_name = ParseIdent();
     if (IsError(maybe_name)) return std::get<ParserError>(maybe_name);
 
-    if (auto r = ExpectToken(Token::Kind::Colon); IsError(r)) return *r;
-
-    SkipSpace();
+    if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::Colon);
+        IsError(r)) {
+      return *r;
+    }
 
     const auto maybe_type = ParseType();
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
 
-    SkipSpace();
-
     std::optional<ExprRef> init;
-    if (Peek().kind == Token::Kind::Equal) {
-      Read();
-
-      SkipSpace();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::Equal) {
+      ReadIgnoringNonSemantic();
 
       auto maybe_init = ParseExpr();
       if (IsError(maybe_init)) return std::get<ParserError>(maybe_init);
@@ -460,7 +438,7 @@ class Parser {
   }
 
   std::variant<Stmt, ParserError> ParseBreakStmt() {
-    Read();
+    ReadIgnoringNonSemantic();
 
     return BreakStmt{};
   }
@@ -468,22 +446,19 @@ class Parser {
   std::variant<Stmt, ParserError> ParseAssignStmt() {
     auto ident = std::get<StringIndex::Ref>(ParseIdent());
 
-    if (Peek().kind == Token::Kind::OpenBracket) {
-      Read();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::OpenBracket) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_size = ParseExpr();
       if (IsError(maybe_size)) return std::get<ParserError>(maybe_size);
 
-      if (auto r = ExpectToken(Token::Kind::CloseBracket); IsError(r)) {
+      if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::CloseBracket);
+          IsError(r)) {
         return *r;
       }
 
-      SkipSpace();
-
-      if (Peek().kind == Token::Kind::Equal) {
-        Read();
-
-        SkipSpace();
+      if (PeekIgnoringNonSemantic().kind == Token::Kind::Equal) {
+        ReadIgnoringNonSemantic();
 
         const auto expr = ParseExpr();
         if (IsError(expr)) return std::get<ParserError>(expr);
@@ -495,23 +470,20 @@ class Parser {
         };
       }
 
-      return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+      return MakeError(ParserError::Kind::UnexpectedToken,
+                       PeekIgnoringNonSemantic());
     }
 
-    if (Peek().kind == Token::Kind::Dot) {
-      Read();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::Dot) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_field_name = ParseIdent();
       if (IsError(maybe_field_name)) {
         return std::get<ParserError>(maybe_field_name);
       }
 
-      SkipSpace();
-
-      if (Peek().kind == Token::Kind::Equal) {
-        Read();
-
-        SkipSpace();
+      if (PeekIgnoringNonSemantic().kind == Token::Kind::Equal) {
+        ReadIgnoringNonSemantic();
 
         const auto expr = ParseExpr();
         if (IsError(expr)) return std::get<ParserError>(expr);
@@ -523,15 +495,12 @@ class Parser {
         };
       }
 
-      return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+      return MakeError(ParserError::Kind::UnexpectedToken,
+                       PeekIgnoringNonSemantic());
     }
 
-    SkipSpace();
-
-    if (Peek().kind == Token::Kind::Equal) {
-      Read();
-
-      SkipSpace();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::Equal) {
+      ReadIgnoringNonSemantic();
 
       const auto expr = ParseExpr();
       if (IsError(expr)) return std::get<ParserError>(expr);
@@ -542,21 +511,16 @@ class Parser {
       };
     }
 
-    return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+    return MakeError(ParserError::Kind::UnexpectedToken,
+                     PeekIgnoringNonSemantic());
   }
 
   std::variant<Expr, ParserError> ParseExpr() {
-    SkipSpace();
-
     const auto maybe_expr = ParseTerm();
     if (IsError(maybe_expr)) return std::get<ParserError>(maybe_expr);
 
-    SkipSpace();
-
-    if (Peek().kind == Token::Kind::Greater) {
-      Read();
-
-      SkipSpace();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::Greater) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_rhs = ParseExpr();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -564,10 +528,8 @@ class Parser {
       return MakeBinaryOpExpr(BinaryOp::Gt,
                               syn_ctx_.Add(std::get<Expr>(maybe_expr)),
                               syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
-    } else if (Peek().kind == Token::Kind::Less) {
-      Read();
-
-      SkipSpace();
+    } else if (PeekIgnoringNonSemantic().kind == Token::Kind::Less) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_rhs = ParseExpr();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -575,14 +537,12 @@ class Parser {
       return MakeBinaryOpExpr(BinaryOp::Lt,
                               syn_ctx_.Add(std::get<Expr>(maybe_expr)),
                               syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
-    } else if (Peek().kind == Token::Kind::Equal) {
-      Read();
+    } else if (PeekIgnoringNonSemantic().kind == Token::Kind::Equal) {
+      ReadImmediate();
 
-      if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) {
+      if (auto r = ExpectTokenImmediate(Token::Kind::Equal); IsError(r)) {
         return *r;
       }
-
-      SkipSpace();
 
       const auto maybe_rhs = ParseExpr();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -590,14 +550,12 @@ class Parser {
       return MakeBinaryOpExpr(BinaryOp::Eq,
                               syn_ctx_.Add(std::get<Expr>(maybe_expr)),
                               syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
-    } else if (Peek().kind == Token::Kind::Exclamation) {
-      Read();
+    } else if (PeekIgnoringNonSemantic().kind == Token::Kind::Exclamation) {
+      ReadImmediate();
 
-      if (auto r = ExpectToken(Token::Kind::Equal); IsError(r)) {
+      if (auto r = ExpectTokenImmediate(Token::Kind::Equal); IsError(r)) {
         return *r;
       }
-
-      SkipSpace();
 
       const auto maybe_rhs = ParseExpr();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -613,12 +571,8 @@ class Parser {
     auto maybe_expr = ParseFactor();
     if (IsError(maybe_expr)) return std::get<ParserError>(maybe_expr);
 
-    SkipSpace();
-
-    if (Peek().kind == Token::Kind::Plus) {
-      Read();
-
-      SkipSpace();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::Plus) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_rhs = ParseTerm();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -626,10 +580,8 @@ class Parser {
       return MakeBinaryOpExpr(BinaryOp::Add,
                               syn_ctx_.Add(std::get<Expr>(maybe_expr)),
                               syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
-    } else if (Peek().kind == Token::Kind::Minus) {
-      Read();
-
-      SkipSpace();
+    } else if (PeekIgnoringNonSemantic().kind == Token::Kind::Minus) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_rhs = ParseTerm();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -643,25 +595,22 @@ class Parser {
 
   std::variant<Expr, ParserError> ParseFactor() {
     auto maybe_expr = [&]() -> std::variant<Expr, ParserError> {
-      if (Peek().kind == Token::Kind::Ident) {
+      if (PeekIgnoringNonSemantic().kind == Token::Kind::Ident) {
         auto ident = std::get<StringIndex::Ref>(ParseIdent());
         return ParseExprStartingWithIdent(ident);
-      } else if (Peek().kind == Token::Kind::Number) {
+      } else if (PeekIgnoringNonSemantic().kind == Token::Kind::Number) {
         return ParseNumber();
-      } else if (Peek().kind == Token::Kind::String ||
-                 Peek().kind == Token::Kind::Error) {
+      } else if (PeekIgnoringNonSemantic().kind == Token::Kind::String ||
+                 PeekIgnoringNonSemantic().kind == Token::Kind::Error) {
         return ParseString();
       }
-      return MakeError(ParserError::Kind::UnexpectedToken, Peek());
+      return MakeError(ParserError::Kind::UnexpectedToken,
+                       PeekIgnoringNonSemantic());
     }();
     if (IsError(maybe_expr)) return std::get<ParserError>(maybe_expr);
 
-    SkipSpace();
-
-    if (Peek().kind == Token::Kind::Star) {
-      Read();
-
-      SkipSpace();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::Star) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_rhs = ParseFactor();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -669,10 +618,8 @@ class Parser {
       return MakeBinaryOpExpr(BinaryOp::Mul,
                               syn_ctx_.Add(std::get<Expr>(maybe_expr)),
                               syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
-    } else if (Peek().kind == Token::Kind::Slash) {
-      Read();
-
-      SkipSpace();
+    } else if (PeekIgnoringNonSemantic().kind == Token::Kind::Slash) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_rhs = ParseFactor();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -680,10 +627,8 @@ class Parser {
       return MakeBinaryOpExpr(BinaryOp::Div,
                               syn_ctx_.Add(std::get<Expr>(maybe_expr)),
                               syn_ctx_.Add(std::get<Expr>(maybe_rhs)));
-    } else if (Peek().kind == Token::Kind::Percent) {
-      Read();
-
-      SkipSpace();
+    } else if (PeekIgnoringNonSemantic().kind == Token::Kind::Percent) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_rhs = ParseFactor();
       if (IsError(maybe_rhs)) return std::get<ParserError>(maybe_rhs);
@@ -701,13 +646,14 @@ class Parser {
     auto maybe_expr = ParseIdentOrFuncCall(ident);
     if (IsError(maybe_expr)) return std::get<ParserError>(maybe_expr);
 
-    if (Peek().kind == Token::Kind::OpenBracket) {
-      Read();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::OpenBracket) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_size = ParseExpr();
       if (IsError(maybe_size)) return std::get<ParserError>(maybe_size);
 
-      if (auto r = ExpectToken(Token::Kind::CloseBracket); IsError(r)) {
+      if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::CloseBracket);
+          IsError(r)) {
         return *r;
       }
 
@@ -717,8 +663,8 @@ class Parser {
       };
     }
 
-    if (Peek().kind == Token::Kind::Dot) {
-      Read();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::Dot) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_field_name = ParseIdent();
       if (IsError(maybe_field_name)) {
@@ -735,18 +681,20 @@ class Parser {
   }
 
   std::variant<Expr, ParserError> ParseIdentOrFuncCall(StringIndex::Ref ident) {
-    if (Peek().kind == Token::Kind::OpenParen) {
-      Read();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::OpenParen) {
+      ReadIgnoringNonSemantic();
 
       const auto start_idx = pending_exprs_.size();
-      while (Peek().kind != Token::Kind::CloseParen) {
+      while (PeekIgnoringNonSemantic().kind != Token::Kind::CloseParen) {
         auto maybe_arg = ParseExpr();
         if (IsError(maybe_arg)) return std::get<ParserError>(maybe_arg);
         pending_exprs_.push_back(std::get<Expr>(std::move(maybe_arg)));
 
-        if (Peek().kind == Token::Kind::Comma) Read();
+        if (PeekIgnoringNonSemantic().kind == Token::Kind::Comma) {
+          ReadIgnoringNonSemantic();
+        }
       }
-      Read();
+      ReadIgnoringNonSemantic();
 
       const std::uint8_t args_size = pending_exprs_.size() - start_idx;
       ExprRef args_first = Arena<Expr>::kNullRef;
@@ -774,7 +722,7 @@ class Parser {
   }
 
   std::variant<IntLitExpr, ParserError> ParseIntLitExpr() {
-    Token token = Read();
+    Token token = ReadIgnoringNonSemantic();
     if (token.kind != Token::Kind::Number) [[unlikely]] {
       return MakeError(ParserError::Kind::ExpectedNumber, token);
     }
@@ -800,7 +748,7 @@ class Parser {
   }
 
   std::variant<Expr, ParserError> ParseString() {
-    Token token = Read();
+    Token token = ReadIgnoringNonSemantic();
     if (token.kind == Token::Kind::Error) [[unlikely]] {
       return MakeError(ParserError::Kind::IncompleteStringLiteral, token);
     }
@@ -816,13 +764,14 @@ class Parser {
     const auto maybe_type = ParseIdent();
     if (IsError(maybe_type)) return std::get<ParserError>(maybe_type);
 
-    if (Peek().kind == Token::Kind::OpenBracket) {
-      Read();
+    if (PeekIgnoringNonSemantic().kind == Token::Kind::OpenBracket) {
+      ReadIgnoringNonSemantic();
 
       const auto maybe_size = ParseIntLitExpr();
       if (IsError(maybe_size)) return std::get<ParserError>(maybe_size);
 
-      if (auto r = ExpectToken(Token::Kind::CloseBracket); IsError(r)) {
+      if (auto r = ExpectTokenIgnoringNonSemantic(Token::Kind::CloseBracket);
+          IsError(r)) {
         return *r;
       }
 
@@ -840,44 +789,47 @@ class Parser {
     return BinaryOpExpr{.op = op, .lhs = lhs, .rhs = rhs};
   }
 
-  std::optional<ParserError> ExpectToken(Token::Kind kind) {
-    Token token = Read();
+  std::optional<ParserError> ExpectTokenIgnoringNonSemantic(Token::Kind kind) {
+    Token token = ReadIgnoringNonSemantic();
     if (token.kind == kind) [[likely]] {
       return std::nullopt;
     }
     return MakeError(ParserError::Kind::UnexpectedToken, token);
   }
 
-  std::optional<ParserError> ExpectIdent(std::string_view text,
-                                         ParserError::Kind error_kind) {
-    Token token = Read();
-    if (token.kind != Token::Kind::Ident || TokenString(token) != text)
-        [[unlikely]] {
+  std::optional<ParserError> ExpectTokenImmediate(Token::Kind kind) {
+    Token token = ReadImmediate();
+    if (token.kind == kind) return std::nullopt;
+    return MakeError(ParserError::Kind::UnexpectedToken, token);
+  }
+
+  std::optional<ParserError> ExpectIdentIgnoringNonSemantic(
+      std::string_view text, ParserError::Kind error_kind) {
+    Token token = ReadIgnoringNonSemantic();
+    if (token.kind != Token::Kind::Ident || TokenString(token) != text) {
       return MakeError(error_kind, token);
     }
     return std::nullopt;
-  }
-
-  void SkipSpace() {
-    while (Peek().kind == Token::Kind::Space) Read();
   }
 
   std::string_view TokenString(Token token) const {
     return buffer_.substr(token.start_pos, token.end_pos - token.start_pos);
   }
 
-  Token Read() {
+  Token ReadImmediate() { return std::exchange(next_, lexer_.next()); }
+
+  Token ReadIgnoringNonSemantic() {
     SkipComment();
-    return std::exchange(next_, lexer_.next());
+    return ReadImmediate();
   }
 
-  const Token& Peek() {
+  const Token& PeekIgnoringNonSemantic() {
     SkipComment();
     return next_;
   }
 
   void SkipComment() {
-    while (next_.kind == Token::Kind::Comment) next_ = lexer_.next();
+    while (next_.kind < Token::kFirstSemanticKind) next_ = lexer_.next();
   }
 
   ParserError MakeError(ParserError::Kind kind, const Token& token) const {

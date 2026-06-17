@@ -1301,7 +1301,7 @@ TEST_F(ParserTest, FuncDefMissingParamColon) {
       return x
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 13"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 14"));
 }
 
 TEST_F(ParserTest, FuncDefMissingParamType) {
@@ -1338,8 +1338,7 @@ TEST_F(ParserTest, FuncDefMissingClosingParen) {
     fun main( Void {
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 14"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 20"));
 }
 
 TEST_F(ParserTest, FuncDefMissingResultColon) {
@@ -1408,7 +1407,7 @@ TEST_F(ParserTest, VarDeclMissingColon) {
       val m Int32 = 1
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
 }
 
 TEST_F(ParserTest, VarDeclMissingType) {
@@ -1427,7 +1426,7 @@ TEST_F(ParserTest, VarDeclMissingColonAndType) {
       val m = 1
     }
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 12"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
 }
 
 TEST_F(ParserTest, VarDeclMissingEqual) {
@@ -1572,7 +1571,7 @@ TEST_F(ParserTest, TupleDefMissingParamColon) {
   std::string_view src = R"(
     comp val Foo: Type = (x Int32)
   )";
-  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 28"));
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 29"));
 }
 
 TEST_F(ParserTest, TupleDefMissingParamType) {
@@ -1603,7 +1602,7 @@ TEST_F(ParserTest, TupleDefMissingClosingParen) {
     comp val Foo: Type = (
   )";
   EXPECT_THAT(Parse(src), HoldsError("expected closing parenthesis or "
-                                     "parameter at line 2, column 27"));
+                                     "parameter at line 3, column 3"));
 }
 
 }  // namespace
