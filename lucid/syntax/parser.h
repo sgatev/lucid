@@ -14,25 +14,11 @@
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/fixed_map.h"
 #include "lucid/core/container/successive_list.h"
+#include "lucid/core/functional/expected.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/context.h"
 #include "lucid/syntax/token.h"
-
-#define CONCAT_(prefix, suffix) prefix##suffix
-#define CONCAT(prefix, suffix) CONCAT_(prefix, suffix)
-#define UNIQUE_VAR(prefix) CONCAT(prefix##_, __LINE__)
-
-#define ASSIGN_OR_RETURN(v, e)                       \
-  auto UNIQUE_VAR(aor) = e;                          \
-  if (!UNIQUE_VAR(aor).has_value()) [[unlikely]]     \
-    return std::unexpected(UNIQUE_VAR(aor).error()); \
-  v = std::move(UNIQUE_VAR(aor)).value()
-
-#define RETURN_IF_ERROR(e)                       \
-  auto UNIQUE_VAR(rie) = e;                      \
-  if (!UNIQUE_VAR(rie).has_value()) [[unlikely]] \
-  return std::unexpected(UNIQUE_VAR(rie).error())
 
 namespace lucid {
 

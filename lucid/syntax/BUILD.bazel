@@ -213,6 +213,7 @@ cc_library(
         "//lucid/core/container:arena",
         "//lucid/core/container:fixed_map",
         "//lucid/core/container:successive_list",
+        "//lucid/core/functional:expected",
         "//lucid/core/string:index",
     ],
 )
