@@ -38,7 +38,7 @@ void Benchmark(benchmark::State& state, std::string_view snippet) {
   lucid::SyntaxContext syn_ctx;
 
   std::expected<std::optional<lucid::Def>, lucid::ParserError> def_or_error =
-      lucid::Parser(syn_ctx, code, lucid::Lexer(code)).ParseDef();
+      lucid::Parser(syn_ctx, code, lucid::Lexer(code)).Parse();
   assert(def_or_error.has_value());
 
   std::optional<lucid::Def> maybe_def = std::move(def_or_error).value();

@@ -50,7 +50,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
   GenerateArmStartBinary(assembler);
   while (true) {
     std::expected<std::optional<Def>, ParserError> def_or_error =
-        parser.ParseDef();
+        parser.Parse();
     if (!def_or_error.has_value()) return std::unexpected(def_or_error.error());
 
     std::optional<Def> maybe_def = std::move(def_or_error).value();
@@ -102,7 +102,7 @@ std::expected<std::vector<Def>, ParserError> ParseDefs(std::string_view src,
   Parser parser(ctx, src, lexer);
   while (true) {
     std::expected<std::optional<Def>, ParserError> def_or_error =
-        parser.ParseDef();
+        parser.Parse();
     if (!def_or_error.has_value()) return std::unexpected(def_or_error.error());
 
     std::optional<Def> maybe_def = std::move(def_or_error).value();

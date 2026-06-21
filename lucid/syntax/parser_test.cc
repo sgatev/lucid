@@ -51,7 +51,7 @@ class ParserTest : public testing::Test, public AstFixture {
     code_with_null.append("\0"s);
 
     std::expected<std::optional<Def>, ParserError> def_or_error =
-        Parser(syn_ctx_, src, Lexer(code_with_null)).ParseDef();
+        Parser(syn_ctx_, src, Lexer(code_with_null)).Parse();
     if (!def_or_error.has_value()) {
       std::stringstream out;
       out << def_or_error.error();

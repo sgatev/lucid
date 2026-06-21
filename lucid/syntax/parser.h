@@ -100,21 +100,43 @@ class Parser {
         lexer_(std::move(lexer)),
         next_(lexer_.next()) {}
 
-  std::expected<std::optional<Def>, ParserError> ParseDef() {
+  std::expected<std::optional<Def>, ParserError> Parse() {
     if (PeekIgnoringNonSemantic().kind == Token::Kind::End) [[unlikely]] {
       return std::nullopt;
     }
 
-    bool is_comp = false;
-    if (PeekIgnoringNonSemantic().kind == Token::Kind::Ident &&
-        TokenString(PeekIgnoringNonSemantic()) == "comp") {
-      ReadIgnoringNonSemantic();
-      is_comp = true;
+    return ParseDef().transform(
+        [](Def def) { return std::make_optional(std::move(def)); });
+  }
+
+ private:
+  std::expected<Def, ParserError> ParseDef() {
+    // Ok to read immediate as non-semantic characters were ignored in `Parse`.
+    Token token = ReadImmediate();
+
+    if (token.kind != Token::Kind::Ident) [[unlikely]] {
+      return std::unexpected(
+          MakeError(ParserError::Kind::UnexpectedToken, token));
     }
 
-    if (PeekIgnoringNonSemantic().kind != Token::Kind::Ident) [[unlikely]] {
-      return std::unexpected(MakeError(ParserError::Kind::UnexpectedToken,
-                                       PeekIgnoringNonSemantic()));
+    using namespace std::literals::string_view_literals;
+    static constexpr FixedMap parselets(
+        std::array{
+            std::pair{"comp"sv, &Parser::ParseCompDef},
+            std::pair{"fun"sv, &Parser::ParseFuncDef},
+            std::pair{"val"sv, &Parser::ParseValDef},
+        },
+        &Parser::UnknownDef);
+    return std::invoke(parselets[TokenString(token)], this,
+                       /*is_comp=*/false);
+  }
+
+  std::expected<Def, ParserError> ParseCompDef(bool /*is_comp*/) {
+    Token token = ReadIgnoringNonSemantic();
+
+    if (token.kind != Token::Kind::Ident) [[unlikely]] {
+      return std::unexpected(
+          MakeError(ParserError::Kind::UnexpectedToken, token));
     }
 
     using namespace std::literals::string_view_literals;
@@ -124,34 +146,22 @@ class Parser {
             std::pair{"val"sv, &Parser::ParseValDef},
         },
         &Parser::UnknownDef);
-    return std::invoke(parselets[TokenString(PeekIgnoringNonSemantic())], this,
-                       is_comp)
-        .and_then(
-            [](Def def) -> std::expected<std::optional<Def>, ParserError> {
-              return std::optional<Def>(std::move(def));
-            });
-  }
-
- private:
-  std::expected<Def, ParserError> UnknownDef(bool is_comp) {
-    return std::unexpected(MakeError(ParserError::Kind::UnexpectedToken,
-                                     PeekIgnoringNonSemantic()));
+    return std::invoke(parselets[TokenString(token)], this,
+                       /*is_comp=*/true);
   }
 
   std::expected<Def, ParserError> ParseFuncDef(bool is_comp) {
-    ReadIgnoringNonSemantic();
-
     ASSIGN_OR_RETURN(StringIndex::Ref name, ParseIdent());
-
-    FuncDefStmt stmt{.name = name, .is_comp = is_comp};
 
     std::uint8_t params_size = 0;
     ParamRef first_param = Arena<FuncParam>::kNullRef;
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::OpenParen));
     while (true) {
-      if (PeekIgnoringNonSemantic().kind == Token::Kind::Comma) {
+      Token next_token = PeekIgnoringNonSemantic();
+
+      if (next_token.kind == Token::Kind::Comma) {
         ReadIgnoringNonSemantic();
-      } else if (PeekIgnoringNonSemantic().kind == Token::Kind::CloseParen) {
+      } else if (next_token.kind == Token::Kind::CloseParen) {
         ReadIgnoringNonSemantic();
         break;
       }
@@ -166,22 +176,21 @@ class Parser {
       if (params_size == 0) first_param = param;
       ++params_size;
     }
-    stmt.params = SuccessiveList<ParamRef>(params_size, first_param);
 
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::Colon));
-
     ASSIGN_OR_RETURN(TypeRef result_type, ParseType());
-    stmt.result_type = result_type;
+    ASSIGN_OR_RETURN(SuccessiveList<StmtRef> stmts, ParseCompoundStmt());
 
-    ASSIGN_OR_RETURN(SuccessiveList<StmtRef> body, ParseCompoundStmt());
-    stmt.stmts = body;
-
-    return stmt;
+    return FuncDefStmt{
+        .name = name,
+        .params = SuccessiveList<ParamRef>(params_size, first_param),
+        .result_type = result_type,
+        .stmts = stmts,
+        .is_comp = is_comp,
+    };
   }
 
   std::expected<Def, ParserError> ParseValDef(bool is_comp) {
-    RETURN_IF_ERROR(ExpectIdentIgnoringNonSemantic(
-        "val", ParserError::Kind::ExpectedValKeyword));
     ASSIGN_OR_RETURN(StringIndex::Ref name, ParseIdent());
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::Colon));
     RETURN_IF_ERROR(ExpectIdentIgnoringNonSemantic(
@@ -192,10 +201,12 @@ class Parser {
     ParamRef first_param = Arena<FuncParam>::kNullRef;
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::OpenParen));
     while (true) {
-      if (PeekIgnoringNonSemantic().kind == Token::Kind::Comma) {
+      Token next_token = PeekIgnoringNonSemantic();
+
+      if (next_token.kind == Token::Kind::Comma) {
         ReadIgnoringNonSemantic();
 
-      } else if (PeekIgnoringNonSemantic().kind == Token::Kind::CloseParen) {
+      } else if (next_token.kind == Token::Kind::CloseParen) {
         ReadIgnoringNonSemantic();
         break;
       }
@@ -217,6 +228,11 @@ class Parser {
             .fields = SuccessiveList<ParamRef>(params_size, first_param),
         }),
     };
+  }
+
+  std::expected<Def, ParserError> UnknownDef(bool is_comp) {
+    return std::unexpected(MakeError(ParserError::Kind::UnexpectedToken,
+                                     PeekIgnoringNonSemantic()));
   }
 
   std::expected<ParamRef, ParserError> ParseParam() {

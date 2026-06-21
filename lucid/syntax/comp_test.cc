@@ -27,7 +27,7 @@ class CompCheckTest : public testing::Test, public AstFixture {
     std::list<FuncDefStmt> func_defs;
     for (Parser parser(syn_ctx_, src, Lexer(code_with_null));;) {
       std::expected<std::optional<Def>, ParserError> def_or_error =
-          parser.ParseDef();
+          parser.Parse();
       if (!def_or_error.has_value()) {
         return std::unexpected(CompError("failed to parse definition"));
       }

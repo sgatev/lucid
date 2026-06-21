@@ -30,7 +30,7 @@ void Benchmark(benchmark::State& state, std::string_view snippet) {
     std::size_t count = 0;
     for (int i = 0; i < kSnippetRepetitions; ++i) {
       std::expected<std::optional<lucid::Def>, lucid::ParserError>
-          def_or_error = parser.ParseDef();
+          def_or_error = parser.Parse();
       if (!def_or_error.has_value()) break;
 
       std::optional<lucid::Def> maybe_def = std::move(def_or_error).value();
