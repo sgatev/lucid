@@ -85,35 +85,35 @@ class Arm64BinaryGenerator {
     if (block.branch_cond.has_value()) {
       assembler_.Cmp(W(block.branch_cond->id), Imm(0));
 
-      std::string else_label_phi =
-          std::string(func_name_) + std::to_string(block.next[1].id()) + "_phi";
+      std::string else_label_phi = std::string(func_name_) +
+                                   std::to_string(block.succs[1].id()) + "_phi";
       assembler_.B(Cond::Eq, else_label_phi);
 
-      std::string then_label_phi =
-          std::string(func_name_) + std::to_string(block.next[0].id()) + "_phi";
+      std::string then_label_phi = std::string(func_name_) +
+                                   std::to_string(block.succs[0].id()) + "_phi";
       assembler_.B(then_label_phi);
 
       assembler_.Label(else_label_phi);
       std::string else_label =
-          std::string(func_name_) + std::to_string(block.next[1].id());
-      ProcessPhiFunctions(am_cfg_.GetBlock(block.next[1]), block.ref);
+          std::string(func_name_) + std::to_string(block.succs[1].id());
+      ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[1]), block.ref);
       assembler_.B(else_label);
 
       assembler_.Label(then_label_phi);
       std::string then_label =
-          std::string(func_name_) + std::to_string(block.next[0].id());
-      ProcessPhiFunctions(am_cfg_.GetBlock(block.next[0]), block.ref);
+          std::string(func_name_) + std::to_string(block.succs[0].id());
+      ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[0]), block.ref);
       assembler_.B(then_label);
-    } else if (block.next.size() == 1) {
+    } else if (block.succs.size() == 1) {
       std::string phi_label = std::string(func_name_) +
                               std::to_string(block.ref.id()) + "_" +
-                              std::to_string(block.next[0].id()) + "_phi";
+                              std::to_string(block.succs[0].id()) + "_phi";
       assembler_.B(phi_label);
 
       assembler_.Label(phi_label);
-      ProcessPhiFunctions(am_cfg_.GetBlock(block.next[0]), block.ref);
+      ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[0]), block.ref);
       std::string label =
-          std::string(func_name_) + std::to_string(block.next[0].id());
+          std::string(func_name_) + std::to_string(block.succs[0].id());
       assembler_.B(label);
     }
   }

@@ -69,7 +69,7 @@ struct SyntaxControlFlowGraph {
     //
     // In the case of an `IfStmt` the first block in `next` will represent the
     // "then" branch and the second block will represent the "else" branch.
-    std::vector<BlockRef> next;
+    std::vector<BlockRef> succs;
 
     // References to the previous blocks.
     std::vector<BlockRef> preds;
@@ -153,7 +153,7 @@ inline SyntaxControlFlowGraph::BlockRef SinkVertex(
 
 inline std::vector<SyntaxControlFlowGraph::BlockRef> NextVertices(
     const SyntaxControlFlowGraph& cfg, SyntaxControlFlowGraph::BlockRef block) {
-  return cfg.get(block).next;
+  return cfg.get(block).succs;
 }
 
 inline std::vector<SyntaxControlFlowGraph::BlockRef> PrevVertices(

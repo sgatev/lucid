@@ -50,7 +50,7 @@ class ControlFlowGraphBuilder {
 
         auto loop_block = AddBlock();
         should_connect = BuildBlock(loop_stmt->stmts, loop_block, loop_block);
-        graph_.get(block).next.push_back(loop_block);
+        graph_.get(block).succs.push_back(loop_block);
         graph_.get(loop_block).preds.push_back(block);
 
         post_loop_blocks_.pop();
@@ -64,17 +64,17 @@ class ControlFlowGraphBuilder {
         auto then_block = AddBlock();
         bool then_continues =
             BuildBlock(if_stmt->then_stmts, then_block, post_if_block);
-        graph_.get(block).next.push_back(then_block);
+        graph_.get(block).succs.push_back(then_block);
         graph_.get(then_block).preds.push_back(block);
 
         if (if_stmt->else_stmts.size() == 0) {
-          graph_.get(block).next.push_back(post_if_block);
+          graph_.get(block).succs.push_back(post_if_block);
           graph_.get(post_if_block).preds.push_back(block);
         } else {
           auto else_block = AddBlock();
           bool else_continues =
               BuildBlock(if_stmt->else_stmts, else_block, post_if_block);
-          graph_.get(block).next.push_back(else_block);
+          graph_.get(block).succs.push_back(else_block);
           graph_.get(else_block).preds.push_back(block);
 
           should_connect = then_continues || else_continues;
@@ -95,13 +95,13 @@ class ControlFlowGraphBuilder {
         FlushSubExprs(seq, block, end);
 
         if (std::holds_alternative<ReturnStmt>(ctx_.DerefStmt(stmt_ref))) {
-          graph_.get(block).next.push_back(graph_.last);
+          graph_.get(block).succs.push_back(graph_.last);
           graph_.get(graph_.last).preds.push_back(block);
           return false;
         }
 
         if (std::holds_alternative<BreakStmt>(ctx_.DerefStmt(stmt_ref))) {
-          graph_.get(block).next.push_back(post_loop_blocks_.top());
+          graph_.get(block).succs.push_back(post_loop_blocks_.top());
           graph_.get(post_loop_blocks_.top()).preds.push_back(block);
           return false;
         }
@@ -109,7 +109,7 @@ class ControlFlowGraphBuilder {
     }
 
     if (should_connect) {
-      graph_.get(block).next.push_back(end);
+      graph_.get(block).succs.push_back(end);
       graph_.get(end).preds.push_back(block);
     }
 

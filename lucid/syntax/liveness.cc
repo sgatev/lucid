@@ -47,12 +47,12 @@ State SyntaxLivenessAnalysis::Transfer(
   if (prior_state.has_value()) {
     state.live_out = std::move(prior_state->live_in);
 
-    for (const auto& next_block_ref : block.next) {
-      const auto& next_block = scfg_.get(next_block_ref);
-      for (const auto& phi_ref : next_block.phis) {
+    for (const auto& succ_ref : block.succs) {
+      const auto& succ_block = scfg_.get(succ_ref);
+      for (const auto& phi_ref : succ_block.phis) {
         const auto& phi = scfg_.deref(phi_ref);
-        for (int i = 0; i < next_block.preds.size(); ++i) {
-          if (next_block.preds[i] == block.ref) {
+        for (int i = 0; i < succ_block.preds.size(); ++i) {
+          if (succ_block.preds[i] == block.ref) {
             state.live_out.Insert(phi.args[i]);
             break;
           }

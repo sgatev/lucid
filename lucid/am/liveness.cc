@@ -35,11 +35,11 @@ State AbstractMachineLivenessAnalysis::Transfer(
   if (prior_state.has_value()) {
     state.live_out = std::move(prior_state->live_in);
 
-    for (const auto& next_block_ref : block.next) {
-      const auto& next_block = am_cfg_.GetBlock(next_block_ref);
-      for (const auto& phi : next_block.phis) {
-        for (int i = 0; i < next_block.preds.size(); ++i) {
-          if (next_block.preds[i] == block.ref) {
+    for (const auto& succ_ref : block.succs) {
+      const auto& succ_block = am_cfg_.GetBlock(succ_ref);
+      for (const auto& phi : succ_block.phis) {
+        for (int i = 0; i < succ_block.preds.size(); ++i) {
+          if (succ_block.preds[i] == block.ref) {
             state.live_out.Insert(phi.srcs[i]);
             break;
           }

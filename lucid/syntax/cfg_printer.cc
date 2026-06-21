@@ -140,7 +140,7 @@ void PrintBlock(int indent, const SyntaxContext& ctx,
       << ResetColor << " {\n";
   PrintPhis(indent + kIndentStep, ctx, scfg, block.phis, out);
   PrintSequences(indent + kIndentStep, ctx, block.sequences, out);
-  PrintNext(indent + kIndentStep, block.next, out);
+  PrintNext(indent + kIndentStep, block.succs, out);
   PrintPreds(indent + kIndentStep, block.preds, out);
   out << Indent(indent) << "}\n";
 }

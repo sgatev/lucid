@@ -151,10 +151,10 @@ class AbstractMachineFunctionGenerator {
     if (block.branch_cond != Arena<Expr>::kNullRef) {
       am_block.branch_cond = expr_and_stmt_to_reg_[block.branch_cond.id()];
     }
-    for (const auto& next : block.next) {
-      auto am_cfg_next = graph_map_.Get(next);
-      assert(am_cfg_next.has_value());
-      am_block.next.push_back(*am_cfg_next);
+    for (const auto& succ : block.succs) {
+      auto am_cfg_succ = graph_map_.Get(succ);
+      assert(am_cfg_succ.has_value());
+      am_block.succs.push_back(*am_cfg_succ);
     }
     for (const auto& pred : block.preds) {
       auto am_cfg_pred = graph_map_.Get(pred);

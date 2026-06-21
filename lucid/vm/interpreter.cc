@@ -21,15 +21,15 @@ int InterpretAbstractMachineFunction(
 
   AbstractMachineControlFlowGraph::BlockRef prev_block_ref =
       AbstractMachineControlFlowGraph::kNullBlockRef;
-  auto current_block_ref = am_cfg.first;
+  auto curr_block_ref = am_cfg.first;
   while (true) {
-    const auto& current_block = am_cfg.GetBlock(current_block_ref);
-    for (const auto& phi : current_block.phis) {
+    const auto& curr_block = am_cfg.GetBlock(curr_block_ref);
+    for (const auto& phi : curr_block.phis) {
       assert(prev_block_ref != AbstractMachineControlFlowGraph::kNullBlockRef);
 
       int come_from = -1;
-      for (int i = 0; i < current_block.preds.size(); ++i) {
-        if (current_block.preds[i] == prev_block_ref) {
+      for (int i = 0; i < curr_block.preds.size(); ++i) {
+        if (curr_block.preds[i] == prev_block_ref) {
           come_from = i;
           break;
         }
@@ -40,28 +40,28 @@ int InterpretAbstractMachineFunction(
       assert(src_val.has_value());
       vm.Set(phi.dst, *src_val);
     }
-    for (const auto& inst : current_block.instructions) {
+    for (const auto& inst : curr_block.instructions) {
       vm.Interpret(inst);
     }
-    if (current_block.branch_cond.has_value()) {
-      assert(current_block.next.size() == 2);
+    if (curr_block.branch_cond.has_value()) {
+      assert(curr_block.succs.size() == 2);
 
-      auto branch_cond_value = vm.Get(*current_block.branch_cond);
+      auto branch_cond_value = vm.Get(*curr_block.branch_cond);
       assert(branch_cond_value.has_value());
 
       if (*branch_cond_value != 0) {
-        prev_block_ref = current_block.ref;
-        current_block_ref = current_block.next[0];
+        prev_block_ref = curr_block.ref;
+        curr_block_ref = curr_block.succs[0];
       } else {
-        prev_block_ref = current_block.ref;
-        current_block_ref = current_block.next[1];
+        prev_block_ref = curr_block.ref;
+        curr_block_ref = curr_block.succs[1];
       }
-    } else if (current_block.next.size() == 1) {
-      prev_block_ref = current_block.ref;
-      current_block_ref = current_block.next[0];
+    } else if (curr_block.succs.size() == 1) {
+      prev_block_ref = curr_block.ref;
+      curr_block_ref = curr_block.succs[0];
     } else {
-      assert(current_block.next.size() == 0);
-      assert(current_block.ref == am_cfg.last);
+      assert(curr_block.succs.size() == 0);
+      assert(curr_block.ref == am_cfg.last);
       break;
     }
   }

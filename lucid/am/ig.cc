@@ -23,11 +23,11 @@ HashMap<Reg, HashSet<Reg>> BuildInterferenceGraph(
     if (!maybe_state.has_value()) continue;
     auto& state = *maybe_state;
 
-    for (const auto& next_block_ref : block.next) {
-      const auto& next_block = am_cfg.GetBlock(next_block_ref);
-      for (const auto& phi : next_block.phis) {
-        for (int i = 0; i < next_block.preds.size(); ++i) {
-          if (next_block.preds[i] == block.ref) {
+    for (const auto& succ_ref : block.succs) {
+      const auto& succ_block = am_cfg.GetBlock(succ_ref);
+      for (const auto& phi : succ_block.phis) {
+        for (int i = 0; i < succ_block.preds.size(); ++i) {
+          if (succ_block.preds[i] == block.ref) {
             state.live_out.Insert(phi.srcs[i]);
             break;
           }

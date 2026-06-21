@@ -45,7 +45,7 @@ class AbstractMachineControlFlowGraph {
     std::list<Instruction> instructions;
 
     // Successors of the basic block.
-    std::vector<BlockRef> next;
+    std::vector<BlockRef> succs;
 
     // Predecessors of the basic block.
     std::vector<BlockRef> preds;
@@ -67,7 +67,7 @@ class AbstractMachineControlFlowGraph {
 
   // Adds an edge to the control flow graph.
   void AddEdge(BlockRef from, BlockRef to) {
-    GetBlock(from).next.push_back(to);
+    GetBlock(from).succs.push_back(to);
     GetBlock(to).preds.push_back(from);
   }
 
@@ -125,7 +125,7 @@ inline AbstractMachineControlFlowGraph::BlockRef SinkVertex(
 inline std::vector<AbstractMachineControlFlowGraph::BlockRef> NextVertices(
     const AbstractMachineControlFlowGraph& amcfg,
     AbstractMachineControlFlowGraph::BlockRef block_ref) {
-  return amcfg.GetBlock(block_ref.id()).next;
+  return amcfg.GetBlock(block_ref.id()).succs;
 }
 
 inline std::vector<AbstractMachineControlFlowGraph::BlockRef> PrevVertices(
