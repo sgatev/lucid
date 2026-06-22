@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <string_view>
+#include <vector>
 
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/optional_ref.h"
@@ -31,26 +31,21 @@ class StringIndex {
 
   // Returns a reference that identifies the given string.
   Ref ref(std::string_view s) {
-    OptionalRef<Ref> res = string_to_ref_.Get(s);
-    if (res.has_value()) return *res;
+    if (auto res = string_to_ref_.Get(s); res.has_value()) return *res;
 
     Ref ref(ref_to_string_.size(), static_cast<std::int32_t>(s.size()));
-    ref_to_string_.Insert(ref, s);
+    ref_to_string_.push_back(s);
     string_to_ref_.Insert(s, ref);
 
     return ref;
   }
 
   // Returns the string identified by the given reference.
-  std::string_view deref(Ref ref) const {
-    OptionalRef<const std::string_view> res = ref_to_string_.Get(ref);
-    assert(res.has_value());
-    return *res;
-  }
+  std::string_view deref(Ref ref) const { return ref_to_string_[ref.begin_]; }
 
  private:
   HashMap<std::string_view, Ref> string_to_ref_;
-  HashMap<Ref, std::string_view> ref_to_string_;
+  std::vector<std::string_view> ref_to_string_;
 };
 
 inline std::size_t Hash(const lucid::StringIndex::Ref& v) {
