@@ -173,9 +173,9 @@ TEST_F(CompilerTest, IfStmtBothBranches) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun foo(b: Bool, n: Int32): Int32 {
       if b {
-        n = n + 1
+        &n = n + 1
       } else {
-        n = n + 2
+        &n = n + 2
       }
       return n
     }
@@ -355,7 +355,7 @@ TEST_F(CompilerTest, VarDeclFromVar) {
 TEST_F(CompilerTest, VarAssign) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun foo(n: Int32): Int32 {
-      n = 3
+      &n = 3
       return n
     }
 
@@ -436,9 +436,9 @@ TEST_F(CompilerTest, FibIter) {
         }
 
         val c: Int32 = a
-        a = b
-        b = c + b
-        n = n - 1
+        &a = b
+        &b = c + b
+        &n = n - 1
       }
     }
 
@@ -542,7 +542,7 @@ TEST_F(CompilerTest, LoopAndBreak) {
           break
         }
 
-        n = n + 1
+        &n = n + 1
       }
       return n
     }
@@ -565,21 +565,21 @@ TEST_F(CompilerTest, Int32Array) {
           break
         }
 
-        a[i] = i
+        &a[i] = i
 
-        i = i + 1
+        &i = i + 1
       }
 
       val r: Int32 = 0
-      i = 0
+      &i = 0
       loop {
         if i == 10 {
           break
         }
 
-        r = r + a[i]
+        &r = r + a[i]
 
-        i = i + 1
+        &i = i + 1
       }
 
       return r
@@ -599,21 +599,21 @@ TEST_F(CompilerTest, Int64Array) {
           break
         }
 
-        a[i] = i
+        &a[i] = i
 
-        i = i + 1
+        &i = i + 1
       }
 
       val r: Int64 = 0
-      i = 0
+      &i = 0
       loop {
         if i == 10 {
           break
         }
 
-        r = r + a[i]
+        &r = r + a[i]
 
-        i = i + 1
+        &i = i + 1
       }
 
       return r
@@ -634,26 +634,26 @@ TEST_F(CompilerTest, BoolArray) {
         }
 
         if i % 2 == 0 {
-          a[i] = true
+          &a[i] = true
         } else {
-          a[i] = false
+          &a[i] = false
         }
 
-        i = i + 1
+        &i = i + 1
       }
 
       val r: Int32 = 0
-      i = 0
+      &i = 0
       loop {
         if i == 10 {
           break
         }
 
         if a[i] {
-          r = r + 1
+          &r = r + 1
         }
 
-        i = i + 1
+        &i = i + 1
       }
 
       return r
@@ -728,7 +728,7 @@ TEST_F(CompilerTest, Comp) {
     comp fun max(a: Int32, b: Int32): Int32 {
       val m: Int32 = a
       if b > m {
-        m = b
+        &m = b
       }
       return m
     }
@@ -748,8 +748,8 @@ TEST_F(CompilerTest, Tuple) {
 
     fun main(): Int32 {
       val p: Point
-      p.x = 21
-      p.y = 42
+      &p.x = 21
+      &p.y = 42
       return p.x + p.y
     }
   )"));

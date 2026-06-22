@@ -71,9 +71,9 @@ static void BM_Branches(benchmark::State& state) {
           break
         }
         if a > b {
-          a = a - b
+          &a = a - b
         } else {
-          b = b - a
+          &b = b - a
         }
       }
       return a

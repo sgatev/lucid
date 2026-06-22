@@ -85,6 +85,7 @@ class Lexer {
     map['#'] = Token::Kind::Comment;
     map['"'] = Token::Kind::String;
     map['%'] = Token::Kind::Percent;
+    map['&'] = Token::Kind::Ampersand;
     map[' '] = Token::Kind::Space;
     map['\t'] = Token::Kind::Space;
     map['\n'] = Token::Kind::Space;

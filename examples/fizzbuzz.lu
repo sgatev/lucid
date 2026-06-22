@@ -5,7 +5,7 @@ fun printString(s: String): Int32 {
 fun printInt32(i: Int32): Int32 {
   if i > 9 { do printInt32(i / 10) }
 
-  let j: Int32 = i % 10
+  val j: Int32 = i % 10
   if      j == 0 { do printString("0") }
   else if j == 1 { do printString("1") }
   else if j == 2 { do printString("2") }
@@ -20,7 +20,7 @@ fun printInt32(i: Int32): Int32 {
 }
 
 fun main(): Int32 {
-  let n: Int32 = 1
+  val n: Int32 = 1
   loop {
     if n > 30 {
       break
@@ -37,7 +37,7 @@ fun main(): Int32 {
     }
     do printString("\n")
 
-    n = n + 1
+    &n = n + 1
   }
   return 0
 }

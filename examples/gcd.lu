@@ -3,9 +3,9 @@ fun gcd(a: Int32, b: Int32): Int32 {
     if a == b {
       break
     } else if a > b {
-      a = a - b
+      &a = a - b
     } else {
-      b = b - a
+      &b = b - a
     }
   }
   return a

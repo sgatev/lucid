@@ -266,10 +266,12 @@ class Parser {
   }
 
   std::expected<Stmt, ParserError> ParseStmt() {
-    Token next_token = PeekIgnoringNonSemantic();
-    if (next_token.kind != Token::Kind::Ident) [[unlikely]] {
+    Token token = ReadIgnoringNonSemantic();
+    if (token.kind == Token::Kind::Ampersand) [[unlikely]] {
+      return ParseAssignStmt();
+    } else if (token.kind != Token::Kind::Ident) [[unlikely]] {
       return std::unexpected(
-          MakeError(ParserError::Kind::UnexpectedToken, next_token));
+          MakeError(ParserError::Kind::UnexpectedToken, token));
     }
 
     using namespace std::literals::string_view_literals;
@@ -283,31 +285,26 @@ class Parser {
             std::pair{"comp"sv, &Parser::ParseCompStmt},
             std::pair{"break"sv, &Parser::ParseBreakStmt},
         },
-        &Parser::ParseAssignStmt);
-    return std::invoke(parselets[TokenString(next_token)], this);
+        &Parser::UnknownStmt);
+    return std::invoke(parselets[TokenString(token)], this);
   }
 
   std::expected<Stmt, ParserError> ParseDoStmt() {
-    ReadIgnoringNonSemantic();
     ASSIGN_OR_RETURN(Expr value, ParseExpr());
     return DoStmt{.expr = syn_ctx_.Add(std::move(value))};
   }
 
   std::expected<Stmt, ParserError> ParseReturnStmt() {
-    ReadIgnoringNonSemantic();
     ASSIGN_OR_RETURN(Expr value, ParseExpr());
     return ReturnStmt{.value = syn_ctx_.Add(std::move(value))};
   }
 
   std::expected<Stmt, ParserError> ParseLoopStmt() {
-    ReadIgnoringNonSemantic();
     ASSIGN_OR_RETURN(SuccessiveList<StmtRef> body, ParseCompoundStmt());
     return LoopStmt{.stmts = body};
   }
 
   std::expected<Stmt, ParserError> ParseIfStmt() {
-    ReadIgnoringNonSemantic();
-
     IfStmt if_stmt;
 
     ASSIGN_OR_RETURN(Expr cond, ParseExpr());
@@ -345,8 +342,6 @@ class Parser {
   }
 
   std::expected<Stmt, ParserError> ParseVal(bool is_comp) {
-    ReadIgnoringNonSemantic();
-
     ASSIGN_OR_RETURN(StringIndex::Ref name, ParseIdent());
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::Colon));
     ASSIGN_OR_RETURN(TypeRef type, ParseType());
@@ -366,10 +361,7 @@ class Parser {
     };
   }
 
-  std::expected<Stmt, ParserError> ParseBreakStmt() {
-    ReadIgnoringNonSemantic();
-    return BreakStmt{};
-  }
+  std::expected<Stmt, ParserError> ParseBreakStmt() { return BreakStmt{}; }
 
   std::expected<Stmt, ParserError> ParseAssignStmt() {
     ASSIGN_OR_RETURN(StringIndex::Ref ident, ParseIdent());
@@ -423,6 +415,11 @@ class Parser {
       };
     }
 
+    return std::unexpected(MakeError(ParserError::Kind::UnexpectedToken,
+                                     PeekIgnoringNonSemantic()));
+  }
+
+  std::expected<Stmt, ParserError> UnknownStmt() {
     return std::unexpected(MakeError(ParserError::Kind::UnexpectedToken,
                                      PeekIgnoringNonSemantic()));
   }

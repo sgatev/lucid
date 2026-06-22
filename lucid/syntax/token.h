@@ -34,6 +34,7 @@ struct Token {
     Star,
     String,
     Percent,
+    Ampersand,
     OpenBracket,
     CloseBracket,
   };

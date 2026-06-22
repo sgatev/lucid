@@ -70,9 +70,9 @@ TEST_F(CompilerTest, PrintCfg) {
     fun max(a: Int32, b: Int32): Int32 {
       val c: Int32 = 0
       if a > b {
-        c = a
+        &c = a
       } else {
-        c = b
+        &c = b
       }
       return c
     }
