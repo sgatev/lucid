@@ -675,16 +675,16 @@ class Parser {
   Token ReadImmediate() { return std::exchange(next_, lexer_.next()); }
 
   Token ReadIgnoringNonSemantic() {
-    SkipComment();
+    SkipNonSemantic();
     return ReadImmediate();
   }
 
   const Token& PeekIgnoringNonSemantic() {
-    SkipComment();
+    SkipNonSemantic();
     return next_;
   }
 
-  void SkipComment() {
+  void SkipNonSemantic() {
     while (next_.kind < Token::kFirstSemanticKind) next_ = lexer_.next();
   }
 
