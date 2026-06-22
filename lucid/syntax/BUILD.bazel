@@ -167,9 +167,13 @@ cc_test(
 cc_binary(
     name = "lexer_bench",
     srcs = ["lexer_bench.cc"],
+    data = [
+        "//examples:example_sources",
+    ],
     deps = [
         ":lexer",
         ":token",
+        "//lucid/core/io:file",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -233,11 +237,15 @@ cc_test(
 cc_binary(
     name = "parser_bench",
     srcs = ["parser_bench.cc"],
+    data = [
+        "//examples:example_sources",
+    ],
     deps = [
         ":buffered_lexer",
         ":lexer",
         ":parser",
         ":token",
+        "//lucid/core/io:file",
         "@google_benchmark//:benchmark",
     ],
 )

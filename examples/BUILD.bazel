@@ -1,0 +1,7 @@
+filegroup(
+    name = "example_sources",
+    srcs = glob([
+        "*.lu",
+    ]),
+    visibility = ["//lucid:__subpackages__"],
+)

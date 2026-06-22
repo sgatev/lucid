@@ -1,9 +1,11 @@
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 #include <string>
 #include <string_view>
 
 #include "benchmark/benchmark.h"
+#include "lucid/core/io/file.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/token.h"
 
@@ -105,5 +107,19 @@ static void BM_Branches(benchmark::State& state) {
   )");
 }
 BENCHMARK(BM_Branches);
+
+static void BM_Examples(benchmark::State& state) {
+  std::string snippet;
+
+  auto path = std::filesystem::current_path() / "examples";
+  for (auto const& dir_entry : std::filesystem::directory_iterator{path}) {
+    std::string content =
+        lucid::ReadFile(dir_entry.path(), /*with_trailing_zero=*/false).value();
+    snippet.append(content);
+  }
+
+  Benchmark(state, snippet);
+}
+BENCHMARK(BM_Examples);
 
 BENCHMARK_MAIN();

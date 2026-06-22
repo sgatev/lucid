@@ -1,11 +1,13 @@
 #include <cstddef>
 #include <expected>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
 
 #include "benchmark/benchmark.h"
+#include "lucid/core/io/file.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/buffered_lexer.h"
 #include "lucid/syntax/lexer.h"
@@ -28,7 +30,7 @@ void Benchmark(benchmark::State& state, std::string_view snippet) {
 
     lucid::Parser parser(ctx, code, lexer);
     std::size_t count = 0;
-    for (int i = 0; i < kSnippetRepetitions; ++i) {
+    while (true) {
       std::expected<std::optional<lucid::Def>, lucid::ParserError>
           def_or_error = parser.Parse();
       if (!def_or_error.has_value()) break;
@@ -81,5 +83,19 @@ static void BM_Branches(benchmark::State& state) {
   )");
 }
 BENCHMARK(BM_Branches);
+
+static void BM_Examples(benchmark::State& state) {
+  std::string snippet;
+
+  auto path = std::filesystem::current_path() / "examples";
+  for (auto const& dir_entry : std::filesystem::directory_iterator{path}) {
+    std::string content =
+        lucid::ReadFile(dir_entry.path(), /*with_trailing_zero=*/false).value();
+    snippet.append(content);
+  }
+
+  Benchmark(state, snippet);
+}
+BENCHMARK(BM_Examples);
 
 BENCHMARK_MAIN();
