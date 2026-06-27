@@ -16,7 +16,7 @@ SyntaxReachabilityAnalysis::SyntaxReachabilityAnalysis(
     : s_cfg_(s_cfg), ctx_(ctx) {}
 
 State SyntaxReachabilityAnalysis::Transfer(
-    std::optional<State> prior_state,
+    std::optional<State>&& prior_state,
     const SyntaxControlFlowGraph::BlockRef& block_ref) {
   State state;
   if (prior_state.has_value()) {
@@ -51,7 +51,7 @@ State SyntaxReachabilityAnalysis::Transfer(
   return state;
 }
 
-State SyntaxReachabilityAnalysis::Join(State left, State right) {
+State SyntaxReachabilityAnalysis::Join(State&& left, const State& right) {
   State state;
   state.vars_out = std::move(left.vars_out);
   for (auto [from, to] : right.vars_out) state.vars_out.Set(from, to);

@@ -25,6 +25,7 @@ static void BM_Push(benchmark::State& state) {
       BoundedNatDomain(1000), std::less());
 
   std::vector<int> inputs;
+  inputs.reserve(state.max_iterations);
   for (int i = 0; i < state.max_iterations; ++i) {
     inputs.push_back(std::rand() % 1000);
   }
@@ -53,6 +54,7 @@ static void BM_PushPop(benchmark::State& state) {
       BoundedNatDomain(1000), std::less());
 
   std::vector<int> inputs;
+  inputs.reserve(state.max_iterations);
   for (int i = 0; i < state.max_iterations; ++i) {
     inputs.push_back(std::rand() % 1000);
   }

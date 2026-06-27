@@ -22,6 +22,12 @@
 
 namespace lucid {
 
+// Represents a location in a source code.
+struct CodeLocation {
+  std::size_t line;
+  std::size_t col;
+};
+
 // An error that occurred while parsing Lucid code.
 class ParserError {
  public:
@@ -37,14 +43,13 @@ class ParserError {
     IncompleteStringLiteral,
   };
 
-  explicit ParserError(Kind kind, std::size_t line, std::size_t col)
-      : kind_(kind), line_(line), col_(col) {}
+  explicit ParserError(Kind kind, CodeLocation loc) : kind_(kind), loc_(loc) {}
 
   Kind GetKind() const { return kind_; }
 
   friend std::ostream& operator<<(std::ostream& out, const ParserError error) {
-    return out << error.KindString() << " at line " << error.line_
-               << ", column " << error.col_;
+    return out << error.KindString() << " at line " << error.loc_.line
+               << ", column " << error.loc_.col;
   }
 
  private:
@@ -72,8 +77,7 @@ class ParserError {
   }
 
   Kind kind_;
-  std::size_t line_;
-  std::size_t col_;
+  CodeLocation loc_;
 };
 
 // Converts a string of Lucid code into a stream of AST nodes.
@@ -92,7 +96,7 @@ class Parser {
     }
 
     return ParseDef().transform(
-        [](Def def) { return std::make_optional(std::move(def)); });
+        [](Def def) { return std::make_optional(def); });
   }
 
  private:
@@ -689,8 +693,10 @@ class Parser {
   }
 
   ParserError MakeError(ParserError::Kind kind, const Token& token) const {
-    return ParserError(kind, FindLine(buffer_, token),
-                       FindColumn(buffer_, token));
+    return ParserError(kind, {
+                                 .line = FindLine(buffer_, token),
+                                 .col = FindColumn(buffer_, token),
+                             });
   }
 
   SyntaxContext& syn_ctx_;

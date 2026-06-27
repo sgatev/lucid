@@ -17,7 +17,7 @@ class TypeError {
 
   bool operator==(const TypeError& other) const = default;
 
-  friend std::ostream& operator<<(std::ostream& out, const TypeError error) {
+  friend std::ostream& operator<<(std::ostream& out, const TypeError& error) {
     return out << error.message_;
   }
 

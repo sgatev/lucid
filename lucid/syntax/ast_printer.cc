@@ -341,7 +341,7 @@ class AstPrinter {
     Out() << Indent(indent_) << "}\n";
   }
 
-  void Nested(std::function<void()> f) {
+  void Nested(const std::function<void()>& f) {
     indent_ += 2;
     std::invoke(f);
     indent_ -= 2;
@@ -356,16 +356,16 @@ class AstPrinter {
 
 }  // namespace
 
-void Print(const SyntaxContext ctx, const FuncDefStmt& stmt,
+void Print(const SyntaxContext& ctx, const FuncDefStmt& stmt,
            std::ostream& out) {
   AstPrinter(ctx, out).Print(stmt);
 }
 
-void PrintStmt(const SyntaxContext ctx, StmtRef ref, std::ostream& out) {
+void PrintStmt(const SyntaxContext& ctx, StmtRef ref, std::ostream& out) {
   AstPrinter(ctx, out).PrintStmt(ref);
 }
 
-void PrintExpr(const SyntaxContext ctx, ExprRef ref, std::ostream& out) {
+void PrintExpr(const SyntaxContext& ctx, ExprRef ref, std::ostream& out) {
   AstPrinter(ctx, out).PrintExpr(ref);
 }
 

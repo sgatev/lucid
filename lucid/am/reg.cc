@@ -33,7 +33,7 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
   for (const auto& block : am_cfg.Blocks()) {
     auto maybe_state = liveness_block_states[block.ref.id()];
     if (!maybe_state.has_value()) continue;
-    auto state = *maybe_state;
+    auto state = std::move(*maybe_state);
 
     for (int i = 0; i < block.succs.size(); ++i) {
       const auto& succ_block = am_cfg.GetBlock(block.succs[i]);

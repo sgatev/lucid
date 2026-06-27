@@ -102,6 +102,7 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
+        ":context",
         "//lucid/core/cli:format",
     ],
 )
@@ -285,6 +286,7 @@ cc_library(
     deps = [
         ":ast",
         ":cfg",
+        ":context",
         ":liveness",
         ":reachability",
         "//lucid/core/container:hash_set",

@@ -38,8 +38,8 @@ class CompCheckTest : public testing::Test, public AstFixture {
       Def def = std::move(maybe_def).value();
       assert(std::holds_alternative<FuncDefStmt>(def));
 
-      auto func_def = std::get<FuncDefStmt>(std::move(def));
-      func_defs.push_back(std::move(func_def));
+      auto& func_def = std::get<FuncDefStmt>(def);
+      func_defs.push_back(func_def);
       syn_ctx_.AddFuncDef(func_defs.back());
     }
 

@@ -18,8 +18,9 @@ namespace lucid {
 
 CommandContext::CommandContext(
     std::vector<std::string_view> path, std::span<std::string_view> args,
-    HashMap<std::string_view, std::string_view> flags, std::ostream& out,
-    std::ostream& err)
+    HashMap<std::string_view, std::string_view> flags,
+    // NOLINTNEXTLINE: adjacent parameters of same type ok.
+    std::ostream& out, std::ostream& err)
     : path_(std::move(path)),
       args_(args),
       flags_(std::move(flags)),
@@ -90,7 +91,7 @@ int RunCommand(std::initializer_list<Command> commands, CommandContext ctx) {
   HashMap<std::string_view, std::string_view> flags;
   for (auto it = ctx.args_.begin(); it != first_non_flag_arg_it; ++it) {
     auto flag = it->substr(2);
-    auto count = flag.find("=");
+    auto count = flag.find('=');
     flags.Set(flag.substr(0, count), flag.substr(count + 1));
   }
 

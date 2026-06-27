@@ -1,7 +1,6 @@
 #include "lucid/syntax/type_repository.h"
 
 #include <string_view>
-#include <utility>
 #include <variant>
 
 #include "lucid/core/container/arena.h"
@@ -26,7 +25,7 @@ TypeRepository::TypeRepository(StringIndex& idents) : idents_(idents) {
   }
 }
 
-TypeRef TypeRepository::Add(Type type) { return types_.Add(std::move(type)); }
+TypeRef TypeRepository::Add(Type type) { return types_.Add(type); }
 
 const Type& TypeRepository::Deref(TypeRef ref) const { return types_.Get(ref); }
 

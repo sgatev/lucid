@@ -2,17 +2,17 @@
 
 #include <ostream>
 
-#include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
+#include "lucid/syntax/context.h"
 
 namespace lucid {
 
-// Prints a text representation of the syntax control flow graph `scfg` to
+// Prints a text representation of the syntax control flow graph `syn_cfg` to
 // `out`.
 //
 // Requires:
-// - `scfg` must be constructed in `ctx`.
-void Print(const SyntaxContext& ctx, const SyntaxControlFlowGraph& scfg,
+// - `syn_cfg` must be constructed in `syn_ctx`.
+void Print(const SyntaxContext& syn_ctx, const SyntaxControlFlowGraph& syn_cfg,
            std::ostream& out);
 
 }  // namespace lucid

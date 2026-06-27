@@ -47,7 +47,7 @@ void Benchmark(benchmark::State& state, std::string_view snippet) {
   lucid::Def def = std::move(maybe_def).value();
   assert(std::holds_alternative<lucid::FuncDefStmt>(def));
 
-  auto func_def = std::get<lucid::FuncDefStmt>(std::move(def));
+  auto& func_def = std::get<lucid::FuncDefStmt>(def);
 
   auto infer_types_res = lucid::InferExprTypes(syn_ctx, func_def);
   assert(infer_types_res.has_value());

@@ -103,26 +103,27 @@ int HandleParseCommand(CommandContext ctx) {
   auto src_path = std::filesystem::absolute(*src_file);
 
   return ReadFile(src_path, /*with_trailing_zero=*/true)
-      .or_else(
-          [](ReadFileError err) -> std::expected<std::string, std::string> {
-            std::stringstream ss;
-            ss << err;
-            return std::unexpected(ss.str());
-          })
-      .and_then(
-          [](std::string src) -> std::expected<std::vector<Def>, std::string> {
-            SyntaxContext syn_ctx;
-            return ParseDefs(src, syn_ctx)
-                .or_else([](ParserError err)
-                             -> std::expected<std::vector<Def>, std::string> {
-                  std::stringstream ss;
-                  ss << err;
-                  return std::unexpected(ss.str());
-                });
-          })
-      .and_then(
-          [](std::vector<Def>) -> std::expected<int, std::string> { return 0; })
-      .or_else([&](std::string err) -> std::expected<int, std::string> {
+      .or_else([](const ReadFileError& err)
+                   -> std::expected<std::string, std::string> {
+        std::stringstream ss;
+        ss << err;
+        return std::unexpected(ss.str());
+      })
+      .and_then([](const std::string& src)
+                    -> std::expected<std::vector<Def>, std::string> {
+        SyntaxContext syn_ctx;
+        return ParseDefs(src, syn_ctx)
+            .or_else([](ParserError err)
+                         -> std::expected<std::vector<Def>, std::string> {
+              std::stringstream ss;
+              ss << err;
+              return std::unexpected(ss.str());
+            });
+      })
+      .and_then([](const std::vector<Def>&) -> std::expected<int, std::string> {
+        return 0;
+      })
+      .or_else([&](const std::string& err) -> std::expected<int, std::string> {
         ctx.Err() << err << "\n";
         return 1;
       })
@@ -344,7 +345,7 @@ int HandleRoot(CommandContext ctx) {
               .handler = HandleVersionCommand,
           },
       },
-      ctx);
+      std::move(ctx));
 }
 
 }  // namespace

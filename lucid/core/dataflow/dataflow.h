@@ -32,8 +32,8 @@ concept DataflowAnalysis =
     Graph<G> and requires(A a, std::optional<typename A::State> os, A::State s1,
                           A::State s2, const G::vertex_type& v) {
       requires BoundedJoinSemiLattice<typename A::State>;
-      { a.Transfer(os, v) } -> std::same_as<typename A::State>;
-      { a.Join(s1, s2) } -> std::same_as<typename A::State>;
+      { a.Transfer(std::move(os), v) } -> std::same_as<typename A::State>;
+      { a.Join(std::move(s1), s2) } -> std::same_as<typename A::State>;
     };
 
 // A finite domain of vertices in a graph.

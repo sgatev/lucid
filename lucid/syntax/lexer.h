@@ -34,13 +34,23 @@ class Lexer {
     } else if (sym == '"') {
       // String.
       while (pos_ != size_ && buffer_[pos_] != '"') ++pos_;
-      if (pos_ == size_) return Token(Token::Kind::Error, start_pos, pos_);
+      if (pos_ == size_) {
+        return {
+            .kind = Token::Kind::Error,
+            .start_pos = start_pos,
+            .end_pos = pos_,
+        };
+      }
       ++pos_;
     } else if (sym == '#') {
       // Comment.
       while (pos_ != size_ && buffer_[pos_] != '\n') ++pos_;
     }
-    return Token(kTokenKindMap[sym], start_pos, pos_);
+    return {
+        .kind = kTokenKindMap[sym],
+        .start_pos = start_pos,
+        .end_pos = pos_,
+    };
   }
 
  private:

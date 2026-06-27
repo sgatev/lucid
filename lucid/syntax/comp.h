@@ -17,7 +17,7 @@ class CompError {
 
   bool operator==(const CompError& other) const = default;
 
-  friend std::ostream& operator<<(std::ostream& out, const CompError error) {
+  friend std::ostream& operator<<(std::ostream& out, const CompError& error) {
     return out << error.message_;
   }
 

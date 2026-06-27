@@ -12,14 +12,15 @@ namespace lucid {
 
 using State = AbstractMachineLivenessAnalysis::State;
 
-State AbstractMachineLivenessAnalysis::Transfer(State state, Instruction inst) {
+State AbstractMachineLivenessAnalysis::Transfer(State&& state,
+                                                const Instruction& inst) {
   if (auto reg = GetTargetRegister(inst); reg.has_value()) {
     state.live_in.Remove(*reg);
   }
   for (auto reg : GetSourceRegisters(inst)) {
     state.live_in.Insert(reg);
   }
-  return state;
+  return std::move(state);
 }
 
 AbstractMachineLivenessAnalysis::AbstractMachineLivenessAnalysis(
@@ -27,7 +28,7 @@ AbstractMachineLivenessAnalysis::AbstractMachineLivenessAnalysis(
     : am_cfg_(am_cfg) {}
 
 State AbstractMachineLivenessAnalysis::Transfer(
-    std::optional<State> prior_state,
+    std::optional<State>&& prior_state,
     const AbstractMachineControlFlowGraph::BlockRef& block_ref) {
   const auto& block = am_cfg_.GetBlock(block_ref);
   State state;
@@ -50,7 +51,7 @@ State AbstractMachineLivenessAnalysis::Transfer(
     state.live_in = state.live_out;
   }
 
-  for (auto inst : block.instructions | std::views::reverse) {
+  for (const auto& inst : block.instructions | std::views::reverse) {
     state = Transfer(std::move(state), inst);
   }
 
@@ -59,7 +60,7 @@ State AbstractMachineLivenessAnalysis::Transfer(
   return state;
 }
 
-State AbstractMachineLivenessAnalysis::Join(State left, State right) {
+State AbstractMachineLivenessAnalysis::Join(State&& left, const State& right) {
   State state;
   state.live_in = std::move(left.live_in);
   for (Reg reg : right.live_in) state.live_in.Insert(reg);

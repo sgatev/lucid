@@ -12,20 +12,21 @@ namespace lucid {
 //
 // Requires:
 // - `stmt` must be constructed in `ctx`.
-void Print(const SyntaxContext ctx, const FuncDefStmt& stmt, std::ostream& out);
+void Print(const SyntaxContext& ctx, const FuncDefStmt& stmt,
+           std::ostream& out);
 
 // Prints a text representation of the abstract syntax tree statement
 // referenced by `ref` to `out`.
 //
 // Requires:
 // - `ref` must be constructed in `ctx`.
-void PrintStmt(const SyntaxContext ctx, StmtRef ref, std::ostream& out);
+void PrintStmt(const SyntaxContext& ctx, StmtRef ref, std::ostream& out);
 
 // Prints a text representation of the abstract syntax tree expression
 // referenced by `ref` to `out`.
 //
 // Requires:
 // - `ref` must be constructed in `ctx`.
-void PrintExpr(const SyntaxContext ctx, ExprRef ref, std::ostream& out);
+void PrintExpr(const SyntaxContext& ctx, ExprRef ref, std::ostream& out);
 
 }  // namespace lucid

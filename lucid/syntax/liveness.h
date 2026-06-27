@@ -25,12 +25,12 @@ class SyntaxLivenessAnalysis {
   explicit SyntaxLivenessAnalysis(const SyntaxContext& sctx,
                                   const SyntaxControlFlowGraph& scfg);
 
-  State Transfer(std::optional<State> prior_state,
+  State Transfer(std::optional<State>&& prior_state,
                  const SyntaxControlFlowGraph::BlockRef& block_ref);
 
-  State Transfer(State state, const SyntaxControlFlowGraph::Sequence& seq);
+  State Transfer(State&& state, const SyntaxControlFlowGraph::Sequence& seq);
 
-  State Join(State left, State right);
+  State Join(State&& left, const State& right);
 
  private:
   const SyntaxContext& sctx_;

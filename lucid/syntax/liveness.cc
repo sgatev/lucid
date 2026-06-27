@@ -15,7 +15,7 @@ namespace lucid {
 using State = SyntaxLivenessAnalysis::State;
 
 State SyntaxLivenessAnalysis::Transfer(
-    State state, const SyntaxControlFlowGraph::Sequence& seq) {
+    State&& state, const SyntaxControlFlowGraph::Sequence& seq) {
   if (seq.stmt.has_value()) {
     if (const auto* var_decl_stmt =
             std::get_if<VarDeclStmt>(&sctx_.DerefStmt(*seq.stmt))) {
@@ -39,7 +39,7 @@ SyntaxLivenessAnalysis::SyntaxLivenessAnalysis(
     : sctx_(sctx), scfg_(scfg) {}
 
 State SyntaxLivenessAnalysis::Transfer(
-    std::optional<State> prior_state,
+    std::optional<State>&& prior_state,
     const SyntaxControlFlowGraph::BlockRef& block_ref) {
   const auto& block = scfg_.get(block_ref);
   State state;
@@ -75,7 +75,7 @@ State SyntaxLivenessAnalysis::Transfer(
   return state;
 }
 
-State SyntaxLivenessAnalysis::Join(State left, State right) {
+State SyntaxLivenessAnalysis::Join(State&& left, const State& right) {
   State state;
   state.live_in = std::move(left.live_in);
   for (StringIndex::Ref var : right.live_in) state.live_in.Insert(var);

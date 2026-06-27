@@ -13,7 +13,7 @@
 
 namespace lucid {
 
-enum RegSize { RegSize32, RegSize64 };
+enum RegSize : std::uint8_t { RegSize32, RegSize64 };
 
 // A register in the Lucid abstract machine.
 struct Reg {
@@ -436,6 +436,7 @@ inline std::vector<Reg> GetSourceRegisters(const Instruction& inst) {
     return {cinst->offset_reg};
   } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
     std::vector<Reg> source_regs;
+    source_regs.reserve(cinst->args.size());
     for (const auto& arg : cinst->args) source_regs.push_back(arg.reg);
     return source_regs;
   } else if (auto* cinst = std::get_if<Return>(&inst)) {

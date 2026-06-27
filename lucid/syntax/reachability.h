@@ -27,10 +27,10 @@ class SyntaxReachabilityAnalysis {
   explicit SyntaxReachabilityAnalysis(SyntaxControlFlowGraph& s_cfg,
                                       SyntaxContext& ctx);
 
-  State Transfer(std::optional<State> prior_state,
+  State Transfer(std::optional<State>&& prior_state,
                  const SyntaxControlFlowGraph::BlockRef& block_ref);
 
-  State Join(State left, State right);
+  State Join(State&& left, const State& right);
 
  private:
   SyntaxControlFlowGraph& s_cfg_;

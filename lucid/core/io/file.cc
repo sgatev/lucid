@@ -8,8 +8,8 @@
 
 namespace lucid {
 
-std::expected<std::string, ReadFileError> ReadFile(std::filesystem::path path,
-                                                   bool with_trailing_zero) {
+std::expected<std::string, ReadFileError> ReadFile(
+    const std::filesystem::path& path, bool with_trailing_zero) {
   std::ifstream file(path);
   if (!file) return std::unexpected(ReadFileError(path));
 

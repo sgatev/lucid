@@ -3,5 +3,6 @@ Checks: '
 -*,
 bugprone-*,
 -bugprone-exception-escape,
+performance-*,
 '
 ...

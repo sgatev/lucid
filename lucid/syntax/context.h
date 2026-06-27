@@ -4,7 +4,6 @@
 #include <list>
 #include <string>
 #include <string_view>
-#include <utility>
 
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/hash_map.h"
@@ -20,16 +19,16 @@ class SyntaxContext {
   SyntaxContext() : types_(idents_) {}
 
   // Adds `stmt` to the context.
-  StmtRef Add(Stmt stmt) { return stmts_.Add(std::move(stmt)); }
+  StmtRef Add(Stmt stmt) { return stmts_.Add(stmt); }
 
   // Adds `expr` to the context.
-  ExprRef Add(Expr expr) { return exprs_.Add(std::move(expr)); }
+  ExprRef Add(Expr expr) { return exprs_.Add(expr); }
 
   // Adds `type` to the context.
-  TypeRef Add(Type type) { return types_.Add(std::move(type)); }
+  TypeRef Add(Type type) { return types_.Add(type); }
 
   // Adds `param` to the context.
-  ParamRef Add(FuncParam param) { return params_.Add(std::move(param)); }
+  ParamRef Add(FuncParam param) { return params_.Add(param); }
 
   // Adds `ident` to the context.
   StringIndex::Ref AddIdent(std::string_view ident) {

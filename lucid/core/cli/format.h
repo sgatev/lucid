@@ -1,11 +1,12 @@
 #pragma once
 
+#include <cstdint>
 #include <iomanip>
 #include <ostream>
 
 namespace lucid {
 
-enum class Color {
+enum class Color : std::uint8_t {
   Green,
   Blue,
   LightBlue,

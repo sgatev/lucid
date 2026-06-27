@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <variant>
@@ -231,7 +232,7 @@ struct FieldAccessExpr : public ExprBase {
 };
 
 // A binary operation kind.
-enum class BinaryOp {
+enum class BinaryOp : std::uint8_t {
   // Binary addition operation.
   Add,
 

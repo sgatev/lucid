@@ -87,7 +87,7 @@ class HashTable {
         size_(0),
         storage_(alloc_storage(capacity)) {}
 
-  HashTable(HashTable&& other)
+  HashTable(HashTable&& other) noexcept
       : capacity_mask_(other.capacity_mask_),
         size_(other.size_),
         storage_(std::exchange(other.storage_, nullptr)) {}

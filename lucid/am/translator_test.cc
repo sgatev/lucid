@@ -20,7 +20,7 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
                                             public AstFixture {
  protected:
   std::vector<Instruction> Generate(FuncDefStmt& func) {
-    InferExprTypes(syn_ctx_, func);
+    EXPECT_TRUE(InferExprTypes(syn_ctx_, func).has_value());
     auto graph = BuildControlFlowGraph(syn_ctx_, func);
     AbstractMachineState state;
     AbstractMachineControlFlowGraph am_cfg =

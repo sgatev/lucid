@@ -5,7 +5,6 @@
 #include <functional>
 #include <iterator>
 #include <string_view>
-#include <utility>
 #include <variant>
 #include <vector>
 
@@ -339,82 +338,82 @@ class AstFixture {
   }
 
   std::function<bool(FuncDefStmt)> MatchesFuncDefStmt(
-      FuncDefStmtPattern pattern) {
+      const FuncDefStmtPattern& pattern) {
     return [pattern](FuncDefStmt stmt) { return pattern(stmt); };
   }
 
   std::function<bool(TypeDefStmt)> MatchesTypeDefStmt(
-      TypeDefStmtPattern pattern) {
+      const TypeDefStmtPattern& pattern) {
     return [pattern](TypeDefStmt stmt) { return pattern(stmt); };
   }
 
-  StmtRefMatcher MatchesDoStmt(DoStmtPattern pattern) {
-    return MatchesStmt<DoStmt>(std::move(pattern));
+  StmtRefMatcher MatchesDoStmt(const DoStmtPattern& pattern) {
+    return MatchesStmt<DoStmt>(pattern);
   }
 
-  StmtRefMatcher MatchesReturnStmt(ReturnStmtPattern pattern) {
-    return MatchesStmt<ReturnStmt>(std::move(pattern));
+  StmtRefMatcher MatchesReturnStmt(const ReturnStmtPattern& pattern) {
+    return MatchesStmt<ReturnStmt>(pattern);
   }
 
-  StmtRefMatcher MatchesIfStmt(IfStmtPattern pattern) {
-    return MatchesStmt<IfStmt>(std::move(pattern));
+  StmtRefMatcher MatchesIfStmt(const IfStmtPattern& pattern) {
+    return MatchesStmt<IfStmt>(pattern);
   }
 
-  StmtRefMatcher MatchesLoopStmt(LoopStmtPattern pattern) {
-    return MatchesStmt<LoopStmt>(std::move(pattern));
+  StmtRefMatcher MatchesLoopStmt(const LoopStmtPattern& pattern) {
+    return MatchesStmt<LoopStmt>(pattern);
   }
 
   StmtRefMatcher MatchesBreakStmt() { return MatchesStmt<BreakStmt>(); }
 
-  ExprRefMatcher MatchesIntLitExpr(IntLitExprPattern pattern) {
-    return MatchesExpr<IntLitExpr>(std::move(pattern));
+  ExprRefMatcher MatchesIntLitExpr(const IntLitExprPattern& pattern) {
+    return MatchesExpr<IntLitExpr>(pattern);
   }
 
   ExprRefMatcher MatchesBoolLitExpr(BoolLitExprPattern pattern) {
-    return MatchesExpr<BoolLitExpr>(std::move(pattern));
+    return MatchesExpr<BoolLitExpr>(pattern);
   }
 
-  ExprRefMatcher MatchesStringLitExpr(StringLitExprPattern pattern) {
-    return MatchesExpr<StringLitExpr>(std::move(pattern));
+  ExprRefMatcher MatchesStringLitExpr(const StringLitExprPattern& pattern) {
+    return MatchesExpr<StringLitExpr>(pattern);
   }
 
-  ExprRefMatcher MatchesBinaryOpExpr(BinaryOpExprPattern pattern) {
-    return MatchesExpr<BinaryOpExpr>(std::move(pattern));
+  ExprRefMatcher MatchesBinaryOpExpr(const BinaryOpExprPattern& pattern) {
+    return MatchesExpr<BinaryOpExpr>(pattern);
   }
 
-  ExprRefMatcher MatchesIdentExpr(IdentExprPattern pattern) {
-    return MatchesExpr<IdentExpr>(std::move(pattern));
+  ExprRefMatcher MatchesIdentExpr(const IdentExprPattern& pattern) {
+    return MatchesExpr<IdentExpr>(pattern);
   }
 
-  ExprRefMatcher MatchesIndexExpr(IndexExprPattern pattern) {
-    return MatchesExpr<IndexExpr>(std::move(pattern));
+  ExprRefMatcher MatchesIndexExpr(const IndexExprPattern& pattern) {
+    return MatchesExpr<IndexExpr>(pattern);
   }
 
-  ExprRefMatcher MatchesFuncCallExpr(FuncCallExprPattern pattern) {
-    return MatchesExpr<FuncCallExpr>(std::move(pattern));
+  ExprRefMatcher MatchesFuncCallExpr(const FuncCallExprPattern& pattern) {
+    return MatchesExpr<FuncCallExpr>(pattern);
   }
 
-  StmtRefMatcher MatchesVarDeclStmt(VarDeclStmtPattern pattern) {
-    return MatchesStmt<VarDeclStmt>(std::move(pattern));
+  StmtRefMatcher MatchesVarDeclStmt(const VarDeclStmtPattern& pattern) {
+    return MatchesStmt<VarDeclStmt>(pattern);
   }
 
-  StmtRefMatcher MatchesVarAssignStmt(VarAssignStmtPattern pattern) {
-    return MatchesStmt<VarAssignStmt>(std::move(pattern));
+  StmtRefMatcher MatchesVarAssignStmt(const VarAssignStmtPattern& pattern) {
+    return MatchesStmt<VarAssignStmt>(pattern);
   }
 
   TypeRefMatcher MatchesBasicType(BasicTypePattern pattern) {
-    return MatchesType<BasicType>(std::move(pattern));
+    return MatchesType<BasicType>(pattern);
   }
 
-  TypeRefMatcher MatchesArrayType(ArrayTypePattern pattern) {
-    return MatchesType<ArrayType>(std::move(pattern));
+  TypeRefMatcher MatchesArrayType(const ArrayTypePattern& pattern) {
+    return MatchesType<ArrayType>(pattern);
   }
 
-  TypeRefMatcher MatchesTupleType(TupleTypePattern pattern) {
-    return MatchesType<TupleType>(std::move(pattern));
+  TypeRefMatcher MatchesTupleType(const TupleTypePattern& pattern) {
+    return MatchesType<TupleType>(pattern);
   }
 
-  ParamRefMatcher MatchesFuncParam(FuncParamPattern pattern) {
+  ParamRefMatcher MatchesFuncParam(const FuncParamPattern& pattern) {
     return [this, pattern](ParamRef ref) {
       return pattern(syn_ctx_.DerefParam(ref));
     };
@@ -431,7 +430,7 @@ class AstFixture {
   }
 
   template <typename S, typename P>
-  StmtRefMatcher MatchesStmt(P pattern) {
+  StmtRefMatcher MatchesStmt(const P& pattern) {
     return [this, pattern](StmtRef ref) {
       if (auto* stmt = std::get_if<S>(&syn_ctx_.DerefStmt(ref))) {
         return pattern(*stmt);
@@ -441,7 +440,7 @@ class AstFixture {
   }
 
   template <typename E, typename P>
-  ExprRefMatcher MatchesExpr(P pattern) {
+  ExprRefMatcher MatchesExpr(const P& pattern) {
     return [this, pattern](ExprRef ref) {
       if (auto* expr = std::get_if<E>(&syn_ctx_.DerefExpr(ref))) {
         return pattern(*expr);
@@ -451,7 +450,7 @@ class AstFixture {
   }
 
   template <typename T, typename P>
-  TypeRefMatcher MatchesType(P pattern) {
+  TypeRefMatcher MatchesType(const P& pattern) {
     return [this, pattern](TypeRef ref) {
       if (auto* type = std::get_if<T>(&syn_ctx_.DerefType(ref))) {
         return pattern(*type);

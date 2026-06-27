@@ -30,20 +30,18 @@ class TestResultUnionAnalysis {
 
   explicit TestResultUnionAnalysis() {}
 
-  State Transfer(std::optional<State> prior_state, TestGraph::vertex_type v) {
+  State Transfer(std::optional<State>&& prior_state, TestGraph::vertex_type v) {
     State state;
     if (prior_state.has_value()) state = *std::move(prior_state);
     state.results.Insert(v);
     return state;
   }
 
-  State Join(State left, State right) {
+  State Join(State&& left, const State& right) {
     State state = std::move(left);
-    for (auto& result : right.results) state.results.Insert(std::move(result));
+    for (auto& result : right.results) state.results.Insert(result);
     return state;
   }
-
- private:
 };
 
 TEST(RunForwardDataflowTest, Simple) {

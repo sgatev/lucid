@@ -49,6 +49,7 @@ static void BM_Random(benchmark::State& state) {
   lucid::HashSet<int> set;
   for (int i = 0; i < kCount; ++i) set.Insert(rand());
   std::vector<int> reads;
+  reads.reserve(kCount);
   for (int i = 0; i < kCount; ++i) reads.push_back(rand());
   int i = 0;
   for (auto _ : state) {

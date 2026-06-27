@@ -41,11 +41,6 @@ struct Token {
 
   static constexpr Kind kFirstSemanticKind = Kind::Bar;
 
-  constexpr Token() : kind(Kind::End), start_pos(0), end_pos(0) {}
-
-  constexpr Token(Kind kind, std::uint32_t start_pos, std::uint32_t end_pos)
-      : kind(kind), start_pos(start_pos), end_pos(end_pos) {}
-
   constexpr bool operator==(const Token& other) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const Token& token);

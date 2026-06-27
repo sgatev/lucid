@@ -75,7 +75,7 @@ class Imm {
   explicit Imm(std::int16_t value) : value_(value) {}
 
   // Returns the value of the immediate.
-  operator std::uint16_t() const { return value_; }
+  operator std::int16_t() const { return value_; }
 
  private:
   std::int16_t value_;
@@ -708,7 +708,7 @@ class Assembler {
   // BL <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
-  void Bl(ExternalLabel label) {
+  void Bl(const ExternalLabel& label) {
     external_labels_[label].push_back(insts_size_);
     Bl("");
   }

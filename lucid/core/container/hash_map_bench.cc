@@ -75,6 +75,7 @@ static void BM_Random(benchmark::State& state) {
   lucid::HashMap<int, int> map;
   for (int i = 0; i < kCount; ++i) map.Insert(rand(), rand());
   std::vector<int> reads;
+  reads.reserve(kCount);
   for (int i = 0; i < kCount; ++i) reads.push_back(rand());
   int i = 0;
   for (auto _ : state) benchmark::DoNotOptimize(map.Get(reads[i++ % kCount]));

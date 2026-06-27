@@ -25,7 +25,7 @@ struct CompileConfig {
 using CompileError =
     CompositeError<ReadFileError, ParserError, TypeError, CompError>;
 
-std::expected<void, CompileError> CompileCode(CompileConfig config);
+std::expected<void, CompileError> CompileCode(const CompileConfig& config);
 
 struct BuildConfig {
   std::filesystem::path src_path;

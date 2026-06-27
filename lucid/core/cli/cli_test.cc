@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "gmock/gmock.h"
@@ -90,7 +91,7 @@ TEST(RunCommandTest, NestedCommand) {
 TEST(RunCommandTest, UnknownCommand) {
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
 
-  auto bar = [](CommandContext) { return 0; };
+  auto bar = [](const CommandContext&) { return 0; };
 
   std::stringstream out, err;
   EXPECT_EQ(RunCommand(
@@ -163,7 +164,7 @@ TEST(RunCommandTest, CurrentCommand) {
   };
 
   std::string bar_current_command;
-  auto bar = [&](CommandContext ctx) {
+  auto bar = [&](const CommandContext& ctx) {
     bar_current_command = ctx.CurrentCommand();
     return 0;
   };
@@ -176,7 +177,7 @@ TEST(RunCommandTest, CurrentCommand) {
                 .handler = bar,
             },
         },
-        ctx);
+        std::move(ctx));
   };
 
   std::stringstream out, err;
@@ -193,7 +194,7 @@ TEST(RunCommandTest, CurrentCommand) {
 }
 
 TEST(RunCommandTest, EmptyArgs) {
-  auto foo = [](CommandContext) { return 1; };
+  auto foo = [](const CommandContext&) { return 1; };
 
   std::stringstream out, err;
   EXPECT_EQ(RunCommand(

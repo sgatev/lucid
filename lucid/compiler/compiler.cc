@@ -113,7 +113,7 @@ std::expected<std::vector<Def>, ParserError> ParseDefs(std::string_view src,
   return defs;
 }
 
-std::expected<void, CompileError> CompileCode(CompileConfig config) {
+std::expected<void, CompileError> CompileCode(const CompileConfig& config) {
   std::expected<std::string, ReadFileError> src =
       ReadFile(config.src_path, /*with_trailing_zero=*/true);
   if (!src) return std::unexpected(src.error());

@@ -10,8 +10,6 @@ namespace {
 
 TEST(TokenTest, Size) { EXPECT_EQ(sizeof(Token), 12); }
 
-TEST(TokenTest, Default) { EXPECT_EQ(Token(), Token(Token::Kind::End, 0, 0)); }
-
 TEST(TokenTest, Equality) {
   EXPECT_EQ(Token(Token::Kind::Ident, 0, 3), Token(Token::Kind::Ident, 0, 3));
   EXPECT_NE(Token(Token::Kind::Ident, 0, 3), Token(Token::Kind::Number, 0, 3));

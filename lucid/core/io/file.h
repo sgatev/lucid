@@ -4,12 +4,13 @@
 #include <filesystem>
 #include <ostream>
 #include <string>
+#include <utility>
 
 namespace lucid {
 
 class ReadFileError {
  public:
-  explicit ReadFileError(std::filesystem::path path) : path_(path) {}
+  explicit ReadFileError(std::filesystem::path path) : path_(std::move(path)) {}
 
   friend std::ostream& operator<<(std::ostream& out, const ReadFileError& err) {
     return out << "could not read file " << err.path_;
@@ -24,6 +25,6 @@ class ReadFileError {
 // If `with_trailing_zero` is set to `true`, appends a null terminating
 // character at the end of the returned string.
 std::expected<std::string, ReadFileError> ReadFile(
-    std::filesystem::path path, bool with_trailing_zero = false);
+    const std::filesystem::path& path, bool with_trailing_zero = false);
 
 }  // namespace lucid
