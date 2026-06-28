@@ -500,7 +500,7 @@ class AbstractMachineFunctionGenerator {
       case 8:
         return RegSize64;
       default:
-        assert(false);
+        std::unreachable();
     }
   }
 
