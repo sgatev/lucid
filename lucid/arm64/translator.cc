@@ -1,8 +1,10 @@
 #include "lucid/arm64/translator.h"
 
 #include <array>
+#include <cassert>
 #include <charconv>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -22,10 +24,18 @@ namespace {
 
 using namespace ::lucid::arm64;
 
+// Casts an integer of type `I` to type `O`.
+template <typename O, typename I>
+constexpr O SafeCast(I i) noexcept {
+  assert(i >= std::numeric_limits<O>::min());
+  assert(i <= std::numeric_limits<O>::max());
+  return static_cast<O>(i);
+}
+
 class Arm64BinaryGenerator {
  public:
   explicit Arm64BinaryGenerator(std::string_view func_name,
-                                const std::vector<std::size_t>& stack_slots,
+                                const std::vector<int>& stack_slots,
                                 const AbstractMachineControlFlowGraph& am_cfg,
                                 Assembler& assmebler)
       : func_name_(func_name),
@@ -38,8 +48,8 @@ class Arm64BinaryGenerator {
     assembler_.StpPreIndex(X(29), X(30), SP, Imm(-16));
 
     stack_size_ = kRegistersToPersist.size() * 8;
-    for (std::size_t size : stack_slots_) stack_size_ += size;
-    std::size_t quot = stack_size_ % 16;
+    for (int size : stack_slots_) stack_size_ += size;
+    int quot = stack_size_ % 16;
     stack_size_ = quot == 0 ? stack_size_ : stack_size_ + 16 - quot;
 
     stack_offsets_.resize(stack_slots_.size() + kRegistersToPersist.size());
@@ -52,11 +62,12 @@ class Arm64BinaryGenerator {
           stack_offsets_[kRegistersToPersist.size() + i - 1] + stack_slots_[i];
     }
 
-    assembler_.Sub(SP, SP, Imm(stack_size_));
+    assembler_.Sub(SP, SP, Imm(SafeCast<std::int16_t>(stack_size_)));
 
     for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
-      assembler_.StrUnsignedOffset(X(kRegistersToPersist[i]), SP,
-                                   Imm(stack_offsets_[i]));
+      assembler_.StrUnsignedOffset(
+          X(kRegistersToPersist[i]), SP,
+          Imm(SafeCast<std::int16_t>(stack_offsets_[i])));
     }
 
     for (int param_idx = 1; const auto& param : am_cfg_.params) {
@@ -143,10 +154,12 @@ class Arm64BinaryGenerator {
                const SetReg& inst) {
     switch (inst.dst_reg.size) {
       case RegSize32:
-        assembler_.Mov(W(inst.dst_reg.id), Imm(inst.src_val));
+        assembler_.Mov(W(inst.dst_reg.id),
+                       Imm(SafeCast<std::int16_t>(inst.src_val)));
         break;
       case RegSize64:
-        assembler_.Mov(X(inst.dst_reg.id), Imm(inst.src_val));
+        assembler_.Mov(X(inst.dst_reg.id),
+                       Imm(SafeCast<std::int16_t>(inst.src_val)));
         break;
     }
   }
@@ -175,11 +188,12 @@ class Arm64BinaryGenerator {
     assembler_.Mov(W(0), W(inst.res_reg.id));
 
     for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
-      assembler_.LdrUnsignedOffset(X(kRegistersToPersist[i]), SP,
-                                   Imm(stack_offsets_[i]));
+      assembler_.LdrUnsignedOffset(
+          X(kRegistersToPersist[i]), SP,
+          Imm(SafeCast<std::int16_t>(stack_offsets_[i])));
     }
 
-    assembler_.Add(SP, SP, Imm(stack_size_));
+    assembler_.Add(SP, SP, Imm(SafeCast<std::int16_t>(stack_size_)));
 
     assembler_.LdpPostIndex(X(29), X(30), SP, Imm(16));
     assembler_.Ret();
@@ -464,13 +478,14 @@ class Arm64BinaryGenerator {
   }
 
   Imm ParseImm(std::string_view sv) {
-    std::uint16_t res;
+    std::int16_t res;
     std::from_chars(sv.begin(), sv.end(), res);
     return Imm(res);
   }
 
   std::int16_t AdjustedOffset(std::size_t offset) {
-    return stack_offsets_[kRegistersToPersist.size() + offset];
+    return SafeCast<std::int16_t>(
+        stack_offsets_[kRegistersToPersist.size() + offset]);
   }
 
   static constexpr std::array<std::uint8_t, 10> kRegistersToPersist = {
@@ -478,11 +493,11 @@ class Arm64BinaryGenerator {
   };
 
   std::string_view func_name_;
-  const std::vector<std::size_t>& stack_slots_;
+  const std::vector<int>& stack_slots_;
   const AbstractMachineControlFlowGraph& am_cfg_;
   Assembler& assembler_;
-  std::size_t stack_size_ = 0;
-  std::vector<std::size_t> stack_offsets_;
+  int stack_size_ = 0;
+  std::vector<int> stack_offsets_;
 };
 
 }  // namespace
@@ -528,7 +543,7 @@ void GenerateArmEndBinary(const SyntaxContext& syn_ctx,
 }
 
 void GenerateArmAssemblyBinary(std::string_view func_name,
-                               const std::vector<std::size_t>& stack_slots,
+                               const std::vector<int>& stack_slots,
                                const AbstractMachineControlFlowGraph& am_cfg,
                                Assembler& assmebler) {
   Arm64BinaryGenerator(func_name, stack_slots, am_cfg, assmebler).Generate();

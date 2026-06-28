@@ -19,7 +19,7 @@ void GenerateArmEndBinary(const SyntaxContext& syn_ctx,
 
 // Generates 64-bit ARM machine code for `func`.
 void GenerateArmAssemblyBinary(std::string_view func_name,
-                               const std::vector<std::size_t>& stack_slots,
+                               const std::vector<int>& stack_slots,
                                const AbstractMachineControlFlowGraph& am_cfg,
                                arm64::Assembler& assmebler);
 

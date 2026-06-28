@@ -92,7 +92,7 @@ class AbstractMachineControlFlowGraph {
   std::vector<Reg> params;
 
   // Abstract machine stack slots.
-  std::vector<std::size_t> stack_slots;
+  std::vector<int> stack_slots;
 
   // Next free register ID.
   std::int32_t next_free_reg_id = 1;
