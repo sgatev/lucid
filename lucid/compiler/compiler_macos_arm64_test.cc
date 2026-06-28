@@ -756,5 +756,29 @@ TEST_F(CompilerTest, Tuple) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(63));
 }
 
+TEST_F(CompilerTest, LargeInteger) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun count3s(i: Int32): Int32 {
+      val count: Int32 = 0
+      loop {
+        if i == 0 {
+          break
+        }
+        val r: Int32 = i % 10
+        if r == 3 {
+          &count = count + 1
+        }
+        &i = i / 10
+      }
+      return count
+    }
+
+    fun main(): Int32 {
+      return count3s(73633723)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
+}
+
 }  // namespace
 }  // namespace lucid

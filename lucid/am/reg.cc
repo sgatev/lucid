@@ -163,6 +163,8 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<SetInt>(&inst)) {
+        maybe_insert_store(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<AddReg>(&inst)) {
@@ -266,6 +268,8 @@ HashMap<Reg, int> ColorInterferenceGraph(
         reg_scores.Insert(cinst->dst_reg, 0);
         reg_scores.Insert(cinst->src_reg, 0);
       } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
+        reg_scores.Insert(cinst->dst_reg, 0);
+      } else if (auto* cinst = std::get_if<SetInt>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
       } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
         reg_scores.Insert(cinst->dst_reg, 0);
@@ -398,6 +402,8 @@ void MergeRegisters(const HashMap<Reg, int>& reg_colors,
         UpdateRegister(reg_colors, cinst->src_reg);
         UpdateRegister(reg_colors, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
+        UpdateRegister(reg_colors, cinst->dst_reg);
+      } else if (auto* cinst = std::get_if<SetInt>(&inst)) {
         UpdateRegister(reg_colors, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
         UpdateRegister(reg_colors, cinst->dst_reg);

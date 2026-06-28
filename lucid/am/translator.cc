@@ -171,10 +171,19 @@ class AbstractMachineFunctionGenerator {
   void ProcessExpr(ExprRef ref, const IntLitExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
-    am_block.instructions.push_back(SetReg{
-        .src_val = expr.value,
-        .dst_reg = reg,
-    });
+    // TODO: Move to Arm64 plugin.
+    if (expr.value >= 1 << 15) {
+      am_state_.ints.Insert(expr.value);
+      am_block.instructions.push_back(SetInt{
+          .src_val = expr.value,
+          .dst_reg = reg,
+      });
+    } else {
+      am_block.instructions.push_back(SetReg{
+          .src_val = expr.value,
+          .dst_reg = reg,
+      });
+    }
     expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 

@@ -80,6 +80,22 @@ struct SetReg {
   }
 };
 
+// Sets integer value in a register.
+struct SetInt {
+  // Source value.
+  int src_val;
+
+  // Destination register.
+  Reg dst_reg;
+
+  bool operator==(const SetInt&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const SetInt& inst) {
+    return os << "SetInt { .src_val=\"" << inst.src_val
+              << "\", .dst_reg=" << inst.dst_reg << " }";
+  }
+};
+
 // Sets string value in a register.
 struct SetStr {
   // Source value.
@@ -398,13 +414,14 @@ struct FuncCall {
 
 // An instruction for the Lucid abstract machine.
 using Instruction =
-    std::variant<Nop, MoveReg, SetReg, SetStr, Return, AddReg, SubReg, MulReg,
-                 DivReg, ModReg, GtReg, LtReg, EqReg, NotEqReg, StoreStack,
-                 StoreStackReg, LoadStack, LoadStackReg, FuncCall>;
+    std::variant<Nop, MoveReg, SetReg, SetInt, SetStr, Return, AddReg, SubReg,
+                 MulReg, DivReg, ModReg, GtReg, LtReg, EqReg, NotEqReg,
+                 StoreStack, StoreStackReg, LoadStack, LoadStackReg, FuncCall>;
 
 // Returns the source registers used by the given instruction, if any.
 inline std::vector<Reg> GetSourceRegisters(const Instruction& inst) {
   if (std::holds_alternative<SetReg>(inst) ||
+      std::holds_alternative<SetInt>(inst) ||
       std::holds_alternative<SetStr>(inst) ||
       std::holds_alternative<LoadStack>(inst)) {
     return {};
@@ -456,6 +473,8 @@ inline std::optional<Reg> GetTargetRegister(const Instruction& inst) {
   } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
     return cinst->dst_reg;
   } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
+    return cinst->dst_reg;
+  } else if (auto* cinst = std::get_if<SetInt>(&inst)) {
     return cinst->dst_reg;
   } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
     return cinst->dst_reg;

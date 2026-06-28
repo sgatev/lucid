@@ -81,10 +81,10 @@ class Imm {
   std::int16_t value_;
 };
 
-// Represents a literal ARM64 instruction.
-class LitInst {
+// Represents a 32-bit literal ARM64 instruction.
+class Lit32Inst {
  public:
-  explicit LitInst(std::uint32_t value) : value_(value) {}
+  explicit Lit32Inst(std::uint32_t value) : value_(value) {}
 
   // Returns the number of bytes produced by this instruction.
   std::size_t OutputBytesCount() const { return 4; }
@@ -97,6 +97,54 @@ class LitInst {
 
  private:
   std::uint32_t value_;
+};
+
+// Represents a 64-bit literal ARM64 instruction.
+class Lit64Inst {
+ public:
+  explicit Lit64Inst(std::uint64_t value) : value_(value) {}
+
+  // Returns the number of bytes produced by this instruction.
+  std::size_t OutputBytesCount() const { return 8; }
+
+  // Writes the bytes produced by this instruction.
+  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
+                  std::ostream& out) const {
+    out.write(reinterpret_cast<const char*>(&value_), 8);
+  }
+
+ private:
+  std::uint64_t value_;
+};
+
+// Represents an ARM64 LDR literal instruction.
+class LdrLiteralInst {
+ public:
+  LdrLiteralInst(std::size_t pos, X rd, std::string_view label)
+      : pos_(pos), opc_(1), rd_(rd), label_(label) {}
+
+  LdrLiteralInst(std::size_t pos, W rd, std::string_view label)
+      : pos_(pos), opc_(0), rd_(rd), label_(label) {}
+
+  // Returns the number of bytes produced by this instruction.
+  std::size_t OutputBytesCount() const { return 4; }
+
+  // Writes the bytes produced by this instruction.
+  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
+                  std::ostream& out) const {
+    auto label_offset = label_offsets.Get(std::string(label_));
+    assert(label_offset.has_value());
+    std::uint32_t imm = (*label_offset - pos_) >> 2;
+    std::uint32_t res =
+        0b00011000000000000000000000000000 | opc_ << 31 | imm << 5 | rd_;
+    out.write(reinterpret_cast<const char*>(&res), 4);
+  }
+
+ private:
+  std::size_t pos_;
+  std::uint32_t opc_;
+  internal::Reg rd_;
+  std::string label_;
 };
 
 // Represents an ARM64 ADR instruction.
@@ -259,8 +307,8 @@ class AscizInst {
 };
 
 // Represents an ARM64 instruction.
-using Inst =
-    std::variant<LitInst, AdrInst, BInst, BCondInst, BlInst, AscizInst>;
+using Inst = std::variant<Lit32Inst, Lit64Inst, LdrLiteralInst, AdrInst, BInst,
+                          BCondInst, BlInst, AscizInst>;
 
 // Builds a list of ARM64 instructions.
 class Assembler {
@@ -467,7 +515,7 @@ class Assembler {
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/RET--Return-from-subroutine-?lang=en
   void Ret(X rn = X(30)) {
-    Insert(LitInst(0b11010110010111110000000000000000 | rn << 5));
+    Insert(Lit32Inst(0b11010110010111110000000000000000 | rn << 5));
   }
 
   // Insert SVC instruction.
@@ -476,11 +524,14 @@ class Assembler {
   //
   // https://developer.arm.com/documentation/ddi0602/2024-09/Base-Instructions/SVC--Supervisor-call-?lang=en
   void Svc(Imm imm) {
-    Insert(LitInst(0b11010100000000000000000000000001 | imm << 5));
+    Insert(Lit32Inst(0b11010100000000000000000000000001 | imm << 5));
   }
 
   // Insert a null-terminated string.
   void Asciz(std::string_view s) { Insert(AscizInst(s)); }
+
+  // Insert an integer literal.
+  void Long(std::uint64_t l) { Insert(Lit64Inst(l)); }
 
   // Insert STP post-index instruction.
   //
@@ -680,6 +731,24 @@ class Assembler {
     Insert(Ldr(true, rt, rn, rm, extend, amount));
   }
 
+  // Insert LDR (literal) instruction.
+  //
+  // LDR <Wt>, <label>
+  //
+  // https://developer.arm.com/documentation/111108/2026-03/Base-Instructions/LDR--literal---Load-register--literal--
+  void Ldr(W rd, std::string_view label) {
+    Insert(LdrLiteralInst(insts_size_, rd, label));
+  }
+
+  // Insert LDR (literal) instruction.
+  //
+  // LDR <Xt>, <label>
+  //
+  // https://developer.arm.com/documentation/111108/2026-03/Base-Instructions/LDR--literal---Load-register--literal--
+  void Ldr(X rd, std::string_view label) {
+    Insert(LdrLiteralInst(insts_size_, rd, label));
+  }
+
   // Insert B instruction.
   //
   // B <label>
@@ -756,29 +825,29 @@ class Assembler {
   void Cset(X rd, InvCond inv_cond) { Insert(Cset(true, rd, inv_cond)); }
 
  private:
-  LitInst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
-              bool sh = false) {
-    return LitInst(0b10010001000000000000000000000000 | sf << 31 | sh << 22 |
-                   imm << 10 | rn << 5 | rd);
+  Lit32Inst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
+                bool sh = false) {
+    return Lit32Inst(0b10010001000000000000000000000000 | sf << 31 | sh << 22 |
+                     imm << 10 | rn << 5 | rd);
   }
 
-  LitInst Mov(bool sf, internal::Reg rd, internal::Reg rm) {
-    return LitInst(0b00101010000000000000001111100000 | sf << 31 | rm << 16 |
-                   rd);
+  Lit32Inst Mov(bool sf, internal::Reg rd, internal::Reg rm) {
+    return Lit32Inst(0b00101010000000000000001111100000 | sf << 31 | rm << 16 |
+                     rd);
   }
 
-  LitInst Mov(bool sf, internal::Reg rd, Imm imm) {
-    return LitInst(0b01010010100000000000000000000000 | sf << 31 | imm << 5 |
-                   rd);
+  Lit32Inst Mov(bool sf, internal::Reg rd, Imm imm) {
+    return Lit32Inst(0b01010010100000000000000000000000 | sf << 31 | imm << 5 |
+                     rd);
   }
 
-  LitInst MovSP(bool sf, internal::Reg rd, internal::Reg rn) {
-    return LitInst(0b00010001000000000000000000000000 | sf << 31 | rn << 5 |
-                   rd);
+  Lit32Inst MovSP(bool sf, internal::Reg rd, internal::Reg rn) {
+    return Lit32Inst(0b00010001000000000000000000000000 | sf << 31 | rn << 5 |
+                     rd);
   }
 
-  LitInst StpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
-                       internal::Reg rn, Imm imm) {
+  Lit32Inst StpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
+                         internal::Reg rn, Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
@@ -786,12 +855,12 @@ class Assembler {
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return LitInst(0b00101000100000000000000000000000 | opc << 31 | imme << 15 |
-                   rt2 << 10 | rn << 5 | rt1);
+    return Lit32Inst(0b00101000100000000000000000000000 | opc << 31 |
+                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
-  LitInst StpPreIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
-                      internal::Reg rn, Imm imm) {
+  Lit32Inst StpPreIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
+                        internal::Reg rn, Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
@@ -799,12 +868,12 @@ class Assembler {
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return LitInst(0b00101001100000000000000000000000 | opc << 31 | imme << 15 |
-                   rt2 << 10 | rn << 5 | rt1);
+    return Lit32Inst(0b00101001100000000000000000000000 | opc << 31 |
+                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
-  LitInst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
-                          internal::Reg rn, Imm imm) {
+  Lit32Inst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
+                            internal::Reg rn, Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
@@ -812,53 +881,42 @@ class Assembler {
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return LitInst(0b00101001000000000000000000000000 | opc << 31 | imme << 15 |
-                   rt2 << 10 | rn << 5 | rt1);
+    return Lit32Inst(0b00101001000000000000000000000000 | opc << 31 |
+                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
-  LitInst StrPostIndex(bool opc, internal::Reg rt, internal::Reg rn, Imm imm) {
-    return LitInst(0b10111000000000000000010000000000 | opc << 30 | imm << 12 |
-                   rn << 5 | rt);
+  Lit32Inst StrPostIndex(bool opc, internal::Reg rt, internal::Reg rn,
+                         Imm imm) {
+    return Lit32Inst(0b10111000000000000000010000000000 | opc << 30 |
+                     imm << 12 | rn << 5 | rt);
   }
 
-  LitInst StrPreIndex(bool opc, internal::Reg rt, internal::Reg rn, Imm imm) {
-    return LitInst(0b10111000000000000000110000000000 | (opc << 30) |
-                   imm << 12 | rn << 5 | rt);
+  Lit32Inst StrPreIndex(bool opc, internal::Reg rt, internal::Reg rn, Imm imm) {
+    return Lit32Inst(0b10111000000000000000110000000000 | (opc << 30) |
+                     imm << 12 | rn << 5 | rt);
   }
 
-  LitInst StrUnsignedOffset(bool opc, internal::Reg rt, internal::Reg rn,
-                            Imm imm) {
+  Lit32Inst StrUnsignedOffset(bool opc, internal::Reg rt, internal::Reg rn,
+                              Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
 
-    return LitInst(0b10111001000000000000000000000000 | opc << 30 | imme << 10 |
-                   rn << 5 | rt);
+    return Lit32Inst(0b10111001000000000000000000000000 | opc << 30 |
+                     imme << 10 | rn << 5 | rt);
   }
 
-  LitInst Str(bool opc, internal::Reg rt, X rn, internal::Reg rm, Extend extend,
-              Imm amount) {
-    return LitInst(0b10111000001000000000100000000000 | opc << 30 | rm << 16 |
-                   static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
-                   rn << 5 | rt);
+  Lit32Inst Str(bool opc, internal::Reg rt, X rn, internal::Reg rm,
+                Extend extend, Imm amount) {
+    return Lit32Inst(0b10111000001000000000100000000000 | opc << 30 | rm << 16 |
+                     static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
+                     rn << 5 | rt);
   }
 
-  LitInst LdpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2, X rn,
-                       Imm imm) {
-    std::int16_t imme = imm;
-    if (opc)
-      imme /= 8;
-    else
-      imme /= 4;
-    if (imme < 0) imme = TwosComplement7(-imme);
-
-    return LitInst(0b00101000110000000000000000000000 | opc << 31 | imme << 15 |
-                   rt2 << 10 | rn << 5 | rt1);
-  }
-
-  LitInst LdrPreIndex(bool opc, internal::Reg rt, X rn, Imm imm) {
+  Lit32Inst LdpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2, X rn,
+                         Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
@@ -866,11 +924,11 @@ class Assembler {
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return LitInst(0b10111000010000000000110000000000 | opc << 30 | imme << 12 |
-                   rn << 5 | rt);
+    return Lit32Inst(0b00101000110000000000000000000000 | opc << 31 |
+                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
-  LitInst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
+  Lit32Inst LdrPreIndex(bool opc, internal::Reg rt, X rn, Imm imm) {
     std::int16_t imme = imm;
     if (opc)
       imme /= 8;
@@ -878,62 +936,78 @@ class Assembler {
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return LitInst(0b10111001010000000000000000000000 | opc << 30 | imme << 10 |
-                   rn << 5 | rt);
+    return Lit32Inst(0b10111000010000000000110000000000 | opc << 30 |
+                     imme << 12 | rn << 5 | rt);
   }
 
-  LitInst Ldr(bool opc, internal::Reg rt, X rn, internal::Reg rm, Extend extend,
-              Imm amount) {
-    return LitInst(0b10111000011000000000100000000000 | opc << 30 | rm << 16 |
-                   static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
-                   rn << 5 | rt);
+  Lit32Inst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
+    std::int16_t imme = imm;
+    if (opc)
+      imme /= 8;
+    else
+      imme /= 4;
+    if (imme < 0) imme = TwosComplement7(-imme);
+
+    return Lit32Inst(0b10111001010000000000000000000000 | opc << 30 |
+                     imme << 10 | rn << 5 | rt);
   }
 
-  LitInst Cmp(bool opc, internal::Reg rn, Imm imm) {
-    return LitInst(0b01110001000000000000000000011111 | opc << 31 | imm << 10 |
-                   rn << 5);
+  Lit32Inst Ldr(bool opc, internal::Reg rt, X rn, internal::Reg rm,
+                Extend extend, Imm amount) {
+    return Lit32Inst(0b10111000011000000000100000000000 | opc << 30 | rm << 16 |
+                     static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
+                     rn << 5 | rt);
   }
 
-  LitInst Cmp(bool opc, internal::Reg rn, internal::Reg rm) {
-    return LitInst(0b01101011000000000000000000011111 | opc << 31 | rm << 16 |
-                   rn << 5);
+  Lit32Inst Cmp(bool opc, internal::Reg rn, Imm imm) {
+    return Lit32Inst(0b01110001000000000000000000011111 | opc << 31 |
+                     imm << 10 | rn << 5);
   }
 
-  LitInst Cset(bool opc, internal::Reg rd, InvCond inv_cond) {
-    return LitInst(0b00011010100111110000011111100000 | opc << 31 |
-                   static_cast<std::uint8_t>(inv_cond) << 12 | rd);
+  Lit32Inst Cmp(bool opc, internal::Reg rn, internal::Reg rm) {
+    return Lit32Inst(0b01101011000000000000000000011111 | opc << 31 | rm << 16 |
+                     rn << 5);
   }
 
-  LitInst Add(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm) {
-    return LitInst(0b00001011000000000000000000000000 | opc << 31 | rm << 16 |
-                   rn << 5 | rd);
+  Lit32Inst Cset(bool opc, internal::Reg rd, InvCond inv_cond) {
+    return Lit32Inst(0b00011010100111110000011111100000 | opc << 31 |
+                     static_cast<std::uint8_t>(inv_cond) << 12 | rd);
   }
 
-  LitInst Sub(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm) {
-    return LitInst(0b01001011000000000000000000000000 | opc << 31 | rm << 16 |
-                   rn << 5 | rd);
+  Lit32Inst Add(bool opc, internal::Reg rd, internal::Reg rn,
+                internal::Reg rm) {
+    return Lit32Inst(0b00001011000000000000000000000000 | opc << 31 | rm << 16 |
+                     rn << 5 | rd);
   }
 
-  LitInst Sub(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
-              bool sh = false) {
-    return LitInst(0b01010001000000000000000000000000 | sf << 31 | sh << 22 |
-                   imm << 10 | rn << 5 | rd);
+  Lit32Inst Sub(bool opc, internal::Reg rd, internal::Reg rn,
+                internal::Reg rm) {
+    return Lit32Inst(0b01001011000000000000000000000000 | opc << 31 | rm << 16 |
+                     rn << 5 | rd);
   }
 
-  LitInst Mul(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm) {
-    return LitInst(0b00011011000000000111110000000000 | opc << 31 | rm << 16 |
-                   rn << 5 | rd);
+  Lit32Inst Sub(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
+                bool sh = false) {
+    return Lit32Inst(0b01010001000000000000000000000000 | sf << 31 | sh << 22 |
+                     imm << 10 | rn << 5 | rd);
   }
 
-  LitInst Udiv(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm) {
-    return LitInst(0b00011010110000000000100000000000 | opc << 31 | rm << 16 |
-                   rn << 5 | rd);
+  Lit32Inst Mul(bool opc, internal::Reg rd, internal::Reg rn,
+                internal::Reg rm) {
+    return Lit32Inst(0b00011011000000000111110000000000 | opc << 31 | rm << 16 |
+                     rn << 5 | rd);
   }
 
-  LitInst Msub(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm,
-               internal::Reg ra) {
-    return LitInst(0b00011011000000001000000000000000 | opc << 31 | rm << 16 |
-                   ra << 10 | rn << 5 | rd);
+  Lit32Inst Udiv(bool opc, internal::Reg rd, internal::Reg rn,
+                 internal::Reg rm) {
+    return Lit32Inst(0b00011010110000000000100000000000 | opc << 31 | rm << 16 |
+                     rn << 5 | rd);
+  }
+
+  Lit32Inst Msub(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm,
+                 internal::Reg ra) {
+    return Lit32Inst(0b00011011000000001000000000000000 | opc << 31 | rm << 16 |
+                     ra << 10 | rn << 5 | rd);
   }
 
   void Insert(Inst inst) {

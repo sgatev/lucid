@@ -40,6 +40,7 @@ cc_library(
         ":assembler",
         "//lucid/am:cfg",
         "//lucid/am:instructions",
+        "//lucid/am:state",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/container/graph:order",

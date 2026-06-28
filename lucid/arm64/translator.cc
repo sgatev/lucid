@@ -9,6 +9,7 @@
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
+#include "lucid/am/state.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
@@ -146,6 +147,19 @@ class Arm64BinaryGenerator {
         break;
       case RegSize64:
         assembler_.Mov(X(inst.dst_reg.id), Imm(inst.src_val));
+        break;
+    }
+  }
+
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const SetInt& inst) {
+    std::string label = "long" + std::to_string(inst.src_val);
+    switch (inst.dst_reg.size) {
+      case RegSize32:
+        assembler_.Ldr(W(inst.dst_reg.id), label);
+        break;
+      case RegSize64:
+        assembler_.Ldr(X(inst.dst_reg.id), label);
         break;
     }
   }
@@ -500,13 +514,16 @@ void GenerateArmStartBinary(Assembler& assembler) {
   assembler.Ret();
 }
 
-void GenerateArmEndBinary(
-    const SyntaxContext& syn_ctx,
-    const HashMap<std::uintptr_t, StringIndex::Ref>& strings,
-    Assembler& assmebler) {
-  for (const auto& [k, v] : strings) {
+void GenerateArmEndBinary(const SyntaxContext& syn_ctx,
+                          const AbstractMachineState& am_state,
+                          Assembler& assmebler) {
+  for (const auto& [k, v] : am_state.strings) {
     assmebler.Label("str" + std::to_string(k));
     assmebler.Asciz(syn_ctx.DerefIdent(v));
+  }
+  for (const auto& v : am_state.ints) {
+    assmebler.Label("long" + std::to_string(v));
+    assmebler.Long(v);
   }
 }
 

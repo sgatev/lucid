@@ -88,7 +88,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       syn_ctx.RegisterType(type_def->name, type_def->type);
     }
   }
-  GenerateArmEndBinary(syn_ctx, am_state.strings, assembler);
+  GenerateArmEndBinary(syn_ctx, am_state, assembler);
   WriteCompiledMachObject(assembler, out);
   return {};
 }
