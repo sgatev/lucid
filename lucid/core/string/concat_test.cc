@@ -4,25 +4,25 @@
 #include <string_view>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-TEST(ConcatTest, SameSizeParts) {
+TEST(Test, ConcatSameSizeParts) {
   EXPECT_EQ(Concat(std::vector<std::string_view>{"a", "b", "c"}, " "), "a b c");
 }
 
-TEST(ConcatTest, DifferentSizeParts) {
+TEST(Test, ConcatDifferentSizeParts) {
   EXPECT_EQ(Concat(std::vector<std::string_view>{"aaa", "b", "cc"}, "dddd"),
             "aaaddddbddddcc");
 }
 
-TEST(ConcatTest, EmptyGlue) {
+TEST(Test, ConcatEmptyGlue) {
   EXPECT_EQ(Concat(std::vector<std::string_view>{"a", "b", "c"}, ""), "abc");
 }
 
-TEST(ConcatTest, NoParts) {
+TEST(Test, ConcatNoParts) {
   EXPECT_EQ(Concat(std::vector<std::string_view>{""}, "foo"), "");
 }
 

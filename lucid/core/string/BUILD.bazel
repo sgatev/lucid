@@ -13,7 +13,7 @@ cc_test(
     srcs = ["concat_test.cc"],
     deps = [
         ":concat",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
