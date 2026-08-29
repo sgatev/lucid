@@ -18,6 +18,6 @@ cc_test(
     srcs = ["identity_test.cc"],
     deps = [
         ":identity",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )

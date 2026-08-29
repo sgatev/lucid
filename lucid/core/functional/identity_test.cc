@@ -3,31 +3,31 @@
 #include <string>
 #include <utility>
 
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-TEST(IdentityTest, Basic) {
+TEST(Test, IdentityBasic) {
   int x = 42;
   int y = identity(x);
   EXPECT_EQ(y, 42);
 }
 
-TEST(IdentityTest, ConstReference) {
+TEST(Test, IdentityConstReference) {
   std::string x = "foo";
   const std::string& y = identity(x);
   EXPECT_EQ(y, "foo");
 }
 
-TEST(IdentityTest, LvalueReference) {
+TEST(Test, IdentityLvalueReference) {
   int x = 42;
   int& y = identity(x);
   y = 21;
   EXPECT_EQ(x, 21);
 }
 
-TEST(IdentityTest, RvalueReference) {
+TEST(Test, IdentityRvalueReference) {
   std::string x = "foo";
   std::string y = identity(std::move(x));
   EXPECT_EQ(y, "foo");
