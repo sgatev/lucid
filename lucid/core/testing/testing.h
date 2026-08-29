@@ -71,6 +71,34 @@ inline std::string ToString(const int& s) {
   static auto UNIQUE_VAR(t) = lucid::AddTest(std::make_unique<name>()); \
   void name::Run()
 
+#define ASSERT_TRUE(actual)                                                \
+  if (!(actual)) {                                                         \
+    std::vector<std::string> parts = {                                     \
+        "Expected ", TO_STRING(actual), " to be true ", " but found ",     \
+        "\"",        ToString(actual),  "\"",           ".",               \
+    };                                                                     \
+    Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \
+                ""));                                                      \
+    return;                                                                \
+  }
+
+#define ASSERT_FALSE(actual)                                               \
+  if ((actual)) {                                                          \
+    std::vector<std::string> parts = {                                     \
+        "Expected ",                                                       \
+        TO_STRING(actual),                                                 \
+        " to be false ",                                                   \
+        " but found ",                                                     \
+        "\"",                                                              \
+        ToString(actual),                                                  \
+        "\"",                                                              \
+        ".",                                                               \
+    };                                                                     \
+    Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \
+                ""));                                                      \
+    return;                                                                \
+  }
+
 #define EXPECT_EQ(actual, expected)                                        \
   if ((actual) != (expected)) {                                            \
     std::vector<std::string> parts = {                                     \

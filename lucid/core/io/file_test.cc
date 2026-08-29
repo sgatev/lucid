@@ -1,28 +1,29 @@
 #include "lucid/core/io/file.h"
 
 #include <expected>
+#include <filesystem>
 #include <sstream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
 using namespace std::string_literals;
 
-TEST(ReadFileTest, WithoutTrailingZero) {
+TEST(Test, ReadFileWithoutTrailingZero) {
   std::string path =
-      testing::SrcDir() + "_main/lucid/core/io/testdata/foobarbaz";
+      std::filesystem::current_path() / "lucid/core/io/testdata/foobarbaz";
 
   std::expected<std::string, ReadFileError> res = ReadFile(path);
   ASSERT_TRUE(res.has_value());
   EXPECT_EQ(res.value(), "foobarbaz\n"s);
 }
 
-TEST(ReadFileTest, WithTrailingZero) {
+TEST(Test, ReadFileWithTrailingZero) {
   std::string path =
-      testing::SrcDir() + "_main/lucid/core/io/testdata/foobarbaz";
+      std::filesystem::current_path() / "lucid/core/io/testdata/foobarbaz";
 
   std::expected<std::string, ReadFileError> res =
       ReadFile(path, /*with_trailing_zero=*/true);
@@ -30,7 +31,7 @@ TEST(ReadFileTest, WithTrailingZero) {
   EXPECT_EQ(res.value(), "foobarbaz\n\0"s);
 }
 
-TEST(ReadFileTest, MissingFile) {
+TEST(Test, ReadFileMissingFile) {
   std::expected<std::string, ReadFileError> res = ReadFile("unknown");
   ASSERT_FALSE(res.has_value());
 
