@@ -2,6 +2,9 @@
 
 #include <memory>
 #include <string_view>
+#include <vector>
+
+#include "lucid/core/string/concat.h"
 
 namespace lucid {
 
@@ -48,5 +51,23 @@ int AddTest(std::unique_ptr<Test> test);
   /* NOLINTNEXTLINE */                                                  \
   static auto UNIQUE_VAR(t) = lucid::AddTest(std::make_unique<name>()); \
   void name::Run()
+
+#define EXPECT_EQ(actual, expected)    \
+  if ((actual) != (expected))          \
+    Fail(Concat(                       \
+        std::vector<std::string_view>{ \
+            "Expected ",               \
+            TO_STRING(actual),         \
+            " to equal ",              \
+            "\"",                      \
+            expected,                  \
+            "\"",                      \
+            " but found ",             \
+            "\"",                      \
+            actual,                    \
+            "\"",                      \
+            ".",                       \
+        },                             \
+        ""));
 
 }  // namespace lucid

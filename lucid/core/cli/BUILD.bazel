@@ -34,6 +34,6 @@ cc_test(
     srcs = ["format_test.cc"],
     deps = [
         ":format",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )

@@ -6,15 +6,11 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 cc_library(
     name = "testing",
     testonly = True,
+    srcs = ["testing.cc"],
     hdrs = ["testing.h"],
-)
-
-cc_library(
-    name = "main",
-    testonly = True,
-    srcs = ["main.cc"],
+    visibility = ["//lucid:__subpackages__"],
     deps = [
-        ":testing",
+        "//lucid/core/string:concat",
     ],
     alwayslink = True,
 )
@@ -24,7 +20,6 @@ cc_binary(
     testonly = True,
     srcs = ["passing_tests.cc"],
     deps = [
-        ":main",
         ":testing",
     ],
 )
@@ -48,7 +43,6 @@ cc_binary(
     testonly = True,
     srcs = ["failing_tests.cc"],
     deps = [
-        ":main",
         ":testing",
     ],
 )

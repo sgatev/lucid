@@ -2,12 +2,12 @@
 
 #include <sstream>
 
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-TEST(SetColorTest, Works) {
+TEST(Test, SetColorWorks) {
   std::stringstream ss;
   ss << SetColor(Color::Blue) << "foo";
   ss << "bar";
@@ -17,7 +17,7 @@ TEST(SetColorTest, Works) {
   EXPECT_EQ(ss.str(), "\33[34mfoobar\33[32mbaz");
 }
 
-TEST(ResetColorTest, Works) {
+TEST(Test, ResetColorWorks) {
   std::stringstream ss;
   ss << "foo" << ResetColor;
   ss << "bar";
@@ -27,7 +27,7 @@ TEST(ResetColorTest, Works) {
   EXPECT_EQ(ss.str(), "foo\33[mbar\33[mbaz");
 }
 
-TEST(IndentTest, Works) {
+TEST(Test, IndentWorks) {
   std::stringstream ss;
   ss << Indent(4) << "foo";
   ss << "bar";
