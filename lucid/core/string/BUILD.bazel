@@ -48,6 +48,6 @@ cc_test(
     srcs = ["index_test.cc"],
     deps = [
         ":index",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )

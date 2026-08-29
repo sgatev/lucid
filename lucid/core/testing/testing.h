@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include "lucid/core/string/concat.h"
@@ -34,11 +35,22 @@ class Test {
 // Adds a new test to the global suite of tests.
 int AddTest(std::unique_ptr<Test> test);
 
-// Returns a string representation of `s`.
-inline std::string ToString(std::string_view s) { return std::string(s); }
+template <typename T>
+inline std::string ToString(const T& t) {
+  return "[unstringable]";
+}
 
 // Returns a string representation of `s`.
-inline std::string ToString(int s) { return std::to_string(s); }
+template <>
+inline std::string ToString(const std::string_view& s) {
+  return std::string(s);
+}
+
+// Returns a string representation of `s`.
+template <>
+inline std::string ToString(const int& s) {
+  return std::to_string(s);
+}
 
 #define STRINGIFY(x) #x
 #define TO_STRING(x) STRINGIFY(x)
@@ -65,6 +77,25 @@ inline std::string ToString(int s) { return std::to_string(s); }
         "Expected ",                                                       \
         TO_STRING(actual),                                                 \
         " to equal ",                                                      \
+        "\"",                                                              \
+        ToString(expected),                                                \
+        "\"",                                                              \
+        " but found ",                                                     \
+        "\"",                                                              \
+        ToString(actual),                                                  \
+        "\"",                                                              \
+        ".",                                                               \
+    };                                                                     \
+    Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \
+                ""));                                                      \
+  }
+
+#define EXPECT_NE(actual, expected)                                        \
+  if ((actual) == (expected)) {                                            \
+    std::vector<std::string> parts = {                                     \
+        "Expected ",                                                       \
+        TO_STRING(actual),                                                 \
+        " to not equal ",                                                  \
         "\"",                                                              \
         ToString(expected),                                                \
         "\"",                                                              \
