@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <functional>
 
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
@@ -22,14 +22,14 @@ class BoundedNatDomain {
   std::size_t size_;
 };
 
-TEST(WorklistTest, Empty) {
+TEST(Test, WorklistEmpty) {
   Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(6),
                                                         std::less());
 
   EXPECT_TRUE(worklist.empty());
 }
 
-TEST(WorklistTest, Ordered) {
+TEST(Test, WorklistOrdered) {
   Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(6),
                                                         std::less());
 
@@ -57,7 +57,7 @@ TEST(WorklistTest, Ordered) {
   EXPECT_TRUE(worklist.empty());
 }
 
-TEST(WorklistTest, NoDuplicates) {
+TEST(Test, WorklistNoDuplicates) {
   Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(6),
                                                         std::less());
 
@@ -79,7 +79,7 @@ TEST(WorklistTest, NoDuplicates) {
   EXPECT_TRUE(worklist.empty());
 }
 
-TEST(WorklistTest, PushRange) {
+TEST(Test, WorklistPushRange) {
   Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(6),
                                                         std::less());
 

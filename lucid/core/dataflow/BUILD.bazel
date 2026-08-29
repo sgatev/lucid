@@ -34,7 +34,7 @@ cc_test(
     srcs = ["worklist_test.cc"],
     deps = [
         ":worklist",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 

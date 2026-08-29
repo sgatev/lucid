@@ -99,6 +99,32 @@ inline std::string ToString(const int& s) {
     return;                                                                \
   }
 
+#define EXPECT_TRUE(actual)                                                \
+  if (!(actual)) {                                                         \
+    std::vector<std::string> parts = {                                     \
+        "Expected ", TO_STRING(actual), " to be true ", " but found ",     \
+        "\"",        ToString(actual),  "\"",           ".",               \
+    };                                                                     \
+    Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \
+                ""));                                                      \
+  }
+
+#define EXPECT_FALSE(actual)                                               \
+  if ((actual)) {                                                          \
+    std::vector<std::string> parts = {                                     \
+        "Expected ",                                                       \
+        TO_STRING(actual),                                                 \
+        " to be false ",                                                   \
+        " but found ",                                                     \
+        "\"",                                                              \
+        ToString(actual),                                                  \
+        "\"",                                                              \
+        ".",                                                               \
+    };                                                                     \
+    Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \
+                ""));                                                      \
+  }
+
 #define EXPECT_EQ(actual, expected)                                        \
   if ((actual) != (expected)) {                                            \
     std::vector<std::string> parts = {                                     \
