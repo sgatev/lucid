@@ -1,0 +1,73 @@
+load("@bazel_lib//lib:diff_test.bzl", "diff_test")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_library(
+    name = "testing",
+    testonly = True,
+    hdrs = ["testing.h"],
+)
+
+cc_library(
+    name = "main",
+    testonly = True,
+    srcs = ["main.cc"],
+    deps = [
+        ":testing",
+    ],
+    alwayslink = True,
+)
+
+cc_binary(
+    name = "passing_tests",
+    testonly = True,
+    srcs = ["passing_tests.cc"],
+    deps = [
+        ":main",
+        ":testing",
+    ],
+)
+
+genrule(
+    name = "run_passing_tests",
+    testonly = True,
+    outs = ["passing_tests_output"],
+    cmd = "$(location :passing_tests) --disable_timings > $@",
+    tools = [":passing_tests"],
+)
+
+diff_test(
+    name = "passing_tests_test",
+    file1 = "testdata/expected_passing_tests_output",
+    file2 = ":passing_tests_output",
+)
+
+cc_binary(
+    name = "failing_tests",
+    testonly = True,
+    srcs = ["failing_tests.cc"],
+    deps = [
+        ":main",
+        ":testing",
+    ],
+)
+
+genrule(
+    name = "run_failing_tests",
+    testonly = True,
+    outs = ["failing_tests_output"],
+    cmd = """
+    if $(location :failing_tests) --disable_timings > $@ 2>&1; then
+      echo "ERROR: Expected tool to fail, but it exited with 0" >&2
+      exit 1
+    fi
+    """,
+    tools = [":failing_tests"],
+)
+
+diff_test(
+    name = "failing_tests_test",
+    file1 = "testdata/expected_failing_tests_output",
+    file2 = ":failing_tests_output",
+)

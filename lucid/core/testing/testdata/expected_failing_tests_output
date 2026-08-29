@@ -1,0 +1,13 @@
+│ FAIL Foo
+│ PASS Bar
+│ FAIL Baz
+└─► 1 out of 3 tests PASS
+
+== Foo ==
+Fail: Foo failure
+Foo LOG
+
+== Baz ==
+Baz LOG
+Fail: Baz failure
+
