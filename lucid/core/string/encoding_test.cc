@@ -2,16 +2,16 @@
 
 #include <sstream>
 
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-TEST(EncodedStringLengthTest, Characters) {
+TEST(Test, EncodedStringLengthCharacters) {
   EXPECT_EQ(EncodedStringLength(R"(foo 21)"), 7);
 }
 
-TEST(EncodedStringLengthTest, EscapedCharacter) {
+TEST(Test, EncodedStringLengthEscapedCharacter) {
   EXPECT_EQ(EncodedStringLength(R"(\a)"), 2);
   EXPECT_EQ(EncodedStringLength(R"(\b)"), 2);
   EXPECT_EQ(EncodedStringLength(R"(\f)"), 2);
@@ -21,7 +21,7 @@ TEST(EncodedStringLengthTest, EscapedCharacter) {
   EXPECT_EQ(EncodedStringLength(R"(\v)"), 2);
 }
 
-TEST(EncodedStringLengthTest, EscapedNumber) {
+TEST(Test, EncodedStringLengthEscapedNumber) {
   EXPECT_EQ(EncodedStringLength(R"(\2)"), 2);
   EXPECT_EQ(EncodedStringLength(R"(\33)"), 2);
   EXPECT_EQ(EncodedStringLength(R"(\345)"), 2);
@@ -29,17 +29,17 @@ TEST(EncodedStringLengthTest, EscapedNumber) {
   EXPECT_EQ(EncodedStringLength(R"(\345foo)"), 5);
 }
 
-TEST(EncodedStringLengthTest, Mix) {
+TEST(Test, EncodedStringLengthMix) {
   EXPECT_EQ(EncodedStringLength(R"(foo\215bar\n)"), 9);
 }
 
-TEST(WriteEncodedStringTest, Characters) {
+TEST(Test, WriteEncodedStringCharacters) {
   std::stringstream out;
   EXPECT_EQ(WriteEncodedString(R"(foo 21)", out), 7);
   EXPECT_EQ(std::strcmp(out.str().data(), "foo 21\0"), 0);
 }
 
-TEST(WriteEncodedStringTest, EscapedCharacter) {
+TEST(Test, WriteEncodedStringEscapedCharacter) {
   {
     std::stringstream out;
     EXPECT_EQ(WriteEncodedString(R"(\a)", out), 2);
@@ -77,7 +77,7 @@ TEST(WriteEncodedStringTest, EscapedCharacter) {
   }
 }
 
-TEST(WriteEncodedStringTest, EscapedNumber) {
+TEST(Test, WriteEncodedStringEscapedNumber) {
   {
     std::stringstream out;
     EXPECT_EQ(WriteEncodedString(R"(\2)", out), 2);
@@ -105,7 +105,7 @@ TEST(WriteEncodedStringTest, EscapedNumber) {
   }
 }
 
-TEST(WriteEncodedStringTest, Mix) {
+TEST(Test, WriteEncodedStringMix) {
   std::stringstream out;
   EXPECT_EQ(WriteEncodedString(R"(foo\215bar\n)", out), 9);
   EXPECT_EQ(std::strcmp(out.str().data(), "foo\215bar\n\0"), 0);

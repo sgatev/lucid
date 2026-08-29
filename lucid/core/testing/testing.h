@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -33,6 +34,12 @@ class Test {
 // Adds a new test to the global suite of tests.
 int AddTest(std::unique_ptr<Test> test);
 
+// Returns a string representation of `s`.
+inline std::string ToString(std::string_view s) { return std::string(s); }
+
+// Returns a string representation of `s`.
+inline std::string ToString(int s) { return std::to_string(s); }
+
 #define STRINGIFY(x) #x
 #define TO_STRING(x) STRINGIFY(x)
 
@@ -52,22 +59,23 @@ int AddTest(std::unique_ptr<Test> test);
   static auto UNIQUE_VAR(t) = lucid::AddTest(std::make_unique<name>()); \
   void name::Run()
 
-#define EXPECT_EQ(actual, expected)    \
-  if ((actual) != (expected))          \
-    Fail(Concat(                       \
-        std::vector<std::string_view>{ \
-            "Expected ",               \
-            TO_STRING(actual),         \
-            " to equal ",              \
-            "\"",                      \
-            expected,                  \
-            "\"",                      \
-            " but found ",             \
-            "\"",                      \
-            actual,                    \
-            "\"",                      \
-            ".",                       \
-        },                             \
-        ""));
+#define EXPECT_EQ(actual, expected)                                        \
+  if ((actual) != (expected)) {                                            \
+    std::vector<std::string> parts = {                                     \
+        "Expected ",                                                       \
+        TO_STRING(actual),                                                 \
+        " to equal ",                                                      \
+        "\"",                                                              \
+        ToString(expected),                                                \
+        "\"",                                                              \
+        " but found ",                                                     \
+        "\"",                                                              \
+        ToString(actual),                                                  \
+        "\"",                                                              \
+        ".",                                                               \
+    };                                                                     \
+    Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \
+                ""));                                                      \
+  }
 
 }  // namespace lucid
