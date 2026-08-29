@@ -12,6 +12,6 @@ cc_test(
     srcs = ["bits_test.cc"],
     deps = [
         ":bits",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
