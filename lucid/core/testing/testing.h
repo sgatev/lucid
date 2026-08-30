@@ -1,9 +1,11 @@
 #pragma once
 
+#include <algorithm>
+#include <initializer_list>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
-#include <type_traits>
 #include <vector>
 
 #include "lucid/core/string/concat.h"
@@ -157,6 +159,70 @@ inline std::string ToString(const int& s) {
         "\"",                                                              \
         ToString(actual),                                                  \
         "\"",                                                              \
+        ".",                                                               \
+    };                                                                     \
+    Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \
+                ""));                                                      \
+  }
+
+template <typename T>
+class ElementsMatcher {
+ public:
+  ElementsMatcher(std::initializer_list<const T> expected_elements)
+      : expected_elements_(expected_elements) {}
+
+  std::string DescribeExpected() {
+    std::vector<std::string> parts;
+    parts.reserve(expected_elements_.size() + 2);
+    parts.push_back("have elements { ");
+    for (bool has_added_element = false;
+         const auto& element : expected_elements_) {
+      if (has_added_element) parts.push_back(", ");
+      parts.push_back(ToString(element));
+      has_added_element = true;
+    }
+    parts.push_back(" }");
+
+    return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
+                  "");
+  }
+
+  std::string DescribeActual(std::span<const T> actual_elements) {
+    std::vector<std::string> parts;
+    parts.reserve(actual_elements.size() + 2);
+    parts.push_back("{ ");
+    for (bool has_added_element = false;
+         const auto& element : actual_elements) {
+      if (has_added_element) parts.push_back(", ");
+      parts.push_back(ToString(element));
+      has_added_element = true;
+    }
+    parts.push_back(" }");
+
+    return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
+                  "");
+  }
+
+  bool Matches(std::span<const T> actual_elements) {
+    return std::ranges::equal(actual_elements, expected_elements_);
+  }
+
+ private:
+  std::initializer_list<const T> expected_elements_;
+};
+
+template <typename T>
+ElementsMatcher<const T> ElementsAre(
+    std::initializer_list<const T> expected_elements) {
+  return ElementsMatcher<const T>(expected_elements);
+}
+
+#define EXPECT_THAT(actual, matcher)                                       \
+  if (!(matcher).Matches(actual)) {                                        \
+    std::vector<std::string> parts = {                                     \
+        "Expected ",   TO_STRING(actual),                                  \
+        " to ",        (matcher).DescribeExpected(),                       \
+        " but found ", (matcher).DescribeActual(actual),                   \
         ".",                                                               \
     };                                                                     \
     Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \

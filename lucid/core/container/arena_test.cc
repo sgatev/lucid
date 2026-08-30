@@ -1,35 +1,36 @@
 #include "lucid/core/container/arena.h"
 
+#include <initializer_list>
+#include <span>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-using ::testing::ElementsAre;
+// using ::testing::ElementsAre;
 
-TEST(ArenaRefTest, Default) {
+TEST(Test, ArenaRefDefault) {
   EXPECT_TRUE(Arena<int>::Ref() == Arena<int>::kNullRef);
 }
 
-TEST(ArenaRefTest, Size) { EXPECT_EQ(sizeof(Arena<int>::Ref), 4); }
+TEST(Test, ArenaRefSize) { EXPECT_EQ(sizeof(Arena<int>::Ref), 4); }
 
-TEST(ArenaRefTest, Unconvertible) {
+TEST(Test, ArenaRefUnconvertible) {
   EXPECT_FALSE((std::is_convertible_v<Arena<int>::Ref, Arena<double>::Ref>));
 }
 
-TEST(ArenaRefTest, Equality) {
+TEST(Test, ArenaRefEquality) {
   EXPECT_TRUE(Arena<int>::Ref(2) == Arena<int>::Ref(2));
   EXPECT_TRUE(Arena<int>::Ref(2) != Arena<int>::Ref(3));
 }
 
-TEST(ArenaRefTest, Id) { EXPECT_EQ(Arena<int>::Ref(2).id(), 2); }
+TEST(Test, ArenaRefId) { EXPECT_EQ(Arena<int>::Ref(2).id(), 2); }
 
-TEST(ArenaRefTest, Increments) {
+TEST(Test, ArenaRefIncrements) {
   Arena<int>::Ref ref(2);
   ++ref;
   EXPECT_EQ(ref.id(), 3);
@@ -37,13 +38,13 @@ TEST(ArenaRefTest, Increments) {
   EXPECT_EQ(ref.id(), 2);
 }
 
-TEST(ArenaRefTest, Offsets) {
+TEST(Test, ArenaRefOffsets) {
   Arena<int>::Ref ref(5);
   EXPECT_EQ((ref + 3).id(), 8);
   EXPECT_EQ((ref - 2).id(), 3);
 }
 
-TEST(ArenaTest, StoresValues) {
+TEST(Test, ArenaStoresValues) {
   Arena<int> arena;
 
   Arena<int>::Ref three = arena.Add(3);
@@ -53,7 +54,7 @@ TEST(ArenaTest, StoresValues) {
   EXPECT_EQ(arena.Get(five), 5);
 }
 
-TEST(ArenaTest, ConstAccess) {
+TEST(Test, ArenaConstAccess) {
   Arena<int> arena;
   Arena<int>::Ref three = arena.Add(3);
 
@@ -61,7 +62,7 @@ TEST(ArenaTest, ConstAccess) {
   EXPECT_EQ(const_arena.Get(three), 3);
 }
 
-TEST(ArenaTest, MutableAccess) {
+TEST(Test, ArenaMutableAccess) {
   Arena<int> arena;
 
   auto age = arena.Add(3);
@@ -71,7 +72,7 @@ TEST(ArenaTest, MutableAccess) {
   EXPECT_EQ(arena.Get(age), 4);
 }
 
-TEST(ArenaTest, AliasAccess) {
+TEST(Test, ArenaAliasAccess) {
   Arena<int> arena;
   Arena<int>::Ref three = arena.Add(3);
   Arena<int>::Ref three_alias = arena.Alias(three);
@@ -79,7 +80,7 @@ TEST(ArenaTest, AliasAccess) {
   EXPECT_EQ(arena.Get(three_alias), 3);
 }
 
-TEST(ArenaTest, Equiv) {
+TEST(Test, ArenaEquiv) {
   Arena<int> arena;
   Arena<int>::Ref three = arena.Add(3);
   Arena<int>::Ref three_alias = arena.Alias(three);
@@ -91,7 +92,7 @@ TEST(ArenaTest, Equiv) {
   EXPECT_FALSE(arena.Equiv(three, other_three));
 }
 
-TEST(ArenaTest, Size) {
+TEST(Test, ArenaSize) {
   Arena<int> arena;
 
   auto three = arena.Add(3);
@@ -104,7 +105,7 @@ TEST(ArenaTest, Size) {
   EXPECT_EQ(arena.Size(), 3);
 }
 
-TEST(ArenaTest, RangeFor) {
+TEST(Test, ArenaRangeFor) {
   Arena<int> arena;
 
   arena.Add(3);
@@ -114,7 +115,7 @@ TEST(ArenaTest, RangeFor) {
   std::vector<int> elements;
   for (int e : arena) elements.push_back(e);
 
-  EXPECT_THAT(elements, ElementsAre(3, 5, 8));
+  EXPECT_THAT(elements, ElementsAre({3, 5, 8}));
 }
 
 }  // namespace
