@@ -5,8 +5,7 @@
 #include <string_view>
 #include <utility>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 
@@ -56,17 +55,14 @@ inline std::size_t Hash(const ConstructOnly& v) { return Hash(v.v); }
 
 namespace {
 
-using ::testing::Optional;
-using ::testing::UnorderedElementsAre;
-
-TEST(HashSet, Empty) {
+TEST(Test, HashSetEmpty) {
   HashSet<int> set;
 
   EXPECT_EQ(set.size(), 0);
   EXPECT_FALSE(set.Contains(21));
 }
 
-TEST(HashSet, Insert) {
+TEST(Test, HashSetInsert) {
   HashSet<int> set;
 
   EXPECT_TRUE(set.Insert(21));
@@ -76,7 +72,7 @@ TEST(HashSet, Insert) {
   EXPECT_FALSE(set.Contains(42));
 }
 
-TEST(HashSet, InsertSame) {
+TEST(Test, HashSetInsertSame) {
   HashSet<int> set;
 
   EXPECT_TRUE(set.Insert(21));
@@ -86,7 +82,7 @@ TEST(HashSet, InsertSame) {
   EXPECT_TRUE(set.Contains(21));
 }
 
-TEST(HashSet, InsertDifferent) {
+TEST(Test, HashSetInsertDifferent) {
   HashSet<int> set;
 
   EXPECT_TRUE(set.Insert(21));
@@ -97,7 +93,7 @@ TEST(HashSet, InsertDifferent) {
   EXPECT_TRUE(set.Contains(13));
 }
 
-TEST(HashSet, Remove) {
+TEST(Test, HashSetRemove) {
   HashSet<int> set;
 
   EXPECT_TRUE(set.Insert(21));
@@ -108,7 +104,7 @@ TEST(HashSet, Remove) {
   EXPECT_FALSE(set.Contains(21));
 }
 
-TEST(HashSet, Scaling) {
+TEST(Test, HashSetScaling) {
   HashSet<int> set;
 
   for (int i = 1; i <= 10000; ++i) {
@@ -122,7 +118,7 @@ TEST(HashSet, Scaling) {
   }
 }
 
-TEST(HashSet, CopyConstruct) {
+TEST(Test, HashSetCopyConstruct) {
   HashSet<int> set;
 
   EXPECT_TRUE(set.Insert(21));
@@ -135,7 +131,7 @@ TEST(HashSet, CopyConstruct) {
   EXPECT_TRUE(set_copy.Contains(13));
 }
 
-TEST(HashSet, CopyAssign) {
+TEST(Test, HashSetCopyAssign) {
   HashSet<int> set;
 
   EXPECT_TRUE(set.Insert(21));
@@ -149,7 +145,7 @@ TEST(HashSet, CopyAssign) {
   EXPECT_TRUE(set_copy.Contains(13));
 }
 
-TEST(HashSet, MoveConstruct) {
+TEST(Test, HashSetMoveConstruct) {
   HashSet<MoveOnly> set;
 
   EXPECT_TRUE(set.Insert(MoveOnly(21)));
@@ -162,7 +158,7 @@ TEST(HashSet, MoveConstruct) {
   EXPECT_TRUE(set_move.Contains(MoveOnly(13)));
 }
 
-TEST(HashSet, MoveAssign) {
+TEST(Test, HashSetMoveAssign) {
   HashSet<MoveOnly> set;
 
   EXPECT_TRUE(set.Insert(MoveOnly(21)));
@@ -176,7 +172,7 @@ TEST(HashSet, MoveAssign) {
   EXPECT_TRUE(set_move.Contains(MoveOnly(13)));
 }
 
-TEST(HashSet, Equal) {
+TEST(Test, HashSetEqual) {
   HashSet<int> set1;
   set1.Insert(21);
   set1.Insert(13);
@@ -188,7 +184,7 @@ TEST(HashSet, Equal) {
   EXPECT_TRUE(set1 == set2);
 }
 
-TEST(HashSet, NotEqualSameSize) {
+TEST(Test, HashSetNotEqualSameSize) {
   HashSet<int> set1;
   set1.Insert(21);
   set1.Insert(13);
@@ -200,7 +196,7 @@ TEST(HashSet, NotEqualSameSize) {
   EXPECT_TRUE(set1 != set2);
 }
 
-TEST(HashSet, NotEqualDifferentSize) {
+TEST(Test, HashSetNotEqualDifferentSize) {
   HashSet<int> set1;
   set1.Insert(21);
 
@@ -211,7 +207,7 @@ TEST(HashSet, NotEqualDifferentSize) {
   EXPECT_TRUE(set1 != set2);
 }
 
-TEST(HashSet, Int32) {
+TEST(Test, HashSetInt32) {
   HashSet<std::int32_t> set;
 
   EXPECT_TRUE(set.Insert(21));
@@ -222,7 +218,7 @@ TEST(HashSet, Int32) {
   EXPECT_FALSE(set.Contains(42));
 }
 
-TEST(HashSet, Uint32) {
+TEST(Test, HashSetUint32) {
   HashSet<std::uint32_t> set;
 
   EXPECT_TRUE(set.Insert(21));
@@ -233,7 +229,7 @@ TEST(HashSet, Uint32) {
   EXPECT_FALSE(set.Contains(42));
 }
 
-TEST(HashSet, StringView) {
+TEST(Test, HashSetStringView) {
   HashSet<std::string_view> set;
 
   EXPECT_TRUE(set.Insert("foo"));
@@ -244,7 +240,7 @@ TEST(HashSet, StringView) {
   EXPECT_FALSE(set.Contains("baz"));
 }
 
-TEST(HashSet, CustomKey) {
+TEST(Test, HashSetCustomKey) {
   HashSet<CustomKey> set;
 
   EXPECT_TRUE(set.Insert(CustomKey{.a = 1, .b = 10, .c = 100}));
@@ -255,7 +251,7 @@ TEST(HashSet, CustomKey) {
   EXPECT_FALSE(set.Contains(CustomKey{.a = 3, .b = 30, .c = 300}));
 }
 
-TEST(HashSet, MoveOnly) {
+TEST(Test, HashSetMoveOnly) {
   HashSet<MoveOnly> set;
 
   EXPECT_TRUE(set.Insert(MoveOnly(1)));
@@ -266,7 +262,7 @@ TEST(HashSet, MoveOnly) {
   EXPECT_FALSE(set.Contains(MoveOnly(3)));
 }
 
-TEST(HashSet, ConstructOnly) {
+TEST(Test, HashSetConstructOnly) {
   HashSet<ConstructOnly> set;
 
   EXPECT_TRUE(set.Insert(ConstructOnly(21)));
@@ -280,7 +276,7 @@ TEST(HashSet, ConstructOnly) {
   EXPECT_TRUE(set_move.Contains(ConstructOnly(13)));
 }
 
-TEST(HashSet, IteratorCompareDifferentSets) {
+TEST(Test, HashSetIteratorCompareDifferentSets) {
   HashSet<int> set1;
   set1.Insert(21);
 
@@ -291,7 +287,7 @@ TEST(HashSet, IteratorCompareDifferentSets) {
   EXPECT_NE(set1.end(), set2.end());
 }
 
-TEST(HashSet, IteratorCompareEmpty) {
+TEST(Test, HashSetIteratorCompareEmpty) {
   HashSet<int> set;
 
   EXPECT_EQ(set.begin(), set.begin());
@@ -299,7 +295,7 @@ TEST(HashSet, IteratorCompareEmpty) {
   EXPECT_EQ(set.begin(), set.end());
 }
 
-TEST(HashSet, IteratorCompareNonEmpty) {
+TEST(Test, HashSetIteratorCompareNonEmpty) {
   HashSet<int> set;
   set.Insert(21);
 
@@ -308,19 +304,19 @@ TEST(HashSet, IteratorCompareNonEmpty) {
   EXPECT_EQ(++set.begin(), set.end());
 }
 
-TEST(HashSet, IteratorDeref) {
+TEST(Test, HashSetIteratorDeref) {
   HashSet<int> set;
   set.Insert(21);
 
   EXPECT_EQ(*set.begin(), 21);
 }
 
-TEST(HashSet, IteratorRange) {
+TEST(Test, HashSetIteratorRange) {
   HashSet<int> set;
   set.Insert(21);
   set.Insert(13);
 
-  EXPECT_THAT(set, UnorderedElementsAre(13, 21));
+  EXPECT_THAT(set, UnorderedElementsAre({13, 21}));
 }
 
 }  // namespace

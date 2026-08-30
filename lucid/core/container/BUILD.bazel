@@ -74,7 +74,7 @@ cc_test(
     srcs = ["hash_set_test.cc"],
     deps = [
         ":hash_set",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
