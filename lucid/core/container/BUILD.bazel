@@ -107,7 +107,7 @@ cc_test(
     srcs = ["optional_ref_test.cc"],
     deps = [
         ":optional_ref",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 

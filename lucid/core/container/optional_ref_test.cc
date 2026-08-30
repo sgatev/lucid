@@ -4,12 +4,12 @@
 #include <string>
 #include <utility>
 
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-TEST(OptionalRef, Default) {
+TEST(Test, OptionalRefDefault) {
   int v = 21;
   OptionalRef<int> o;
 
@@ -22,7 +22,7 @@ TEST(OptionalRef, Default) {
   EXPECT_NE(o, 21);
 }
 
-TEST(OptionalRef, Unengaged) {
+TEST(Test, OptionalRefUnengaged) {
   int v = 21;
   OptionalRef<int> o = std::nullopt;
 
@@ -35,7 +35,7 @@ TEST(OptionalRef, Unengaged) {
   EXPECT_NE(o, 21);
 }
 
-TEST(OptionalRef, Engaged) {
+TEST(Test, OptionalRefEngaged) {
   int v = 21;
   OptionalRef<int> o = v;
 
@@ -49,7 +49,7 @@ TEST(OptionalRef, Engaged) {
   EXPECT_NE(o, std::nullopt);
 }
 
-TEST(OptionalRef, Arrow) {
+TEST(Test, OptionalRefArrow) {
   struct S {
     int a;
   } v = {.a = 21};
@@ -59,7 +59,7 @@ TEST(OptionalRef, Arrow) {
   EXPECT_EQ(o->a, 21);
 }
 
-TEST(OptionalRef, Copy) {
+TEST(Test, OptionalRefCopy) {
   int v = 21;
   OptionalRef<int> o1 = v;
   OptionalRef<int> o2 = o1;
@@ -74,7 +74,7 @@ TEST(OptionalRef, Copy) {
   EXPECT_NE(o2, std::nullopt);
 }
 
-TEST(OptionalRef, Move) {
+TEST(Test, OptionalRefMove) {
   int v = 21;
   OptionalRef<int> o1 = v;
   OptionalRef<int> o2 = std::move(o1);
@@ -89,7 +89,7 @@ TEST(OptionalRef, Move) {
   EXPECT_NE(o2, std::nullopt);
 }
 
-TEST(OptionalRef, Transform) {
+TEST(Test, OptionalRefTransform) {
   struct Foo {
     std::string bar;
   };
@@ -104,7 +104,7 @@ TEST(OptionalRef, Transform) {
   EXPECT_EQ(*o2, "foobar");
 }
 
-TEST(OptionalRef, ValueOr) {
+TEST(Test, OptionalRefValueOr) {
   OptionalRef<int> o1;
   EXPECT_EQ(o1.value_or(21), 21);
 
