@@ -19,7 +19,7 @@ cc_test(
     deps = [
         ":cli",
         "//lucid/core/container:hash_map",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 

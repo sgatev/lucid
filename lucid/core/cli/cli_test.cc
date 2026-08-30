@@ -7,18 +7,13 @@
 #include <utility>
 #include <vector>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/core/container/hash_map.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-using ::testing::ElementsAre;
-using ::testing::Pair;
-using ::testing::UnorderedElementsAre;
-
-TEST(RunCommandTest, RootCommand) {
+TEST(Test, RunCommandRootCommand) {
   std::vector<std::string_view> args = {
       "foo",
       "--foo_flag=foo_value",
@@ -45,7 +40,7 @@ TEST(RunCommandTest, RootCommand) {
   EXPECT_EQ(err.str(), "");
 }
 
-TEST(RunCommandTest, NestedCommand) {
+TEST(Test, RunCommandNestedCommand) {
   std::vector<std::string_view> args = {
       "foo",
       "--foo_flag=foo_value",
@@ -88,7 +83,7 @@ TEST(RunCommandTest, NestedCommand) {
   EXPECT_EQ(err.str(), "");
 }
 
-TEST(RunCommandTest, UnknownCommand) {
+TEST(Test, RunCommandUnknownCommand) {
   std::vector<std::string_view> args = {"foo", "bar", "baz"};
 
   auto bar = [](const CommandContext&) { return 0; };
@@ -108,7 +103,7 @@ TEST(RunCommandTest, UnknownCommand) {
             "\33[31mERROR:\33[m unknown command 'foo'\n");
 }
 
-TEST(RunCommandTest, Output) {
+TEST(Test, RunCommandOutput) {
   std::vector<std::string_view> args = {
       "foo",
   };
@@ -132,7 +127,7 @@ TEST(RunCommandTest, Output) {
   EXPECT_EQ(err.str(), "");
 }
 
-TEST(RunCommandTest, Error) {
+TEST(Test, RunCommandError) {
   std::vector<std::string_view> args = {
       "foo",
   };
@@ -156,7 +151,7 @@ TEST(RunCommandTest, Error) {
   EXPECT_EQ(err.str(), "\33[31mERROR:\33[m foo");
 }
 
-TEST(RunCommandTest, CurrentCommand) {
+TEST(Test, RunCommandCurrentCommand) {
   std::vector<std::string_view> args = {
       "foo",
       "--foo_flag=foo_value",
@@ -193,7 +188,7 @@ TEST(RunCommandTest, CurrentCommand) {
   EXPECT_EQ(bar_current_command, "test foo bar");
 }
 
-TEST(RunCommandTest, EmptyArgs) {
+TEST(Test, RunCommandEmptyArgs) {
   auto foo = [](const CommandContext&) { return 1; };
 
   std::stringstream out, err;
