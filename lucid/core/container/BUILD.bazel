@@ -47,7 +47,7 @@ cc_test(
     srcs = ["hash_map_test.cc"],
     deps = [
         ":hash_map",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 

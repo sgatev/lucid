@@ -5,8 +5,7 @@
 #include <string_view>
 #include <utility>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 
@@ -56,78 +55,74 @@ inline std::size_t Hash(const ConstructOnly& v) { return Hash(v.v); }
 
 namespace {
 
-using ::testing::Optional;
-using ::testing::Pair;
-using ::testing::UnorderedElementsAre;
-
-TEST(HashMap, FindMiss) {
+TEST(Test, HashMapFindMiss) {
   HashMap<int, int> map;
 
   EXPECT_EQ(map.size(), 0);
   EXPECT_EQ(map.Get(21), std::nullopt);
 }
 
-TEST(HashMap, Emplace) {
+TEST(Test, HashMapEmplace) {
   HashMap<int, std::pair<int, int>> map;
 
-  EXPECT_THAT(map.Emplace(21, 1, 2), Pair(1, 2));
-  EXPECT_THAT(map.Emplace(21, 2, 4), Pair(1, 2));
+  EXPECT_EQ(map.Emplace(21, 1, 2), std::make_pair(1, 2));
+  EXPECT_EQ(map.Emplace(21, 2, 4), std::make_pair(1, 2));
 }
 
-TEST(HashMap, Insert) {
+TEST(Test, HashMapInsert) {
   HashMap<int, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
 
   EXPECT_EQ(map.size(), 1);
-  EXPECT_THAT(map.Get(21), Optional(42));
+  EXPECT_THAT(map.Get(21), Optional(Equals(42)));
   EXPECT_EQ(map.Get(42), std::nullopt);
 }
 
-TEST(HashMap, InsertSameKey) {
+TEST(Test, HashMapInsertSameKey) {
   HashMap<int, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_FALSE(map.Insert(21, 84));
 
   EXPECT_EQ(map.size(), 1);
-  EXPECT_THAT(map.Get(21), Optional(42));
+  EXPECT_THAT(map.Get(21), Optional(Equals(42)));
 }
 
-TEST(HashMap, InsertDifferentKey) {
+TEST(Test, HashMapInsertDifferentKey) {
   HashMap<int, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_TRUE(map.Insert(13, 26));
 
   EXPECT_EQ(map.size(), 2);
-  EXPECT_THAT(map.Get(21), Optional(42));
-  EXPECT_THAT(map.Get(13), Optional(26));
+  EXPECT_THAT(map.Get(21), Optional(Equals(42)));
+  EXPECT_THAT(map.Get(13), Optional(Equals(26)));
 }
 
-TEST(HashMap, SetSameKey) {
+TEST(Test, HashMapSetSameKey) {
   HashMap<int, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_FALSE(map.Set(21, 84));
 
   EXPECT_EQ(map.size(), 1);
-  EXPECT_THAT(map.Get(21), Optional(84));
+  EXPECT_THAT(map.Get(21), Optional(Equals(84)));
   EXPECT_EQ(map.Get(84), std::nullopt);
 }
 
-TEST(HashMap, SetDifferentKey) {
+TEST(Test, HashMapSetDifferentKey) {
   HashMap<int, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_TRUE(map.Set(13, 26));
 
   EXPECT_EQ(map.size(), 2);
-  EXPECT_THAT(map.Get(21), Optional(42));
-  EXPECT_THAT(map.Get(13), Optional(26));
+  EXPECT_THAT(map.Get(21), Optional(Equals(42)));
+  EXPECT_THAT(map.Get(13), Optional(Equals(26)));
 }
 
-TEST(HashMap, Remove) {
+TEST(Test, HashMapRemove) {
   HashMap<int, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
@@ -138,7 +133,7 @@ TEST(HashMap, Remove) {
   EXPECT_EQ(map.Get(21), std::nullopt);
 }
 
-TEST(HashMap, Scaling) {
+TEST(Test, HashMapScaling) {
   HashMap<int, int> map;
 
   for (int i = 1; i <= 10000; ++i) {
@@ -148,11 +143,11 @@ TEST(HashMap, Scaling) {
   EXPECT_EQ(map.size(), 10000);
 
   for (int i = 1; i <= 10000; ++i) {
-    EXPECT_THAT(map.Get(i), Optional(i * 2));
+    EXPECT_THAT(map.Get(i), Optional(Equals(i * 2)));
   }
 }
 
-TEST(HashMap, CopyConstruct) {
+TEST(Test, HashMapCopyConstruct) {
   HashMap<std::int32_t, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
@@ -161,11 +156,11 @@ TEST(HashMap, CopyConstruct) {
   HashMap<std::int32_t, int> map_copy = map;
 
   EXPECT_EQ(map_copy.size(), 2);
-  EXPECT_THAT(map_copy.Get(21), Optional(42));
-  EXPECT_THAT(map_copy.Get(13), Optional(26));
+  EXPECT_THAT(map_copy.Get(21), Optional(Equals(42)));
+  EXPECT_THAT(map_copy.Get(13), Optional(Equals(26)));
 }
 
-TEST(HashMap, CopyAssign) {
+TEST(Test, HashMapCopyAssign) {
   HashMap<std::int32_t, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
@@ -175,11 +170,11 @@ TEST(HashMap, CopyAssign) {
   map_copy = map;
 
   EXPECT_EQ(map_copy.size(), 2);
-  EXPECT_THAT(map_copy.Get(21), Optional(42));
-  EXPECT_THAT(map_copy.Get(13), Optional(26));
+  EXPECT_THAT(map_copy.Get(21), Optional(Equals(42)));
+  EXPECT_THAT(map_copy.Get(13), Optional(Equals(26)));
 }
 
-TEST(HashMap, MoveConstruct) {
+TEST(Test, HashMapMoveConstruct) {
   HashMap<MoveOnly, int> map;
 
   EXPECT_TRUE(map.Insert(MoveOnly(21), 42));
@@ -188,11 +183,11 @@ TEST(HashMap, MoveConstruct) {
   HashMap<MoveOnly, int> map_move = std::move(map);
 
   EXPECT_EQ(map_move.size(), 2);
-  EXPECT_THAT(map_move.Get(MoveOnly(21)), Optional(42));
-  EXPECT_THAT(map_move.Get(MoveOnly(13)), Optional(26));
+  EXPECT_THAT(map_move.Get(MoveOnly(21)), Optional(Equals(42)));
+  EXPECT_THAT(map_move.Get(MoveOnly(13)), Optional(Equals(26)));
 }
 
-TEST(HashMap, MoveAssign) {
+TEST(Test, HashMapMoveAssign) {
   HashMap<MoveOnly, int> map;
 
   EXPECT_TRUE(map.Insert(MoveOnly(21), 42));
@@ -202,11 +197,11 @@ TEST(HashMap, MoveAssign) {
   map_move = std::move(map);
 
   EXPECT_EQ(map_move.size(), 2);
-  EXPECT_THAT(map_move.Get(MoveOnly(21)), Optional(42));
-  EXPECT_THAT(map_move.Get(MoveOnly(13)), Optional(26));
+  EXPECT_THAT(map_move.Get(MoveOnly(21)), Optional(Equals(42)));
+  EXPECT_THAT(map_move.Get(MoveOnly(13)), Optional(Equals(26)));
 }
 
-TEST(HashMap, Equal) {
+TEST(Test, HashMapEqual) {
   HashMap<int, int> map1;
   map1.Insert(21, 1);
   map1.Insert(13, 2);
@@ -218,7 +213,7 @@ TEST(HashMap, Equal) {
   EXPECT_TRUE(map1 == map2);
 }
 
-TEST(HashMap, NotEqualDifferentValues) {
+TEST(Test, HashMapNotEqualDifferentValues) {
   HashMap<int, int> map1;
   map1.Insert(21, 1);
   map1.Insert(13, 2);
@@ -230,7 +225,7 @@ TEST(HashMap, NotEqualDifferentValues) {
   EXPECT_TRUE(map1 != map2);
 }
 
-TEST(HashMap, NotEqualSameSize) {
+TEST(Test, HashMapNotEqualSameSize) {
   HashMap<int, int> map1;
   map1.Insert(21, 1);
   map1.Insert(13, 2);
@@ -242,7 +237,7 @@ TEST(HashMap, NotEqualSameSize) {
   EXPECT_TRUE(map1 != map2);
 }
 
-TEST(HashMap, NotEqualDifferentSize) {
+TEST(Test, HashMapNotEqualDifferentSize) {
   HashMap<int, int> map1;
   map1.Insert(21, 1);
 
@@ -253,51 +248,53 @@ TEST(HashMap, NotEqualDifferentSize) {
   EXPECT_TRUE(map1 != map2);
 }
 
-TEST(HashMap, Int32) {
+TEST(Test, HashMapInt32) {
   HashMap<std::int32_t, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_TRUE(map.Insert(13, 26));
   EXPECT_FALSE(map.Insert(21, 21));
 
-  EXPECT_THAT(map.Get(21), Optional(42));
-  EXPECT_THAT(map.Get(13), Optional(26));
+  EXPECT_THAT(map.Get(21), Optional(Equals(42)));
+  EXPECT_THAT(map.Get(13), Optional(Equals(26)));
 }
 
-TEST(HashMap, Uint32) {
+TEST(Test, HashMapUint32) {
   HashMap<std::uint32_t, int> map;
 
   EXPECT_TRUE(map.Insert(21, 42));
   EXPECT_TRUE(map.Insert(13, 26));
   EXPECT_FALSE(map.Insert(21, 21));
 
-  EXPECT_THAT(map.Get(21), Optional(42));
-  EXPECT_THAT(map.Get(13), Optional(26));
+  EXPECT_THAT(map.Get(21), Optional(Equals(42)));
+  EXPECT_THAT(map.Get(13), Optional(Equals(26)));
 }
 
-TEST(HashMap, StringView) {
+TEST(Test, HashMapStringView) {
   HashMap<std::string_view, int> map;
 
   EXPECT_TRUE(map.Insert("foo", 42));
   EXPECT_TRUE(map.Insert("bar", 26));
   EXPECT_FALSE(map.Insert("foo", 21));
 
-  EXPECT_THAT(map.Get("foo"), Optional(42));
-  EXPECT_THAT(map.Get("bar"), Optional(26));
+  EXPECT_THAT(map.Get("foo"), Optional(Equals(42)));
+  EXPECT_THAT(map.Get("bar"), Optional(Equals(26)));
 }
 
-TEST(HashMap, CustomKey) {
+TEST(Test, HashMapCustomKey) {
   HashMap<CustomKey, int> map;
 
   EXPECT_TRUE(map.Insert(CustomKey{.a = 1, .b = 10, .c = 100}, 42));
   EXPECT_TRUE(map.Insert(CustomKey{.a = 2, .b = 20, .c = 200}, 26));
   EXPECT_FALSE(map.Insert(CustomKey{.a = 1, .b = 10, .c = 100}, 21));
 
-  EXPECT_THAT(map.Get(CustomKey{.a = 1, .b = 10, .c = 100}), Optional(42));
-  EXPECT_THAT(map.Get(CustomKey{.a = 2, .b = 20, .c = 200}), Optional(26));
+  EXPECT_THAT(map.Get(CustomKey{.a = 1, .b = 10, .c = 100}),
+              Optional(Equals(42)));
+  EXPECT_THAT(map.Get(CustomKey{.a = 2, .b = 20, .c = 200}),
+              Optional(Equals(26)));
 }
 
-TEST(HashMap, MoveOnly) {
+TEST(Test, HashMapMoveOnly) {
   HashMap<MoveOnly, MoveOnly> map;
 
   EXPECT_TRUE(map.Insert(MoveOnly(1), MoveOnly(42)));
@@ -308,7 +305,7 @@ TEST(HashMap, MoveOnly) {
   EXPECT_EQ(map.Get(MoveOnly(2)), MoveOnly(26));
 }
 
-TEST(HashMap, ConstructOnly) {
+TEST(Test, HashMapConstructOnly) {
   HashMap<ConstructOnly, ConstructOnly> map;
 
   EXPECT_TRUE(map.Insert(ConstructOnly(1), ConstructOnly(42)));
@@ -319,7 +316,7 @@ TEST(HashMap, ConstructOnly) {
   EXPECT_EQ(map.Get(ConstructOnly(2)), ConstructOnly(26));
 }
 
-TEST(HashMap, IteratorCompareDifferentMaps) {
+TEST(Test, HashMapIteratorCompareDifferentMaps) {
   HashMap<int, int> map1;
   map1.Insert(21, 42);
 
@@ -330,7 +327,7 @@ TEST(HashMap, IteratorCompareDifferentMaps) {
   EXPECT_NE(map1.end(), map2.end());
 }
 
-TEST(HashMap, IteratorCompareEmpty) {
+TEST(Test, HashMapIteratorCompareEmpty) {
   HashMap<int, int> map;
 
   EXPECT_EQ(map.begin(), map.begin());
@@ -338,7 +335,7 @@ TEST(HashMap, IteratorCompareEmpty) {
   EXPECT_EQ(map.begin(), map.end());
 }
 
-TEST(HashMap, IteratorCompareNonEmpty) {
+TEST(Test, HashMapIteratorCompareNonEmpty) {
   HashMap<int, int> map;
   map.Insert(21, 42);
 
@@ -347,19 +344,20 @@ TEST(HashMap, IteratorCompareNonEmpty) {
   EXPECT_EQ(++map.begin(), map.end());
 }
 
-TEST(HashMap, IteratorDeref) {
+TEST(Test, HashMapIteratorDeref) {
   HashMap<int, int> map;
   map.Insert(21, 42);
 
-  EXPECT_THAT(*map.begin(), Pair(21, 42));
+  EXPECT_EQ(*map.begin(), std::make_pair(21, 42));
 }
 
-TEST(HashMap, IteratorRange) {
+TEST(Test, HashMapIteratorRange) {
   HashMap<int, int> map;
   map.Insert(21, 42);
   map.Insert(13, 26);
 
-  EXPECT_THAT(map, UnorderedElementsAre(Pair(13, 26), Pair(21, 42)));
+  EXPECT_THAT(map, UnorderedElementsAre(
+                       {std::make_pair(13, 26), std::make_pair(21, 42)}));
 }
 
 }  // namespace

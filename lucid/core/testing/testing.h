@@ -8,6 +8,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "lucid/core/string/concat.h"
@@ -63,7 +64,8 @@ template <typename E>
 class EqualityMatcher {
  public:
   explicit EqualityMatcher(E expected_value, bool expect_equals)
-      : expected_value_(expected_value), expect_equals_(expect_equals) {}
+      : expected_value_(std::forward<E>(expected_value)),
+        expect_equals_(expect_equals) {}
 
   std::string DescribeExpected() {
     std::string qualifier = expect_equals_ ? "equal " : "not equal ";
@@ -325,8 +327,8 @@ inline internal::BooleanMatcher IsFalse() {
 
 // Matches a value that is equal to `expected_value`.
 template <typename E>
-inline internal::EqualityMatcher<E> Equals(E expected_value) {
-  return internal::EqualityMatcher<E>(expected_value, true);
+inline internal::EqualityMatcher<E> Equals(E&& expected_value) {
+  return internal::EqualityMatcher<E>(std::forward<E>(expected_value), true);
 }
 
 // Matches a value that is not equal to `expected_value`.
