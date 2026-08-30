@@ -28,7 +28,7 @@ cc_test(
     srcs = ["fixed_map_test.cc"],
     deps = [
         ":fixed_map",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 

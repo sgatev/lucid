@@ -2,14 +2,14 @@
 
 #include <string_view>
 
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
 using namespace std::literals::string_view_literals;
 
-TEST(FixedMapTest, PresentKey) {
+TEST(Test, FixedMapPresentKey) {
   static constexpr FixedMap map(
       std::array{
           std::pair{"foo"sv, 1},
@@ -20,7 +20,7 @@ TEST(FixedMapTest, PresentKey) {
   EXPECT_EQ(map["bar"], 2);
 }
 
-TEST(FixedMapTest, MissingKey) {
+TEST(Test, FixedMapMissingKey) {
   static constexpr FixedMap map(
       std::array{
           std::pair{"foo"sv, 1},
