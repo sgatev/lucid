@@ -11,8 +11,6 @@
 namespace lucid {
 namespace {
 
-// using ::testing::ElementsAre;
-
 TEST(Test, ArenaRefDefault) {
   EXPECT_TRUE(Arena<int>::Ref() == Arena<int>::kNullRef);
 }
