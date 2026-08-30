@@ -1,6 +1,8 @@
 #pragma once
 
 #include <algorithm>
+#include <cstddef>
+#include <functional>
 #include <initializer_list>
 #include <memory>
 #include <span>
@@ -16,6 +18,12 @@ namespace lucid {
 template <typename T>
 inline std::string ToString(const T& t) {
   return "[unstringable]";
+}
+
+// Returns a string representation of `s`.
+template <>
+inline std::string ToString(const char& c) {
+  return "'" + std::string(1, c) + "'";
 }
 
 // Returns a string representation of `s`.
@@ -127,6 +135,138 @@ class ElementsMatcher {
   std::initializer_list<const T> expected_elements_;
 };
 
+template <typename T>
+class UnorderedElementsMatcher {
+ public:
+  UnorderedElementsMatcher(std::initializer_list<const T> expected_elements)
+      : expected_elements_(expected_elements) {}
+
+  std::string DescribeExpected() {
+    std::vector<std::string> parts;
+    parts.reserve(expected_elements_.size() + 2);
+    parts.push_back("have elements { ");
+    for (bool has_added_element = false;
+         const auto& element : expected_elements_) {
+      if (has_added_element) parts.push_back(", ");
+      parts.push_back(ToString(element));
+      has_added_element = true;
+    }
+    parts.push_back(" }");
+
+    return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
+                  "");
+  }
+
+  template <typename A>
+  std::string DescribeActual(const A& actual_elements) {
+    std::vector<std::string> parts;
+    parts.reserve(actual_elements.size() + 2);
+    parts.push_back("have elements { ");
+    for (bool has_added_element = false;
+         const auto& element : actual_elements) {
+      if (has_added_element) parts.push_back(", ");
+      parts.push_back(ToString(element));
+      has_added_element = true;
+    }
+    parts.push_back(" }");
+
+    return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
+                  "");
+  }
+
+  template <typename A>
+  bool Matches(const A& actual_elements) {
+    if (actual_elements.size() != expected_elements_.size()) return false;
+    for (const auto& expected_element : expected_elements_) {
+      bool found_element = false;
+      for (const auto& actual_elements : actual_elements) {
+        if (actual_elements == expected_element) {
+          found_element = true;
+          break;
+        }
+      }
+      if (!found_element) return false;
+    }
+    return true;
+  }
+
+ private:
+  std::initializer_list<const T> expected_elements_;
+};
+
+class SizeMatcher {
+ public:
+  SizeMatcher(std::size_t expected_size) : expected_size_(expected_size) {}
+
+  std::string DescribeExpected() {
+    return "size is " + std::to_string(expected_size_);
+  }
+
+  template <typename A>
+  std::string DescribeActual(const A& actual_elements) {
+    return std::to_string(actual_elements.size());
+  }
+
+  template <typename A>
+  bool Matches(const A& actual_elements) {
+    return actual_elements.size() == expected_size_;
+  }
+
+ private:
+  std::size_t expected_size_;
+};
+
+template <typename F, typename E>
+class FieldMatcher {
+ public:
+  explicit FieldMatcher(F field, E matcher)
+      : field_(field), field_matcher_(matcher) {}
+
+  std::string DescribeExpected() {
+    return "with a field that " + field_matcher_.DescribeExpected();
+  }
+
+  template <typename A>
+  std::string DescribeActual(A&& actual_value) {
+    return "with a field that " +
+           field_matcher_.DescribeActual(std::invoke(field_, actual_value));
+  }
+
+  template <typename A>
+  bool Matches(A&& actual_value) {
+    return field_matcher_.Matches(std::invoke(field_, actual_value));
+  }
+
+ private:
+  F field_;
+  E field_matcher_;
+};
+
+template <typename E>
+class OptionalMatcher {
+ public:
+  explicit OptionalMatcher(E matcher) : value_matcher_(matcher) {}
+
+  std::string DescribeExpected() {
+    return "contain a value " + value_matcher_.DescribeExpected();
+  }
+
+  template <typename A>
+  std::string DescribeActual(const A& actual_value) {
+    if (!actual_value.has_value()) return "nullopt";
+    return "optional " + value_matcher_.DescribeActual(actual_value);
+  }
+
+  template <typename A>
+  bool Matches(const A& actual_value) {
+    if (!actual_value.has_value()) return false;
+    return value_matcher_.Matches(*actual_value);
+  }
+
+ private:
+  E value_matcher_;
+};
+
 }  // namespace internal
 
 // The base class of a test.
@@ -184,30 +324,59 @@ inline internal::BooleanMatcher IsFalse() {
 }
 
 // Matches a value that is equal to `expected_value`.
-template <typename T>
-inline internal::EqualityMatcher<T> Equals(T expected_value) {
-  return internal::EqualityMatcher<T>(expected_value, true);
+template <typename E>
+inline internal::EqualityMatcher<E> Equals(E expected_value) {
+  return internal::EqualityMatcher<E>(expected_value, true);
 }
 
 // Matches a value that is not equal to `expected_value`.
-template <typename T>
-inline internal::EqualityMatcher<T> NotEquals(T expected_value) {
-  return internal::EqualityMatcher<T>(expected_value, false);
+template <typename E>
+inline internal::EqualityMatcher<E> NotEquals(E expected_value) {
+  return internal::EqualityMatcher<E>(expected_value, false);
 }
 
-// Matches a value that contains `expected_elements`.
+// Matches a value whose size is `expected_size`.
+inline internal::SizeMatcher SizeIs(std::size_t expected_size) {
+  return internal::SizeMatcher(expected_size);
+}
+
+// Matches a value that contains `expected_elements` in the given order.
 template <typename T>
 internal::ElementsMatcher<const T> ElementsAre(
     std::initializer_list<const T> expected_elements) {
   return internal::ElementsMatcher<const T>(expected_elements);
 }
 
+// Matches a value that contains `expected_elements` in no particular order.
+template <typename T>
+internal::UnorderedElementsMatcher<const T> UnorderedElementsAre(
+    std::initializer_list<const T> expected_elements) {
+  return internal::UnorderedElementsMatcher<const T>(expected_elements);
+}
+
+// Matches a value that has a field accepted by `field_matcher`.
+template <typename F, typename M>
+internal::FieldMatcher<F, M> Field(F field, M field_matcher) {
+  return internal::FieldMatcher<F, M>(field, field_matcher);
+}
+
+// Matches an optional that contains a value accepted by `value_matcher`.
+template <typename M>
+internal::OptionalMatcher<M> Optional(M value_matcher) {
+  return internal::OptionalMatcher<M>(value_matcher);
+}
+
 #define ASSERT_THAT(actual, matcher)                                       \
   if (!(matcher).Matches(actual)) {                                        \
     std::vector<std::string> parts = {                                     \
-        "Expected ",   TO_STRING(actual),                                  \
-        " to ",        (matcher).DescribeExpected(),                       \
-        " but found ", (matcher).DescribeActual(actual),                   \
+        "Expected ",                                                       \
+        TO_STRING(actual),                                                 \
+        "\n",                                                              \
+        " to ",                                                            \
+        (matcher).DescribeExpected(),                                      \
+        "\n",                                                              \
+        " but found ",                                                     \
+        (matcher).DescribeActual(actual),                                  \
         ".",                                                               \
     };                                                                     \
     Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \
@@ -223,9 +392,14 @@ internal::ElementsMatcher<const T> ElementsAre(
 #define EXPECT_THAT(actual, matcher)                                       \
   if (!(matcher).Matches(actual)) {                                        \
     std::vector<std::string> parts = {                                     \
-        "Expected ",   TO_STRING(actual),                                  \
-        " to ",        (matcher).DescribeExpected(),                       \
-        " but found ", (matcher).DescribeActual(actual),                   \
+        "Expected ",                                                       \
+        TO_STRING(actual),                                                 \
+        "\n",                                                              \
+        " to ",                                                            \
+        (matcher).DescribeExpected(),                                      \
+        "\n",                                                              \
+        " but found ",                                                     \
+        (matcher).DescribeActual(actual),                                  \
         ".",                                                               \
     };                                                                     \
     Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \

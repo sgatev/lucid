@@ -20,7 +20,7 @@ cc_test(
     deps = [
         ":dataflow",
         "//lucid/core/container/graph:test_graph",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 

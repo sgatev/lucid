@@ -4,21 +4,14 @@
 #include <utility>
 #include <vector>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/core/container/graph/test_graph.h"
 #include "lucid/core/container/hash_set.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
 using namespace std::string_literals;
-
-using ::testing::Field;
-using ::testing::IsEmpty;
-using ::testing::Optional;
-using ::testing::SizeIs;
-using ::testing::UnorderedElementsAre;
 
 class TestResultUnionAnalysis {
  public:
@@ -44,7 +37,7 @@ class TestResultUnionAnalysis {
   }
 };
 
-TEST(RunForwardDataflowTest, Simple) {
+TEST(Test, RunForwardDataflowSimple) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -58,14 +51,14 @@ TEST(RunForwardDataflowTest, Simple) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A'))));
+                             UnorderedElementsAre({'A'}))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'W'))));
+                             UnorderedElementsAre({'A', 'W'}))));
 }
 
-TEST(RunForwardDataflowTest, DiamondBranch) {
+TEST(Test, RunForwardDataflowDiamondBranch) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -82,22 +75,22 @@ TEST(RunForwardDataflowTest, DiamondBranch) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A'))));
+                             UnorderedElementsAre({'A'}))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'B', 'C', 'W'))));
+                             UnorderedElementsAre({'A', 'B', 'C', 'W'}))));
 
   EXPECT_THAT(vertex_states[/* B */ 2],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'B'))));
+                             UnorderedElementsAre({'A', 'B'}))));
 
   EXPECT_THAT(vertex_states[/* C */ 3],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'C'))));
+                             UnorderedElementsAre({'A', 'C'}))));
 }
 
-TEST(RunForwardDataflowTest, Loop) {
+TEST(Test, RunForwardDataflowLoop) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -115,26 +108,26 @@ TEST(RunForwardDataflowTest, Loop) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A'))));
+                             UnorderedElementsAre({'A'}))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'B', 'C', 'D', 'W'))));
+                             UnorderedElementsAre({'A', 'B', 'C', 'D', 'W'}))));
 
   EXPECT_THAT(vertex_states[/* B */ 2],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'B', 'C'))));
+                             UnorderedElementsAre({'A', 'B', 'C'}))));
 
   EXPECT_THAT(vertex_states[/* C */ 3],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'B', 'C'))));
+                             UnorderedElementsAre({'A', 'B', 'C'}))));
 
   EXPECT_THAT(vertex_states[/* D */ 4],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'B', 'C', 'D'))));
+                             UnorderedElementsAre({'A', 'B', 'C', 'D'}))));
 }
 
-TEST(RunBackwardDataflowTest, Simple) {
+TEST(Test, RunBackwardDataflowSimple) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -148,14 +141,14 @@ TEST(RunBackwardDataflowTest, Simple) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'W'))));
+                             UnorderedElementsAre({'A', 'W'}))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('W'))));
+                             UnorderedElementsAre({'W'}))));
 }
 
-TEST(RunBackwardDataflowTest, DiamondBranch) {
+TEST(Test, RunBackwardDataflowDiamondBranch) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -172,22 +165,22 @@ TEST(RunBackwardDataflowTest, DiamondBranch) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'B', 'C', 'W'))));
+                             UnorderedElementsAre({'A', 'B', 'C', 'W'}))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('W'))));
+                             UnorderedElementsAre({'W'}))));
 
   EXPECT_THAT(vertex_states[/* B */ 2],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('B', 'W'))));
+                             UnorderedElementsAre({'B', 'W'}))));
 
   EXPECT_THAT(vertex_states[/* C */ 3],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('C', 'W'))));
+                             UnorderedElementsAre({'C', 'W'}))));
 }
 
-TEST(RunBackwardDataflowTest, Loop) {
+TEST(Test, RunBackwardDataflowLoop) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -205,23 +198,23 @@ TEST(RunBackwardDataflowTest, Loop) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('A', 'B', 'C', 'D', 'W'))));
+                             UnorderedElementsAre({'A', 'B', 'C', 'D', 'W'}))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('W'))));
+                             UnorderedElementsAre({'W'}))));
 
   EXPECT_THAT(vertex_states[/* B */ 2],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('B', 'C', 'D', 'W'))));
+                             UnorderedElementsAre({'B', 'C', 'D', 'W'}))));
 
   EXPECT_THAT(vertex_states[/* C */ 3],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('B', 'C', 'D', 'W'))));
+                             UnorderedElementsAre({'B', 'C', 'D', 'W'}))));
 
   EXPECT_THAT(vertex_states[/* D */ 4],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsAre('D', 'W'))));
+                             UnorderedElementsAre({'D', 'W'}))));
 }
 
 }  // namespace
