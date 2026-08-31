@@ -15,7 +15,7 @@ TEST(Test, SuccessiveListNonEmptyListContainsSuccessiveValues) {
   SuccessiveList<int> list(6, 21);
   EXPECT_THAT(list, Not(IsEmpty()));
   EXPECT_THAT(list, SizeIs(6));
-  EXPECT_THAT(list, ElementsAre({21, 22, 23, 24, 25, 26}));
+  EXPECT_THAT(list, ElementsAre(21, 22, 23, 24, 25, 26));
   EXPECT_EQ(list[3], 24);
 }
 

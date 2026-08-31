@@ -10,6 +10,7 @@ cc_library(
     hdrs = ["testing.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
+        "//lucid/core/meta:static_for",
         "//lucid/core/string:concat",
     ],
     alwayslink = True,

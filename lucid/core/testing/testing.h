@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <cstddef>
 #include <functional>
 #include <initializer_list>
@@ -11,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "lucid/core/meta/static_for.h"
 #include "lucid/core/string/concat.h"
 
 namespace lucid {
@@ -91,22 +91,22 @@ class EqualityMatcher {
   bool expect_equals_;
 };
 
-template <typename T>
+template <typename... Ms>
 class ElementsMatcher {
  public:
-  ElementsMatcher(std::initializer_list<const T> expected_elements)
-      : expected_elements_(expected_elements) {}
+  ElementsMatcher(Ms... element_matchers)
+      : element_matchers_(std::make_tuple(element_matchers...)) {}
 
   std::string DescribeExpected() {
     std::vector<std::string> parts;
-    parts.reserve(expected_elements_.size() + 2);
+    parts.reserve(sizeof...(Ms) + 2);
     parts.push_back("have elements { ");
-    for (bool has_added_element = false;
-         const auto& element : expected_elements_) {
+    bool has_added_element = false;
+    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
       if (has_added_element) parts.push_back(", ");
-      parts.push_back(ToString(element));
+      parts.push_back(std::get<I>(element_matchers_).DescribeExpected());
       has_added_element = true;
-    }
+    });
     parts.push_back(" }");
 
     return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
@@ -118,12 +118,13 @@ class ElementsMatcher {
     std::vector<std::string> parts;
     parts.reserve(actual_elements.size() + 2);
     parts.push_back("{ ");
-    for (bool has_added_element = false;
-         const auto& element : actual_elements) {
+    bool has_added_element = false;
+    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
       if (has_added_element) parts.push_back(", ");
-      parts.push_back(ToString(element));
+      parts.push_back(
+          std::get<I>(element_matchers_).DescribeActual(actual_elements[I]));
       has_added_element = true;
-    }
+    });
     parts.push_back(" }");
 
     return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
@@ -132,11 +133,17 @@ class ElementsMatcher {
 
   template <typename A>
   bool Matches(const A& actual_elements) {
-    return std::ranges::equal(actual_elements, expected_elements_);
+    if (actual_elements.size() != sizeof...(Ms)) return false;
+    bool equal = true;
+    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
+      equal =
+          equal && std::get<I>(element_matchers_).Matches(actual_elements[I]);
+    });
+    return equal;
   }
 
  private:
-  std::initializer_list<const T> expected_elements_;
+  std::tuple<Ms...> element_matchers_;
 };
 
 template <typename T>
@@ -367,7 +374,7 @@ inline internal::BooleanMatcher IsFalse() {
 
 // Matches a value that is equal to `expected_value`.
 template <typename E>
-inline internal::EqualityMatcher<E> Equals(E&& expected_value) {
+inline internal::EqualityMatcher<E> Equals(E expected_value) {
   return internal::EqualityMatcher<E>(std::forward<E>(expected_value), true);
 }
 
@@ -385,11 +392,18 @@ inline internal::SizeMatcher SizeIs(std::size_t expected_size) {
 // Matches a value that is empty.
 inline internal::EmptyMatcher IsEmpty() { return internal::EmptyMatcher(); }
 
+// Matches a value that whose elements match `element_matchers` in the given
+// order.
+template <typename... Ms>
+internal::ElementsMatcher<Ms...> ElementsMatch(Ms... element_matchers) {
+  return internal::ElementsMatcher<Ms...>(element_matchers...);
+}
+
 // Matches a value that contains `expected_elements` in the given order.
-template <typename T>
-internal::ElementsMatcher<const T> ElementsAre(
-    std::initializer_list<const T> expected_elements) {
-  return internal::ElementsMatcher<const T>(expected_elements);
+template <typename... Ts>
+internal::ElementsMatcher<internal::EqualityMatcher<Ts>...> ElementsAre(
+    Ts... expected_elements) {
+  return ElementsMatch(Equals(expected_elements)...);
 }
 
 // Matches a value that contains `expected_elements` in no particular order.
