@@ -113,7 +113,8 @@ class ElementsMatcher {
                   "");
   }
 
-  std::string DescribeActual(std::span<const T> actual_elements) {
+  template <typename A>
+  std::string DescribeActual(const A& actual_elements) {
     std::vector<std::string> parts;
     parts.reserve(actual_elements.size() + 2);
     parts.push_back("{ ");
@@ -129,7 +130,8 @@ class ElementsMatcher {
                   "");
   }
 
-  bool Matches(std::span<const T> actual_elements) {
+  template <typename A>
+  bool Matches(const A& actual_elements) {
     return std::ranges::equal(actual_elements, expected_elements_);
   }
 
@@ -218,11 +220,26 @@ class SizeMatcher {
   std::size_t expected_size_;
 };
 
-template <typename F, typename E>
+class EmptyMatcher {
+ public:
+  std::string DescribeExpected() { return "is empty"; }
+
+  template <typename A>
+  std::string DescribeActual(const A& actual_elements) {
+    return actual_elements.empty() ? "is empty" : "is not empty";
+  }
+
+  template <typename A>
+  bool Matches(const A& actual_elements) {
+    return actual_elements.empty();
+  }
+};
+
+template <typename F, typename M>
 class FieldMatcher {
  public:
-  explicit FieldMatcher(F field, E matcher)
-      : field_(field), field_matcher_(matcher) {}
+  explicit FieldMatcher(F field, M field_matcher)
+      : field_(field), field_matcher_(field_matcher) {}
 
   std::string DescribeExpected() {
     return "with a field that " + field_matcher_.DescribeExpected();
@@ -241,13 +258,13 @@ class FieldMatcher {
 
  private:
   F field_;
-  E field_matcher_;
+  M field_matcher_;
 };
 
-template <typename E>
+template <typename M>
 class OptionalMatcher {
  public:
-  explicit OptionalMatcher(E matcher) : value_matcher_(matcher) {}
+  explicit OptionalMatcher(M value_matcher) : value_matcher_(value_matcher) {}
 
   std::string DescribeExpected() {
     return "contain a value " + value_matcher_.DescribeExpected();
@@ -266,7 +283,30 @@ class OptionalMatcher {
   }
 
  private:
-  E value_matcher_;
+  M value_matcher_;
+};
+
+template <typename M>
+class NotMatcher {
+ public:
+  explicit NotMatcher(M matcher) : matcher_(matcher) {}
+
+  std::string DescribeExpected() {
+    return "not " + matcher_.DescribeExpected();
+  }
+
+  template <typename A>
+  std::string DescribeActual(const A& actual_value) {
+    return matcher_.DescribeActual(actual_value);
+  }
+
+  template <typename A>
+  bool Matches(const A& actual_value) {
+    return !matcher_.Matches(actual_value);
+  }
+
+ private:
+  M matcher_;
 };
 
 }  // namespace internal
@@ -342,6 +382,9 @@ inline internal::SizeMatcher SizeIs(std::size_t expected_size) {
   return internal::SizeMatcher(expected_size);
 }
 
+// Matches a value that is empty.
+inline internal::EmptyMatcher IsEmpty() { return internal::EmptyMatcher(); }
+
 // Matches a value that contains `expected_elements` in the given order.
 template <typename T>
 internal::ElementsMatcher<const T> ElementsAre(
@@ -366,6 +409,12 @@ internal::FieldMatcher<F, M> Field(F field, M field_matcher) {
 template <typename M>
 internal::OptionalMatcher<M> Optional(M value_matcher) {
   return internal::OptionalMatcher<M>(value_matcher);
+}
+
+// Matches a value not accepted by `matcher`.
+template <typename M>
+internal::NotMatcher<M> Not(M matcher) {
+  return internal::NotMatcher<M>(matcher);
 }
 
 #define ASSERT_THAT(actual, matcher)                                       \

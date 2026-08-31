@@ -122,6 +122,6 @@ cc_test(
     srcs = ["successive_list_test.cc"],
     deps = [
         ":successive_list",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
