@@ -18,7 +18,7 @@ cc_test(
     srcs = ["ast_test.cc"],
     deps = [
         ":ast",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
