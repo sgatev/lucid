@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/token.h"
 
@@ -12,7 +12,7 @@ namespace {
 
 using namespace std::string_literals;
 
-TEST(BufferedLexer, ProducesTheSameTokensAsLexer) {
+TEST(Test, BufferedLexerProducesTheSameTokensAsLexer) {
   std::string code = R"(
     let main = () -> Void {
       print("Hello, world!")
@@ -39,7 +39,7 @@ TEST(BufferedLexer, ProducesTheSameTokensAsLexer) {
   EXPECT_EQ(buffered_lexer_tokens, lexer_tokens);
 }
 
-TEST(BufferedLexer, CanBeReset) {
+TEST(Test, BufferedLexerCanBeReset) {
   std::string code = R"(
     let main = () -> Void {
       print("Hello, world!")

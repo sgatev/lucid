@@ -65,7 +65,7 @@ cc_test(
     deps = [
         ":buffered_lexer",
         ":lexer",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
