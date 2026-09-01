@@ -2,16 +2,16 @@
 
 #include <utility>
 
-#include "gtest/gtest.h"
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_builder.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/state.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-TEST(InterpretAbstractMachineFunctionTest, SetReg) {
+TEST(Test, InterpretAbstractMachineFunctionSetReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -35,7 +35,7 @@ TEST(InterpretAbstractMachineFunctionTest, SetReg) {
   EXPECT_EQ(result, 21);
 }
 
-TEST(InterpretAbstractMachineFunctionTest, MoveReg) {
+TEST(Test, InterpretAbstractMachineFunctionMoveReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -63,7 +63,7 @@ TEST(InterpretAbstractMachineFunctionTest, MoveReg) {
   EXPECT_EQ(result, 21);
 }
 
-TEST(InterpretAbstractMachineFunctionTest, AddReg) {
+TEST(Test, InterpretAbstractMachineFunctionAddReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -96,7 +96,7 @@ TEST(InterpretAbstractMachineFunctionTest, AddReg) {
   EXPECT_EQ(result, 63);
 }
 
-TEST(InterpretAbstractMachineFunctionTest, SubReg) {
+TEST(Test, InterpretAbstractMachineFunctionSubReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -129,7 +129,7 @@ TEST(InterpretAbstractMachineFunctionTest, SubReg) {
   EXPECT_EQ(result, 18);
 }
 
-TEST(InterpretAbstractMachineFunctionTest, MulReg) {
+TEST(Test, InterpretAbstractMachineFunctionMulReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -162,7 +162,7 @@ TEST(InterpretAbstractMachineFunctionTest, MulReg) {
   EXPECT_EQ(result, 42);
 }
 
-TEST(InterpretAbstractMachineFunctionTest, DivReg) {
+TEST(Test, InterpretAbstractMachineFunctionDivReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -195,7 +195,7 @@ TEST(InterpretAbstractMachineFunctionTest, DivReg) {
   EXPECT_EQ(result, 10);
 }
 
-TEST(InterpretAbstractMachineFunctionTest, GtReg) {
+TEST(Test, InterpretAbstractMachineFunctionGtReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -228,7 +228,7 @@ TEST(InterpretAbstractMachineFunctionTest, GtReg) {
   EXPECT_EQ(result, 0);
 }
 
-TEST(InterpretAbstractMachineFunctionTest, LtReg) {
+TEST(Test, InterpretAbstractMachineFunctionLtReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -261,7 +261,7 @@ TEST(InterpretAbstractMachineFunctionTest, LtReg) {
   EXPECT_EQ(result, 1);
 }
 
-TEST(InterpretAbstractMachineFunctionTest, EqReg) {
+TEST(Test, InterpretAbstractMachineFunctionEqReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -294,7 +294,7 @@ TEST(InterpretAbstractMachineFunctionTest, EqReg) {
   EXPECT_EQ(result, 0);
 }
 
-TEST(InterpretAbstractMachineFunctionTest, NotEqReg) {
+TEST(Test, InterpretAbstractMachineFunctionNotEqReg) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -327,7 +327,7 @@ TEST(InterpretAbstractMachineFunctionTest, NotEqReg) {
   EXPECT_EQ(result, 1);
 }
 
-TEST(InterpretAbstractMachineFunctionTest, Sequence) {
+TEST(Test, InterpretAbstractMachineFunctionSequence) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
