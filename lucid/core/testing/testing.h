@@ -395,20 +395,20 @@ inline internal::EmptyMatcher IsEmpty() { return internal::EmptyMatcher(); }
 // Matches a value that whose elements match `element_matchers` in the given
 // order.
 template <typename... Ms>
-internal::ElementsMatcher<Ms...> ElementsMatch(Ms... element_matchers) {
+internal::ElementsMatcher<Ms...> Elements(Ms... element_matchers) {
   return internal::ElementsMatcher<Ms...>(element_matchers...);
 }
 
 // Matches a value that contains `expected_elements` in the given order.
 template <typename... Ts>
-internal::ElementsMatcher<internal::EqualityMatcher<Ts>...> ElementsAre(
+internal::ElementsMatcher<internal::EqualityMatcher<Ts>...> ElementsEqual(
     Ts... expected_elements) {
-  return ElementsMatch(Equals(expected_elements)...);
+  return Elements(Equals(expected_elements)...);
 }
 
 // Matches a value that contains `expected_elements` in no particular order.
 template <typename T>
-internal::UnorderedElementsMatcher<const T> UnorderedElementsAre(
+internal::UnorderedElementsMatcher<const T> UnorderedElementsEqual(
     std::initializer_list<const T> expected_elements) {
   return internal::UnorderedElementsMatcher<const T>(expected_elements);
 }
