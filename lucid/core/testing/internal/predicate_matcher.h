@@ -10,11 +10,11 @@ class PredicateMatcher {
  public:
   explicit PredicateMatcher(P predicate) : predicate_(predicate) {}
 
-  std::string DescribeExpected() { return "be accepted by predicate"; }
+  std::string DescribeExpected() { return "accepted by predicate"; }
 
   template <typename A>
   std::string DescribeActual(A&&) {
-    return "it wasn't";
+    return "not such";
   }
 
   template <typename A>

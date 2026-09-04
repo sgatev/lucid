@@ -17,7 +17,13 @@ TEST(Test, Baz) {
 }
 
 TEST(Test, Predicate) {
-  EXPECT_THAT(21, Truly([](int x) { return false; }));
+  int tewnty_one = 21;
+  EXPECT_THAT(tewnty_one, Truly([](int x) { return false; }));
+}
+
+TEST(Test, Boolean) {
+  bool falsy = 21 == 42;
+  EXPECT_THAT(falsy, IsTrue());
 }
 
 }  // namespace lucid

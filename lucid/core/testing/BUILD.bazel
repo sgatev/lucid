@@ -12,6 +12,7 @@ cc_library(
     deps = [
         "//lucid/core/meta:static_for",
         "//lucid/core/string:concat",
+        "//lucid/core/testing/internal:boolean_matcher",
         "//lucid/core/testing/internal:predicate_matcher",
     ],
     alwayslink = True,

@@ -2,7 +2,8 @@
 │ PASS Bar
 │ FAIL Baz
 │ FAIL Predicate
-└─► 1 out of 4 tests PASS
+│ FAIL Boolean
+└─► 1 out of 5 tests PASS
 
 == Foo ==
 Fail: Foo failure
@@ -13,7 +14,12 @@ Baz LOG
 Fail: Baz failure
 
 == Predicate ==
-Fail: Expected 21
+Fail: Expected tewnty_one
  to be accepted by predicate
- but it wasn't.
+ but was found not such.
+
+== Boolean ==
+Fail: Expected falsy
+ to be true
+ but was found false.
 

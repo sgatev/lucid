@@ -14,6 +14,7 @@
 
 #include "lucid/core/meta/static_for.h"
 #include "lucid/core/string/concat.h"
+#include "lucid/core/testing/internal/boolean_matcher.h"
 #include "lucid/core/testing/internal/predicate_matcher.h"
 
 namespace lucid {
@@ -55,25 +56,6 @@ inline std::string ToString(const int& s) {
 }
 
 namespace internal {
-
-class BooleanMatcher {
- public:
-  explicit BooleanMatcher(bool expected_value)
-      : expected_value_(expected_value) {}
-
-  std::string DescribeExpected() {
-    return expected_value_ ? "be true" : "be false";
-  }
-
-  std::string DescribeActual(bool actual_value) {
-    return actual_value ? "true" : "false";
-  }
-
-  bool Matches(bool actual_value) { return actual_value == expected_value_; }
-
- private:
-  bool expected_value_;
-};
 
 template <typename E>
 class EqualityMatcher {
@@ -571,10 +553,10 @@ internal::NotMatcher<M> Not(M matcher) {
         "Expected ",                                                       \
         TO_STRING(actual),                                                 \
         "\n",                                                              \
-        " to ",                                                            \
+        " to be ",                                                            \
         (matcher).DescribeExpected(),                                      \
         "\n",                                                              \
-        " but ",                                                           \
+        " but was found ",                                                           \
         (matcher).DescribeActual(actual),                                  \
         ".",                                                               \
     };                                                                     \
@@ -594,10 +576,10 @@ internal::NotMatcher<M> Not(M matcher) {
         "Expected ",                                                       \
         TO_STRING(actual),                                                 \
         "\n",                                                              \
-        " to ",                                                            \
+        " to be ",                                                            \
         (matcher).DescribeExpected(),                                      \
         "\n",                                                              \
-        " but ",                                                           \
+        " but was found ",                                                           \
         (matcher).DescribeActual(actual),                                  \
         ".",                                                               \
     };                                                                     \
