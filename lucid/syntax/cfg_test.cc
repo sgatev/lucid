@@ -1,27 +1,20 @@
 #include "lucid/syntax/cfg.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 
 namespace lucid {
 namespace {
 
-using ::testing::ElementsAre;
-using ::testing::ElementsAreArray;
-using ::testing::IsEmpty;
-using ::testing::Optional;
-using ::testing::SizeIs;
-
-class SyntaxControlFlowGraphTest : public testing::Test, public AstFixture {
+class SyntaxControlFlowGraphTest : public Test, public AstFixture {
  protected:
   SyntaxControlFlowGraph BuildControlFlowGraph(FuncDefStmt func_def) {
     return ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
   }
 };
 
-TEST_F(SyntaxControlFlowGraphTest, FunctionName) {
+TEST(SyntaxControlFlowGraphTest, FunctionName) {
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Void"),
@@ -30,7 +23,7 @@ TEST_F(SyntaxControlFlowGraphTest, FunctionName) {
   EXPECT_EQ(scfg.func_name, I("foo"));
 }
 
-TEST_F(SyntaxControlFlowGraphTest, EmptyFunction) {
+TEST(SyntaxControlFlowGraphTest, EmptyFunction) {
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Void"),
@@ -42,18 +35,18 @@ TEST_F(SyntaxControlFlowGraphTest, EmptyFunction) {
 
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
-  EXPECT_THAT(first_block.succs, ElementsAre(last_block.ref));
+  EXPECT_THAT(first_block.succs, ElementsEqual(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   EXPECT_THAT(first_block.sequences, IsEmpty());
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(SyntaxControlFlowGraphTest, FuncCallExprWithoutArgs) {
+TEST(SyntaxControlFlowGraphTest, FuncCallExprWithoutArgs) {
   auto func_call_expr = E(FuncCallExpr({
       .func_name = I("bar"),
       .args = EmptyList<Expr>(),
@@ -73,22 +66,21 @@ TEST_F(SyntaxControlFlowGraphTest, FuncCallExprWithoutArgs) {
 
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
-  EXPECT_THAT(first_block.succs, ElementsAre(last_block.ref));
+  EXPECT_THAT(first_block.succs, ElementsEqual(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_EQ(first_block.sequences.size(), 1);
-  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        func_call_expr,
-                                                    }));
+  EXPECT_THAT(first_block.sequences[0].expressions,
+              ElementsEqual(func_call_expr));
   EXPECT_THAT(first_block.sequences[0].stmt, Optional(StmtEquivTo(do_stmt)));
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(SyntaxControlFlowGraphTest, FuncCallExprWithArgs) {
+TEST(SyntaxControlFlowGraphTest, FuncCallExprWithArgs) {
   auto baz_arg1_expr = IntLitExpr{
       .value = 3,
   };
@@ -134,28 +126,24 @@ TEST_F(SyntaxControlFlowGraphTest, FuncCallExprWithArgs) {
 
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
-  EXPECT_THAT(first_block.succs, ElementsAre(last_block.ref));
+  EXPECT_THAT(first_block.succs, ElementsEqual(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_EQ(first_block.sequences.size(), 1);
-  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        baz_func_call_args[0],
-                                                        baz_func_call_args[1],
-                                                        bar_func_call_args[0],
-                                                        qux_func_call_args[0],
-                                                        qux_func_call_args[1],
-                                                        bar_func_call_args[1],
-                                                        bar_func_call_expr,
-                                                    }));
+  EXPECT_THAT(first_block.sequences[0].expressions,
+              ElementsEqual(baz_func_call_args[0], baz_func_call_args[1],
+                            bar_func_call_args[0], qux_func_call_args[0],
+                            qux_func_call_args[1], bar_func_call_args[1],
+                            bar_func_call_expr));
   EXPECT_THAT(first_block.sequences[0].stmt, Optional(StmtEquivTo(do_stmt)));
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(SyntaxControlFlowGraphTest, ReturnStmt) {
+TEST(SyntaxControlFlowGraphTest, ReturnStmt) {
   auto func_call_args = ExprListOf({
       E(IntLitExpr{
           .value = 3,
@@ -180,24 +168,22 @@ TEST_F(SyntaxControlFlowGraphTest, ReturnStmt) {
 
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
-  EXPECT_THAT(first_block.succs, ElementsAre(last_block.ref));
+  EXPECT_THAT(first_block.succs, ElementsEqual(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_EQ(first_block.sequences.size(), 1);
-  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        func_call_args[0],
-                                                        func_call_expr,
-                                                    }));
+  EXPECT_THAT(first_block.sequences[0].expressions,
+              ElementsEqual(func_call_args[0], func_call_expr));
   EXPECT_THAT(first_block.sequences[0].stmt,
               Optional(StmtEquivTo(return_stmt)));
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(SyntaxControlFlowGraphTest, VarDeclStmt) {
+TEST(SyntaxControlFlowGraphTest, VarDeclStmt) {
   auto func_call_stmt_ref = E(FuncCallExpr{
       .func_name = I("bar"),
       .args = EmptyList<Expr>(),
@@ -219,23 +205,22 @@ TEST_F(SyntaxControlFlowGraphTest, VarDeclStmt) {
 
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
-  EXPECT_THAT(first_block.succs, ElementsAre(last_block.ref));
+  EXPECT_THAT(first_block.succs, ElementsEqual(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_EQ(first_block.sequences.size(), 1);
-  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        func_call_stmt_ref,
-                                                    }));
+  EXPECT_THAT(first_block.sequences[0].expressions,
+              ElementsEqual(func_call_stmt_ref));
   EXPECT_THAT(first_block.sequences[0].stmt,
               Optional(StmtEquivTo(var_decl_stmt)));
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(SyntaxControlFlowGraphTest, BinaryOpExpr) {
+TEST(SyntaxControlFlowGraphTest, BinaryOpExpr) {
   auto lhs_expr = E(IntLitExpr{.value = 2});
   auto rhs_expr = E(IntLitExpr{.value = 3});
   auto add_expr = E(BinaryOpExpr{
@@ -256,24 +241,21 @@ TEST_F(SyntaxControlFlowGraphTest, BinaryOpExpr) {
 
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
-  EXPECT_THAT(first_block.succs, ElementsAre(last_block.ref));
+  EXPECT_THAT(first_block.succs, ElementsEqual(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   ASSERT_EQ(first_block.sequences.size(), 1);
-  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        lhs_expr,
-                                                        rhs_expr,
-                                                        add_expr,
-                                                    }));
+  EXPECT_THAT(first_block.sequences[0].expressions,
+              ElementsEqual(lhs_expr, rhs_expr, add_expr));
   EXPECT_THAT(first_block.sequences[0].stmt, Optional(StmtEquivTo(do_stmt)));
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(SyntaxControlFlowGraphTest, IfStmt) {
+TEST(SyntaxControlFlowGraphTest, IfStmt) {
   auto add_lhs_expr = E(IntLitExpr{.value = 2});
   auto add_rhs_expr = E(IntLitExpr{.value = 3});
   auto add_expr = E(BinaryOpExpr{
@@ -313,38 +295,33 @@ TEST_F(SyntaxControlFlowGraphTest, IfStmt) {
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
   EXPECT_THAT(first_block.succs,
-              ElementsAre(then_block.ref, post_if_block.ref));
+              ElementsEqual(then_block.ref, post_if_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
-  ASSERT_THAT(first_block.sequences.size(), 1);
-  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        cond_expr,
-                                                    }));
+  ASSERT_EQ(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsEqual(cond_expr));
   EXPECT_EQ(first_block.branch_cond, cond_expr);
 
   EXPECT_EQ(then_block.ref, 3);
-  EXPECT_THAT(then_block.succs, ElementsAre(post_if_block.ref));
-  EXPECT_THAT(then_block.preds, ElementsAre(first_block.ref));
+  EXPECT_THAT(then_block.succs, ElementsEqual(post_if_block.ref));
+  EXPECT_THAT(then_block.preds, ElementsEqual(first_block.ref));
 
   EXPECT_EQ(post_if_block.ref, 2);
-  ASSERT_THAT(post_if_block.sequences.size(), 1);
-  EXPECT_THAT(post_if_block.sequences[0].expressions, ElementsAreArray({
-                                                          mul_lhs_expr,
-                                                          mul_rhs_expr,
-                                                          mul_expr,
-                                                      }));
+  ASSERT_EQ(post_if_block.sequences.size(), 1);
+  EXPECT_THAT(post_if_block.sequences[0].expressions,
+              ElementsEqual(mul_lhs_expr, mul_rhs_expr, mul_expr));
   EXPECT_THAT(post_if_block.sequences[0].stmt,
               Optional(StmtEquivTo(do_mul_stmt)));
-  EXPECT_THAT(post_if_block.succs, ElementsAre(last_block.ref));
-  EXPECT_THAT(post_if_block.preds, ElementsAre(then_block.ref, scfg.first));
+  EXPECT_THAT(post_if_block.succs, ElementsEqual(last_block.ref));
+  EXPECT_THAT(post_if_block.preds, ElementsEqual(then_block.ref, scfg.first));
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(post_if_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(post_if_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(SyntaxControlFlowGraphTest, IfElseStmt) {
+TEST(SyntaxControlFlowGraphTest, IfElseStmt) {
   auto add_lhs_expr = E(IntLitExpr{.value = 2});
   auto add_rhs_expr = E(IntLitExpr{.value = 3});
   auto add_expr = E(BinaryOpExpr{
@@ -383,49 +360,42 @@ TEST_F(SyntaxControlFlowGraphTest, IfElseStmt) {
 
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
-  EXPECT_THAT(first_block.succs, ElementsAre(then_block.ref, else_block.ref));
+  EXPECT_THAT(first_block.succs, ElementsEqual(then_block.ref, else_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
-  ASSERT_THAT(first_block.sequences.size(), 1);
-  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        cond_expr,
-                                                    }));
+  ASSERT_EQ(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsEqual(cond_expr));
   EXPECT_EQ(first_block.branch_cond, cond_expr);
 
   EXPECT_EQ(then_block.ref, 3);
-  EXPECT_THAT(then_block.succs, ElementsAre(post_if_block.ref));
-  EXPECT_THAT(then_block.preds, ElementsAre(first_block.ref));
-  ASSERT_THAT(then_block.sequences.size(), 1);
-  EXPECT_THAT(then_block.sequences[0].expressions, ElementsAreArray({
-                                                       add_lhs_expr,
-                                                       add_rhs_expr,
-                                                       add_expr,
-                                                   }));
+  EXPECT_THAT(then_block.succs, ElementsEqual(post_if_block.ref));
+  EXPECT_THAT(then_block.preds, ElementsEqual(first_block.ref));
+  ASSERT_EQ(then_block.sequences.size(), 1);
+  EXPECT_THAT(then_block.sequences[0].expressions,
+              ElementsEqual(add_lhs_expr, add_rhs_expr, add_expr));
   EXPECT_THAT(then_block.sequences[0].stmt, Optional(StmtEquivTo(do_add_stmt)));
 
   EXPECT_EQ(else_block.ref, 4);
-  EXPECT_THAT(else_block.succs, ElementsAre(post_if_block.ref));
-  EXPECT_THAT(else_block.preds, ElementsAre(first_block.ref));
-  ASSERT_THAT(else_block.sequences.size(), 1);
-  EXPECT_THAT(else_block.sequences[0].expressions, ElementsAreArray({
-                                                       mul_lhs_expr,
-                                                       mul_rhs_expr,
-                                                       mul_expr,
-                                                   }));
+  EXPECT_THAT(else_block.succs, ElementsEqual(post_if_block.ref));
+  EXPECT_THAT(else_block.preds, ElementsEqual(first_block.ref));
+  ASSERT_EQ(else_block.sequences.size(), 1);
+  EXPECT_THAT(else_block.sequences[0].expressions,
+              ElementsEqual(mul_lhs_expr, mul_rhs_expr, mul_expr));
   EXPECT_THAT(else_block.sequences[0].stmt, Optional(StmtEquivTo(do_mul_stmt)));
 
   EXPECT_EQ(post_if_block.ref, 2);
-  EXPECT_THAT(post_if_block.sequences.size(), 0);
-  EXPECT_THAT(post_if_block.succs, ElementsAre(last_block.ref));
-  EXPECT_THAT(post_if_block.preds, ElementsAre(then_block.ref, else_block.ref));
+  EXPECT_EQ(post_if_block.sequences.size(), 0);
+  EXPECT_THAT(post_if_block.succs, ElementsEqual(last_block.ref));
+  EXPECT_THAT(post_if_block.preds,
+              ElementsEqual(then_block.ref, else_block.ref));
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(post_if_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(post_if_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(SyntaxControlFlowGraphTest, VarDecl) {
+TEST(SyntaxControlFlowGraphTest, VarDecl) {
   auto int_lit = E(IntLitExpr{
       .value = 3,
   });
@@ -452,28 +422,24 @@ TEST_F(SyntaxControlFlowGraphTest, VarDecl) {
 
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
-  EXPECT_THAT(first_block.succs, ElementsAre(last_block.ref));
+  EXPECT_THAT(first_block.succs, ElementsEqual(last_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
-  ASSERT_THAT(first_block.sequences.size(), 2);
-  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        int_lit,
-                                                    }));
+  ASSERT_EQ(first_block.sequences.size(), 2);
+  EXPECT_THAT(first_block.sequences[0].expressions, ElementsEqual(int_lit));
   EXPECT_THAT(first_block.sequences[0].stmt,
               Optional(StmtEquivTo(var_decl_stmt)));
-  EXPECT_THAT(first_block.sequences[1].expressions, ElementsAreArray({
-                                                        ident_expr,
-                                                    }));
+  EXPECT_THAT(first_block.sequences[1].expressions, ElementsEqual(ident_expr));
   EXPECT_THAT(first_block.sequences[1].stmt,
               Optional(StmtEquivTo(return_stmt)));
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(first_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(first_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(SyntaxControlFlowGraphTest, Loop) {
+TEST(SyntaxControlFlowGraphTest, Loop) {
   auto add_lhs_expr = E(IntLitExpr{.value = 2});
   auto add_rhs_expr = E(IntLitExpr{.value = 3});
   auto add_expr = E(BinaryOpExpr{
@@ -500,34 +466,31 @@ TEST_F(SyntaxControlFlowGraphTest, Loop) {
 
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
-  EXPECT_THAT(first_block.succs, ElementsAre(loop_block.ref));
+  EXPECT_THAT(first_block.succs, ElementsEqual(loop_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
   EXPECT_THAT(first_block.sequences, IsEmpty());
 
   EXPECT_EQ(loop_block.ref, 3);
-  EXPECT_THAT(loop_block.succs, ElementsAre(loop_block.ref));
-  EXPECT_THAT(loop_block.preds, ElementsAre(loop_block.ref, first_block.ref));
-  ASSERT_THAT(loop_block.sequences.size(), 1);
-  EXPECT_THAT(loop_block.sequences[0].expressions, ElementsAreArray({
-                                                       add_lhs_expr,
-                                                       add_rhs_expr,
-                                                       add_expr,
-                                                   }));
+  EXPECT_THAT(loop_block.succs, ElementsEqual(loop_block.ref));
+  EXPECT_THAT(loop_block.preds, ElementsEqual(loop_block.ref, first_block.ref));
+  ASSERT_EQ(loop_block.sequences.size(), 1);
+  EXPECT_THAT(loop_block.sequences[0].expressions,
+              ElementsEqual(add_lhs_expr, add_rhs_expr, add_expr));
   EXPECT_THAT(loop_block.sequences[0].stmt, Optional(StmtEquivTo(do_add_stmt)));
 
   EXPECT_EQ(post_loop_block.ref, 2);
-  EXPECT_THAT(post_loop_block.succs, ElementsAre(last_block.ref));
+  EXPECT_THAT(post_loop_block.succs, ElementsEqual(last_block.ref));
   EXPECT_THAT(post_loop_block.preds, IsEmpty());
   EXPECT_THAT(post_loop_block.sequences, IsEmpty());
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(post_loop_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(post_loop_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 
-TEST_F(SyntaxControlFlowGraphTest, SingleLoopAndBreak) {
+TEST(SyntaxControlFlowGraphTest, SingleLoopAndBreak) {
   auto n_var_init_ref = E(IntLitExpr{
       .value = 0,
   });
@@ -587,58 +550,52 @@ TEST_F(SyntaxControlFlowGraphTest, SingleLoopAndBreak) {
 
   EXPECT_EQ(scfg.first, first_block.ref);
   EXPECT_EQ(first_block.ref, 0);
-  ASSERT_THAT(first_block.succs, ElementsAre(loop_block.ref));
+  ASSERT_THAT(first_block.succs, ElementsEqual(loop_block.ref));
   EXPECT_THAT(first_block.preds, IsEmpty());
-  ASSERT_THAT(first_block.sequences.size(), 1);
-  EXPECT_THAT(first_block.sequences[0].expressions, ElementsAreArray({
-                                                        n_var_init_ref,
-                                                    }));
+  ASSERT_EQ(first_block.sequences.size(), 1);
+  EXPECT_THAT(first_block.sequences[0].expressions,
+              ElementsEqual(n_var_init_ref));
   EXPECT_THAT(first_block.sequences[0].stmt,
               Optional(StmtEquivTo(var_decl_stmt)));
 
   EXPECT_EQ(loop_block.ref, 3);
-  EXPECT_THAT(loop_block.succs, ElementsAre(then_block.ref, post_if_block.ref));
+  EXPECT_THAT(loop_block.succs,
+              ElementsEqual(then_block.ref, post_if_block.ref));
   EXPECT_THAT(loop_block.preds,
-              ElementsAre(post_if_block.ref, first_block.ref));
-  ASSERT_THAT(loop_block.sequences.size(), 1);
-  EXPECT_THAT(loop_block.sequences[0].expressions, ElementsAreArray({
-                                                       if_cond_lhs_ref,
-                                                       if_cond_rhs_ref,
-                                                       if_cond_ref,
-                                                   }));
+              ElementsEqual(post_if_block.ref, first_block.ref));
+  ASSERT_EQ(loop_block.sequences.size(), 1);
+  EXPECT_THAT(loop_block.sequences[0].expressions,
+              ElementsEqual(if_cond_lhs_ref, if_cond_rhs_ref, if_cond_ref));
 
   EXPECT_EQ(then_block.ref, 5);
-  EXPECT_THAT(then_block.succs, ElementsAre(post_loop_block.ref));
-  EXPECT_THAT(then_block.preds, ElementsAre(loop_block.ref));
-  ASSERT_THAT(then_block.sequences.size(), 1);
+  EXPECT_THAT(then_block.succs, ElementsEqual(post_loop_block.ref));
+  EXPECT_THAT(then_block.preds, ElementsEqual(loop_block.ref));
+  ASSERT_EQ(then_block.sequences.size(), 1);
   EXPECT_THAT(then_block.sequences[0].stmt, Optional(StmtEquivTo(break_stmt)));
 
   EXPECT_EQ(post_if_block.ref, 4);
-  EXPECT_THAT(post_if_block.succs, ElementsAre(loop_block.ref));
-  EXPECT_THAT(post_if_block.preds, ElementsAre(loop_block.ref));
-  ASSERT_THAT(post_if_block.sequences.size(), 1);
-  EXPECT_THAT(post_if_block.sequences[0].expressions, ElementsAreArray({
-                                                          var_assign_lhs_ref,
-                                                          var_assign_rhs_ref,
-                                                          binary_op_expr_ref,
-                                                      }));
+  EXPECT_THAT(post_if_block.succs, ElementsEqual(loop_block.ref));
+  EXPECT_THAT(post_if_block.preds, ElementsEqual(loop_block.ref));
+  ASSERT_EQ(post_if_block.sequences.size(), 1);
+  EXPECT_THAT(post_if_block.sequences[0].expressions,
+              ElementsEqual(var_assign_lhs_ref, var_assign_rhs_ref,
+                            binary_op_expr_ref));
   EXPECT_THAT(post_if_block.sequences[0].stmt,
               Optional(StmtEquivTo(var_assign_stmt)));
 
   EXPECT_EQ(post_loop_block.ref, 2);
-  EXPECT_THAT(post_loop_block.succs, ElementsAre(last_block.ref));
-  EXPECT_THAT(post_loop_block.preds, ElementsAre(then_block.ref));
-  ASSERT_THAT(post_loop_block.sequences.size(), 1);
-  EXPECT_THAT(post_loop_block.sequences[0].expressions, ElementsAreArray({
-                                                            return_value_ref,
-                                                        }));
+  EXPECT_THAT(post_loop_block.succs, ElementsEqual(last_block.ref));
+  EXPECT_THAT(post_loop_block.preds, ElementsEqual(then_block.ref));
+  ASSERT_EQ(post_loop_block.sequences.size(), 1);
+  EXPECT_THAT(post_loop_block.sequences[0].expressions,
+              ElementsEqual(return_value_ref));
   EXPECT_THAT(post_loop_block.sequences[0].stmt,
               Optional(StmtEquivTo(return_stmt)));
 
   EXPECT_EQ(scfg.last, last_block.ref);
   EXPECT_EQ(last_block.ref, 1);
   EXPECT_THAT(last_block.succs, IsEmpty());
-  EXPECT_THAT(last_block.preds, ElementsAre(post_loop_block.ref));
+  EXPECT_THAT(last_block.preds, ElementsEqual(post_loop_block.ref));
   EXPECT_THAT(last_block.sequences, IsEmpty());
 }
 

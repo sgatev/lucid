@@ -34,7 +34,7 @@ cc_library(
         "//lucid/core/container:hash_map",
         "//lucid/core/container:successive_list",
         "//lucid/core/string:index",
-        "@googletest//:gtest",
+        "//lucid/core/testing",
     ],
 )
 
@@ -90,7 +90,7 @@ cc_test(
         ":ast_fixture",
         ":cfg",
         "//lucid/core/container:arena",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
@@ -130,7 +130,7 @@ cc_test(
         ":comp",
         ":lexer",
         ":parser",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
@@ -202,7 +202,7 @@ cc_test(
         ":cfg",
         ":liveness",
         "//lucid/core/dataflow",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
@@ -231,7 +231,7 @@ cc_test(
         ":ast_fixture",
         ":lexer",
         ":parser",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
@@ -274,7 +274,7 @@ cc_test(
         ":cfg",
         ":reachability",
         "//lucid/core/dataflow",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
@@ -304,7 +304,7 @@ cc_test(
         ":ast_fixture",
         ":cfg",
         ":ssa",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
@@ -344,7 +344,7 @@ cc_test(
         ":ast",
         ":ast_fixture",
         ":type",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 

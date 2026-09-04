@@ -356,8 +356,8 @@ TEST(Test, HashMapIteratorRange) {
   map.Insert(21, 42);
   map.Insert(13, 26);
 
-  EXPECT_THAT(map, UnorderedElementsEqual(
-                       {std::make_pair(13, 26), std::make_pair(21, 42)}));
+  EXPECT_THAT(map, UnorderedElementsEqual(std::make_pair(13, 26),
+                                          std::make_pair(21, 42)));
 }
 
 }  // namespace

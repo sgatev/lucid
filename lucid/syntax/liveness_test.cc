@@ -1,8 +1,7 @@
 #include "lucid/syntax/liveness.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/core/dataflow/dataflow.h"
+#include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 #include "lucid/syntax/cfg.h"
@@ -10,17 +9,7 @@
 namespace lucid {
 namespace {
 
-using ::testing::_;
-using ::testing::AllOf;
-using ::testing::ElementsAreArray;
-using ::testing::Field;
-using ::testing::IsEmpty;
-using ::testing::Optional;
-using ::testing::Pair;
-using ::testing::UnorderedElementsAreArray;
-using ::testing::VariantWith;
-
-class SyntaxLivenessAnalysisTest : public testing::Test, public AstFixture {
+class SyntaxLivenessAnalysisTest : public Test, public AstFixture {
  protected:
   using State = SyntaxLivenessAnalysis::State;
 
@@ -31,20 +20,17 @@ class SyntaxLivenessAnalysisTest : public testing::Test, public AstFixture {
   }
 };
 
-TEST_F(SyntaxLivenessAnalysisTest, EmptyFunc) {
+TEST(SyntaxLivenessAnalysisTest, EmptyFunc) {
   auto func_def = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Void"),
   };
 
   EXPECT_THAT(AnalyzeReachability(func_def),
-              ElementsAreArray({
-                  Optional(AllOf(Field(&State::live_in, IsEmpty()),
-                                 Field(&State::live_out, IsEmpty()))),
-
-                  Optional(AllOf(Field(&State::live_in, IsEmpty()),
-                                 Field(&State::live_out, IsEmpty()))),
-              }));
+              Elements(Optional(AllOf(Field(&State::live_in, IsEmpty()),
+                                      Field(&State::live_out, IsEmpty()))),
+                       Optional(AllOf(Field(&State::live_in, IsEmpty()),
+                                      Field(&State::live_out, IsEmpty())))));
 }
 
 }  // namespace

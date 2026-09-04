@@ -8,10 +8,10 @@
 #include <variant>
 #include <vector>
 
-#include "gmock/gmock.h"
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/successive_list.h"
 #include "lucid/core/string/index.h"
+#include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/context.h"
 
@@ -312,7 +312,7 @@ class AstFixture {
   // Returns a matcher that is satisfied if the argument is a statement
   // reference equivalent to `expected`.
   auto StmtEquivTo(StmtRef expected) {
-    return testing::Truly([this, expected](StmtRef actual) {
+    return Truly([this, expected](StmtRef actual) {
       return syn_ctx_.EquivStmts(expected, actual);
     });
   }
@@ -320,7 +320,7 @@ class AstFixture {
   // Returns a matcher that is satisfied if the argument is a statement
   // reference equivalent to `expected`.
   auto EquivTo(StmtRef expected) {
-    return testing::Truly([this, expected](StmtRef actual) {
+    return Truly([this, expected](StmtRef actual) {
       return syn_ctx_.Equiv(expected, actual);
     });
   }
@@ -328,7 +328,7 @@ class AstFixture {
   // Returns a matcher that is satisfied if the argument is a function parameter
   // reference equivalent to `expected`.
   auto EquivTo(ParamRef expected) {
-    return testing::Truly([this, expected](ParamRef actual) {
+    return Truly([this, expected](ParamRef actual) {
       return syn_ctx_.Equiv(expected, actual);
     });
   }

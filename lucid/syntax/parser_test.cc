@@ -5,46 +5,34 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <variant>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 #include "lucid/syntax/lexer.h"
-
-MATCHER_P(HoldsFuncDef, match_stmt, "") {
-  auto* def = std::get_if<lucid::Def>(&arg);
-  if (def == nullptr) return false;
-
-  auto* func_def = std::get_if<lucid::FuncDefStmt>(def);
-  if (func_def == nullptr) return false;
-
-  return match_stmt(*func_def);
-}
-
-MATCHER_P(HoldsTypeDef, match_stmt, "") {
-  auto* def = std::get_if<lucid::Def>(&arg);
-  if (def == nullptr) return false;
-
-  auto* type_def = std::get_if<lucid::TypeDefStmt>(def);
-  if (type_def == nullptr) return false;
-
-  return match_stmt(*type_def);
-}
-
-MATCHER_P(HoldsError, match_err, "") {
-  auto* err = std::get_if<std::string>(&arg);
-  if (err == nullptr) return false;
-  return match_err == *err;
-}
 
 namespace lucid {
 namespace {
 
 using namespace std::string_literals;
 
-class ParserTest : public testing::Test, public AstFixture {
+template <typename M>
+auto HoldsFuncDef(M matcher) {
+  return Variant<Def>(Variant<FuncDefStmt>(Truly(std::move(matcher))));
+}
+
+template <typename M>
+auto HoldsTypeDef(M matcher) {
+  return Variant<Def>(Variant<TypeDefStmt>(Truly(std::move(matcher))));
+}
+
+auto HoldsError(const std::string& error) {
+  return Variant<std::string>(Equals(error));
+}
+
+class ParserTest : public Test, public AstFixture {
  protected:
   std::variant<Def, std::string> Parse(std::string_view src) {
     std::string code_with_null(src);
@@ -65,19 +53,19 @@ class ParserTest : public testing::Test, public AstFixture {
   }
 };
 
-TEST_F(ParserTest, EmptyFuncDefStmt) {
+TEST(ParserTest, EmptyFuncDefStmt) {
   std::string_view src = R"(
     fun main(): Void {
     }
   )";
   EXPECT_THAT(Parse(src),
-              HoldsFuncDef(MatchesFuncDefStmt({
+              Variant<Def>(Variant<FuncDefStmt>(Truly(MatchesFuncDefStmt({
                   .name = I("main"),
                   .result_type = MatchesBasicType({.name = I("Void")}),
-              })));
+              })))));
 }
 
-TEST_F(ParserTest, ReturnIntLitExpr) {
+TEST(ParserTest, ReturnIntLitExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 0
@@ -98,7 +86,7 @@ TEST_F(ParserTest, ReturnIntLitExpr) {
               })));
 }
 
-TEST_F(ParserTest, CompFuncDef) {
+TEST(ParserTest, CompFuncDef) {
   std::string_view src = R"(
     comp fun main(): Int32 {
       return 0
@@ -120,7 +108,7 @@ TEST_F(ParserTest, CompFuncDef) {
               })));
 }
 
-TEST_F(ParserTest, Comment) {
+TEST(ParserTest, Comment) {
   std::string_view src = R"(
     # comment
     fun main(): Int32 { # comment
@@ -143,7 +131,7 @@ TEST_F(ParserTest, Comment) {
               })));
 }
 
-TEST_F(ParserTest, ReturnAddExpr) {
+TEST(ParserTest, ReturnAddExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 3 + 2
@@ -169,7 +157,7 @@ TEST_F(ParserTest, ReturnAddExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnSubExpr) {
+TEST(ParserTest, ReturnSubExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 3 - 2
@@ -195,7 +183,7 @@ TEST_F(ParserTest, ReturnSubExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnMulExpr) {
+TEST(ParserTest, ReturnMulExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 3 * 2
@@ -221,7 +209,7 @@ TEST_F(ParserTest, ReturnMulExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnDivExpr) {
+TEST(ParserTest, ReturnDivExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 3 / 2
@@ -247,7 +235,7 @@ TEST_F(ParserTest, ReturnDivExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnModExpr) {
+TEST(ParserTest, ReturnModExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return 3 % 2
@@ -273,7 +261,7 @@ TEST_F(ParserTest, ReturnModExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnGtExpr) {
+TEST(ParserTest, ReturnGtExpr) {
   std::string_view src = R"(
     fun foo(): Bool {
       return 3 > 2
@@ -299,7 +287,7 @@ TEST_F(ParserTest, ReturnGtExpr) {
               })));
 }
 
-TEST_F(ParserTest, Precedence) {
+TEST(ParserTest, Precedence) {
   std::string_view src = R"(
     fun foo(x: Int32): Bool {
       return 2 * x + 4 > 5 - 6 / 7
@@ -357,7 +345,7 @@ TEST_F(ParserTest, Precedence) {
       })));
 }
 
-TEST_F(ParserTest, SingleFuncParam) {
+TEST(ParserTest, SingleFuncParam) {
   std::string_view src = R"(
     fun id(x: Int32): Int32 {
       return x
@@ -385,7 +373,7 @@ TEST_F(ParserTest, SingleFuncParam) {
       })));
 }
 
-TEST_F(ParserTest, MultipleFuncParams) {
+TEST(ParserTest, MultipleFuncParams) {
   std::string_view src = R"(
     fun foo(a: Int32, b: Double, c: Bool): Void {
     }
@@ -414,7 +402,7 @@ TEST_F(ParserTest, MultipleFuncParams) {
       })));
 }
 
-TEST_F(ParserTest, FuncCallExprIntLitArg) {
+TEST(ParserTest, FuncCallExprIntLitArg) {
   std::string_view src = R"(
     fun foo(): Void {
       do bar(3)
@@ -438,7 +426,7 @@ TEST_F(ParserTest, FuncCallExprIntLitArg) {
               })));
 }
 
-TEST_F(ParserTest, FuncCallExprStringLitArg) {
+TEST(ParserTest, FuncCallExprStringLitArg) {
   std::string_view src = R"(
     fun foo(): Void {
       do bar("foo")
@@ -463,7 +451,7 @@ TEST_F(ParserTest, FuncCallExprStringLitArg) {
       })));
 }
 
-TEST_F(ParserTest, FuncCallExprNestedArg) {
+TEST(ParserTest, FuncCallExprNestedArg) {
   std::string_view src = R"(
     fun foo(): Void {
       do bar(baz(1, 2), qux(3, 4))
@@ -503,7 +491,7 @@ TEST_F(ParserTest, FuncCallExprNestedArg) {
       })));
 }
 
-TEST_F(ParserTest, ReturnFuncCallExpr) {
+TEST(ParserTest, ReturnFuncCallExpr) {
   std::string_view src = R"(
     fun main(): Int32 {
       return id(21)
@@ -527,7 +515,7 @@ TEST_F(ParserTest, ReturnFuncCallExpr) {
               })));
 }
 
-TEST_F(ParserTest, ReturnTrueBoolLit) {
+TEST(ParserTest, ReturnTrueBoolLit) {
   std::string_view src = R"(
     fun truth(): Bool {
       return true
@@ -547,7 +535,7 @@ TEST_F(ParserTest, ReturnTrueBoolLit) {
               })));
 }
 
-TEST_F(ParserTest, ReturnFalseBoolLit) {
+TEST(ParserTest, ReturnFalseBoolLit) {
   std::string_view src = R"(
     fun falsity(): Bool {
       return false
@@ -567,7 +555,7 @@ TEST_F(ParserTest, ReturnFalseBoolLit) {
               })));
 }
 
-TEST_F(ParserTest, IfStmt) {
+TEST(ParserTest, IfStmt) {
   std::string_view src = R"(
     fun foo(): Int32 {
       if true {
@@ -606,7 +594,7 @@ TEST_F(ParserTest, IfStmt) {
               })));
 }
 
-TEST_F(ParserTest, IfElseStmt) {
+TEST(ParserTest, IfElseStmt) {
   std::string_view src = R"(
     fun foo(): Int32 {
       if true {
@@ -648,7 +636,7 @@ TEST_F(ParserTest, IfElseStmt) {
               })));
 }
 
-TEST_F(ParserTest, IfElseIfElseStmt) {
+TEST(ParserTest, IfElseIfElseStmt) {
   std::string_view src = R"(
     fun foo(x: Int32): Int32 {
       if x > 0 {
@@ -708,7 +696,7 @@ TEST_F(ParserTest, IfElseIfElseStmt) {
       })));
 }
 
-TEST_F(ParserTest, GtInts) {
+TEST(ParserTest, GtInts) {
   std::string_view src = R"(
     fun gt(x: Int32, y: Int32): Bool {
       return x > y
@@ -742,7 +730,7 @@ TEST_F(ParserTest, GtInts) {
       })));
 }
 
-TEST_F(ParserTest, LtInts) {
+TEST(ParserTest, LtInts) {
   std::string_view src = R"(
     fun lt(x: Int32, y: Int32): Bool {
       return x < y
@@ -776,7 +764,7 @@ TEST_F(ParserTest, LtInts) {
       })));
 }
 
-TEST_F(ParserTest, EqInts) {
+TEST(ParserTest, EqInts) {
   std::string_view src = R"(
     fun eq(x: Int32, y: Int32): Bool {
       return x == y
@@ -810,7 +798,7 @@ TEST_F(ParserTest, EqInts) {
       })));
 }
 
-TEST_F(ParserTest, NotEqInts) {
+TEST(ParserTest, NotEqInts) {
   std::string_view src = R"(
     fun neq(x: Int32, y: Int32): Bool {
       return x != y
@@ -844,11 +832,11 @@ TEST_F(ParserTest, NotEqInts) {
       })));
 }
 
-TEST_F(ParserTest, VarDecl) {
+TEST(ParserTest, VarDecl) {
   std::string_view src = R"(
     fun inc(n: Int32): Int32 {
       val m: Int32 = 1
-      return n + m 
+      return n + m
     }
   )";
   EXPECT_THAT(
@@ -880,7 +868,7 @@ TEST_F(ParserTest, VarDecl) {
       })));
 }
 
-TEST_F(ParserTest, CompVarDecl) {
+TEST(ParserTest, CompVarDecl) {
   std::string_view src = R"(
     fun inc(n: Int32): Int32 {
       comp val m: Int32 = 1
@@ -917,7 +905,7 @@ TEST_F(ParserTest, CompVarDecl) {
       })));
 }
 
-TEST_F(ParserTest, VarAssignment) {
+TEST(ParserTest, VarAssignment) {
   std::string_view src = R"(
     fun foo(n: Int32): Void {
       &n = 3
@@ -944,7 +932,7 @@ TEST_F(ParserTest, VarAssignment) {
       })));
 }
 
-TEST_F(ParserTest, LoopAndBreakStmt) {
+TEST(ParserTest, LoopAndBreakStmt) {
   std::string_view src = R"(
     fun foo(): Int32 {
       loop {
@@ -970,7 +958,7 @@ TEST_F(ParserTest, LoopAndBreakStmt) {
               })));
 }
 
-TEST_F(ParserTest, EqOverMod) {
+TEST(ParserTest, EqOverMod) {
   std::string_view src = R"(
     fun foo(a: Int32, b: Int32): Int32 {
       if a % b == 10 {
@@ -1025,7 +1013,7 @@ TEST_F(ParserTest, EqOverMod) {
       })));
 }
 
-TEST_F(ParserTest, NotEqOverAdd) {
+TEST(ParserTest, NotEqOverAdd) {
   std::string_view src = R"(
     fun foo(a: Int32, b: Int32): Int32 {
       if a + b != 10 {
@@ -1080,7 +1068,7 @@ TEST_F(ParserTest, NotEqOverAdd) {
       })));
 }
 
-TEST_F(ParserTest, GtOverMul) {
+TEST(ParserTest, GtOverMul) {
   std::string_view src = R"(
     fun foo(a: Int32, b: Int32): Int32 {
       if a * b > 10 {
@@ -1135,7 +1123,7 @@ TEST_F(ParserTest, GtOverMul) {
       })));
 }
 
-TEST_F(ParserTest, LtOverSub) {
+TEST(ParserTest, LtOverSub) {
   std::string_view src = R"(
     fun foo(a: Int32, b: Int32): Int32 {
       if a - b < 10 {
@@ -1190,7 +1178,7 @@ TEST_F(ParserTest, LtOverSub) {
       })));
 }
 
-TEST_F(ParserTest, ArrayParam) {
+TEST(ParserTest, ArrayParam) {
   std::string_view src = R"(
     fun len(a: Int32[10]): Int32 {
       return a[2]
@@ -1222,7 +1210,7 @@ TEST_F(ParserTest, ArrayParam) {
               })));
 }
 
-TEST_F(ParserTest, EmptyTuple) {
+TEST(ParserTest, EmptyTuple) {
   std::string_view src = R"(
     comp val Empty: Type = ()
   )";
@@ -1234,7 +1222,7 @@ TEST_F(ParserTest, EmptyTuple) {
                           })));
 }
 
-TEST_F(ParserTest, Tuple) {
+TEST(ParserTest, Tuple) {
   std::string_view src = R"(
     comp val Point: Type = (x: Int32, y: Int32)
   )";
@@ -1260,7 +1248,7 @@ TEST_F(ParserTest, Tuple) {
               })));
 }
 
-TEST_F(ParserTest, FuncDefMissingLet) {
+TEST(ParserTest, FuncDefMissingLet) {
   std::string_view src = R"(
     = () Void {
     }
@@ -1268,7 +1256,7 @@ TEST_F(ParserTest, FuncDefMissingLet) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 5"));
 }
 
-TEST_F(ParserTest, FuncDefMissingName) {
+TEST(ParserTest, FuncDefMissingName) {
   std::string_view src = R"(
     fun = () Void {
     }
@@ -1277,7 +1265,7 @@ TEST_F(ParserTest, FuncDefMissingName) {
               HoldsError("expected identifier at line 2, column 9"));
 }
 
-TEST_F(ParserTest, FuncDefMissingOpeningParen) {
+TEST(ParserTest, FuncDefMissingOpeningParen) {
   std::string_view src = R"(
     fun main ) Void {
     }
@@ -1285,7 +1273,7 @@ TEST_F(ParserTest, FuncDefMissingOpeningParen) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 14"));
 }
 
-TEST_F(ParserTest, FuncDefMissingParamName) {
+TEST(ParserTest, FuncDefMissingParamName) {
   std::string_view src = R"(
     fun id(: Int32) Int32 {
       return x
@@ -1295,7 +1283,7 @@ TEST_F(ParserTest, FuncDefMissingParamName) {
                                      "parameter at line 2, column 12"));
 }
 
-TEST_F(ParserTest, FuncDefMissingParamColon) {
+TEST(ParserTest, FuncDefMissingParamColon) {
   std::string_view src = R"(
     fun id(x Int32) Int32 {
       return x
@@ -1304,7 +1292,7 @@ TEST_F(ParserTest, FuncDefMissingParamColon) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 14"));
 }
 
-TEST_F(ParserTest, FuncDefMissingParamType) {
+TEST(ParserTest, FuncDefMissingParamType) {
   std::string_view src = R"(
     fun id(x:) Int32 {
       return x
@@ -1314,7 +1302,7 @@ TEST_F(ParserTest, FuncDefMissingParamType) {
               HoldsError("expected identifier at line 2, column 14"));
 }
 
-TEST_F(ParserTest, FuncDefMissingParamColonAndType) {
+TEST(ParserTest, FuncDefMissingParamColonAndType) {
   std::string_view src = R"(
     fun id(x) Int32 {
       return x
@@ -1323,7 +1311,7 @@ TEST_F(ParserTest, FuncDefMissingParamColonAndType) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 13"));
 }
 
-TEST_F(ParserTest, FuncDefMissingNextParam) {
+TEST(ParserTest, FuncDefMissingNextParam) {
   std::string_view src = R"(
     fun id(x: Int32,) Int32 {
       return x
@@ -1333,7 +1321,7 @@ TEST_F(ParserTest, FuncDefMissingNextParam) {
                                      "parameter at line 2, column 21"));
 }
 
-TEST_F(ParserTest, FuncDefMissingClosingParen) {
+TEST(ParserTest, FuncDefMissingClosingParen) {
   std::string_view src = R"(
     fun main( Void {
     }
@@ -1341,7 +1329,7 @@ TEST_F(ParserTest, FuncDefMissingClosingParen) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 20"));
 }
 
-TEST_F(ParserTest, FuncDefMissingResultColon) {
+TEST(ParserTest, FuncDefMissingResultColon) {
   std::string_view src = R"(
     fun main() Void {
     }
@@ -1349,7 +1337,7 @@ TEST_F(ParserTest, FuncDefMissingResultColon) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 16"));
 }
 
-TEST_F(ParserTest, FuncDefMissingResultType) {
+TEST(ParserTest, FuncDefMissingResultType) {
   std::string_view src = R"(
     fun main(): {
     }
@@ -1358,7 +1346,7 @@ TEST_F(ParserTest, FuncDefMissingResultType) {
               HoldsError("expected identifier at line 2, column 17"));
 }
 
-TEST_F(ParserTest, FuncDefMissingOpenBrace) {
+TEST(ParserTest, FuncDefMissingOpenBrace) {
   std::string_view src = R"(
     fun main(): Void
     }
@@ -1366,14 +1354,14 @@ TEST_F(ParserTest, FuncDefMissingOpenBrace) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 5"));
 }
 
-TEST_F(ParserTest, FuncDefMissingClosingBrace) {
+TEST(ParserTest, FuncDefMissingClosingBrace) {
   std::string_view src = R"(
     fun main(): Void {
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 3"));
 }
 
-TEST_F(ParserTest, ReturnMissingValue) {
+TEST(ParserTest, ReturnMissingValue) {
   std::string_view src = R"(
     fun id(x: Int32): Int32 {
       return
@@ -1382,7 +1370,7 @@ TEST_F(ParserTest, ReturnMissingValue) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
 }
 
-TEST_F(ParserTest, VarDeclMissingLet) {
+TEST(ParserTest, VarDeclMissingLet) {
   std::string_view src = R"(
     fun main(): Void {
       m: Int32 = 1
@@ -1391,7 +1379,7 @@ TEST_F(ParserTest, VarDeclMissingLet) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 8"));
 }
 
-TEST_F(ParserTest, VarDeclMissingName) {
+TEST(ParserTest, VarDeclMissingName) {
   std::string_view src = R"(
     fun main(): Void {
       val : Int32 = 1
@@ -1401,7 +1389,7 @@ TEST_F(ParserTest, VarDeclMissingName) {
               HoldsError("expected identifier at line 3, column 11"));
 }
 
-TEST_F(ParserTest, VarDeclMissingColon) {
+TEST(ParserTest, VarDeclMissingColon) {
   std::string_view src = R"(
     fun main(): Void {
       val m Int32 = 1
@@ -1410,7 +1398,7 @@ TEST_F(ParserTest, VarDeclMissingColon) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
 }
 
-TEST_F(ParserTest, VarDeclMissingType) {
+TEST(ParserTest, VarDeclMissingType) {
   std::string_view src = R"(
     fun main(): Void {
       val m: = 1
@@ -1420,7 +1408,7 @@ TEST_F(ParserTest, VarDeclMissingType) {
               HoldsError("expected identifier at line 3, column 14"));
 }
 
-TEST_F(ParserTest, VarDeclMissingColonAndType) {
+TEST(ParserTest, VarDeclMissingColonAndType) {
   std::string_view src = R"(
     fun main(): Void {
       val m = 1
@@ -1429,7 +1417,7 @@ TEST_F(ParserTest, VarDeclMissingColonAndType) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
 }
 
-TEST_F(ParserTest, VarDeclMissingEqual) {
+TEST(ParserTest, VarDeclMissingEqual) {
   std::string_view src = R"(
     fun main(): Void {
       val m: Int32 1
@@ -1438,7 +1426,7 @@ TEST_F(ParserTest, VarDeclMissingEqual) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 20"));
 }
 
-TEST_F(ParserTest, VarDeclMissingInit) {
+TEST(ParserTest, VarDeclMissingInit) {
   std::string_view src = R"(
     fun main(): Void {
       val m: Int32 =
@@ -1447,7 +1435,7 @@ TEST_F(ParserTest, VarDeclMissingInit) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
 }
 
-TEST_F(ParserTest, VarAssignMissingValue) {
+TEST(ParserTest, VarAssignMissingValue) {
   std::string_view src = R"(
     fun foo(n: Int32): Void {
       &n =
@@ -1456,7 +1444,7 @@ TEST_F(ParserTest, VarAssignMissingValue) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
 }
 
-TEST_F(ParserTest, MissingEqualSign) {
+TEST(ParserTest, MissingEqualSign) {
   std::string_view src = R"(
     fun main(): Int32 {
       if 1 = 1 {
@@ -1469,7 +1457,7 @@ TEST_F(ParserTest, MissingEqualSign) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
 }
 
-TEST_F(ParserTest, SpaceBetweenEqualSigns) {
+TEST(ParserTest, SpaceBetweenEqualSigns) {
   std::string_view src = R"(
     fun main(): Int32 {
       if 1 = = 1 {
@@ -1482,7 +1470,7 @@ TEST_F(ParserTest, SpaceBetweenEqualSigns) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
 }
 
-TEST_F(ParserTest, MissingStringClosingQuote) {
+TEST(ParserTest, MissingStringClosingQuote) {
   std::string_view src = R"(
     fun foo(): Void {
       do bar("foo)
@@ -1492,19 +1480,19 @@ TEST_F(ParserTest, MissingStringClosingQuote) {
               HoldsError("incomplete string literal at line 3, column 14"));
 }
 
-TEST_F(ParserTest, MissingLoopOpenBrace) {
+TEST(ParserTest, MissingLoopOpenBrace) {
   std::string_view src = R"(
     fun main(): Int32 {
       loop
         return 1
-      } 
+      }
       return 2
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 9"));
 }
 
-TEST_F(ParserTest, MissingLoopCloseBrace) {
+TEST(ParserTest, MissingLoopCloseBrace) {
   std::string_view src = R"(
     fun main(): Int32 {
       loop {
@@ -1515,14 +1503,14 @@ TEST_F(ParserTest, MissingLoopCloseBrace) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 7, column 3"));
 }
 
-TEST_F(ParserTest, TupleDefMissingCompVal) {
+TEST(ParserTest, TupleDefMissingCompVal) {
   std::string_view src = R"(
     : Type = (x: Int32, y: Int32)
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 5"));
 }
 
-TEST_F(ParserTest, TupleDefMissingName) {
+TEST(ParserTest, TupleDefMissingName) {
   std::string_view src = R"(
     comp val : Type = ()
   )";
@@ -1530,14 +1518,14 @@ TEST_F(ParserTest, TupleDefMissingName) {
               HoldsError("expected identifier at line 2, column 14"));
 }
 
-TEST_F(ParserTest, TupleDefMissingColon) {
+TEST(ParserTest, TupleDefMissingColon) {
   std::string_view src = R"(
     comp val Foo Type = ()
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 18"));
 }
 
-TEST_F(ParserTest, TupleDefMissingType) {
+TEST(ParserTest, TupleDefMissingType) {
   std::string_view src = R"(
     comp val Foo: = ()
   )";
@@ -1545,21 +1533,21 @@ TEST_F(ParserTest, TupleDefMissingType) {
               HoldsError("expected 'Type' keyword at line 2, column 19"));
 }
 
-TEST_F(ParserTest, TupleDefMissingEqual) {
+TEST(ParserTest, TupleDefMissingEqual) {
   std::string_view src = R"(
     comp val Foo: Type ()
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 24"));
 }
 
-TEST_F(ParserTest, TupleDefMissingOpeningParen) {
+TEST(ParserTest, TupleDefMissingOpeningParen) {
   std::string_view src = R"(
     comp val Foo: Type = )
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 26"));
 }
 
-TEST_F(ParserTest, TupleDefMissingParamName) {
+TEST(ParserTest, TupleDefMissingParamName) {
   std::string_view src = R"(
     comp val Foo: Type = (: Int32)
   )";
@@ -1567,14 +1555,14 @@ TEST_F(ParserTest, TupleDefMissingParamName) {
                                      "parameter at line 2, column 27"));
 }
 
-TEST_F(ParserTest, TupleDefMissingParamColon) {
+TEST(ParserTest, TupleDefMissingParamColon) {
   std::string_view src = R"(
     comp val Foo: Type = (x Int32)
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 29"));
 }
 
-TEST_F(ParserTest, TupleDefMissingParamType) {
+TEST(ParserTest, TupleDefMissingParamType) {
   std::string_view src = R"(
     comp val Foo: Type = (x:)
   )";
@@ -1582,14 +1570,14 @@ TEST_F(ParserTest, TupleDefMissingParamType) {
               HoldsError("expected identifier at line 2, column 29"));
 }
 
-TEST_F(ParserTest, TupleDefMissingParamColonAndType) {
+TEST(ParserTest, TupleDefMissingParamColonAndType) {
   std::string_view src = R"(
     comp val Id: Type = (x)
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 2, column 27"));
 }
 
-TEST_F(ParserTest, TupleDefMissingNextParam) {
+TEST(ParserTest, TupleDefMissingNextParam) {
   std::string_view src = R"(
     comp val Foo: Type = (x: Int32,)
   )";
@@ -1597,7 +1585,7 @@ TEST_F(ParserTest, TupleDefMissingNextParam) {
                                      "parameter at line 2, column 36"));
 }
 
-TEST_F(ParserTest, TupleDefMissingClosingParen) {
+TEST(ParserTest, TupleDefMissingClosingParen) {
   std::string_view src = R"(
     comp val Foo: Type = (
   )";

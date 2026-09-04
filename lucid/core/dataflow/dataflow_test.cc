@@ -51,11 +51,11 @@ TEST(Test, RunForwardDataflowSimple) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A'}))));
+                             UnorderedElementsEqual('A'))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A', 'W'}))));
+                             UnorderedElementsEqual('A', 'W'))));
 }
 
 TEST(Test, RunForwardDataflowDiamondBranch) {
@@ -75,19 +75,19 @@ TEST(Test, RunForwardDataflowDiamondBranch) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A'}))));
+                             UnorderedElementsEqual('A'))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A', 'B', 'C', 'W'}))));
+                             UnorderedElementsEqual('A', 'B', 'C', 'W'))));
 
   EXPECT_THAT(vertex_states[/* B */ 2],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A', 'B'}))));
+                             UnorderedElementsEqual('A', 'B'))));
 
   EXPECT_THAT(vertex_states[/* C */ 3],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A', 'C'}))));
+                             UnorderedElementsEqual('A', 'C'))));
 }
 
 TEST(Test, RunForwardDataflowLoop) {
@@ -108,24 +108,23 @@ TEST(Test, RunForwardDataflowLoop) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A'}))));
+                             UnorderedElementsEqual('A'))));
 
-  EXPECT_THAT(
-      vertex_states[/* W */ 1],
-      Optional(Field(&TestResultUnionAnalysis::State::results,
-                     UnorderedElementsEqual({'A', 'B', 'C', 'D', 'W'}))));
+  EXPECT_THAT(vertex_states[/* W */ 1],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsEqual('A', 'B', 'C', 'D', 'W'))));
 
   EXPECT_THAT(vertex_states[/* B */ 2],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A', 'B', 'C'}))));
+                             UnorderedElementsEqual('A', 'B', 'C'))));
 
   EXPECT_THAT(vertex_states[/* C */ 3],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A', 'B', 'C'}))));
+                             UnorderedElementsEqual('A', 'B', 'C'))));
 
   EXPECT_THAT(vertex_states[/* D */ 4],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A', 'B', 'C', 'D'}))));
+                             UnorderedElementsEqual('A', 'B', 'C', 'D'))));
 }
 
 TEST(Test, RunBackwardDataflowSimple) {
@@ -142,11 +141,11 @@ TEST(Test, RunBackwardDataflowSimple) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A', 'W'}))));
+                             UnorderedElementsEqual('A', 'W'))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'W'}))));
+                             UnorderedElementsEqual('W'))));
 }
 
 TEST(Test, RunBackwardDataflowDiamondBranch) {
@@ -166,19 +165,19 @@ TEST(Test, RunBackwardDataflowDiamondBranch) {
 
   EXPECT_THAT(vertex_states[/* A */ 0],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'A', 'B', 'C', 'W'}))));
+                             UnorderedElementsEqual('A', 'B', 'C', 'W'))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'W'}))));
+                             UnorderedElementsEqual('W'))));
 
   EXPECT_THAT(vertex_states[/* B */ 2],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'B', 'W'}))));
+                             UnorderedElementsEqual('B', 'W'))));
 
   EXPECT_THAT(vertex_states[/* C */ 3],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'C', 'W'}))));
+                             UnorderedElementsEqual('C', 'W'))));
 }
 
 TEST(Test, RunBackwardDataflowLoop) {
@@ -197,26 +196,25 @@ TEST(Test, RunBackwardDataflowLoop) {
 
   ASSERT_THAT(vertex_states, SizeIs(5));
 
-  EXPECT_THAT(
-      vertex_states[/* A */ 0],
-      Optional(Field(&TestResultUnionAnalysis::State::results,
-                     UnorderedElementsEqual({'A', 'B', 'C', 'D', 'W'}))));
+  EXPECT_THAT(vertex_states[/* A */ 0],
+              Optional(Field(&TestResultUnionAnalysis::State::results,
+                             UnorderedElementsEqual('A', 'B', 'C', 'D', 'W'))));
 
   EXPECT_THAT(vertex_states[/* W */ 1],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'W'}))));
+                             UnorderedElementsEqual('W'))));
 
   EXPECT_THAT(vertex_states[/* B */ 2],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'B', 'C', 'D', 'W'}))));
+                             UnorderedElementsEqual('B', 'C', 'D', 'W'))));
 
   EXPECT_THAT(vertex_states[/* C */ 3],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'B', 'C', 'D', 'W'}))));
+                             UnorderedElementsEqual('B', 'C', 'D', 'W'))));
 
   EXPECT_THAT(vertex_states[/* D */ 4],
               Optional(Field(&TestResultUnionAnalysis::State::results,
-                             UnorderedElementsEqual({'D', 'W'}))));
+                             UnorderedElementsEqual('D', 'W'))));
 }
 
 }  // namespace

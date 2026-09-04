@@ -316,7 +316,7 @@ TEST(Test, HashSetIteratorRange) {
   set.Insert(21);
   set.Insert(13);
 
-  EXPECT_THAT(set, UnorderedElementsEqual({13, 21}));
+  EXPECT_THAT(set, UnorderedElementsEqual(13, 21));
 }
 
 }  // namespace

@@ -1,19 +1,12 @@
 #include "lucid/syntax/ssa.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 #include "lucid/syntax/cfg.h"
 
 namespace lucid {
 namespace {
-
-using ::testing::IsEmpty;
-using ::testing::Pair;
-using ::testing::SizeIs;
-using ::testing::Test;
-using ::testing::UnorderedElementsAre;
 
 using BlockRef = SyntaxControlFlowGraph::BlockRef;
 using Phi = SyntaxControlFlowGraph::Phi;
@@ -25,7 +18,7 @@ class ConvertToStaticSingleAssignmentTest : public Test, public AstFixture {
   }
 };
 
-TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
+TEST(ConvertToStaticSingleAssignmentTest, Branching) {
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -82,7 +75,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, Branching) {
   EXPECT_THAT(else_block.phis, IsEmpty());
 }
 
-TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
+TEST(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -163,7 +156,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, DoubleBranching) {
   EXPECT_THAT(else_block.phis, IsEmpty());
 }
 
-TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
+TEST(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -225,7 +218,7 @@ TEST_F(ConvertToStaticSingleAssignmentTest, MultipleVariables) {
   EXPECT_THAT(else_block.phis, IsEmpty());
 }
 
-TEST_F(ConvertToStaticSingleAssignmentTest, Looping) {
+TEST(ConvertToStaticSingleAssignmentTest, Looping) {
   auto scfg = BuildControlFlowGraph(FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),

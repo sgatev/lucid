@@ -7,13 +7,27 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "lucid/core/meta/static_for.h"
 #include "lucid/core/string/concat.h"
 
 namespace lucid {
+
+template <typename T, class... Types>
+inline bool operator==(const T& t, const std::variant<Types...>& v) {
+  const T* c = std::get_if<T>(&v);
+
+  return c && *c == t;
+}
+
+template <typename T, class... Types>
+inline bool operator==(const std::variant<Types...>& v, const T& t) {
+  return t == v;
+}
 
 // Returns a string representation of `s`.
 template <typename T>
@@ -40,6 +54,27 @@ inline std::string ToString(const int& s) {
 }
 
 namespace internal {
+
+template <typename P>
+class PredicateMatcher {
+ public:
+  explicit PredicateMatcher(P predicate) : predicate_(predicate) {}
+
+  std::string DescribeExpected() { return ""; }
+
+  template <typename A>
+  std::string DescribeActual(A&& a) {
+    return "";
+  }
+
+  template <typename A>
+  bool Matches(A&& a) {
+    return std::invoke(predicate_, a);
+  }
+
+ private:
+  P predicate_;
+};
 
 class BooleanMatcher {
  public:
@@ -146,22 +181,22 @@ class ElementsMatcher {
   std::tuple<Ms...> element_matchers_;
 };
 
-template <typename T>
+template <typename... Ms>
 class UnorderedElementsMatcher {
  public:
-  UnorderedElementsMatcher(std::initializer_list<const T> expected_elements)
-      : expected_elements_(expected_elements) {}
+  UnorderedElementsMatcher(Ms... element_matchers)
+      : element_matchers_(std::make_tuple(element_matchers...)) {}
 
   std::string DescribeExpected() {
     std::vector<std::string> parts;
-    parts.reserve(expected_elements_.size() + 2);
+    parts.reserve(sizeof...(Ms) + 2);
     parts.push_back("have elements { ");
-    for (bool has_added_element = false;
-         const auto& element : expected_elements_) {
+    bool has_added_element = false;
+    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
       if (has_added_element) parts.push_back(", ");
-      parts.push_back(ToString(element));
+      parts.push_back(std::get<I>(element_matchers_).DescribeExpected());
       has_added_element = true;
-    }
+    });
     parts.push_back(" }");
 
     return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
@@ -172,13 +207,14 @@ class UnorderedElementsMatcher {
   std::string DescribeActual(const A& actual_elements) {
     std::vector<std::string> parts;
     parts.reserve(actual_elements.size() + 2);
-    parts.push_back("have elements { ");
-    for (bool has_added_element = false;
-         const auto& element : actual_elements) {
+    parts.push_back("{ ");
+    bool has_added_element = false;
+    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
       if (has_added_element) parts.push_back(", ");
-      parts.push_back(ToString(element));
+      /*parts.push_back(std::get<I>(element_matchers_)
+                          .DescribeActual(*actual_elements.find(I)));*/
       has_added_element = true;
-    }
+    });
     parts.push_back(" }");
 
     return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
@@ -187,22 +223,23 @@ class UnorderedElementsMatcher {
 
   template <typename A>
   bool Matches(const A& actual_elements) {
-    if (actual_elements.size() != expected_elements_.size()) return false;
-    for (const auto& expected_element : expected_elements_) {
-      bool found_element = false;
-      for (const auto& actual_elements : actual_elements) {
-        if (actual_elements == expected_element) {
-          found_element = true;
+    if (actual_elements.size() != sizeof...(Ms)) return false;
+    bool equal = true;
+    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
+      bool found = true;
+      for (const auto& actual_element : actual_elements) {
+        if (std::get<I>(element_matchers_).Matches(actual_element)) {
+          found = true;
           break;
         }
       }
-      if (!found_element) return false;
-    }
-    return true;
+      equal = equal && found;
+    });
+    return equal;
   }
 
  private:
-  std::initializer_list<const T> expected_elements_;
+  std::tuple<Ms...> element_matchers_;
 };
 
 class SizeMatcher {
@@ -293,6 +330,88 @@ class OptionalMatcher {
   M value_matcher_;
 };
 
+template <typename T, typename M>
+class VariantMatcher {
+ public:
+  explicit VariantMatcher(M value_matcher) : value_matcher_(value_matcher) {}
+
+  std::string DescribeExpected() {
+    return "contain a value " + value_matcher_.DescribeExpected();
+  }
+
+  template <typename A>
+  std::string DescribeActual(const A& actual_value) {
+    const auto* actual = std::get_if<T>(&actual_value);
+    if (actual == nullptr) return "";
+    return "variant with " + value_matcher_.DescribeActual(*actual);
+  }
+
+  template <typename A>
+  bool Matches(const A& actual_value) {
+    const auto* actual = std::get_if<T>(&actual_value);
+    if (actual == nullptr) return false;
+    return value_matcher_.Matches(*actual);
+  }
+
+ private:
+  M value_matcher_;
+};
+
+template <typename FM, typename SM>
+class PairMatcher {
+ public:
+  explicit PairMatcher(FM first_matcher, SM second_matcher)
+      : first_matcher_(first_matcher), second_matcher_(second_matcher) {}
+
+  std::string DescribeExpected() {
+    return "contain a pair with key " + first_matcher_.DescribeExpected() +
+           " and value " + second_matcher_.DescribeExpected();
+  }
+
+  template <typename A>
+  std::string DescribeActual(const A& actual_value) {
+    return "pair with key " +
+           first_matcher_.DescribeActual(actual_value.first) + " and value " +
+           second_matcher_.DescribeActual(actual_value.second);
+  }
+
+  template <typename A>
+  bool Matches(const A& actual_value) {
+    return first_matcher_.Matches(actual_value.first) &&
+           second_matcher_.Matches(actual_value.second);
+  }
+
+ private:
+  FM first_matcher_;
+  SM second_matcher_;
+};
+
+template <typename... Ms>
+class AllMatcher {
+ public:
+  explicit AllMatcher(Ms... matchers)
+      : matchers_(std::make_tuple(matchers...)) {}
+
+  std::string DescribeExpected() { return ""; }
+
+  template <typename A>
+  std::string DescribeActual(const A& actual_value) {
+    return "";
+  }
+
+  template <typename A>
+  bool Matches(const A& actual_value) {
+    bool equal = true;
+    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
+      equal = equal && std::get<I>(matchers_).Matches(actual_value);
+    });
+    return equal;
+  }
+
+ private:
+  std::tuple<Ms...> matchers_;
+};
+
 template <typename M>
 class NotMatcher {
  public:
@@ -351,16 +470,23 @@ int AddTest(std::unique_ptr<Test> test);
 
 #define UNIQUE_VAR(prefix) CONCAT(prefix##_, __LINE__)
 
-#define TEST(base, name)                                                \
-  /* NOLINTNEXTLINE */                                                  \
-  class name : public base {                                            \
-   public:                                                              \
-    std::string_view Name() const final { return TO_STRING(name); }     \
-    void Run() final;                                                   \
-  };                                                                    \
-  /* NOLINTNEXTLINE */                                                  \
-  static auto UNIQUE_VAR(t) = lucid::AddTest(std::make_unique<name>()); \
-  void name::Run()
+#define TEST(base, name)                                            \
+  /* NOLINTNEXTLINE */                                              \
+  class CONCAT(name, Test) : public base {                          \
+   public:                                                          \
+    std::string_view Name() const final { return TO_STRING(name); } \
+    void Run() final;                                               \
+  };                                                                \
+  /* NOLINTNEXTLINE */                                              \
+  static auto UNIQUE_VAR(t) =                                       \
+      lucid::AddTest(std::make_unique<CONCAT(name, Test)>());       \
+  void CONCAT(name, Test)::Run()
+
+// Matches a value that is accepted by `predicate`.
+template <typename P>
+inline internal::PredicateMatcher<P> Truly(P predicate) {
+  return internal::PredicateMatcher<P>(predicate);
+}
 
 // Matches a value that is true.
 inline internal::BooleanMatcher IsTrue() {
@@ -406,11 +532,19 @@ internal::ElementsMatcher<internal::EqualityMatcher<Ts>...> ElementsEqual(
   return Elements(Equals(expected_elements)...);
 }
 
+// Matches a value that whose elements match `element_matchers` in no particular
+// order.
+template <typename... Ms>
+internal::UnorderedElementsMatcher<Ms...> UnorderedElements(
+    Ms... element_matchers) {
+  return internal::UnorderedElementsMatcher<Ms...>(element_matchers...);
+}
+
 // Matches a value that contains `expected_elements` in no particular order.
-template <typename T>
-internal::UnorderedElementsMatcher<const T> UnorderedElementsEqual(
-    std::initializer_list<const T> expected_elements) {
-  return internal::UnorderedElementsMatcher<const T>(expected_elements);
+template <typename... Ts>
+internal::UnorderedElementsMatcher<internal::EqualityMatcher<Ts>...>
+UnorderedElementsEqual(Ts... expected_elements) {
+  return UnorderedElements(Equals(expected_elements)...);
 }
 
 // Matches a value that has a field accepted by `field_matcher`.
@@ -423,6 +557,26 @@ internal::FieldMatcher<F, M> Field(F field, M field_matcher) {
 template <typename M>
 internal::OptionalMatcher<M> Optional(M value_matcher) {
   return internal::OptionalMatcher<M>(value_matcher);
+}
+
+// Matches a variant that contains value of type `T` accepted by
+// `value_matcher`.
+template <typename T, typename M>
+internal::VariantMatcher<T, M> Variant(M value_matcher) {
+  return internal::VariantMatcher<T, M>(value_matcher);
+}
+
+// Matches a pair value whose first element is accepted by `first_matcher` and
+// whose seccond element is accepted by `second_matcher`.
+template <typename FM, typename SM>
+internal::PairMatcher<FM, SM> Pair(FM first_matcher, SM second_matcher) {
+  return internal::PairMatcher<FM, SM>(first_matcher, second_matcher);
+}
+
+// Matches a value that is accepted by all `matchers`.
+template <typename... Ms>
+internal::AllMatcher<Ms...> AllOf(Ms... matchers) {
+  return internal::AllMatcher<Ms...>(matchers...);
 }
 
 // Matches a value not accepted by `matcher`.

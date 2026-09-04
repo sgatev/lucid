@@ -7,7 +7,7 @@
 #include <utility>
 #include <variant>
 
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 #include "lucid/syntax/lexer.h"
@@ -18,7 +18,7 @@ namespace {
 
 using namespace std::string_literals;
 
-class CompCheckTest : public testing::Test, public AstFixture {
+class CompCheckTest : public Test, public AstFixture {
  protected:
   std::expected<void, CompError> CheckComp(std::string_view src) {
     std::string code_with_null(src);
@@ -54,7 +54,7 @@ class CompCheckTest : public testing::Test, public AstFixture {
   }
 };
 
-TEST_F(CompCheckTest, EmptyNonCompFunc) {
+TEST(CompCheckTest, EmptyNonCompFunc) {
   std::string_view src = R"(
     fun test(): Int32 {
       return 0
@@ -64,7 +64,7 @@ TEST_F(CompCheckTest, EmptyNonCompFunc) {
   EXPECT_TRUE(CheckComp(src).has_value());
 }
 
-TEST_F(CompCheckTest, EmptyCompFunc) {
+TEST(CompCheckTest, EmptyCompFunc) {
   std::string_view src = R"(
     comp fun test(): Int32 {
       return 0
@@ -74,7 +74,7 @@ TEST_F(CompCheckTest, EmptyCompFunc) {
   EXPECT_TRUE(CheckComp(src).has_value());
 }
 
-TEST_F(CompCheckTest, DoStmtInCompFunc) {
+TEST(CompCheckTest, DoStmtInCompFunc) {
   std::string_view src = R"(
     fun effect(): Int32 {
       return 0
@@ -89,7 +89,7 @@ TEST_F(CompCheckTest, DoStmtInCompFunc) {
   EXPECT_FALSE(CheckComp(src).has_value());
 }
 
-TEST_F(CompCheckTest, DoStmtOnCompInCompFunc) {
+TEST(CompCheckTest, DoStmtOnCompInCompFunc) {
   std::string_view src = R"(
     comp fun pure(): Int32 {
       return 0
@@ -104,7 +104,7 @@ TEST_F(CompCheckTest, DoStmtOnCompInCompFunc) {
   EXPECT_FALSE(CheckComp(src).has_value());
 }
 
-TEST_F(CompCheckTest, NestedDoStmtInConstFunc) {
+TEST(CompCheckTest, NestedDoStmtInConstFunc) {
   std::string_view src = R"(
     fun effect(): Int32 {
       return 0
@@ -126,7 +126,7 @@ TEST_F(CompCheckTest, NestedDoStmtInConstFunc) {
   EXPECT_FALSE(CheckComp(src).has_value());
 }
 
-TEST_F(CompCheckTest, NonCompVarDeclNonCompInit) {
+TEST(CompCheckTest, NonCompVarDeclNonCompInit) {
   std::string_view src = R"(
     fun foo(): Int32 {
       return 0
@@ -141,7 +141,7 @@ TEST_F(CompCheckTest, NonCompVarDeclNonCompInit) {
   EXPECT_TRUE(CheckComp(src).has_value());
 }
 
-TEST_F(CompCheckTest, CompVarDeclNonCompInit) {
+TEST(CompCheckTest, CompVarDeclNonCompInit) {
   std::string_view src = R"(
     fun foo(): Int32 {
       return 0
@@ -156,7 +156,7 @@ TEST_F(CompCheckTest, CompVarDeclNonCompInit) {
   EXPECT_FALSE(CheckComp(src).has_value());
 }
 
-TEST_F(CompCheckTest, CompVarDeclCompFuncCallInit) {
+TEST(CompCheckTest, CompVarDeclCompFuncCallInit) {
   std::string_view src = R"(
     comp fun foo(): Int32 {
       return 0
@@ -171,7 +171,7 @@ TEST_F(CompCheckTest, CompVarDeclCompFuncCallInit) {
   EXPECT_TRUE(CheckComp(src).has_value());
 }
 
-TEST_F(CompCheckTest, CompVarDeclCompIntLitInit) {
+TEST(CompCheckTest, CompVarDeclCompIntLitInit) {
   std::string_view src = R"(
     fun test(): Int32 {
       comp val x: Int32 = 21
@@ -182,7 +182,7 @@ TEST_F(CompCheckTest, CompVarDeclCompIntLitInit) {
   EXPECT_TRUE(CheckComp(src).has_value());
 }
 
-TEST_F(CompCheckTest, CompVarDeclCompBoolLitInit) {
+TEST(CompCheckTest, CompVarDeclCompBoolLitInit) {
   std::string_view src = R"(
     fun test(): Int32 {
       comp val x: Bool = true

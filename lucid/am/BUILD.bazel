@@ -177,10 +177,10 @@ cc_test(
         ":instructions",
         ":translator",
         "//lucid/core/container/graph:order",
+        "//lucid/core/testing",
         "//lucid/syntax:ast_fixture",
         "//lucid/syntax:cfg",
         "//lucid/syntax:type",
-        "@googletest//:gtest_main",
     ],
 )
 

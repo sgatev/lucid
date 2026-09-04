@@ -2,10 +2,9 @@
 
 #include <vector>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/am/instructions.h"
 #include "lucid/core/container/graph/order.h"
+#include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 #include "lucid/syntax/cfg.h"
@@ -14,10 +13,7 @@
 namespace lucid {
 namespace {
 
-using ::testing::ElementsAre;
-
-class GenerateAbstractMachineFunctionTest : public testing::Test,
-                                            public AstFixture {
+class GenerateAbstractMachineFunctionTest : public Test, public AstFixture {
  protected:
   std::vector<Instruction> Generate(FuncDefStmt& func) {
     EXPECT_TRUE(InferExprTypes(syn_ctx_, func).has_value());
@@ -41,7 +37,7 @@ class GenerateAbstractMachineFunctionTest : public testing::Test,
   }
 };
 
-TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
+TEST(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -52,7 +48,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 21,
                                       .dst_reg = Reg(2, RegSize::RegSize32),
@@ -66,7 +62,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
+TEST(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int64"),
@@ -77,7 +73,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 21,
                                       .dst_reg = Reg(2, RegSize::RegSize64),
@@ -91,7 +87,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
+TEST(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
   auto id_func = FuncDefStmt{
       .name = I("id"),
       .params = ParamListOf({
@@ -119,7 +115,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 21,
                                       .dst_reg = Reg(2, RegSize32),
@@ -145,7 +141,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
+TEST(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
   auto id_func = FuncDefStmt{
       .name = I("id"),
       .params = ParamListOf({
@@ -173,7 +169,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 21,
                                       .dst_reg = Reg(2, RegSize64),
@@ -199,7 +195,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
+TEST(GenerateAbstractMachineFunctionTest, AddInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -214,7 +210,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(2, RegSize32),
@@ -237,7 +233,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
+TEST(GenerateAbstractMachineFunctionTest, AddInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int64"),
@@ -252,7 +248,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(2, RegSize64),
@@ -275,7 +271,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, AddInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
+TEST(GenerateAbstractMachineFunctionTest, SubtractInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -290,7 +286,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 7,
                                       .dst_reg = Reg(2, RegSize32),
@@ -313,7 +309,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
+TEST(GenerateAbstractMachineFunctionTest, SubtractInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int64"),
@@ -328,7 +324,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 7,
                                       .dst_reg = Reg(2, RegSize64),
@@ -351,7 +347,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SubtractInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
+TEST(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -366,7 +362,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(2, RegSize32),
@@ -389,7 +385,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
+TEST(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int64"),
@@ -404,7 +400,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(2, RegSize64),
@@ -427,7 +423,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
+TEST(GenerateAbstractMachineFunctionTest, DivideInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -442,7 +438,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 8,
                                       .dst_reg = Reg(2, RegSize32),
@@ -465,7 +461,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
+TEST(GenerateAbstractMachineFunctionTest, DivideInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int64"),
@@ -480,7 +476,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 8,
                                       .dst_reg = Reg(2, RegSize64),
@@ -503,7 +499,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, DivideInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
+TEST(GenerateAbstractMachineFunctionTest, ModuloInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -518,7 +514,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 8,
                                       .dst_reg = Reg(2, RegSize32),
@@ -541,7 +537,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
+TEST(GenerateAbstractMachineFunctionTest, ModuloInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int64"),
@@ -556,7 +552,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 8,
                                       .dst_reg = Reg(2, RegSize64),
@@ -579,7 +575,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, ModuloInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
+TEST(GenerateAbstractMachineFunctionTest, IfStmt) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -606,7 +602,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 1,
                                       .dst_reg = Reg(2, RegSize32),
@@ -650,7 +646,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfStmt) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
+TEST(GenerateAbstractMachineFunctionTest, IfElseStmt) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -679,7 +675,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 1,
                                       .dst_reg = Reg(2, RegSize32),
@@ -723,7 +719,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
+TEST(GenerateAbstractMachineFunctionTest, GtInt) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Bool"),
@@ -738,7 +734,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 3,
                                       .dst_reg = Reg(2, RegSize32),
@@ -761,7 +757,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
+TEST(GenerateAbstractMachineFunctionTest, GtInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({
@@ -786,7 +782,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   MoveReg{
                                       .src_reg = Reg(2, RegSize32),
                                       .dst_reg = Reg(4, RegSize32),
@@ -809,7 +805,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
+TEST(GenerateAbstractMachineFunctionTest, GtInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({
@@ -834,7 +830,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   MoveReg{
                                       .src_reg = Reg(2, RegSize64),
                                       .dst_reg = Reg(4, RegSize64),
@@ -857,7 +853,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, GtInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
+TEST(GenerateAbstractMachineFunctionTest, LtInt) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Bool"),
@@ -872,7 +868,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 3,
                                       .dst_reg = Reg(2, RegSize32),
@@ -895,7 +891,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
+TEST(GenerateAbstractMachineFunctionTest, LtInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({
@@ -920,7 +916,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   MoveReg{
                                       .src_reg = Reg(2, RegSize32),
                                       .dst_reg = Reg(4, RegSize32),
@@ -943,7 +939,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
+TEST(GenerateAbstractMachineFunctionTest, LtInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({
@@ -968,7 +964,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   MoveReg{
                                       .src_reg = Reg(2, RegSize64),
                                       .dst_reg = Reg(4, RegSize64),
@@ -991,7 +987,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, LtInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
+TEST(GenerateAbstractMachineFunctionTest, EqInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({
@@ -1016,7 +1012,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   MoveReg{
                                       .src_reg = Reg(2, RegSize32),
                                       .dst_reg = Reg(4, RegSize32),
@@ -1039,7 +1035,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
+TEST(GenerateAbstractMachineFunctionTest, EqInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({
@@ -1064,7 +1060,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   MoveReg{
                                       .src_reg = Reg(2, RegSize64),
                                       .dst_reg = Reg(4, RegSize64),
@@ -1087,7 +1083,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, EqInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
+TEST(GenerateAbstractMachineFunctionTest, NotEqInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({
@@ -1112,7 +1108,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   MoveReg{
                                       .src_reg = Reg(2, RegSize32),
                                       .dst_reg = Reg(4, RegSize32),
@@ -1135,7 +1131,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
+TEST(GenerateAbstractMachineFunctionTest, NotEqInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({
@@ -1160,7 +1156,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   MoveReg{
                                       .src_reg = Reg(2, RegSize64),
                                       .dst_reg = Reg(4, RegSize64),
@@ -1183,7 +1179,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, NotEqInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
+TEST(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -1201,7 +1197,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(2, RegSize32),
@@ -1223,7 +1219,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
+TEST(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int64"),
@@ -1241,7 +1237,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(2, RegSize64),
@@ -1263,7 +1259,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
+TEST(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -1280,7 +1276,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 0,
                                       .dst_reg = Reg(2, RegSize32),
@@ -1294,7 +1290,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
+TEST(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int64"),
@@ -1311,7 +1307,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 0,
                                       .dst_reg = Reg(2, RegSize64),
@@ -1325,7 +1321,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
+TEST(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({
@@ -1346,7 +1342,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(3, RegSize32),
@@ -1368,7 +1364,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
+TEST(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({
@@ -1389,7 +1385,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(3, RegSize64),
@@ -1411,7 +1407,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
+TEST(GenerateAbstractMachineFunctionTest, Loop) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -1429,7 +1425,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 1,
                                       .dst_reg = Reg(3, RegSize32),
@@ -1451,7 +1447,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, Loop) {
                                   }));
 }
 
-TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
+TEST(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
   auto func = FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
@@ -1489,7 +1485,7 @@ TEST_F(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
       }),
   };
 
-  EXPECT_THAT(Generate(func), ElementsAre(
+  EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 0,
                                       .dst_reg = Reg(2, RegSize32),
