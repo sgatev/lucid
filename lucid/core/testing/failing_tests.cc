@@ -16,4 +16,8 @@ TEST(Test, Baz) {
   Fail("Baz failure");
 }
 
+TEST(Test, Predicate) {
+  EXPECT_THAT(21, Truly([](int x) { return false; }));
+}
+
 }  // namespace lucid

@@ -1,0 +1,8 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+cc_library(
+    name = "predicate_matcher",
+    testonly = True,
+    hdrs = ["predicate_matcher.h"],
+    visibility = ["//lucid/core/testing:__subpackages__"],
+)

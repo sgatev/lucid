@@ -14,6 +14,7 @@
 
 #include "lucid/core/meta/static_for.h"
 #include "lucid/core/string/concat.h"
+#include "lucid/core/testing/internal/predicate_matcher.h"
 
 namespace lucid {
 
@@ -54,27 +55,6 @@ inline std::string ToString(const int& s) {
 }
 
 namespace internal {
-
-template <typename P>
-class PredicateMatcher {
- public:
-  explicit PredicateMatcher(P predicate) : predicate_(predicate) {}
-
-  std::string DescribeExpected() { return ""; }
-
-  template <typename A>
-  std::string DescribeActual(A&& a) {
-    return "";
-  }
-
-  template <typename A>
-  bool Matches(A&& a) {
-    return std::invoke(predicate_, a);
-  }
-
- private:
-  P predicate_;
-};
 
 class BooleanMatcher {
  public:
@@ -594,7 +574,7 @@ internal::NotMatcher<M> Not(M matcher) {
         " to ",                                                            \
         (matcher).DescribeExpected(),                                      \
         "\n",                                                              \
-        " but found ",                                                     \
+        " but ",                                                           \
         (matcher).DescribeActual(actual),                                  \
         ".",                                                               \
     };                                                                     \
@@ -617,7 +597,7 @@ internal::NotMatcher<M> Not(M matcher) {
         " to ",                                                            \
         (matcher).DescribeExpected(),                                      \
         "\n",                                                              \
-        " but found ",                                                     \
+        " but ",                                                           \
         (matcher).DescribeActual(actual),                                  \
         ".",                                                               \
     };                                                                     \

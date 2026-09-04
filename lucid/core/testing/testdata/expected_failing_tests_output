@@ -1,7 +1,8 @@
 │ FAIL Foo
 │ PASS Bar
 │ FAIL Baz
-└─► 1 out of 3 tests PASS
+│ FAIL Predicate
+└─► 1 out of 4 tests PASS
 
 == Foo ==
 Fail: Foo failure
@@ -10,4 +11,9 @@ Foo LOG
 == Baz ==
 Baz LOG
 Fail: Baz failure
+
+== Predicate ==
+Fail: Expected 21
+ to be accepted by predicate
+ but it wasn't.
 
