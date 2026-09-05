@@ -2,16 +2,13 @@
 
 #include <list>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/am/instructions.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-using ::testing::ElementsAre;
-
-TEST(OptimizeAbstractMachineInstructionsTest, RemovesUnnecessaryInstructions) {
+TEST(Test, OptimizeAbstractMachineInstructionsRemovesUnnecessaryInstructions) {
   std::list<Instruction> instructions = {
       MoveReg{
           .src_reg = Reg(1, RegSize32),
@@ -30,7 +27,7 @@ TEST(OptimizeAbstractMachineInstructionsTest, RemovesUnnecessaryInstructions) {
 
   OptimizeAbstractMachineInstructions(instructions);
 
-  EXPECT_THAT(instructions, ElementsAre(
+  EXPECT_THAT(instructions, ElementsEqual(
                                 MoveReg{
                                     .src_reg = Reg(1, RegSize32),
                                     .dst_reg = Reg(2, RegSize32),

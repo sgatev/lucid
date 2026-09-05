@@ -121,7 +121,7 @@ cc_test(
     deps = [
         ":instructions",
         ":opt",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 

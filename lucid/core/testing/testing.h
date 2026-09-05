@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <span>
 #include <string>
@@ -59,11 +60,12 @@ class ElementsMatcher {
     std::vector<std::string> parts;
     parts.reserve(actual_elements.size() + 2);
     parts.push_back("{ ");
+    auto it = std::begin(actual_elements);
     bool has_added_element = false;
     StaticFor<0, sizeof...(Ms)>([&]<int I>() {
       if (has_added_element) parts.push_back(", ");
-      parts.push_back(
-          std::get<I>(element_matchers_).DescribeActual(actual_elements[I]));
+      parts.push_back(std::get<I>(element_matchers_).DescribeActual(*it));
+      ++it;
       has_added_element = true;
     });
     parts.push_back(" }");
@@ -75,10 +77,11 @@ class ElementsMatcher {
   template <typename A>
   bool Matches(const A& actual_elements) {
     if (actual_elements.size() != sizeof...(Ms)) return false;
+    auto it = std::begin(actual_elements);
     bool equal = true;
     StaticFor<0, sizeof...(Ms)>([&]<int I>() {
-      equal =
-          equal && std::get<I>(element_matchers_).Matches(actual_elements[I]);
+      equal = equal && std::get<I>(element_matchers_).Matches(*it);
+      ++it;
     });
     return equal;
   }
