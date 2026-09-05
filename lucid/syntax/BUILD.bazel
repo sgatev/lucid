@@ -320,7 +320,7 @@ cc_test(
     srcs = ["token_test.cc"],
     deps = [
         ":token",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
