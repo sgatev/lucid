@@ -16,6 +16,7 @@ cc_library(
     deps = [
         ":matcher",
         "//lucid/core/meta:static_for",
+        "//lucid/core/string:concat",
     ],
 )
 
@@ -29,6 +30,7 @@ cc_library(
     hdrs = ["elements_matcher.h"],
     deps = [
         ":matcher",
+        ":to_string",
         "//lucid/core/meta:static_for",
         "//lucid/core/string:concat",
     ],
@@ -42,7 +44,7 @@ cc_library(
 cc_library(
     name = "equality_matcher",
     hdrs = ["equality_matcher.h"],
-    deps = ["//lucid/core/string:concat"],
+    deps = [":to_string"],
 )
 
 cc_library(
@@ -81,10 +83,16 @@ cc_library(
 )
 
 cc_library(
+    name = "to_string",
+    hdrs = ["to_string.h"],
+)
+
+cc_library(
     name = "unordered_elements_matcher",
     hdrs = ["unordered_elements_matcher.h"],
     deps = [
         ":matcher",
+        ":to_string",
         "//lucid/core/meta:static_for",
         "//lucid/core/string:concat",
     ],

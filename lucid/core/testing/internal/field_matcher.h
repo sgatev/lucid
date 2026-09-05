@@ -25,12 +25,12 @@ class FieldMatcher {
       : field_(field), field_matcher_(field_matcher) {}
 
   std::string DescribeExpected() {
-    return "with a field that " + field_matcher_.DescribeExpected();
+    return "with a field " + field_matcher_.DescribeExpected();
   }
 
   template <FieldMatchableBy<F, M> A>
   std::string DescribeActual(A&& actual_value) {
-    return "with a field that " +
+    return "with a field " +
            field_matcher_.DescribeActual(std::invoke(field_, actual_value));
   }
 

@@ -39,13 +39,13 @@ class PairMatcher {
       : first_matcher_(first_matcher), second_matcher_(second_matcher) {}
 
   std::string DescribeExpected() {
-    return "contain a pair with key " + first_matcher_.DescribeExpected() +
+    return "a pair with key " + first_matcher_.DescribeExpected() +
            " and value " + second_matcher_.DescribeExpected();
   }
 
   template <PairMatchableBy<FM, SM> A>
   std::string DescribeActual(const A& actual_value) {
-    return "pair with key " +
+    return "a pair with key " +
            first_matcher_.DescribeActual(actual_value.first) + " and value " +
            second_matcher_.DescribeActual(actual_value.second);
   }

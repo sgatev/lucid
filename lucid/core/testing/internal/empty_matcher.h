@@ -14,11 +14,11 @@ concept Emptiable = requires(const A& a) {
 // Matches a value that holds no elements.
 class EmptyMatcher {
  public:
-  std::string DescribeExpected() { return "is empty"; }
+  std::string DescribeExpected() { return "empty"; }
 
   template <Emptiable A>
   std::string DescribeActual(const A& actual_elements) {
-    return actual_elements.empty() ? "is empty" : "is not empty";
+    return actual_elements.empty() ? "empty" : "not empty";
   }
 
   template <Emptiable A>

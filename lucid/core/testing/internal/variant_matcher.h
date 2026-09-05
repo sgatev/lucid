@@ -28,16 +28,16 @@ class VariantMatcher {
   explicit VariantMatcher(M value_matcher) : value_matcher_(value_matcher) {}
 
   std::string DescribeExpected() {
-    return "contain a value " + value_matcher_.DescribeExpected();
+    return "a variant holding a value " + value_matcher_.DescribeExpected();
   }
 
-  // Returns a description of the held alternative, or an empty description if
-  // the variant holds some alternative other than `T`.
+  // Returns a description of the held alternative, or, when the variant holds
+  // an alternative other than `T`, says so rather than describing nothing.
   template <VariantMatchableBy<T, M> A>
   std::string DescribeActual(const A& actual_value) {
     const auto* actual = std::get_if<T>(&actual_value);
-    if (actual == nullptr) return "";
-    return "variant with " + value_matcher_.DescribeActual(*actual);
+    if (actual == nullptr) return "a variant holding another alternative";
+    return "a variant holding " + value_matcher_.DescribeActual(*actual);
   }
 
   template <VariantMatchableBy<T, M> A>

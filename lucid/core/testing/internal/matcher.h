@@ -15,6 +15,22 @@
 // with an `empty()` member, whatever its type. That is why there are two
 // concepts below rather than one -- `Matcher` covers what can be checked
 // knowing only the matcher, `MatcherFor` adds what needs an actual value type.
+//
+// A failing assertion renders the two descriptions into a fixed sentence:
+//
+//   Expected <expression>
+//    to be <DescribeExpected()>
+//    but was found <DescribeActual(actual)>.
+//
+// So `DescribeExpected` has to complete "to be ...", and `DescribeActual` has
+// to complete "but was found ...". Both are noun or adjective phrases carrying
+// no leading verb and no trailing punctuation: "empty", "of size 3", "equal to
+// 42", "a pair with key 'a' and value 1". A description that reads as a
+// sentence on its own ("is empty", "size is 3") produces broken grammar once
+// it is pasted into that frame.
+//
+// The expectation carries the comparison, the actual value does not: `Equals`
+// expects "equal to 42" but reports having found "21", never "equal to 21".
 #pragma once
 
 #include <concepts>

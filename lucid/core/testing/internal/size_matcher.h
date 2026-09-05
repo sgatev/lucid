@@ -13,12 +13,12 @@ class SizeMatcher {
   SizeMatcher(std::size_t expected_size) : expected_size_(expected_size) {}
 
   std::string DescribeExpected() {
-    return "size is " + std::to_string(expected_size_);
+    return "of size " + std::to_string(expected_size_);
   }
 
   template <Sized A>
   std::string DescribeActual(const A& actual_elements) {
-    return std::to_string(actual_elements.size());
+    return "of size " + std::to_string(actual_elements.size());
   }
 
   template <Sized A>

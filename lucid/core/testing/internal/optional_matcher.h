@@ -33,13 +33,14 @@ class OptionalMatcher {
   explicit OptionalMatcher(M value_matcher) : value_matcher_(value_matcher) {}
 
   std::string DescribeExpected() {
-    return "contain a value " + value_matcher_.DescribeExpected();
+    return "an optional holding a value " + value_matcher_.DescribeExpected();
   }
 
   template <OptionalMatchableBy<M> A>
   std::string DescribeActual(const A& actual_value) {
-    if (!actual_value.has_value()) return "nullopt";
-    return "optional " + value_matcher_.DescribeActual(*actual_value);
+    if (!actual_value.has_value()) return "an empty optional";
+    return "an optional holding " +
+           value_matcher_.DescribeActual(*actual_value);
   }
 
   template <OptionalMatchableBy<M> A>

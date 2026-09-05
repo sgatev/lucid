@@ -4,7 +4,22 @@
 │ FAIL Predicate
 │ FAIL Boolean
 │ FAIL Equality
-└─► 1 out of 6 tests PASS
+│ FAIL Inequality
+│ FAIL Size
+│ FAIL Empty
+│ FAIL Elements
+│ FAIL FewerElementsThanMatchers
+│ FAIL MoreElementsThanMatchers
+│ FAIL UnorderedElements
+│ FAIL Field
+│ FAIL Optional
+│ FAIL EmptyOptional
+│ FAIL Variant
+│ FAIL OtherVariantAlternative
+│ FAIL Pair
+│ FAIL All
+│ FAIL Not
+└─► 1 out of 21 tests PASS
 
 == Foo ==
 Fail: Foo failure
@@ -16,8 +31,8 @@ Fail: Baz failure
 
 == Predicate ==
 Fail: Expected twenty_one
- to be accepted by predicate
- but was found not such.
+ to be accepted by the predicate
+ but was found not accepted.
 
 == Boolean ==
 Fail: Expected falsy
@@ -27,5 +42,80 @@ Fail: Expected falsy
 == Equality ==
 Fail: Expected twenty_one
  to be equal to 42
- but was found equal to 21.
+ but was found 21.
+
+== Inequality ==
+Fail: Expected twenty_one
+ to be not equal to 21
+ but was found 21.
+
+== Size ==
+Fail: Expected values
+ to be of size 3
+ but was found of size 2.
+
+== Empty ==
+Fail: Expected values
+ to be empty
+ but was found not empty.
+
+== Elements ==
+Fail: Expected values
+ to be a range with elements { equal to 1, equal to 3 }
+ but was found { 1, 2 }.
+
+== FewerElementsThanMatchers ==
+Fail: Expected values
+ to be a range with elements { equal to 1, equal to 2 }
+ but was found { 1 }.
+
+== MoreElementsThanMatchers ==
+Fail: Expected values
+ to be a range with elements { equal to 1, equal to 2 }
+ but was found { 1, 2, 3 }.
+
+== UnorderedElements ==
+Fail: Expected values
+ to be a range with elements { equal to 2 } in any order
+ but was found { 1, 2 }.
+
+== Field ==
+Fail: Expected point
+ to be with a field equal to 3
+ but was found with a field 1.
+
+== Optional ==
+Fail: Expected value
+ to be an optional holding a value equal to 2
+ but was found an optional holding 1.
+
+== EmptyOptional ==
+Fail: Expected value
+ to be an optional holding a value equal to 2
+ but was found an empty optional.
+
+== Variant ==
+Fail: Expected value
+ to be a variant holding a value equal to 2
+ but was found a variant holding 1.
+
+== OtherVariantAlternative ==
+Fail: Expected value
+ to be a variant holding a value equal to 2
+ but was found a variant holding another alternative.
+
+== Pair ==
+Fail: Expected value
+ to be a pair with key equal to 2 and value equal to 'b'
+ but was found a pair with key 1 and value 'a'.
+
+== All ==
+Fail: Expected values
+ to be empty and of size 2
+ but was found not empty and of size 1.
+
+== Not ==
+Fail: Expected twenty_one
+ to be not equal to 21
+ but was found 21.
 

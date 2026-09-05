@@ -16,12 +16,13 @@ class PredicateMatcher {
  public:
   explicit PredicateMatcher(P predicate) : predicate_(predicate) {}
 
-  std::string DescribeExpected() { return "accepted by predicate"; }
+  std::string DescribeExpected() { return "accepted by the predicate"; }
 
-  // Returns a placeholder, as a bare predicate cannot describe a value.
+  // Returns a fixed phrase, as a bare predicate cannot describe the value it
+  // rejected.
   template <typename A>
   std::string DescribeActual(A&&) {
-    return "not such";
+    return "not accepted";
   }
 
   template <typename A>

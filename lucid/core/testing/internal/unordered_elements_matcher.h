@@ -8,6 +8,7 @@
 #include "lucid/core/meta/static_for.h"
 #include "lucid/core/string/concat.h"
 #include "lucid/core/testing/internal/matcher.h"
+#include "lucid/core/testing/internal/to_string.h"
 
 namespace lucid::internal {
 
@@ -25,35 +26,33 @@ class UnorderedElementsMatcher {
   std::string DescribeExpected() {
     std::vector<std::string> parts;
     parts.reserve(sizeof...(Ms) + 2);
-    parts.push_back("have elements { ");
+    parts.push_back("a range with elements { ");
     bool has_added_element = false;
     StaticFor<0, sizeof...(Ms)>([&]<int I>() {
       if (has_added_element) parts.push_back(", ");
       parts.push_back(std::get<I>(element_matchers_).DescribeExpected());
       has_added_element = true;
     });
-    parts.push_back(" }");
+    parts.push_back(" } in any order");
 
     return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
                   "");
   }
 
-  // Returns an empty element list.
-  //
-  // TODO: describe the actual elements. Pairing each matcher with the element
-  // it accepted needs the matching itself, which `Matches` currently discards.
+  // Describes the elements with `ToString` rather than with the element
+  // matchers: without an order there is no matcher that owns a given element,
+  // and the assignment that would pair them up is what the match discards.
   template <ElementsMatchableBy<Ms...> A>
   std::string DescribeActual(const A& actual_elements) {
     std::vector<std::string> parts;
-    parts.reserve(actual_elements.size() + 2);
+    parts.reserve(actual_elements.size() * 2 + 2);
     parts.push_back("{ ");
     bool has_added_element = false;
-    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
+    for (const auto& actual_element : actual_elements) {
       if (has_added_element) parts.push_back(", ");
-      /*parts.push_back(std::get<I>(element_matchers_)
-                          .DescribeActual(*actual_elements.find(I)));*/
+      parts.push_back(ToString(actual_element));
       has_added_element = true;
-    });
+    }
     parts.push_back(" }");
 
     return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
