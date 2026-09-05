@@ -17,7 +17,7 @@ cc_test(
     srcs = ["assembler_test.cc"],
     deps = [
         ":assembler",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
