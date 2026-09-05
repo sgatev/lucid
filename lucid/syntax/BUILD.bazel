@@ -366,6 +366,6 @@ cc_test(
     deps = [
         ":type_repository",
         "//lucid/core/string:index",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
