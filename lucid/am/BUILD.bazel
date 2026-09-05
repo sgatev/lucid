@@ -74,7 +74,7 @@ cc_test(
     srcs = ["instructions_test.cc"],
     deps = [
         ":instructions",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
