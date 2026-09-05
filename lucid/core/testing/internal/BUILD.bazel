@@ -1,15 +1,21 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
+package(
+    default_testonly = True,
+    default_visibility = ["//lucid/core/testing:__subpackages__"],
+)
+
 cc_library(
     name = "boolean_matcher",
-    testonly = True,
     hdrs = ["boolean_matcher.h"],
-    visibility = ["//lucid/core/testing:__subpackages__"],
+)
+
+cc_library(
+    name = "equality_matcher",
+    hdrs = ["equality_matcher.h"],
 )
 
 cc_library(
     name = "predicate_matcher",
-    testonly = True,
     hdrs = ["predicate_matcher.h"],
-    visibility = ["//lucid/core/testing:__subpackages__"],
 )

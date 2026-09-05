@@ -3,7 +3,8 @@
 │ FAIL Baz
 │ FAIL Predicate
 │ FAIL Boolean
-└─► 1 out of 5 tests PASS
+│ FAIL Equality
+└─► 1 out of 6 tests PASS
 
 == Foo ==
 Fail: Foo failure
@@ -14,7 +15,7 @@ Baz LOG
 Fail: Baz failure
 
 == Predicate ==
-Fail: Expected tewnty_one
+Fail: Expected twenty_one
  to be accepted by predicate
  but was found not such.
 
@@ -22,4 +23,9 @@ Fail: Expected tewnty_one
 Fail: Expected falsy
  to be true
  but was found false.
+
+== Equality ==
+Fail: Expected twenty_one
+ to be equal to 42
+ but was found equal to 21.
 

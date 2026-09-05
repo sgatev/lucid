@@ -2,19 +2,18 @@
 
 #include <cstddef>
 #include <functional>
-#include <initializer_list>
 #include <memory>
 #include <span>
 #include <string>
 #include <string_view>
 #include <tuple>
-#include <utility>
 #include <variant>
 #include <vector>
 
 #include "lucid/core/meta/static_for.h"
 #include "lucid/core/string/concat.h"
 #include "lucid/core/testing/internal/boolean_matcher.h"
+#include "lucid/core/testing/internal/equality_matcher.h"
 #include "lucid/core/testing/internal/predicate_matcher.h"
 
 namespace lucid {
@@ -31,62 +30,7 @@ inline bool operator==(const std::variant<Types...>& v, const T& t) {
   return t == v;
 }
 
-// Returns a string representation of `s`.
-template <typename T>
-inline std::string ToString(const T& t) {
-  return "[unstringable]";
-}
-
-// Returns a string representation of `s`.
-template <>
-inline std::string ToString(const char& c) {
-  return "'" + std::string(1, c) + "'";
-}
-
-// Returns a string representation of `s`.
-template <>
-inline std::string ToString(const std::string_view& s) {
-  return std::string(s);
-}
-
-// Returns a string representation of `s`.
-template <>
-inline std::string ToString(const int& s) {
-  return std::to_string(s);
-}
-
 namespace internal {
-
-template <typename E>
-class EqualityMatcher {
- public:
-  explicit EqualityMatcher(E expected_value, bool expect_equals)
-      : expected_value_(std::forward<E>(expected_value)),
-        expect_equals_(expect_equals) {}
-
-  std::string DescribeExpected() {
-    std::string qualifier = expect_equals_ ? "equal " : "not equal ";
-    std::string stringified_expected_value = ToString(expected_value_);
-    return Concat(
-        std::initializer_list<std::string_view>{qualifier,
-                                                stringified_expected_value},
-        "");
-  }
-
-  template <typename A>
-  std::string DescribeActual(const A& actual_value) {
-    return ToString(actual_value);
-  }
-
-  template <typename A>
-  bool Matches(const A& actual_value) {
-    return (actual_value == expected_value_) == expect_equals_;
-  }
-
- private:
-  const E expected_value_;
-  bool expect_equals_;
-};
 
 template <typename... Ms>
 class ElementsMatcher {
@@ -553,10 +497,10 @@ internal::NotMatcher<M> Not(M matcher) {
         "Expected ",                                                       \
         TO_STRING(actual),                                                 \
         "\n",                                                              \
-        " to be ",                                                            \
+        " to be ",                                                         \
         (matcher).DescribeExpected(),                                      \
         "\n",                                                              \
-        " but was found ",                                                           \
+        " but was found ",                                                 \
         (matcher).DescribeActual(actual),                                  \
         ".",                                                               \
     };                                                                     \
@@ -576,10 +520,10 @@ internal::NotMatcher<M> Not(M matcher) {
         "Expected ",                                                       \
         TO_STRING(actual),                                                 \
         "\n",                                                              \
-        " to be ",                                                            \
+        " to be ",                                                         \
         (matcher).DescribeExpected(),                                      \
         "\n",                                                              \
-        " but was found ",                                                           \
+        " but was found ",                                                 \
         (matcher).DescribeActual(actual),                                  \
         ".",                                                               \
     };                                                                     \
