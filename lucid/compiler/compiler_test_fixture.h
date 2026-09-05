@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
+#include <iostream>
 #include <string>
 #include <string_view>
 
@@ -59,7 +60,7 @@ class CompilerTest : public Test {
   }
 
   // Returns the full path of the file with the given `name`.
-  std::string FullPath(std::string_view name) { return temp_dir_ / name; }
+  std::string FullPath(std::string_view name) { return TempDir() / name; }
 
   // Runs the compiler binary, passing it the given `args`.
   CommandResult RunCompiler(std::initializer_list<std::string_view> args) {
@@ -82,6 +83,7 @@ class CompilerTest : public Test {
     std::string c = std::string(command) + " > " + out_path + " 2> " + err_path;
     const int result = std::system(c.c_str());
     const int return_code = WEXITSTATUS(result);
+    std::cout << return_code << std::endl;
     return {
         .return_code = return_code,
         .out = ReadFile(out_path).value(),
@@ -90,8 +92,6 @@ class CompilerTest : public Test {
   }
 
   const std::filesystem::path runtime_dir_ = std::filesystem::current_path();
-  const std::filesystem::path temp_dir_ =
-      std::filesystem::temp_directory_path();
 };
 
 }  // namespace lucid

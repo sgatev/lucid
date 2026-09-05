@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <filesystem>
 #include <functional>
 #include <iterator>
 #include <memory>
@@ -364,8 +365,12 @@ class Test {
   // Defines the logic of the test.
   virtual void Run() = 0;
 
+  // Returns the path to the temporary directory created for this test run.
+  std::filesystem::path TempDir() const { return temp_dir_; }
+
  private:
   bool failed_;
+  std::filesystem::path temp_dir_;
 };
 
 // Adds a new test to the global suite of tests.
@@ -495,11 +500,15 @@ internal::NotMatcher<M> Not(M matcher) {
 }
 
 inline auto StartsWith(std::string_view prefix) {
-  return Truly([prefix](std::string_view s) { return s.starts_with(prefix); });
+  return Truly([prefix = std::string(prefix)](std::string_view s) {
+    return s.starts_with(prefix);
+  });
 }
 
 inline auto EndsWith(std::string_view suffix) {
-  return Truly([suffix](std::string_view s) { return s.ends_with(suffix); });
+  return Truly([suffix = std::string(suffix)](std::string_view s) {
+    return s.ends_with(suffix);
+  });
 }
 
 #define ASSERT_THAT(actual, matcher)                                       \

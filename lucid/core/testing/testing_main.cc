@@ -1,10 +1,14 @@
+#include <unistd.h>
+
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <streambuf>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -14,8 +18,33 @@
 namespace lucid {
 
 bool Test::RunFull() {
+  std::error_code get_temp_dir_base_error_code;
+  std::filesystem::path temp_dir_base =
+      std::filesystem::temp_directory_path(get_temp_dir_base_error_code);
+  if (get_temp_dir_base_error_code) {
+    std::cout << "Fail: couldn't get base temp directory for test run: "
+              << get_temp_dir_base_error_code.message() << "\n";
+    return false;
+  }
+
+  std::string temp_dir = temp_dir_base / (std::string(Name()) + "-XXXXXX");
+  if (mkdtemp(temp_dir.data()) == nullptr) {
+    std::cout << "Fail: couldn't create temp directory for test run\n";
+    return false;
+  }
+  temp_dir_ = temp_dir;
+
   failed_ = false;
   Run();
+
+  std::error_code remove_temp_dir_error_code;
+  std::filesystem::remove_all(temp_dir_, remove_temp_dir_error_code);
+  if (remove_temp_dir_error_code) {
+    std::cout << "Fail: couldn't remove temp directory for test run: "
+              << remove_temp_dir_error_code.message() << "\n";
+    return false;
+  }
+
   return !failed_;
 }
 
