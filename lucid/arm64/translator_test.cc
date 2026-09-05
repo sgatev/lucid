@@ -1,16 +1,15 @@
 #include "lucid/arm64/translator.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-TEST(GenerateArmStartBinaryTest, Works) {}
+TEST(Test, GenerateArmStartBinaryWorks) {}
 
-TEST(GenerateArmEndBinaryTest, Works) {}
+TEST(Test, GenerateArmEndBinaryWorks) {}
 
-TEST(GenerateArmAssemblyBinaryTest, Works) {}
+TEST(Test, GenerateArmAssemblyBinaryWorks) {}
 
 }  // namespace
 }  // namespace lucid

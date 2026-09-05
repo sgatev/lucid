@@ -55,6 +55,6 @@ cc_test(
     srcs = ["translator_test.cc"],
     deps = [
         ":translator",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
