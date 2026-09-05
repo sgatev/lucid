@@ -1,27 +1,22 @@
 #include "lucid/core/container/graph/dominator.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/core/container/graph/test_graph.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-using ::testing::ElementsAre;
-using ::testing::IsEmpty;
-using ::testing::Pair;
-using ::testing::UnorderedElementsAre;
-
-TEST(ComputeImmediateDominatorsTest, Simple) {
+TEST(Test, ComputeImmediateDominatorsSimple) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
   g.AddEdge('A', 'W');
 
-  EXPECT_THAT(ComputeImmediateDominators(g), ElementsAre(/* A, W */ 'A', 'A'));
+  EXPECT_THAT(ComputeImmediateDominators(g),
+              ElementsEqual(/* A, W */ 'A', 'A'));
 }
 
-TEST(ComputeImmediateDominatorsTest, DiamondBranch) {
+TEST(Test, ComputeImmediateDominatorsDiamondBranch) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -31,10 +26,10 @@ TEST(ComputeImmediateDominatorsTest, DiamondBranch) {
   g.AddEdge('C', 'W');
 
   EXPECT_THAT(ComputeImmediateDominators(g),
-              ElementsAre(/* A, W, B, C */ 'A', 'A', 'A', 'A'));
+              ElementsEqual(/* A, W, B, C */ 'A', 'A', 'A', 'A'));
 }
 
-TEST(ComputeImmediateDominatorsTest, Loop) {
+TEST(Test, ComputeImmediateDominatorsLoop) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -45,10 +40,10 @@ TEST(ComputeImmediateDominatorsTest, Loop) {
   g.AddEdge('D', 'W');
 
   EXPECT_THAT(ComputeImmediateDominators(g),
-              ElementsAre(/* A, W, B, C, D */ 'A', 'D', 'A', 'B', 'B'));
+              ElementsEqual(/* A, W, B, C, D */ 'A', 'D', 'A', 'B', 'B'));
 }
 
-TEST(ComputeDominanceFrontiersTest, Simple) {
+TEST(Test, ComputeDominanceFrontiersSimple) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -58,7 +53,7 @@ TEST(ComputeDominanceFrontiersTest, Simple) {
               IsEmpty());
 }
 
-TEST(ComputeDominanceFrontiersTest, DiamondBranch) {
+TEST(Test, ComputeDominanceFrontiersDiamondBranch) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -67,12 +62,13 @@ TEST(ComputeDominanceFrontiersTest, DiamondBranch) {
   g.AddEdge('B', 'W');
   g.AddEdge('C', 'W');
 
-  EXPECT_THAT(ComputeDominanceFrontiers(g, ComputeImmediateDominators(g)),
-              UnorderedElementsAre(Pair('B', UnorderedElementsAre('W')),
-                                   Pair('C', UnorderedElementsAre('W'))));
+  EXPECT_THAT(
+      ComputeDominanceFrontiers(g, ComputeImmediateDominators(g)),
+      UnorderedElements(Pair(Equals('B'), UnorderedElementsEqual('W')),
+                        Pair(Equals('C'), UnorderedElementsEqual('W'))));
 }
 
-TEST(ComputeDominanceFrontiersTest, Loop) {
+TEST(Test, ComputeDominanceFrontiersLoop) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -82,22 +78,24 @@ TEST(ComputeDominanceFrontiersTest, Loop) {
   g.AddEdge('C', 'B');
   g.AddEdge('D', 'W');
 
-  EXPECT_THAT(ComputeDominanceFrontiers(g, ComputeImmediateDominators(g)),
-              UnorderedElementsAre(Pair('B', UnorderedElementsAre('B')),
-                                   Pair('C', UnorderedElementsAre('B'))));
+  EXPECT_THAT(
+      ComputeDominanceFrontiers(g, ComputeImmediateDominators(g)),
+      UnorderedElements(Pair(Equals('B'), UnorderedElementsEqual('B')),
+                        Pair(Equals('C'), UnorderedElementsEqual('B'))));
 }
 
-TEST(BuildDominatorTreeTest, Simple) {
+TEST(Test, BuildDominatorTreeSimple) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
   g.AddEdge('A', 'W');
 
-  EXPECT_THAT(BuildDominatorTree(g, ComputeImmediateDominators(g)),
-              UnorderedElementsAre(Pair('A', UnorderedElementsAre('A', 'W'))));
+  EXPECT_THAT(
+      BuildDominatorTree(g, ComputeImmediateDominators(g)),
+      UnorderedElements(Pair(Equals('A'), UnorderedElementsEqual('A', 'W'))));
 }
 
-TEST(BuildDominatorTreeTest, DiamondBranch) {
+TEST(Test, BuildDominatorTreeDiamondBranch) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -107,11 +105,11 @@ TEST(BuildDominatorTreeTest, DiamondBranch) {
   g.AddEdge('C', 'W');
 
   EXPECT_THAT(BuildDominatorTree(g, ComputeImmediateDominators(g)),
-              UnorderedElementsAre(
-                  Pair('A', UnorderedElementsAre('A', 'B', 'C', 'W'))));
+              UnorderedElements(Pair(
+                  Equals('A'), UnorderedElementsEqual('A', 'B', 'C', 'W'))));
 }
 
-TEST(BuildDominatorTreeTest, Loop) {
+TEST(Test, BuildDominatorTreeLoop) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -121,10 +119,11 @@ TEST(BuildDominatorTreeTest, Loop) {
   g.AddEdge('C', 'B');
   g.AddEdge('D', 'W');
 
-  EXPECT_THAT(BuildDominatorTree(g, ComputeImmediateDominators(g)),
-              UnorderedElementsAre(Pair('A', UnorderedElementsAre('A', 'B')),
-                                   Pair('B', UnorderedElementsAre('C', 'D')),
-                                   Pair('D', UnorderedElementsAre('W'))));
+  EXPECT_THAT(
+      BuildDominatorTree(g, ComputeImmediateDominators(g)),
+      UnorderedElements(Pair(Equals('A'), UnorderedElementsEqual('A', 'B')),
+                        Pair(Equals('B'), UnorderedElementsEqual('C', 'D')),
+                        Pair(Equals('D'), UnorderedElementsEqual('W'))));
 }
 
 }  // namespace

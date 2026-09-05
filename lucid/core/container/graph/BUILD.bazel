@@ -19,7 +19,7 @@ cc_test(
     deps = [
         ":dominator",
         ":test_graph",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
