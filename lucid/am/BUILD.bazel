@@ -56,7 +56,7 @@ cc_test(
         ":cfg",
         ":cfg_builder",
         ":ig",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 

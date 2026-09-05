@@ -2,18 +2,13 @@
 
 #include <utility>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_builder.h"
 #include "lucid/am/instructions.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
-
-using ::testing::IsEmpty;
-using ::testing::Pair;
-using ::testing::UnorderedElementsAre;
 
 constexpr static Reg kReg1 = {
     .id = 1,
@@ -30,7 +25,7 @@ constexpr static Reg kReg3 = {
     .size = RegSize32,
 };
 
-TEST(BuildInterferenceGraphTest, Empty) {
+TEST(Test, BuildInterferenceGraphEmpty) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -46,7 +41,7 @@ TEST(BuildInterferenceGraphTest, Empty) {
   EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()), IsEmpty());
 }
 
-TEST(BuildInterferenceGraphTest, Simple) {
+TEST(Test, BuildInterferenceGraphSimple) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -67,10 +62,10 @@ TEST(BuildInterferenceGraphTest, Simple) {
   g.SetLast(z);
 
   EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()),
-              UnorderedElementsAre(Pair(kReg1, IsEmpty())));
+              UnorderedElements(Pair(Equals(kReg1), IsEmpty())));
 }
 
-TEST(BuildInterferenceGraphTest, NonOverlapping) {
+TEST(Test, BuildInterferenceGraphNonOverlapping) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -94,12 +89,12 @@ TEST(BuildInterferenceGraphTest, NonOverlapping) {
                       });
   g.SetLast(z);
 
-  EXPECT_THAT(
-      BuildInterferenceGraph(std::move(g).Build()),
-      UnorderedElementsAre(Pair(kReg1, IsEmpty()), Pair(kReg2, IsEmpty())));
+  EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()),
+              UnorderedElements(Pair(Equals(kReg1), IsEmpty()),
+                                Pair(Equals(kReg2), IsEmpty())));
 }
 
-TEST(BuildInterferenceGraphTest, Overlapping) {
+TEST(Test, BuildInterferenceGraphOverlapping) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -128,13 +123,14 @@ TEST(BuildInterferenceGraphTest, Overlapping) {
                       });
   g.SetLast(z);
 
-  EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()),
-              UnorderedElementsAre(Pair(kReg1, UnorderedElementsAre(kReg2)),
-                                   Pair(kReg2, UnorderedElementsAre(kReg1)),
-                                   Pair(kReg3, IsEmpty())));
+  EXPECT_THAT(
+      BuildInterferenceGraph(std::move(g).Build()),
+      UnorderedElements(Pair(Equals(kReg1), UnorderedElementsEqual(kReg2)),
+                        Pair(Equals(kReg2), UnorderedElementsEqual(kReg1)),
+                        Pair(Equals(kReg3), IsEmpty())));
 }
 
-TEST(BuildInterferenceGraphTest, Branching) {
+TEST(Test, BuildInterferenceGraphBranching) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -175,13 +171,14 @@ TEST(BuildInterferenceGraphTest, Branching) {
                       });
   g.SetLast(z);
 
-  EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()),
-              UnorderedElementsAre(Pair(kReg1, UnorderedElementsAre(kReg2)),
-                                   Pair(kReg2, UnorderedElementsAre(kReg1)),
-                                   Pair(kReg3, IsEmpty())));
+  EXPECT_THAT(
+      BuildInterferenceGraph(std::move(g).Build()),
+      UnorderedElements(Pair(Equals(kReg1), UnorderedElementsEqual(kReg2)),
+                        Pair(Equals(kReg2), UnorderedElementsEqual(kReg1)),
+                        Pair(Equals(kReg3), IsEmpty())));
 }
 
-TEST(BuildInterferenceGraphTest, Merging) {
+TEST(Test, BuildInterferenceGraphMerging) {
   AbstractMachineControlFlowGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -218,11 +215,11 @@ TEST(BuildInterferenceGraphTest, Merging) {
                       });
   g.SetLast(z);
 
-  EXPECT_THAT(
-      BuildInterferenceGraph(std::move(g).Build()),
-      UnorderedElementsAre(Pair(kReg1, UnorderedElementsAre(kReg3)),
-                           Pair(kReg2, UnorderedElementsAre(kReg3)),
-                           Pair(kReg3, UnorderedElementsAre(kReg1, kReg2))));
+  EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()),
+              UnorderedElements(
+                  Pair(Equals(kReg1), UnorderedElementsEqual(kReg3)),
+                  Pair(Equals(kReg2), UnorderedElementsEqual(kReg3)),
+                  Pair(Equals(kReg3), UnorderedElementsEqual(kReg1, kReg2))));
 }
 
 }  // namespace
