@@ -2,9 +2,12 @@
 
 #include <string>
 
+#include "lucid/core/testing/internal/matcher.h"
+
 namespace lucid::internal {
 
-template <typename M>
+// Matches a value that `matcher` rejects.
+template <Matcher M>
 class NotMatcher {
  public:
   explicit NotMatcher(M matcher) : matcher_(matcher) {}
@@ -13,12 +16,12 @@ class NotMatcher {
     return "not " + matcher_.DescribeExpected();
   }
 
-  template <typename A>
+  template <MatchableBy<M> A>
   std::string DescribeActual(const A& actual_value) {
     return matcher_.DescribeActual(actual_value);
   }
 
-  template <typename A>
+  template <MatchableBy<M> A>
   bool Matches(const A& actual_value) const {
     return !matcher_.Matches(actual_value);
   }

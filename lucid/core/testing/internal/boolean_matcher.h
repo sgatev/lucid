@@ -4,6 +4,10 @@
 
 namespace lucid::internal {
 
+// Matches a boolean equal to `expected_value`.
+//
+// Unlike most matchers this one is not generic over the actual value type: it
+// takes a `bool`, so any value implicitly convertible to one is accepted.
 class BooleanMatcher {
  public:
   explicit BooleanMatcher(bool expected_value)

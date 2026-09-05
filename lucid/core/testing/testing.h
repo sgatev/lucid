@@ -13,6 +13,7 @@
 #include "lucid/core/testing/internal/empty_matcher.h"
 #include "lucid/core/testing/internal/equality_matcher.h"
 #include "lucid/core/testing/internal/field_matcher.h"
+#include "lucid/core/testing/internal/matcher.h"
 #include "lucid/core/testing/internal/not_matcher.h"
 #include "lucid/core/testing/internal/optional_matcher.h"
 #include "lucid/core/testing/internal/pair_matcher.h"
@@ -122,7 +123,7 @@ inline internal::EmptyMatcher IsEmpty() { return internal::EmptyMatcher(); }
 
 // Matches a value that whose elements match `element_matchers` in the given
 // order.
-template <typename... Ms>
+template <internal::Matcher... Ms>
 internal::ElementsMatcher<Ms...> Elements(Ms... element_matchers) {
   return internal::ElementsMatcher<Ms...>(element_matchers...);
 }
@@ -136,7 +137,7 @@ internal::ElementsMatcher<internal::EqualityMatcher<Ts>...> ElementsEqual(
 
 // Matches a value that whose elements match `element_matchers` in no particular
 // order.
-template <typename... Ms>
+template <internal::Matcher... Ms>
 internal::UnorderedElementsMatcher<Ms...> UnorderedElements(
     Ms... element_matchers) {
   return internal::UnorderedElementsMatcher<Ms...>(element_matchers...);
@@ -150,39 +151,39 @@ UnorderedElementsEqual(Ts... expected_elements) {
 }
 
 // Matches a value that has a field accepted by `field_matcher`.
-template <typename F, typename M>
+template <typename F, internal::Matcher M>
 internal::FieldMatcher<F, M> Field(F field, M field_matcher) {
   return internal::FieldMatcher<F, M>(field, field_matcher);
 }
 
 // Matches an optional that contains a value accepted by `value_matcher`.
-template <typename M>
+template <internal::Matcher M>
 internal::OptionalMatcher<M> Optional(M value_matcher) {
   return internal::OptionalMatcher<M>(value_matcher);
 }
 
 // Matches a variant that contains value of type `T` accepted by
 // `value_matcher`.
-template <typename T, typename M>
+template <typename T, internal::Matcher M>
 internal::VariantMatcher<T, M> Variant(M value_matcher) {
   return internal::VariantMatcher<T, M>(value_matcher);
 }
 
 // Matches a pair value whose first element is accepted by `first_matcher` and
 // whose seccond element is accepted by `second_matcher`.
-template <typename FM, typename SM>
+template <internal::Matcher FM, internal::Matcher SM>
 internal::PairMatcher<FM, SM> Pair(FM first_matcher, SM second_matcher) {
   return internal::PairMatcher<FM, SM>(first_matcher, second_matcher);
 }
 
 // Matches a value that is accepted by all `matchers`.
-template <typename... Ms>
+template <internal::Matcher... Ms>
 internal::AllMatcher<Ms...> AllOf(Ms... matchers) {
   return internal::AllMatcher<Ms...>(matchers...);
 }
 
 // Matches a value not accepted by `matcher`.
-template <typename M>
+template <internal::Matcher M>
 internal::NotMatcher<M> Not(M matcher) {
   return internal::NotMatcher<M>(matcher);
 }

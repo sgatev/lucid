@@ -8,10 +8,16 @@
 
 #include "lucid/core/meta/static_for.h"
 #include "lucid/core/string/concat.h"
+#include "lucid/core/testing/internal/matcher.h"
 
 namespace lucid::internal {
 
-template <typename... Ms>
+// Matches a range whose elements are accepted by `element_matchers`, one
+// matcher per element, in order.
+//
+// A range of any other length never matches, so the matcher count fixes the
+// expected size.
+template <Matcher... Ms>
 class ElementsMatcher {
  public:
   ElementsMatcher(Ms... element_matchers)
@@ -33,7 +39,7 @@ class ElementsMatcher {
                   "");
   }
 
-  template <typename A>
+  template <ElementsMatchableBy<Ms...> A>
   std::string DescribeActual(const A& actual_elements) {
     std::vector<std::string> parts;
     parts.reserve(actual_elements.size() + 2);
@@ -52,7 +58,7 @@ class ElementsMatcher {
                   "");
   }
 
-  template <typename A>
+  template <ElementsMatchableBy<Ms...> A>
   bool Matches(const A& actual_elements) const {
     if (actual_elements.size() != sizeof...(Ms)) return false;
     auto it = std::begin(actual_elements);

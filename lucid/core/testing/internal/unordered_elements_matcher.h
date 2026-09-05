@@ -7,10 +7,16 @@
 
 #include "lucid/core/meta/static_for.h"
 #include "lucid/core/string/concat.h"
+#include "lucid/core/testing/internal/matcher.h"
 
 namespace lucid::internal {
 
-template <typename... Ms>
+// Matches a range whose elements are accepted by `element_matchers`, one
+// matcher per element, in no particular order.
+//
+// A range of any other length never matches, so the matcher count fixes the
+// expected size.
+template <Matcher... Ms>
 class UnorderedElementsMatcher {
  public:
   UnorderedElementsMatcher(Ms... element_matchers)
@@ -32,7 +38,11 @@ class UnorderedElementsMatcher {
                   "");
   }
 
-  template <typename A>
+  // Returns an empty element list.
+  //
+  // TODO: describe the actual elements. Pairing each matcher with the element
+  // it accepted needs the matching itself, which `Matches` currently discards.
+  template <ElementsMatchableBy<Ms...> A>
   std::string DescribeActual(const A& actual_elements) {
     std::vector<std::string> parts;
     parts.reserve(actual_elements.size() + 2);
@@ -50,7 +60,12 @@ class UnorderedElementsMatcher {
                   "");
   }
 
-  template <typename A>
+  // BUG: only the size is actually checked. `found` below is initialised to
+  // true, so the search for an accepting element cannot fail and every
+  // same-sized range matches. Initialising it to false fixes the search, but
+  // that alone would still let one element satisfy several matchers; a correct
+  // implementation needs a matcher-to-element assignment.
+  template <ElementsMatchableBy<Ms...> A>
   bool Matches(const A& actual_elements) const {
     if (actual_elements.size() != sizeof...(Ms)) return false;
     bool equal = true;
