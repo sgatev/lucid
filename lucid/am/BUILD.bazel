@@ -99,9 +99,9 @@ cc_test(
         ":liveness",
         "//lucid/core/dataflow",
         "//lucid/core/string:index",
+        "//lucid/core/testing",
         "//lucid/syntax:ast",
         "//lucid/syntax:lexer",
-        "@googletest//:gtest_main",
     ],
 )
 

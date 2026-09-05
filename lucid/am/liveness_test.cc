@@ -4,19 +4,14 @@
 #include <utility>
 #include <vector>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_builder.h"
 #include "lucid/am/instructions.h"
 #include "lucid/core/dataflow/dataflow.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
-
-using ::testing::IsEmpty;
-using ::testing::SizeIs;
-using ::testing::UnorderedElementsAre;
 
 class LivenessAnalysisGraphBuilder
     : public AbstractMachineControlFlowGraphBuilder {
@@ -28,7 +23,7 @@ class LivenessAnalysisGraphBuilder
   }
 };
 
-TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
+TEST(Test, AbstractMachineLivenessAnalysisTwoBlocks) {
   LivenessAnalysisGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -54,7 +49,7 @@ TEST(AbstractMachineLivenessAnalysisTest, TwoBlocks) {
   EXPECT_THAT(block_states[z.id()]->live_out, IsEmpty());
 }
 
-TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
+TEST(Test, AbstractMachineLivenessAnalysisUseInMiddleBlock) {
   LivenessAnalysisGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -81,16 +76,16 @@ TEST(AbstractMachineLivenessAnalysisTest, UseInMiddleBlock) {
   ASSERT_THAT(block_states, SizeIs(3));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsAre(Reg(1)));
+  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsEqual(Reg(1)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(Reg(1)));
+  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsEqual(Reg(1)));
   EXPECT_THAT(block_states[b.id()]->live_out, IsEmpty());
 
   EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
   EXPECT_THAT(block_states[z.id()]->live_out, IsEmpty());
 }
 
-TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
+TEST(Test, AbstractMachineLivenessAnalysisDiamondWithFollowUse) {
   LivenessAnalysisGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -137,22 +132,22 @@ TEST(AbstractMachineLivenessAnalysisTest, DiamondWithFollowUse) {
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
   EXPECT_THAT(block_states[a.id()]->live_out,
-              UnorderedElementsAre(Reg(1), Reg(2)));
+              UnorderedElementsEqual(Reg(1), Reg(2)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(Reg(1)));
-  EXPECT_THAT(block_states[b.id()]->live_out, UnorderedElementsAre(Reg(3)));
+  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsEqual(Reg(1)));
+  EXPECT_THAT(block_states[b.id()]->live_out, UnorderedElementsEqual(Reg(3)));
 
-  EXPECT_THAT(block_states[c.id()]->live_in, UnorderedElementsAre(Reg(2)));
-  EXPECT_THAT(block_states[c.id()]->live_out, UnorderedElementsAre(Reg(3)));
+  EXPECT_THAT(block_states[c.id()]->live_in, UnorderedElementsEqual(Reg(2)));
+  EXPECT_THAT(block_states[c.id()]->live_out, UnorderedElementsEqual(Reg(3)));
 
-  EXPECT_THAT(block_states[d.id()]->live_in, UnorderedElementsAre(Reg(3)));
+  EXPECT_THAT(block_states[d.id()]->live_in, UnorderedElementsEqual(Reg(3)));
   EXPECT_THAT(block_states[d.id()]->live_out, IsEmpty());
 
   EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
   EXPECT_THAT(block_states[z.id()]->live_out, IsEmpty());
 }
 
-TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
+TEST(Test, AbstractMachineLivenessAnalysisIntraBlockUse) {
   LivenessAnalysisGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -183,16 +178,16 @@ TEST(AbstractMachineLivenessAnalysisTest, IntraBlockUse) {
   ASSERT_THAT(block_states, SizeIs(3));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsAre(Reg(2)));
+  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsEqual(Reg(2)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(Reg(2)));
+  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsEqual(Reg(2)));
   EXPECT_THAT(block_states[b.id()]->live_out, IsEmpty());
 
   EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
   EXPECT_THAT(block_states[z.id()]->live_out, IsEmpty());
 }
 
-TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
+TEST(Test, AbstractMachineLivenessAnalysisSkipBlockUse) {
   LivenessAnalysisGraphBuilder g;
 
   auto a = g.AddBlock();
@@ -227,14 +222,14 @@ TEST(AbstractMachineLivenessAnalysisTest, SkipBlockUse) {
   ASSERT_THAT(block_states, SizeIs(4));
 
   EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsAre(Reg(1)));
+  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsEqual(Reg(1)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsAre(Reg(1)));
+  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsEqual(Reg(1)));
   EXPECT_THAT(block_states[b.id()]->live_out,
-              UnorderedElementsAre(Reg(1), Reg(2)));
+              UnorderedElementsEqual(Reg(1), Reg(2)));
 
   EXPECT_THAT(block_states[c.id()]->live_in,
-              UnorderedElementsAre(Reg(1), Reg(2)));
+              UnorderedElementsEqual(Reg(1), Reg(2)));
   EXPECT_THAT(block_states[c.id()]->live_out, IsEmpty());
 
   EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
