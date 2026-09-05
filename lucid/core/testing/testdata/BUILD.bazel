@@ -1,0 +1,27 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+package(
+    default_testonly = True,
+    default_visibility = ["//lucid/core/testing:__subpackages__"],
+)
+
+cc_binary(
+    name = "failing_tests",
+    srcs = ["failing_tests.cc"],
+    deps = [
+        "//lucid/core/testing",
+    ],
+)
+
+cc_binary(
+    name = "passing_tests",
+    srcs = ["passing_tests.cc"],
+    deps = [
+        "//lucid/core/testing",
+    ],
+)
+
+exports_files([
+    "expected_failing_tests_output",
+    "expected_passing_tests_output",
+])

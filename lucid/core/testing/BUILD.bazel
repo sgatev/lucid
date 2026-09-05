@@ -36,36 +36,18 @@ cc_library(
     alwayslink = True,
 )
 
-cc_binary(
-    name = "passing_tests",
-    testonly = True,
-    srcs = ["passing_tests.cc"],
-    deps = [
-        ":testing",
-    ],
-)
-
 genrule(
     name = "run_passing_tests",
     testonly = True,
     outs = ["passing_tests_output"],
-    cmd = "$(location :passing_tests) --disable_timings > $@",
-    tools = [":passing_tests"],
+    cmd = "$(location //lucid/core/testing/testdata:passing_tests) --disable_timings > $@",
+    tools = ["//lucid/core/testing/testdata:passing_tests"],
 )
 
 diff_test(
     name = "passing_tests_test",
-    file1 = "testdata/expected_passing_tests_output",
+    file1 = "//lucid/core/testing/testdata:expected_passing_tests_output",
     file2 = ":passing_tests_output",
-)
-
-cc_binary(
-    name = "failing_tests",
-    testonly = True,
-    srcs = ["failing_tests.cc"],
-    deps = [
-        ":testing",
-    ],
 )
 
 genrule(
@@ -73,16 +55,16 @@ genrule(
     testonly = True,
     outs = ["failing_tests_output"],
     cmd = """
-    if $(location :failing_tests) --disable_timings > $@ 2>&1; then
+    if $(location //lucid/core/testing/testdata:failing_tests) --disable_timings > $@ 2>&1; then
       echo "ERROR: Expected tool to fail, but it exited with 0" >&2
       exit 1
     fi
     """,
-    tools = [":failing_tests"],
+    tools = ["//lucid/core/testing/testdata:failing_tests"],
 )
 
 diff_test(
     name = "failing_tests_test",
-    file1 = "testdata/expected_failing_tests_output",
+    file1 = "//lucid/core/testing/testdata:expected_failing_tests_output",
     file2 = ":failing_tests_output",
 )
