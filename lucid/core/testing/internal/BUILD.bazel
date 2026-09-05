@@ -6,16 +6,76 @@ package(
 )
 
 cc_library(
+    name = "all_matcher",
+    hdrs = ["all_matcher.h"],
+    deps = ["//lucid/core/meta:static_for"],
+)
+
+cc_library(
     name = "boolean_matcher",
     hdrs = ["boolean_matcher.h"],
 )
 
 cc_library(
+    name = "elements_matcher",
+    hdrs = ["elements_matcher.h"],
+    deps = [
+        "//lucid/core/meta:static_for",
+        "//lucid/core/string:concat",
+    ],
+)
+
+cc_library(
+    name = "empty_matcher",
+    hdrs = ["empty_matcher.h"],
+)
+
+cc_library(
     name = "equality_matcher",
     hdrs = ["equality_matcher.h"],
+    deps = ["//lucid/core/string:concat"],
+)
+
+cc_library(
+    name = "field_matcher",
+    hdrs = ["field_matcher.h"],
+)
+
+cc_library(
+    name = "not_matcher",
+    hdrs = ["not_matcher.h"],
+)
+
+cc_library(
+    name = "optional_matcher",
+    hdrs = ["optional_matcher.h"],
+)
+
+cc_library(
+    name = "pair_matcher",
+    hdrs = ["pair_matcher.h"],
 )
 
 cc_library(
     name = "predicate_matcher",
     hdrs = ["predicate_matcher.h"],
+)
+
+cc_library(
+    name = "size_matcher",
+    hdrs = ["size_matcher.h"],
+)
+
+cc_library(
+    name = "unordered_elements_matcher",
+    hdrs = ["unordered_elements_matcher.h"],
+    deps = [
+        "//lucid/core/meta:static_for",
+        "//lucid/core/string:concat",
+    ],
+)
+
+cc_library(
+    name = "variant_matcher",
+    hdrs = ["variant_matcher.h"],
 )

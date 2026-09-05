@@ -1,0 +1,74 @@
+#pragma once
+
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <vector>
+
+#include "lucid/core/meta/static_for.h"
+#include "lucid/core/string/concat.h"
+
+namespace lucid::internal {
+
+template <typename... Ms>
+class UnorderedElementsMatcher {
+ public:
+  UnorderedElementsMatcher(Ms... element_matchers)
+      : element_matchers_(std::make_tuple(element_matchers...)) {}
+
+  std::string DescribeExpected() {
+    std::vector<std::string> parts;
+    parts.reserve(sizeof...(Ms) + 2);
+    parts.push_back("have elements { ");
+    bool has_added_element = false;
+    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
+      if (has_added_element) parts.push_back(", ");
+      parts.push_back(std::get<I>(element_matchers_).DescribeExpected());
+      has_added_element = true;
+    });
+    parts.push_back(" }");
+
+    return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
+                  "");
+  }
+
+  template <typename A>
+  std::string DescribeActual(const A& actual_elements) {
+    std::vector<std::string> parts;
+    parts.reserve(actual_elements.size() + 2);
+    parts.push_back("{ ");
+    bool has_added_element = false;
+    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
+      if (has_added_element) parts.push_back(", ");
+      /*parts.push_back(std::get<I>(element_matchers_)
+                          .DescribeActual(*actual_elements.find(I)));*/
+      has_added_element = true;
+    });
+    parts.push_back(" }");
+
+    return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
+                  "");
+  }
+
+  template <typename A>
+  bool Matches(const A& actual_elements) const {
+    if (actual_elements.size() != sizeof...(Ms)) return false;
+    bool equal = true;
+    StaticFor<0, sizeof...(Ms)>([&]<int I>() {
+      bool found = true;
+      for (const auto& actual_element : actual_elements) {
+        if (std::get<I>(element_matchers_).Matches(actual_element)) {
+          found = true;
+          break;
+        }
+      }
+      equal = equal && found;
+    });
+    return equal;
+  }
+
+ private:
+  std::tuple<Ms...> element_matchers_;
+};
+
+}  // namespace lucid::internal
