@@ -5,17 +5,13 @@
 #include <string_view>
 #include <vector>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include "lucid/core/testing/testing.h"
 #include "lucid/syntax/token.h"
 
 namespace lucid {
 namespace {
 
 using namespace std::string_literals;
-
-using ::testing::ElementsAre;
-using ::testing::IsEmpty;
 
 using Kind = Token::Kind;
 
@@ -57,62 +53,64 @@ std::vector<TestToken> ReadTokens(std::string_view code) {
   return tokens;
 }
 
-TEST(LexerTest, Empty) { EXPECT_THAT(ReadTokens(""), IsEmpty()); }
+TEST(Test, LexerEmpty) { EXPECT_THAT(ReadTokens(""), IsEmpty()); }
 
-TEST(LexerTest, Ident) {
+TEST(Test, LexerIdent) {
   EXPECT_THAT(ReadTokens("foo  "),
-              ElementsAre(Tok(Kind::Ident, "foo"), Tok(Kind::Space, "  ")));
+              ElementsEqual(Tok(Kind::Ident, "foo"), Tok(Kind::Space, "  ")));
   EXPECT_THAT(
       ReadTokens("_foo_bar  "),
-      ElementsAre(Tok(Kind::Ident, "_foo_bar"), Tok(Kind::Space, "  ")));
+      ElementsEqual(Tok(Kind::Ident, "_foo_bar"), Tok(Kind::Space, "  ")));
   EXPECT_THAT(ReadTokens("Foo21  "),
-              ElementsAre(Tok(Kind::Ident, "Foo21"), Tok(Kind::Space, "  ")));
-  EXPECT_THAT(ReadTokens("foo# bar\n"),
-              ElementsAre(Tok(Kind::Ident, "foo"), Tok(Kind::Comment, "# bar"),
-                          Tok(Kind::Space, "\n")));
-  EXPECT_THAT(ReadTokens("foo("),
-              ElementsAre(Tok(Kind::Ident, "foo"), Tok(Kind::OpenParen, "(")));
+              ElementsEqual(Tok(Kind::Ident, "Foo21"), Tok(Kind::Space, "  ")));
+  EXPECT_THAT(
+      ReadTokens("foo# bar\n"),
+      ElementsEqual(Tok(Kind::Ident, "foo"), Tok(Kind::Comment, "# bar"),
+                    Tok(Kind::Space, "\n")));
+  EXPECT_THAT(ReadTokens("foo("), ElementsEqual(Tok(Kind::Ident, "foo"),
+                                                Tok(Kind::OpenParen, "(")));
 }
 
-TEST(LexerTest, String) {
+TEST(Test, LexerString) {
   EXPECT_THAT(ReadTokens(R"("foo")"),
-              ElementsAre(Tok(Kind::String, R"("foo")")));
+              ElementsEqual(Tok(Kind::String, R"("foo")")));
 }
 
-TEST(LexerTest, Singleton) {
-  EXPECT_THAT(ReadTokens("+"), ElementsAre(Tok(Kind::Plus, "+")));
+TEST(Test, LexerSingleton) {
+  EXPECT_THAT(ReadTokens("+"), ElementsEqual(Tok(Kind::Plus, "+")));
   EXPECT_THAT(ReadTokens("+Foo"),
-              ElementsAre(Tok(Kind::Plus, "+"), Tok(Kind::Ident, "Foo")));
+              ElementsEqual(Tok(Kind::Plus, "+"), Tok(Kind::Ident, "Foo")));
   EXPECT_THAT(
       ReadTokens(R"(+"foo")"),
-      ElementsAre(Tok(Kind::Plus, R"(+)"), Tok(Kind::String, R"("foo")")));
+      ElementsEqual(Tok(Kind::Plus, R"(+)"), Tok(Kind::String, R"("foo")")));
 }
 
-TEST(LexerTest, Number) {
-  EXPECT_THAT(ReadTokens("21"), ElementsAre(Tok(Kind::Number, "21")));
+TEST(Test, LexerNumber) {
+  EXPECT_THAT(ReadTokens("21"), ElementsEqual(Tok(Kind::Number, "21")));
   EXPECT_THAT(ReadTokens("21foo"),
-              ElementsAre(Tok(Kind::Number, "21"), Tok(Kind::Ident, "foo")));
+              ElementsEqual(Tok(Kind::Number, "21"), Tok(Kind::Ident, "foo")));
   EXPECT_THAT(ReadTokens("21   "),
-              ElementsAre(Tok(Kind::Number, "21"), Tok(Kind::Space, "   ")));
+              ElementsEqual(Tok(Kind::Number, "21"), Tok(Kind::Space, "   ")));
 }
 
-TEST(LexerTest, Space) {
+TEST(Test, LexerSpace) {
   EXPECT_THAT(ReadTokens("   21"),
-              ElementsAre(Tok(Kind::Space, "   "), Tok(Kind::Number, "21")));
+              ElementsEqual(Tok(Kind::Space, "   "), Tok(Kind::Number, "21")));
   EXPECT_THAT(ReadTokens("   foo"),
-              ElementsAre(Tok(Kind::Space, "   "), Tok(Kind::Ident, "foo")));
-  EXPECT_THAT(ReadTokens("   ["), ElementsAre(Tok(Kind::Space, "   "),
-                                              Tok(Kind::OpenBracket, "[")));
+              ElementsEqual(Tok(Kind::Space, "   "), Tok(Kind::Ident, "foo")));
+  EXPECT_THAT(ReadTokens("   ["), ElementsEqual(Tok(Kind::Space, "   "),
+                                                Tok(Kind::OpenBracket, "[")));
 }
 
-TEST(LexerTest, Comment) {
+TEST(Test, LexerComment) {
   EXPECT_THAT(
       ReadTokens("# comment\n"),
-      ElementsAre(Tok(Kind::Comment, "# comment"), Tok(Kind::Space, "\n")));
+      ElementsEqual(Tok(Kind::Comment, "# comment"), Tok(Kind::Space, "\n")));
 }
 
-TEST(LexerTest, Error) {
-  EXPECT_THAT(ReadTokens(R"("foo)"), ElementsAre(Tok(Kind::Error, R"("foo)")));
+TEST(Test, LexerError) {
+  EXPECT_THAT(ReadTokens(R"("foo)"),
+              ElementsEqual(Tok(Kind::Error, R"("foo)")));
 }
 
 }  // namespace
