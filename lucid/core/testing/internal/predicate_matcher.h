@@ -18,7 +18,7 @@ class PredicateMatcher {
   }
 
   template <typename A>
-  bool Matches(A&& a) {
+  bool Matches(A&& a) const {
     return std::invoke(predicate_, a);
   }
 

@@ -70,7 +70,7 @@ cc_test(
     ],
     deps = [
         ":compiler_test_fixture",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
@@ -86,7 +86,7 @@ cc_test(
     ],
     deps = [
         ":compiler_test_fixture",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
@@ -97,7 +97,7 @@ cc_library(
     deps = [
         ":compiler",
         "//lucid/core/io:file",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing:testing_library",
     ],
 )
 

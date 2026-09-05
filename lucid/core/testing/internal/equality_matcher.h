@@ -48,7 +48,7 @@ class EqualityMatcher {
   }
 
   template <typename A>
-  bool Matches(const A& actual_value) {
+  bool Matches(const A& actual_value) const {
     return (actual_value == expected_value_) == expect_equals_;
   }
 

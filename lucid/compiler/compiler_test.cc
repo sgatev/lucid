@@ -1,22 +1,19 @@
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include <string_view>
+
 #include "lucid/compiler/compiler_test_fixture.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-using ::testing::AllOf;
-using ::testing::EndsWith;
-using ::testing::StartsWith;
-
-TEST_F(CompilerTest, VersionIncludesCommitLine) {
+TEST(CompilerTest, VersionIncludesCommitLine) {
   ASSERT_THAT(RunCompiler({"version"}),
-              AllOf(ReturnsCode(0), Prints(StartsWith("Commit:"))));
+              AllOf(ReturnsCode(0), Output(StartsWith("Commit:"))));
 }
 
-TEST_F(CompilerTest, NoCommand) {
+TEST(CompilerTest, NoCommand) {
   ASSERT_THAT(RunCompiler({}),
-              AllOf(ReturnsCode(0), Prints(R"(Usage: lucid <command> ...
+              AllOf(ReturnsCode(0), Output(Equals(R"(Usage: lucid <command> ...
 
 Available commands:
   build            Compiles the specified target and builds a binary.
@@ -27,17 +24,17 @@ Available commands:
   print-syntax-cfg Parses the specified target and prints the syntax CFG.
   print-am-cfg     Parses the specified target and prints the abstract machine CFG.
   version          Prints version information for lucid.
-)")));
+)"))));
 }
 
-TEST_F(CompilerTest, PrintAst) {
+TEST(CompilerTest, PrintAst) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 0
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-ast", FullPath("main.lu")}),
-              AllOf(ReturnsCode(0), Prints(R"(FuncDefStmt {
+              AllOf(ReturnsCode(0), Output(Equals(R"(FuncDefStmt {
   .name = "main"
   .stmts = [
 [34m    S0: [mReturnStmt {
@@ -49,23 +46,23 @@ TEST_F(CompilerTest, PrintAst) {
     }
   ]
 }
-)")));
+)"))));
 }
 
-TEST_F(CompilerTest, PrintAstNode) {
+TEST(CompilerTest, PrintAstNode) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 0
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-ast", FullPath("main.lu"), "E0"}),
-              AllOf(ReturnsCode(0), Prints(R"([34mE0: [mIntLitExpr {
+              AllOf(ReturnsCode(0), Output(Equals(R"([34mE0: [mIntLitExpr {
   .value = 0
 }
-)")));
+)"))));
 }
 
-TEST_F(CompilerTest, PrintCfg) {
+TEST(CompilerTest, PrintCfg) {
   ASSERT_TRUE(CreateFile("max.lu", R"(
     fun max(a: Int32, b: Int32): Int32 {
       val c: Int32 = 0
@@ -78,7 +75,7 @@ TEST_F(CompilerTest, PrintCfg) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-syntax-cfg", FullPath("max.lu")}),
-              AllOf(ReturnsCode(0), Prints(R"([34mmax($0, $1)[m {
+              AllOf(ReturnsCode(0), Output(Equals(R"([34mmax($0, $1)[m {
   [34mB0:[m {
     .sequences = [
       [34mE0: [mIntLitExpr { .value = 0 }
@@ -138,52 +135,52 @@ TEST_F(CompilerTest, PrintCfg) {
     ]
   }
 }
-)")));
+)"))));
 }
 
 // Matches a formatted error string.
-MATCHER_P(FormattedError, matcher, "") {
-  return ExplainMatchResult(
-      matcher,
-      std::string_view(arg).substr(sizeof("\33[31mERROR:\33[m ") - 1),
-      result_listener);
+template <typename M>
+auto FormattedError(M matcher) {
+  return Truly([matcher](std::string_view s) {
+    return matcher.Matches(s.substr(sizeof("\33[31mERROR:\33[m ") - 1));
+  });
 }
 
-TEST_F(CompilerTest, UnknownCommand) {
+TEST(CompilerTest, UnknownCommand) {
   ASSERT_THAT(
       RunCompiler({"foo"}),
       AllOf(ReturnsCode(1),
-            PrintsError(FormattedError(StartsWith("unknown command 'foo'")))));
+            ErrorOutput(FormattedError(StartsWith("unknown command 'foo'")))));
 }
 
-TEST_F(CompilerTest, NoBuildArguments) {
+TEST(CompilerTest, NoBuildArguments) {
   ASSERT_THAT(RunCompiler({"build"}),
               AllOf(ReturnsCode(1),
-                    PrintsError(FormattedError(StartsWith(
+                    ErrorOutput(FormattedError(StartsWith(
                         "'build' command requires exactly 2 arguments")))));
 }
 
-TEST_F(CompilerTest, UnknownFile) {
+TEST(CompilerTest, UnknownFile) {
   ASSERT_THAT(
       RunCompiler({"build", "unknown", "unknown.lu"}),
       AllOf(ReturnsCode(1),
-            PrintsError(AllOf(FormattedError(StartsWith("could not read file")),
+            ErrorOutput(AllOf(FormattedError(StartsWith("could not read file")),
                               EndsWith("unknown.lu\"\n")))));
 }
 
-TEST_F(CompilerTest, ParseError) {
+TEST(CompilerTest, ParseError) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(: Int32 {
       return 0
     }
   )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
-              AllOf(ReturnsCode(1), PrintsError(FormattedError(StartsWith(
+              AllOf(ReturnsCode(1), ErrorOutput(FormattedError(StartsWith(
                                         "expected closing parenthesis or "
                                         "parameter at line 2, column 14\n")))));
 }
 
-TEST_F(CompilerTest, TypeError) {
+TEST(CompilerTest, TypeError) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return true
@@ -192,7 +189,7 @@ TEST_F(CompilerTest, TypeError) {
   ASSERT_THAT(
       RunCompiler({"build", "main", FullPath("main.lu")}),
       AllOf(ReturnsCode(1),
-            PrintsError(FormattedError(StartsWith("expected type Int32\n")))));
+            ErrorOutput(FormattedError(StartsWith("expected type Int32\n")))));
 }
 
 }  // namespace

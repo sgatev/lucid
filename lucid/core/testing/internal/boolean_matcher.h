@@ -15,7 +15,9 @@ class BooleanMatcher {
     return actual_value ? "true" : "false";
   }
 
-  bool Matches(bool actual_value) { return actual_value == expected_value_; }
+  bool Matches(bool actual_value) const {
+    return actual_value == expected_value_;
+  }
 
  private:
   bool expected_value_;

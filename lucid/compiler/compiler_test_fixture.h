@@ -8,9 +8,8 @@
 #include <string>
 #include <string_view>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/core/io/file.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 
@@ -34,22 +33,24 @@ inline std::ostream& operator<<(std::ostream& stream,
 }
 
 // Matches the return code of a command.
-MATCHER_P(ReturnsCode, matcher, "") {
-  return ExplainMatchResult(matcher, arg.return_code, result_listener);
+auto ReturnsCode(int expected_return_code) {
+  return Field(&CommandResult::return_code, Equals(expected_return_code));
 }
 
 // Matches the string printed on stdout by a command.
-MATCHER_P(Prints, matcher, "") {
-  return ExplainMatchResult(matcher, arg.out, result_listener);
+template <typename M>
+auto Output(M matcher) {
+  return Field(&CommandResult::out, matcher);
 }
 
 // Matches the string printed on stderr by a command.
-MATCHER_P(PrintsError, matcher, "") {
-  return ExplainMatchResult(matcher, arg.err, result_listener);
+template <typename M>
+auto ErrorOutput(M matcher) {
+  return Field(&CommandResult::err, matcher);
 }
 
 // A fixture that can be used to test both the compiler and the compiled binary,
-class CompilerTest : public testing::Test {
+class CompilerTest : public Test {
  protected:
   // Creates a file with the given `name` and `content`.
   bool CreateFile(std::string_view name, std::string_view content) {
@@ -62,12 +63,12 @@ class CompilerTest : public testing::Test {
 
   // Runs the compiler binary, passing it the given `args`.
   CommandResult RunCompiler(std::initializer_list<std::string_view> args) {
-    return Run(std::string(runtime_dir_ / "lucid/compiler/main"), args);
+    return RunBinary(std::string(runtime_dir_ / "lucid/compiler/main"), args);
   }
 
   // Runs the binary with the given `binary_path`, passing it the given `args`.
-  CommandResult Run(std::string_view binary_path,
-                    std::initializer_list<std::string_view> args = {}) {
+  CommandResult RunBinary(std::string_view binary_path,
+                          std::initializer_list<std::string_view> args = {}) {
     std::string cmd = std::string(binary_path);
     for (auto arg : args) cmd += " " + std::string(arg);
     return RunCommand(cmd);
@@ -88,8 +89,9 @@ class CompilerTest : public testing::Test {
     };
   }
 
-  const std::filesystem::path runtime_dir_ = testing::SrcDir() + "_main";
-  const std::filesystem::path temp_dir_ = testing::TempDir();
+  const std::filesystem::path runtime_dir_ = std::filesystem::current_path();
+  const std::filesystem::path temp_dir_ =
+      std::filesystem::temp_directory_path();
 };
 
 }  // namespace lucid

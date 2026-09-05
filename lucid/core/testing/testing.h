@@ -75,7 +75,7 @@ class ElementsMatcher {
   }
 
   template <typename A>
-  bool Matches(const A& actual_elements) {
+  bool Matches(const A& actual_elements) const {
     if (actual_elements.size() != sizeof...(Ms)) return false;
     auto it = std::begin(actual_elements);
     bool equal = true;
@@ -131,7 +131,7 @@ class UnorderedElementsMatcher {
   }
 
   template <typename A>
-  bool Matches(const A& actual_elements) {
+  bool Matches(const A& actual_elements) const {
     if (actual_elements.size() != sizeof...(Ms)) return false;
     bool equal = true;
     StaticFor<0, sizeof...(Ms)>([&]<int I>() {
@@ -165,7 +165,7 @@ class SizeMatcher {
   }
 
   template <typename A>
-  bool Matches(const A& actual_elements) {
+  bool Matches(const A& actual_elements) const {
     return actual_elements.size() == expected_size_;
   }
 
@@ -183,7 +183,7 @@ class EmptyMatcher {
   }
 
   template <typename A>
-  bool Matches(const A& actual_elements) {
+  bool Matches(const A& actual_elements) const {
     return actual_elements.empty();
   }
 };
@@ -205,7 +205,7 @@ class FieldMatcher {
   }
 
   template <typename A>
-  bool Matches(A&& actual_value) {
+  bool Matches(A&& actual_value) const {
     return field_matcher_.Matches(std::invoke(field_, actual_value));
   }
 
@@ -230,7 +230,7 @@ class OptionalMatcher {
   }
 
   template <typename A>
-  bool Matches(const A& actual_value) {
+  bool Matches(const A& actual_value) const {
     if (!actual_value.has_value()) return false;
     return value_matcher_.Matches(*actual_value);
   }
@@ -256,7 +256,7 @@ class VariantMatcher {
   }
 
   template <typename A>
-  bool Matches(const A& actual_value) {
+  bool Matches(const A& actual_value) const {
     const auto* actual = std::get_if<T>(&actual_value);
     if (actual == nullptr) return false;
     return value_matcher_.Matches(*actual);
@@ -285,7 +285,7 @@ class PairMatcher {
   }
 
   template <typename A>
-  bool Matches(const A& actual_value) {
+  bool Matches(const A& actual_value) const {
     return first_matcher_.Matches(actual_value.first) &&
            second_matcher_.Matches(actual_value.second);
   }
@@ -309,7 +309,7 @@ class AllMatcher {
   }
 
   template <typename A>
-  bool Matches(const A& actual_value) {
+  bool Matches(const A& actual_value) const {
     bool equal = true;
     StaticFor<0, sizeof...(Ms)>([&]<int I>() {
       equal = equal && std::get<I>(matchers_).Matches(actual_value);
@@ -336,7 +336,7 @@ class NotMatcher {
   }
 
   template <typename A>
-  bool Matches(const A& actual_value) {
+  bool Matches(const A& actual_value) const {
     return !matcher_.Matches(actual_value);
   }
 
@@ -492,6 +492,14 @@ internal::AllMatcher<Ms...> AllOf(Ms... matchers) {
 template <typename M>
 internal::NotMatcher<M> Not(M matcher) {
   return internal::NotMatcher<M>(matcher);
+}
+
+inline auto StartsWith(std::string_view prefix) {
+  return Truly([prefix](std::string_view s) { return s.starts_with(prefix); });
+}
+
+inline auto EndsWith(std::string_view suffix) {
+  return Truly([suffix](std::string_view s) { return s.ends_with(suffix); });
 }
 
 #define ASSERT_THAT(actual, matcher)                                       \

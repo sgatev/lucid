@@ -1,13 +1,10 @@
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/compiler/compiler_test_fixture.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-using ::testing::AllOf;
-
-TEST_F(CompilerTest, Build) {
+TEST(CompilerTest, Build) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 0
@@ -15,10 +12,10 @@ TEST_F(CompilerTest, Build) {
   )"));
   ASSERT_THAT(RunCompiler({"build", FullPath("main"), FullPath("main.lu")}),
               ReturnsCode(0));
-  EXPECT_THAT(Run(FullPath("main")), ReturnsCode(0));
+  EXPECT_THAT(RunBinary(FullPath("main")), ReturnsCode(0));
 }
 
-TEST_F(CompilerTest, EmptyMain) {
+TEST(CompilerTest, EmptyMain) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 0
@@ -27,7 +24,7 @@ TEST_F(CompilerTest, EmptyMain) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(0));
 }
 
-TEST_F(CompilerTest, Comment) {
+TEST(CompilerTest, Comment) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     # comment
     fun main(): Int32 {
@@ -37,7 +34,7 @@ TEST_F(CompilerTest, Comment) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
-TEST_F(CompilerTest, AddInt32) {
+TEST(CompilerTest, AddInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 2 + 3
@@ -46,7 +43,7 @@ TEST_F(CompilerTest, AddInt32) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(5));
 }
 
-TEST_F(CompilerTest, AddInt64) {
+TEST(CompilerTest, AddInt64) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
       return 2 + 3
@@ -55,7 +52,7 @@ TEST_F(CompilerTest, AddInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(5));
 }
 
-TEST_F(CompilerTest, SubInt32) {
+TEST(CompilerTest, SubInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 7 - 5
@@ -64,7 +61,7 @@ TEST_F(CompilerTest, SubInt32) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, SubInt64) {
+TEST(CompilerTest, SubInt64) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
       return 7 - 5
@@ -73,7 +70,7 @@ TEST_F(CompilerTest, SubInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, MulInt32) {
+TEST(CompilerTest, MulInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 3 * 7
@@ -82,7 +79,7 @@ TEST_F(CompilerTest, MulInt32) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
-TEST_F(CompilerTest, MulInt64) {
+TEST(CompilerTest, MulInt64) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
       return 3 * 7
@@ -91,7 +88,7 @@ TEST_F(CompilerTest, MulInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
-TEST_F(CompilerTest, DivInt32) {
+TEST(CompilerTest, DivInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 8 / 2
@@ -100,7 +97,7 @@ TEST_F(CompilerTest, DivInt32) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
 }
 
-TEST_F(CompilerTest, DivInt64) {
+TEST(CompilerTest, DivInt64) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
       return 8 / 2
@@ -109,7 +106,7 @@ TEST_F(CompilerTest, DivInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
 }
 
-TEST_F(CompilerTest, ModInt32) {
+TEST(CompilerTest, ModInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 23 % 7
@@ -118,7 +115,7 @@ TEST_F(CompilerTest, ModInt32) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, ModInt64) {
+TEST(CompilerTest, ModInt64) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
       return 17 % 5
@@ -127,7 +124,7 @@ TEST_F(CompilerTest, ModInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, IfStmtThenBranch) {
+TEST(CompilerTest, IfStmtThenBranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       if true {
@@ -140,7 +137,7 @@ TEST_F(CompilerTest, IfStmtThenBranch) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, IfStmtElseIfBranch) {
+TEST(CompilerTest, IfStmtElseIfBranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       val x: Int32 = 2
@@ -156,7 +153,7 @@ TEST_F(CompilerTest, IfStmtElseIfBranch) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
 }
 
-TEST_F(CompilerTest, IfStmtElseBranch) {
+TEST(CompilerTest, IfStmtElseBranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       if false {
@@ -169,7 +166,7 @@ TEST_F(CompilerTest, IfStmtElseBranch) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
 }
 
-TEST_F(CompilerTest, IfStmtBothBranches) {
+TEST(CompilerTest, IfStmtBothBranches) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun foo(b: Bool, n: Int32): Int32 {
       if b {
@@ -187,7 +184,7 @@ TEST_F(CompilerTest, IfStmtBothBranches) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(8));
 }
 
-TEST_F(CompilerTest, GtInt32) {
+TEST(CompilerTest, GtInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       if 7 > 1 {
@@ -200,7 +197,7 @@ TEST_F(CompilerTest, GtInt32) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, GtInt64) {
+TEST(CompilerTest, GtInt64) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
       if 7 > 1 {
@@ -213,7 +210,7 @@ TEST_F(CompilerTest, GtInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, GtFalse) {
+TEST(CompilerTest, GtFalse) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       if 1 > 7 {
@@ -226,7 +223,7 @@ TEST_F(CompilerTest, GtFalse) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
 }
 
-TEST_F(CompilerTest, LtInt32) {
+TEST(CompilerTest, LtInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       if 1 < 7 {
@@ -239,7 +236,7 @@ TEST_F(CompilerTest, LtInt32) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, LtInt64) {
+TEST(CompilerTest, LtInt64) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
       if 1 < 7 {
@@ -252,7 +249,7 @@ TEST_F(CompilerTest, LtInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, LtFalse) {
+TEST(CompilerTest, LtFalse) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       if 7 < 1 {
@@ -265,7 +262,7 @@ TEST_F(CompilerTest, LtFalse) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
 }
 
-TEST_F(CompilerTest, EqInt32) {
+TEST(CompilerTest, EqInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       if 1 == 1 {
@@ -278,7 +275,7 @@ TEST_F(CompilerTest, EqInt32) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, EqInt64) {
+TEST(CompilerTest, EqInt64) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
       if 1 == 1 {
@@ -291,7 +288,7 @@ TEST_F(CompilerTest, EqInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, NotEqInt32) {
+TEST(CompilerTest, NotEqInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       if 1 != 1 {
@@ -304,7 +301,7 @@ TEST_F(CompilerTest, NotEqInt32) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
 }
 
-TEST_F(CompilerTest, NotEqInt64) {
+TEST(CompilerTest, NotEqInt64) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
       if 1 != 1 {
@@ -317,7 +314,7 @@ TEST_F(CompilerTest, NotEqInt64) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
 }
 
-TEST_F(CompilerTest, EqFalse) {
+TEST(CompilerTest, EqFalse) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       if 1 == 2 {
@@ -330,7 +327,7 @@ TEST_F(CompilerTest, EqFalse) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
 }
 
-TEST_F(CompilerTest, VarDecl) {
+TEST(CompilerTest, VarDecl) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       val x: Int32 = 2
@@ -341,7 +338,7 @@ TEST_F(CompilerTest, VarDecl) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(5));
 }
 
-TEST_F(CompilerTest, VarDeclFromVar) {
+TEST(CompilerTest, VarDeclFromVar) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       val x: Int32 = 2
@@ -352,7 +349,7 @@ TEST_F(CompilerTest, VarDeclFromVar) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
 }
 
-TEST_F(CompilerTest, VarAssign) {
+TEST(CompilerTest, VarAssign) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun foo(n: Int32): Int32 {
       &n = 3
@@ -366,7 +363,7 @@ TEST_F(CompilerTest, VarAssign) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
 }
 
-TEST_F(CompilerTest, FuncCallSingleArg) {
+TEST(CompilerTest, FuncCallSingleArg) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun id(x: Int32): Int32 {
       return x
@@ -379,7 +376,7 @@ TEST_F(CompilerTest, FuncCallSingleArg) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
-TEST_F(CompilerTest, FuncCallArgsSameType) {
+TEST(CompilerTest, FuncCallArgsSameType) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun sum(x: Int32, y: Int32, z: Int32): Int32 {
       return x + y + z
@@ -392,7 +389,7 @@ TEST_F(CompilerTest, FuncCallArgsSameType) {
   ASSERT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(10));
 }
 
-TEST_F(CompilerTest, FactRec) {
+TEST(CompilerTest, FactRec) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun fact(n: Int32): Int32 {
       if n == 1 {
@@ -409,7 +406,7 @@ TEST_F(CompilerTest, FactRec) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(120));
 }
 
-TEST_F(CompilerTest, FibRec) {
+TEST(CompilerTest, FibRec) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun fib(n: Int32): Int32 {
       if n < 2 {
@@ -425,7 +422,7 @@ TEST_F(CompilerTest, FibRec) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
-TEST_F(CompilerTest, FibIter) {
+TEST(CompilerTest, FibIter) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun fib(n: Int32): Int32 {
       val a: Int32 = 0
@@ -449,7 +446,7 @@ TEST_F(CompilerTest, FibIter) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
-TEST_F(CompilerTest, PrintInt32) {
+TEST(CompilerTest, PrintInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun printString(s: String): Int32 {
       return 0
@@ -480,10 +477,10 @@ TEST_F(CompilerTest, PrintInt32) {
     }
   )"));
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
-              AllOf(ReturnsCode(0), Prints("21509")));
+              AllOf(ReturnsCode(0), Output(Equals("21509"))));
 }
 
-TEST_F(CompilerTest, PrintString) {
+TEST(CompilerTest, PrintString) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun printString(s: String): Int32 {
       return 0
@@ -495,10 +492,10 @@ TEST_F(CompilerTest, PrintString) {
     }
   )"));
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
-              AllOf(ReturnsCode(0), Prints("Hello, world!\n")));
+              AllOf(ReturnsCode(0), Output(Equals("Hello, world!\n"))));
 }
 
-TEST_F(CompilerTest, PrintMultipleValues) {
+TEST(CompilerTest, PrintMultipleValues) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun printString(s: String): Int32 {
       return 0
@@ -530,10 +527,10 @@ TEST_F(CompilerTest, PrintMultipleValues) {
     }
   )"));
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
-              AllOf(ReturnsCode(0), Prints("0, 1\n")));
+              AllOf(ReturnsCode(0), Output(Equals("0, 1\n"))));
 }
 
-TEST_F(CompilerTest, LoopAndBreak) {
+TEST(CompilerTest, LoopAndBreak) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun four(): Int32 {
       val n: Int32 = 0
@@ -554,7 +551,7 @@ TEST_F(CompilerTest, LoopAndBreak) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
 }
 
-TEST_F(CompilerTest, Int32Array) {
+TEST(CompilerTest, Int32Array) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       val a: Int32[10]
@@ -588,7 +585,7 @@ TEST_F(CompilerTest, Int32Array) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(45));
 }
 
-TEST_F(CompilerTest, Int64Array) {
+TEST(CompilerTest, Int64Array) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
       val a: Int64[10]
@@ -622,7 +619,7 @@ TEST_F(CompilerTest, Int64Array) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(45));
 }
 
-TEST_F(CompilerTest, BoolArray) {
+TEST(CompilerTest, BoolArray) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       val a: Bool[10]
@@ -662,7 +659,7 @@ TEST_F(CompilerTest, BoolArray) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(5));
 }
 
-TEST_F(CompilerTest, LongDependencyChain) {
+TEST(CompilerTest, LongDependencyChain) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       val a1: Int32 = 1
@@ -691,7 +688,7 @@ TEST_F(CompilerTest, LongDependencyChain) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(20));
 }
 
-TEST_F(CompilerTest, ManyLiveVariables) {
+TEST(CompilerTest, ManyLiveVariables) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       val a1: Int32 = 1
@@ -723,7 +720,7 @@ TEST_F(CompilerTest, ManyLiveVariables) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(210));
 }
 
-TEST_F(CompilerTest, Comp) {
+TEST(CompilerTest, Comp) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     comp fun max(a: Int32, b: Int32): Int32 {
       val m: Int32 = a
@@ -742,7 +739,7 @@ TEST_F(CompilerTest, Comp) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(210));
 }
 
-TEST_F(CompilerTest, Tuple) {
+TEST(CompilerTest, Tuple) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     comp val Point: Type = (x: Int32, y: Int32)
 
@@ -756,7 +753,7 @@ TEST_F(CompilerTest, Tuple) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(63));
 }
 
-TEST_F(CompilerTest, LargeInteger) {
+TEST(CompilerTest, LargeInteger) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun count3s(i: Int32): Int32 {
       val count: Int32 = 0
