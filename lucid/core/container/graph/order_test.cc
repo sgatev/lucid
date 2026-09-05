@@ -4,16 +4,13 @@
 #include <cstddef>
 #include <vector>
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "lucid/core/container/graph/test_graph.h"
+#include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-using ::testing::ElementsAre;
-
-TEST(ComparePostOrderTest, Simple) {
+TEST(Test, ComparePostOrderSimple) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -22,10 +19,10 @@ TEST(ComparePostOrderTest, Simple) {
   std::vector<char> vertices = g.Vertices();
   std::sort(vertices.begin(), vertices.end(), ComparePostOrder(g));
 
-  EXPECT_THAT(vertices, ElementsAre('W', 'A'));
+  EXPECT_THAT(vertices, ElementsEqual('W', 'A'));
 }
 
-TEST(ComparePostOrderTest, DiamondBranch) {
+TEST(Test, ComparePostOrderDiamondBranch) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -37,10 +34,10 @@ TEST(ComparePostOrderTest, DiamondBranch) {
   std::vector<char> vertices = g.Vertices();
   std::sort(vertices.begin(), vertices.end(), ComparePostOrder(g));
 
-  EXPECT_THAT(vertices, ElementsAre('W', 'C', 'B', 'A'));
+  EXPECT_THAT(vertices, ElementsEqual('W', 'C', 'B', 'A'));
 }
 
-TEST(ComparePostOrderTest, Complex) {
+TEST(Test, ComparePostOrderComplex) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -56,10 +53,10 @@ TEST(ComparePostOrderTest, Complex) {
   std::vector<char> vertices = g.Vertices();
   std::sort(vertices.begin(), vertices.end(), ComparePostOrder(g));
 
-  EXPECT_THAT(vertices, ElementsAre('W', 'C', 'B', 'E', 'D', 'A'));
+  EXPECT_THAT(vertices, ElementsEqual('W', 'C', 'B', 'E', 'D', 'A'));
 }
 
-TEST(ComparePostOrderTest, Loop) {
+TEST(Test, ComparePostOrderLoop) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -72,10 +69,10 @@ TEST(ComparePostOrderTest, Loop) {
   std::vector<char> vertices = g.Vertices();
   std::sort(vertices.begin(), vertices.end(), ComparePostOrder(g));
 
-  EXPECT_THAT(vertices, ElementsAre('C', 'W', 'D', 'B', 'A'));
+  EXPECT_THAT(vertices, ElementsEqual('C', 'W', 'D', 'B', 'A'));
 }
 
-TEST(CompareReversePostOrderTest, Simple) {
+TEST(Test, CompareReversePostOrderSimple) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -84,10 +81,10 @@ TEST(CompareReversePostOrderTest, Simple) {
   std::vector<char> vertices = g.Vertices();
   std::sort(vertices.begin(), vertices.end(), CompareReversePostOrder(g));
 
-  EXPECT_THAT(vertices, ElementsAre('A', 'W'));
+  EXPECT_THAT(vertices, ElementsEqual('A', 'W'));
 }
 
-TEST(CompareReversePostOrderTest, DiamondBranch) {
+TEST(Test, CompareReversePostOrderDiamondBranch) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -99,10 +96,10 @@ TEST(CompareReversePostOrderTest, DiamondBranch) {
   std::vector<char> vertices = g.Vertices();
   std::sort(vertices.begin(), vertices.end(), CompareReversePostOrder(g));
 
-  EXPECT_THAT(vertices, ElementsAre('A', 'B', 'C', 'W'));
+  EXPECT_THAT(vertices, ElementsEqual('A', 'B', 'C', 'W'));
 }
 
-TEST(CompareReversePostOrderTest, Complex) {
+TEST(Test, CompareReversePostOrderComplex) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -118,10 +115,10 @@ TEST(CompareReversePostOrderTest, Complex) {
   std::vector<char> vertices = g.Vertices();
   std::sort(vertices.begin(), vertices.end(), CompareReversePostOrder(g));
 
-  EXPECT_THAT(vertices, ElementsAre('A', 'D', 'E', 'B', 'C', 'W'));
+  EXPECT_THAT(vertices, ElementsEqual('A', 'D', 'E', 'B', 'C', 'W'));
 }
 
-TEST(CompareReversePostOrderTest, Loop) {
+TEST(Test, CompareReversePostOrderLoop) {
   TestGraph g;
   g.SetSource('A');
   g.SetSink('W');
@@ -134,7 +131,7 @@ TEST(CompareReversePostOrderTest, Loop) {
   std::vector<char> vertices = g.Vertices();
   std::sort(vertices.begin(), vertices.end(), CompareReversePostOrder(g));
 
-  EXPECT_THAT(vertices, ElementsAre('A', 'B', 'D', 'W', 'C'));
+  EXPECT_THAT(vertices, ElementsEqual('A', 'B', 'D', 'W', 'C'));
 }
 
 }  // namespace

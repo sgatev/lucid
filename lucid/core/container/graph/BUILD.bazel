@@ -45,7 +45,7 @@ cc_test(
         ":graph",
         ":order",
         ":test_graph",
-        "@googletest//:gtest_main",
+        "//lucid/core/testing",
     ],
 )
 
