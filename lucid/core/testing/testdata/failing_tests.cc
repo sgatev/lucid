@@ -70,6 +70,17 @@ TEST(Test, UnorderedElements) {
   EXPECT_THAT(values, UnorderedElementsEqual(2));
 }
 
+TEST(Test, UnorderedElementsMismatch) {
+  std::vector<int> values = {1, 2};
+  EXPECT_THAT(values, UnorderedElementsEqual(2, 3));
+}
+
+// Both matchers accept the single 1, but only one of them can have it.
+TEST(Test, UnorderedElementsReusedElement) {
+  std::vector<int> values = {1, 2};
+  EXPECT_THAT(values, UnorderedElementsEqual(1, 1));
+}
+
 TEST(Test, Field) {
   struct Point {
     int x;

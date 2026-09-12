@@ -1,5 +1,8 @@
 │ PASS Foo
 │ PASS Bar
 │ PASS Baz
-└─► 3 out of 3 tests PASS
+│ PASS UnorderedElements
+│ PASS UnorderedElementsWithDuplicates
+│ PASS UnorderedElementsNeedingReassignment
+└─► 6 out of 6 tests PASS
 

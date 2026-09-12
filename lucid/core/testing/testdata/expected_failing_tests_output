@@ -11,6 +11,8 @@
 │ FAIL FewerElementsThanMatchers
 │ FAIL MoreElementsThanMatchers
 │ FAIL UnorderedElements
+│ FAIL UnorderedElementsMismatch
+│ FAIL UnorderedElementsReusedElement
 │ FAIL Field
 │ FAIL Optional
 │ FAIL EmptyOptional
@@ -19,7 +21,7 @@
 │ FAIL Pair
 │ FAIL All
 │ FAIL Not
-└─► 1 out of 21 tests PASS
+└─► 1 out of 23 tests PASS
 
 == Foo ==
 Fail: Foo failure
@@ -77,6 +79,16 @@ Fail: Expected values
 == UnorderedElements ==
 Fail: Expected values
  to be a range with elements { equal to 2 } in any order
+ but was found { 1, 2 }.
+
+== UnorderedElementsMismatch ==
+Fail: Expected values
+ to be a range with elements { equal to 2, equal to 3 } in any order
+ but was found { 1, 2 }.
+
+== UnorderedElementsReusedElement ==
+Fail: Expected values
+ to be a range with elements { equal to 1, equal to 1 } in any order
  but was found { 1, 2 }.
 
 == Field ==
