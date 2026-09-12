@@ -3,7 +3,6 @@
 #include <string>
 #include <string_view>
 
-#include "lucid/core/testing/internal/matcher.h"
 #include "lucid/core/testing/internal/to_string.h"
 
 namespace lucid::internal {

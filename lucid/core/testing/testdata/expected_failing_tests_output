@@ -21,6 +21,8 @@
 │ FAIL Pair
 │ FAIL All
 │ FAIL Not
+│ FAIL PrintableValue
+│ FAIL UnprintableValue
 │ FAIL Falsy
 │ FAIL ElementsWithMatchers
 │ FAIL UnorderedElementsWithMatchers
@@ -28,7 +30,7 @@
 │ FAIL Suffix
 │ FAIL AssertStopsTheTest
 │ FAIL ExpectContinuesAfterFailure
-└─► 1 out of 30 tests PASS
+└─► 1 out of 32 tests PASS
 
 == Foo ==
 Fail: Foo failure
@@ -138,6 +140,16 @@ Fail: Expected twenty_one
  to be not equal to 21
  but was found 21.
 
+== PrintableValue ==
+Fail: Expected point
+ to be equal to Point{2}
+ but was found Point{1}.
+
+== UnprintableValue ==
+Fail: Expected opaque
+ to be equal to [unstringable]
+ but was found [unstringable].
+
 == Falsy ==
 Fail: Expected truthy
  to be false
@@ -155,13 +167,13 @@ Fail: Expected values
 
 == Prefix ==
 Fail: Expected greeting
- to be a string starting with bye
- but was found hello.
+ to be a string starting with "bye"
+ but was found "hello".
 
 == Suffix ==
 Fail: Expected greeting
- to be a string ending with bye
- but was found hello.
+ to be a string ending with "bye"
+ but was found "hello".
 
 == AssertStopsTheTest ==
 Fail: Expected falsy

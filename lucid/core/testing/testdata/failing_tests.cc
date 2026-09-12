@@ -1,5 +1,6 @@
 #include <iostream>
 #include <optional>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <variant>
@@ -8,6 +9,24 @@
 #include "lucid/core/testing/testing.h"
 
 namespace lucid {
+
+// A printable value, for checking how a failure renders one.
+struct Point {
+  int x;
+
+  bool operator==(const Point&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& out, const Point& point) {
+    return out << "Point{" << point.x << "}";
+  }
+};
+
+// An unprintable value, for checking the fallback.
+struct Opaque {
+  int x;
+
+  bool operator==(const Opaque&) const = default;
+};
 
 TEST(Test, Foo) {
   Fail("Foo failure");
@@ -124,6 +143,19 @@ TEST(Test, All) {
 TEST(Test, Not) {
   int twenty_one = 21;
   EXPECT_THAT(twenty_one, Not(Equals(21)));
+}
+
+// A type is rendered through its `operator<<` where it has one.
+TEST(Test, PrintableValue) {
+  Point point = {1};
+  EXPECT_THAT(point, Equals(Point{2}));
+}
+
+// A type with neither an `operator<<` nor a string form falls back to a
+// placeholder, so that a value of any type can still be matched.
+TEST(Test, UnprintableValue) {
+  Opaque opaque = {1};
+  EXPECT_THAT(opaque, Equals(Opaque{2}));
 }
 
 TEST(Test, Falsy) {
