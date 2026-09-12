@@ -77,9 +77,27 @@ cc_library(
 )
 
 cc_library(
+    name = "prefix_matcher",
+    hdrs = ["prefix_matcher.h"],
+    deps = [
+        ":matcher",
+        ":to_string",
+    ],
+)
+
+cc_library(
     name = "size_matcher",
     hdrs = ["size_matcher.h"],
     deps = [":matcher"],
+)
+
+cc_library(
+    name = "suffix_matcher",
+    hdrs = ["suffix_matcher.h"],
+    deps = [
+        ":matcher",
+        ":to_string",
+    ],
 )
 
 cc_library(

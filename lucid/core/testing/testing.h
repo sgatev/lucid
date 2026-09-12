@@ -18,7 +18,9 @@
 #include "lucid/core/testing/internal/optional_matcher.h"
 #include "lucid/core/testing/internal/pair_matcher.h"
 #include "lucid/core/testing/internal/predicate_matcher.h"
+#include "lucid/core/testing/internal/prefix_matcher.h"
 #include "lucid/core/testing/internal/size_matcher.h"
+#include "lucid/core/testing/internal/suffix_matcher.h"
 #include "lucid/core/testing/internal/unordered_elements_matcher.h"
 #include "lucid/core/testing/internal/variant_matcher.h"
 
@@ -188,16 +190,14 @@ internal::NotMatcher<M> Not(M matcher) {
   return internal::NotMatcher<M>(matcher);
 }
 
-inline auto StartsWith(std::string_view prefix) {
-  return Truly([prefix = std::string(prefix)](std::string_view s) {
-    return s.starts_with(prefix);
-  });
+// Matches a string that starts with `prefix`.
+inline internal::PrefixMatcher StartsWith(std::string_view prefix) {
+  return internal::PrefixMatcher(prefix);
 }
 
-inline auto EndsWith(std::string_view suffix) {
-  return Truly([suffix = std::string(suffix)](std::string_view s) {
-    return s.ends_with(suffix);
-  });
+// Matches a string that ends with `suffix`.
+inline internal::SuffixMatcher EndsWith(std::string_view suffix) {
+  return internal::SuffixMatcher(suffix);
 }
 
 #define ASSERT_THAT(actual, matcher)                                       \

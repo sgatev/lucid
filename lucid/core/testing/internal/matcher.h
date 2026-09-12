@@ -37,6 +37,7 @@
 #include <cstddef>
 #include <iterator>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace lucid::internal {
@@ -85,6 +86,10 @@ concept ElementRange =
 // The type of the elements of `A`.
 template <ElementRange A>
 using ElementType = decltype(*std::begin(std::declval<const A&>()));
+
+// A value that can be viewed as a string.
+template <typename A>
+concept StringLike = std::convertible_to<const A&, std::string_view>;
 
 // An actual value that matcher `M` accepts.
 //

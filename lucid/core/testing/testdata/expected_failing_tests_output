@@ -155,13 +155,13 @@ Fail: Expected values
 
 == Prefix ==
 Fail: Expected greeting
- to be accepted by the predicate
- but was found not accepted.
+ to be a string starting with bye
+ but was found hello.
 
 == Suffix ==
 Fail: Expected greeting
- to be accepted by the predicate
- but was found not accepted.
+ to be a string ending with bye
+ but was found hello.
 
 == AssertStopsTheTest ==
 Fail: Expected falsy
