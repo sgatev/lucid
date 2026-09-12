@@ -1,5 +1,6 @@
 #include <iostream>
 #include <optional>
+#include <string>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -123,6 +124,48 @@ TEST(Test, All) {
 TEST(Test, Not) {
   int twenty_one = 21;
   EXPECT_THAT(twenty_one, Not(Equals(21)));
+}
+
+TEST(Test, Falsy) {
+  bool truthy = 21 == 21;
+  EXPECT_THAT(truthy, IsFalse());
+}
+
+TEST(Test, ElementsWithMatchers) {
+  std::vector<int> values = {1, 2};
+  EXPECT_THAT(values, Elements(Equals(1), Truly([](int x) { return x > 5; })));
+}
+
+TEST(Test, UnorderedElementsWithMatchers) {
+  std::vector<int> values = {1, 2};
+  EXPECT_THAT(values, UnorderedElements(Equals(3), Truly([](int x) {
+                                          return x > 5;
+                                        })));
+}
+
+TEST(Test, Prefix) {
+  std::string greeting = "hello";
+  EXPECT_THAT(greeting, StartsWith("bye"));
+}
+
+TEST(Test, Suffix) {
+  std::string greeting = "hello";
+  EXPECT_THAT(greeting, EndsWith("bye"));
+}
+
+// A failing ASSERT returns from the test, so the log below must not appear.
+TEST(Test, AssertStopsTheTest) {
+  bool falsy = 21 == 42;
+  ASSERT_TRUE(falsy);
+  std::cout << "AssertStopsTheTest unreachable LOG" << '\n';
+}
+
+// A failing EXPECT carries on, so both failures and the log must appear.
+TEST(Test, ExpectContinuesAfterFailure) {
+  int twenty_one = 21;
+  EXPECT_EQ(twenty_one, 42);
+  EXPECT_NE(twenty_one, 21);
+  std::cout << "ExpectContinuesAfterFailure reached LOG" << '\n';
 }
 
 }  // namespace lucid

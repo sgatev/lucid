@@ -1,8 +1,23 @@
 │ PASS Foo
 │ PASS Bar
 │ PASS Baz
+│ PASS Boolean
+│ PASS Predicate
+│ PASS Equality
+│ PASS Size
+│ PASS Empty
+│ PASS Elements
 │ PASS UnorderedElements
 │ PASS UnorderedElementsWithDuplicates
 │ PASS UnorderedElementsNeedingReassignment
-└─► 6 out of 6 tests PASS
+│ PASS Field
+│ PASS Optional
+│ PASS Variant
+│ PASS Pair
+│ PASS All
+│ PASS Not
+│ PASS Affixes
+│ PASS ExpectMacros
+│ PASS AssertMacros
+└─► 21 out of 21 tests PASS
 

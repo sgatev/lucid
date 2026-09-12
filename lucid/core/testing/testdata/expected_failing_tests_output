@@ -21,7 +21,14 @@
 │ FAIL Pair
 │ FAIL All
 │ FAIL Not
-└─► 1 out of 23 tests PASS
+│ FAIL Falsy
+│ FAIL ElementsWithMatchers
+│ FAIL UnorderedElementsWithMatchers
+│ FAIL Prefix
+│ FAIL Suffix
+│ FAIL AssertStopsTheTest
+│ FAIL ExpectContinuesAfterFailure
+└─► 1 out of 30 tests PASS
 
 == Foo ==
 Fail: Foo failure
@@ -130,4 +137,43 @@ Fail: Expected values
 Fail: Expected twenty_one
  to be not equal to 21
  but was found 21.
+
+== Falsy ==
+Fail: Expected truthy
+ to be false
+ but was found true.
+
+== ElementsWithMatchers ==
+Fail: Expected values
+ to be a range with elements { equal to 1, accepted by the predicate }
+ but was found { 1, not accepted }.
+
+== UnorderedElementsWithMatchers ==
+Fail: Expected values
+ to be a range with elements { equal to 3, accepted by the predicate } in any order
+ but was found { 1, 2 }.
+
+== Prefix ==
+Fail: Expected greeting
+ to be accepted by the predicate
+ but was found not accepted.
+
+== Suffix ==
+Fail: Expected greeting
+ to be accepted by the predicate
+ but was found not accepted.
+
+== AssertStopsTheTest ==
+Fail: Expected falsy
+ to be true
+ but was found false.
+
+== ExpectContinuesAfterFailure ==
+Fail: Expected twenty_one
+ to be equal to 42
+ but was found 21.
+Fail: Expected twenty_one
+ to be not equal to 21
+ but was found 21.
+ExpectContinuesAfterFailure reached LOG
 
