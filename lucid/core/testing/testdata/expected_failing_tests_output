@@ -33,158 +33,158 @@
 └─► 1 out of 32 tests PASS
 
 == Foo ==
-Fail: Foo failure
+lucid/core/testing/testdata/failing_tests.cc:32: Fail: Foo failure
 Foo LOG
 
 == Baz ==
 Baz LOG
-Fail: Baz failure
+lucid/core/testing/testdata/failing_tests.cc:40: Fail: Baz failure
 
 == Predicate ==
-Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:45: Fail: Expected twenty_one
  to be accepted by the predicate
  but was found not accepted.
 
 == Boolean ==
-Fail: Expected falsy
+lucid/core/testing/testdata/failing_tests.cc:50: Fail: Expected falsy
  to be true
  but was found false.
 
 == Equality ==
-Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:55: Fail: Expected twenty_one
  to be equal to 42
  but was found 21.
 
 == Inequality ==
-Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:60: Fail: Expected twenty_one
  to be not equal to 21
  but was found 21.
 
 == Size ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:65: Fail: Expected values
  to be of size 3
  but was found of size 2.
 
 == Empty ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:70: Fail: Expected values
  to be empty
  but was found not empty.
 
 == Elements ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:75: Fail: Expected values
  to be a range with elements { equal to 1, equal to 3 }
  but was found { 1, 2 }.
 
 == FewerElementsThanMatchers ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:80: Fail: Expected values
  to be a range with elements { equal to 1, equal to 2 }
  but was found { 1 }.
 
 == MoreElementsThanMatchers ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:85: Fail: Expected values
  to be a range with elements { equal to 1, equal to 2 }
  but was found { 1, 2, 3 }.
 
 == UnorderedElements ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:90: Fail: Expected values
  to be a range with elements { equal to 2 } in any order
  but was found { 1, 2 }.
 
 == UnorderedElementsMismatch ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:95: Fail: Expected values
  to be a range with elements { equal to 2, equal to 3 } in any order
  but was found { 1, 2 }.
 
 == UnorderedElementsReusedElement ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:101: Fail: Expected values
  to be a range with elements { equal to 1, equal to 1 } in any order
  but was found { 1, 2 }.
 
 == Field ==
-Fail: Expected point
+lucid/core/testing/testdata/failing_tests.cc:110: Fail: Expected point
  to be with a field equal to 3
  but was found with a field 1.
 
 == Optional ==
-Fail: Expected value
+lucid/core/testing/testdata/failing_tests.cc:115: Fail: Expected value
  to be an optional holding a value equal to 2
  but was found an optional holding 1.
 
 == EmptyOptional ==
-Fail: Expected value
+lucid/core/testing/testdata/failing_tests.cc:120: Fail: Expected value
  to be an optional holding a value equal to 2
  but was found an empty optional.
 
 == Variant ==
-Fail: Expected value
+lucid/core/testing/testdata/failing_tests.cc:125: Fail: Expected value
  to be a variant holding a value equal to 2
  but was found a variant holding 1.
 
 == OtherVariantAlternative ==
-Fail: Expected value
+lucid/core/testing/testdata/failing_tests.cc:130: Fail: Expected value
  to be a variant holding a value equal to 2
  but was found a variant holding another alternative.
 
 == Pair ==
-Fail: Expected value
+lucid/core/testing/testdata/failing_tests.cc:135: Fail: Expected value
  to be a pair with key equal to 2 and value equal to 'b'
  but was found a pair with key 1 and value 'a'.
 
 == All ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:140: Fail: Expected values
  to be empty and of size 2
  but was found not empty and of size 1.
 
 == Not ==
-Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:145: Fail: Expected twenty_one
  to be not equal to 21
  but was found 21.
 
 == PrintableValue ==
-Fail: Expected point
+lucid/core/testing/testdata/failing_tests.cc:151: Fail: Expected point
  to be equal to Point{2}
  but was found Point{1}.
 
 == UnprintableValue ==
-Fail: Expected opaque
+lucid/core/testing/testdata/failing_tests.cc:158: Fail: Expected opaque
  to be equal to [unstringable]
  but was found [unstringable].
 
 == Falsy ==
-Fail: Expected truthy
+lucid/core/testing/testdata/failing_tests.cc:163: Fail: Expected truthy
  to be false
  but was found true.
 
 == ElementsWithMatchers ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:168: Fail: Expected values
  to be a range with elements { equal to 1, accepted by the predicate }
  but was found { 1, not accepted }.
 
 == UnorderedElementsWithMatchers ==
-Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:175: Fail: Expected values
  to be a range with elements { equal to 3, accepted by the predicate } in any order
  but was found { 1, 2 }.
 
 == Prefix ==
-Fail: Expected greeting
+lucid/core/testing/testdata/failing_tests.cc:180: Fail: Expected greeting
  to be a string starting with "bye"
  but was found "hello".
 
 == Suffix ==
-Fail: Expected greeting
+lucid/core/testing/testdata/failing_tests.cc:185: Fail: Expected greeting
  to be a string ending with "bye"
  but was found "hello".
 
 == AssertStopsTheTest ==
-Fail: Expected falsy
+lucid/core/testing/testdata/failing_tests.cc:191: Fail: Expected falsy
  to be true
  but was found false.
 
 == ExpectContinuesAfterFailure ==
-Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:198: Fail: Expected twenty_one
  to be equal to 42
  but was found 21.
-Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:199: Fail: Expected twenty_one
  to be not equal to 21
  but was found 21.
 ExpectContinuesAfterFailure reached LOG

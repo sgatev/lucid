@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <filesystem>
 #include <memory>
+#include <source_location>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -49,8 +50,14 @@ class Test {
   // Runs the test and returns true if it succeeded.
   bool RunFull();
 
-  // Fails the test with the given `reason`.
-  void Fail(std::string_view reason);
+  // Fails the test with the given `reason`, reporting `location` as where it
+  // happened.
+  //
+  // `location` defaults to the call site, which is what a caller almost always
+  // wants: the assertion macros expand at the assertion, so the default picks
+  // up the line under test rather than any line inside the framework.
+  void Fail(std::string_view reason,
+            std::source_location location = std::source_location::current());
 
  protected:
   // Defines the logic of the test.
