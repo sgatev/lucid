@@ -3,9 +3,12 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
+package(
+    default_testonly = True,
+)
+
 cc_library(
     name = "testing_library",
-    testonly = True,
     srcs = ["testing.cc"],
     hdrs = ["testing.h"],
     visibility = ["//lucid:__subpackages__"],
@@ -33,7 +36,6 @@ cc_library(
 
 cc_library(
     name = "testing",
-    testonly = True,
     srcs = ["testing_main.cc"],
     hdrs = ["testing.h"],
     visibility = ["//lucid:__subpackages__"],
@@ -63,7 +65,6 @@ cc_library(
 
 genrule(
     name = "run_passing_tests",
-    testonly = True,
     outs = ["passing_tests_output"],
     cmd = "$(location //lucid/core/testing/testdata:passing_tests) --disable_timings > $@",
     tools = ["//lucid/core/testing/testdata:passing_tests"],
@@ -77,7 +78,6 @@ diff_test(
 
 genrule(
     name = "run_filtered_tests",
-    testonly = True,
     outs = ["filtered_tests_output"],
     cmd = "$(location //lucid/core/testing/testdata:passing_tests) --disable_timings --filter=Unordered > $@",
     tools = ["//lucid/core/testing/testdata:passing_tests"],
@@ -91,7 +91,6 @@ diff_test(
 
 genrule(
     name = "run_unmatched_filter_tests",
-    testonly = True,
     outs = ["unmatched_filter_tests_output"],
     cmd = """
     if $(location //lucid/core/testing/testdata:passing_tests) --disable_timings --filter=NoSuchTest > $@ 2>&1; then
@@ -110,7 +109,6 @@ diff_test(
 
 genrule(
     name = "run_failing_tests",
-    testonly = True,
     outs = ["failing_tests_output"],
     cmd = """
     if $(location //lucid/core/testing/testdata:failing_tests) --disable_timings > $@ 2>&1; then
