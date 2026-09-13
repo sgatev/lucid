@@ -30,6 +30,9 @@ TEST(Test, RunCommandRootCommand) {
                 {
                     {
                         .name = "foo",
+                        .flags = {{
+                            .name = "foo_flag",
+                        }},
                         .handler = foo,
                     },
                 },
@@ -61,6 +64,9 @@ TEST(Test, RunCommandNestedCommand) {
         {
             {
                 .name = "bar",
+                .flags = {{
+                    .name = "bar_flag",
+                }},
                 .handler = bar,
             },
         },
@@ -72,6 +78,9 @@ TEST(Test, RunCommandNestedCommand) {
                 {
                     {
                         .name = "foo",
+                        .flags = {{
+                            .name = "foo_flag",
+                        }},
                         .handler = foo,
                     },
                 },
@@ -101,6 +110,53 @@ TEST(Test, RunCommandUnknownCommand) {
   EXPECT_EQ(out.str(), "");
   EXPECT_EQ(std::string(err.str()),
             "\33[31mERROR:\33[m unknown command 'foo'\n");
+}
+
+TEST(Test, RunCommandUnknownFlag) {
+  std::vector<std::string_view> args = {"foo", "--baz_flag=baz_value"};
+
+  bool has_run = false;
+  auto foo = [&](const CommandContext&) {
+    has_run = true;
+    return 0;
+  };
+
+  std::stringstream out, err;
+  EXPECT_EQ(RunCommand(
+                {
+                    {
+                        .name = "foo",
+                        .flags = {{
+                            .name = "foo_flag",
+                        }},
+                        .handler = foo,
+                    },
+                },
+                CommandContext({"test"}, args, {}, out, err)),
+            1);
+  EXPECT_THAT(has_run, IsFalse());
+  EXPECT_EQ(out.str(), "");
+  EXPECT_EQ(std::string(err.str()),
+            "\33[31mERROR:\33[m unknown flag '--baz_flag'\n");
+}
+
+TEST(Test, RunCommandFlagNotDeclaredByCommandWithNoFlags) {
+  std::vector<std::string_view> args = {"foo", "--any_flag"};
+
+  auto foo = [](const CommandContext&) { return 0; };
+
+  std::stringstream out, err;
+  EXPECT_EQ(RunCommand(
+                {
+                    {
+                        .name = "foo",
+                        .handler = foo,
+                    },
+                },
+                CommandContext({"test"}, args, {}, out, err)),
+            1);
+  EXPECT_EQ(std::string(err.str()),
+            "\33[31mERROR:\33[m unknown flag '--any_flag'\n");
 }
 
 TEST(Test, RunCommandOutput) {
@@ -180,6 +236,7 @@ TEST(Test, RunCommandCurrentCommand) {
                 {
                     {
                         .name = "foo",
+                        .flags = {{.name = "foo_flag"}},
                         .handler = foo,
                     },
                 },

@@ -337,6 +337,10 @@ int HandleRoot(CommandContext ctx) {
               .name = "print-am-cfg",
               .help = "Parses the specified target and prints the abstract "
                       "machine CFG.",
+              .flags = {{
+                  .name = "regs",
+                  .help = "Register allocation strategy: 'spill' or 'merge'.",
+              }},
               .handler = HandlePrintAmCfgCommand,
           },
           {

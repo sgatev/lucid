@@ -55,6 +55,15 @@ CommandContext StandardRootCommandContext(std::span<std::string_view> args);
 // A handler that runs a command within a given context.
 using CommandHandler = std::function<int(CommandContext)>;
 
+// A flag accepted by a command.
+struct Flag {
+  // Name of the flag, without the leading "--".
+  std::string_view name;
+
+  // Help string for the flag.
+  std::string_view help;
+};
+
 // A command.
 struct Command {
   // Name of the command.
@@ -62,6 +71,13 @@ struct Command {
 
   // Help string for the command.
   std::string_view help;
+
+  // Flags the command accepts.
+  //
+  // A flag that is not declared here is rejected, so that a misspelled flag
+  // fails loudly instead of being silently ignored. A command that declares
+  // none therefore accepts none.
+  std::vector<Flag> flags;
 
   // Command handler.
   CommandHandler handler;
@@ -73,7 +89,8 @@ struct Command {
 // elements of `ctx.args` are passed in the handler call.
 //
 // Returns an error if `ctx.args` is empty. Returns an error if `commands` does
-// not include the given command.
+// not include the given command. Returns an error if a leading `--` argument
+// names a flag that the command does not declare.
 //
 // Requires:
 // - `commands` must not contain more than one command with a given name.

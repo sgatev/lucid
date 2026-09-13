@@ -15,6 +15,15 @@
 #include "lucid/core/string/concat.h"
 
 namespace lucid {
+namespace {
+
+// Returns whether `command` declares a flag named `flag_name`.
+bool AcceptsFlag(const Command& command, std::string_view flag_name) {
+  return std::ranges::any_of(
+      command.flags, [&](const Flag& flag) { return flag.name == flag_name; });
+}
+
+}  // namespace
 
 CommandContext::CommandContext(
     std::vector<std::string_view> path, std::span<std::string_view> args,
@@ -90,9 +99,16 @@ int RunCommand(std::initializer_list<Command> commands, CommandContext ctx) {
 
   HashMap<std::string_view, std::string_view> flags;
   for (auto it = ctx.args_.begin(); it != first_non_flag_arg_it; ++it) {
-    auto flag = it->substr(2);
-    auto count = flag.find('=');
-    flags.Set(flag.substr(0, count), flag.substr(count + 1));
+    std::string_view flag = it->substr(2);
+    // A flag given without a value keeps the whole `--name` text as its value,
+    // which is enough for the callers that only test for its presence.
+    std::size_t value_offset = flag.find('=');
+    std::string_view flag_name = flag.substr(0, value_offset);
+    if (!AcceptsFlag(*command_it, flag_name)) {
+      ctx.Err() << "unknown flag '--" << flag_name << "'\n";
+      return 1;
+    }
+    flags.Set(flag_name, flag.substr(value_offset + 1));
   }
 
   return command_it->handler(

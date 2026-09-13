@@ -143,6 +143,10 @@ int RunAllTests(std::vector<std::string_view> args) {
   return RunCommand({{
                         .name = args[0],
                         .help = "Runs the tests in this binary.",
+                        .flags = {{
+                            .name = "disable_timings",
+                            .help = "Omits timings from the summary.",
+                        }},
                         .handler = HandleRunTestsCommand,
                     }},
                     StandardRootCommandContext(args));
