@@ -25,5 +25,6 @@ exports_files([
     "expected_failing_tests_output",
     "expected_filtered_tests_output",
     "expected_passing_tests_output",
+    "expected_timed_tests_output",
     "expected_unmatched_filter_tests_output",
 ])

@@ -100,7 +100,7 @@ int HandleRunTestsCommand(CommandContext ctx) {
   ctx.Out() << "└─► " << passed_tests_count << " out of " << test_results.size()
             << " tests PASS";
   if (enable_timings) {
-    ctx.Out() << "(" << suite_elapsed_time << ")";
+    ctx.Out() << " (" << suite_elapsed_time << ")";
   }
   ctx.Out() << "\n";
 

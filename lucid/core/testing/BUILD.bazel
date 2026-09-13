@@ -77,6 +77,21 @@ diff_test(
 )
 
 genrule(
+    name = "run_timed_tests",
+    outs = ["timed_tests_output"],
+    # Durations vary from run to run, so they are replaced with a placeholder. What is
+    # being pinned is that they are printed, and where.
+    cmd = "$(location //lucid/core/testing/testdata:passing_tests) --filter=Boolean | sed -E 's/[(][0-9]+[^)]*[)]/(<duration>)/g' > $@",
+    tools = ["//lucid/core/testing/testdata:passing_tests"],
+)
+
+diff_test(
+    name = "timed_tests_test",
+    file1 = "//lucid/core/testing/testdata:expected_timed_tests_output",
+    file2 = ":timed_tests_output",
+)
+
+genrule(
     name = "run_filtered_tests",
     outs = ["filtered_tests_output"],
     cmd = "$(location //lucid/core/testing/testdata:passing_tests) --disable_timings --filter=Unordered > $@",
