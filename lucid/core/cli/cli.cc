@@ -100,15 +100,18 @@ int RunCommand(std::initializer_list<Command> commands, CommandContext ctx) {
   HashMap<std::string_view, std::string_view> flags;
   for (auto it = ctx.args_.begin(); it != first_non_flag_arg_it; ++it) {
     std::string_view flag = it->substr(2);
-    // A flag given without a value keeps the whole `--name` text as its value,
-    // which is enough for the callers that only test for its presence.
     std::size_t value_offset = flag.find('=');
     std::string_view flag_name = flag.substr(0, value_offset);
     if (!AcceptsFlag(*command_it, flag_name)) {
       ctx.Err() << "unknown flag '--" << flag_name << "'\n";
       return 1;
     }
-    flags.Set(flag_name, flag.substr(value_offset + 1));
+    // A flag given without a value gets an empty one, so that a command can
+    // tell `--flag` from `--flag=value` while still being able to test for
+    // mere presence.
+    flags.Set(flag_name, value_offset == std::string_view::npos
+                             ? std::string_view()
+                             : flag.substr(value_offset + 1));
   }
 
   return command_it->handler(

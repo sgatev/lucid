@@ -76,6 +76,39 @@ diff_test(
 )
 
 genrule(
+    name = "run_filtered_tests",
+    testonly = True,
+    outs = ["filtered_tests_output"],
+    cmd = "$(location //lucid/core/testing/testdata:passing_tests) --disable_timings --filter=Unordered > $@",
+    tools = ["//lucid/core/testing/testdata:passing_tests"],
+)
+
+diff_test(
+    name = "filtered_tests_test",
+    file1 = "//lucid/core/testing/testdata:expected_filtered_tests_output",
+    file2 = ":filtered_tests_output",
+)
+
+genrule(
+    name = "run_unmatched_filter_tests",
+    testonly = True,
+    outs = ["unmatched_filter_tests_output"],
+    cmd = """
+    if $(location //lucid/core/testing/testdata:passing_tests) --disable_timings --filter=NoSuchTest > $@ 2>&1; then
+      echo "ERROR: Expected tool to fail, but it exited with 0" >&2
+      exit 1
+    fi
+    """,
+    tools = ["//lucid/core/testing/testdata:passing_tests"],
+)
+
+diff_test(
+    name = "unmatched_filter_tests_test",
+    file1 = "//lucid/core/testing/testdata:expected_unmatched_filter_tests_output",
+    file2 = ":unmatched_filter_tests_output",
+)
+
+genrule(
     name = "run_failing_tests",
     testonly = True,
     outs = ["failing_tests_output"],

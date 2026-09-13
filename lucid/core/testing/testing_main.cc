@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <streambuf>
 #include <string>
@@ -26,6 +27,26 @@ static std::vector<std::unique_ptr<lucid::Test>> kRegisteredTests;
 int HandleRunTestsCommand(CommandContext ctx) {
   const bool enable_timings = !ctx.Flag("disable_timings").has_value();
 
+  const std::optional<std::string_view> filter = ctx.Flag("filter");
+  if (filter.has_value() && filter->empty()) {
+    ctx.Err() << "the 'filter' flag requires a value\n";
+    return 1;
+  }
+
+  std::vector<Test*> selected_tests;
+  selected_tests.reserve(kRegisteredTests.size());
+  for (const auto& test : kRegisteredTests) {
+    if (!filter.has_value() || test->Name().contains(*filter)) {
+      selected_tests.push_back(test.get());
+    }
+  }
+  // A filter that selects nothing is reported rather than run, so that a
+  // mistyped one fails instead of quietly passing an empty suite.
+  if (filter.has_value() && selected_tests.empty()) {
+    ctx.Err() << "no test matches the filter '" << *filter << "'\n";
+    return 1;
+  }
+
   struct TestResult {
     std::string_view name;
     bool pass;
@@ -34,20 +55,20 @@ int HandleRunTestsCommand(CommandContext ctx) {
   };
 
   std::vector<TestResult> test_results;
-  test_results.reserve(kRegisteredTests.size());
-  for (const auto& test : kRegisteredTests) {
+  test_results.reserve(selected_tests.size());
+  for (const Test* test : selected_tests) {
     test_results.push_back(TestResult{.name = test->Name()});
   }
 
   const auto suite_start_time = std::chrono::system_clock::now();
-  for (int i = 0; i < kRegisteredTests.size(); ++i) {
+  for (std::size_t i = 0; i < selected_tests.size(); ++i) {
     // Captures everything the test writes, including `ctx.Out()`, which
     // refers to this same `std::cout`.
     std::streambuf* original_cout_buf = std::cout.rdbuf();
     std::cout.rdbuf(test_results[i].output.rdbuf());
 
     const auto start_time = std::chrono::system_clock::now();
-    const bool pass = kRegisteredTests[i]->RunFull();
+    const bool pass = selected_tests[i]->RunFull();
     const auto end_time = std::chrono::system_clock::now();
     const auto elapsed_time = end_time - start_time;
 
@@ -76,8 +97,8 @@ int HandleRunTestsCommand(CommandContext ctx) {
       test_results, [](const auto& test_result) { return test_result.pass; });
   const std::size_t failed_tests_count = std::ranges::count_if(
       test_results, [](const auto& test_result) { return !test_result.pass; });
-  ctx.Out() << "└─► " << passed_tests_count << " out of "
-            << kRegisteredTests.size() << " tests PASS";
+  ctx.Out() << "└─► " << passed_tests_count << " out of " << test_results.size()
+            << " tests PASS";
   if (enable_timings) {
     ctx.Out() << "(" << suite_elapsed_time << ")";
   }
@@ -144,9 +165,14 @@ int RunAllTests(std::vector<std::string_view> args) {
                         .name = args[0],
                         .help = "Runs the tests in this binary.",
                         .flags = {{
-                            .name = "disable_timings",
-                            .help = "Omits timings from the summary.",
-                        }},
+                                      .name = "disable_timings",
+                                      .help = "Omits timings from the summary.",
+                                  },
+                                  {
+                                      .name = "filter",
+                                      .help = "Runs only the tests whose name "
+                                              "contains this substring.",
+                                  }},
                         .handler = HandleRunTestsCommand,
                     }},
                     StandardRootCommandContext(args));

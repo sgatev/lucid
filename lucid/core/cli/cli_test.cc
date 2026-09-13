@@ -112,6 +112,33 @@ TEST(Test, RunCommandUnknownCommand) {
             "\33[31mERROR:\33[m unknown command 'foo'\n");
 }
 
+TEST(Test, RunCommandFlagWithoutValue) {
+  std::vector<std::string_view> args = {"foo", "--foo_flag"};
+
+  std::optional<std::string_view> foo_flag_value;
+  auto foo = [&](CommandContext ctx) {
+    foo_flag_value = ctx.Flag("foo_flag");
+    return 0;
+  };
+
+  std::stringstream out, err;
+  EXPECT_EQ(RunCommand(
+                {
+                    {
+                        .name = "foo",
+                        .flags = {{
+                            .name = "foo_flag",
+                        }},
+                        .handler = foo,
+                    },
+                },
+                CommandContext({"test"}, args, {}, out, err)),
+            0);
+  // Present, but with no value, so that a command can tell the two apart.
+  EXPECT_THAT(foo_flag_value, Optional(Equals("")));
+  EXPECT_EQ(err.str(), "");
+}
+
 TEST(Test, RunCommandUnknownFlag) {
   std::vector<std::string_view> args = {"foo", "--baz_flag=baz_value"};
 
