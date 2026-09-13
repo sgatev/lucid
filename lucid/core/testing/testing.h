@@ -200,45 +200,44 @@ inline internal::SuffixMatcher EndsWith(std::string_view suffix) {
   return internal::SuffixMatcher(suffix);
 }
 
-#define ASSERT_THAT(actual, matcher)                                       \
-  if (!(matcher).Matches(actual)) {                                        \
-    std::vector<std::string> parts = {                                     \
-        "Expected ",                                                       \
-        TO_STRING(actual),                                                 \
-        "\n",                                                              \
-        " to be ",                                                         \
-        (matcher).DescribeExpected(),                                      \
-        "\n",                                                              \
-        " but was found ",                                                 \
-        (matcher).DescribeActual(actual),                                  \
-        ".",                                                               \
-    };                                                                     \
-    Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \
-                ""));                                                      \
-    return;                                                                \
-  }
+// Checks `actual` against `matcher`, and on a mismatch fails the test with a
+// description of the difference and then runs `on_mismatch`.
+//
+// Both operands are bound to locals so that each is evaluated exactly once:
+// `actual` is often a call with side effects, and describing it must not run it
+// a second time. Wrapping the whole thing in a loop makes an invocation a
+// single statement, so it can be used as the body of an unbraced `if`.
+#define MATCH_OR_FAIL_(actual, matcher, on_mismatch)                       \
+  do {                                                                     \
+    auto&& UNIQUE_VAR(value) = (actual);                                   \
+    auto&& UNIQUE_VAR(m) = (matcher);                                      \
+    if (!UNIQUE_VAR(m).Matches(UNIQUE_VAR(value))) {                       \
+      std::vector<std::string> UNIQUE_VAR(parts) = {                       \
+          "Expected ",                                                     \
+          TO_STRING(actual),                                               \
+          "\n",                                                            \
+          " to be ",                                                       \
+          UNIQUE_VAR(m).DescribeExpected(),                                \
+          "\n",                                                            \
+          " but was found ",                                               \
+          UNIQUE_VAR(m).DescribeActual(UNIQUE_VAR(value)),                 \
+          ".",                                                             \
+      };                                                                   \
+      Fail(Concat(std::vector<std::string_view>(UNIQUE_VAR(parts).begin(), \
+                                                UNIQUE_VAR(parts).end()),  \
+                  ""));                                                    \
+      on_mismatch;                                                         \
+    }                                                                      \
+  } while (false)
+
+#define ASSERT_THAT(actual, matcher) MATCH_OR_FAIL_(actual, matcher, return)
 
 #define ASSERT_TRUE(actual) ASSERT_THAT(actual, IsTrue())
 #define ASSERT_FALSE(actual) ASSERT_THAT(actual, IsFalse())
 #define ASSERT_EQ(actual, expected) ASSERT_THAT(actual, Equals(expected))
 #define ASSERT_NE(actual, expected) ASSERT_THAT(actual, NotEquals(expected))
 
-#define EXPECT_THAT(actual, matcher)                                       \
-  if (!(matcher).Matches(actual)) {                                        \
-    std::vector<std::string> parts = {                                     \
-        "Expected ",                                                       \
-        TO_STRING(actual),                                                 \
-        "\n",                                                              \
-        " to be ",                                                         \
-        (matcher).DescribeExpected(),                                      \
-        "\n",                                                              \
-        " but was found ",                                                 \
-        (matcher).DescribeActual(actual),                                  \
-        ".",                                                               \
-    };                                                                     \
-    Fail(Concat(std::vector<std::string_view>(parts.begin(), parts.end()), \
-                ""));                                                      \
-  }
+#define EXPECT_THAT(actual, matcher) MATCH_OR_FAIL_(actual, matcher, (void)0)
 
 #define EXPECT_TRUE(actual) EXPECT_THAT(actual, IsTrue())
 #define EXPECT_FALSE(actual) EXPECT_THAT(actual, IsFalse())
