@@ -200,4 +200,12 @@ TEST(Test, ExpectContinuesAfterFailure) {
   std::cout << "ExpectContinuesAfterFailure reached LOG" << '\n';
 }
 
+// Output on both standard streams is captured and kept in order, so that a
+// failure reports everything the test printed rather than just its stdout.
+TEST(Test, StandardErrorOutput) {
+  std::cout << "StandardErrorOutput stdout LOG" << '\n';
+  std::cerr << "StandardErrorOutput stderr LOG" << '\n';
+  Fail("StandardErrorOutput failure");
+}
+
 }  // namespace lucid

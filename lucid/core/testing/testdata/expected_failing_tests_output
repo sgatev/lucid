@@ -30,7 +30,8 @@
 │ FAIL Suffix
 │ FAIL AssertStopsTheTest
 │ FAIL ExpectContinuesAfterFailure
-└─► 1 out of 32 tests PASS
+│ FAIL StandardErrorOutput
+└─► 1 out of 33 tests PASS
 
 == Foo ==
 lucid/core/testing/testdata/failing_tests.cc:32: Fail: Foo failure
@@ -188,4 +189,9 @@ lucid/core/testing/testdata/failing_tests.cc:199: Fail: Expected twenty_one
  to be not equal to 21
  but was found 21.
 ExpectContinuesAfterFailure reached LOG
+
+== StandardErrorOutput ==
+StandardErrorOutput stdout LOG
+StandardErrorOutput stderr LOG
+lucid/core/testing/testdata/failing_tests.cc:208: Fail: StandardErrorOutput failure
 

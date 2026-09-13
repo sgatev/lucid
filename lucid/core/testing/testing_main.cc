@@ -62,10 +62,13 @@ int HandleRunTestsCommand(CommandContext ctx) {
 
   const auto suite_start_time = std::chrono::system_clock::now();
   for (std::size_t i = 0; i < selected_tests.size(); ++i) {
-    // Captures everything the test writes, including `ctx.Out()`, which
-    // refers to this same `std::cout`.
+    // Captures everything the test writes, including `ctx.Out()`, which refers
+    // to this same `std::cout`. Both standard streams are pointed at the one
+    // buffer, so that what the test printed stays in the order it printed it.
     std::streambuf* original_cout_buf = std::cout.rdbuf();
+    std::streambuf* original_cerr_buf = std::cerr.rdbuf();
     std::cout.rdbuf(test_results[i].output.rdbuf());
+    std::cerr.rdbuf(test_results[i].output.rdbuf());
 
     const auto start_time = std::chrono::system_clock::now();
     const bool pass = selected_tests[i]->RunFull();
@@ -73,6 +76,7 @@ int HandleRunTestsCommand(CommandContext ctx) {
     const auto elapsed_time = end_time - start_time;
 
     std::cout.rdbuf(original_cout_buf);
+    std::cerr.rdbuf(original_cerr_buf);
 
     test_results[i].pass = pass;
     test_results[i].elapsed_time = elapsed_time;
