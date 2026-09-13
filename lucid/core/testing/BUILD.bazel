@@ -39,6 +39,7 @@ cc_library(
     visibility = ["//lucid:__subpackages__"],
     deps = [
         ":testing_library",
+        "//lucid/core/cli",
         "//lucid/core/string:concat",
         "//lucid/core/testing/internal:all_matcher",
         "//lucid/core/testing/internal:boolean_matcher",
