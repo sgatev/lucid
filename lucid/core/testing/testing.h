@@ -8,6 +8,8 @@
 #include <string_view>
 #include <variant>
 
+#include "lucid/core/meta/macros.h"
+#include "lucid/core/string/concat.h"
 #include "lucid/core/testing/internal/all_matcher.h"
 #include "lucid/core/testing/internal/boolean_matcher.h"
 #include "lucid/core/testing/internal/elements_matcher.h"
@@ -74,25 +76,17 @@ class Test {
 // Adds a new test to the global suite of tests.
 int AddTest(std::unique_ptr<Test> test);
 
-#define STRINGIFY(x) #x
-#define TO_STRING(x) STRINGIFY(x)
-
-#define CONCAT_(prefix, suffix) prefix##suffix
-#define CONCAT(prefix, suffix) CONCAT_(prefix, suffix)
-
-#define UNIQUE_VAR(prefix) CONCAT(prefix##_, __LINE__)
-
-#define TEST(base, name)                                            \
-  /* NOLINTNEXTLINE */                                              \
-  class CONCAT(name, Test) : public base {                          \
-   public:                                                          \
-    std::string_view Name() const final { return TO_STRING(name); } \
-    void Run() final;                                               \
-  };                                                                \
-  /* NOLINTNEXTLINE */                                              \
-  static auto UNIQUE_VAR(t) =                                       \
-      lucid::AddTest(std::make_unique<CONCAT(name, Test)>());       \
-  void CONCAT(name, Test)::Run()
+#define TEST(base, name)                                                  \
+  /* NOLINTNEXTLINE */                                                    \
+  class LUCID_CONCAT(name, Test) : public base {                          \
+   public:                                                                \
+    std::string_view Name() const final { return LUCID_STRINGIFY(name); } \
+    void Run() final;                                                     \
+  };                                                                      \
+  /* NOLINTNEXTLINE */                                                    \
+  static auto LUCID_UNIQUE_VAR(t) =                                       \
+      lucid::AddTest(std::make_unique<LUCID_CONCAT(name, Test)>());       \
+  void LUCID_CONCAT(name, Test)::Run()
 
 // Matches a value that is accepted by `predicate`.
 template <typename P>
@@ -214,37 +208,40 @@ inline internal::SuffixMatcher EndsWith(std::string_view suffix) {
 // `actual` is often a call with side effects, and describing it must not run it
 // a second time. Wrapping the whole thing in a loop makes an invocation a
 // single statement, so it can be used as the body of an unbraced `if`.
-#define MATCH_OR_FAIL_(actual, matcher, on_mismatch)                       \
-  do {                                                                     \
-    auto&& UNIQUE_VAR(value) = (actual);                                   \
-    auto&& UNIQUE_VAR(m) = (matcher);                                      \
-    if (!UNIQUE_VAR(m).Matches(UNIQUE_VAR(value))) {                       \
-      std::vector<std::string> UNIQUE_VAR(parts) = {                       \
-          "Expected ",                                                     \
-          TO_STRING(actual),                                               \
-          "\n",                                                            \
-          " to be ",                                                       \
-          UNIQUE_VAR(m).DescribeExpected(),                                \
-          "\n",                                                            \
-          " but was found ",                                               \
-          UNIQUE_VAR(m).DescribeActual(UNIQUE_VAR(value)),                 \
-          ".",                                                             \
-      };                                                                   \
-      Fail(Concat(std::vector<std::string_view>(UNIQUE_VAR(parts).begin(), \
-                                                UNIQUE_VAR(parts).end()),  \
-                  ""));                                                    \
-      on_mismatch;                                                         \
-    }                                                                      \
+#define LUCID_MATCH_OR_FAIL(actual, matcher, on_mismatch)                \
+  do {                                                                   \
+    auto&& LUCID_UNIQUE_VAR(value) = (actual);                           \
+    auto&& LUCID_UNIQUE_VAR(m) = (matcher);                              \
+    if (!LUCID_UNIQUE_VAR(m).Matches(LUCID_UNIQUE_VAR(value))) {         \
+      std::vector<std::string> LUCID_UNIQUE_VAR(parts) = {               \
+          "Expected ",                                                   \
+          LUCID_STRINGIFY(actual),                                       \
+          "\n",                                                          \
+          " to be ",                                                     \
+          LUCID_UNIQUE_VAR(m).DescribeExpected(),                        \
+          "\n",                                                          \
+          " but was found ",                                             \
+          LUCID_UNIQUE_VAR(m).DescribeActual(LUCID_UNIQUE_VAR(value)),   \
+          ".",                                                           \
+      };                                                                 \
+      Fail(Concat(                                                       \
+          std::vector<std::string_view>(LUCID_UNIQUE_VAR(parts).begin(), \
+                                        LUCID_UNIQUE_VAR(parts).end()),  \
+          ""));                                                          \
+      on_mismatch;                                                       \
+    }                                                                    \
   } while (false)
 
-#define ASSERT_THAT(actual, matcher) MATCH_OR_FAIL_(actual, matcher, return)
+#define ASSERT_THAT(actual, matcher) \
+  LUCID_MATCH_OR_FAIL(actual, matcher, return)
 
 #define ASSERT_TRUE(actual) ASSERT_THAT(actual, IsTrue())
 #define ASSERT_FALSE(actual) ASSERT_THAT(actual, IsFalse())
 #define ASSERT_EQ(actual, expected) ASSERT_THAT(actual, Equals(expected))
 #define ASSERT_NE(actual, expected) ASSERT_THAT(actual, NotEquals(expected))
 
-#define EXPECT_THAT(actual, matcher) MATCH_OR_FAIL_(actual, matcher, (void)0)
+#define EXPECT_THAT(actual, matcher) \
+  LUCID_MATCH_OR_FAIL(actual, matcher, (void)0)
 
 #define EXPECT_TRUE(actual) EXPECT_THAT(actual, IsTrue())
 #define EXPECT_FALSE(actual) EXPECT_THAT(actual, IsFalse())

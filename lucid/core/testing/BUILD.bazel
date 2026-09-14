@@ -13,6 +13,7 @@ cc_library(
     hdrs = ["testing.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
+        "//lucid/core/meta:macros",
         "//lucid/core/string:concat",
         "//lucid/core/testing/internal:all_matcher",
         "//lucid/core/testing/internal:boolean_matcher",
@@ -42,6 +43,7 @@ cc_library(
     deps = [
         ":testing_library",
         "//lucid/core/cli",
+        "//lucid/core/meta:macros",
         "//lucid/core/string:concat",
         "//lucid/core/testing/internal:all_matcher",
         "//lucid/core/testing/internal:boolean_matcher",

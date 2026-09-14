@@ -5,6 +5,7 @@ cc_library(
     name = "expected",
     hdrs = ["expected.h"],
     visibility = ["//lucid:__subpackages__"],
+    deps = ["//lucid/core/meta:macros"],
 )
 
 cc_library(
