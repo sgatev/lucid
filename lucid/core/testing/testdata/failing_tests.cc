@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <iostream>
 #include <optional>
 #include <ostream>
@@ -170,9 +171,8 @@ TEST(Test, ElementsWithMatchers) {
 
 TEST(Test, UnorderedElementsWithMatchers) {
   std::vector<int> values = {1, 2};
-  EXPECT_THAT(values, UnorderedElements(Equals(3), Truly([](int x) {
-                                          return x > 5;
-                                        })));
+  EXPECT_THAT(values,
+              UnorderedElements(Equals(3), Truly([](int x) { return x > 5; })));
 }
 
 TEST(Test, Prefix) {
@@ -206,6 +206,30 @@ TEST(Test, StandardErrorOutput) {
   std::cout << "StandardErrorOutput stdout LOG" << '\n';
   std::cerr << "StandardErrorOutput stderr LOG" << '\n';
   Fail("StandardErrorOutput failure");
+}
+
+// A scoped enumeration with no `operator<<`, for checking the numeric
+// fallback.
+enum class Fruit : std::uint8_t { kApple, kPear };
+
+// A scoped enumeration has no `operator<<` of its own, so it is reported as
+// its numeric value rather than as a placeholder.
+TEST(Test, EnumValue) {
+  Fruit fruit = Fruit::kApple;
+  EXPECT_THAT(fruit, Equals(Fruit::kPear));
+}
+
+// A scoped enumeration with an `operator<<`, for checking that names win.
+enum class Vegetable : std::uint8_t { kLeek, kBean };
+
+inline std::ostream& operator<<(std::ostream& out, Vegetable vegetable) {
+  return out << (vegetable == Vegetable::kLeek ? "kLeek" : "kBean");
+}
+
+// An enumeration that is printable keeps its names.
+TEST(Test, PrintableEnumValue) {
+  Vegetable vegetable = Vegetable::kLeek;
+  EXPECT_THAT(vegetable, Equals(Vegetable::kBean));
 }
 
 }  // namespace lucid

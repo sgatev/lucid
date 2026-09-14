@@ -31,133 +31,135 @@
 │ FAIL AssertStopsTheTest
 │ FAIL ExpectContinuesAfterFailure
 │ FAIL StandardErrorOutput
-└─► 1 out of 33 tests PASS
+│ FAIL EnumValue
+│ FAIL PrintableEnumValue
+└─► 1 out of 35 tests PASS
 
 == Foo ==
-lucid/core/testing/testdata/failing_tests.cc:32: Fail: Foo failure
+lucid/core/testing/testdata/failing_tests.cc:33: Fail: Foo failure
 Foo LOG
 
 == Baz ==
 Baz LOG
-lucid/core/testing/testdata/failing_tests.cc:40: Fail: Baz failure
+lucid/core/testing/testdata/failing_tests.cc:41: Fail: Baz failure
 
 == Predicate ==
-lucid/core/testing/testdata/failing_tests.cc:45: Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:46: Fail: Expected twenty_one
  to be accepted by the predicate
  but was found not accepted.
 
 == Boolean ==
-lucid/core/testing/testdata/failing_tests.cc:50: Fail: Expected falsy
+lucid/core/testing/testdata/failing_tests.cc:51: Fail: Expected falsy
  to be true
  but was found false.
 
 == Equality ==
-lucid/core/testing/testdata/failing_tests.cc:55: Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:56: Fail: Expected twenty_one
  to be equal to 42
  but was found 21.
 
 == Inequality ==
-lucid/core/testing/testdata/failing_tests.cc:60: Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:61: Fail: Expected twenty_one
  to be not equal to 21
  but was found 21.
 
 == Size ==
-lucid/core/testing/testdata/failing_tests.cc:65: Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:66: Fail: Expected values
  to be of size 3
  but was found of size 2.
 
 == Empty ==
-lucid/core/testing/testdata/failing_tests.cc:70: Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:71: Fail: Expected values
  to be empty
  but was found not empty.
 
 == Elements ==
-lucid/core/testing/testdata/failing_tests.cc:75: Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:76: Fail: Expected values
  to be a range with elements { equal to 1, equal to 3 }
  but was found { 1, 2 }.
 
 == FewerElementsThanMatchers ==
-lucid/core/testing/testdata/failing_tests.cc:80: Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:81: Fail: Expected values
  to be a range with elements { equal to 1, equal to 2 }
  but was found { 1 }.
 
 == MoreElementsThanMatchers ==
-lucid/core/testing/testdata/failing_tests.cc:85: Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:86: Fail: Expected values
  to be a range with elements { equal to 1, equal to 2 }
  but was found { 1, 2, 3 }.
 
 == UnorderedElements ==
-lucid/core/testing/testdata/failing_tests.cc:90: Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:91: Fail: Expected values
  to be a range with elements { equal to 2 } in any order
  but was found { 1, 2 }.
 
 == UnorderedElementsMismatch ==
-lucid/core/testing/testdata/failing_tests.cc:95: Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:96: Fail: Expected values
  to be a range with elements { equal to 2, equal to 3 } in any order
  but was found { 1, 2 }.
 
 == UnorderedElementsReusedElement ==
-lucid/core/testing/testdata/failing_tests.cc:101: Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:102: Fail: Expected values
  to be a range with elements { equal to 1, equal to 1 } in any order
  but was found { 1, 2 }.
 
 == Field ==
-lucid/core/testing/testdata/failing_tests.cc:110: Fail: Expected point
+lucid/core/testing/testdata/failing_tests.cc:111: Fail: Expected point
  to be with a field equal to 3
  but was found with a field 1.
 
 == Optional ==
-lucid/core/testing/testdata/failing_tests.cc:115: Fail: Expected value
+lucid/core/testing/testdata/failing_tests.cc:116: Fail: Expected value
  to be an optional holding a value equal to 2
  but was found an optional holding 1.
 
 == EmptyOptional ==
-lucid/core/testing/testdata/failing_tests.cc:120: Fail: Expected value
+lucid/core/testing/testdata/failing_tests.cc:121: Fail: Expected value
  to be an optional holding a value equal to 2
  but was found an empty optional.
 
 == Variant ==
-lucid/core/testing/testdata/failing_tests.cc:125: Fail: Expected value
+lucid/core/testing/testdata/failing_tests.cc:126: Fail: Expected value
  to be a variant holding a value equal to 2
  but was found a variant holding 1.
 
 == OtherVariantAlternative ==
-lucid/core/testing/testdata/failing_tests.cc:130: Fail: Expected value
+lucid/core/testing/testdata/failing_tests.cc:131: Fail: Expected value
  to be a variant holding a value equal to 2
  but was found a variant holding another alternative.
 
 == Pair ==
-lucid/core/testing/testdata/failing_tests.cc:135: Fail: Expected value
+lucid/core/testing/testdata/failing_tests.cc:136: Fail: Expected value
  to be a pair with key equal to 2 and value equal to 'b'
  but was found a pair with key 1 and value 'a'.
 
 == All ==
-lucid/core/testing/testdata/failing_tests.cc:140: Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:141: Fail: Expected values
  to be empty and of size 2
  but was found not empty and of size 1.
 
 == Not ==
-lucid/core/testing/testdata/failing_tests.cc:145: Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:146: Fail: Expected twenty_one
  to be not equal to 21
  but was found 21.
 
 == PrintableValue ==
-lucid/core/testing/testdata/failing_tests.cc:151: Fail: Expected point
+lucid/core/testing/testdata/failing_tests.cc:152: Fail: Expected point
  to be equal to Point{2}
  but was found Point{1}.
 
 == UnprintableValue ==
-lucid/core/testing/testdata/failing_tests.cc:158: Fail: Expected opaque
+lucid/core/testing/testdata/failing_tests.cc:159: Fail: Expected opaque
  to be equal to [unstringable]
  but was found [unstringable].
 
 == Falsy ==
-lucid/core/testing/testdata/failing_tests.cc:163: Fail: Expected truthy
+lucid/core/testing/testdata/failing_tests.cc:164: Fail: Expected truthy
  to be false
  but was found true.
 
 == ElementsWithMatchers ==
-lucid/core/testing/testdata/failing_tests.cc:168: Fail: Expected values
+lucid/core/testing/testdata/failing_tests.cc:169: Fail: Expected values
  to be a range with elements { equal to 1, accepted by the predicate }
  but was found { 1, not accepted }.
 
@@ -194,4 +196,14 @@ ExpectContinuesAfterFailure reached LOG
 StandardErrorOutput stdout LOG
 StandardErrorOutput stderr LOG
 lucid/core/testing/testdata/failing_tests.cc:208: Fail: StandardErrorOutput failure
+
+== EnumValue ==
+lucid/core/testing/testdata/failing_tests.cc:219: Fail: Expected fruit
+ to be equal to 1
+ but was found 0.
+
+== PrintableEnumValue ==
+lucid/core/testing/testdata/failing_tests.cc:232: Fail: Expected vegetable
+ to be equal to kBean
+ but was found kLeek.
 

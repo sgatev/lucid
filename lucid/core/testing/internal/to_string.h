@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <type_traits>
 
 namespace lucid::internal {
 
@@ -30,6 +31,12 @@ concept Streamable = requires(std::ostream& out, const A& a) {
 // glyph. Integers are rendered without a stream because `std::to_string` is
 // both cheaper and, for the single-byte types, numeric rather than glyphic.
 //
+// A scoped enumeration has no conversion to an integer and so is not
+// streamable on its own. It comes out as its numeric value, which at least
+// differs between the expected and the actual value. Give the enumeration an
+// `operator<<` to see its enumerators named instead -- that branch is checked
+// first, so a printable enumeration keeps its names.
+//
 // Specialize this for a type that is neither printable nor string-like.
 template <typename T>
 inline std::string ToString(const T& t) {
@@ -45,6 +52,8 @@ inline std::string ToString(const T& t) {
     std::ostringstream out;
     out << t;
     return out.str();
+  } else if constexpr (std::is_enum_v<T>) {
+    return std::to_string(static_cast<std::underlying_type_t<T>>(t));
   } else {
     return "[unstringable]";
   }
