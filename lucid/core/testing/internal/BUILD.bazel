@@ -74,6 +74,7 @@ cc_library(
 cc_library(
     name = "predicate_matcher",
     hdrs = ["predicate_matcher.h"],
+    deps = [":to_string"],
 )
 
 cc_library(

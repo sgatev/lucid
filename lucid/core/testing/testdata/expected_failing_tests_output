@@ -46,7 +46,7 @@ lucid/core/testing/testdata/failing_tests.cc:41: Fail: Baz failure
 == Predicate ==
 lucid/core/testing/testdata/failing_tests.cc:46: Fail: Expected twenty_one
  to be accepted by the predicate
- but was found not accepted.
+ but was found 21.
 
 == Boolean ==
 lucid/core/testing/testdata/failing_tests.cc:51: Fail: Expected falsy
@@ -161,7 +161,7 @@ lucid/core/testing/testdata/failing_tests.cc:164: Fail: Expected truthy
 == ElementsWithMatchers ==
 lucid/core/testing/testdata/failing_tests.cc:169: Fail: Expected values
  to be a range with elements { equal to 1, accepted by the predicate }
- but was found { 1, not accepted }.
+ but was found { 1, 2 }.
 
 == UnorderedElementsWithMatchers ==
 lucid/core/testing/testdata/failing_tests.cc:175: Fail: Expected values

@@ -4,13 +4,15 @@
 #include <functional>
 #include <string>
 
+#include "lucid/core/testing/internal/to_string.h"
+
 namespace lucid::internal {
 
 // Matches a value accepted by `predicate`.
 //
-// The predicate is opaque, so a failure can only report that it rejected the
-// value, never which property of the value it objected to. Prefer a more
-// specific matcher where one exists.
+// The predicate is opaque, so a failure reports the value it rejected but not
+// which property of that value it objected to. Prefer a more specific matcher
+// where one exists.
 template <typename P>
 class PredicateMatcher {
  public:
@@ -18,11 +20,9 @@ class PredicateMatcher {
 
   std::string DescribeExpected() { return "accepted by the predicate"; }
 
-  // Returns a fixed phrase, as a bare predicate cannot describe the value it
-  // rejected.
   template <typename A>
-  std::string DescribeActual(A&&) {
-    return "not accepted";
+  std::string DescribeActual(A&& a) {
+    return ToString(a);
   }
 
   template <typename A>
