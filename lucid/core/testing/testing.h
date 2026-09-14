@@ -76,6 +76,11 @@ class Test {
 // Adds a new test to the global suite of tests.
 int AddTest(std::unique_ptr<Test> test);
 
+// Defines a test called `name` that runs with the fixture `base`.
+//
+// A test name has to be unique within a binary, whatever fixture it runs with.
+// The generated class is named after `name` alone and its `Run` has external
+// linkage, so a repeated name fails the build.
 #define TEST(base, name)                                                  \
   /* NOLINTNEXTLINE */                                                    \
   class LUCID_CONCAT(name, Test) : public base {                          \
