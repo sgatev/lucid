@@ -69,7 +69,7 @@ class Test {
   std::filesystem::path TempDir() const { return temp_dir_; }
 
  private:
-  bool failed_;
+  bool failed_ = false;
   std::filesystem::path temp_dir_;
 };
 

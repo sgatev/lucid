@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstddef>
 #include <filesystem>
+#include <initializer_list>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -15,12 +16,13 @@
 #include <vector>
 
 #include "lucid/core/cli/cli.h"
+#include "lucid/core/string/concat.h"
 #include "lucid/core/testing/testing.h"
 
 namespace lucid {
 namespace {
 
-static std::vector<std::unique_ptr<lucid::Test>> kRegisteredTests;
+std::vector<std::unique_ptr<lucid::Test>> registered_tests;
 
 // Runs all tests in the global suite, prints a summary, and returns the number
 // of tests that failed.
@@ -34,8 +36,8 @@ int HandleRunTestsCommand(CommandContext ctx) {
   }
 
   std::vector<Test*> selected_tests;
-  selected_tests.reserve(kRegisteredTests.size());
-  for (const auto& test : kRegisteredTests) {
+  selected_tests.reserve(registered_tests.size());
+  for (const auto& test : registered_tests) {
     if (!filter.has_value() || test->Name().contains(*filter)) {
       selected_tests.push_back(test.get());
     }
@@ -127,14 +129,17 @@ bool Test::RunFull() {
   std::filesystem::path temp_dir_base =
       std::filesystem::temp_directory_path(get_temp_dir_base_error_code);
   if (get_temp_dir_base_error_code) {
-    std::cout << "Fail: couldn't get base temp directory for test run: "
-              << get_temp_dir_base_error_code.message() << "\n";
+    Fail(Concat(
+        std::initializer_list<std::string_view>{
+            "couldn't get base temp directory for test run: ",
+            get_temp_dir_base_error_code.message()},
+        ""));
     return false;
   }
 
   std::string temp_dir = temp_dir_base / (std::string(Name()) + "-XXXXXX");
   if (mkdtemp(temp_dir.data()) == nullptr) {
-    std::cout << "Fail: couldn't create temp directory for test run\n";
+    Fail("couldn't create temp directory for test run");
     return false;
   }
   temp_dir_ = temp_dir;
@@ -145,8 +150,11 @@ bool Test::RunFull() {
   std::error_code remove_temp_dir_error_code;
   std::filesystem::remove_all(temp_dir_, remove_temp_dir_error_code);
   if (remove_temp_dir_error_code) {
-    std::cout << "Fail: couldn't remove temp directory for test run: "
-              << remove_temp_dir_error_code.message() << "\n";
+    Fail(Concat(
+        std::initializer_list<std::string_view>{
+            "couldn't remove temp directory for test run: ",
+            remove_temp_dir_error_code.message()},
+        ""));
     return false;
   }
 
@@ -154,7 +162,7 @@ bool Test::RunFull() {
 }
 
 int AddTest(std::unique_ptr<Test> test) {
-  kRegisteredTests.push_back(std::move(test));
+  registered_tests.push_back(std::move(test));
   return 1;
 }
 
@@ -164,9 +172,16 @@ int AddTest(std::unique_ptr<Test> test) {
 // command named after the binary itself rather than as a subcommand: flags are
 // then parsed wherever they appear, instead of only in the first position.
 int RunAllTests(std::vector<std::string_view> args) {
-  args[0] = "tests";
+  // `argc` is allowed to be zero, so the name is set rather than overwritten.
+  static constexpr std::string_view kCommandName = "tests";
+  if (args.empty()) {
+    args.emplace_back(kCommandName);
+  } else {
+    args[0] = kCommandName;
+  }
+
   return RunCommand({{
-                        .name = args[0],
+                        .name = kCommandName,
                         .help = "Runs the tests in this binary.",
                         .flags = {{
                                       .name = "disable_timings",
