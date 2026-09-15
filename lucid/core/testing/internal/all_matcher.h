@@ -1,12 +1,9 @@
 #pragma once
 
 #include <string>
-#include <string_view>
 #include <tuple>
-#include <vector>
 
 #include "lucid/core/meta/static_for.h"
-#include "lucid/core/string/concat.h"
 #include "lucid/core/testing/internal/matcher.h"
 
 namespace lucid::internal {
@@ -23,17 +20,15 @@ class AllMatcher {
       : matchers_(std::make_tuple(matchers...)) {}
 
   std::string DescribeExpected() {
-    std::vector<std::string> parts;
-    parts.reserve(sizeof...(Ms) * 2);
+    std::string description;
     bool has_added_matcher = false;
     StaticFor<0, sizeof...(Ms)>([&]<int I>() {
-      if (has_added_matcher) parts.push_back(" and ");
-      parts.push_back(std::get<I>(matchers_).DescribeExpected());
+      if (has_added_matcher) description += " and ";
+      description += std::get<I>(matchers_).DescribeExpected();
       has_added_matcher = true;
     });
 
-    return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
-                  "");
+    return description;
   }
 
   // Describes the value once per matcher. The descriptions overlap, but each
@@ -41,17 +36,15 @@ class AllMatcher {
   // reader needs in order to see which conjunct failed.
   template <MatchableByAll<Ms...> A>
   std::string DescribeActual(const A& actual_value) {
-    std::vector<std::string> parts;
-    parts.reserve(sizeof...(Ms) * 2);
+    std::string description;
     bool has_added_matcher = false;
     StaticFor<0, sizeof...(Ms)>([&]<int I>() {
-      if (has_added_matcher) parts.push_back(" and ");
-      parts.push_back(std::get<I>(matchers_).DescribeActual(actual_value));
+      if (has_added_matcher) description += " and ";
+      description += std::get<I>(matchers_).DescribeActual(actual_value);
       has_added_matcher = true;
     });
 
-    return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
-                  "");
+    return description;
   }
 
   template <MatchableByAll<Ms...> A>

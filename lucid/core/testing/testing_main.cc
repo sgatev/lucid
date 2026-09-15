@@ -4,7 +4,7 @@
 #include <chrono>
 #include <cstddef>
 #include <filesystem>
-#include <initializer_list>
+#include <format>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "lucid/core/cli/cli.h"
-#include "lucid/core/string/concat.h"
 #include "lucid/core/testing/testing.h"
 
 namespace lucid {
@@ -129,11 +128,8 @@ bool Test::RunFull() {
   std::filesystem::path temp_dir_base =
       std::filesystem::temp_directory_path(get_temp_dir_base_error_code);
   if (get_temp_dir_base_error_code) {
-    Fail(Concat(
-        std::initializer_list<std::string_view>{
-            "couldn't get base temp directory for test run: ",
-            get_temp_dir_base_error_code.message()},
-        ""));
+    Fail(std::format("couldn't get base temp directory for test run: {}",
+                     get_temp_dir_base_error_code.message()));
     return false;
   }
 
@@ -150,11 +146,8 @@ bool Test::RunFull() {
   std::error_code remove_temp_dir_error_code;
   std::filesystem::remove_all(temp_dir_, remove_temp_dir_error_code);
   if (remove_temp_dir_error_code) {
-    Fail(Concat(
-        std::initializer_list<std::string_view>{
-            "couldn't remove temp directory for test run: ",
-            remove_temp_dir_error_code.message()},
-        ""));
+    Fail(std::format("couldn't remove temp directory for test run: {}",
+                     remove_temp_dir_error_code.message()));
     return false;
   }
 

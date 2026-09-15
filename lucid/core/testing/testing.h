@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <format>
 #include <memory>
 #include <source_location>
 #include <string>
@@ -9,7 +10,6 @@
 #include <variant>
 
 #include "lucid/core/meta/macros.h"
-#include "lucid/core/string/concat.h"
 #include "lucid/core/testing/internal/all_matcher.h"
 #include "lucid/core/testing/internal/boolean_matcher.h"
 #include "lucid/core/testing/internal/elements_matcher.h"
@@ -213,28 +213,17 @@ inline internal::SuffixMatcher EndsWith(std::string_view suffix) {
 // `actual` is often a call with side effects, and describing it must not run it
 // a second time. Wrapping the whole thing in a loop makes an invocation a
 // single statement, so it can be used as the body of an unbraced `if`.
-#define LUCID_MATCH_OR_FAIL(actual, matcher, on_mismatch)                \
-  do {                                                                   \
-    auto&& LUCID_UNIQUE_VAR(value) = (actual);                           \
-    auto&& LUCID_UNIQUE_VAR(m) = (matcher);                              \
-    if (!LUCID_UNIQUE_VAR(m).Matches(LUCID_UNIQUE_VAR(value))) {         \
-      std::vector<std::string> LUCID_UNIQUE_VAR(parts) = {               \
-          "Expected ",                                                   \
-          LUCID_STRINGIFY(actual),                                       \
-          "\n",                                                          \
-          " to be ",                                                     \
-          LUCID_UNIQUE_VAR(m).DescribeExpected(),                        \
-          "\n",                                                          \
-          " but was found ",                                             \
-          LUCID_UNIQUE_VAR(m).DescribeActual(LUCID_UNIQUE_VAR(value)),   \
-          ".",                                                           \
-      };                                                                 \
-      Fail(Concat(                                                       \
-          std::vector<std::string_view>(LUCID_UNIQUE_VAR(parts).begin(), \
-                                        LUCID_UNIQUE_VAR(parts).end()),  \
-          ""));                                                          \
-      on_mismatch;                                                       \
-    }                                                                    \
+#define LUCID_MATCH_OR_FAIL(actual, matcher, on_mismatch)                  \
+  do {                                                                     \
+    auto&& LUCID_UNIQUE_VAR(value) = (actual);                             \
+    auto&& LUCID_UNIQUE_VAR(m) = (matcher);                                \
+    if (!LUCID_UNIQUE_VAR(m).Matches(LUCID_UNIQUE_VAR(value))) {           \
+      Fail(std::format(                                                    \
+          "Expected {}\n to be {}\n but was found {}.",                    \
+          LUCID_STRINGIFY(actual), LUCID_UNIQUE_VAR(m).DescribeExpected(), \
+          LUCID_UNIQUE_VAR(m).DescribeActual(LUCID_UNIQUE_VAR(value))));   \
+      on_mismatch;                                                         \
+    }                                                                      \
   } while (false)
 
 #define ASSERT_THAT(actual, matcher) \

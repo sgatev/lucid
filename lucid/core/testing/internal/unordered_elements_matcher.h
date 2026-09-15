@@ -2,13 +2,11 @@
 
 #include <array>
 #include <cstddef>
+#include <format>
 #include <string>
-#include <string_view>
 #include <tuple>
-#include <vector>
 
 #include "lucid/core/meta/static_for.h"
-#include "lucid/core/string/concat.h"
 #include "lucid/core/testing/internal/matcher.h"
 #include "lucid/core/testing/internal/to_string.h"
 
@@ -26,19 +24,15 @@ class UnorderedElementsMatcher {
       : element_matchers_(std::make_tuple(element_matchers...)) {}
 
   std::string DescribeExpected() {
-    std::vector<std::string> parts;
-    parts.reserve(kMatcherCount * 2 + 2);
-    parts.push_back("a range with elements { ");
+    std::string elements;
     bool has_added_element = false;
     StaticFor<0, kMatcherCount>([&]<int I>() {
-      if (has_added_element) parts.push_back(", ");
-      parts.push_back(std::get<I>(element_matchers_).DescribeExpected());
+      if (has_added_element) elements += ", ";
+      elements += std::get<I>(element_matchers_).DescribeExpected();
       has_added_element = true;
     });
-    parts.push_back(" } in any order");
 
-    return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
-                  "");
+    return std::format("a range with elements {{ {} }} in any order", elements);
   }
 
   // Describes the elements with `ToString` rather than with the element
@@ -46,19 +40,15 @@ class UnorderedElementsMatcher {
   // and the assignment that would pair them up is local to `Matches`.
   template <ElementsMatchableBy<Ms...> A>
   std::string DescribeActual(const A& actual_elements) {
-    std::vector<std::string> parts;
-    parts.reserve(actual_elements.size() * 2 + 2);
-    parts.push_back("{ ");
+    std::string elements;
     bool has_added_element = false;
     for (const auto& actual_element : actual_elements) {
-      if (has_added_element) parts.push_back(", ");
-      parts.push_back(ToString(actual_element));
+      if (has_added_element) elements += ", ";
+      elements += ToString(actual_element);
       has_added_element = true;
     }
-    parts.push_back(" }");
 
-    return Concat(std::vector<std::string_view>(parts.begin(), parts.end()),
-                  "");
+    return std::format("{{ {} }}", elements);
   }
 
   template <ElementsMatchableBy<Ms...> A>
