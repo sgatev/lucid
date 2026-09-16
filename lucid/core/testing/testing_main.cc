@@ -124,6 +124,9 @@ int HandleRunTestsCommand(CommandContext ctx) {
 }  // namespace
 
 bool Test::RunFull() {
+  // Reset before anything that can fail.
+  failed_ = false;
+
   std::error_code get_temp_dir_base_error_code;
   std::filesystem::path temp_dir_base =
       std::filesystem::temp_directory_path(get_temp_dir_base_error_code);
@@ -140,7 +143,6 @@ bool Test::RunFull() {
   }
   temp_dir_ = temp_dir;
 
-  failed_ = false;
   Run();
 
   std::error_code remove_temp_dir_error_code;
