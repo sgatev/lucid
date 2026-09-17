@@ -1,6 +1,7 @@
 #include "lucid/vm/interpreter.h"
 
 #include <cassert>
+#include <optional>
 #include <variant>
 #include <vector>
 
@@ -75,7 +76,7 @@ Interpreter::Interpreter(
 
 int Interpreter::Result() const { return result_; }
 
-OptionalRef<const int> Interpreter::Get(Reg reg) const {
+std::optional<const int&> Interpreter::Get(Reg reg) const {
   return values_.Get(reg);
 }
 

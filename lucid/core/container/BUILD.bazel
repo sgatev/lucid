@@ -38,7 +38,6 @@ cc_library(
     visibility = ["//lucid:__subpackages__"],
     deps = [
         ":hash_table",
-        ":optional_ref",
     ],
 )
 
@@ -93,21 +92,6 @@ cc_library(
     deps = [
         "//lucid/core/functional:identity",
         "//lucid/core/hash",
-    ],
-)
-
-cc_library(
-    name = "optional_ref",
-    hdrs = ["optional_ref.h"],
-    visibility = ["//lucid:__subpackages__"],
-)
-
-cc_test(
-    name = "optional_ref_test",
-    srcs = ["optional_ref_test.cc"],
-    deps = [
-        ":optional_ref",
-        "//lucid/core/testing",
     ],
 )
 

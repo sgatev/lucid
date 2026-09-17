@@ -4,7 +4,6 @@
 #include <utility>
 
 #include "lucid/core/container/hash_table.h"
-#include "lucid/core/container/optional_ref.h"
 
 namespace lucid {
 
@@ -20,14 +19,14 @@ class HashMap {
 
   // Returns a reference to the value that corresponds to the given `key` if the
   // table contains it. Otherwise returns nullopt.
-  inline OptionalRef<V> Get(const K& key) {
+  inline std::optional<V&> Get(const K& key) {
     if (auto it = table_.Find(key); it != end()) return it->second;
     return std::nullopt;
   }
 
   // Returns a const reference to the value that corresponds to the given `key`
   // if the table contains it. Otherwise returns nullopt.
-  inline OptionalRef<const V> Get(const K& key) const {
+  inline std::optional<const V&> Get(const K& key) const {
     if (auto it = table_.Find(key); it != end()) return it->second;
     return std::nullopt;
   }

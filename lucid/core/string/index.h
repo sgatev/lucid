@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "lucid/core/container/hash_map.h"
-#include "lucid/core/container/optional_ref.h"
 
 namespace lucid {
 

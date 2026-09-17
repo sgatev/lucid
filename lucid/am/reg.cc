@@ -18,7 +18,6 @@
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
-#include "lucid/core/container/optional_ref.h"
 #include "lucid/core/dataflow/dataflow.h"
 
 namespace lucid {
@@ -388,7 +387,7 @@ HashMap<Reg, int> ColorInterferenceGraph(
 }
 
 void UpdateRegister(const HashMap<Reg, int>& reg_colors, Reg& reg) {
-  OptionalRef<const int> color = reg_colors.Get(reg);
+  std::optional<const int&> color = reg_colors.Get(reg);
   assert(color.has_value());
   reg.id = *color;
 }

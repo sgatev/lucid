@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string_view>
 #include <vector>
 
@@ -7,7 +8,6 @@
 #include "lucid/am/instructions.h"
 #include "lucid/am/state.h"
 #include "lucid/core/container/hash_map.h"
-#include "lucid/core/container/optional_ref.h"
 
 namespace lucid {
 
@@ -26,7 +26,7 @@ class Interpreter {
 
   int Result() const;
 
-  OptionalRef<const int> Get(Reg reg) const;
+  std::optional<const int&> Get(Reg reg) const;
 
   void Set(Reg reg, int value);
 
