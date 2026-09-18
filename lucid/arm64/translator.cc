@@ -4,9 +4,9 @@
 #include <cassert>
 #include <charconv>
 #include <cstdint>
-#include <limits>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "lucid/am/cfg.h"
@@ -27,8 +27,7 @@ using namespace ::lucid::arm64;
 // Casts an integer of type `I` to type `O`.
 template <typename O, typename I>
 constexpr O SafeCast(I i) noexcept {
-  assert(i >= std::numeric_limits<O>::min());
-  assert(i <= std::numeric_limits<O>::max());
+  assert(std::in_range<O>(i));
   return static_cast<O>(i);
 }
 
