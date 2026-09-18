@@ -54,7 +54,12 @@ cc_test(
     name = "translator_test",
     srcs = ["translator_test.cc"],
     deps = [
+        ":assembler",
         ":translator",
+        "//lucid/am:cfg_builder",
+        "//lucid/am:instructions",
+        "//lucid/am:state",
         "//lucid/core/testing",
+        "//lucid/syntax:context",
     ],
 )
