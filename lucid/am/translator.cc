@@ -1,5 +1,6 @@
 #include "lucid/am/translator.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -197,11 +198,20 @@ class AbstractMachineFunctionGenerator {
     expr_and_stmt_to_reg_[ref.id()] = reg;
   }
 
+  // Returns the index that identifies `ref` in the string constant pool,
+  // adding it to the pool if it is not already there.
+  //
+  // Equal strings share one reference, so this also deduplicates them.
+  std::uint32_t AddString(StringIndex::Ref ref) {
+    auto& strings = am_state_.strings;
+    auto it = std::ranges::find(strings, ref);
+    if (it == strings.end()) it = strings.insert(it, ref);
+    return static_cast<std::uint32_t>(it - strings.begin());
+  }
+
   void ProcessExpr(ExprRef ref, const StringLitExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
-    auto string_id = reinterpret_cast<std::uintptr_t>(
-        syn_ctx_.DerefIdent(expr.value).data());
-    am_state_.strings.Insert(string_id, expr.value);
+    std::uint32_t string_id = AddString(expr.value);
 
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(SetStr{

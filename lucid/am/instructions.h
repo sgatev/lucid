@@ -98,8 +98,8 @@ struct SetInt {
 
 // Sets string value in a register.
 struct SetStr {
-  // Source value.
-  std::uintptr_t src_val;
+  // Index of the string in `AbstractMachineState::strings`.
+  std::uint32_t src_val;
 
   // Destination register.
   Reg dst_reg;

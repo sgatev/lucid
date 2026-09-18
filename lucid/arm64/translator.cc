@@ -530,9 +530,9 @@ void GenerateArmStartBinary(Assembler& assembler) {
 void GenerateArmEndBinary(const SyntaxContext& syn_ctx,
                           const AbstractMachineState& am_state,
                           Assembler& assmebler) {
-  for (const auto& [k, v] : am_state.strings) {
-    assmebler.Label(std::format("str{}", k));
-    assmebler.Asciz(syn_ctx.DerefIdent(v));
+  for (std::size_t i = 0; i < am_state.strings.size(); ++i) {
+    assmebler.Label(std::format("str{}", i));
+    assmebler.Asciz(syn_ctx.DerefIdent(am_state.strings[i]));
   }
   for (const auto& v : am_state.ints) {
     assmebler.Label(std::format("long{}", v));
