@@ -69,17 +69,10 @@ class HashMap {
 
   // Returns an iterator referring to the first key-value pair in the map or
   // `end()`, if there isn't one.
-  inline HashTableT::Iterator begin() { return table_.begin(); }
-
-  // Returns a const iterator referring to the first key-value pair in the map
-  // or `end()`, if there isn't one.
-  inline HashTableT::ConstIterator begin() const { return table_.begin(); }
+  inline auto begin(this auto&& self) { return self.table_.begin(); }
 
   // Returns an iterator past the last key-value pair in the map.
-  inline HashTableT::Iterator end() { return table_.end(); }
-
-  // Returns a const iterator past the last key-value pair in the map.
-  inline HashTableT::ConstIterator end() const { return table_.end(); }
+  inline auto end(this auto&& self) { return self.table_.end(); }
 
  private:
   HashTableT table_;

@@ -51,12 +51,14 @@ class SyntaxContext {
   ParamRef AliasParam(ParamRef ref) { return params_.Alias(ref); }
 
   // Returns the statement that `ref` refers to.
-  Stmt& DerefStmt(StmtRef ref) { return stmts_.Get(ref); }
-  const Stmt& DerefStmt(StmtRef ref) const { return stmts_.Get(ref); }
+  auto& DerefStmt(this auto&& self, StmtRef ref) {
+    return self.stmts_.Get(ref);
+  }
 
   // Returns the expression that `ref` refers to.
-  Expr& DerefExpr(ExprRef ref) { return exprs_.Get(ref); }
-  const Expr& DerefExpr(ExprRef ref) const { return exprs_.Get(ref); }
+  auto& DerefExpr(this auto&& self, ExprRef ref) {
+    return self.exprs_.Get(ref);
+  }
 
   // Returns a reference to the type that `name` resolves to.
   TypeRef ResolveType(StringIndex::Ref name) const {
@@ -67,8 +69,9 @@ class SyntaxContext {
   const Type& DerefType(TypeRef ref) const { return types_.Deref(ref); }
 
   // Returns the parameter that `ref` refers to.
-  FuncParam& DerefParam(ParamRef ref) { return params_.Get(ref); }
-  const FuncParam& DerefParam(ParamRef ref) const { return params_.Get(ref); }
+  auto& DerefParam(this auto&& self, ParamRef ref) {
+    return self.params_.Get(ref);
+  }
 
   // Returns the identifier that `ref` refers to.
   std::string_view DerefIdent(StringIndex::Ref ref) const {

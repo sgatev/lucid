@@ -65,25 +65,21 @@ class AbstractMachineControlFlowGraph {
     return block;
   }
 
+  // Returns the block in the control flow graph refererenced by `ref`.
+  //
+  // `ref` must not be `kNullBlockRef`.
+  auto& GetBlock(this auto&& self, BlockRef ref) {
+    return self.blocks_.Get(ref);
+  }
+
+  // Returns an arena with all blocks that were added to the graph.
+  auto& Blocks(this auto&& self) { return self.blocks_; }
+
   // Adds an edge to the control flow graph.
   void AddEdge(BlockRef from, BlockRef to) {
     GetBlock(from).succs.push_back(to);
     GetBlock(to).preds.push_back(from);
   }
-
-  // Returns the block in the control flow graph refererenced by `ref`.
-  //
-  // `ref` must not be `kNullBlockRef`.
-  Block& GetBlock(BlockRef ref) { return blocks_.Get(ref); }
-
-  // Returns the block in the control flow graph refererenced by `ref`.
-  //
-  // `ref` must not be `kNullBlockRef`.
-  const Block& GetBlock(BlockRef ref) const { return blocks_.Get(ref); }
-
-  // Returns an arena with all blocks that were added to the graph.
-  Arena<Block>& Blocks() { return blocks_; }
-  const Arena<Block>& Blocks() const { return blocks_; }
 
   BlockRef first = kNullBlockRef;
   BlockRef last = kNullBlockRef;

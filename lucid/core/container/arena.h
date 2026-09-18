@@ -71,8 +71,9 @@ class Arena {
   //
   // Requires:
   // - `ref` must not be `kNullRef`.
-  const T& Get(Ref ref) const { return values_[indices_[ref.id()]]; }
-  T& Get(Ref ref) { return values_[indices_[ref.id()]]; }
+  auto& Get(this auto&& self, Ref ref) {
+    return self.values_[self.indices_[ref.id()]];
+  }
 
   // Returns true iff `lhs` and `rhs` refer to the same value.
   bool Equiv(Ref lhs, Ref rhs) const {
@@ -83,12 +84,10 @@ class Arena {
   std::size_t Size() const { return values_.size(); }
 
   // Returns an iterator to the first value in the arena.
-  auto begin() { return values_.begin(); }
-  auto begin() const { return values_.begin(); }
+  auto begin(this auto&& self) { return self.values_.begin(); }
 
   // Returns an iterator following the last value in the arena.
-  auto end() { return values_.end(); }
-  auto end() const { return values_.end(); }
+  auto end(this auto&& self) { return self.values_.end(); }
 
  private:
   std::vector<std::size_t> indices_;

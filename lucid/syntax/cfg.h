@@ -88,23 +88,16 @@ struct SyntaxControlFlowGraph {
   // Returns the block in the control flow graph refererenced by `ref`.
   //
   // `ref` must not be `kNullBlockRef`.
-  Block& get(BlockRef ref) { return blocks_.Get(ref); }
-
-  // Returns the block in the control flow graph refererenced by `ref`.
-  //
-  // `ref` must not be `kNullBlockRef`.
-  const Block& get(BlockRef ref) const { return blocks_.Get(ref); }
+  auto& get(this auto&& self, BlockRef ref) { return self.blocks_.Get(ref); }
 
   // Returns an arena with all blocks that were added to the graph.
-  Arena<Block>& blocks() { return blocks_; }
-  const Arena<Block>& blocks() const { return blocks_; }
+  auto& blocks(this auto&& self) { return self.blocks_; }
 
   // Adds `phi` to the graph.
   PhiRef add(Phi phi) { return phis_.Add(std::move(phi)); }
 
   // Returns the phi function that `ref` refers to.
-  const Phi& deref(PhiRef ref) const { return phis_.Get(ref); }
-  Phi& deref(PhiRef ref) { return phis_.Get(ref); }
+  auto& deref(this auto&& self, PhiRef ref) { return self.phis_.Get(ref); }
 
   // Name of the function.
   StringIndex::Ref func_name;
