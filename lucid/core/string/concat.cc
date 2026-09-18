@@ -14,14 +14,15 @@ std::string Concat(std::span<const std::string_view> parts,
 
   const std::size_t size =
       std::ranges::fold_left(
-          parts | std::views::transform(&std::string_view::size), 0,
-          std::plus()) +
+          parts | std::views::transform(&std::string_view::size),
+          std::size_t(0), std::plus()) +
       (parts.size() - 1) * glue.size();
   res.reserve(size);
 
-  for (std::string_view part : parts) {
-    if (!res.empty()) res.append_range(glue);
+  for (bool has_added_part = false; std::string_view part : parts) {
+    if (has_added_part) res.append_range(glue);
     res.append_range(part);
+    has_added_part = true;
   }
 
   return res;

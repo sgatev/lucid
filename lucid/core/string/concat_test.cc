@@ -23,7 +23,27 @@ TEST(Test, ConcatEmptyGlue) {
 }
 
 TEST(Test, ConcatNoParts) {
+  EXPECT_EQ(Concat(std::vector<std::string_view>{}, "foo"), "");
+}
+
+TEST(Test, ConcatOneEmptyPart) {
   EXPECT_EQ(Concat(std::vector<std::string_view>{""}, "foo"), "");
+}
+
+TEST(Test, ConcatLeadingEmptyPart) {
+  EXPECT_EQ(Concat(std::vector<std::string_view>{"", "b", "c"}, "-"), "-b-c");
+}
+
+TEST(Test, ConcatEnclosedEmptyPart) {
+  EXPECT_EQ(Concat(std::vector<std::string_view>{"a", "", "c"}, "-"), "a--c");
+}
+
+TEST(Test, ConcatTrailingEmptyPart) {
+  EXPECT_EQ(Concat(std::vector<std::string_view>{"a", "b", ""}, "-"), "a-b-");
+}
+
+TEST(Test, ConcatOnlyEmptyParts) {
+  EXPECT_EQ(Concat(std::vector<std::string_view>{"", "", ""}, "-"), "--");
 }
 
 }  // namespace
