@@ -4,6 +4,7 @@
 #include <cassert>
 #include <charconv>
 #include <cstdint>
+#include <format>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -89,42 +90,40 @@ class Arm64BinaryGenerator {
 
  private:
   void Process(const AbstractMachineControlFlowGraph::Block& block) {
-    assembler_.Label(std::string(func_name_) + std::to_string(block.ref.id()));
+    assembler_.Label(std::format("{}{}", func_name_, block.ref.id()));
 
     for (const auto& inst : block.instructions) Process(block, inst);
 
     if (block.branch_cond.has_value()) {
       assembler_.Cmp(W(block.branch_cond->id), Imm(0));
 
-      std::string else_label_phi = std::string(func_name_) +
-                                   std::to_string(block.succs[1].id()) + "_phi";
+      std::string else_label_phi =
+          std::format("{}{}_phi", func_name_, block.succs[1].id());
       assembler_.B(Cond::Eq, else_label_phi);
 
-      std::string then_label_phi = std::string(func_name_) +
-                                   std::to_string(block.succs[0].id()) + "_phi";
+      std::string then_label_phi =
+          std::format("{}{}_phi", func_name_, block.succs[0].id());
       assembler_.B(then_label_phi);
 
       assembler_.Label(else_label_phi);
       std::string else_label =
-          std::string(func_name_) + std::to_string(block.succs[1].id());
+          std::format("{}{}", func_name_, block.succs[1].id());
       ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[1]), block.ref);
       assembler_.B(else_label);
 
       assembler_.Label(then_label_phi);
       std::string then_label =
-          std::string(func_name_) + std::to_string(block.succs[0].id());
+          std::format("{}{}", func_name_, block.succs[0].id());
       ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[0]), block.ref);
       assembler_.B(then_label);
     } else if (block.succs.size() == 1) {
-      std::string phi_label = std::string(func_name_) +
-                              std::to_string(block.ref.id()) + "_" +
-                              std::to_string(block.succs[0].id()) + "_phi";
+      std::string phi_label = std::format("{}{}_{}_phi", func_name_,
+                                          block.ref.id(), block.succs[0].id());
       assembler_.B(phi_label);
 
       assembler_.Label(phi_label);
       ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[0]), block.ref);
-      std::string label =
-          std::string(func_name_) + std::to_string(block.succs[0].id());
+      std::string label = std::format("{}{}", func_name_, block.succs[0].id());
       assembler_.B(label);
     }
   }
@@ -165,7 +164,7 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const SetInt& inst) {
-    std::string label = "long" + std::to_string(inst.src_val);
+    std::string label = std::format("long{}", inst.src_val);
     switch (inst.dst_reg.size) {
       case RegSize32:
         assembler_.Ldr(W(inst.dst_reg.id), label);
@@ -178,7 +177,7 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const SetStr& inst) {
-    std::string label = "str" + std::to_string(inst.src_val);
+    std::string label = std::format("str{}", inst.src_val);
     assembler_.Adr(X(inst.dst_reg.id), label);
   }
 
@@ -532,11 +531,11 @@ void GenerateArmEndBinary(const SyntaxContext& syn_ctx,
                           const AbstractMachineState& am_state,
                           Assembler& assmebler) {
   for (const auto& [k, v] : am_state.strings) {
-    assmebler.Label("str" + std::to_string(k));
+    assmebler.Label(std::format("str{}", k));
     assmebler.Asciz(syn_ctx.DerefIdent(v));
   }
   for (const auto& v : am_state.ints) {
-    assmebler.Label("long" + std::to_string(v));
+    assmebler.Label(std::format("long{}", v));
     assmebler.Long(v);
   }
 }
