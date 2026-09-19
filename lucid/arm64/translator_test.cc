@@ -1,5 +1,8 @@
 #include "lucid/arm64/translator.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <cstring>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -19,6 +22,100 @@ std::string Bytes(const arm64::Assembler& assembler) {
   std::ostringstream out;
   assembler.WriteBytes(out);
   return out.str();
+}
+
+// Returns the instruction words that `assembler` produced.
+std::vector<std::uint32_t> Words(const arm64::Assembler& assembler) {
+  const std::string bytes = Bytes(assembler);
+  std::vector<std::uint32_t> words(bytes.size() / sizeof(std::uint32_t));
+  std::memcpy(words.data(), bytes.data(), words.size() * sizeof(std::uint32_t));
+  return words;
+}
+
+// Returns whether `assembler` emitted `instruction` anywhere.
+bool Emitted(const arm64::Assembler& assembler, std::uint32_t instruction) {
+  return std::ranges::contains(Words(assembler), instruction);
+}
+
+// Returns the one instruction that `emit` assembles to.
+template <typename F>
+std::uint32_t Instruction(F emit) {
+  arm64::Assembler assembler;
+  emit(assembler);
+  return Words(assembler).front();
+}
+
+// Returns a graph that compares two registers and branches on the result,
+// with `use_result_later` deciding whether anything but the branch reads it.
+//
+// Both arms meet again at the block the function returns from, as the arms of
+// a branch in a compiled program do: a graph whose blocks cannot all reach
+// that one is one the liveness analysis cannot answer for.
+AbstractMachineControlFlowGraph ComparingGraph(bool use_result_later) {
+  const Reg lhs{1, RegSize32};
+  const Reg rhs{2, RegSize32};
+  const Reg result{3, RegSize32};
+
+  AbstractMachineControlFlowGraphBuilder builder;
+  const auto head = builder.AddBlock();
+  const auto then_block = builder.AddBlock();
+  const auto else_block = builder.AddBlock();
+  const auto exit_block = builder.AddBlock();
+  builder.SetFirst(head);
+  builder.SetLast(exit_block);
+  builder.AddEdge(head, then_block);
+  builder.AddEdge(head, else_block);
+  builder.AddEdge(then_block, exit_block);
+  builder.AddEdge(else_block, exit_block);
+
+  builder.AddInstruction(
+      head, GtReg{.res_reg = result, .lhs_reg = lhs, .rhs_reg = rhs});
+  if (use_result_later) {
+    builder.AddInstruction(
+        then_block, MoveReg{.src_reg = result, .dst_reg = Reg{4, RegSize32}});
+  }
+  builder.AddInstruction(exit_block, Return{.res_reg = lhs});
+
+  AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
+  am_cfg.GetBlock(head).branch_cond = result;
+  return am_cfg;
+}
+
+TEST(Test, BranchDecidesTheComparisonItBranchesOn) {
+  // Nothing but the branch reads the comparison, so the branch carries it.
+  AbstractMachineControlFlowGraph am_cfg =
+      ComparingGraph(/*use_result_later=*/false);
+
+  arm64::Assembler assembler;
+  GenerateArmAssemblyBinary("f", {}, am_cfg, assembler);
+
+  EXPECT_TRUE(Emitted(assembler, Instruction([](arm64::Assembler& a) {
+                        a.Cmp(arm64::W(1), arm64::W(2));
+                      })));
+  EXPECT_FALSE(Emitted(assembler, Instruction([](arm64::Assembler& a) {
+                         a.Cset(arm64::W(3), arm64::InvCond::Gt);
+                       })));
+  // Comparing the result against zero is what the branch no longer needs.
+  EXPECT_FALSE(Emitted(assembler, Instruction([](arm64::Assembler& a) {
+                         a.Cmp(arm64::W(3), arm64::Imm(0));
+                       })));
+}
+
+TEST(Test, ComparisonThatOutlivesItsBlockIsStillComputed) {
+  // The branch is not the only reader: a block it branches to moves the
+  // result elsewhere, so the result has to be a value in a register.
+  AbstractMachineControlFlowGraph am_cfg =
+      ComparingGraph(/*use_result_later=*/true);
+
+  arm64::Assembler assembler;
+  GenerateArmAssemblyBinary("f", {}, am_cfg, assembler);
+
+  EXPECT_TRUE(Emitted(assembler, Instruction([](arm64::Assembler& a) {
+                        a.Cset(arm64::W(3), arm64::InvCond::Gt);
+                      })));
+  EXPECT_TRUE(Emitted(assembler, Instruction([](arm64::Assembler& a) {
+                        a.Cmp(arm64::W(3), arm64::Imm(0));
+                      })));
 }
 
 TEST(Test, GenerateArmStartBinaryWorks) {

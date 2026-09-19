@@ -12,11 +12,13 @@
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
+#include "lucid/am/liveness.h"
 #include "lucid/am/state.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
+#include "lucid/core/dataflow/dataflow.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/context.h"
 
@@ -32,6 +34,54 @@ constexpr O SafeCast(I i) noexcept {
   return static_cast<O>(i);
 }
 
+// A comparison a branch can decide for itself, rather than read the result of.
+struct BranchComparison {
+  Cond cond;
+  Reg lhs;
+  Reg rhs;
+};
+
+// Returns what `inst` compares, if a branch can carry the comparison.
+std::optional<BranchComparison> AsBranchComparison(const Instruction& inst) {
+  if (const auto* cinst = std::get_if<GtReg>(&inst)) {
+    return BranchComparison{Cond::Gt, cinst->lhs_reg, cinst->rhs_reg};
+  }
+  if (const auto* cinst = std::get_if<LtReg>(&inst)) {
+    return BranchComparison{Cond::Lt, cinst->lhs_reg, cinst->rhs_reg};
+  }
+  if (const auto* cinst = std::get_if<EqReg>(&inst)) {
+    return BranchComparison{Cond::Eq, cinst->lhs_reg, cinst->rhs_reg};
+  }
+  if (const auto* cinst = std::get_if<NotEqReg>(&inst)) {
+    return BranchComparison{Cond::Ne, cinst->lhs_reg, cinst->rhs_reg};
+  }
+  return std::nullopt;
+}
+
+// Returns the registers that are live after each block, indexed by block, or
+// nothing at all if that is not known for every block.
+//
+// The analysis works back from the block a function returns from, so a block
+// that never reaches it -- the body of a loop with no way out -- is one it
+// never visits. A block branching into one of those is told nothing about what
+// it uses, and the registers live after it look fewer than they are. Being
+// wrong that way makes a register look dead, so the answer is only worth
+// having when the analysis reached everything.
+std::optional<std::vector<HashSet<Reg>>> LiveOutRegisters(
+    const AbstractMachineControlFlowGraph& am_cfg) {
+  AbstractMachineLivenessAnalysis analysis(am_cfg);
+  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>> states =
+      RunDataflow(Backward(am_cfg), analysis);
+
+  std::vector<HashSet<Reg>> live_out;
+  live_out.reserve(states.size());
+  for (auto& state : states) {
+    if (!state.has_value()) return std::nullopt;
+    live_out.push_back(std::move(state->live_out));
+  }
+  return live_out;
+}
+
 class Arm64BinaryGenerator {
  public:
   explicit Arm64BinaryGenerator(std::string_view func_name,
@@ -41,7 +91,8 @@ class Arm64BinaryGenerator {
       : func_name_(func_name),
         stack_slots_(stack_slots),
         am_cfg_(am_cfg),
-        assembler_(assmebler) {}
+        assembler_(assmebler),
+        live_out_(LiveOutRegisters(am_cfg)) {}
 
   void Generate() && {
     assembler_.Label(std::string(func_name_));
@@ -89,21 +140,62 @@ class Arm64BinaryGenerator {
   }
 
  private:
+  // Returns the comparison the branch at the end of `block` can decide for
+  // itself.
+  //
+  // It is the one that computes what the block branches on, ends the block,
+  // and leaves a result the block does not outlive. Anything else has to be
+  // computed into a register, because something other than the branch reads
+  // it.
+  std::optional<BranchComparison> FusableComparison(
+      const AbstractMachineControlFlowGraph::Block& block) const {
+    if (!block.branch_cond.has_value()) return std::nullopt;
+    if (block.instructions.empty()) return std::nullopt;
+
+    const std::optional<BranchComparison> comparison =
+        AsBranchComparison(block.instructions.back());
+    if (!comparison.has_value()) return std::nullopt;
+
+    const std::optional<Reg> result =
+        GetTargetRegister(block.instructions.back());
+    if (!result.has_value() || *result != *block.branch_cond) {
+      return std::nullopt;
+    }
+
+    if (!live_out_.has_value() ||
+        (*live_out_)[block.ref.id()].Contains(*result)) {
+      return std::nullopt;
+    }
+
+    return comparison;
+  }
+
   void Process(const AbstractMachineControlFlowGraph::Block& block) {
     assembler_.Label(std::format("{}{}", func_name_, block.ref.id()));
 
-    for (const auto& inst : block.instructions) Process(block, inst);
+    const std::optional<BranchComparison> fused = FusableComparison(block);
+    // A fused comparison is emitted by the branch below rather than here.
+    auto instructions_end = block.instructions.end();
+    if (fused.has_value()) --instructions_end;
+    for (auto it = block.instructions.begin(); it != instructions_end; ++it) {
+      Process(block, *it);
+    }
 
     if (block.branch_cond.has_value()) {
-      assembler_.Cmp(W(block.branch_cond->id), Imm(0));
-
       std::string else_label_phi =
           std::format("{}{}_phi", func_name_, block.succs[1].id());
-      assembler_.B(Cond::Eq, else_label_phi);
-
       std::string then_label_phi =
           std::format("{}{}_phi", func_name_, block.succs[0].id());
-      assembler_.B(then_label_phi);
+
+      if (fused.has_value()) {
+        Compare(fused->lhs, fused->rhs);
+        assembler_.B(fused->cond, then_label_phi);
+        assembler_.B(else_label_phi);
+      } else {
+        assembler_.Cmp(W(block.branch_cond->id), Imm(0));
+        assembler_.B(Cond::Eq, else_label_phi);
+        assembler_.B(then_label_phi);
+      }
 
       assembler_.Label(else_label_phi);
       std::string else_label =
@@ -125,6 +217,18 @@ class Arm64BinaryGenerator {
       ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[0]), block.ref);
       std::string label = std::format("{}{}", func_name_, block.succs[0].id());
       assembler_.B(label);
+    }
+  }
+
+  // Compares `lhs` against `rhs`, in the width they are held in.
+  void Compare(Reg lhs, Reg rhs) {
+    switch (lhs.size) {
+      case RegSize32:
+        assembler_.Cmp(W(lhs.id), W(rhs.id));
+        break;
+      case RegSize64:
+        assembler_.Cmp(X(lhs.id), X(rhs.id));
+        break;
     }
   }
 
@@ -494,6 +598,7 @@ class Arm64BinaryGenerator {
   const std::vector<int>& stack_slots_;
   const AbstractMachineControlFlowGraph& am_cfg_;
   Assembler& assembler_;
+  std::optional<std::vector<HashSet<Reg>>> live_out_;
   int stack_size_ = 0;
   std::vector<int> stack_offsets_;
 };
