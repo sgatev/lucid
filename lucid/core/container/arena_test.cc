@@ -1,7 +1,5 @@
 #include "lucid/core/container/arena.h"
 
-#include <initializer_list>
-#include <span>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -76,6 +74,36 @@ TEST(Test, ArenaAliasAccess) {
   Arena<int>::Ref three_alias = arena.Alias(three);
 
   EXPECT_EQ(arena.Get(three_alias), 3);
+}
+
+TEST(Test, ArenaContainsTheReferencesItHandedOut) {
+  Arena<int> arena;
+
+  EXPECT_FALSE(arena.Contains(Arena<int>::Ref(0)));
+
+  Arena<int>::Ref three = arena.Add(3);
+
+  EXPECT_TRUE(arena.Contains(three));
+  EXPECT_FALSE(arena.Contains(three + 1));
+}
+
+TEST(Test, ArenaContainsAliases) {
+  Arena<int> arena;
+  Arena<int>::Ref three = arena.Add(3);
+  Arena<int>::Ref three_alias = arena.Alias(three);
+
+  // An alias is a reference of its own without being a value of its own, so
+  // the arena hands out more references than `Size()` counts.
+  EXPECT_TRUE(arena.Contains(three_alias));
+  EXPECT_EQ(arena.Size(), 1);
+  EXPECT_TRUE(three_alias.id() >= arena.Size());
+}
+
+TEST(Test, ArenaDoesNotContainTheNullReference) {
+  Arena<int> arena;
+  arena.Add(3);
+
+  EXPECT_FALSE(arena.Contains(Arena<int>::kNullRef));
 }
 
 TEST(Test, ArenaEquiv) {

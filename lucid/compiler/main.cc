@@ -1,3 +1,5 @@
+#include <charconv>
+#include <cstdint>
 #include <cstdlib>
 #include <expected>
 #include <filesystem>
@@ -6,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -157,14 +160,36 @@ int HandlePrintAstCommand(CommandContext ctx) {
   const auto& defs = defs_or_error.value();
 
   if (id) {
-    if (id->front() == 'S') {
-      PrintStmt(syn_ctx, std::stoi(std::string(id->substr(1))), ctx.Out());
-    } else if (id->front() == 'E') {
-      PrintExpr(syn_ctx, std::stoi(std::string(id->substr(1))), ctx.Out());
-    } else {
+    // An identifier names a node the way the printer labels one: a kind
+    // followed by an index, as in `S2`.
+    const char kind = id->empty() ? '\0' : id->front();
+    const std::string_view index_digits = id->empty() ? *id : id->substr(1);
+    std::uint32_t index = 0;
+    const auto [parsed_end, parse_error] = std::from_chars(
+        index_digits.data(), index_digits.data() + index_digits.size(), index);
+    if ((kind != 'S' && kind != 'E') || index_digits.empty() ||
+        parse_error != std::errc() ||
+        parsed_end != index_digits.data() + index_digits.size()) {
       ctx.Err() << "second argument to 'print-ast' command must be "
                    "either 'S<index>' or 'E<index>'\n";
       return 1;
+    }
+
+    // An index the parse never produced refers to nothing, and reading it
+    // would be reading past the nodes there are.
+    if (kind == 'S' && !syn_ctx.ContainsStmt(index)) {
+      ctx.Err() << "no statement '" << *id << "' in " << *src_file << "\n";
+      return 1;
+    }
+    if (kind == 'E' && !syn_ctx.ContainsExpr(index)) {
+      ctx.Err() << "no expression '" << *id << "' in " << *src_file << "\n";
+      return 1;
+    }
+
+    if (kind == 'S') {
+      PrintStmt(syn_ctx, index, ctx.Out());
+    } else {
+      PrintExpr(syn_ctx, index, ctx.Out());
     }
   } else {
     for (const auto& def : defs) {

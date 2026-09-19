@@ -55,10 +55,16 @@ class SyntaxContext {
     return self.stmts_.Get(ref);
   }
 
+  // Returns true iff `ref` refers to a statement in the context.
+  bool ContainsStmt(StmtRef ref) const { return stmts_.Contains(ref); }
+
   // Returns the expression that `ref` refers to.
   auto& DerefExpr(this auto&& self, ExprRef ref) {
     return self.exprs_.Get(ref);
   }
+
+  // Returns true iff `ref` refers to an expression in the context.
+  bool ContainsExpr(ExprRef ref) const { return exprs_.Contains(ref); }
 
   // Returns a reference to the type that `name` resolves to.
   TypeRef ResolveType(StringIndex::Ref name) const {

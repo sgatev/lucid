@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -72,8 +73,15 @@ class Arena {
   // Requires:
   // - `ref` must not be `kNullRef`.
   auto& Get(this auto&& self, Ref ref) {
+    assert(self.Contains(ref));
     return self.values_[self.indices_[ref.id()]];
   }
+
+  // Returns true iff `ref` refers to a value in the arena.
+  //
+  // References are handed out by both `Add` and `Alias`, so more of them exist
+  // than there are values: an alias names a value that is already there.
+  bool Contains(Ref ref) const { return ref.id() < indices_.size(); }
 
   // Returns true iff `lhs` and `rhs` refer to the same value.
   bool Equiv(Ref lhs, Ref rhs) const {

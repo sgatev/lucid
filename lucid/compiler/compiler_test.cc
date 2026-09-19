@@ -11,6 +11,51 @@ TEST(CompilerTest, VersionIncludesCommitLine) {
               AllOf(ReturnsCode(0), Output(StartsWith("Commit:"))));
 }
 
+TEST(CompilerTest, PrintAstNode) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      return 0
+    }
+  )"));
+
+  EXPECT_THAT(RunCompiler({"print-ast", FullPath("main.lu"), "S0"}),
+              AllOf(ReturnsCode(0),
+                    Output(StartsWith("\033[34mS0: \033[mReturnStmt"))));
+}
+
+TEST(CompilerTest, PrintAstRejectsMalformedNode) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      return 0
+    }
+  )"));
+
+  // An index that is not a number, one that no integer can hold, and one with
+  // no kind in front of it: none of them names a node, and none of them is a
+  // reason to stop running.
+  for (std::string_view id : {"Sxyz", "S99999999999999999999", "X1", "S"}) {
+    EXPECT_THAT(
+        RunCompiler({"print-ast", FullPath("main.lu"), id}),
+        AllOf(ReturnsCode(1), ErrorOutput(Contains(
+                                  "must be either 'S<index>' or 'E<index>'"))));
+  }
+}
+
+TEST(CompilerTest, PrintAstRejectsNodeThatIsNotThere) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      return 0
+    }
+  )"));
+
+  EXPECT_THAT(
+      RunCompiler({"print-ast", FullPath("main.lu"), "S9999"}),
+      AllOf(ReturnsCode(1), ErrorOutput(Contains("no statement 'S9999'"))));
+  EXPECT_THAT(
+      RunCompiler({"print-ast", FullPath("main.lu"), "E9999"}),
+      AllOf(ReturnsCode(1), ErrorOutput(Contains("no expression 'E9999'"))));
+}
+
 TEST(CompilerTest, NoCommand) {
   ASSERT_THAT(RunCompiler({}),
               AllOf(ReturnsCode(0), Output(Equals(R"(Usage: lucid <command> ...
