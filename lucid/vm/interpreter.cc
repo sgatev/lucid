@@ -89,6 +89,8 @@ Instruction Interpreter::Interpret(const Instruction& inst) {
     return Interpret(*mov_reg);
   } else if (const auto* set_reg = std::get_if<SetReg>(&inst)) {
     return Interpret(*set_reg);
+  } else if (const auto* set_int = std::get_if<SetInt>(&inst)) {
+    return Interpret(*set_int);
   } else if (const auto* gt_reg = std::get_if<GtReg>(&inst)) {
     return Interpret(*gt_reg);
   } else if (const auto* lt_reg = std::get_if<LtReg>(&inst)) {
@@ -198,6 +200,11 @@ Instruction Interpreter::Interpret(const Return& inst) {
 }
 
 Instruction Interpreter::Interpret(const SetReg& inst) {
+  values_.Set(inst.dst_reg, inst.src_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const SetInt& inst) {
   values_.Set(inst.dst_reg, inst.src_val);
   return inst;
 }
