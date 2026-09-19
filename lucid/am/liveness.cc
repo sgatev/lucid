@@ -17,9 +17,7 @@ State AbstractMachineLivenessAnalysis::Transfer(State&& state,
   if (auto reg = GetTargetRegister(inst); reg.has_value()) {
     state.live_in.Remove(*reg);
   }
-  for (auto reg : GetSourceRegisters(inst)) {
-    state.live_in.Insert(reg);
-  }
+  ForEachSourceRegister(inst, [&](Reg reg) { state.live_in.Insert(reg); });
   return std::move(state);
 }
 

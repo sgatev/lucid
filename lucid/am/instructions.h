@@ -418,50 +418,68 @@ using Instruction =
                  MulReg, DivReg, ModReg, GtReg, LtReg, EqReg, NotEqReg,
                  StoreStack, StoreStackReg, LoadStack, LoadStackReg, FuncCall>;
 
-// Returns the source registers used by the given instruction, if any.
-inline std::vector<Reg> GetSourceRegisters(const Instruction& inst) {
+// Calls `visit` with each source register the given instruction reads.
+//
+// The registers are handed over one at a time rather than in a container of
+// their own: all but a call read two of them at most, and this is walked once
+// per instruction by every analysis that asks what is live.
+template <typename VisitT>
+inline void ForEachSourceRegister(const Instruction& inst, VisitT visit) {
   if (std::holds_alternative<SetReg>(inst) ||
       std::holds_alternative<SetInt>(inst) ||
       std::holds_alternative<SetStr>(inst) ||
       std::holds_alternative<LoadStack>(inst)) {
-    return {};
+    return;
   } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
-    return {cinst->src_reg};
+    visit(cinst->src_reg);
   } else if (auto* cinst = std::get_if<AddReg>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<SubReg>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<MulReg>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<DivReg>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<ModReg>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<GtReg>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<LtReg>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<EqReg>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
-    return {cinst->lhs_reg, cinst->rhs_reg};
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
-    return {cinst->src_reg};
+    visit(cinst->src_reg);
   } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
-    return {cinst->src_reg, cinst->offset_reg};
+    visit(cinst->src_reg);
+    visit(cinst->offset_reg);
   } else if (auto* cinst = std::get_if<LoadStackReg>(&inst)) {
-    return {cinst->offset_reg};
+    visit(cinst->offset_reg);
   } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-    std::vector<Reg> source_regs;
-    source_regs.reserve(cinst->args.size());
-    for (const auto& arg : cinst->args) source_regs.push_back(arg.reg);
-    return source_regs;
+    for (const auto& arg : cinst->args) visit(arg.reg);
   } else if (auto* cinst = std::get_if<Return>(&inst)) {
-    return {cinst->res_reg};
+    visit(cinst->res_reg);
   } else {
     assert(false && "unhandled instruction type");
   }
-  return {};
+}
+
+// Returns the source registers used by the given instruction, if any.
+inline std::vector<Reg> GetSourceRegisters(const Instruction& inst) {
+  std::vector<Reg> source_regs;
+  ForEachSourceRegister(inst, [&](Reg reg) { source_regs.push_back(reg); });
+  return source_regs;
 }
 
 // Returns the target register used by the given instruction, if any.
