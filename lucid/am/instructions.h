@@ -83,7 +83,7 @@ struct SetReg {
 // Sets integer value in a register.
 struct SetInt {
   // Source value.
-  int src_val;
+  std::int64_t src_val;
 
   // Destination register.
   Reg dst_reg;

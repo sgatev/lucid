@@ -869,6 +869,10 @@ class Assembler {
   }
 
   Lit32Inst Mov(bool sf, internal::Reg rd, Imm imm) {
+    // The immediate is moved in as it is written, and there is no writing a
+    // negative one: the field holds the value rather than a signed offset.
+    assert(static_cast<std::int16_t>(imm) >= 0);
+
     return Lit32Inst(0b01010010100000000000000000000000 | sf << 31 | imm << 5 |
                      rd);
   }

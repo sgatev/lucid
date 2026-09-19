@@ -133,10 +133,9 @@ Instruction Interpreter::Interpret(const FuncCall& inst) {
 
   values_.Set(inst.res->reg, result);
 
-  return SetReg{
-      .src_val = result,
-      .dst_reg = inst.res->reg,
-  };
+  // The call is replaced by what it evaluated to, which an instruction can
+  // carry only when it is small enough.
+  return SetValue(result, inst.res->reg, am_state_);
 }
 
 Instruction Interpreter::Interpret(const MoveReg& inst) {

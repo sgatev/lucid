@@ -777,5 +777,36 @@ TEST(CompilerTest, LargeInteger) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
 }
 
+TEST(CompilerTest, CompEvaluatesValuesTooLargeToCarry) {
+  // The result of the call is larger than an instruction can hold, so it
+  // becomes a constant the program loads rather than one it carries.
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun twice(a: Int32): Int32 {
+      return a + a
+    }
+
+    fun main(): Int32 {
+      comp val big: Int32 = twice(40000)
+      return big - 79999
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
+}
+
+TEST(CompilerTest, CompEvaluatesNegativeValues) {
+  // A negative result is one no instruction can carry either.
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun diff(a: Int32, b: Int32): Int32 {
+      return a - b
+    }
+
+    fun main(): Int32 {
+      comp val neg: Int32 = diff(1, 5)
+      return neg + 9
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(5));
+}
+
 }  // namespace
 }  // namespace lucid
