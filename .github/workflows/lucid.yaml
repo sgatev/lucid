@@ -25,4 +25,5 @@ jobs:
           bazel run -c opt //lucid/core/container:hash_set_bench
           bazel run -c opt //lucid/syntax:ssa_bench
           bazel run -c opt //lucid/am:reg_bench
+          bazel run -c opt //lucid/arm64:translator_bench
           bazel run -c opt //lucid/core/dataflow:worklist_bench

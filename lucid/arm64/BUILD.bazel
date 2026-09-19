@@ -1,3 +1,4 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
@@ -79,5 +80,32 @@ cc_test(
         "//lucid/am:state",
         "//lucid/core/testing",
         "//lucid/syntax:context",
+    ],
+)
+
+cc_binary(
+    name = "translator_bench",
+    srcs = ["translator_bench.cc"],
+    deps = [
+        ":assembler",
+        ":translator",
+        "//lucid/am:cfg",
+        "//lucid/am:ig",
+        "//lucid/am:instructions",
+        "//lucid/am:opt",
+        "//lucid/am:reg",
+        "//lucid/am:state",
+        "//lucid/am:translator",
+        "//lucid/core/benchmarking",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
+        "//lucid/syntax:ast",
+        "//lucid/syntax:cfg",
+        "//lucid/syntax:comp",
+        "//lucid/syntax:context",
+        "//lucid/syntax:lexer",
+        "//lucid/syntax:parser",
+        "//lucid/syntax:ssa",
+        "//lucid/syntax:type",
     ],
 )
