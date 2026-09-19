@@ -308,6 +308,22 @@ cc_test(
     ],
 )
 
+cc_binary(
+    name = "ssa_bench",
+    srcs = ["ssa_bench.cc"],
+    deps = [
+        ":ast",
+        ":cfg",
+        ":comp",
+        ":context",
+        ":lexer",
+        ":parser",
+        ":ssa",
+        ":type",
+        "//lucid/core/benchmarking",
+    ],
+)
+
 cc_library(
     name = "token",
     srcs = ["token.cc"],
