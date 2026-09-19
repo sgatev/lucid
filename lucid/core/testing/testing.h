@@ -23,6 +23,7 @@
 #include "lucid/core/testing/internal/predicate_matcher.h"
 #include "lucid/core/testing/internal/prefix_matcher.h"
 #include "lucid/core/testing/internal/size_matcher.h"
+#include "lucid/core/testing/internal/substring_matcher.h"
 #include "lucid/core/testing/internal/suffix_matcher.h"
 #include "lucid/core/testing/internal/unordered_elements_matcher.h"
 #include "lucid/core/testing/internal/variant_matcher.h"
@@ -204,6 +205,11 @@ inline internal::PrefixMatcher StartsWith(std::string_view prefix) {
 // Matches a string that ends with `suffix`.
 inline internal::SuffixMatcher EndsWith(std::string_view suffix) {
   return internal::SuffixMatcher(suffix);
+}
+
+// Matches a string that contains `substring`.
+inline internal::SubstringMatcher Contains(std::string_view substring) {
+  return internal::SubstringMatcher(substring);
 }
 
 // Checks `actual` against `matcher`, and on a mismatch fails the test with a

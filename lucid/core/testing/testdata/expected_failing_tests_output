@@ -28,12 +28,13 @@
 │ FAIL UnorderedElementsWithMatchers
 │ FAIL Prefix
 │ FAIL Suffix
+│ FAIL Substring
 │ FAIL AssertStopsTheTest
 │ FAIL ExpectContinuesAfterFailure
 │ FAIL StandardErrorOutput
 │ FAIL EnumValue
 │ FAIL PrintableEnumValue
-└─► 1 out of 35 tests PASS
+└─► 1 out of 36 tests PASS
 
 == Foo ==
 lucid/core/testing/testdata/failing_tests.cc:33: Fail: Foo failure
@@ -178,16 +179,21 @@ lucid/core/testing/testdata/failing_tests.cc:185: Fail: Expected greeting
  to be a string ending with "bye"
  but was found "hello".
 
+== Substring ==
+lucid/core/testing/testdata/failing_tests.cc:190: Fail: Expected greeting
+ to be a string containing "bye"
+ but was found "hello".
+
 == AssertStopsTheTest ==
-lucid/core/testing/testdata/failing_tests.cc:191: Fail: Expected falsy
+lucid/core/testing/testdata/failing_tests.cc:196: Fail: Expected falsy
  to be true
  but was found false.
 
 == ExpectContinuesAfterFailure ==
-lucid/core/testing/testdata/failing_tests.cc:198: Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:203: Fail: Expected twenty_one
  to be equal to 42
  but was found 21.
-lucid/core/testing/testdata/failing_tests.cc:199: Fail: Expected twenty_one
+lucid/core/testing/testdata/failing_tests.cc:204: Fail: Expected twenty_one
  to be not equal to 21
  but was found 21.
 ExpectContinuesAfterFailure reached LOG
@@ -195,15 +201,15 @@ ExpectContinuesAfterFailure reached LOG
 == StandardErrorOutput ==
 StandardErrorOutput stdout LOG
 StandardErrorOutput stderr LOG
-lucid/core/testing/testdata/failing_tests.cc:208: Fail: StandardErrorOutput failure
+lucid/core/testing/testdata/failing_tests.cc:213: Fail: StandardErrorOutput failure
 
 == EnumValue ==
-lucid/core/testing/testdata/failing_tests.cc:219: Fail: Expected fruit
+lucid/core/testing/testdata/failing_tests.cc:224: Fail: Expected fruit
  to be equal to 1
  but was found 0.
 
 == PrintableEnumValue ==
-lucid/core/testing/testdata/failing_tests.cc:232: Fail: Expected vegetable
+lucid/core/testing/testdata/failing_tests.cc:237: Fail: Expected vegetable
  to be equal to kBean
  but was found kLeek.
 

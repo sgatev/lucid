@@ -63,8 +63,8 @@ TEST(Test, UnorderedElementsWithDuplicates) {
 // giving the first matcher the 1 instead.
 TEST(Test, UnorderedElementsNeedingReassignment) {
   std::vector<int> values = {2, 1};
-  EXPECT_THAT(values, UnorderedElements(Truly([](int x) { return x > 0; }),
-                                        Equals(2)));
+  EXPECT_THAT(values,
+              UnorderedElements(Truly([](int x) { return x > 0; }), Equals(2)));
 }
 
 TEST(Test, Field) {
@@ -105,6 +105,7 @@ TEST(Test, Affixes) {
   std::string greeting = "hello";
   EXPECT_THAT(greeting, StartsWith("he"));
   EXPECT_THAT(greeting, EndsWith("lo"));
+  EXPECT_THAT(greeting, Contains("ell"));
 }
 
 TEST(Test, ExpectMacros) {

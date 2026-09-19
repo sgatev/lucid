@@ -88,6 +88,12 @@ cc_library(
 )
 
 cc_library(
+    name = "substring_matcher",
+    hdrs = ["substring_matcher.h"],
+    deps = [":to_string"],
+)
+
+cc_library(
     name = "suffix_matcher",
     hdrs = ["suffix_matcher.h"],
     deps = [":to_string"],

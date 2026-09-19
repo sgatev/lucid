@@ -185,6 +185,11 @@ TEST(Test, Suffix) {
   EXPECT_THAT(greeting, EndsWith("bye"));
 }
 
+TEST(Test, Substring) {
+  std::string greeting = "hello";
+  EXPECT_THAT(greeting, Contains("bye"));
+}
+
 // A failing ASSERT returns from the test, so the log below must not appear.
 TEST(Test, AssertStopsTheTest) {
   bool falsy = 21 == 42;
