@@ -52,12 +52,6 @@ std::string ChainedValues(int count) {
 // Every value is read after the last one is written, so each interferes with
 // every other: the graph is dense, and with only ten registers to colour it
 // with, the allocator has to spill.
-//
-// `count` is kept well under sixty here. Above that the spilling loop in
-// `SpillRegisters` does not terminate: spilling a register renames each of
-// its uses to a register of its own, and those are not themselves recorded
-// as spilt, so the loop finds one of them to spill next and the function
-// grows without bound.
 std::string LiveValues(int count) {
   std::string code = "fun main(): Int32 {\n";
   for (int i = 0; i < count; ++i) {
@@ -163,12 +157,12 @@ BENCHMARK(ColorChain256) { BenchmarkColoring(state, ChainedValues(256)); }
 BENCHMARK(ColorChain512) { BenchmarkColoring(state, ChainedValues(512)); }
 
 // Colouring over a dense graph, where every register interferes with the rest.
-BENCHMARK(ColorLive32) { BenchmarkColoring(state, LiveValues(32)); }
+BENCHMARK(ColorLive64) { BenchmarkColoring(state, LiveValues(64)); }
 
 // Allocation whole, for what a change to colouring is worth in context.
 BENCHMARK(AllocateChain256) { BenchmarkAllocation(state, ChainedValues(256)); }
 
-BENCHMARK(AllocateLive32) { BenchmarkAllocation(state, LiveValues(32)); }
+BENCHMARK(AllocateLive64) { BenchmarkAllocation(state, LiveValues(64)); }
 
 }  // namespace
 }  // namespace lucid
