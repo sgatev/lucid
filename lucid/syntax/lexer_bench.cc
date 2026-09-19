@@ -109,6 +109,10 @@ BENCHMARK(Examples) {
 
   auto path = std::filesystem::current_path() / "examples";
   for (auto const& dir_entry : std::filesystem::directory_iterator{path}) {
+    // Process only the Lucid sources. The directory also holds the build file,
+    // which is not a program this lexer is meant to read.
+    if (dir_entry.path().extension() != ".lu") continue;
+
     std::string content =
         ReadFile(dir_entry.path(), /*with_trailing_zero=*/false).value();
     snippet.append(content);
