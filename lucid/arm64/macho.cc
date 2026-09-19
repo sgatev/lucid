@@ -297,7 +297,7 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
       .offset = section_offset,
       .align = 1 << 1,
       .reloff = section_offset + section_size,
-      .nreloc = 2,
+      .nreloc = static_cast<std::uint32_t>(relocs.size()),
       .flags = kAttrPureInstructions | kAttrSomeInstructions,
   };
   const SegmentCommand64 segment{
@@ -316,7 +316,7 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
       .cpu_type = CpuType::Arm64,
       .cpu_sub_type = CpuSubType::Arm64All,
       .file_type = FileType::Object,
-      .ncmds = 3,
+      .ncmds = 4,
       .sizeofcmds = segment.cmdsize + build_version.cmdsize + sym_tab.cmdsize +
                     dysym_tab.cmdsize,
       .flags = 0,

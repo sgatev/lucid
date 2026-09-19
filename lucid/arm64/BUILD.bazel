@@ -31,6 +31,22 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "macho_test",
+    srcs = ["macho_test.cc"],
+    # The object is read back with the system's own Mach-O definitions, which
+    # only a macOS host has. Nothing here runs the code it assembles, so the
+    # host's architecture does not matter.
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ],
+    deps = [
+        ":assembler",
+        ":macho",
+        "//lucid/core/testing",
+    ],
+)
+
 cc_library(
     name = "translator",
     srcs = ["translator.cc"],
