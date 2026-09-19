@@ -23,4 +23,5 @@ jobs:
           bazel run -c opt //lucid/syntax:parser_bench
           bazel run -c opt //lucid/core/container:hash_map_bench
           bazel run -c opt //lucid/core/container:hash_set_bench
+          bazel run -c opt //lucid/am:reg_bench
           bazel run -c opt //lucid/core/dataflow:worklist_bench

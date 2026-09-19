@@ -141,6 +141,30 @@ cc_library(
     ],
 )
 
+cc_binary(
+    name = "reg_bench",
+    srcs = ["reg_bench.cc"],
+    deps = [
+        ":cfg",
+        ":ig",
+        ":instructions",
+        ":opt",
+        ":reg",
+        ":state",
+        ":translator",
+        "//lucid/core/benchmarking",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
+        "//lucid/syntax:ast",
+        "//lucid/syntax:cfg",
+        "//lucid/syntax:comp",
+        "//lucid/syntax:lexer",
+        "//lucid/syntax:parser",
+        "//lucid/syntax:ssa",
+        "//lucid/syntax:type",
+    ],
+)
+
 cc_library(
     name = "state",
     hdrs = ["state.h"],
