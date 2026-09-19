@@ -55,7 +55,7 @@ cc_binary(
     srcs = ["hash_map_bench.cc"],
     deps = [
         ":hash_map",
-        "@google_benchmark//:benchmark",
+        "//lucid/core/benchmarking",
     ],
 )
 
@@ -82,7 +82,7 @@ cc_binary(
     srcs = ["hash_set_bench.cc"],
     deps = [
         ":hash_set",
-        "@google_benchmark//:benchmark",
+        "//lucid/core/benchmarking",
     ],
 )
 

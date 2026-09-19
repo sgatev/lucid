@@ -1,0 +1,84 @@
+load("@bazel_lib//lib:diff_test.bzl", "diff_test")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_library(
+    name = "benchmarking_library",
+    hdrs = ["benchmarking.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        "//lucid/core/meta:macros",
+    ],
+)
+
+cc_library(
+    name = "benchmarking",
+    srcs = ["benchmarking_main.cc"],
+    hdrs = ["benchmarking.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":benchmarking_library",
+        "//lucid/core/cli",
+        "//lucid/core/meta:macros",
+    ],
+    alwayslink = True,
+)
+
+cc_test(
+    name = "benchmarking_test",
+    srcs = ["benchmarking_test.cc"],
+    deps = [
+        ":benchmarking_library",
+        "//lucid/core/testing",
+    ],
+)
+
+genrule(
+    name = "run_example_benchmarks",
+    testonly = True,
+    outs = ["example_benchmarks_output"],
+    # Durations vary from run to run, so they are replaced with a placeholder,
+    # and the iteration count is fixed rather than measured. What is being
+    # pinned is the shape of the report, not what the machine managed.
+    cmd = "$(location //lucid/core/benchmarking/testdata:example_benchmarks) --iterations=1000 | sed -E 's/[(][0-9]+[^)]*[)]/(<duration>)/g' > $@",
+    tools = ["//lucid/core/benchmarking/testdata:example_benchmarks"],
+)
+
+diff_test(
+    name = "example_benchmarks_test",
+    file1 = "//lucid/core/benchmarking/testdata:expected_example_benchmarks_output",
+    file2 = ":example_benchmarks_output",
+)
+
+genrule(
+    name = "run_filtered_benchmarks",
+    testonly = True,
+    outs = ["filtered_benchmarks_output"],
+    cmd = "$(location //lucid/core/benchmarking/testdata:example_benchmarks) --iterations=1000 --filter=Sum | sed -E 's/[(][0-9]+[^)]*[)]/(<duration>)/g' > $@",
+    tools = ["//lucid/core/benchmarking/testdata:example_benchmarks"],
+)
+
+diff_test(
+    name = "filtered_benchmarks_test",
+    file1 = "//lucid/core/benchmarking/testdata:expected_filtered_benchmarks_output",
+    file2 = ":filtered_benchmarks_output",
+)
+
+genrule(
+    name = "run_unmatched_filter_benchmarks",
+    testonly = True,
+    outs = ["unmatched_filter_benchmarks_output"],
+    cmd = """
+    if $(location //lucid/core/benchmarking/testdata:example_benchmarks) --filter=NoSuchBenchmark > $@ 2>&1; then
+      echo "ERROR: Expected tool to fail, but it exited with 0" >&2
+      exit 1
+    fi
+    """,
+    tools = ["//lucid/core/benchmarking/testdata:example_benchmarks"],
+)
+
+diff_test(
+    name = "unmatched_filter_benchmarks_test",
+    file1 = "//lucid/core/benchmarking/testdata:expected_unmatched_filter_benchmarks_output",
+    file2 = ":unmatched_filter_benchmarks_output",
+)

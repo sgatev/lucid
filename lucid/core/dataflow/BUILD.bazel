@@ -43,6 +43,6 @@ cc_binary(
     srcs = ["worklist_bench.cc"],
     deps = [
         ":worklist",
-        "@google_benchmark//:benchmark",
+        "//lucid/core/benchmarking",
     ],
 )

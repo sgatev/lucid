@@ -3,8 +3,11 @@
 #include <functional>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "lucid/core/benchmarking/benchmarking.h"
 #include "lucid/core/dataflow/worklist.h"
+
+namespace lucid {
+namespace {
 
 class BoundedNatDomain {
  public:
@@ -20,42 +23,40 @@ class BoundedNatDomain {
   std::size_t size_;
 };
 
-static void BM_Push(benchmark::State& state) {
-  lucid::Worklist<int, BoundedNatDomain, std::less<>> worklist(
-      BoundedNatDomain(1000), std::less());
+BENCHMARK(Push) {
+  Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(1000),
+                                                        std::less());
 
   std::vector<int> inputs;
-  inputs.reserve(state.max_iterations);
-  for (int i = 0; i < state.max_iterations; ++i) {
+  inputs.reserve(state.MaxIterations());
+  for (std::size_t i = 0; i < state.MaxIterations(); ++i) {
     inputs.push_back(std::rand() % 1000);
   }
 
   int i = 0;
   for (auto _ : state) worklist.push(inputs[i++]);
-  benchmark::DoNotOptimize(worklist.empty());
+  DoNotOptimize(worklist.empty());
 }
-BENCHMARK(BM_Push);
 
-static void BM_Pop(benchmark::State& state) {
-  lucid::Worklist<int, BoundedNatDomain, std::less<>> worklist(
-      BoundedNatDomain(1000), std::less());
+BENCHMARK(Pop) {
+  Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(1000),
+                                                        std::less());
 
-  for (int i = 0; i < state.max_iterations; ++i) {
+  for (std::size_t i = 0; i < state.MaxIterations(); ++i) {
     worklist.push(std::rand() % 1000);
   }
 
   for (auto _ : state) worklist.pop();
-  benchmark::DoNotOptimize(worklist.empty());
+  DoNotOptimize(worklist.empty());
 }
-BENCHMARK(BM_Pop);
 
-static void BM_PushPop(benchmark::State& state) {
-  lucid::Worklist<int, BoundedNatDomain, std::less<>> worklist(
-      BoundedNatDomain(1000), std::less());
+BENCHMARK(PushPop) {
+  Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(1000),
+                                                        std::less());
 
   std::vector<int> inputs;
-  inputs.reserve(state.max_iterations);
-  for (int i = 0; i < state.max_iterations; ++i) {
+  inputs.reserve(state.MaxIterations());
+  for (std::size_t i = 0; i < state.MaxIterations(); ++i) {
     inputs.push_back(std::rand() % 1000);
   }
 
@@ -64,8 +65,8 @@ static void BM_PushPop(benchmark::State& state) {
     worklist.push(inputs[i++]);
     worklist.pop();
   }
-  benchmark::DoNotOptimize(worklist.empty());
+  DoNotOptimize(worklist.empty());
 }
-BENCHMARK(BM_PushPop);
 
-BENCHMARK_MAIN();
+}  // namespace
+}  // namespace lucid

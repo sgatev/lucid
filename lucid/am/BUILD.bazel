@@ -188,12 +188,12 @@ cc_binary(
     srcs = ["translator_bench.cc"],
     deps = [
         ":translator",
+        "//lucid/core/benchmarking",
         "//lucid/syntax:cfg",
         "//lucid/syntax:comp",
         "//lucid/syntax:lexer",
         "//lucid/syntax:parser",
         "//lucid/syntax:ssa",
         "//lucid/syntax:type",
-        "@google_benchmark//:benchmark",
     ],
 )

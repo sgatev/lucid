@@ -1,0 +1,4 @@
+│ Nothing 1000 iterations (<duration>)
+│ Sum 1000 iterations (<duration>)
+│ Copy 1000 iterations (<duration>)
+└─► 3 benchmarks (<duration>)

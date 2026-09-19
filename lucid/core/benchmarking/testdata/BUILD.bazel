@@ -1,0 +1,20 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+package(
+    default_testonly = True,
+    default_visibility = ["//lucid/core/benchmarking:__subpackages__"],
+)
+
+cc_binary(
+    name = "example_benchmarks",
+    srcs = ["example_benchmarks.cc"],
+    deps = [
+        "//lucid/core/benchmarking",
+    ],
+)
+
+exports_files([
+    "expected_example_benchmarks_output",
+    "expected_filtered_benchmarks_output",
+    "expected_unmatched_filter_benchmarks_output",
+])

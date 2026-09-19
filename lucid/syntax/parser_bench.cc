@@ -6,7 +6,7 @@
 #include <string_view>
 #include <utility>
 
-#include "benchmark/benchmark.h"
+#include "lucid/core/benchmarking/benchmarking.h"
 #include "lucid/core/io/file.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/buffered_lexer.h"
@@ -15,58 +15,59 @@
 
 using namespace std::string_literals;
 
-void Benchmark(benchmark::State& state, std::string_view snippet) {
+namespace lucid {
+namespace {
+
+void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
   static constexpr int kSnippetRepetitions = 10000;
   std::string code;
   code.reserve(snippet.size() * kSnippetRepetitions + 1);
   for (int i = 0; i < kSnippetRepetitions; ++i) code.append(snippet);
   code.append("\0"s);
 
-  lucid::SyntaxContext ctx;
-  lucid::BufferedLexer<lucid::Lexer> lexer(lucid::Lexer{code});
+  SyntaxContext ctx;
+  BufferedLexer<Lexer> lexer(Lexer{code});
 
   for (auto _ : state) {
     lexer.Reset();
 
-    lucid::Parser parser(ctx, code, lexer);
+    Parser parser(ctx, code, lexer);
     std::size_t count = 0;
     while (true) {
-      std::expected<std::optional<lucid::Def>, lucid::ParserError>
-          def_or_error = parser.Parse();
+      std::expected<std::optional<Def>, ParserError> def_or_error =
+          parser.Parse();
       if (!def_or_error.has_value()) break;
 
-      std::optional<lucid::Def> maybe_def = std::move(def_or_error).value();
+      std::optional<Def> maybe_def = std::move(def_or_error).value();
       if (!maybe_def.has_value()) break;
 
       ++count;
     }
-    benchmark::DoNotOptimize(count);
+    DoNotOptimize(count);
   }
-  state.SetBytesProcessed(std::int64_t(state.iterations()) *
+  state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
                           std::int64_t(code.size()));
 }
 
-static void BM_Function(benchmark::State& state) {
-  Benchmark(state, R"(
+BENCHMARK(Function) {
+  BenchmarkSnippet(state, R"(
     fun main(): Int32 {
       return 0
     }
   )");
 }
-BENCHMARK(BM_Function);
 
-static void BM_Comment(benchmark::State& state) {
-  Benchmark(state, R"(
+BENCHMARK(Comment) {
+  BenchmarkSnippet(state, R"(
     # Returns the sum of two integers.
     fun sum(a: Int32, b: Int32): Int32 {
       return a + b # can overflow
     }
   )");
 }
-BENCHMARK(BM_Comment);
 
-static void BM_Branches(benchmark::State& state) {
-  Benchmark(state, R"(
+BENCHMARK(Branches) {
+  BenchmarkSnippet(state, R"(
     fun gcd(a: Int32, b: Int32): Int32 {
       loop {
         if a == b {
@@ -82,20 +83,19 @@ static void BM_Branches(benchmark::State& state) {
     }
   )");
 }
-BENCHMARK(BM_Branches);
 
-static void BM_Examples(benchmark::State& state) {
+BENCHMARK(Examples) {
   std::string snippet;
 
   auto path = std::filesystem::current_path() / "examples";
   for (auto const& dir_entry : std::filesystem::directory_iterator{path}) {
     std::string content =
-        lucid::ReadFile(dir_entry.path(), /*with_trailing_zero=*/false).value();
+        ReadFile(dir_entry.path(), /*with_trailing_zero=*/false).value();
     snippet.append(content);
   }
 
-  Benchmark(state, snippet);
+  BenchmarkSnippet(state, snippet);
 }
-BENCHMARK(BM_Examples);
 
-BENCHMARK_MAIN();
+}  // namespace
+}  // namespace lucid
