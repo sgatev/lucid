@@ -62,6 +62,13 @@ class Arena {
     return ref;
   }
 
+  // Makes room for `count` values, so that adding that many does not grow
+  // the arena along the way.
+  void Reserve(std::size_t count) {
+    indices_.reserve(count);
+    values_.reserve(count);
+  }
+
   // Adds another reference for the value that `ref` refers to.
   Ref Alias(Ref ref) {
     indices_.push_back(indices_[ref.id()]);
@@ -98,8 +105,6 @@ class Arena {
   auto end(this auto&& self) { return self.values_.end(); }
 
  private:
-  // References are 32-bit, so an index into `values_` is too: the indirection
-  // costs a cache line of its own on every access, and half of one is better.
   std::vector<std::uint32_t> indices_;
   std::vector<T> values_;
 };

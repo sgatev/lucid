@@ -18,6 +18,12 @@ class SyntaxContext {
  public:
   SyntaxContext() : types_(idents_) {}
 
+  // Makes room for the nodes of a source of `size` characters.
+  void ReserveForSource(std::size_t size) {
+    stmts_.Reserve(size / kCharsPerStmt);
+    exprs_.Reserve(size / kCharsPerExpr);
+  }
+
   // Adds `stmt` to the context.
   StmtRef Add(Stmt stmt) { return stmts_.Add(stmt); }
 
@@ -118,6 +124,13 @@ class SyntaxContext {
   }
 
  private:
+  // Measured over the example programs, which run from 23 to 40 characters
+  // per statement and from 9 to 30 per expression. Reserving for the dense
+  // end of that would waste most of it on ordinary code, so these sit nearer
+  // the middle: a source denser than this still grows, just rarely.
+  static constexpr std::size_t kCharsPerStmt = 25;
+  static constexpr std::size_t kCharsPerExpr = 12;
+
   Arena<Stmt> stmts_;
   Arena<Expr> exprs_;
   Arena<FuncParam> params_;

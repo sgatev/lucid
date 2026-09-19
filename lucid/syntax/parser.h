@@ -90,7 +90,9 @@ class Parser {
         lexer_(std::forward<LexerT>(lexer)),
         next_(lexer_.next()),
         true_ident_(syn_ctx.AddIdent("true")),
-        false_ident_(syn_ctx.AddIdent("false")) {}
+        false_ident_(syn_ctx.AddIdent("false")) {
+    syn_ctx.ReserveForSource(buffer.size());
+  }
 
   std::expected<std::optional<Def>, ParserError> Parse() {
     if (PeekIgnoringNonSemantic().kind == Token::Kind::End) [[unlikely]] {
