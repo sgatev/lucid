@@ -203,11 +203,20 @@ class BInst {
 };
 
 // ARM64 condition.
+//
+// The value is the condition's own encoding, which is what a branch carries.
 enum class Cond : std::uint8_t {
   Eq = 0b0000,
+  Ne = 0b0001,
+  Lt = 0b1011,
+  Gt = 0b1100,
 };
 
 // ARM64 inverse condition.
+//
+// Named for the condition it decides but holding the encoding of the opposite
+// one, because `CSET` sets its register when the condition it carries is
+// false. `InvCond::Lt` is therefore not `Cond::Lt`.
 enum class InvCond : std::uint8_t {
   Ne = 0b0000,
   Eq = 0b0001,

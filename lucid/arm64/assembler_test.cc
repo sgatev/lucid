@@ -251,17 +251,30 @@ TEST(Test, ConditionalBranchesEncodeTheirConditionAndDistance) {
                 a.Label("l");
               }),
               ElementsEqual(0x54000040u, 0xd65f03c0u));
-  // `Cond` declares only `Eq`, which is zero, so only a second condition can
-  // show that the condition reaches the encoding at all. `0b1011` is the
-  // condition ARM calls `lt`.
+  // Every condition has to reach the encoding, which only a condition that is
+  // not zero can show.
   //
+  // ret ; b.ne #-4
+  EXPECT_THAT(Encode([](Assembler& a) {
+                a.Label("l");
+                a.Ret();
+                a.B(Cond::Ne, "l");
+              }),
+              ElementsEqual(0xd65f03c0u, 0x54ffffe1u));
   // ret ; b.lt #-4
   EXPECT_THAT(Encode([](Assembler& a) {
                 a.Label("l");
                 a.Ret();
-                a.B(static_cast<Cond>(0b1011), "l");
+                a.B(Cond::Lt, "l");
               }),
               ElementsEqual(0xd65f03c0u, 0x54ffffebu));
+  // ret ; b.gt #-4
+  EXPECT_THAT(Encode([](Assembler& a) {
+                a.Label("l");
+                a.Ret();
+                a.B(Cond::Gt, "l");
+              }),
+              ElementsEqual(0xd65f03c0u, 0x54ffffecu));
 }
 
 TEST(Test, AddressAndLiteralLoadsEncodeTheDistanceToTheirLabel) {
