@@ -143,7 +143,7 @@ class Parser {
   std::expected<Def, ParserError> ParseFuncDef(bool is_comp) {
     ASSIGN_OR_RETURN(StringIndex::Ref name, ParseIdent());
 
-    std::uint8_t params_size = 0;
+    std::uint32_t params_size = 0;
     ParamRef first_param = Arena<FuncParam>::kNullRef;
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::OpenParen));
     while (true) {
@@ -187,7 +187,7 @@ class Parser {
         "Type", ParserError::Kind::ExpectedTypeKeyword));
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::Equal));
 
-    std::uint8_t params_size = 0;
+    std::uint32_t params_size = 0;
     ParamRef first_param = Arena<FuncParam>::kNullRef;
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::OpenParen));
     while (true) {
@@ -254,7 +254,7 @@ class Parser {
 
     ReadIgnoringNonSemantic();
 
-    const std::uint8_t args_size = pending_stmts_.size() - start_idx;
+    const std::uint32_t args_size = pending_stmts_.size() - start_idx;
     StmtRef args_first = Arena<Stmt>::kNullRef;
     if (args_size > 0) {
       args_first = syn_ctx_.Add(std::move(pending_stmts_[start_idx]));
@@ -568,7 +568,7 @@ class Parser {
       }
       ReadIgnoringNonSemantic();
 
-      const std::uint8_t args_size = pending_exprs_.size() - start_idx;
+      const std::uint32_t args_size = pending_exprs_.size() - start_idx;
       ExprRef args_first = Arena<Expr>::kNullRef;
       if (args_size > 0) {
         args_first = syn_ctx_.Add(std::move(pending_exprs_[start_idx]));
