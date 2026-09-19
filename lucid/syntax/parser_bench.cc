@@ -25,12 +25,15 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
   for (int i = 0; i < kSnippetRepetitions; ++i) code.append(snippet);
   code.append("\0"s);
 
-  SyntaxContext ctx;
   BufferedLexer<Lexer> lexer(Lexer{code});
 
   for (auto _ : state) {
     lexer.Reset();
 
+    // A context of its own per iteration. Parsing appends to it, so one shared
+    // across the run would grow without bound, and every iteration would be
+    // measured against a larger arena than the one before it.
+    SyntaxContext ctx;
     Parser parser(ctx, code, lexer);
     std::size_t count = 0;
     while (true) {
