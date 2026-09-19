@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <string_view>
 #include <vector>
@@ -14,8 +15,8 @@ namespace lucid {
 // Interprets abstract machine instructions in `am_cfg` and returns the result.
 int InterpretAbstractMachineFunction(
     const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
-    const AbstractMachineControlFlowGraph& am_cfg, const std::vector<int>& args,
-    AbstractMachineState& am_state);
+    const AbstractMachineControlFlowGraph& am_cfg,
+    const std::vector<std::int64_t>& args, AbstractMachineState& am_state);
 
 // Interprets abstract machine instructions.
 class Interpreter {
@@ -24,11 +25,11 @@ class Interpreter {
       const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
       AbstractMachineState& am_state);
 
-  int Result() const;
+  std::int64_t Result() const;
 
-  std::optional<const int&> Get(Reg reg) const;
+  std::optional<const std::int64_t&> Get(Reg reg) const;
 
-  void Set(Reg reg, int value);
+  void Set(Reg reg, std::int64_t value);
 
   Instruction Interpret(const Instruction& inst);
 
@@ -50,8 +51,8 @@ class Interpreter {
 
   const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs_;
   AbstractMachineState& am_state_;
-  HashMap<Reg, int> values_;
-  int result_;
+  HashMap<Reg, std::int64_t> values_;
+  std::int64_t result_;
 };
 
 }  // namespace lucid

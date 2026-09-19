@@ -1,6 +1,7 @@
 #include "lucid/vm/interpreter.h"
 
 #include <cassert>
+#include <cstdint>
 #include <optional>
 #include <variant>
 #include <vector>
@@ -12,8 +13,8 @@ namespace lucid {
 
 int InterpretAbstractMachineFunction(
     const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
-    const AbstractMachineControlFlowGraph& am_cfg, const std::vector<int>& args,
-    AbstractMachineState& am_state) {
+    const AbstractMachineControlFlowGraph& am_cfg,
+    const std::vector<std::int64_t>& args, AbstractMachineState& am_state) {
   Interpreter vm(am_cfgs, am_state);
 
   for (int i = 0; i < args.size(); ++i) {
@@ -74,13 +75,13 @@ Interpreter::Interpreter(
     AbstractMachineState& am_state)
     : am_cfgs_(am_cfgs), am_state_(am_state) {}
 
-int Interpreter::Result() const { return result_; }
+std::int64_t Interpreter::Result() const { return result_; }
 
-std::optional<const int&> Interpreter::Get(Reg reg) const {
+std::optional<const std::int64_t&> Interpreter::Get(Reg reg) const {
   return values_.Get(reg);
 }
 
-void Interpreter::Set(Reg reg, int value) { values_.Set(reg, value); }
+void Interpreter::Set(Reg reg, std::int64_t value) { values_.Set(reg, value); }
 
 Instruction Interpreter::Interpret(const Instruction& inst) {
   if (const auto* func_call = std::get_if<FuncCall>(&inst)) {
@@ -120,13 +121,13 @@ Instruction Interpreter::Interpret(const FuncCall& inst) {
   auto am_cfg = am_cfgs_.Get(inst.label);
   assert(am_cfg.has_value());
 
-  std::vector<int> args;
+  std::vector<std::int64_t> args;
   for (const auto& arg : inst.args) {
     auto arg_val = values_.Get(arg.reg);
     assert(arg_val.has_value());
     args.push_back(*arg_val);
   }
-  int result =
+  std::int64_t result =
       InterpretAbstractMachineFunction(am_cfgs_, *am_cfg, args, am_state_);
 
   assert(inst.res.has_value());

@@ -777,6 +777,50 @@ TEST(CompilerTest, LargeInteger) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
 }
 
+TEST(CompilerTest, Int64LiteralBeyondInt32) {
+  // A literal too wide for an `Int32` is still a value an `Int64` holds, and
+  // it reaches the program whole rather than as its lower half.
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val big: Int64 = 4294967296
+      val low: Int64 = 1
+      if big > low {
+        return 7
+      }
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(7));
+}
+
+TEST(CompilerTest, Int64LiteralKeepsItsLowerHalf) {
+  // 2^32 + 5 and 5 differ only above the 32nd bit.
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val big: Int64 = 4294967301
+      val small: Int64 = 5
+      if big == small {
+        return 1
+      }
+      return 2
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
+}
+
+TEST(CompilerTest, IntLiteralOutOfRangeForItsType) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val x: Int32 = 4294967296
+      return x
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+              AllOf(ReturnsCode(1),
+                    ErrorOutput(Contains(
+                        "integer literal out of range for type Int32"))));
+}
+
 TEST(CompilerTest, CompEvaluatesValuesTooLargeToCarry) {
   // The result of the call is larger than an instruction can hold, so it
   // becomes a constant the program loads rather than one it carries.

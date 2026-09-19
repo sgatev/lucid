@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdint>
 #include <expected>
+#include <limits>
 #include <optional>
 #include <ranges>
 #include <string>
@@ -54,10 +55,25 @@ class ExprTypeInferenceEngine {
     SolveTypeEquations();
 
     for (auto int_lit_expr : int_lit_exprs_) {
-      if (!expr_from_type_.Get(int_lit_expr).has_value()) {
-        expr_from_type_.Set(int_lit_expr,
-                            syn_ctx_.ResolveType(syn_ctx_.AddIdent("Int32")));
-      }
+      if (expr_from_type_.Get(int_lit_expr).has_value()) continue;
+
+      // A literal is whatever it is used as, and a literal used as nothing in
+      // particular is the narrowest type that can hold it.
+      const auto& expr = std::get<IntLitExpr>(syn_ctx_.DerefExpr(int_lit_expr));
+      const bool fits_in_int32 =
+          expr.value >= std::numeric_limits<std::int32_t>::min() &&
+          expr.value <= std::numeric_limits<std::int32_t>::max();
+      expr_from_type_.Set(int_lit_expr,
+                          syn_ctx_.ResolveType(syn_ctx_.AddIdent(
+                              fits_in_int32 ? "Int32" : "Int64")));
+    }
+
+    for (auto int_lit_expr : int_lit_exprs_) {
+      RequireLiteralFitsItsType(int_lit_expr);
+    }
+
+    if (auto error = GetError(); error.has_value()) {
+      return std::unexpected(TypeError(std::move(*error)));
     }
 
     for (auto [expr_ref, type] : expr_from_type_) {
@@ -313,6 +329,25 @@ class ExprTypeInferenceEngine {
       if (next_expr_from_expr.size() == expr_from_expr_.size()) break;
       expr_from_expr_ = std::move(next_expr_from_expr);
     }
+  }
+
+  // Reports a literal whose value the type it is used as cannot hold, which
+  // would otherwise be narrowed to a different number without a word.
+  void RequireLiteralFitsItsType(ExprRef int_lit_expr) {
+    const std::optional<TypeRef> type_ref = expr_from_type_.Get(int_lit_expr);
+    if (!type_ref.has_value()) return;
+
+    const auto* type = std::get_if<BasicType>(&syn_ctx_.DerefType(*type_ref));
+    if (type == nullptr || type->size >= sizeof(std::int64_t)) return;
+
+    const auto& expr = std::get<IntLitExpr>(syn_ctx_.DerefExpr(int_lit_expr));
+    if (expr.value >= std::numeric_limits<std::int32_t>::min() &&
+        expr.value <= std::numeric_limits<std::int32_t>::max()) {
+      return;
+    }
+
+    errors_.push_back(std::string("integer literal out of range for type ") +
+                      std::string(syn_ctx_.DerefIdent(type->name)));
   }
 
   std::optional<std::string> GetError() {

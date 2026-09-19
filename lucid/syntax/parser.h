@@ -599,7 +599,7 @@ class Parser {
           MakeError(ParserError::Kind::ExpectedNumber, token));
     }
 
-    int value;
+    std::int64_t value;
     std::string_view value_string = TokenString(token);
     auto res = std::from_chars(value_string.begin(), value_string.end(), value);
     if (res.ec != std::errc()) [[unlikely]] {

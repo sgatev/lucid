@@ -5,9 +5,9 @@
 namespace lucid {
 namespace {
 
-TEST(Test, TypeSize) { EXPECT_EQ(sizeof(Type), 24); }
+TEST(Test, TypeSize) { EXPECT_EQ(sizeof(Type), 32); }
 
-TEST(Test, ExprSize) { EXPECT_EQ(sizeof(Expr), 28); }
+TEST(Test, ExprSize) { EXPECT_EQ(sizeof(Expr), 32); }
 
 TEST(Test, StmtSize) { EXPECT_EQ(sizeof(Stmt), 36); }
 
