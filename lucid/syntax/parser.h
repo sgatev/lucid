@@ -428,83 +428,66 @@ class Parser {
                                      PeekIgnoringNonSemantic()));
   }
 
+  // The precedence of the operators that bind least tightly.
+  static constexpr std::uint8_t kLowestPrecedence = 1;
+
+  // The binary operator a token opens, and how tightly that operator binds.
+  // A precedence of zero is a token that does not continue an expression.
+  struct BinaryOpInfo {
+    BinaryOp op;
+    std::uint8_t precedence;
+    // Whether the operator is spelled with a second `=` right after the token.
+    bool takes_equal;
+  };
+
+  static constexpr BinaryOpInfo BinaryOpOf(Token::Kind kind) {
+    switch (kind) {
+      case Token::Kind::Greater:
+        return {.op = BinaryOp::Gt, .precedence = 1, .takes_equal = false};
+      case Token::Kind::Less:
+        return {.op = BinaryOp::Lt, .precedence = 1, .takes_equal = false};
+      case Token::Kind::Equal:
+        return {.op = BinaryOp::Eq, .precedence = 1, .takes_equal = true};
+      case Token::Kind::Exclamation:
+        return {.op = BinaryOp::NotEq, .precedence = 1, .takes_equal = true};
+      case Token::Kind::Plus:
+        return {.op = BinaryOp::Add, .precedence = 2, .takes_equal = false};
+      case Token::Kind::Minus:
+        return {.op = BinaryOp::Sub, .precedence = 2, .takes_equal = false};
+      case Token::Kind::Star:
+        return {.op = BinaryOp::Mul, .precedence = 3, .takes_equal = false};
+      case Token::Kind::Slash:
+        return {.op = BinaryOp::Div, .precedence = 3, .takes_equal = false};
+      case Token::Kind::Percent:
+        return {.op = BinaryOp::Mod, .precedence = 3, .takes_equal = false};
+      default:
+        return {.op = BinaryOp::Add, .precedence = 0, .takes_equal = false};
+    }
+  }
+
   std::expected<Expr, ParserError> ParseExpr() {
-    ASSIGN_OR_RETURN(Expr expr, ParseTerm());
-    switch (PeekIgnoringNonSemantic().kind) {
-      case Token::Kind::Greater: {
-        ReadIgnoringNonSemantic();
-        ASSIGN_OR_RETURN(Expr rhs, ParseExpr());
-        return MakeBinaryOpExpr(BinaryOp::Gt, syn_ctx_.Add(std::move(expr)),
-                                syn_ctx_.Add(std::move(rhs)));
-      }
-      case Token::Kind::Less: {
-        ReadIgnoringNonSemantic();
-        ASSIGN_OR_RETURN(Expr rhs, ParseExpr());
-        return MakeBinaryOpExpr(BinaryOp::Lt, syn_ctx_.Add(std::move(expr)),
-                                syn_ctx_.Add(std::move(rhs)));
-      }
-      case Token::Kind::Equal: {
-        ReadIgnoringNonSemantic();
-        RETURN_IF_ERROR(ExpectTokenImmediate(Token::Kind::Equal));
-        ASSIGN_OR_RETURN(Expr rhs, ParseExpr());
-        return MakeBinaryOpExpr(BinaryOp::Eq, syn_ctx_.Add(std::move(expr)),
-                                syn_ctx_.Add(std::move(rhs)));
-      }
-      case Token::Kind::Exclamation: {
-        ReadIgnoringNonSemantic();
-        RETURN_IF_ERROR(ExpectTokenImmediate(Token::Kind::Equal));
-        ASSIGN_OR_RETURN(Expr rhs, ParseExpr());
-        return MakeBinaryOpExpr(BinaryOp::NotEq, syn_ctx_.Add(std::move(expr)),
-                                syn_ctx_.Add(std::move(rhs)));
-      }
-      default:
-        return expr;
-    }
+    return ParseExpr(kLowestPrecedence);
   }
 
-  std::expected<Expr, ParserError> ParseTerm() {
-    ASSIGN_OR_RETURN(Expr expr, ParseFactor());
-    switch (PeekIgnoringNonSemantic().kind) {
-      case Token::Kind::Plus: {
-        ReadIgnoringNonSemantic();
-        ASSIGN_OR_RETURN(Expr rhs, ParseTerm());
-        return MakeBinaryOpExpr(BinaryOp::Add, syn_ctx_.Add(std::move(expr)),
-                                syn_ctx_.Add(std::move(rhs)));
-      }
-      case Token::Kind::Minus: {
-        ReadIgnoringNonSemantic();
-        ASSIGN_OR_RETURN(Expr rhs, ParseTerm());
-        return MakeBinaryOpExpr(BinaryOp::Sub, syn_ctx_.Add(std::move(expr)),
-                                syn_ctx_.Add(std::move(rhs)));
-      }
-      default:
-        return expr;
-    }
-  }
-
-  std::expected<Expr, ParserError> ParseFactor() {
+  // Parses an expression made of operators that bind at least as tightly as
+  // `min_precedence`, taking one operand and one operator at a time.
+  std::expected<Expr, ParserError> ParseExpr(std::uint8_t min_precedence) {
     ASSIGN_OR_RETURN(Expr expr, ParseElement());
-    switch (PeekIgnoringNonSemantic().kind) {
-      case Token::Kind::Star: {
-        ReadIgnoringNonSemantic();
-        ASSIGN_OR_RETURN(Expr rhs, ParseFactor());
-        return MakeBinaryOpExpr(BinaryOp::Mul, syn_ctx_.Add(std::move(expr)),
-                                syn_ctx_.Add(std::move(rhs)));
+
+    while (true) {
+      const BinaryOpInfo info = BinaryOpOf(PeekIgnoringNonSemantic().kind);
+      if (info.precedence < min_precedence) return expr;
+
+      ReadIgnoringNonSemantic();
+      if (info.takes_equal) {
+        RETURN_IF_ERROR(ExpectTokenImmediate(Token::Kind::Equal));
       }
-      case Token::Kind::Slash: {
-        ReadIgnoringNonSemantic();
-        ASSIGN_OR_RETURN(Expr rhs, ParseFactor());
-        return MakeBinaryOpExpr(BinaryOp::Div, syn_ctx_.Add(std::move(expr)),
-                                syn_ctx_.Add(std::move(rhs)));
-      }
-      case Token::Kind::Percent: {
-        ReadIgnoringNonSemantic();
-        ASSIGN_OR_RETURN(Expr rhs, ParseFactor());
-        return MakeBinaryOpExpr(BinaryOp::Mod, syn_ctx_.Add(std::move(expr)),
-                                syn_ctx_.Add(std::move(rhs)));
-      }
-      default:
-        return expr;
+
+      // The right side stops one level up, so that the next operator of this
+      // level is left to this loop: `a - b - c` is `(a - b) - c`.
+      ASSIGN_OR_RETURN(Expr rhs, ParseExpr(info.precedence + 1));
+      expr = MakeBinaryOpExpr(info.op, syn_ctx_.Add(std::move(expr)),
+                              syn_ctx_.Add(std::move(rhs)));
     }
   }
 
