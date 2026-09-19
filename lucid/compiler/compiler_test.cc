@@ -11,7 +11,7 @@ TEST(CompilerTest, VersionIncludesCommitLine) {
               AllOf(ReturnsCode(0), Output(StartsWith("Commit:"))));
 }
 
-TEST(CompilerTest, PrintAstNode) {
+TEST(CompilerTest, PrintAstStatement) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 0
@@ -71,7 +71,7 @@ Available commands:
   version          Prints version information for lucid.
 )"))));
 }
-/*
+
 TEST(CompilerTest, PrintAst) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
@@ -94,7 +94,7 @@ TEST(CompilerTest, PrintAst) {
 )"))));
 }
 
-TEST(CompilerTest, PrintAstNode) {
+TEST(CompilerTest, PrintAstExpression) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       return 0
@@ -236,6 +236,6 @@ TEST(CompilerTest, TypeError) {
       AllOf(ReturnsCode(1),
             ErrorOutput(FormattedError(StartsWith("expected type Int32\n")))));
 }
-*/
+
 }  // namespace
 }  // namespace lucid
