@@ -87,7 +87,7 @@ class Parser {
   explicit Parser(SyntaxContext& syn_ctx, std::string_view buffer, LexerT lexer)
       : syn_ctx_(syn_ctx),
         buffer_(buffer),
-        lexer_(std::move(lexer)),
+        lexer_(std::forward<LexerT>(lexer)),
         next_(lexer_.next()),
         true_ident_(syn_ctx.AddIdent("true")),
         false_ident_(syn_ctx.AddIdent("false")) {}
@@ -692,5 +692,10 @@ class Parser {
   std::vector<Stmt> pending_stmts_;
   std::vector<Expr> pending_exprs_;
 };
+
+// A lexer handed over as an lvalue is borrowed rather than copied: it holds
+// the tokens of the whole source, and the caller keeps it alive anyway.
+template <typename LexerT>
+Parser(SyntaxContext&, std::string_view, LexerT&) -> Parser<LexerT&>;
 
 }  // namespace lucid
