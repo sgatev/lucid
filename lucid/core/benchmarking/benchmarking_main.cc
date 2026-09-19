@@ -191,21 +191,10 @@ int AddBenchmark(std::unique_ptr<Benchmark> benchmark) {
 }
 
 // Runs the benchmarks in this binary, parsing `args` for the flags below.
-//
-// The suite is the only thing this binary does, so it is registered as a
-// command named after the binary itself rather than as a subcommand.
 int RunAllBenchmarks(std::vector<std::string_view> args) {
-  // `argc` is allowed to be zero, so the name is set rather than overwritten.
-  static constexpr std::string_view kCommandName = "benchmarks";
-  if (args.empty()) {
-    args.emplace_back(kCommandName);
-  } else {
-    args[0] = kCommandName;
-  }
-
-  return RunCommand(
-      {{
-          .name = kCommandName,
+  return RunProgram(
+      {
+          .name = "benchmarks",
           .help = "Runs the benchmarks in this binary.",
           .flags = {{
                         .name = "filter",
@@ -218,7 +207,7 @@ int RunAllBenchmarks(std::vector<std::string_view> args) {
                                 "instead of choosing a count.",
                     }},
           .handler = HandleRunBenchmarksCommand,
-      }},
+      },
       StandardRootCommandContext(args));
 }
 

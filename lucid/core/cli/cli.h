@@ -14,6 +14,15 @@
 namespace lucid {
 
 struct Command;
+struct CommandContext;
+
+namespace internal {
+
+// Parses the flags `command` declares from the front of `ctx`'s arguments and
+// calls its handler with whatever follows them.
+int InvokeCommand(const Command& command, CommandContext ctx);
+
+}  // namespace internal
 
 // The execution context of a command.
 struct CommandContext {
@@ -39,8 +48,8 @@ struct CommandContext {
   std::ostream& Err();
 
  private:
-  friend int RunCommand(std::initializer_list<Command> commands,
-                        CommandContext ctx);
+  friend int internal::InvokeCommand(const Command& command,
+                                     CommandContext ctx);
 
   std::vector<std::string_view> path_;
   std::span<std::string_view> args_;
@@ -95,5 +104,16 @@ struct Command {
 // Requires:
 // - `commands` must not contain more than one command with a given name.
 int RunCommand(std::initializer_list<Command> commands, CommandContext ctx);
+
+// Calls the handler for the one command a program consists of.
+//
+// The first element of `ctx.args` is the path the program was invoked by, and
+// is dropped: nothing in `ctx.args` selects a command, because the program is
+// the command. The rest are its flags and arguments, so a flag is accepted
+// wherever it appears rather than only after a command name.
+//
+// Returns an error if a leading `--` argument names a flag that `command` does
+// not declare.
+int RunProgram(const Command& command, CommandContext ctx);
 
 }  // namespace lucid

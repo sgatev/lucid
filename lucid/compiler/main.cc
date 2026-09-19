@@ -355,8 +355,7 @@ int HandleRoot(CommandContext ctx) {
 }  // namespace
 
 int Run(std::vector<std::string_view> args) {
-  args[0] = "lucid";
-  return RunCommand({{.name = args[0], .handler = HandleRoot}},
+  return RunProgram({.name = "lucid", .handler = HandleRoot},
                     StandardRootCommandContext(args));
 }
 

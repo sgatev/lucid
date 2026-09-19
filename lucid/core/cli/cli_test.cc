@@ -294,5 +294,87 @@ Available commands:
   EXPECT_EQ(err.str(), "");
 }
 
+TEST(Test, RunProgramFlagsAndArgs) {
+  // As a program receives them: the path it was invoked by, then its own
+  // flags and arguments.
+  std::vector<std::string_view> args = {
+      "/path/to/program",
+      "--foo_flag=foo_value",
+      "bar",
+  };
+
+  std::optional<std::string_view> foo_flag_value;
+  std::optional<std::string_view> arg;
+  std::string current_command;
+  auto foo = [&](CommandContext ctx) {
+    foo_flag_value = ctx.Flag("foo_flag");
+    arg = ctx.TakeArg();
+    current_command = ctx.CurrentCommand();
+    return 0;
+  };
+
+  std::stringstream out, err;
+  EXPECT_EQ(RunProgram(
+                {
+                    .name = "foo",
+                    .flags = {{
+                        .name = "foo_flag",
+                    }},
+                    .handler = foo,
+                },
+                CommandContext({}, args, {}, out, err)),
+            0);
+  EXPECT_THAT(foo_flag_value, Optional(Equals("foo_value")));
+  EXPECT_THAT(arg, Optional(Equals("bar")));
+  // The program names itself, whatever path it was invoked by.
+  EXPECT_EQ(current_command, "foo");
+  EXPECT_EQ(err.str(), "");
+}
+
+TEST(Test, RunProgramUnknownFlag) {
+  std::vector<std::string_view> args = {
+      "/path/to/program",
+      "--bar_flag",
+  };
+
+  bool ran = false;
+  auto foo = [&](const CommandContext&) {
+    ran = true;
+    return 0;
+  };
+
+  std::stringstream out, err;
+  EXPECT_EQ(RunProgram(
+                {
+                    .name = "foo",
+                    .handler = foo,
+                },
+                CommandContext({}, args, {}, out, err)),
+            1);
+  EXPECT_FALSE(ran);
+  EXPECT_TRUE(err.str().contains("unknown flag '--bar_flag'"));
+}
+
+TEST(Test, RunProgramEmptyArgs) {
+  // `argc` is allowed to be zero, leaving not even a program path to drop.
+  bool ran = false;
+  auto foo = [&](const CommandContext&) {
+    ran = true;
+    return 0;
+  };
+
+  std::stringstream out, err;
+  EXPECT_EQ(RunProgram(
+                {
+                    .name = "foo",
+                    .handler = foo,
+                },
+                CommandContext({}, {}, {}, out, err)),
+            0);
+  EXPECT_TRUE(ran);
+  EXPECT_EQ(out.str(), "");
+  EXPECT_EQ(err.str(), "");
+}
+
 }  // namespace
 }  // namespace lucid

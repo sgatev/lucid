@@ -64,6 +64,40 @@ CommandContext StandardRootCommandContext(std::span<std::string_view> args) {
   return CommandContext({}, args, {}, std::cout, std::cerr);
 }
 
+namespace internal {
+
+int InvokeCommand(const Command& command, CommandContext ctx) {
+  std::vector<std::string_view> path = ctx.path_;
+  path.push_back(command.name);
+
+  auto first_non_flag_arg_it =
+      std::find_if(ctx.args_.begin(), ctx.args_.end(),
+                   [](auto arg) { return !arg.starts_with("--"); });
+
+  HashMap<std::string_view, std::string_view> flags;
+  for (auto it = ctx.args_.begin(); it != first_non_flag_arg_it; ++it) {
+    std::string_view flag = it->substr(2);
+    std::size_t value_offset = flag.find('=');
+    std::string_view flag_name = flag.substr(0, value_offset);
+    if (!AcceptsFlag(command, flag_name)) {
+      ctx.Err() << "unknown flag '--" << flag_name << "'\n";
+      return 1;
+    }
+    // A flag given without a value gets an empty one, so that a command can
+    // tell `--flag` from `--flag=value` while still being able to test for
+    // mere presence.
+    flags.Set(flag_name, value_offset == std::string_view::npos
+                             ? std::string_view()
+                             : flag.substr(value_offset + 1));
+  }
+
+  return command.handler(
+      CommandContext(std::move(path), {first_non_flag_arg_it, ctx.args_.end()},
+                     flags, ctx.out_, ctx.err_));
+}
+
+}  // namespace internal
+
 int RunCommand(std::initializer_list<Command> commands, CommandContext ctx) {
   std::optional<std::string_view> invoked_command = ctx.TakeArg();
   if (!invoked_command) {
@@ -90,33 +124,16 @@ int RunCommand(std::initializer_list<Command> commands, CommandContext ctx) {
     return 1;
   }
 
-  std::vector<std::string_view> path = ctx.path_;
-  path.push_back(command_it->name);
+  return internal::InvokeCommand(*command_it, std::move(ctx));
+}
 
-  auto first_non_flag_arg_it =
-      std::find_if(ctx.args_.begin(), ctx.args_.end(),
-                   [](auto arg) { return !arg.starts_with("--"); });
+int RunProgram(const Command& command, CommandContext ctx) {
+  // The first argument is the path the program was invoked by. It names no
+  // command -- the program is the command -- so it is dropped rather than
+  // matched against one.
+  ctx.TakeArg();
 
-  HashMap<std::string_view, std::string_view> flags;
-  for (auto it = ctx.args_.begin(); it != first_non_flag_arg_it; ++it) {
-    std::string_view flag = it->substr(2);
-    std::size_t value_offset = flag.find('=');
-    std::string_view flag_name = flag.substr(0, value_offset);
-    if (!AcceptsFlag(*command_it, flag_name)) {
-      ctx.Err() << "unknown flag '--" << flag_name << "'\n";
-      return 1;
-    }
-    // A flag given without a value gets an empty one, so that a command can
-    // tell `--flag` from `--flag=value` while still being able to test for
-    // mere presence.
-    flags.Set(flag_name, value_offset == std::string_view::npos
-                             ? std::string_view()
-                             : flag.substr(value_offset + 1));
-  }
-
-  return command_it->handler(
-      CommandContext(std::move(path), {first_non_flag_arg_it, ctx.args_.end()},
-                     flags, ctx.out_, ctx.err_));
+  return internal::InvokeCommand(command, std::move(ctx));
 }
 
 }  // namespace lucid

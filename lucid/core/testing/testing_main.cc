@@ -162,33 +162,23 @@ int AddTest(std::unique_ptr<Test> test) {
 }
 
 // Runs the tests in this binary, parsing `args` for the flags below.
-//
-// The suite is the only thing this binary does, so it is registered as a
-// command named after the binary itself rather than as a subcommand.
 int RunAllTests(std::vector<std::string_view> args) {
-  // `argc` is allowed to be zero, so the name is set rather than overwritten.
-  static constexpr std::string_view kCommandName = "tests";
-  if (args.empty()) {
-    args.emplace_back(kCommandName);
-  } else {
-    args[0] = kCommandName;
-  }
-
-  return RunCommand({{
-                        .name = kCommandName,
-                        .help = "Runs the tests in this binary.",
-                        .flags = {{
-                                      .name = "disable_timings",
-                                      .help = "Omits timings from the summary.",
-                                  },
-                                  {
-                                      .name = "filter",
-                                      .help = "Runs only the tests whose name "
-                                              "contains this substring.",
-                                  }},
-                        .handler = HandleRunTestsCommand,
+  return RunProgram(
+      {
+          .name = "tests",
+          .help = "Runs the tests in this binary.",
+          .flags = {{
+                        .name = "disable_timings",
+                        .help = "Omits timings from the summary.",
+                    },
+                    {
+                        .name = "filter",
+                        .help = "Runs only the tests whose name contains this "
+                                "substring.",
                     }},
-                    StandardRootCommandContext(args));
+          .handler = HandleRunTestsCommand,
+      },
+      StandardRootCommandContext(args));
 }
 
 }  // namespace lucid
