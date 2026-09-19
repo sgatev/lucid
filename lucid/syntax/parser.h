@@ -264,9 +264,8 @@ class Parser {
     for (std::size_t i = 1; i < args_size; ++i) {
       syn_ctx_.Add(std::move(pending_stmts_[start_idx + i]));
     }
-    for (std::size_t i = 0; i < args_size; ++i) {
-      pending_stmts_.pop_back();
-    }
+    pending_stmts_.erase(pending_stmts_.begin() + start_idx,
+                         pending_stmts_.end());
 
     return SuccessiveList<StmtRef>(args_size, args_first);
   }
@@ -561,9 +560,8 @@ class Parser {
       for (std::size_t i = 1; i < args_size; ++i) {
         syn_ctx_.Add(std::move(pending_exprs_[start_idx + i]));
       }
-      for (std::size_t i = 0; i < args_size; ++i) {
-        pending_exprs_.pop_back();
-      }
+      pending_exprs_.erase(pending_exprs_.begin() + start_idx,
+                           pending_exprs_.end());
 
       return FuncCallExpr{
           .func_name = ident,
