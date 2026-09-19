@@ -22,17 +22,16 @@ class StringIndex {
     friend class StringIndex;
     friend std::size_t Hash(const Ref&);
 
-    Ref(std::uint32_t begin, std::int32_t size) : begin_(begin), size_(size) {}
+    explicit Ref(std::uint32_t begin) : begin_(begin) {}
 
     std::uint32_t begin_;
-    std::int32_t size_;
   };
 
   // Returns a reference that identifies the given string.
   Ref ref(std::string_view s) {
     if (auto res = string_to_ref_.Get(s); res.has_value()) return *res;
 
-    Ref ref(ref_to_string_.size(), static_cast<std::int32_t>(s.size()));
+    Ref ref(ref_to_string_.size());
     ref_to_string_.push_back(s);
     string_to_ref_.Insert(s, ref);
 
@@ -48,7 +47,7 @@ class StringIndex {
 };
 
 inline std::size_t Hash(const lucid::StringIndex::Ref& v) {
-  return HashCombine(Hash(v.begin_), Hash(v.size_));
+  return Hash(v.begin_);
 }
 
 }  // namespace lucid

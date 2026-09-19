@@ -8,7 +8,7 @@ namespace {
 TEST(Test, StringIndexRefSize) {
   StringIndex index;
   auto foo = index.ref("foo");
-  EXPECT_EQ(sizeof(foo), 8);
+  EXPECT_EQ(sizeof(foo), 4);
 }
 
 TEST(Test, StringIndexSameStringRef) {
