@@ -833,6 +833,21 @@ class Assembler {
     return value < 0 ? TwosComplement9(-value) : value;
   }
 
+  // Returns `imm` in the 12-bit field that the unsigned-offset forms address
+  // memory with.
+  //
+  // That offset counts accesses rather than bytes, so it is scaled by the size
+  // of one. It is also why the form encodes neither a negative offset nor one
+  // that falls between two accesses: asking for either is a mistake the
+  // encoding cannot carry.
+  static std::uint16_t Imm12(Imm imm, std::int16_t access_size) {
+    const std::int16_t offset = imm;
+    assert(offset >= 0);
+    assert(offset % access_size == 0);
+    assert(offset / access_size <= 0b111111111111);
+    return offset / access_size;
+  }
+
   Lit32Inst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
                 bool sh = false) {
     return Lit32Inst(0b00010001000000000000000000000000 | sf << 31 | sh << 22 |
@@ -906,14 +921,8 @@ class Assembler {
 
   Lit32Inst StrUnsignedOffset(bool opc, internal::Reg rt, internal::Reg rn,
                               Imm imm) {
-    std::int16_t imme = imm;
-    if (opc)
-      imme /= 8;
-    else
-      imme /= 4;
-
     return Lit32Inst(0b10111001000000000000000000000000 | opc << 30 |
-                     imme << 10 | rn << 5 | rt);
+                     Imm12(imm, opc ? 8 : 4) << 10 | rn << 5 | rt);
   }
 
   Lit32Inst Str(bool opc, internal::Reg rt, X rn, internal::Reg rm,
@@ -942,15 +951,8 @@ class Assembler {
   }
 
   Lit32Inst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
-    std::int16_t imme = imm;
-    if (opc)
-      imme /= 8;
-    else
-      imme /= 4;
-    if (imme < 0) imme = TwosComplement7(-imme);
-
     return Lit32Inst(0b10111001010000000000000000000000 | opc << 30 |
-                     imme << 10 | rn << 5 | rt);
+                     Imm12(imm, opc ? 8 : 4) << 10 | rn << 5 | rt);
   }
 
   Lit32Inst Ldr(bool opc, internal::Reg rt, X rn, internal::Reg rm,
