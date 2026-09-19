@@ -134,9 +134,9 @@ class LdrLiteralInst {
                   std::ostream& out) const {
     auto label_offset = label_offsets.Get(std::string(label_));
     assert(label_offset.has_value());
-    std::uint32_t imm = (*label_offset - pos_) >> 2;
+    std::uint32_t imm = ((*label_offset - pos_) >> 2) & 0b1111111111111111111;
     std::uint32_t res =
-        0b00011000000000000000000000000000 | opc_ << 31 | imm << 5 | rd_;
+        0b00011000000000000000000000000000 | opc_ << 30 | imm << 5 | rd_;
     out.write(reinterpret_cast<const char*>(&res), 4);
   }
 
@@ -238,9 +238,9 @@ class BCondInst {
     auto label_offset = label_offsets.Get(std::string(label_));
     assert(label_offset.has_value());
     std::size_t offset =
-        ((*label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
-    std::uint32_t res = 0b01010100000000000000000000000000 |
-                        (offset << 5) << static_cast<std::uint8_t>(cond_);
+        ((*label_offset - this_offset_) / 4) & 0b1111111111111111111;
+    std::uint32_t res = 0b01010100000000000000000000000000 | (offset << 5) |
+                        static_cast<std::uint8_t>(cond_);
 
     out.write(reinterpret_cast<const char*>(&res), 4);
   }
@@ -825,9 +825,17 @@ class Assembler {
   void Cset(X rd, InvCond inv_cond) { Insert(Cset(true, rd, inv_cond)); }
 
  private:
+  // Returns `imm` in the 9-bit signed field that the pre- and post-index
+  // forms address memory with. That offset is a count of bytes, not of
+  // accesses, so it is the one the caller gave rather than a scaled one.
+  static std::uint16_t Imm9(Imm imm) {
+    std::int16_t value = imm;
+    return value < 0 ? TwosComplement9(-value) : value;
+  }
+
   Lit32Inst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
                 bool sh = false) {
-    return Lit32Inst(0b10010001000000000000000000000000 | sf << 31 | sh << 22 |
+    return Lit32Inst(0b00010001000000000000000000000000 | sf << 31 | sh << 22 |
                      imm << 10 | rn << 5 | rd);
   }
 
@@ -893,7 +901,7 @@ class Assembler {
 
   Lit32Inst StrPreIndex(bool opc, internal::Reg rt, internal::Reg rn, Imm imm) {
     return Lit32Inst(0b10111000000000000000110000000000 | (opc << 30) |
-                     imm << 12 | rn << 5 | rt);
+                     Imm9(imm) << 12 | rn << 5 | rt);
   }
 
   Lit32Inst StrUnsignedOffset(bool opc, internal::Reg rt, internal::Reg rn,
@@ -929,15 +937,8 @@ class Assembler {
   }
 
   Lit32Inst LdrPreIndex(bool opc, internal::Reg rt, X rn, Imm imm) {
-    std::int16_t imme = imm;
-    if (opc)
-      imme /= 8;
-    else
-      imme /= 4;
-    if (imme < 0) imme = TwosComplement7(-imme);
-
     return Lit32Inst(0b10111000010000000000110000000000 | opc << 30 |
-                     imme << 12 | rn << 5 | rt);
+                     Imm9(imm) << 12 | rn << 5 | rt);
   }
 
   Lit32Inst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
