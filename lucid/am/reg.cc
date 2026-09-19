@@ -336,27 +336,62 @@ HashMap<Reg, int> ColorInterferenceGraph(
     }
   }
 
+  // The registers in the order they are coloured in: each one taken has as
+  // many already-taken neighbours as any register still to come.
+  //
+  // A register waits in the bucket of its score rather than being looked for
+  // among all of them. Taking one raises each of its neighbours by a single
+  // bucket, so the bucket to take from rises only when a register moves up
+  // and falls only as buckets empty. That is one move per edge and one step
+  // per register over the whole ordering, where searching for the highest
+  // score meant reading every register still in the running for every
+  // register taken.
+  const std::size_t regs_count = reg_scores.size();
+
+  // A score counts neighbours already taken, so none can reach the number of
+  // registers there are.
+  std::vector<std::vector<Reg>> buckets(regs_count + 1);
+  HashMap<Reg, std::size_t> reg_slots;
+  for (const auto& [reg, score] : reg_scores) {
+    reg_slots.Insert(reg, buckets[0].size());
+    buckets[0].push_back(reg);
+  }
+
+  // Moves `reg` from the bucket of `score` to the one above it. The register
+  // that was last in the bucket takes its place, so neither move is a search.
+  const auto raise = [&](Reg reg, int score) {
+    std::vector<Reg>& bucket = buckets[score];
+    const std::size_t slot = *reg_slots.Get(reg);
+    bucket[slot] = bucket.back();
+    reg_slots.Set(bucket[slot], slot);
+    bucket.pop_back();
+
+    reg_slots.Set(reg, buckets[score + 1].size());
+    buckets[score + 1].push_back(reg);
+  };
+
   HashSet<Reg> visited;
   std::vector<Reg> seo;
-  while (!reg_scores.empty()) {
-    Reg max_reg = reg_scores.begin()->first;
-    int max_score = reg_scores.begin()->second;
-    for (const auto& [reg, score] : reg_scores) {
-      if (score >= max_score) {
-        max_reg = reg;
-        max_score = score;
-      }
-    }
+  seo.reserve(regs_count);
+  std::size_t top = 0;
+  while (seo.size() < regs_count) {
+    while (buckets[top].empty()) --top;
+
+    const Reg max_reg = buckets[top].back();
+    buckets[top].pop_back();
 
     seo.push_back(max_reg);
-    reg_scores.Remove(max_reg);
     visited.Insert(max_reg);
 
     if (const auto& nbs = am_ig.Get(max_reg); nbs.has_value()) {
       for (const auto& nb : *nbs) {
         if (visited.Contains(nb)) continue;
         if (auto nb_score = reg_scores.Get(nb); nb_score.has_value()) {
+          raise(nb, *nb_score);
           reg_scores.Set(nb, *nb_score + 1);
+          // Everything still waiting scored at most `top` before this, so a
+          // register can only ever be raised to the bucket just above it.
+          top = std::max<std::size_t>(top, *nb_score + 1);
         }
       }
     }

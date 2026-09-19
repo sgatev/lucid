@@ -141,6 +141,29 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "reg_test",
+    srcs = ["reg_test.cc"],
+    deps = [
+        ":cfg",
+        ":ig",
+        ":instructions",
+        ":opt",
+        ":reg",
+        ":translator",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
+        "//lucid/core/testing",
+        "//lucid/syntax:ast",
+        "//lucid/syntax:cfg",
+        "//lucid/syntax:comp",
+        "//lucid/syntax:lexer",
+        "//lucid/syntax:parser",
+        "//lucid/syntax:ssa",
+        "//lucid/syntax:type",
+    ],
+)
+
 cc_binary(
     name = "reg_bench",
     srcs = ["reg_bench.cc"],
