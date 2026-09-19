@@ -122,6 +122,23 @@ void BenchmarkColoring(BenchmarkState& state, std::string_view snippet) {
       });
 }
 
+// Measures building the interference graph on its own, over a function that
+// is spilled once.
+//
+// Building reads the function and returns a graph of its own, so an iteration
+// leaves nothing behind for the next one to find.
+void BenchmarkBuildingGraph(BenchmarkState& state, std::string_view snippet) {
+  WithAbstractMachineFunction(
+      snippet, [&](AbstractMachineControlFlowGraph& am_cfg,
+                   AbstractMachineState& am_state) {
+        SpillRegisters(am_cfg, am_state, kRegistersCount);
+
+        for (auto _ : state) {
+          DoNotOptimize(BuildInterferenceGraph(am_cfg).size());
+        }
+      });
+}
+
 // Measures allocation whole: spilling, the graph, colouring and the rewrite.
 //
 // Spilling and the rewrite both change the function, so each iteration works
@@ -158,6 +175,20 @@ BENCHMARK(ColorChain512) { BenchmarkColoring(state, ChainedValues(512)); }
 
 // Colouring over a dense graph, where every register interferes with the rest.
 BENCHMARK(ColorLive64) { BenchmarkColoring(state, LiveValues(64)); }
+
+// Building the graph, over a sparse graph at two sizes and a dense one.
+//
+// What it costs is set by how many registers are live at once rather than by
+// how many there are, so the dense case is the one that moves.
+BENCHMARK(BuildIgChain256) {
+  BenchmarkBuildingGraph(state, ChainedValues(256));
+}
+
+BENCHMARK(BuildIgChain512) {
+  BenchmarkBuildingGraph(state, ChainedValues(512));
+}
+
+BENCHMARK(BuildIgLive64) { BenchmarkBuildingGraph(state, LiveValues(64)); }
 
 // Allocation whole, for what a change to colouring is worth in context.
 BENCHMARK(AllocateChain256) { BenchmarkAllocation(state, ChainedValues(256)); }
