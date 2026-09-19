@@ -88,7 +88,9 @@ class Parser {
       : syn_ctx_(syn_ctx),
         buffer_(buffer),
         lexer_(std::move(lexer)),
-        next_(lexer_.next()) {}
+        next_(lexer_.next()),
+        true_ident_(syn_ctx.AddIdent("true")),
+        false_ident_(syn_ctx.AddIdent("false")) {}
 
   std::expected<std::optional<Def>, ParserError> Parse() {
     if (PeekIgnoringNonSemantic().kind == Token::Kind::End) [[unlikely]] {
@@ -569,9 +571,8 @@ class Parser {
       };
     }
 
-    bool is_true = ident == syn_ctx_.AddIdent("true");
-    bool is_false = ident == syn_ctx_.AddIdent("false");
-    if (is_true || is_false) return BoolLitExpr{.value = is_true};
+    if (ident == true_ident_) return BoolLitExpr{.value = true};
+    if (ident == false_ident_) return BoolLitExpr{.value = false};
     return IdentExpr{.name = ident};
   }
 
@@ -686,6 +687,8 @@ class Parser {
   std::string_view buffer_;
   LexerT lexer_;
   Token next_;
+  StringIndex::Ref true_ident_;
+  StringIndex::Ref false_ident_;
   std::vector<Stmt> pending_stmts_;
   std::vector<Expr> pending_exprs_;
 };
