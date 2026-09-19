@@ -3,6 +3,7 @@
 #include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string_view>
 
 namespace lucid {
@@ -25,16 +26,20 @@ inline std::size_t Hash(std::uint32_t v) {
 }
 
 inline std::size_t Hash(std::string_view v) {
-  std::size_t h = Hash(0);
-  const std::size_t words_end = (v.size() >> 2) << 2;
-  std::size_t i = 0;
-  for (; i < words_end; i += 4) {
-    const std::uint32_t word =
-        (v[i] << 16) | (v[i + 1] << 8) | (v[i + 2] << 4) | v[i + 3];
-    h = HashCombine(h, Hash(word));
+  std::uint32_t h = Hash(static_cast<std::uint32_t>(v.size()));
+  const char* pos = v.data();
+  std::size_t remaining = v.size();
+  for (; remaining >= 4; remaining -= 4, pos += 4) {
+    std::uint32_t word;
+    std::memcpy(&word, pos, sizeof(word));
+    h = Hash(h ^ word);
   }
-  for (; i < v.size(); ++i) h = HashCombine(h, Hash(v[i]));
-  return h;
+
+  std::uint32_t tail = 0;
+  for (std::size_t i = 0; i < remaining; ++i) {
+    tail = (tail << 8) | static_cast<std::uint8_t>(pos[i]);
+  }
+  return Hash(h ^ tail);
 }
 
 }  // namespace lucid
