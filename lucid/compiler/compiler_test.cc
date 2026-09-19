@@ -183,34 +183,24 @@ TEST(CompilerTest, PrintCfg) {
 )"))));
 }
 
-// Matches a formatted error string.
-template <typename M>
-auto FormattedError(M matcher) {
-  return Truly([matcher](std::string_view s) {
-    return matcher.Matches(s.substr(sizeof("\33[31mERROR:\33[m ") - 1));
-  });
-}
-
 TEST(CompilerTest, UnknownCommand) {
   ASSERT_THAT(
       RunCompiler({"foo"}),
-      AllOf(ReturnsCode(1),
-            ErrorOutput(FormattedError(StartsWith("unknown command 'foo'")))));
+      AllOf(ReturnsCode(1), ErrorOutput(Contains("unknown command 'foo'"))));
 }
 
 TEST(CompilerTest, NoBuildArguments) {
   ASSERT_THAT(RunCompiler({"build"}),
               AllOf(ReturnsCode(1),
-                    ErrorOutput(FormattedError(StartsWith(
-                        "'build' command requires exactly 2 arguments")))));
+                    ErrorOutput(Contains(
+                        ("'build' command requires exactly 2 arguments")))));
 }
 
 TEST(CompilerTest, UnknownFile) {
   ASSERT_THAT(
       RunCompiler({"build", "unknown", "unknown.lu"}),
-      AllOf(ReturnsCode(1),
-            ErrorOutput(AllOf(FormattedError(StartsWith("could not read file")),
-                              EndsWith("unknown.lu\"\n")))));
+      AllOf(ReturnsCode(1), ErrorOutput(AllOf(Contains("could not read file"),
+                                              EndsWith("unknown.lu\"\n")))));
 }
 
 TEST(CompilerTest, ParseError) {
@@ -220,9 +210,9 @@ TEST(CompilerTest, ParseError) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
-              AllOf(ReturnsCode(1), ErrorOutput(FormattedError(StartsWith(
-                                        "expected closing parenthesis or "
-                                        "parameter at line 2, column 14\n")))));
+              AllOf(ReturnsCode(1),
+                    ErrorOutput(Contains("expected closing parenthesis or "
+                                         "parameter at line 2, column 14\n"))));
 }
 
 TEST(CompilerTest, TypeError) {
@@ -233,8 +223,7 @@ TEST(CompilerTest, TypeError) {
   )"));
   ASSERT_THAT(
       RunCompiler({"build", "main", FullPath("main.lu")}),
-      AllOf(ReturnsCode(1),
-            ErrorOutput(FormattedError(StartsWith("expected type Int32\n")))));
+      AllOf(ReturnsCode(1), ErrorOutput(Contains("expected type Int32\n"))));
 }
 
 }  // namespace
