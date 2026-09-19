@@ -57,7 +57,7 @@ class Arena {
   // retrieve it.
   Ref Add(T value) {
     Ref ref = indices_.size();
-    indices_.push_back(values_.size());
+    indices_.push_back(static_cast<std::uint32_t>(values_.size()));
     values_.push_back(std::move(value));
     return ref;
   }
@@ -98,7 +98,9 @@ class Arena {
   auto end(this auto&& self) { return self.values_.end(); }
 
  private:
-  std::vector<std::size_t> indices_;
+  // References are 32-bit, so an index into `values_` is too: the indirection
+  // costs a cache line of its own on every access, and half of one is better.
+  std::vector<std::uint32_t> indices_;
   std::vector<T> values_;
 };
 
