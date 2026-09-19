@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstddef>
 #include <expected>
 #include <filesystem>
@@ -19,10 +20,12 @@ namespace lucid {
 namespace {
 
 void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
-  static constexpr int kSnippetRepetitions = 10000;
+  static constexpr std::size_t kSourceSize = 1 << 20;
+  const std::size_t repetitions =
+      std::max<std::size_t>(1, kSourceSize / snippet.size());
   std::string code;
-  code.reserve(snippet.size() * kSnippetRepetitions + 1);
-  for (int i = 0; i < kSnippetRepetitions; ++i) code.append(snippet);
+  code.reserve(snippet.size() * repetitions + 1);
+  for (std::size_t i = 0; i < repetitions; ++i) code.append(snippet);
   code.append("\0"s);
 
   BufferedLexer<Lexer> lexer(Lexer{code});
