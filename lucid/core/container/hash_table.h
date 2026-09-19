@@ -84,12 +84,14 @@ class HashTable {
 
   HashTable(std::size_t capacity)
       : capacity_mask_(capacity - 1),
-        size_(0),
+        full_slots_count_(0),
+        non_empty_slots_count_(0),
         storage_(alloc_storage(capacity)) {}
 
   HashTable(HashTable&& other) noexcept
       : capacity_mask_(other.capacity_mask_),
-        size_(other.size_),
+        full_slots_count_(other.full_slots_count_),
+        non_empty_slots_count_(other.non_empty_slots_count_),
         storage_(std::exchange(other.storage_, nullptr)) {}
 
   HashTable(const HashTable& other)
@@ -104,13 +106,14 @@ class HashTable {
 
   HashTable& operator=(HashTable other) {
     capacity_mask_ = other.capacity_mask_;
-    size_ = other.size_;
+    full_slots_count_ = other.full_slots_count_;
+    non_empty_slots_count_ = other.non_empty_slots_count_;
     std::swap(storage_, other.storage_);
     return *this;
   }
 
   bool operator==(const HashTable& other) const noexcept {
-    return other.size_ == size_ &&
+    return other.full_slots_count_ == full_slots_count_ &&
            std::all_of(other.begin(), other.end(), [&](const auto& val) {
              auto it = Find(Project(val));
              return it != end() && *it == val;
@@ -133,7 +136,7 @@ class HashTable {
   // true).
   template <typename... Ts>
   inline std::pair<V*, bool> FindOrAlloc(const P& proj) {
-    if (size_ > (capacity() >> 1)) resize();
+    if (non_empty_slots_count_ > (capacity() >> 1)) resize();
 
     const std::size_t proj_hash = Hash(proj);
     const std::uint8_t proj_meta = proj_hash & 0b01111111;
@@ -148,8 +151,9 @@ class HashTable {
         return std::make_pair(offset_slot, false);
       }
       if (!full(offset_meta)) {
+        if (empty(offset_meta)) ++non_empty_slots_count_;
         offset_meta = proj_meta;
-        ++size_;
+        ++full_slots_count_;
         return std::make_pair(offset_slot, true);
       }
     }
@@ -182,12 +186,12 @@ class HashTable {
     if (offset == capacity()) return std::nullopt;
 
     *meta(offset) = 0b11111110;
-    --size_;
+    --full_slots_count_;
     return std::move(*slot(offset));
   }
 
   // Returns the number of unique values inserted so far.
-  inline std::size_t size() const noexcept { return size_; }
+  inline std::size_t size() const noexcept { return full_slots_count_; }
 
   // Returns an iterator referring to the first value in the table or `end()`,
   // if there isn't one.
@@ -277,7 +281,8 @@ class HashTable {
         break;
       }
     }
-    size_ = other.size_;
+    full_slots_count_ = other.full_slots_count_;
+    non_empty_slots_count_ = other.non_empty_slots_count_;
     return *this;
   }
 
@@ -290,7 +295,8 @@ class HashTable {
   }
 
   std::size_t capacity_mask_;
-  std::size_t size_;
+  std::size_t full_slots_count_;
+  std::size_t non_empty_slots_count_;
   std::uint8_t* storage_;
 };
 

@@ -133,6 +133,15 @@ TEST(Test, HashMapRemove) {
   EXPECT_EQ(map.Get(21), std::nullopt);
 }
 
+TEST(Test, HashMapSurvivesRepeatedRemoval) {
+  HashMap<int, int> map;
+  for (int i = 0; i < 10000; ++i) {
+    map.Insert(i, 42);
+    if (i > 0) EXPECT_TRUE(map.Remove(i - 1).has_value());
+  }
+  EXPECT_EQ(map.size(), 1);
+}
+
 TEST(Test, HashMapScaling) {
   HashMap<int, int> map;
 

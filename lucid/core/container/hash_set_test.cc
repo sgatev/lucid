@@ -104,6 +104,15 @@ TEST(Test, HashSetRemove) {
   EXPECT_FALSE(set.Contains(21));
 }
 
+TEST(Test, HashSetSurvivesRepeatedRemoval) {
+  HashSet<int> set;
+  for (int i = 0; i < 10000; ++i) {
+    set.Insert(i);
+    if (i > 0) EXPECT_TRUE(set.Remove(i - 1).has_value());
+  }
+  EXPECT_EQ(set.size(), 1);
+}
+
 TEST(Test, HashSetScaling) {
   HashSet<int> set;
 
