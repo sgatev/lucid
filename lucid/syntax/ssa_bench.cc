@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <format>
 #include <list>
 #include <optional>
@@ -134,6 +135,8 @@ void BenchmarkFunctions(BenchmarkState& state, MakeFunctionT make_function) {
     DoNotOptimize(syn_cfgs[next].blocks().Size());
     ++next;
   }
+
+  state.SetBytesProcessed(std::int64_t(code.size() - 1));
 }
 
 // Each of these hands every iteration a function of its own, so the sizes are

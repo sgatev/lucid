@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <format>
 #include <optional>
 #include <string>
@@ -134,6 +135,9 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
     GenerateArmAssemblyBinary(func_name, am_cfg.stack_slots, am_cfg, assembler);
     DoNotOptimize(assembler);
   }
+
+  state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
+                          std::int64_t(snippet.size()));
 }
 
 // Emission over one block, at two sizes.

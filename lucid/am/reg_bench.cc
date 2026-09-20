@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <format>
 #include <optional>
 #include <string>
@@ -118,6 +119,9 @@ void BenchmarkColoring(BenchmarkState& state, std::string_view snippet) {
               ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount).size());
         }
       });
+
+  state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
+                          std::int64_t(snippet.size()));
 }
 
 // Measures building the interference graph on its own, over a function that
@@ -135,6 +139,9 @@ void BenchmarkBuildingGraph(BenchmarkState& state, std::string_view snippet) {
           DoNotOptimize(BuildInterferenceGraph(am_cfg).size());
         }
       });
+
+  state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
+                          std::int64_t(snippet.size()));
 }
 
 // Measures allocation whole: spilling, the graph, colouring and the rewrite.
@@ -158,6 +165,9 @@ void BenchmarkAllocation(BenchmarkState& state, std::string_view snippet) {
           DoNotOptimize(colors.size());
         }
       });
+
+  state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
+                          std::int64_t(snippet.size()));
 }
 
 // Colouring over a sparse graph, at three sizes.
