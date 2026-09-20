@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <vector>
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
@@ -16,9 +17,6 @@ class AbstractMachineLivenessAnalysis {
 
     // Registers that are live before entering the block modeled by this state.
     HashSet<Reg> live_in;
-
-    // Registers that are live after exiting the block modeled by this state.
-    HashSet<Reg> live_out;
   };
 
   static void Transfer(State& state, const Instruction& inst);
@@ -34,5 +32,13 @@ class AbstractMachineLivenessAnalysis {
  private:
   const AbstractMachineControlFlowGraph& am_cfg_;
 };
+
+// Returns the registers that are live where `block` exits, given the `states`
+// that an analysis over `am_cfg` settled on.
+HashSet<Reg> LiveOut(
+    const AbstractMachineControlFlowGraph& am_cfg,
+    const std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>&
+        states,
+    const AbstractMachineControlFlowGraph::Block& block);
 
 }  // namespace lucid

@@ -4,20 +4,21 @@ Improvements that are known but not made yet.
 
 ## Dataflow
 
-### Build a block's live-in without copying its live-out
+### Carry one set through the reachability fixpoint
 
-`Transfer` fills `live_out` from the joined prior state and then copies it wholesale into
-`live_in` before walking the block backwards, in
-[`AbstractMachineLivenessAnalysis`](lucid/am/liveness.cc),
-[`SyntaxLivenessAnalysis`](lucid/syntax/liveness.cc) and, as `vars_in` into `vars_out`, in
-[`SyntaxReachabilityAnalysis`](lucid/syntax/reachability.cc). The same copy is made again
-in `FindRegToSpill` in [`reg.cc`](lucid/am/reg.cc). It is a whole hash table per block
-visit, and now the largest copy left in an analysis.
+`Transfer` in [`SyntaxReachabilityAnalysis`](lucid/syntax/reachability.cc) fills `vars_in`
+from the joined prior state and then copies it wholesale into `vars_out`, a whole hash
+table per block visit.
 
-Both sets could be filled in one pass over the priors, which means handing `Transfer` the
-prior states themselves rather than one state joined from them. That buys the copy at the
-price of `Join`, and with it the join-semilattice the framework is written around, so it
-is a design decision rather than a cleanup.
+The fixpoint reads only `vars_out`: `Join` merges that and `Transfer` takes the prior's.
+`vars_in` is carried for [`ssa.cc`](lucid/syntax/ssa.cc), which walks a block from it and
+reads `vars_out` for the arguments of a phi.
+
+The liveness analyses were the same shape and came out of it by dropping the half the
+fixpoint never reads and working it out at the end from the blocks around it. `vars_in`
+is the union of `vars_out` over the blocks before, and the parameters of the function at
+the entry, so the same is open here: a `VarsIn` beside the `LiveOut` that liveness now
+has.
 
 ### Reuse the state a vertex already has
 

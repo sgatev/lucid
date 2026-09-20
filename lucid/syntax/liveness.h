@@ -17,9 +17,6 @@ class SyntaxLivenessAnalysis {
 
     // Registers that are live before entering the block modeled by this state.
     HashSet<StringIndex::Ref> live_in;
-
-    // Registers that are live after exiting the block modeled by this state.
-    HashSet<StringIndex::Ref> live_out;
   };
 
   explicit SyntaxLivenessAnalysis(const SyntaxContext& sctx,

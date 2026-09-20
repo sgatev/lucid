@@ -30,18 +30,12 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
       liveness_block_states = RunDataflow(Backward(am_cfg), liveness_analysis);
 
   for (const auto& block : am_cfg.Blocks()) {
-    auto maybe_state = liveness_block_states[block.ref.id()];
-    if (!maybe_state.has_value()) continue;
-    auto state = std::move(*maybe_state);
+    if (!liveness_block_states[block.ref.id()].has_value()) continue;
 
-    for (int i = 0; i < block.succs.size(); ++i) {
-      const auto& succ_block = am_cfg.GetBlock(block.succs[i]);
-      for (const auto& phi : succ_block.phis) {
-        state.live_out.Insert(phi.srcs[i]);
-      }
-    }
-
-    state.live_in = state.live_out;
+    // The walk backwards over the block starts from what is live where it
+    // exits, and carries what is live at each instruction with it.
+    AbstractMachineLivenessAnalysis::State state;
+    state.live_in = LiveOut(am_cfg, liveness_block_states, block);
 
     if (state.live_in.size() > max_clique_size) {
       for (const auto& reg : state.live_in) {

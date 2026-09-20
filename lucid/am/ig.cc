@@ -20,23 +20,12 @@ HashMap<Reg, HashSet<Reg>> BuildInterferenceGraph(
 
   HashMap<Reg, HashSet<Reg>> am_ig;
   for (const auto& block : am_cfg.Blocks()) {
-    auto& maybe_state = liveness_block_states[block.ref.id()];
-    if (!maybe_state.has_value()) continue;
-    auto& state = *maybe_state;
+    if (!liveness_block_states[block.ref.id()].has_value()) continue;
 
-    for (const auto& succ_ref : block.succs) {
-      const auto& succ_block = am_cfg.GetBlock(succ_ref);
-      for (const auto& phi : succ_block.phis) {
-        for (int i = 0; i < succ_block.preds.size(); ++i) {
-          if (succ_block.preds[i] == block.ref) {
-            state.live_out.Insert(phi.srcs[i]);
-            break;
-          }
-        }
-      }
-    }
-
-    state.live_in = std::move(state.live_out);
+    // The walk backwards over the block starts from what is live where it
+    // exits, and carries what is live at each instruction with it.
+    AbstractMachineLivenessAnalysis::State state;
+    state.live_in = LiveOut(am_cfg, liveness_block_states, block);
 
     // Reused across the instructions of the block rather than rebuilt for
     // each: at most a couple of registers enter the live set at a time.

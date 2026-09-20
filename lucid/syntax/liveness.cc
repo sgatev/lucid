@@ -40,32 +40,32 @@ SyntaxLivenessAnalysis::SyntaxLivenessAnalysis(
 State SyntaxLivenessAnalysis::Transfer(
     std::optional<State>&& prior_state,
     const SyntaxControlFlowGraph::BlockRef& block_ref) {
-  const auto& block = scfg_.get(block_ref);
   State state;
 
+  // What reaches the block is what is live where it exits, and the walk
+  // backwards over it turns that into what is live where it enters.
+  const auto& block = scfg_.get(block_ref);
   if (prior_state.has_value()) {
-    state.live_out = std::move(prior_state->live_in);
+    state.live_in = std::move(prior_state->live_in);
 
     for (const auto& succ_ref : block.succs) {
       const auto& succ_block = scfg_.get(succ_ref);
       for (const auto& phi_ref : succ_block.phis) {
         const auto& phi = scfg_.deref(phi_ref);
+        // An argument is paired with the predecessor it comes from, which is
+        // this block at whichever position it holds among them.
         for (int i = 0; i < succ_block.preds.size(); ++i) {
           if (succ_block.preds[i] == block.ref) {
-            state.live_out.Insert(phi.args[i]);
+            state.live_in.Insert(phi.args[i]);
             break;
           }
         }
       }
     }
-
-    state.live_in = state.live_out;
   }
-
   for (const auto& seq : block.sequences | std::views::reverse) {
     Transfer(state, seq);
   }
-
   for (const auto& phi_ref : block.phis) {
     const auto& phi = scfg_.deref(phi_ref);
     state.live_in.Remove(phi.name);

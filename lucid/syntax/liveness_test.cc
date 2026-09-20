@@ -27,10 +27,8 @@ TEST(SyntaxLivenessAnalysisTest, EmptyFunc) {
   };
 
   EXPECT_THAT(AnalyzeReachability(func_def),
-              Elements(Optional(AllOf(Field(&State::live_in, IsEmpty()),
-                                      Field(&State::live_out, IsEmpty()))),
-                       Optional(AllOf(Field(&State::live_in, IsEmpty()),
-                                      Field(&State::live_out, IsEmpty())))));
+              Elements(Optional(Field(&State::live_in, IsEmpty())),
+                       Optional(Field(&State::live_in, IsEmpty()))));
 }
 
 }  // namespace

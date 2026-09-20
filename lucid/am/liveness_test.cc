@@ -7,6 +7,7 @@
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_builder.h"
 #include "lucid/am/instructions.h"
+#include "lucid/core/container/hash_set.h"
 #include "lucid/core/dataflow/dataflow.h"
 #include "lucid/core/testing/testing.h"
 
@@ -16,10 +17,28 @@ namespace {
 class LivenessAnalysisGraphBuilder
     : public AbstractMachineControlFlowGraphBuilder {
  public:
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>> run() && {
+  // What the analysis settled on, along with the graph it ran over: what is
+  // live where a block exits is read back off the blocks it runs into, so the
+  // graph has to outlive the run.
+  struct Result {
+    AbstractMachineControlFlowGraph am_cfg;
+    std::vector<std::optional<AbstractMachineLivenessAnalysis::State>> states;
+
+    const HashSet<Reg>& live_in(
+        AbstractMachineControlFlowGraph::BlockRef ref) const {
+      return states[ref.id()]->live_in;
+    }
+
+    HashSet<Reg> live_out(AbstractMachineControlFlowGraph::BlockRef ref) const {
+      return LiveOut(am_cfg, states, am_cfg.GetBlock(ref));
+    }
+  };
+
+  Result run() && {
     AbstractMachineControlFlowGraph am_cfg = std::move(*this).Build();
     AbstractMachineLivenessAnalysis analysis(am_cfg);
-    return RunDataflow(Backward(am_cfg), analysis);
+    auto states = RunDataflow(Backward(am_cfg), analysis);
+    return Result{std::move(am_cfg), std::move(states)};
   }
 };
 
@@ -38,15 +57,14 @@ TEST(Test, AbstractMachineLivenessAnalysisTwoBlocks) {
 
   g.SetLast(z);
 
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      block_states = std::move(g).run();
-  ASSERT_THAT(block_states, SizeIs(2));
+  LivenessAnalysisGraphBuilder::Result result = std::move(g).run();
+  ASSERT_THAT(result.states, SizeIs(2));
 
-  EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out, IsEmpty());
+  EXPECT_THAT(result.live_in(a), IsEmpty());
+  EXPECT_THAT(result.live_out(a), IsEmpty());
 
-  EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[z.id()]->live_out, IsEmpty());
+  EXPECT_THAT(result.live_in(z), IsEmpty());
+  EXPECT_THAT(result.live_out(z), IsEmpty());
 }
 
 TEST(Test, AbstractMachineLivenessAnalysisUseInMiddleBlock) {
@@ -71,18 +89,17 @@ TEST(Test, AbstractMachineLivenessAnalysisUseInMiddleBlock) {
 
   g.SetLast(z);
 
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      block_states = std::move(g).run();
-  ASSERT_THAT(block_states, SizeIs(3));
+  LivenessAnalysisGraphBuilder::Result result = std::move(g).run();
+  ASSERT_THAT(result.states, SizeIs(3));
 
-  EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsEqual(Reg(1)));
+  EXPECT_THAT(result.live_in(a), IsEmpty());
+  EXPECT_THAT(result.live_out(a), UnorderedElementsEqual(Reg(1)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsEqual(Reg(1)));
-  EXPECT_THAT(block_states[b.id()]->live_out, IsEmpty());
+  EXPECT_THAT(result.live_in(b), UnorderedElementsEqual(Reg(1)));
+  EXPECT_THAT(result.live_out(b), IsEmpty());
 
-  EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[z.id()]->live_out, IsEmpty());
+  EXPECT_THAT(result.live_in(z), IsEmpty());
+  EXPECT_THAT(result.live_out(z), IsEmpty());
 }
 
 TEST(Test, AbstractMachineLivenessAnalysisDiamondWithFollowUse) {
@@ -126,25 +143,23 @@ TEST(Test, AbstractMachineLivenessAnalysisDiamondWithFollowUse) {
 
   g.SetLast(z);
 
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      block_states = std::move(g).run();
-  ASSERT_THAT(block_states, SizeIs(5));
+  LivenessAnalysisGraphBuilder::Result result = std::move(g).run();
+  ASSERT_THAT(result.states, SizeIs(5));
 
-  EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out,
-              UnorderedElementsEqual(Reg(1), Reg(2)));
+  EXPECT_THAT(result.live_in(a), IsEmpty());
+  EXPECT_THAT(result.live_out(a), UnorderedElementsEqual(Reg(1), Reg(2)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsEqual(Reg(1)));
-  EXPECT_THAT(block_states[b.id()]->live_out, UnorderedElementsEqual(Reg(3)));
+  EXPECT_THAT(result.live_in(b), UnorderedElementsEqual(Reg(1)));
+  EXPECT_THAT(result.live_out(b), UnorderedElementsEqual(Reg(3)));
 
-  EXPECT_THAT(block_states[c.id()]->live_in, UnorderedElementsEqual(Reg(2)));
-  EXPECT_THAT(block_states[c.id()]->live_out, UnorderedElementsEqual(Reg(3)));
+  EXPECT_THAT(result.live_in(c), UnorderedElementsEqual(Reg(2)));
+  EXPECT_THAT(result.live_out(c), UnorderedElementsEqual(Reg(3)));
 
-  EXPECT_THAT(block_states[d.id()]->live_in, UnorderedElementsEqual(Reg(3)));
-  EXPECT_THAT(block_states[d.id()]->live_out, IsEmpty());
+  EXPECT_THAT(result.live_in(d), UnorderedElementsEqual(Reg(3)));
+  EXPECT_THAT(result.live_out(d), IsEmpty());
 
-  EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[z.id()]->live_out, IsEmpty());
+  EXPECT_THAT(result.live_in(z), IsEmpty());
+  EXPECT_THAT(result.live_out(z), IsEmpty());
 }
 
 TEST(Test, AbstractMachineLivenessAnalysisIntraBlockUse) {
@@ -173,18 +188,17 @@ TEST(Test, AbstractMachineLivenessAnalysisIntraBlockUse) {
 
   g.SetLast(z);
 
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      block_states = std::move(g).run();
-  ASSERT_THAT(block_states, SizeIs(3));
+  LivenessAnalysisGraphBuilder::Result result = std::move(g).run();
+  ASSERT_THAT(result.states, SizeIs(3));
 
-  EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsEqual(Reg(2)));
+  EXPECT_THAT(result.live_in(a), IsEmpty());
+  EXPECT_THAT(result.live_out(a), UnorderedElementsEqual(Reg(2)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsEqual(Reg(2)));
-  EXPECT_THAT(block_states[b.id()]->live_out, IsEmpty());
+  EXPECT_THAT(result.live_in(b), UnorderedElementsEqual(Reg(2)));
+  EXPECT_THAT(result.live_out(b), IsEmpty());
 
-  EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[z.id()]->live_out, IsEmpty());
+  EXPECT_THAT(result.live_in(z), IsEmpty());
+  EXPECT_THAT(result.live_out(z), IsEmpty());
 }
 
 TEST(Test, AbstractMachineLivenessAnalysisSkipBlockUse) {
@@ -217,23 +231,20 @@ TEST(Test, AbstractMachineLivenessAnalysisSkipBlockUse) {
 
   g.SetLast(z);
 
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      block_states = std::move(g).run();
-  ASSERT_THAT(block_states, SizeIs(4));
+  LivenessAnalysisGraphBuilder::Result result = std::move(g).run();
+  ASSERT_THAT(result.states, SizeIs(4));
 
-  EXPECT_THAT(block_states[a.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[a.id()]->live_out, UnorderedElementsEqual(Reg(1)));
+  EXPECT_THAT(result.live_in(a), IsEmpty());
+  EXPECT_THAT(result.live_out(a), UnorderedElementsEqual(Reg(1)));
 
-  EXPECT_THAT(block_states[b.id()]->live_in, UnorderedElementsEqual(Reg(1)));
-  EXPECT_THAT(block_states[b.id()]->live_out,
-              UnorderedElementsEqual(Reg(1), Reg(2)));
+  EXPECT_THAT(result.live_in(b), UnorderedElementsEqual(Reg(1)));
+  EXPECT_THAT(result.live_out(b), UnorderedElementsEqual(Reg(1), Reg(2)));
 
-  EXPECT_THAT(block_states[c.id()]->live_in,
-              UnorderedElementsEqual(Reg(1), Reg(2)));
-  EXPECT_THAT(block_states[c.id()]->live_out, IsEmpty());
+  EXPECT_THAT(result.live_in(c), UnorderedElementsEqual(Reg(1), Reg(2)));
+  EXPECT_THAT(result.live_out(c), IsEmpty());
 
-  EXPECT_THAT(block_states[z.id()]->live_in, IsEmpty());
-  EXPECT_THAT(block_states[z.id()]->live_out, IsEmpty());
+  EXPECT_THAT(result.live_in(z), IsEmpty());
+  EXPECT_THAT(result.live_out(z), IsEmpty());
 }
 
 }  // namespace
