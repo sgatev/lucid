@@ -29,14 +29,6 @@ changed needs the old value, so the change detection has to be rethought along w
 
 ## Hash table
 
-### Destroy the values a table holds
-
-[`~HashTable`](lucid/core/container/hash_table.h) frees `storage_` without running any
-destructor, and `Remove` leaves the value it moved out of in its slot, which is never
-destroyed either. Every `V` in the tree today is trivially destructible, so nothing leaks
-yet, but `HashMap<Reg, HashSet<Reg>>` — the interference graph — is not: destroying
-one would leak the storage of every set in it.
-
 ### Let an empty table hold nothing
 
 The default constructor allocates `kInitialCapacity` slots, so an empty table costs a

@@ -45,8 +45,8 @@ struct Emptied {
   Emptied(const Emptied&) = default;
   Emptied& operator=(const Emptied&) = default;
 
-  Emptied(Emptied&& other) : v(std::exchange(other.v, 0)) {}
-  Emptied& operator=(Emptied&& other) {
+  Emptied(Emptied&& other) noexcept : v(std::exchange(other.v, 0)) {}
+  Emptied& operator=(Emptied&& other) noexcept {
     v = std::exchange(other.v, 0);
     return *this;
   }
@@ -55,6 +55,28 @@ struct Emptied {
 };
 
 inline std::size_t Hash(const Emptied& v) { return Hash(v.v); }
+
+struct Counted {
+  std::uint32_t v;
+
+  // How many of these are alive, so that a value a table never destroys shows
+  // up as one left over.
+  static inline int alive = 0;
+
+  explicit Counted(std::uint32_t v) : v(v) { ++alive; }
+
+  Counted(const Counted& other) : v(other.v) { ++alive; }
+  Counted& operator=(const Counted&) = default;
+
+  Counted(Counted&& other) noexcept : v(other.v) { ++alive; }
+  Counted& operator=(Counted&&) = default;
+
+  ~Counted() { --alive; }
+
+  bool operator==(const Counted&) const = default;
+};
+
+inline std::size_t Hash(const Counted& v) { return Hash(v.v); }
 
 struct ConstructOnly {
   std::uint32_t v;
@@ -325,6 +347,46 @@ TEST(Test, HashSetConstructOnly) {
   EXPECT_EQ(set_move.size(), 2);
   EXPECT_TRUE(set_move.Contains(ConstructOnly(21)));
   EXPECT_TRUE(set_move.Contains(ConstructOnly(13)));
+}
+
+TEST(Test, HashSetDestroysItsValues) {
+  const int alive_before = Counted::alive;
+
+  {
+    HashSet<Counted> set;
+
+    EXPECT_TRUE(set.Insert(Counted(21)));
+    EXPECT_TRUE(set.Insert(Counted(13)));
+  }
+
+  EXPECT_EQ(Counted::alive, alive_before);
+}
+
+TEST(Test, HashSetDestroysTheValuesItOutgrows) {
+  const int alive_before = Counted::alive;
+
+  {
+    HashSet<Counted> set;
+
+    // Enough to resize the table more than once, so that what is destroyed
+    // includes the values left behind in the storage it grew out of.
+    for (std::uint32_t i = 0; i < 1000; ++i) {
+      EXPECT_TRUE(set.Insert(Counted(i)));
+    }
+  }
+
+  EXPECT_EQ(Counted::alive, alive_before);
+}
+
+TEST(Test, HashSetDestroysTheValueItRemoves) {
+  const int alive_before = Counted::alive;
+
+  HashSet<Counted> set;
+
+  EXPECT_TRUE(set.Insert(Counted(21)));
+  EXPECT_THAT(set.Remove(Counted(21)), Optional(Equals(Counted(21))));
+
+  EXPECT_EQ(Counted::alive, alive_before);
 }
 
 TEST(Test, HashSetIteratorCompareDifferentSets) {

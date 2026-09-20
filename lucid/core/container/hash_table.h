@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <optional>
+#include <type_traits>
 #include <utility>
 
 #include "lucid/core/functional/identity.h"
@@ -109,13 +110,22 @@ class HashTable {
   }
 
   ~HashTable() {
-    if (storage_ != nullptr) std::free(storage_);
+    if (storage_ == nullptr) return;
+
+    destroy_values();
+    std::free(storage_);
   }
 
+  // Takes over the content of `other`, which is left holding what this table
+  // had and destroys it in turn.
+  //
+  // Every member is swapped rather than only the storage, so that what `other`
+  // is left with describes the storage it is left with: a table whose capacity
+  // says more than its storage holds would be walked past its end.
   HashTable& operator=(HashTable other) {
-    capacity_mask_ = other.capacity_mask_;
-    full_slots_count_ = other.full_slots_count_;
-    non_empty_slots_count_ = other.non_empty_slots_count_;
+    std::swap(capacity_mask_, other.capacity_mask_);
+    std::swap(full_slots_count_, other.full_slots_count_);
+    std::swap(non_empty_slots_count_, other.non_empty_slots_count_);
     std::swap(storage_, other.storage_);
     return *this;
   }
@@ -195,7 +205,13 @@ class HashTable {
 
     *meta(offset) = 0b11111110;
     --full_slots_count_;
-    return std::move(*slot(offset));
+
+    // The slot holds no value once it is emptied, so what is left of the one
+    // moved out of it is destroyed here rather than waiting for a later
+    // insert to place a value over it.
+    std::optional<V> value = std::move(*slot(offset));
+    slot(offset)->~V();
+    return value;
   }
 
   // Returns the number of unique values inserted so far.
@@ -293,6 +309,15 @@ class HashTable {
     full_slots_count_ = other.full_slots_count_;
     non_empty_slots_count_ = other.non_empty_slots_count_;
     return *this;
+  }
+
+  // Destroys the values in the full slots of this table if needed.
+  void destroy_values() noexcept {
+    if constexpr (!std::is_trivially_destructible_v<V>) {
+      for (std::size_t pos = 0; pos < capacity(); ++pos) {
+        if (full(*meta(pos))) slot(pos)->~V();
+      }
+    }
   }
 
   inline std::uint8_t* meta(std::size_t i) const noexcept {

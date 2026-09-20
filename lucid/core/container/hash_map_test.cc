@@ -45,8 +45,8 @@ struct Emptied {
   Emptied(const Emptied&) = default;
   Emptied& operator=(const Emptied&) = default;
 
-  Emptied(Emptied&& other) : v(std::exchange(other.v, 0)) {}
-  Emptied& operator=(Emptied&& other) {
+  Emptied(Emptied&& other) noexcept : v(std::exchange(other.v, 0)) {}
+  Emptied& operator=(Emptied&& other) noexcept {
     v = std::exchange(other.v, 0);
     return *this;
   }
@@ -55,6 +55,28 @@ struct Emptied {
 };
 
 inline std::size_t Hash(const Emptied& v) { return Hash(v.v); }
+
+struct Counted {
+  std::uint32_t v;
+
+  // How many of these are alive, so that a value a table never destroys shows
+  // up as one left over.
+  static inline int alive = 0;
+
+  explicit Counted(std::uint32_t v) : v(v) { ++alive; }
+
+  Counted(const Counted& other) : v(other.v) { ++alive; }
+  Counted& operator=(const Counted&) = default;
+
+  Counted(Counted&& other) noexcept : v(other.v) { ++alive; }
+  Counted& operator=(Counted&&) = default;
+
+  ~Counted() { --alive; }
+
+  bool operator==(const Counted&) const = default;
+};
+
+inline std::size_t Hash(const Counted& v) { return Hash(v.v); }
 
 struct ConstructOnly {
   std::uint32_t v;
@@ -365,6 +387,46 @@ TEST(Test, HashMapConstructOnly) {
 
   EXPECT_EQ(map.Get(ConstructOnly(1)), ConstructOnly(42));
   EXPECT_EQ(map.Get(ConstructOnly(2)), ConstructOnly(26));
+}
+
+TEST(Test, HashMapDestroysItsValues) {
+  const int alive_before = Counted::alive;
+
+  {
+    HashMap<std::int32_t, Counted> map;
+
+    EXPECT_TRUE(map.Insert(21, Counted(42)));
+    EXPECT_TRUE(map.Insert(13, Counted(26)));
+  }
+
+  EXPECT_EQ(Counted::alive, alive_before);
+}
+
+TEST(Test, HashMapDestroysTheValuesItOutgrows) {
+  const int alive_before = Counted::alive;
+
+  {
+    HashMap<std::int32_t, Counted> map;
+
+    // Enough to resize the table more than once, so that what is destroyed
+    // includes the values left behind in the storage it grew out of.
+    for (std::int32_t i = 0; i < 1000; ++i) {
+      EXPECT_TRUE(map.Insert(i, Counted(static_cast<std::uint32_t>(i))));
+    }
+  }
+
+  EXPECT_EQ(Counted::alive, alive_before);
+}
+
+TEST(Test, HashMapDestroysTheValueItRemoves) {
+  const int alive_before = Counted::alive;
+
+  HashMap<std::int32_t, Counted> map;
+
+  EXPECT_TRUE(map.Insert(21, Counted(42)));
+  EXPECT_THAT(map.Remove(21), Optional(Equals(Counted(42))));
+
+  EXPECT_EQ(Counted::alive, alive_before);
 }
 
 TEST(Test, HashMapIteratorCompareDifferentMaps) {
