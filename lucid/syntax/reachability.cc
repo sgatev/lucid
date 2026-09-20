@@ -51,11 +51,8 @@ State SyntaxReachabilityAnalysis::Transfer(
   return state;
 }
 
-State SyntaxReachabilityAnalysis::Join(State&& left, const State& right) {
-  State state;
-  state.vars_out = std::move(left.vars_out);
-  for (auto [from, to] : right.vars_out) state.vars_out.Set(from, to);
-  return state;
+void SyntaxReachabilityAnalysis::Join(State& left, const State& right) {
+  for (auto [from, to] : right.vars_out) left.vars_out.Set(from, to);
 }
 
 }  // namespace lucid

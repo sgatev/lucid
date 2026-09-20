@@ -1,11 +1,8 @@
 #pragma once
 
-#include <algorithm>
 #include <concepts>
 #include <cstddef>
-#include <functional>
 #include <optional>
-#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -15,25 +12,28 @@
 
 namespace lucid {
 
-// A bounded join-semilattice.
+// A bounded join-semilattice. A default-constructed value is the bottom
+// element, which is what a join starts from.
 template <typename L>
-concept BoundedJoinSemiLattice = requires(L l1, L l2) {
-  { l1 == l2 } -> std::same_as<bool>;
-};
+concept BoundedJoinSemiLattice =
+    std::default_initializable<L> and requires(L l1, L l2) {
+      { l1 == l2 } -> std::same_as<bool>;
+    };
 
 // A dataflow analysis over a graph `G`.
 //
 // Requires:
 // - `State` sub-type that models a bounded join-semilattice.
 // - `Transfer` member that transfers a prior state given a vertex.
-// - `Join` member that joins two prior states as input for `Transfer`.
+// - `Join` member that joins a prior state into an accumulator that starts
+//   from the bottom element, which becomes the input for `Transfer`.
 template <typename A, typename G>
 concept DataflowAnalysis =
     Graph<G> and requires(A a, std::optional<typename A::State> os, A::State s1,
                           A::State s2, const G::vertex_type& v) {
       requires BoundedJoinSemiLattice<typename A::State>;
       { a.Transfer(std::move(os), v) } -> std::same_as<typename A::State>;
-      { a.Join(std::move(s1), s2) } -> std::same_as<typename A::State>;
+      { a.Join(s1, s2) } -> std::same_as<void>;
     };
 
 // A finite domain of vertices in a graph.
@@ -75,10 +75,8 @@ concept DataflowScheme = requires(S s, typename S::Graph::vertex_type v) {
   { s.Domain() } -> std::same_as<VertexDomain<typename S::Graph>>;
   { s.Compare() } -> std::same_as<CompareVertexOrder<typename S::Graph>>;
   { s.Initial() } -> std::same_as<typename S::Graph::vertex_type>;
-  { s.Prior(v) } -> std::same_as<std::vector<typename S::Graph::vertex_type>>;
-  {
-    s.Subsequent(v)
-  } -> std::same_as<std::vector<typename S::Graph::vertex_type>>;
+  { s.Prior(v) } -> VertexRange<typename S::Graph::vertex_type>;
+  { s.Subsequent(v) } -> VertexRange<typename S::Graph::vertex_type>;
 };
 
 // A scheme for forward dataflow analysis.
@@ -96,13 +94,11 @@ struct Forward {
 
   typename GraphT::vertex_type Initial() const { return SourceVertex(g_); }
 
-  std::vector<typename GraphT::vertex_type> Prior(
-      typename GraphT::vertex_type v) const {
+  decltype(auto) Prior(typename GraphT::vertex_type v) const {
     return PrevVertices(g_, v);
   }
 
-  std::vector<typename GraphT::vertex_type> Subsequent(
-      typename GraphT::vertex_type v) const {
+  decltype(auto) Subsequent(typename GraphT::vertex_type v) const {
     return NextVertices(g_, v);
   }
 
@@ -123,30 +119,17 @@ struct Backward {
 
   typename GraphT::vertex_type Initial() const { return SinkVertex(g_); }
 
-  std::vector<typename GraphT::vertex_type> Prior(
-      typename GraphT::vertex_type v) const {
+  decltype(auto) Prior(typename GraphT::vertex_type v) const {
     return NextVertices(g_, v);
   }
 
-  std::vector<typename GraphT::vertex_type> Subsequent(
-      typename GraphT::vertex_type v) const {
+  decltype(auto) Subsequent(typename GraphT::vertex_type v) const {
     return PrevVertices(g_, v);
   }
 
  private:
   const GraphT& g_;
 };
-
-// Left-folds the elements of given range. Returns nullopt if the range is
-// empty.
-template <std::ranges::input_range R, typename F>
-std::optional<std::ranges::range_value_t<R>> fold_left_first(R&& r, F&& f) {
-  if (std::ranges::empty(r)) return std::nullopt;
-  auto begin = std::ranges::begin(r);
-  return std::ranges::fold_left(
-      std::ranges::subrange(std::ranges::next(begin), std::ranges::end(r)),
-      *begin, f);
-}
 
 // Performs dataflow analysis over a graph according to the given scheme.
 //
@@ -163,18 +146,21 @@ std::vector<std::optional<typename AnalysisT::State>> RunDataflow(
   auto domain = scheme.Domain();
 
   std::vector<std::optional<State>> states(domain.size());
-  auto has_state = [&](auto v) { return states[domain.id(v)].has_value(); };
-  auto to_state = [&](auto v) { return *states[domain.id(v)]; };
 
   Worklist vertices_to_process(domain, scheme.Compare());
   vertices_to_process.push(scheme.Initial());
   while (!vertices_to_process.empty()) {
     typename GraphT::vertex_type vertex = vertices_to_process.pop();
 
-    std::optional<State> prior_state =
-        fold_left_first(scheme.Prior(vertex) | std::views::filter(has_state) |
-                            std::views::transform(to_state),
-                        std::bind_front(&AnalysisT::Join, &analysis));
+    // Join what reaches the vertex into an accumulator that starts from the
+    // bottom element, so that no prior state is ever copied.
+    std::optional<State> prior_state;
+    for (auto prior : scheme.Prior(vertex)) {
+      const std::optional<State>& state = states[domain.id(prior)];
+      if (!state.has_value()) continue;
+      if (!prior_state.has_value()) prior_state.emplace();
+      analysis.Join(*prior_state, *state);
+    }
 
     State new_state = analysis.Transfer(std::move(prior_state), vertex);
     if (auto& state = states[domain.id(vertex)]; new_state != state) {

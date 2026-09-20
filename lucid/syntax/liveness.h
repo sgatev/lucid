@@ -28,9 +28,9 @@ class SyntaxLivenessAnalysis {
   State Transfer(std::optional<State>&& prior_state,
                  const SyntaxControlFlowGraph::BlockRef& block_ref);
 
-  State Transfer(State&& state, const SyntaxControlFlowGraph::Sequence& seq);
+  void Transfer(State& state, const SyntaxControlFlowGraph::Sequence& seq);
 
-  State Join(State&& left, const State& right);
+  void Join(State& left, const State& right);
 
  private:
   const SyntaxContext& sctx_;

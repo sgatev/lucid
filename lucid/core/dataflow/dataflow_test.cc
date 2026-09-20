@@ -30,10 +30,8 @@ class TestResultUnionAnalysis {
     return state;
   }
 
-  State Join(State&& left, const State& right) {
-    State state = std::move(left);
-    for (auto& result : right.results) state.results.Insert(result);
-    return state;
+  void Join(State& left, const State& right) {
+    for (auto& result : right.results) left.results.Insert(result);
   }
 };
 

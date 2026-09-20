@@ -68,7 +68,7 @@ HashMap<Reg, HashSet<Reg>> BuildInterferenceGraph(
         if (!state.live_in.Contains(reg)) entering.push_back(reg);
       });
 
-      state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
+      AbstractMachineLivenessAnalysis::Transfer(state, inst);
 
       if (auto* cinst = std::get_if<ModReg>(&inst)) {
         am_ig.Emplace(cinst->res_reg).Insert(cinst->lhs_reg);

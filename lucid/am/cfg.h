@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <list>
 #include <optional>
+#include <span>
 #include <vector>
 
 #include "lucid/am/instructions.h"
@@ -129,13 +130,13 @@ inline AbstractMachineControlFlowGraph::BlockRef SinkVertex(
   return amcfg.last;
 }
 
-inline std::vector<AbstractMachineControlFlowGraph::BlockRef> NextVertices(
+inline std::span<const AbstractMachineControlFlowGraph::BlockRef> NextVertices(
     const AbstractMachineControlFlowGraph& amcfg,
     AbstractMachineControlFlowGraph::BlockRef block_ref) {
   return amcfg.GetBlock(block_ref.id()).succs;
 }
 
-inline std::vector<AbstractMachineControlFlowGraph::BlockRef> PrevVertices(
+inline std::span<const AbstractMachineControlFlowGraph::BlockRef> PrevVertices(
     const AbstractMachineControlFlowGraph& amcfg,
     AbstractMachineControlFlowGraph::BlockRef block_ref) {
   return amcfg.GetBlock(block_ref.id()).preds;

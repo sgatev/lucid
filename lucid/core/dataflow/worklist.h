@@ -30,7 +30,7 @@ class Worklist {
   Worklist(D domain, O compare)
       : domain_(std::move(domain)),
         queue_(std::move(compare)),
-        present_(domain.size(), false) {}
+        present_(domain_.size(), false) {}
 
   // Returns whether the worklist is empty.
   bool empty() const { return queue_.empty(); }

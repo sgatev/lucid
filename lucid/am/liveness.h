@@ -21,7 +21,7 @@ class AbstractMachineLivenessAnalysis {
     HashSet<Reg> live_out;
   };
 
-  static State Transfer(State&& state, const Instruction& inst);
+  static void Transfer(State& state, const Instruction& inst);
 
   explicit AbstractMachineLivenessAnalysis(
       const AbstractMachineControlFlowGraph& am_cfg);
@@ -29,7 +29,7 @@ class AbstractMachineLivenessAnalysis {
   State Transfer(std::optional<State>&& prior_state,
                  const AbstractMachineControlFlowGraph::BlockRef& block_ref);
 
-  State Join(State&& left, const State& right);
+  void Join(State& left, const State& right);
 
  private:
   const AbstractMachineControlFlowGraph& am_cfg_;

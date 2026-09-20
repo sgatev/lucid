@@ -51,7 +51,7 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
     }
 
     for (const auto& inst : block.instructions | std::views::reverse) {
-      state = AbstractMachineLivenessAnalysis::Transfer(std::move(state), inst);
+      AbstractMachineLivenessAnalysis::Transfer(state, inst);
 
       if (state.live_in.size() > max_clique_size) {
         for (const auto& reg : state.live_in) {

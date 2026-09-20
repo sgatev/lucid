@@ -5,6 +5,7 @@
 #include <functional>
 #include <optional>
 #include <ranges>
+#include <span>
 #include <utility>
 #include <vector>
 
@@ -144,12 +145,12 @@ inline SyntaxControlFlowGraph::BlockRef SinkVertex(
   return cfg.last;
 }
 
-inline std::vector<SyntaxControlFlowGraph::BlockRef> NextVertices(
+inline std::span<const SyntaxControlFlowGraph::BlockRef> NextVertices(
     const SyntaxControlFlowGraph& cfg, SyntaxControlFlowGraph::BlockRef block) {
   return cfg.get(block).succs;
 }
 
-inline std::vector<SyntaxControlFlowGraph::BlockRef> PrevVertices(
+inline std::span<const SyntaxControlFlowGraph::BlockRef> PrevVertices(
     const SyntaxControlFlowGraph& cfg, SyntaxControlFlowGraph::BlockRef block) {
   return cfg.get(block).preds;
 }
