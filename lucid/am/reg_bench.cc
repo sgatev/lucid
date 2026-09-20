@@ -97,9 +97,7 @@ void WithAbstractMachineFunction(std::string_view snippet, BenchmarkT run) {
   AbstractMachineState am_state;
   AbstractMachineControlFlowGraph am_cfg = GenerateAbstractMachineFunction(
       /*am_cfgs=*/{}, syn_ctx, syn_cfg, am_state);
-  for (auto& block : am_cfg.Blocks()) {
-    OptimizeAbstractMachineInstructions(block.instructions);
-  }
+  OptimizeAbstractMachineFunction(am_cfg);
 
   run(am_cfg, am_state);
 }

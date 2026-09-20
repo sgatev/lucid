@@ -120,9 +120,7 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
   AbstractMachineState am_state;
   AbstractMachineControlFlowGraph am_cfg = GenerateAbstractMachineFunction(
       /*am_cfgs=*/{}, syn_ctx, syn_cfg, am_state);
-  for (auto& block : am_cfg.Blocks()) {
-    OptimizeAbstractMachineInstructions(block.instructions);
-  }
+  OptimizeAbstractMachineFunction(am_cfg);
   SpillRegisters(am_cfg, am_state, kRegistersCount);
   const HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);
   const HashMap<Reg, int> colors =

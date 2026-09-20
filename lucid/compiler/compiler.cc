@@ -72,9 +72,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
       AbstractMachineControlFlowGraph am_cfg =
           GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
-      for (auto& block : am_cfg.Blocks()) {
-        OptimizeAbstractMachineInstructions(block.instructions);
-      }
+      OptimizeAbstractMachineFunction(am_cfg);
       static constexpr int kArmRegistersCount = 10;
       SpillRegisters(am_cfg, am_state, kArmRegistersCount);
       HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);

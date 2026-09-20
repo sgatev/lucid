@@ -111,7 +111,9 @@ cc_library(
     hdrs = ["opt.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
+        ":cfg",
         ":instructions",
+        "//lucid/core/container:hash_map",
     ],
 )
 

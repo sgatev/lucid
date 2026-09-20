@@ -55,6 +55,17 @@ class AbstractMachineControlFlowGraph {
     // the first block in `next`. If set and the value is zero, control flow
     // proceeds to the second block in `next`.
     std::optional<Reg> branch_cond;
+
+    // Whether nothing but the branch of this block reads `branch_cond`.
+    //
+    // A value read nowhere else does not outlive the block, so a backend is
+    // free to let the branch compute it rather than put it in a register.
+    //
+    // Recorded here because it is only knowable before the registers are
+    // given their colours: a colour is shared by values that have nothing to
+    // do with one another, so afterwards the question takes a liveness
+    // analysis to answer, and answers it for fewer blocks.
+    bool only_branch_reads_cond = false;
   };
 
   // Adds a new block to the control flow graph.

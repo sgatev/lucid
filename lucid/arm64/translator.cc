@@ -12,13 +12,11 @@
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
-#include "lucid/am/liveness.h"
 #include "lucid/am/state.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
-#include "lucid/core/dataflow/dataflow.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/context.h"
 
@@ -58,30 +56,6 @@ std::optional<BranchComparison> AsBranchComparison(const Instruction& inst) {
   return std::nullopt;
 }
 
-// Returns the registers that are live after each block, indexed by block, or
-// nothing at all if that is not known for every block.
-//
-// The analysis works back from the block a function returns from, so a block
-// that never reaches it -- the body of a loop with no way out -- is one it
-// never visits. A block branching into one of those is told nothing about what
-// it uses, and the registers live after it look fewer than they are. Being
-// wrong that way makes a register look dead, so the answer is only worth
-// having when the analysis reached everything.
-std::optional<std::vector<HashSet<Reg>>> LiveOutRegisters(
-    const AbstractMachineControlFlowGraph& am_cfg) {
-  AbstractMachineLivenessAnalysis analysis(am_cfg);
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>> states =
-      RunDataflow(Backward(am_cfg), analysis);
-
-  std::vector<HashSet<Reg>> live_out;
-  live_out.reserve(states.size());
-  for (auto& state : states) {
-    if (!state.has_value()) return std::nullopt;
-    live_out.push_back(std::move(state->live_out));
-  }
-  return live_out;
-}
-
 class Arm64BinaryGenerator {
  public:
   explicit Arm64BinaryGenerator(std::string_view func_name,
@@ -91,8 +65,7 @@ class Arm64BinaryGenerator {
       : func_name_(func_name),
         stack_slots_(stack_slots),
         am_cfg_(am_cfg),
-        assembler_(assmebler),
-        live_out_(LiveOutRegisters(am_cfg)) {}
+        assembler_(assmebler) {}
 
   void Generate() && {
     assembler_.Label(std::string(func_name_));
@@ -162,10 +135,11 @@ class Arm64BinaryGenerator {
       return std::nullopt;
     }
 
-    if (!live_out_.has_value() ||
-        (*live_out_)[block.ref.id()].Contains(*result)) {
-      return std::nullopt;
-    }
+    // Whether anything but the branch reads the result was settled before the
+    // registers were given their colours, where one register still meant one
+    // value. What is left to check is that spilling has not put anything
+    // after the comparison since.
+    if (!block.only_branch_reads_cond) return std::nullopt;
 
     return comparison;
   }
@@ -598,7 +572,6 @@ class Arm64BinaryGenerator {
   const std::vector<int>& stack_slots_;
   const AbstractMachineControlFlowGraph& am_cfg_;
   Assembler& assembler_;
-  std::optional<std::vector<HashSet<Reg>>> live_out_;
   int stack_size_ = 0;
   std::vector<int> stack_offsets_;
 };

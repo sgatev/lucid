@@ -292,9 +292,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
 
       AbstractMachineControlFlowGraph am_cfg =
           GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
-      for (auto& block : am_cfg.Blocks()) {
-        OptimizeAbstractMachineInstructions(block.instructions);
-      }
+      OptimizeAbstractMachineFunction(am_cfg);
       static constexpr int kArmRegistersCount = 10;
       if (ctx.Flag("regs") == "spill") {
         SpillRegisters(am_cfg, am_state, kArmRegistersCount);

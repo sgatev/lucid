@@ -9,6 +9,7 @@
 
 #include "lucid/am/cfg_builder.h"
 #include "lucid/am/instructions.h"
+#include "lucid/am/opt.h"
 #include "lucid/am/state.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/testing/testing.h"
@@ -49,8 +50,11 @@ std::uint32_t Instruction(F emit) {
 // with `use_result_later` deciding whether anything but the branch reads it.
 //
 // Both arms meet again at the block the function returns from, as the arms of
-// a branch in a compiled program do: a graph whose blocks cannot all reach
-// that one is one the liveness analysis cannot answer for.
+// a branch in a compiled program do.
+//
+// The graph is optimized before it is returned, as one reaching the backend
+// has been: whether the branch is the only reader of what it branches on is
+// recorded there, and a graph that never went through it says no.
 AbstractMachineControlFlowGraph ComparingGraph(bool use_result_later) {
   const Reg lhs{1, RegSize32};
   const Reg rhs{2, RegSize32};
@@ -78,6 +82,7 @@ AbstractMachineControlFlowGraph ComparingGraph(bool use_result_later) {
 
   AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
   am_cfg.GetBlock(head).branch_cond = result;
+  OptimizeAbstractMachineFunction(am_cfg);
   return am_cfg;
 }
 
