@@ -9,8 +9,24 @@ Lucid is an experimental programming language and toolchain developed from scrat
 ## Requires
 
 - ARM64 macOS
-- [Xcode](https://developer.apple.com/xcode) 15.3+
+- [Xcode](https://developer.apple.com/xcode) 27
 - [Bazel](https://bazel.build)
+
+## Build
+
+To build the compiler execute
+
+```
+bazel build -c opt //lucid:compiler
+```
+
+## Run
+
+To compile and run code execute
+
+```
+bazel run -c opt //lucid:compiler -- run examples/main.lu
+```
 
 ## Test
 
@@ -38,22 +54,6 @@ bazel run -c opt //lucid/am:reg_bench -- --format=json
 
 Every push to `main` records the results, which are charted at
 [sgatev.github.io/lucid/dev/bench](https://sgatev.github.io/lucid/dev/bench/).
-
-## Build
-
-To build the compiler execute
-
-```
-bazel build -c opt //lucid:compiler
-```
-
-## Run
-
-To compile and run code execute
-
-```
-bazel run -c opt //lucid:compiler -- run examples/main.lu
-```
 
 ## Code
 
