@@ -37,6 +37,25 @@ struct MoveOnly {
 
 inline std::size_t Hash(const MoveOnly& v) { return Hash(v.v); }
 
+struct Emptied {
+  std::uint32_t v;
+
+  explicit Emptied(std::uint32_t v) : v(v) {}
+
+  Emptied(const Emptied&) = default;
+  Emptied& operator=(const Emptied&) = default;
+
+  Emptied(Emptied&& other) : v(std::exchange(other.v, 0)) {}
+  Emptied& operator=(Emptied&& other) {
+    v = std::exchange(other.v, 0);
+    return *this;
+  }
+
+  bool operator==(const Emptied&) const = default;
+};
+
+inline std::size_t Hash(const Emptied& v) { return Hash(v.v); }
+
 struct ConstructOnly {
   std::uint32_t v;
 
@@ -152,6 +171,29 @@ TEST(Test, HashSetCopyAssign) {
   EXPECT_EQ(set_copy.size(), 2);
   EXPECT_TRUE(set_copy.Contains(21));
   EXPECT_TRUE(set_copy.Contains(13));
+}
+
+TEST(Test, HashSetCopyConstructLeavesSourceIntact) {
+  HashSet<Emptied> set;
+
+  EXPECT_TRUE(set.Insert(Emptied(21)));
+
+  HashSet<Emptied> set_copy = set;
+
+  EXPECT_TRUE(set.Contains(Emptied(21)));
+  EXPECT_TRUE(set_copy.Contains(Emptied(21)));
+}
+
+TEST(Test, HashSetCopyAssignLeavesSourceIntact) {
+  HashSet<Emptied> set;
+
+  EXPECT_TRUE(set.Insert(Emptied(21)));
+
+  HashSet<Emptied> set_copy;
+  set_copy = set;
+
+  EXPECT_TRUE(set.Contains(Emptied(21)));
+  EXPECT_TRUE(set_copy.Contains(Emptied(21)));
 }
 
 TEST(Test, HashSetMoveConstruct) {

@@ -96,8 +96,16 @@ class HashTable {
 
   HashTable(const HashTable& other)
       : capacity_mask_(other.capacity_mask_),
+        full_slots_count_(other.full_slots_count_),
+        non_empty_slots_count_(other.non_empty_slots_count_),
         storage_(alloc_storage(capacity())) {
-    with_content_from(other);
+    // The copy has the capacity of the original, so every value belongs in the
+    // slot it came from and the meta bytes carry over whole. This keeps the
+    // probe chains and the slots emptied by a removal as they were.
+    std::memcpy(storage_, other.storage_, capacity());
+    for (std::size_t pos = 0; pos < capacity(); ++pos) {
+      if (full(*meta(pos))) new (slot(pos)) V(*other.slot(pos));
+    }
   }
 
   ~HashTable() {
@@ -240,7 +248,8 @@ class HashTable {
   }
 
   void resize() noexcept {
-    *this = std::move(HashTable(capacity() << 1).with_content_from(*this));
+    *this = std::move(
+        HashTable(capacity() << 1).with_content_from(std::move(*this)));
   }
 
   // Returns an offset that corresponds to the given projection or `capacity()`.
@@ -260,8 +269,8 @@ class HashTable {
     }
   }
 
-  template <typename T>
-  inline HashTable& with_content_from(T&& other) noexcept {
+  // Moves the content of `other` into this table, which must be empty.
+  inline HashTable& with_content_from(HashTable&& other) noexcept {
     for (std::size_t pos = 0; pos < other.capacity(); ++pos) {
       const std::uint8_t proj_meta = *other.meta(pos);
       if (!full(proj_meta)) continue;

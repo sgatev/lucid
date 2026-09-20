@@ -37,6 +37,25 @@ struct MoveOnly {
 
 inline std::size_t Hash(const MoveOnly& v) { return Hash(v.v); }
 
+struct Emptied {
+  std::uint32_t v;
+
+  explicit Emptied(std::uint32_t v) : v(v) {}
+
+  Emptied(const Emptied&) = default;
+  Emptied& operator=(const Emptied&) = default;
+
+  Emptied(Emptied&& other) : v(std::exchange(other.v, 0)) {}
+  Emptied& operator=(Emptied&& other) {
+    v = std::exchange(other.v, 0);
+    return *this;
+  }
+
+  bool operator==(const Emptied&) const = default;
+};
+
+inline std::size_t Hash(const Emptied& v) { return Hash(v.v); }
+
 struct ConstructOnly {
   std::uint32_t v;
 
@@ -181,6 +200,29 @@ TEST(Test, HashMapCopyAssign) {
   EXPECT_EQ(map_copy.size(), 2);
   EXPECT_THAT(map_copy.Get(21), Optional(Equals(42)));
   EXPECT_THAT(map_copy.Get(13), Optional(Equals(26)));
+}
+
+TEST(Test, HashMapCopyConstructLeavesSourceIntact) {
+  HashMap<std::int32_t, Emptied> map;
+
+  EXPECT_TRUE(map.Insert(21, Emptied(42)));
+
+  HashMap<std::int32_t, Emptied> map_copy = map;
+
+  EXPECT_THAT(map.Get(21), Optional(Equals(Emptied(42))));
+  EXPECT_THAT(map_copy.Get(21), Optional(Equals(Emptied(42))));
+}
+
+TEST(Test, HashMapCopyAssignLeavesSourceIntact) {
+  HashMap<std::int32_t, Emptied> map;
+
+  EXPECT_TRUE(map.Insert(21, Emptied(42)));
+
+  HashMap<std::int32_t, Emptied> map_copy;
+  map_copy = map;
+
+  EXPECT_THAT(map.Get(21), Optional(Equals(Emptied(42))));
+  EXPECT_THAT(map_copy.Get(21), Optional(Equals(Emptied(42))));
 }
 
 TEST(Test, HashMapMoveConstruct) {
