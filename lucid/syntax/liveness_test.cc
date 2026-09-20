@@ -13,10 +13,10 @@ class SyntaxLivenessAnalysisTest : public Test, public AstFixture {
  protected:
   using State = SyntaxLivenessAnalysis::State;
 
-  std::vector<std::optional<State>> AnalyzeReachability(FuncDefStmt func_def) {
+  std::vector<std::optional<State>> AnalyzeLiveness(FuncDefStmt func_def) {
     auto syn_cfg = ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
     SyntaxLivenessAnalysis analysis(syn_ctx_, syn_cfg);
-    return RunDataflow(Forward(syn_cfg), analysis);
+    return RunDataflow(Backward(syn_cfg), analysis);
   }
 };
 
@@ -26,7 +26,7 @@ TEST(SyntaxLivenessAnalysisTest, EmptyFunc) {
       .result_type = T("Void"),
   };
 
-  EXPECT_THAT(AnalyzeReachability(func_def),
+  EXPECT_THAT(AnalyzeLiveness(func_def),
               Elements(Optional(Field(&State::live_in, IsEmpty())),
                        Optional(Field(&State::live_in, IsEmpty()))));
 }

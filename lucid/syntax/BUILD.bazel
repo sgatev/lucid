@@ -252,33 +252,6 @@ cc_binary(
 )
 
 cc_library(
-    name = "reachability",
-    srcs = ["reachability.cc"],
-    hdrs = ["reachability.h"],
-    visibility = ["//lucid:__subpackages__"],
-    deps = [
-        ":ast",
-        ":cfg",
-        ":context",
-        "//lucid/core/container:hash_map",
-        "//lucid/core/string:index",
-    ],
-)
-
-cc_test(
-    name = "reachability_test",
-    srcs = ["reachability_test.cc"],
-    deps = [
-        ":ast",
-        ":ast_fixture",
-        ":cfg",
-        ":reachability",
-        "//lucid/core/dataflow",
-        "//lucid/core/testing",
-    ],
-)
-
-cc_library(
     name = "ssa",
     srcs = ["ssa.cc"],
     hdrs = ["ssa.h"],
@@ -288,7 +261,7 @@ cc_library(
         ":cfg",
         ":context",
         ":liveness",
-        ":reachability",
+        "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/container/graph:dominator",
         "//lucid/core/dataflow",

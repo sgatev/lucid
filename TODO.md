@@ -4,22 +4,6 @@ Improvements that are known but not made yet.
 
 ## Dataflow
 
-### Carry one set through the reachability fixpoint
-
-`Transfer` in [`SyntaxReachabilityAnalysis`](lucid/syntax/reachability.cc) fills `vars_in`
-from the joined prior state and then copies it wholesale into `vars_out`, a whole hash
-table per block visit.
-
-The fixpoint reads only `vars_out`: `Join` merges that and `Transfer` takes the prior's.
-`vars_in` is carried for [`ssa.cc`](lucid/syntax/ssa.cc), which walks a block from it and
-reads `vars_out` for the arguments of a phi.
-
-The liveness analyses were the same shape and came out of it by dropping the half the
-fixpoint never reads and working it out at the end from the blocks around it. `vars_in`
-is the union of `vars_out` over the blocks before, and the parameters of the function at
-the entry, so the same is open here: a `VarsIn` beside the `LiveOut` that liveness now
-has.
-
 ### Reuse the state a vertex already has
 
 `RunDataflow` asks `Transfer` for a whole new state on every visit, compares it against
