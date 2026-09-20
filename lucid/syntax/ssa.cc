@@ -29,9 +29,9 @@ HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> CollectVarDefs(
   HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> defs;
   for (auto param_ref : syn_cfg.func_params) {
     const auto& param = syn_ctx.DerefParam(param_ref);
-    defs.Insert(param.name, {});
-    defs.Get(param.name)->first = param.type_constraint;
-    defs.Get(param.name)->second.Insert(syn_cfg.first);
+    auto& def = defs.Emplace(param.name);
+    def.first = param.type_constraint;
+    def.second.Insert(syn_cfg.first);
   }
   for (const auto& block : syn_cfg.blocks()) {
     for (const auto& seq : block.sequences) {
@@ -39,12 +39,11 @@ HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> CollectVarDefs(
 
       const auto& stmt = syn_ctx.DerefStmt(*seq.stmt);
       if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-        defs.Insert(var_decl_stmt->name, {});
-        defs.Get(var_decl_stmt->name)->first = var_decl_stmt->type_constraint;
-        defs.Get(var_decl_stmt->name)->second.Insert(block.ref);
+        auto& def = defs.Emplace(var_decl_stmt->name);
+        def.first = var_decl_stmt->type_constraint;
+        def.second.Insert(block.ref);
       } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-        defs.Insert(var_assign_stmt->name, {});
-        defs.Get(var_assign_stmt->name)->second.Insert(block.ref);
+        defs.Emplace(var_assign_stmt->name).second.Insert(block.ref);
       }
     }
   }
@@ -125,13 +124,17 @@ void RenameVariables(SyntaxContext& syn_ctx, SyntaxControlFlowGraph& syn_cfg) {
 
   for (auto block_ref : block_refs) {
     auto& block = syn_cfg.get(block_ref);
-    auto reachability_block_state = reachability_block_states[block.ref.id()];
+    auto& reachability_block_state = reachability_block_states[block.ref.id()];
     if (!reachability_block_state.has_value()) continue;
+
+    // Taken rather than copied: no block is walked twice, and what reaches a
+    // block is read nowhere else.
+    auto vars_in = std::move(reachability_block_state->vars_in);
 
     for (auto phi_ref : block.phis) {
       auto& phi = syn_cfg.deref(phi_ref);
 
-      reachability_block_state->vars_in.Set(phi.name, phi_ref);
+      vars_in.Set(phi.name, phi_ref);
 
       const auto new_name = syn_ctx.AddUniqueIdent();
       renames.Set(phi_ref, new_name);
@@ -144,8 +147,7 @@ void RenameVariables(SyntaxContext& syn_ctx, SyntaxControlFlowGraph& syn_cfg) {
         auto* ident_expr = std::get_if<IdentExpr>(&expr);
         if (ident_expr == nullptr) continue;
 
-        const auto nvs =
-            reachability_block_state->vars_in.Get(ident_expr->name);
+        const auto nvs = vars_in.Get(ident_expr->name);
         assert(nvs.has_value());
 
         const auto new_name = renames.Get(*nvs);
@@ -156,15 +158,14 @@ void RenameVariables(SyntaxContext& syn_ctx, SyntaxControlFlowGraph& syn_cfg) {
       if (seq.stmt.has_value()) {
         auto& stmt = syn_ctx.DerefStmt(*seq.stmt);
         if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-          reachability_block_state->vars_in.Set(var_decl_stmt->name, *seq.stmt);
+          vars_in.Set(var_decl_stmt->name, *seq.stmt);
 
           const auto new_name = syn_ctx.AddUniqueIdent();
           renames.Set(*seq.stmt, new_name);
 
           var_decl_stmt->name = new_name;
         } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-          reachability_block_state->vars_in.Set(var_assign_stmt->name,
-                                                *seq.stmt);
+          vars_in.Set(var_assign_stmt->name, *seq.stmt);
 
           const auto new_name = syn_ctx.AddUniqueIdent();
           renames.Set(*seq.stmt, new_name);
@@ -177,8 +178,7 @@ void RenameVariables(SyntaxContext& syn_ctx, SyntaxControlFlowGraph& syn_cfg) {
           });
         } else if (auto* array_assign_stmt =
                        std::get_if<ArrayAssignStmt>(&stmt)) {
-          const auto nvs =
-              reachability_block_state->vars_in.Get(array_assign_stmt->name);
+          const auto nvs = vars_in.Get(array_assign_stmt->name);
           assert(nvs.has_value());
 
           const auto new_name = renames.Get(*nvs);
