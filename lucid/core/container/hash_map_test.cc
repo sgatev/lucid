@@ -392,7 +392,9 @@ TEST(Test, HashMapIteratorCompareNonEmpty) {
 
   EXPECT_EQ(map.begin(), map.begin());
   EXPECT_EQ(map.end(), map.end());
-  EXPECT_EQ(++map.begin(), map.end());
+
+  auto it = map.begin();
+  EXPECT_EQ(++it, map.end());
 }
 
 TEST(Test, HashMapIteratorDeref) {

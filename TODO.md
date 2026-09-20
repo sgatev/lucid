@@ -54,14 +54,6 @@ and resizes earlier than it needs to.
 
 ## Tests and benchmarks
 
-### Fix the iterator comparisons the sanitizers flag
-
-`bazel test --config=asan --config=ubsan //lucid/core/container:all` reports a
-stack-use-after-scope in the `IteratorCompare` tests of
-[`hash_set_test`](lucid/core/container/hash_set_test.cc) and
-[`hash_map_test`](lucid/core/container/hash_map_test.cc): the iterators outlive the
-temporary table they point into. The plain `bazel test` runs pass.
-
 ### Benchmark a function that branches
 
 The snippets `ChainedValues` and `LiveValues` in [`reg_bench`](lucid/am/reg_bench.cc) are

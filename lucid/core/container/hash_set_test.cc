@@ -352,7 +352,9 @@ TEST(Test, HashSetIteratorCompareNonEmpty) {
 
   EXPECT_EQ(set.begin(), set.begin());
   EXPECT_EQ(set.end(), set.end());
-  EXPECT_EQ(++set.begin(), set.end());
+
+  auto it = set.begin();
+  EXPECT_EQ(++it, set.end());
 }
 
 TEST(Test, HashSetIteratorDeref) {
