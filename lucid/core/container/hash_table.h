@@ -154,7 +154,7 @@ class HashTable {
   // true).
   template <typename... Ts>
   inline std::pair<V*, bool> FindOrAlloc(const P& proj) {
-    if (non_empty_slots_count_ > (capacity() >> 1)) resize();
+    if (non_empty_slots_count_ > (capacity() >> 1)) rehash();
 
     const std::size_t proj_hash = Hash(proj);
     const std::uint8_t proj_meta = proj_hash & 0b01111111;
@@ -217,6 +217,9 @@ class HashTable {
   // Returns the number of unique values inserted so far.
   inline std::size_t size() const noexcept { return full_slots_count_; }
 
+  // Returns the number of slots the table holds.
+  inline std::size_t capacity() const noexcept { return capacity_mask_ + 1; }
+
   // Returns an iterator referring to the first value in the table or `end()`,
   // if there isn't one.
   Iterator begin() noexcept { return Iterator(*this, next_full(0)); }
@@ -256,16 +259,16 @@ class HashTable {
     return meta == 0b10000000;
   }
 
-  inline std::size_t capacity() const noexcept { return capacity_mask_ + 1; }
-
   inline std::size_t next_full(std::size_t pos) const noexcept {
     while (pos < capacity() && !full(*meta(pos))) ++pos;
     return pos;
   }
 
-  void resize() noexcept {
-    *this = std::move(
-        HashTable(capacity() << 1).with_content_from(std::move(*this)));
+  void rehash() noexcept {
+    const std::size_t new_capacity =
+        full_slots_count_ > (capacity() >> 2) ? capacity() << 1 : capacity();
+    *this =
+        std::move(HashTable(new_capacity).with_content_from(std::move(*this)));
   }
 
   // Returns an offset that corresponds to the given projection or `capacity()`.

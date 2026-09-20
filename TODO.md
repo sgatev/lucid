@@ -56,13 +56,6 @@ Nothing in the tree passes anything but `kInitialCapacity` and doublings of it, 
 a trap rather than a bug today. Making the constructor explicit and rounding what it is
 given up to a power of two would close it.
 
-### Let a test see how full a table lets itself get
-
-`capacity()` and the two slot counters are private, and neither `HashSet` nor `HashMap`
-passes anything like them on, so when a table decides to grow can only be checked by hand.
-That is what the load factor is, and it is the one thing about the table that has no test:
-the accounting for the slots a removal empties was got wrong once already.
-
 ### Let an empty table hold nothing
 
 The default constructor allocates `kInitialCapacity` slots, so an empty table costs a
