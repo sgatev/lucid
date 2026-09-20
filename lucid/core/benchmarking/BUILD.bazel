@@ -51,6 +51,26 @@ diff_test(
 )
 
 genrule(
+    name = "run_json_benchmarks",
+    testonly = True,
+    outs = ["json_benchmarks_output"],
+    # What varies from run to run is the measurement, so the value and the
+    # throughput are replaced with placeholders. What is being pinned is the
+    # shape of the report a benchmark tracker reads.
+    cmd = """
+    $(location //lucid/core/benchmarking/testdata:example_benchmarks) --iterations=1000 --format=json |
+      sed -E 's|"value": [0-9.]+|"value": <value>|; s|, [0-9.]+MB/s|, <throughput>MB/s|' > $@
+    """,
+    tools = ["//lucid/core/benchmarking/testdata:example_benchmarks"],
+)
+
+diff_test(
+    name = "json_benchmarks_test",
+    file1 = "//lucid/core/benchmarking/testdata:expected_json_benchmarks_output",
+    file2 = ":json_benchmarks_output",
+)
+
+genrule(
     name = "run_filtered_benchmarks",
     testonly = True,
     outs = ["filtered_benchmarks_output"],

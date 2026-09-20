@@ -17,13 +17,39 @@ jobs:
         run: bazel test --config=asan ...
       - name: Run tests in UBSan mode
         run: bazel test --config=ubsan ...
+
+  benchmark:
+    needs: test
+    runs-on: xcode-27
+    permissions:
+      # The results of a run on main are pushed to the gh-pages branch.
+      contents: write
+    # Two runs that both push to gh-pages would race, so they are serialized
+    # rather than cancelled.
+    concurrency:
+      group: benchmark-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - name: Use the Command Line Tools toolchain
+        run: sudo xcode-select -s /Library/Developer/CommandLineTools
       - name: Run benchmarks
-        run: |
-          bazel run -c opt //lucid/syntax:lexer_bench
-          bazel run -c opt //lucid/syntax:parser_bench
-          bazel run -c opt //lucid/core/container:hash_map_bench
-          bazel run -c opt //lucid/core/container:hash_set_bench
-          bazel run -c opt //lucid/syntax:ssa_bench
-          bazel run -c opt //lucid/am:reg_bench
-          bazel run -c opt //lucid/arm64:translator_bench
-          bazel run -c opt //lucid/core/dataflow:worklist_bench
+        run: scripts/run_benchmarks.sh > benchmarks.json
+      - name: Record the results
+        if: github.ref == 'refs/heads/main'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Lucid benchmarks
+          tool: customSmallerIsBetter
+          output-file-path: benchmarks.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          gh-pages-branch: gh-pages
+          benchmark-data-dir-path: dev/bench
+          auto-push: true
+          # A benchmark measures wall time, which moves from run to run even
+          # when nothing about the code has. The threshold starts well above
+          # that noise and is worth tightening once the chart shows how much
+          # of it this runner actually has.
+          alert-threshold: "150%"
+          comment-on-alert: true
+          fail-on-alert: false

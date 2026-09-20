@@ -6,6 +6,7 @@
 #include <format>
 #include <memory>
 #include <optional>
+#include <ostream>
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -95,17 +96,90 @@ BenchmarkResult MeasureUntilTargetRunTime(Benchmark& benchmark) {
 
 // Returns how fast `benchmark_result` got through its bytes, or nothing at
 // all for a benchmark that does not count them.
-std::string Throughput(const BenchmarkResult& benchmark_result) {
-  if (benchmark_result.bytes_processed <= 0) return "";
+std::optional<double> MegabytesPerSecond(
+    const BenchmarkResult& benchmark_result) {
+  if (benchmark_result.bytes_processed <= 0) return std::nullopt;
 
   const double elapsed_seconds =
       std::chrono::duration<double>(benchmark_result.elapsed_time).count();
-  if (elapsed_seconds <= 0) return "";
+  if (elapsed_seconds <= 0) return std::nullopt;
 
   static constexpr double kBytesPerMegabyte = 1'000'000;
-  return std::format(", {:.1f}MB/s",
-                     static_cast<double>(benchmark_result.bytes_processed) /
-                         kBytesPerMegabyte / elapsed_seconds);
+  return static_cast<double>(benchmark_result.bytes_processed) /
+         kBytesPerMegabyte / elapsed_seconds;
+}
+
+// Returns how long one iteration of `benchmark_result` took.
+//
+// The time per iteration is what one run says about the code; the total and
+// the count are what say how much to trust it.
+double ElapsedNanosPerIteration(const BenchmarkResult& benchmark_result) {
+  return std::chrono::duration<double, std::nano>(benchmark_result.elapsed_time)
+             .count() /
+         static_cast<double>(benchmark_result.iterations);
+}
+
+// Returns the throughput of `benchmark_result` as the report writes it, or an
+// empty string for a benchmark that does not count its bytes.
+std::string Throughput(const BenchmarkResult& benchmark_result) {
+  const std::optional<double> megabytes_per_second =
+      MegabytesPerSecond(benchmark_result);
+  if (!megabytes_per_second.has_value()) return "";
+
+  return std::format(", {:.1f}MB/s", *megabytes_per_second);
+}
+
+// How the results of a run are reported.
+enum class ReportFormat { kText, kJson };
+
+// Prints `benchmark_results` as the report a person reads.
+void PrintTextReport(std::ostream& out,
+                     const std::vector<BenchmarkResult>& benchmark_results) {
+  std::chrono::nanoseconds suite_elapsed_time{0};
+  for (const auto& benchmark_result : benchmark_results) {
+    suite_elapsed_time += benchmark_result.elapsed_time;
+
+    out << std::format("│ {} {} iterations ({}, {:.1f}ns each{})\n",
+                       benchmark_result.name, benchmark_result.iterations,
+                       std::chrono::duration_cast<std::chrono::microseconds>(
+                           benchmark_result.elapsed_time),
+                       ElapsedNanosPerIteration(benchmark_result),
+                       Throughput(benchmark_result));
+  }
+
+  out << std::format("└─► {} {} ({})\n", benchmark_results.size(),
+                     benchmark_results.size() == 1 ? "benchmark" : "benchmarks",
+                     std::chrono::duration_cast<std::chrono::microseconds>(
+                         suite_elapsed_time));
+}
+
+// Prints `benchmark_results` as the JSON that github-action-benchmark reads:
+// an array of one object per benchmark, measured in nanoseconds per iteration,
+// where a smaller value is the better one.
+//
+// A name is the identifier the benchmark was declared with, so it goes into a
+// JSON string as it is.
+void PrintJsonReport(std::ostream& out,
+                     const std::vector<BenchmarkResult>& benchmark_results) {
+  out << "[\n";
+  for (std::size_t i = 0; i < benchmark_results.size(); ++i) {
+    const BenchmarkResult& benchmark_result = benchmark_results[i];
+
+    std::string extra =
+        std::format("{} iterations", benchmark_result.iterations);
+    if (const std::optional<double> megabytes_per_second =
+            MegabytesPerSecond(benchmark_result);
+        megabytes_per_second.has_value()) {
+      extra += std::format(", {:.1f}MB/s", *megabytes_per_second);
+    }
+
+    out << std::format(
+        R"(  {{"name": "{}", "unit": "ns/iter", "value": {:.3f}, "extra": "{}"}}{})"
+        "\n",
+        benchmark_result.name, ElapsedNanosPerIteration(benchmark_result),
+        extra, i + 1 < benchmark_results.size() ? "," : "");
+  }
+  out << "]\n";
 }
 
 // Runs all benchmarks in the global suite and prints what they measured.
@@ -114,6 +188,19 @@ int HandleRunBenchmarksCommand(CommandContext ctx) {
   if (filter.has_value() && filter->empty()) {
     ctx.Err() << "the 'filter' flag requires a value\n";
     return 1;
+  }
+
+  ReportFormat format = ReportFormat::kText;
+  if (const std::optional<std::string_view> format_flag = ctx.Flag("format");
+      format_flag.has_value()) {
+    if (*format_flag == "text") {
+      format = ReportFormat::kText;
+    } else if (*format_flag == "json") {
+      format = ReportFormat::kJson;
+    } else {
+      ctx.Err() << "the 'format' flag requires 'text' or 'json'\n";
+      return 1;
+    }
   }
 
   // A fixed count trades the target run time for a repeatable one, which is
@@ -155,30 +242,14 @@ int HandleRunBenchmarksCommand(CommandContext ctx) {
                                     : MeasureUntilTargetRunTime(*benchmark));
   }
 
-  std::chrono::nanoseconds suite_elapsed_time{0};
-  for (const auto& benchmark_result : benchmark_results) {
-    suite_elapsed_time += benchmark_result.elapsed_time;
-
-    // The time per iteration is what one run says about the code; the total
-    // and the count are what say how much to trust it.
-    const double elapsed_ns_per_iteration =
-        std::chrono::duration<double, std::nano>(benchmark_result.elapsed_time)
-            .count() /
-        static_cast<double>(benchmark_result.iterations);
-
-    ctx.Out() << std::format(
-        "│ {} {} iterations ({}, {:.1f}ns each{})\n", benchmark_result.name,
-        benchmark_result.iterations,
-        std::chrono::duration_cast<std::chrono::microseconds>(
-            benchmark_result.elapsed_time),
-        elapsed_ns_per_iteration, Throughput(benchmark_result));
+  switch (format) {
+    case ReportFormat::kText:
+      PrintTextReport(ctx.Out(), benchmark_results);
+      break;
+    case ReportFormat::kJson:
+      PrintJsonReport(ctx.Out(), benchmark_results);
+      break;
   }
-
-  ctx.Out() << std::format(
-      "└─► {} {} ({})\n", benchmark_results.size(),
-      benchmark_results.size() == 1 ? "benchmark" : "benchmarks",
-      std::chrono::duration_cast<std::chrono::microseconds>(
-          suite_elapsed_time));
 
   return 0;
 }
@@ -205,6 +276,11 @@ int RunAllBenchmarks(std::vector<std::string_view> args) {
                         .name = "iterations",
                         .help = "Runs every benchmark for this many iterations "
                                 "instead of choosing a count.",
+                    },
+                    {
+                        .name = "format",
+                        .help = "Prints the results as 'text', the default, or "
+                                "as the 'json' that a benchmark tracker reads.",
                     }},
           .handler = HandleRunBenchmarksCommand,
       },

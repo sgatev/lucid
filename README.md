@@ -20,6 +20,25 @@ To test all targets execute
 bazel test ...
 ```
 
+## Benchmark
+
+To run every benchmark execute
+
+```
+scripts/run_benchmarks.sh
+```
+
+A single binary can be run on its own, and reports what it measured either for
+a person to read or as the JSON a benchmark tracker reads
+
+```
+bazel run -c opt //lucid/am:reg_bench
+bazel run -c opt //lucid/am:reg_bench -- --format=json
+```
+
+Every push to `main` records the results, which are charted at
+[sgatev.github.io/lucid/dev/bench](https://sgatev.github.io/lucid/dev/bench/).
+
 ## Build
 
 To build the compiler execute

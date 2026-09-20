@@ -15,6 +15,7 @@ cc_binary(
 
 exports_files([
     "expected_example_benchmarks_output",
+    "expected_json_benchmarks_output",
     "expected_filtered_benchmarks_output",
     "expected_unmatched_filter_benchmarks_output",
 ])

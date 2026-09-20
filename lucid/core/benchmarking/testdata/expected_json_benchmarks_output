@@ -1,0 +1,5 @@
+[
+  {"name": "Nothing", "unit": "ns/iter", "value": <value>, "extra": "1000 iterations"},
+  {"name": "Sum", "unit": "ns/iter", "value": <value>, "extra": "1000 iterations"},
+  {"name": "Copy", "unit": "ns/iter", "value": <value>, "extra": "1000 iterations, <throughput>MB/s"}
+]
