@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lucid benchmarks</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+
+        --background: #ffffff;
+        --surface: #f7f8fa;
+        --border: #e1e4e8;
+        --text: #24292f;
+        --text-dim: #57606a;
+        --accent: #3273dc;
+        --accent-soft: #3273dc1a;
+        --grid: #e1e4e8;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background: #0d1117;
+          --surface: #161b22;
+          --border: #30363d;
+          --text: #e6edf3;
+          --text-dim: #9198a1;
+          --accent: #58a6ff;
+          --accent-soft: #58a6ff26;
+          --grid: #21262d;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--text);
+        font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      /* Header */
+
+      header {
+        border-bottom: 1px solid var(--border);
+        padding: 16px 24px;
+        background: var(--surface);
+      }
+
+      h1 {
+        margin: 0 0 4px;
+        font-size: 1.25rem;
+      }
+
+      .meta {
+        color: var(--text-dim);
+        font-size: 0.8125rem;
+      }
+
+      .meta > * + *::before {
+        content: "·";
+        margin: 0 8px;
+      }
+
+      /* The legend, which says how to read a chart */
+
+      details.legend {
+        margin-top: 12px;
+        font-size: 0.8125rem;
+        color: var(--text-dim);
+      }
+
+      details.legend summary {
+        cursor: pointer;
+        color: var(--accent);
+        width: fit-content;
+      }
+
+      details.legend dl {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 4px 16px;
+        margin: 8px 0 0;
+        max-width: 900px;
+      }
+
+      details.legend dt {
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      details.legend dd {
+        margin: 0;
+      }
+
+      /* Layout */
+
+      .layout {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        align-items: start;
+      }
+
+      /* Menu */
+
+      nav {
+        position: sticky;
+        top: 0;
+        max-height: 100vh;
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        padding: 16px 12px 32px;
+        background: var(--surface);
+      }
+
+      nav input {
+        width: 100%;
+        padding: 6px 10px;
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--background);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.875rem;
+      }
+
+      nav input:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: -1px;
+      }
+
+      .nav-group + .nav-group {
+        margin-top: 12px;
+      }
+
+      .nav-group > h2 {
+        margin: 0 0 4px;
+        padding: 0 8px;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-dim);
+        word-break: break-all;
+      }
+
+      .nav-group a {
+        display: block;
+        padding: 3px 8px;
+        border-radius: 5px;
+        font-size: 0.8125rem;
+        color: var(--text);
+        word-break: break-word;
+      }
+
+      .nav-group a:hover {
+        background: var(--accent-soft);
+        text-decoration: none;
+      }
+
+      .nav-group a.current {
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      /* Charts */
+
+      main {
+        padding: 24px;
+        min-width: 0;
+      }
+
+      .group + .group {
+        margin-top: 40px;
+      }
+
+      .group > h2 {
+        margin: 0 0 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9375rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        color: var(--text-dim);
+        word-break: break-all;
+      }
+
+      .charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 16px;
+      }
+
+      .chart {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        background: var(--surface);
+        scroll-margin-top: 16px;
+      }
+
+      .chart h3 {
+        margin: 0 0 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        word-break: break-word;
+      }
+
+      .chart .canvas-box {
+        position: relative;
+        height: 220px;
+      }
+
+      .empty {
+        color: var(--text-dim);
+        padding: 32px 0;
+      }
+
+      /* Footer */
+
+      footer {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        border-top: 1px solid var(--border);
+        margin-top: 40px;
+        padding: 16px 24px;
+        font-size: 0.8125rem;
+        color: var(--text-dim);
+      }
+
+      footer button {
+        padding: 5px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--background);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.8125rem;
+        cursor: pointer;
+      }
+
+      footer button:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* Narrow screens put the menu above the charts rather than beside them */
+
+      @media (max-width: 800px) {
+        .layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        nav {
+          position: static;
+          max-height: none;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
+
+        main {
+          padding: 16px;
+        }
+
+        .charts {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>Lucid benchmarks</h1>
+      <div class="meta">
+        <span id="last-update"></span>
+        <span><a id="repository-link" rel="noopener"></a></span>
+        <span id="benchmark-count"></span>
+      </div>
+
+      <details class="legend">
+        <summary>How to read these</summary>
+        <dl>
+          <dt>Each point</dt>
+          <dd>
+            One commit on <code>main</code>, oldest on the left. Click a point
+            to open that commit on GitHub.
+          </dd>
+          <dt>The value</dt>
+          <dd>
+            Nanoseconds one iteration of the benchmark took, so
+            <strong>lower is better</strong>. The axis starts at zero, which is
+            what keeps a change in the line proportional to the change in the
+            work.
+          </dd>
+          <dt>Hovering</dt>
+          <dd>
+            Shows the commit that was measured and its message, how many
+            iterations the measurement averages over, and, for a benchmark that
+            counts the bytes it gets through, its throughput.
+          </dd>
+          <dt>A jump with no change behind it</dt>
+          <dd>
+            A run measures wall time on a shared machine, so a single point can
+            move without the code having. What a benchmark says is in the trend
+            across several commits rather than in one step.
+          </dd>
+          <dt>The names</dt>
+          <dd>
+            Grouped by the binary that declares them, because a name is only
+            unique within one: three benchmarks are called
+            <code>Function</code>.
+          </dd>
+        </dl>
+      </details>
+    </header>
+
+    <div class="layout">
+      <nav>
+        <input
+          id="filter"
+          type="search"
+          placeholder="Filter benchmarks"
+          aria-label="Filter benchmarks"
+          autocomplete="off"
+        />
+        <div id="nav-groups"></div>
+      </nav>
+
+      <main id="main"></main>
+    </div>
+
+    <footer>
+      <button id="dl-button">Download data as JSON</button>
+      <div>
+        Powered by
+        <a
+          rel="noopener"
+          href="https://github.com/marketplace/actions/continuous-benchmark"
+          >github-action-benchmark</a
+        >
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.2/dist/Chart.min.js"></script>
+    <script src="data.js"></script>
+    <script>
+      "use strict";
+
+      (function () {
+        const data = window.BENCHMARK_DATA;
+
+        const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const style = getComputedStyle(document.documentElement);
+        const accent = style.getPropertyValue("--accent").trim();
+        const gridColor = style.getPropertyValue("--grid").trim();
+        const textColor = style.getPropertyValue("--text-dim").trim();
+
+        Chart.defaults.global.defaultFontColor = textColor;
+        Chart.defaults.global.defaultFontSize = 11;
+
+        // Turns the recorded entries into one series per benchmark, keeping
+        // the points in the order they were measured.
+        //
+        // A benchmark is named for the binary that declares it and then for
+        // itself, so what comes before the last separator is the group it
+        // belongs to.
+        function collectSeries() {
+          const series = [];
+
+          for (const suite of Object.keys(data.entries)) {
+            const pointsByName = new Map();
+
+            for (const entry of data.entries[suite]) {
+              for (const bench of entry.benches) {
+                let points = pointsByName.get(bench.name);
+                if (points === undefined) {
+                  points = [];
+                  pointsByName.set(bench.name, points);
+                }
+                points.push({ commit: entry.commit, bench });
+              }
+            }
+
+            for (const [name, points] of pointsByName) {
+              const cut = name.lastIndexOf("/");
+              series.push({
+                id: "b-" + name.replace(/[^A-Za-z0-9]+/g, "-"),
+                name,
+                group: cut === -1 ? suite : name.slice(0, cut),
+                label: cut === -1 ? name : name.slice(cut + 1),
+                points,
+              });
+            }
+          }
+
+          return series;
+        }
+
+        // Groups the series by the binary they came from, keeping both the
+        // groups and the series within them in the order they were recorded.
+        function groupSeries(series) {
+          const groups = new Map();
+          for (const one of series) {
+            let members = groups.get(one.group);
+            if (members === undefined) {
+              members = [];
+              groups.set(one.group, members);
+            }
+            members.push(one);
+          }
+          return groups;
+        }
+
+        function renderChart(canvas, series) {
+          const points = series.points;
+          const unit = points.length > 0 ? points[0].bench.unit : "";
+
+          new Chart(canvas, {
+            type: "line",
+            data: {
+              labels: points.map((p) => p.commit.id.slice(0, 7)),
+              datasets: [
+                {
+                  label: series.label,
+                  data: points.map((p) => p.bench.value),
+                  borderColor: accent,
+                  backgroundColor: accent + (dark ? "33" : "1a"),
+                  borderWidth: 2,
+                  pointRadius: 2,
+                  pointHoverRadius: 4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              legend: { display: false },
+              scales: {
+                xAxes: [
+                  {
+                    gridLines: { color: gridColor, zeroLineColor: gridColor },
+                    ticks: { maxTicksLimit: 8 },
+                  },
+                ],
+                yAxes: [
+                  {
+                    scaleLabel: { display: true, labelString: unit },
+                    gridLines: { color: gridColor, zeroLineColor: gridColor },
+                    ticks: { beginAtZero: true },
+                  },
+                ],
+              },
+              tooltips: {
+                callbacks: {
+                  afterTitle: (items) => {
+                    const { commit } = points[items[0].index];
+                    return (
+                      "\n" +
+                      commit.message +
+                      "\n\n" +
+                      commit.timestamp +
+                      " committed by @" +
+                      commit.committer.username +
+                      "\n"
+                    );
+                  },
+                  label: (item) => {
+                    const { range, unit } = points[item.index].bench;
+                    let label = item.value + " " + unit;
+                    if (range) label += " (" + range + ")";
+                    return label;
+                  },
+                  afterLabel: (item) => {
+                    const { extra } = points[item.index].bench;
+                    return extra ? "\n" + extra : "";
+                  },
+                },
+              },
+              onClick: (_event, elements) => {
+                if (elements.length === 0) return;
+                // XXX: Undocumented, and what the default page reads too.
+                const index = elements[0]._index;
+                window.open(points[index].commit.url, "_blank");
+              },
+            },
+          });
+        }
+
+        // Builds the menu and the charts, and returns the elements that the
+        // filter and the scroll tracking work over.
+        function render(groups) {
+          const navGroups = document.getElementById("nav-groups");
+          const main = document.getElementById("main");
+          const cards = [];
+          const links = new Map();
+
+          for (const [group, members] of groups) {
+            const navGroup = document.createElement("div");
+            navGroup.className = "nav-group";
+            navGroups.appendChild(navGroup);
+
+            const navTitle = document.createElement("h2");
+            navTitle.textContent = group;
+            navGroup.appendChild(navTitle);
+
+            const section = document.createElement("section");
+            section.className = "group";
+            main.appendChild(section);
+
+            const title = document.createElement("h2");
+            title.textContent = group;
+            section.appendChild(title);
+
+            const charts = document.createElement("div");
+            charts.className = "charts";
+            section.appendChild(charts);
+
+            for (const series of members) {
+              const link = document.createElement("a");
+              link.href = "#" + series.id;
+              link.textContent = series.label;
+              navGroup.appendChild(link);
+              links.set(series.id, link);
+
+              const card = document.createElement("div");
+              card.className = "chart";
+              card.id = series.id;
+              charts.appendChild(card);
+
+              const heading = document.createElement("h3");
+              heading.textContent = series.label;
+              card.appendChild(heading);
+
+              const box = document.createElement("div");
+              box.className = "canvas-box";
+              card.appendChild(box);
+
+              const canvas = document.createElement("canvas");
+              box.appendChild(canvas);
+
+              cards.push({ series, card, canvas, navGroup, section, link });
+            }
+          }
+
+          return { cards, links };
+        }
+
+        // Draws a chart the first time its card comes near the viewport, so
+        // that opening the page does not wait on every one of them.
+        function drawWhenVisible(cards) {
+          const drawn = new Set();
+
+          const draw = (card) => {
+            if (drawn.has(card.series.id)) return;
+            drawn.add(card.series.id);
+            renderChart(card.canvas, card.series);
+          };
+
+          if (!("IntersectionObserver" in window)) {
+            cards.forEach(draw);
+            return draw;
+          }
+
+          const observer = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (!entry.isIntersecting) continue;
+                observer.unobserve(entry.target);
+                draw(entry.target.__card);
+              }
+            },
+            { rootMargin: "400px 0px" },
+          );
+
+          for (const card of cards) {
+            card.card.__card = card;
+            observer.observe(card.card);
+          }
+
+          return draw;
+        }
+
+        // Scrolls the menu, and only the menu, far enough for `link` to be
+        // inside it. A menu that is not a scroll box of its own, which is what
+        // the narrow layout leaves, is left alone.
+        function keepInView(link) {
+          const nav = document.querySelector("nav");
+          const navBox = nav.getBoundingClientRect();
+          const linkBox = link.getBoundingClientRect();
+
+          if (linkBox.top < navBox.top) {
+            nav.scrollTop -= navBox.top - linkBox.top;
+          } else if (linkBox.bottom > navBox.bottom) {
+            nav.scrollTop += linkBox.bottom - navBox.bottom;
+          }
+        }
+
+        // Marks the menu entry of whichever chart is nearest the top of the
+        // viewport, so that the menu says where the page is.
+        function trackCurrent(cards) {
+          if (!("IntersectionObserver" in window)) return;
+
+          const visible = new Set();
+          let current = null;
+
+          const observer = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (entry.isIntersecting) {
+                  visible.add(entry.target.id);
+                } else {
+                  visible.delete(entry.target.id);
+                }
+              }
+
+              const first = cards.find((c) => visible.has(c.series.id));
+              if (first === undefined || first.link === current) return;
+
+              if (current !== null) current.classList.remove("current");
+              current = first.link;
+              current.classList.add("current");
+              keepInView(current);
+            },
+            { rootMargin: "0px 0px -70% 0px" },
+          );
+
+          for (const card of cards) observer.observe(card.card);
+        }
+
+        // Hides whatever does not match what was typed, groups included once
+        // nothing in them is left.
+        function filterOn(cards, draw) {
+          const input = document.getElementById("filter");
+          const main = document.getElementById("main");
+
+          let empty = main.querySelector(".empty");
+          if (empty === null) {
+            empty = document.createElement("div");
+            empty.className = "empty";
+            empty.hidden = true;
+            empty.textContent = "No benchmark matches that.";
+            main.appendChild(empty);
+          }
+
+          input.addEventListener("input", () => {
+            const needle = input.value.trim().toLowerCase();
+            const shown = new Map();
+
+            for (const card of cards) {
+              const matches =
+                needle === "" || card.series.name.toLowerCase().includes(needle);
+
+              card.card.hidden = !matches;
+              card.link.hidden = !matches;
+
+              shown.set(
+                card.section,
+                (shown.get(card.section) || 0) + (matches ? 1 : 0),
+              );
+
+              // A chart that was never near the viewport has no lines in it
+              // yet, and filtering to it is a way of arriving at it.
+              if (matches && needle !== "") draw(card);
+            }
+
+            let total = 0;
+            for (const [section, count] of shown) {
+              section.hidden = count === 0;
+              total += count;
+            }
+
+            for (const card of cards) {
+              card.navGroup.hidden = (shown.get(card.section) || 0) === 0;
+            }
+
+            empty.hidden = total !== 0;
+          });
+        }
+
+        function renderHeader(seriesCount) {
+          document.getElementById("last-update").textContent =
+            "Updated " + new Date(data.lastUpdate).toLocaleString();
+
+          const link = document.getElementById("repository-link");
+          link.href = data.repoUrl;
+          link.textContent = data.repoUrl.replace("https://github.com/", "");
+
+          document.getElementById("benchmark-count").textContent =
+            seriesCount + " benchmarks";
+
+          document.getElementById("dl-button").onclick = () => {
+            const url = "data:," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "benchmark_data.json";
+            a.click();
+          };
+        }
+
+        const series = collectSeries();
+        renderHeader(series.length);
+
+        const { cards } = render(groupSeries(series));
+        const draw = drawWhenVisible(cards);
+        trackCurrent(cards);
+        filterOn(cards, draw);
+
+        // An anchor in the address bar is a chart that has to be there
+        // already, rather than one drawn once it is scrolled to.
+        if (window.location.hash) {
+          const target = cards.find(
+            (c) => "#" + c.series.id === window.location.hash,
+          );
+          if (target !== undefined) {
+            draw(target);
+            target.card.scrollIntoView();
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -35,6 +35,9 @@ jobs:
         run: sudo xcode-select -s /Library/Developer/CommandLineTools
       - name: Run benchmarks
         run: scripts/run_benchmarks.sh > benchmarks.json
+      - name: Publish the page the results are read on
+        if: github.ref == 'refs/heads/main'
+        run: scripts/publish_benchmark_page.sh
       - name: Record the results
         if: github.ref == 'refs/heads/main'
         uses: benchmark-action/github-action-benchmark@v1
