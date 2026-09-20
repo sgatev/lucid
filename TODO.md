@@ -29,6 +29,39 @@ changed needs the old value, so the change detection has to be rethought along w
 
 ## Hash table
 
+### Find a key past the slot a removal emptied
+
+[`FindOrAlloc`](lucid/core/container/hash_table.h) stops at the first slot that is not
+full, which is either an empty one or one a removal emptied, and takes it. A key whose
+probe chain runs past an emptied slot is therefore inserted a second time rather than
+found in the slot it already has.
+
+Two keys on one chain show it: remove the first, insert the second again, and `Insert`
+reports it as new, `size()` counts it twice, and a single `Remove` leaves it still in the
+table. `find_offset` runs on to the first empty slot, so a lookup keeps finding the older
+of the two, which is what makes this quiet.
+
+The search has to run as far as `find_offset` does, holding on to the first emptied slot
+along the way to place the value in if the key turns out not to be there.
+
+### Take only a capacity a table can address
+
+`HashTable(std::size_t capacity)` is public and not explicit, and `capacity_mask_` is one
+less than what it is given, which addresses every slot only when that is a power of two.
+`HashTable<int> t(100)` reaches 16 of its 100 slots and then spins in `FindOrAlloc`
+forever on the insert that fills the last of them.
+
+Nothing in the tree passes anything but `kInitialCapacity` and doublings of it, so this is
+a trap rather than a bug today. Making the constructor explicit and rounding what it is
+given up to a power of two would close it.
+
+### Let a test see how full a table lets itself get
+
+`capacity()` and the two slot counters are private, and neither `HashSet` nor `HashMap`
+passes anything like them on, so when a table decides to grow can only be checked by hand.
+That is what the load factor is, and it is the one thing about the table that has no test:
+the accounting for the slots a removal empties was got wrong once already.
+
 ### Let an empty table hold nothing
 
 The default constructor allocates `kInitialCapacity` slots, so an empty table costs a
@@ -36,13 +69,6 @@ The default constructor allocates `kInitialCapacity` slots, so an empty table co
 would make the bottom element of a lattice free, which is what `RunDataflow` now starts
 every join from. There is also no `Clear`, so a table that is finished with cannot lend
 its capacity to the next one.
-
-### Count only the tombstones a table still has
-
-`resize` rebuilds the table by re-probing the full slots, which drops the slots a removal
-emptied, and then takes `non_empty_slots_count_` from the table it rebuilt from, where
-those slots were still counted. The new table therefore believes it is fuller than it is
-and resizes earlier than it needs to.
 
 ## Tests and benchmarks
 

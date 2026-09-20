@@ -306,8 +306,11 @@ class HashTable {
         break;
       }
     }
+    // Only the full slots of `other` were carried over, so this table has no
+    // slot that a removal emptied and nothing beyond its values to count
+    // against its capacity.
     full_slots_count_ = other.full_slots_count_;
-    non_empty_slots_count_ = other.non_empty_slots_count_;
+    non_empty_slots_count_ = other.full_slots_count_;
     return *this;
   }
 
