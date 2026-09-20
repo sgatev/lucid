@@ -157,7 +157,7 @@ class HashTable {
     if (non_empty_slots_count_ > (capacity() >> 1)) rehash();
 
     const std::size_t proj_hash = Hash(proj);
-    const std::uint8_t proj_meta = proj_hash & 0b01111111;
+    const std::uint8_t proj_meta = hash_meta(proj_hash);
 
     std::size_t offset = proj_hash;
     for (std::size_t i = 0;; ++i) {
@@ -251,6 +251,18 @@ class HashTable {
     return storage;
   }
 
+  // Returns the byte that stands in for a value with the given hash, which a
+  // probe compares before it reaches for the value itself.
+  //
+  // Taken from the high bits, because the low ones already choose the slot: a
+  // byte drawn from those would agree wherever the slot did and so reject
+  // nothing, leaving every probe to compare the value. That holds while a
+  // table has fewer than 2^25 slots, which is where the bits that choose the
+  // slot would start to reach the ones used here.
+  static constexpr std::uint8_t hash_meta(std::size_t hash) noexcept {
+    return (hash >> 25) & 0b01111111;
+  }
+
   static constexpr bool full(std::uint8_t meta) noexcept {
     return (meta & 0b10000000) == 0;
   }
@@ -274,7 +286,7 @@ class HashTable {
   // Returns an offset that corresponds to the given projection or `capacity()`.
   inline std::size_t find_offset(const P& proj) const {
     const std::size_t proj_hash = Hash(proj);
-    const std::uint8_t proj_meta = proj_hash & 0b01111111;
+    const std::uint8_t proj_meta = hash_meta(proj_hash);
 
     std::size_t offset = proj_hash;
     for (std::size_t i = 0;; ++i) {
