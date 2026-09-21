@@ -1,6 +1,7 @@
 #include "lucid/core/container/hash_table.h"
 
 #include <cstddef>
+#include <type_traits>
 
 #include "lucid/core/testing/testing.h"
 
@@ -17,6 +18,25 @@ struct Colliding {
 inline std::size_t Hash(const Colliding&) { return 7; }
 
 namespace {
+
+// A capacity is not something a table converts from: `HashTable<int> t = 64`
+// would otherwise compile, and read like a copy while meaning nothing of the
+// sort.
+static_assert(!std::is_convertible_v<std::size_t, HashTable<int>>);
+
+TEST(Test, HashTableTakesACapacityItCanAddress) {
+  HashTable<int> table(100);
+
+  // A mask of 99 reaches 16 of 100 slots, so the table takes the next power
+  // of two over what it was asked for.
+  EXPECT_EQ(table.capacity(), 128);
+
+  // What it holds is reachable, where before it would fill the slots it could
+  // reach and then search for a free one forever.
+  for (int i = 0; i < 100; ++i) EXPECT_TRUE(table.Insert(i));
+  EXPECT_EQ(table.size(), 100);
+  for (int i = 0; i < 100; ++i) EXPECT_TRUE(table.Find(i) != table.end());
+}
 
 TEST(Test, HashTableGrowsWhenItsValuesFillIt) {
   HashTable<int> table;

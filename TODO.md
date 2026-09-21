@@ -14,17 +14,6 @@ changed needs the old value, so the change detection has to be rethought along w
 
 ## Hash table
 
-### Take only a capacity a table can address
-
-`HashTable(std::size_t capacity)` is public and not explicit, and `capacity_mask_` is one
-less than what it is given, which addresses every slot only when that is a power of two.
-`HashTable<int> t(100)` reaches 16 of its 100 slots and then spins in `FindOrAlloc`
-forever on the insert that fills the last of them.
-
-Nothing in the tree passes anything but `kInitialCapacity` and doublings of it, so this is
-a trap rather than a bug today. Making the constructor explicit and rounding what it is
-given up to a power of two would close it.
-
 ### Let an empty table hold nothing
 
 The default constructor allocates `kInitialCapacity` slots, so an empty table costs a

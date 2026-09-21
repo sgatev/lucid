@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -83,11 +84,11 @@ class HashTable {
 
   HashTable() : HashTable(kInitialCapacity) {}
 
-  HashTable(std::size_t capacity)
-      : capacity_mask_(capacity - 1),
+  explicit HashTable(std::size_t wanted_capacity)
+      : capacity_mask_(std::bit_ceil(wanted_capacity) - 1),
         full_slots_count_(0),
         non_empty_slots_count_(0),
-        storage_(alloc_storage(capacity)) {}
+        storage_(alloc_storage(capacity())) {}
 
   HashTable(HashTable&& other) noexcept
       : capacity_mask_(other.capacity_mask_),
