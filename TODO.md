@@ -14,21 +14,6 @@ changed needs the old value, so the change detection has to be rethought along w
 
 ## Hash table
 
-### Find a key past the slot a removal emptied
-
-[`FindOrAlloc`](lucid/core/container/hash_table.h) stops at the first slot that is not
-full, which is either an empty one or one a removal emptied, and takes it. A key whose
-probe chain runs past an emptied slot is therefore inserted a second time rather than
-found in the slot it already has.
-
-Two keys on one chain show it: remove the first, insert the second again, and `Insert`
-reports it as new, `size()` counts it twice, and a single `Remove` leaves it still in the
-table. `find_offset` runs on to the first empty slot, so a lookup keeps finding the older
-of the two, which is what makes this quiet.
-
-The search has to run as far as `find_offset` does, holding on to the first emptied slot
-along the way to place the value in if the key turns out not to be there.
-
 ### Take only a capacity a table can address
 
 `HashTable(std::size_t capacity)` is public and not explicit, and `capacity_mask_` is one

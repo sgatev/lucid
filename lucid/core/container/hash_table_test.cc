@@ -5,6 +5,17 @@
 #include "lucid/core/testing/testing.h"
 
 namespace lucid {
+
+// A value that shares its slot with every other one, so that they queue along
+// a single probe chain and a removal leaves a slot behind in the middle of it.
+struct Colliding {
+  int id;
+
+  bool operator==(const Colliding&) const = default;
+};
+
+inline std::size_t Hash(const Colliding&) { return 7; }
+
 namespace {
 
 TEST(Test, HashTableGrowsWhenItsValuesFillIt) {
@@ -49,6 +60,42 @@ TEST(Test, HashTableKeepsItsValuesWhenItRebuilds) {
   EXPECT_EQ(table.size(), 8);
 
   for (int i = 0; i < 8; ++i) EXPECT_TRUE(table.Find(i) != table.end());
+}
+
+TEST(Test, HashTableFindsAValuePastASlotARemovalEmptied) {
+  HashTable<Colliding> table;
+
+  EXPECT_TRUE(table.Insert(Colliding{1}));
+  EXPECT_TRUE(table.Insert(Colliding{2}));
+
+  // The first of them held the head of the chain the second one is on, so
+  // removing it leaves the second sitting behind an emptied slot.
+  EXPECT_THAT(table.Remove(Colliding{1}), Optional(Equals(Colliding{1})));
+
+  // The search has to run past that slot to the value still behind it, rather
+  // than take the slot and leave the table holding the value twice.
+  EXPECT_FALSE(table.Insert(Colliding{2}));
+  EXPECT_EQ(table.size(), 1);
+
+  // One removal takes it out, because there is only the one of it.
+  EXPECT_THAT(table.Remove(Colliding{2}), Optional(Equals(Colliding{2})));
+  EXPECT_EQ(table.size(), 0);
+  EXPECT_TRUE(table.Find(Colliding{2}) == table.end());
+}
+
+TEST(Test, HashTableFindsValuesPastManySlotsRemovalsEmptied) {
+  HashTable<Colliding> table;
+
+  for (int i = 0; i < 8; ++i) EXPECT_TRUE(table.Insert(Colliding{i}));
+
+  // Empty the front half of the chain, leaving the back half behind it.
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_THAT(table.Remove(Colliding{i}), Optional(Equals(Colliding{i})));
+  }
+  EXPECT_EQ(table.size(), 4);
+
+  for (int i = 4; i < 8; ++i) EXPECT_FALSE(table.Insert(Colliding{i}));
+  EXPECT_EQ(table.size(), 4);
 }
 
 TEST(Test, HashTableGrowsForValuesThatStay) {

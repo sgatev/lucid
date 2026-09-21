@@ -159,22 +159,28 @@ class HashTable {
     const std::size_t proj_hash = Hash(proj);
     const std::uint8_t proj_meta = hash_meta(proj_hash);
 
+    std::size_t first_free_offset = capacity();
     std::size_t offset = proj_hash;
     for (std::size_t i = 0;; ++i) {
       offset = (offset + i) & capacity_mask_;
+      const std::uint8_t offset_meta = *meta(offset);
 
-      std::uint8_t& offset_meta = *meta(offset);
-      V* offset_slot = slot(offset);
-      if (offset_meta == proj_meta && Project(*offset_slot) == proj) {
-        return std::make_pair(offset_slot, false);
-      }
-      if (!full(offset_meta)) {
-        if (empty(offset_meta)) ++non_empty_slots_count_;
-        offset_meta = proj_meta;
-        ++full_slots_count_;
-        return std::make_pair(offset_slot, true);
+      if (full(offset_meta)) {
+        if (offset_meta == proj_meta && Project(*slot(offset)) == proj) {
+          return std::make_pair(slot(offset), false);
+        }
+      } else {
+        if (first_free_offset == capacity()) first_free_offset = offset;
+
+        // An empty slot is the end of the chain, so `proj` is not here.
+        if (empty(offset_meta)) break;
       }
     }
+
+    ++full_slots_count_;
+    if (empty(*meta(first_free_offset))) ++non_empty_slots_count_;
+    *meta(first_free_offset) = proj_meta;
+    return std::make_pair(slot(first_free_offset), true);
   }
 
   // Inserts the given `val` and returns true if `Project(val)` is not already
