@@ -66,11 +66,14 @@ void InitPhiFunctions(const SyntaxContext& syn_ctx,
     if (def_blocks.size() < 2) continue;
 
     HashSet<BlockRef> visited;
-    HashSet<BlockRef> pending = def_blocks;
+
+    std::vector<BlockRef> pending;
+    pending.reserve(def_blocks.size());
+    for (BlockRef def_block : def_blocks) pending.push_back(def_block);
 
     while (!pending.empty()) {
-      auto block = *pending.begin();
-      pending.Remove(block);
+      const BlockRef block = pending.back();
+      pending.pop_back();
 
       auto dom_front_it = dom_fronts.Get(block);
       if (!dom_front_it.has_value()) continue;
@@ -93,7 +96,7 @@ void InitPhiFunctions(const SyntaxContext& syn_ctx,
         yb.phis.push_back(syn_cfg.add(std::move(phi)));
         visited.Insert(y);
 
-        if (!def_blocks.Contains(y)) pending.Insert(y);
+        if (!def_blocks.Contains(y)) pending.push_back(y);
       }
     }
   }
