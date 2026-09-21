@@ -22,35 +22,6 @@ would make the bottom element of a lattice free, which is what `RunDataflow` now
 every join from. There is also no `Clear`, so a table that is finished with cannot lend
 its capacity to the next one.
 
-## Register allocation
-
-### Colour the registers a block's phi functions name
-
-[`ColorInterferenceGraph`](lucid/am/reg.cc) gathers the registers to colour by walking the
-instructions of every block, and the loop that gathers the ones a block's phi functions
-name sits inside that walk rather than beside it. A block holding phi functions and no
-instructions therefore contributes none of them, `ColorInterferenceGraph` returns no
-colour for those registers, and `UpdateRegister` asserts on the first one it meets. An
-optimised build, where that assertion is compiled out, runs on instead: a function that
-takes minutes rather than the milliseconds around it.
-
-Branches nested three deep are enough to make a block like that:
-
-```
-fun main(a: Int32): Int32 {
-  val v0: Int32 = 0
-  ...
-  if a == 3 { if a == 2 { if a == 1 { &v0 = 1 } else { &v0 = 2 } ... } ... }
-  return v0
-}
-```
-
-Moving the loop out beside the walk rather than inside it compiles that function and the
-same shape nested four and six deep, so it is the cause rather than a symptom. Whether it
-is the whole fix is unchecked: it also changes what is gathered for every block that has
-both phi functions and instructions, where today the phi registers are gathered once per
-instruction instead of once.
-
 ## Tests and benchmarks
 
 ### Benchmark a function that branches

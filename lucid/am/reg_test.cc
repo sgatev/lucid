@@ -135,6 +135,31 @@ TEST(ColoringTest, ColorsBranches) {
   )");
 }
 
+// Branches nested this deep leave blocks holding phi functions and no
+// instructions at all, whose registers need colours like any other.
+TEST(ColoringTest, ColorsNestedBranches) {
+  ExpectValidColoring(R"(
+    fun main(): Int32 {
+      val a: Int32 = 3
+      val v: Int32 = 0
+      if a == 3 {
+        if a == 2 {
+          if a == 1 { &v = 1 } else { &v = 2 }
+        } else {
+          if a == 1 { &v = 3 } else { &v = 4 }
+        }
+      } else {
+        if a == 2 {
+          if a == 1 { &v = 5 } else { &v = 6 }
+        } else {
+          if a == 1 { &v = 7 } else { &v = 8 }
+        }
+      }
+      return v
+    }
+  )");
+}
+
 TEST(ColoringTest, ColorsAChainOfValues) {
   ExpectValidColoring(ChainedValues(128));
 }

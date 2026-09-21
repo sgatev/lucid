@@ -320,10 +320,10 @@ HashMap<Reg, int> ColorInterferenceGraph(
       } else {
         assert(false && "unhandled instruction type");
       }
-      for (const auto& phi : block.phis) {
-        reg_scores.Insert(phi.dst, 0);
-        for (const auto& source : phi.srcs) reg_scores.Insert(source, 0);
-      }
+    }
+    for (const auto& phi : block.phis) {
+      reg_scores.Insert(phi.dst, 0);
+      for (const auto& source : phi.srcs) reg_scores.Insert(source, 0);
     }
     if (block.branch_cond.has_value()) {
       reg_scores.Insert(*block.branch_cond, 0);
