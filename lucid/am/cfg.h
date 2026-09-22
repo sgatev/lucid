@@ -103,6 +103,10 @@ class AbstractMachineControlFlowGraph {
   std::vector<int> stack_slots;
 
   // Next free register ID.
+  //
+  // Every register the graph holds has an ID below this one, which is what
+  // lets an ID be used as an index. Whoever puts a register in the graph
+  // moves this past it.
   std::int32_t next_free_reg_id = 1;
 
  private:

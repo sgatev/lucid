@@ -1,6 +1,10 @@
 #pragma once
 
+#include <algorithm>
+#include <utility>
+
 #include "lucid/am/cfg.h"
+#include "lucid/am/instructions.h"
 
 namespace lucid {
 
@@ -21,12 +25,20 @@ class AbstractMachineControlFlowGraphBuilder {
   // Adds an instruction to the control flow graph block.
   void AddInstruction(AbstractMachineControlFlowGraph::BlockRef ref,
                       Instruction inst) {
+    if (auto target_reg = GetTargetRegister(inst); target_reg.has_value()) {
+      TakeRegisterId(*target_reg);
+    }
+    ForEachSourceRegister(inst, [this](Reg reg) { TakeRegisterId(reg); });
+
     am_cfg_.GetBlock(ref).instructions.push_back(std::move(inst));
   }
 
   // Adds a phi function to the control flow graph block.
   void AddPhi(AbstractMachineControlFlowGraph::BlockRef ref,
               AbstractMachineControlFlowGraph::Phi phi) {
+    TakeRegisterId(phi.dst);
+    for (Reg source : phi.srcs) TakeRegisterId(source);
+
     am_cfg_.GetBlock(ref).phis.push_back(std::move(phi));
   }
 
@@ -44,6 +56,12 @@ class AbstractMachineControlFlowGraphBuilder {
   AbstractMachineControlFlowGraph Build() && { return std::move(am_cfg_); }
 
  private:
+  // Moves the next free register ID past `reg`, which a graph the translator
+  // builds does as it hands the IDs out.
+  void TakeRegisterId(Reg reg) {
+    am_cfg_.next_free_reg_id = std::max(am_cfg_.next_free_reg_id, reg.id + 1);
+  }
+
   AbstractMachineControlFlowGraph am_cfg_;
 };
 
