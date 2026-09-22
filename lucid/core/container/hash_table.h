@@ -161,21 +161,32 @@ class HashTable {
     const std::uint8_t proj_meta = hash_meta(proj_hash);
 
     std::size_t first_free_offset = capacity();
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
-      const std::uint8_t offset_meta = *meta(offset);
+    std::size_t offset = group_of(proj_hash);
+    for (std::size_t step = 1;; ++step) {
+      const std::uint64_t group_meta = group(offset);
 
-      if (full(offset_meta)) {
-        if (offset_meta == proj_meta && Project(*slot(offset)) == proj) {
-          return std::make_pair(slot(offset), false);
+      for (std::uint64_t matches = match(group_meta, proj_meta); matches != 0;
+           matches &= matches - 1) {
+        const std::size_t match_offset = first_match(offset, matches);
+        if (Project(*slot(match_offset)) == proj) {
+          return std::make_pair(slot(match_offset), false);
         }
-      } else {
-        if (first_free_offset == capacity()) first_free_offset = offset;
-
-        // An empty slot is the end of the chain, so `proj` is not here.
-        if (empty(offset_meta)) break;
       }
+
+      // The first slot of the chain holding nothing, which is where the value
+      // goes if the search runs out without finding `proj`. A slot holding
+      // nothing is one that carries a high bit, whether it was never filled
+      // or a removal emptied it.
+      if (first_free_offset == capacity()) {
+        if (const std::uint64_t frees = group_meta & kMetaHighs; frees != 0) {
+          first_free_offset = first_match(offset, frees);
+        }
+      }
+
+      // An empty slot is the end of the chain, so `proj` is not here.
+      if (match(group_meta, kEmptyMeta) != 0) break;
+
+      offset = next_group(offset, step);
     }
 
     ++full_slots_count_;
@@ -210,7 +221,7 @@ class HashTable {
     const std::size_t offset = find_offset(proj);
     if (offset == capacity()) return std::nullopt;
 
-    *meta(offset) = 0b11111110;
+    *meta(offset) = kRemovedMeta;
     --full_slots_count_;
 
     // The slot holds no value once it is emptied, so what is left of the one
@@ -254,7 +265,7 @@ class HashTable {
   static constexpr std::uint8_t* alloc_storage(std::size_t size) noexcept {
     auto* storage =
         static_cast<std::uint8_t*>(std::malloc(size + size * sizeof(V)));
-    std::fill_n(storage, size, 0b10000000);
+    std::fill_n(storage, size, kEmptyMeta);
     return storage;
   }
 
@@ -270,12 +281,43 @@ class HashTable {
     return (hash >> 25) & 0b01111111;
   }
 
+  static constexpr std::size_t kGroupSize = sizeof(std::uint64_t);
+  static constexpr std::uint8_t kEmptyMeta = 0b10000000;
+  static constexpr std::uint8_t kRemovedMeta = 0b11111110;
+  static constexpr std::uint64_t kMetaOnes = 0x0101010101010101ULL;
+  static constexpr std::uint64_t kMetaHighs = 0x8080808080808080ULL;
+
+  // Returns the meta bytes of the group that starts at `offset`.
+  inline std::uint64_t group(std::size_t offset) const noexcept {
+    std::uint64_t group_meta;
+    std::memcpy(&group_meta, meta(offset), sizeof(group_meta));
+    return group_meta;
+  }
+
+  // Returns the bytes of `group_meta` that equal `value`, each marked by its
+  // high bit. A byte holding a value is under `kEmptyMeta` and a meta byte
+  // asked about here never is, so the two cannot be taken for one another.
+  static constexpr std::uint64_t match(std::uint64_t group_meta,
+                                       std::uint8_t value) noexcept {
+    const std::uint64_t diff = group_meta ^ (kMetaOnes * value);
+    return (diff - kMetaOnes) & ~diff & kMetaHighs;
+  }
+
+  // Returns the offset of the first byte `matches` marks, within the group
+  // that starts at `offset`.
+  static constexpr std::size_t first_match(std::size_t offset,
+                                           std::uint64_t matches) noexcept {
+    static_assert(std::endian::native == std::endian::little,
+                  "the first byte of a group is the lowest of the word");
+    return offset + (std::size_t(std::countr_zero(matches)) / 8);
+  }
+
   static constexpr bool full(std::uint8_t meta) noexcept {
     return (meta & 0b10000000) == 0;
   }
 
   static constexpr bool empty(std::uint8_t meta) noexcept {
-    return meta == 0b10000000;
+    return meta == kEmptyMeta;
   }
 
   inline std::size_t next_full(std::size_t pos) const noexcept {
@@ -295,15 +337,22 @@ class HashTable {
     const std::size_t proj_hash = Hash(proj);
     const std::uint8_t proj_meta = hash_meta(proj_hash);
 
-    std::size_t offset = proj_hash;
-    for (std::size_t i = 0;; ++i) {
-      offset = (offset + i) & capacity_mask_;
+    std::size_t offset = group_of(proj_hash);
+    for (std::size_t step = 1;; ++step) {
+      const std::uint64_t group_meta = group(offset);
 
-      const std::uint8_t offset_meta = *meta(offset);
-      if (offset_meta == proj_meta && Project(*slot(offset)) == proj) {
-        return offset;
+      // Every slot of the group whose meta byte stands for this projection,
+      // read off the word at once rather than a byte at a time.
+      for (std::uint64_t matches = match(group_meta, proj_meta); matches != 0;
+           matches &= matches - 1) {
+        const std::size_t match_offset = first_match(offset, matches);
+        if (Project(*slot(match_offset)) == proj) return match_offset;
       }
-      if (empty(offset_meta)) return capacity();
+
+      // An empty slot is the end of the chain, so `proj` is not here.
+      if (match(group_meta, kEmptyMeta) != 0) return capacity();
+
+      offset = next_group(offset, step);
     }
   }
 
@@ -317,15 +366,20 @@ class HashTable {
       const P& proj = Project(value);
       const std::size_t proj_hash = Hash(proj);
 
-      std::size_t offset = proj_hash;
-      for (std::size_t i = 0;; ++i) {
-        offset = (offset + i) & capacity_mask_;
+      // This table is empty, so the first slot of the chain holding nothing
+      // is where the value belongs.
+      std::size_t offset = group_of(proj_hash);
+      for (std::size_t step = 1;; ++step) {
+        if (const std::uint64_t frees = group(offset) & kMetaHighs;
+            frees != 0) {
+          const std::size_t free_offset = first_match(offset, frees);
 
-        if (full(*meta(offset))) continue;
+          *meta(free_offset) = proj_meta;
+          new (slot(free_offset)) V(std::move(value));
+          break;
+        }
 
-        *meta(offset) = proj_meta;
-        new (slot(offset)) V(std::move(value));
-        break;
+        offset = next_group(offset, step);
       }
     }
     // Only the full slots of `other` were carried over, so this table has no
@@ -343,6 +397,19 @@ class HashTable {
         if (full(*meta(pos))) slot(pos)->~V();
       }
     }
+  }
+
+  // Returns the group that holds the slot `hash` belongs to.
+  inline std::size_t group_of(std::size_t hash) const noexcept {
+    return hash & capacity_mask_ & ~(kGroupSize - 1);
+  }
+
+  // Returns the group that comes `step` groups after `offset`. A capacity is
+  // a power of two and so is the number of groups in it, which is what makes
+  // these steps reach every one of them.
+  inline std::size_t next_group(std::size_t offset,
+                                std::size_t step) const noexcept {
+    return (offset + step * kGroupSize) & capacity_mask_;
   }
 
   inline std::uint8_t* meta(std::size_t i) const noexcept {
