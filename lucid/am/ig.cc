@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -9,13 +10,11 @@
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/liveness.h"
-#include "lucid/core/container/hash_map.h"
-#include "lucid/core/container/hash_set.h"
 #include "lucid/core/dataflow/dataflow.h"
 
 namespace lucid {
 
-HashMap<Reg, HashSet<Reg>> BuildInterferenceGraph(
+InterferenceGraph BuildInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg) {
   AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
   std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
@@ -26,18 +25,43 @@ HashMap<Reg, HashSet<Reg>> BuildInterferenceGraph(
   // index; and reaching a register through an index, unlike inserting one
   // into a map, moves nothing the graph already holds. That is what lets a
   // register's neighbours be held on to while another register is added.
-  std::vector<std::optional<HashSet<Reg>>> neighbours(am_cfg.next_free_reg_id);
-  std::vector<Reg> regs(am_cfg.next_free_reg_id);
+  const std::size_t reg_count = am_cfg.next_free_reg_id;
 
-  const auto nbs = [&](Reg reg) -> HashSet<Reg>& {
-    assert(reg.id >= 0 && reg.id < am_cfg.next_free_reg_id);
+  std::vector<Reg> regs(reg_count);
+  std::vector<bool> in_graph(reg_count, false);
 
-    std::optional<HashSet<Reg>>& reg_nbs = neighbours[reg.id];
-    if (!reg_nbs.has_value()) {
-      reg_nbs.emplace();
-      regs[reg.id] = reg;
-    }
-    return *reg_nbs;
+  // The edges as they are found, and how many of them each register is at the
+  // near end of. Neither says where a register's neighbours will lie, which
+  // is only known once the last edge is in: the two together settle that in a
+  // pass at the end.
+  std::vector<std::pair<Reg, Reg>> edges;
+  std::vector<std::uint32_t> degrees(reg_count, 0);
+
+  // A bit for every register against every other, saying whether the edge
+  // between them has been written down. The same edge is found wherever both
+  // of its ends are live, and this is what a repeat is recognised by.
+  std::vector<std::uint64_t> known_edges((reg_count * reg_count + 63) / 64);
+
+  const auto put_in_graph = [&](Reg reg) {
+    assert(reg.id >= 0 && std::size_t(reg.id) < reg_count);
+
+    if (in_graph[reg.id]) return;
+
+    in_graph[reg.id] = true;
+    regs[reg.id] = reg;
+  };
+
+  const auto add_edge = [&](Reg from, Reg to) {
+    put_in_graph(from);
+
+    const std::size_t edge = std::size_t(from.id) * reg_count + to.id;
+    std::uint64_t& known = known_edges[edge / 64];
+    const std::uint64_t bit = std::uint64_t(1) << (edge % 64);
+    if ((known & bit) != 0) return;
+
+    known |= bit;
+    ++degrees[from.id];
+    edges.emplace_back(from, to);
   };
 
   for (const auto& block : am_cfg.Blocks()) {
@@ -53,19 +77,19 @@ HashMap<Reg, HashSet<Reg>> BuildInterferenceGraph(
     std::vector<Reg> entering;
 
     for (Reg from : state.live_in) {
-      HashSet<Reg>& from_nbs = nbs(from);
+      put_in_graph(from);
       for (Reg to : state.live_in) {
-        if (to != from) from_nbs.Insert(to);
+        if (to != from) add_edge(from, to);
       }
     }
 
     for (const auto& inst : block.instructions | std::views::reverse) {
       if (auto target_reg = GetTargetRegister(inst); target_reg.has_value()) {
-        HashSet<Reg>& target_nbs = nbs(*target_reg);
+        put_in_graph(*target_reg);
         for (Reg to : state.live_in) {
           if (to != *target_reg) {
-            target_nbs.Insert(to);
-            nbs(to).Insert(*target_reg);
+            add_edge(*target_reg, to);
+            add_edge(to, *target_reg);
           }
         }
       }
@@ -82,44 +106,53 @@ HashMap<Reg, HashSet<Reg>> BuildInterferenceGraph(
       AbstractMachineLivenessAnalysis::Transfer(state, inst);
 
       if (auto* cinst = std::get_if<ModReg>(&inst)) {
-        HashSet<Reg>& res_nbs = nbs(cinst->res_reg);
-        res_nbs.Insert(cinst->lhs_reg);
-        res_nbs.Insert(cinst->rhs_reg);
+        add_edge(cinst->res_reg, cinst->lhs_reg);
+        add_edge(cinst->res_reg, cinst->rhs_reg);
 
-        nbs(cinst->lhs_reg).Insert(cinst->res_reg);
-        nbs(cinst->rhs_reg).Insert(cinst->res_reg);
+        add_edge(cinst->lhs_reg, cinst->res_reg);
+        add_edge(cinst->rhs_reg, cinst->res_reg);
       }
 
       for (Reg from : entering) {
-        HashSet<Reg>& from_nbs = nbs(from);
+        put_in_graph(from);
         for (Reg to : state.live_in) {
           if (to == from) continue;
 
-          from_nbs.Insert(to);
-          nbs(to).Insert(from);
+          add_edge(from, to);
+          add_edge(to, from);
         }
       }
     }
 
     for (const auto& phi : block.phis) {
-      HashSet<Reg>& dst_nbs = nbs(phi.dst);
+      put_in_graph(phi.dst);
       for (auto source : phi.srcs) {
-        dst_nbs.Insert(source);
-        nbs(source).Insert(phi.dst);
+        add_edge(phi.dst, source);
+        add_edge(source, phi.dst);
       }
     }
   }
 
   // The ids the graph was built against are dropped here: what it is read
   // through is the registers themselves.
-  HashMap<Reg, HashSet<Reg>> am_ig;
-  for (std::size_t id = 0; id < neighbours.size(); ++id) {
-    if (!neighbours[id].has_value()) continue;
-
-    am_ig.Insert(regs[id], *std::move(neighbours[id]));
+  // Where each register's neighbours begin, which is after everything the
+  // registers before it have.
+  std::vector<std::uint32_t> starts(reg_count + 1, 0);
+  for (std::size_t id = 0; id < reg_count; ++id) {
+    starts[id + 1] = starts[id] + degrees[id];
   }
 
-  return am_ig;
+  std::vector<Reg> neighbours(edges.size());
+  std::vector<std::uint32_t> next(starts.begin(), starts.end() - 1);
+  for (const auto& [from, to] : edges) neighbours[next[from.id]++] = to;
+
+  std::vector<Reg> graph_regs;
+  for (std::size_t id = 0; id < reg_count; ++id) {
+    if (in_graph[id]) graph_regs.push_back(regs[id]);
+  }
+
+  return InterferenceGraph(std::move(graph_regs), std::move(starts),
+                           std::move(neighbours));
 }
 
 }  // namespace lucid

@@ -250,7 +250,7 @@ void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
 
 HashMap<Reg, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
-    const HashMap<Reg, HashSet<Reg>>& am_ig, int colors_count) {
+    const InterferenceGraph& am_ig, int colors_count) {
   HashMap<Reg, int> reg_scores;
   for (const auto& param : am_cfg.params) {
     reg_scores.Insert(param, 0);
@@ -377,16 +377,14 @@ HashMap<Reg, int> ColorInterferenceGraph(
     seo.push_back(max_reg);
     visited.Insert(max_reg);
 
-    if (const auto& nbs = am_ig.Get(max_reg); nbs.has_value()) {
-      for (const auto& nb : *nbs) {
-        if (visited.Contains(nb)) continue;
-        if (auto nb_score = reg_scores.Get(nb); nb_score.has_value()) {
-          raise(nb, *nb_score);
-          reg_scores.Set(nb, *nb_score + 1);
-          // Everything still waiting scored at most `top` before this, so a
-          // register can only ever be raised to the bucket just above it.
-          top = std::max<std::size_t>(top, *nb_score + 1);
-        }
+    for (Reg nb : am_ig.Neighbours(max_reg)) {
+      if (visited.Contains(nb)) continue;
+      if (auto nb_score = reg_scores.Get(nb); nb_score.has_value()) {
+        raise(nb, *nb_score);
+        reg_scores.Set(nb, *nb_score + 1);
+        // Everything still waiting scored at most `top` before this, so a
+        // register can only ever be raised to the bucket just above it.
+        top = std::max<std::size_t>(top, *nb_score + 1);
       }
     }
   }
@@ -396,11 +394,9 @@ HashMap<Reg, int> ColorInterferenceGraph(
     HashSet<int> colors;
     for (int i = 0; i < colors_count; ++i) colors.Insert(19 + i);
 
-    if (const auto& nbs = am_ig.Get(reg); nbs.has_value()) {
-      for (const auto& nb : *nbs) {
-        const auto& neighbour_color = ig_colors.Get(nb);
-        if (neighbour_color.has_value()) colors.Remove(*neighbour_color);
-      }
+    for (Reg nb : am_ig.Neighbours(reg)) {
+      const auto& neighbour_color = ig_colors.Get(nb);
+      if (neighbour_color.has_value()) colors.Remove(*neighbour_color);
     }
 
     assert(colors.begin() != colors.end());

@@ -135,6 +135,7 @@ cc_library(
     deps = [
         ":cfg",
         ":cfg_printer",
+        ":ig",
         ":liveness",
         ":state",
         "//lucid/core/container:hash_map",

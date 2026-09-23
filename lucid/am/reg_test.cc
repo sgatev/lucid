@@ -86,11 +86,11 @@ class ColoringTest : public Test {
     OptimizeAbstractMachineFunction(am_cfg);
     SpillRegisters(am_cfg, am_state, kRegistersCount);
 
-    const HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);
+    const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg);
     const HashMap<Reg, int> colors =
         ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount);
 
-    for (const auto& [reg, neighbours] : am_ig) {
+    for (Reg reg : am_ig.Regs()) {
       const std::optional<const int&> color = colors.Get(reg);
       EXPECT_TRUE(color.has_value());
       if (!color.has_value()) continue;
@@ -98,7 +98,7 @@ class ColoringTest : public Test {
       EXPECT_TRUE(*color >= 19);
       EXPECT_TRUE(*color < 19 + kRegistersCount);
 
-      for (const Reg& neighbour : neighbours) {
+      for (Reg neighbour : am_ig.Neighbours(reg)) {
         const std::optional<const int&> neighbour_color = colors.Get(neighbour);
         if (!neighbour_color.has_value()) continue;
         EXPECT_NE(*color, *neighbour_color);

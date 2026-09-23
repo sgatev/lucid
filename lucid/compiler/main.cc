@@ -298,7 +298,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
         SpillRegisters(am_cfg, am_state, kArmRegistersCount);
       } else if (ctx.Flag("regs") == "merge") {
         SpillRegisters(am_cfg, am_state, kArmRegistersCount);
-        HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);
+        InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg);
         HashMap<Reg, int> am_ig_colors =
             ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
         MergeRegisters(am_ig_colors, am_cfg);

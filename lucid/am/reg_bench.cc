@@ -112,7 +112,7 @@ void BenchmarkColoring(BenchmarkState& state, std::string_view snippet) {
       snippet, [&](AbstractMachineControlFlowGraph& am_cfg,
                    AbstractMachineState& am_state) {
         SpillRegisters(am_cfg, am_state, kRegistersCount);
-        const HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);
+        const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg);
 
         for (auto _ : state) {
           DoNotOptimize(
@@ -158,7 +158,7 @@ void BenchmarkAllocation(BenchmarkState& state, std::string_view snippet) {
           AbstractMachineState reg_state = am_state;
 
           SpillRegisters(cfg, reg_state, kRegistersCount);
-          const HashMap<Reg, HashSet<Reg>> ig = BuildInterferenceGraph(cfg);
+          const InterferenceGraph ig = BuildInterferenceGraph(cfg);
           const HashMap<Reg, int> colors =
               ColorInterferenceGraph(cfg, ig, kRegistersCount);
           MergeRegisters(colors, cfg);

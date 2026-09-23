@@ -75,7 +75,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       OptimizeAbstractMachineFunction(am_cfg);
       static constexpr int kArmRegistersCount = 10;
       SpillRegisters(am_cfg, am_state, kArmRegistersCount);
-      HashMap<Reg, HashSet<Reg>> am_ig = BuildInterferenceGraph(am_cfg);
+      InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg);
       HashMap<Reg, int> am_ig_colors =
           ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
       MergeRegisters(am_ig_colors, am_cfg);

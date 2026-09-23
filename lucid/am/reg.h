@@ -3,6 +3,7 @@
 #include <cstddef>
 
 #include "lucid/am/cfg.h"
+#include "lucid/am/ig.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/state.h"
 #include "lucid/core/container/hash_map.h"
@@ -15,7 +16,7 @@ void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
 
 HashMap<Reg, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
-    const HashMap<Reg, HashSet<Reg>>& am_ig, int colors_count);
+    const InterferenceGraph& am_ig, int colors_count);
 
 void MergeRegisters(const HashMap<Reg, int>& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg);

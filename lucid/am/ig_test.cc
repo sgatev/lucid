@@ -38,7 +38,7 @@ TEST(Test, BuildInterferenceGraphEmpty) {
   // Block z:
   g.SetLast(z);
 
-  EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()), IsEmpty());
+  EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()).Regs(), IsEmpty());
 }
 
 TEST(Test, BuildInterferenceGraphSimple) {
@@ -61,8 +61,10 @@ TEST(Test, BuildInterferenceGraphSimple) {
                       });
   g.SetLast(z);
 
-  EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()),
-              UnorderedElements(Pair(Equals(kReg1), IsEmpty())));
+  const InterferenceGraph ig = BuildInterferenceGraph(std::move(g).Build());
+
+  EXPECT_THAT(ig.Regs(), UnorderedElementsEqual(kReg1));
+  EXPECT_THAT(ig.Neighbours(kReg1), IsEmpty());
 }
 
 TEST(Test, BuildInterferenceGraphNonOverlapping) {
@@ -89,9 +91,11 @@ TEST(Test, BuildInterferenceGraphNonOverlapping) {
                       });
   g.SetLast(z);
 
-  EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()),
-              UnorderedElements(Pair(Equals(kReg1), IsEmpty()),
-                                Pair(Equals(kReg2), IsEmpty())));
+  const InterferenceGraph ig = BuildInterferenceGraph(std::move(g).Build());
+
+  EXPECT_THAT(ig.Regs(), UnorderedElementsEqual(kReg1, kReg2));
+  EXPECT_THAT(ig.Neighbours(kReg1), IsEmpty());
+  EXPECT_THAT(ig.Neighbours(kReg2), IsEmpty());
 }
 
 TEST(Test, BuildInterferenceGraphOverlapping) {
@@ -123,11 +127,12 @@ TEST(Test, BuildInterferenceGraphOverlapping) {
                       });
   g.SetLast(z);
 
-  EXPECT_THAT(
-      BuildInterferenceGraph(std::move(g).Build()),
-      UnorderedElements(Pair(Equals(kReg1), UnorderedElementsEqual(kReg2)),
-                        Pair(Equals(kReg2), UnorderedElementsEqual(kReg1)),
-                        Pair(Equals(kReg3), IsEmpty())));
+  const InterferenceGraph ig = BuildInterferenceGraph(std::move(g).Build());
+
+  EXPECT_THAT(ig.Regs(), UnorderedElementsEqual(kReg1, kReg2, kReg3));
+  EXPECT_THAT(ig.Neighbours(kReg1), UnorderedElementsEqual(kReg2));
+  EXPECT_THAT(ig.Neighbours(kReg2), UnorderedElementsEqual(kReg1));
+  EXPECT_THAT(ig.Neighbours(kReg3), IsEmpty());
 }
 
 TEST(Test, BuildInterferenceGraphBranching) {
@@ -171,11 +176,12 @@ TEST(Test, BuildInterferenceGraphBranching) {
                       });
   g.SetLast(z);
 
-  EXPECT_THAT(
-      BuildInterferenceGraph(std::move(g).Build()),
-      UnorderedElements(Pair(Equals(kReg1), UnorderedElementsEqual(kReg2)),
-                        Pair(Equals(kReg2), UnorderedElementsEqual(kReg1)),
-                        Pair(Equals(kReg3), IsEmpty())));
+  const InterferenceGraph ig = BuildInterferenceGraph(std::move(g).Build());
+
+  EXPECT_THAT(ig.Regs(), UnorderedElementsEqual(kReg1, kReg2, kReg3));
+  EXPECT_THAT(ig.Neighbours(kReg1), UnorderedElementsEqual(kReg2));
+  EXPECT_THAT(ig.Neighbours(kReg2), UnorderedElementsEqual(kReg1));
+  EXPECT_THAT(ig.Neighbours(kReg3), IsEmpty());
 }
 
 TEST(Test, BuildInterferenceGraphMerging) {
@@ -215,11 +221,12 @@ TEST(Test, BuildInterferenceGraphMerging) {
                       });
   g.SetLast(z);
 
-  EXPECT_THAT(BuildInterferenceGraph(std::move(g).Build()),
-              UnorderedElements(
-                  Pair(Equals(kReg1), UnorderedElementsEqual(kReg3)),
-                  Pair(Equals(kReg2), UnorderedElementsEqual(kReg3)),
-                  Pair(Equals(kReg3), UnorderedElementsEqual(kReg1, kReg2))));
+  const InterferenceGraph ig = BuildInterferenceGraph(std::move(g).Build());
+
+  EXPECT_THAT(ig.Regs(), UnorderedElementsEqual(kReg1, kReg2, kReg3));
+  EXPECT_THAT(ig.Neighbours(kReg1), UnorderedElementsEqual(kReg3));
+  EXPECT_THAT(ig.Neighbours(kReg2), UnorderedElementsEqual(kReg3));
+  EXPECT_THAT(ig.Neighbours(kReg3), UnorderedElementsEqual(kReg1, kReg2));
 }
 
 }  // namespace
