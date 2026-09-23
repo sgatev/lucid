@@ -24,10 +24,9 @@ namespace lucid {
 namespace {
 
 std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
+                                  const AbstractMachineLiveness& liveness,
                                   HashSet<Reg>& spilled, int max_clique_size) {
-  AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      liveness_block_states = RunDataflow(Backward(am_cfg), liveness_analysis);
+  const AbstractMachineLiveness& liveness_block_states = liveness;
 
   for (const auto& block : am_cfg.Blocks()) {
     if (!liveness_block_states[block.ref.id()].has_value()) continue;
@@ -234,13 +233,20 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 
 }  // namespace
 
-void SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
-                    AbstractMachineState& am_state, int max_clique_size) {
+AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
+                                       AbstractMachineState& am_state,
+                                       int max_clique_size) {
   HashSet<Reg> spilt_regs;
   while (true) {
+    AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
+    AbstractMachineLiveness liveness =
+        RunDataflow(Backward(am_cfg), liveness_analysis);
+
     std::optional<Reg> reg_to_spill =
-        FindRegToSpill(am_cfg, spilt_regs, max_clique_size);
-    if (!reg_to_spill.has_value()) break;
+        FindRegToSpill(am_cfg, liveness, spilt_regs, max_clique_size);
+    // Nothing left to spill, so this is what the graph as it stands is live
+    // over, and whoever asked for the spilling is handed it.
+    if (!reg_to_spill.has_value()) return liveness;
 
     SpillRegisters(*reg_to_spill, am_cfg, am_state);
 

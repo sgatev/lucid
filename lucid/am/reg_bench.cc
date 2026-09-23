@@ -157,8 +157,9 @@ void BenchmarkAllocation(BenchmarkState& state, std::string_view snippet) {
           AbstractMachineControlFlowGraph cfg = am_cfg;
           AbstractMachineState reg_state = am_state;
 
-          SpillRegisters(cfg, reg_state, kRegistersCount);
-          const InterferenceGraph ig = BuildInterferenceGraph(cfg);
+          const AbstractMachineLiveness liveness =
+              SpillRegisters(cfg, reg_state, kRegistersCount);
+          const InterferenceGraph ig = BuildInterferenceGraph(cfg, liveness);
           const HashMap<Reg, int> colors =
               ColorInterferenceGraph(cfg, ig, kRegistersCount);
           MergeRegisters(colors, cfg);

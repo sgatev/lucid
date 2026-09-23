@@ -8,6 +8,7 @@
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
+#include "lucid/am/liveness.h"
 
 namespace lucid {
 
@@ -59,7 +60,17 @@ class InterferenceGraph {
 };
 
 // Builds an interference graph of the abstract machine program given its
-// control flow graph.
+// control flow graph and what an analysis of it settled on.
+//
+// Working out what is live where is the greater part of the building, and
+// spilling has already done it for the graph it leaves behind, so what it
+// worked out is taken rather than worked out again.
+InterferenceGraph BuildInterferenceGraph(
+    const AbstractMachineControlFlowGraph& am_cfg,
+    const AbstractMachineLiveness& liveness);
+
+// Builds an interference graph of the abstract machine program given its
+// control flow graph, working out what is live where along the way.
 InterferenceGraph BuildInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg);
 

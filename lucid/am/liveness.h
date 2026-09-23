@@ -33,12 +33,15 @@ class AbstractMachineLivenessAnalysis {
   const AbstractMachineControlFlowGraph& am_cfg_;
 };
 
+// What an analysis settled on for every block of a graph, indexed by block ID.
+// A block the analysis never reached has nothing here.
+using AbstractMachineLiveness =
+    std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>;
+
 // Returns the registers that are live where `block` exits, given the `states`
 // that an analysis over `am_cfg` settled on.
-HashSet<Reg> LiveOut(
-    const AbstractMachineControlFlowGraph& am_cfg,
-    const std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>&
-        states,
-    const AbstractMachineControlFlowGraph::Block& block);
+HashSet<Reg> LiveOut(const AbstractMachineControlFlowGraph& am_cfg,
+                     const AbstractMachineLiveness& states,
+                     const AbstractMachineControlFlowGraph::Block& block);
 
 }  // namespace lucid

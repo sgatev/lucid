@@ -17,9 +17,13 @@ namespace lucid {
 InterferenceGraph BuildInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg) {
   AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
-  std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>
-      liveness_block_states = RunDataflow(Backward(am_cfg), liveness_analysis);
+  return BuildInterferenceGraph(
+      am_cfg, RunDataflow(Backward(am_cfg), liveness_analysis));
+}
 
+InterferenceGraph BuildInterferenceGraph(
+    const AbstractMachineControlFlowGraph& am_cfg,
+    const AbstractMachineLiveness& liveness_block_states) {
   // The graph is built against register ids rather than against registers
   // hashed into a map. An id is handed out once and in sequence, so it is an
   // index; and reaching a register through an index, unlike inserting one

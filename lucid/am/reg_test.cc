@@ -84,9 +84,10 @@ class ColoringTest : public Test {
     AbstractMachineControlFlowGraph am_cfg = GenerateAbstractMachineFunction(
         /*am_cfgs=*/{}, syn_ctx, syn_cfg, am_state);
     OptimizeAbstractMachineFunction(am_cfg);
-    SpillRegisters(am_cfg, am_state, kRegistersCount);
+    const AbstractMachineLiveness liveness =
+        SpillRegisters(am_cfg, am_state, kRegistersCount);
 
-    const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg);
+    const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg, liveness);
     const HashMap<Reg, int> colors =
         ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount);
 
