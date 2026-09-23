@@ -155,7 +155,7 @@ class HashTable {
   // true).
   template <typename... Ts>
   inline std::pair<V*, bool> FindOrAlloc(const P& proj) {
-    if (non_empty_slots_count_ > (capacity() >> 1)) rehash();
+    if (non_empty_slots_count_ > max_load()) rehash();
 
     const std::size_t proj_hash = Hash(proj);
     const std::uint8_t proj_meta = hash_meta(proj_hash);
@@ -398,6 +398,15 @@ class HashTable {
       }
     }
   }
+
+  // Returns how many slots may be spoken for before the table is rebuilt.
+  //
+  // Half, which is enough room that a search almost always settles in the
+  // first group it reads. Seven eighths was measured against this: it halves
+  // what a table takes up and leaves the chains nearly as short, but a fuller
+  // group answers a search with more candidates to compare, which costs a
+  // lookup more than it saves a rebuild.
+  inline std::size_t max_load() const noexcept { return capacity() >> 1; }
 
   // Returns the group that holds the slot `hash` belongs to.
   inline std::size_t group_of(std::size_t hash) const noexcept {
