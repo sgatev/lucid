@@ -57,29 +57,36 @@ std::optional<Reg> RegReadFurthestAhead(
 std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
                                   const AbstractMachineLiveness& liveness,
                                   HashSet<Reg>& spilled, int max_clique_size) {
-  const AbstractMachineLiveness& liveness_block_states = liveness;
-
   for (const auto& block : am_cfg.Blocks()) {
-    if (!liveness_block_states[block.ref.id()].has_value()) continue;
+    if (!liveness[block.ref.id()].has_value()) continue;
 
     // The walk backwards over the block starts from what is live where it
     // exits, and carries what is live at each instruction with it.
     AbstractMachineLivenessAnalysis::State state;
-    state.live_in = LiveOut(am_cfg, liveness_block_states, block);
+    state.live_in = LiveOut(am_cfg, liveness, block);
 
     // Where each register is next read, as an instruction's place in the
     // block. The walk runs backwards, so the last reading it writes down for
     // a register is the first one after wherever it has reached.
     HashMap<Reg, std::size_t> next_read;
 
-    if (state.live_in.size() > max_clique_size) {
-      if (const auto reg =
-              RegReadFurthestAhead(state.live_in, next_read, spilled);
-          reg.has_value()) {
-        return reg;
-      }
-      assert(false);
-    }
+    // True where more is live at the point the walk has reached than there
+    // are registers to hold it.
+    const auto over_full = [&] {
+      return state.live_in.size() > max_clique_size;
+    };
+
+    // Returns the register to spill at the point the walk has reached.
+    //
+    // An over full point always has one, unless everything live there is
+    // spilled already and the spilling bought no room. That happens to a
+    // value live across a phi function, which spilling does not yet reach.
+    // See TODO.md.
+    const auto reg_to_spill = [&] {
+      return RegReadFurthestAhead(state.live_in, next_read, spilled).value();
+    };
+
+    if (over_full()) return reg_to_spill();
 
     std::size_t index = block.instructions.size();
     for (const auto& inst : block.instructions | std::views::reverse) {
@@ -88,26 +95,13 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
       AbstractMachineLivenessAnalysis::Transfer(state, inst);
       ForEachSourceRegister(inst, [&](Reg reg) { next_read.Set(reg, index); });
 
-      if (state.live_in.size() > max_clique_size) {
-        if (const auto reg =
-                RegReadFurthestAhead(state.live_in, next_read, spilled);
-            reg.has_value()) {
-          return reg;
-        }
-        assert(false);
-      }
+      if (over_full()) return reg_to_spill();
     }
+
     if (block.ref == am_cfg.first) {
       for (auto& param : am_cfg.params) state.live_in.Insert(param);
 
-      if (state.live_in.size() > max_clique_size) {
-        if (const auto reg =
-                RegReadFurthestAhead(state.live_in, next_read, spilled);
-            reg.has_value()) {
-          return reg;
-        }
-        assert(false);
-      }
+      if (over_full()) return reg_to_spill();
     }
   }
   return std::nullopt;

@@ -22,6 +22,38 @@ would make the bottom element of a lattice free, which is what `RunDataflow` now
 every join from. There is also no `Clear`, so a table that is finished with cannot lend
 its capacity to the next one.
 
+## Register allocation
+
+### Spill a register a phi function reads
+
+Spilling a register puts a store after where it is written and a load before each
+instruction that reads it. A phi function reads its arguments too, and
+[`reg.cc`](lucid/am/reg.cc) leaves those alone, as the `TODO` beside them says. A
+register a phi reads therefore stays live from where it is written to the end of the
+block the phi takes it from, and spilling it makes no room at all.
+
+What follows is that no function that branches can be given registers once it needs to
+spill. Twelve values live across a single branch are enough: spilling runs until every
+register live at the crowded point has been spilled, makes no room in the process, and
+colouring then reaches a register with no colour left for it and asserts. In a build with
+the assertions compiled out it takes whichever colour the empty set yields.
+
+A phi reads its argument where control leaves the block that argument comes from, so the
+load belongs at the end of that block, and the phi argument becomes the register loaded
+into. Until that is written, a test of a branching function that spills cannot be added:
+`BranchingValues(12, 1)` in [`reg_test`](lucid/am/reg_test.cc) is the shape of it.
+
+### Pass a parameter that has no register on the stack
+
+A function reaches the same wall for a second reason, with no branch in it at all. Every
+parameter is live where the function is entered, because that is where the caller leaves
+it, and spilling one puts its store after that point rather than before it. The room a
+spill is meant to buy at the entry is therefore never bought, and a function of eleven
+parameters against ten registers spills every one of them and is still over full.
+
+Parameters past the ones there are registers for have to arrive on the stack, which is
+a question for the calling convention rather than for the allocator.
+
 ## Tests and benchmarks
 
 ### Benchmark a function that branches
