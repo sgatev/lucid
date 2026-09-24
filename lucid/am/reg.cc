@@ -4,10 +4,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 #include <list>
 #include <optional>
 #include <ranges>
-#include <utility>
 #include <variant>
 #include <vector>
 
@@ -23,6 +23,37 @@
 namespace lucid {
 namespace {
 
+// How far ahead a register is read when nothing in the block reads it. It is
+// read in a block further on, which is further off than anything here.
+constexpr std::size_t kReadBeyondTheBlock =
+    std::numeric_limits<std::size_t>::max();
+
+// Returns the register to spill out of those live at a point, which is the
+// one read furthest ahead.
+//
+// Spilling a register costs a load wherever it is read, so the one whose
+// reading is furthest off is the one that buys the most room for the fewest
+// loads. Taking whichever came first instead is taking one at random, since
+// what comes first out of a set of them is only where the hashing put it.
+std::optional<Reg> RegReadFurthestAhead(
+    const HashSet<Reg>& live, const HashMap<Reg, std::size_t>& next_read,
+    const HashSet<Reg>& spilled) {
+  std::optional<Reg> furthest;
+  std::size_t furthest_read = 0;
+
+  for (Reg reg : live) {
+    if (spilled.Contains(reg)) continue;
+
+    const auto read = next_read.Get(reg);
+    const std::size_t at = read.has_value() ? *read : kReadBeyondTheBlock;
+    if (furthest.has_value() && at <= furthest_read) continue;
+
+    furthest = reg;
+    furthest_read = at;
+  }
+  return furthest;
+}
+
 std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
                                   const AbstractMachineLiveness& liveness,
                                   HashSet<Reg>& spilled, int max_clique_size) {
@@ -36,19 +67,32 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
     AbstractMachineLivenessAnalysis::State state;
     state.live_in = LiveOut(am_cfg, liveness_block_states, block);
 
+    // Where each register is next read, as an instruction's place in the
+    // block. The walk runs backwards, so the last reading it writes down for
+    // a register is the first one after wherever it has reached.
+    HashMap<Reg, std::size_t> next_read;
+
     if (state.live_in.size() > max_clique_size) {
-      for (const auto& reg : state.live_in) {
-        if (!spilled.Contains(reg)) return reg;
+      if (const auto reg =
+              RegReadFurthestAhead(state.live_in, next_read, spilled);
+          reg.has_value()) {
+        return reg;
       }
       assert(false);
     }
 
+    std::size_t index = block.instructions.size();
     for (const auto& inst : block.instructions | std::views::reverse) {
+      --index;
+
       AbstractMachineLivenessAnalysis::Transfer(state, inst);
+      ForEachSourceRegister(inst, [&](Reg reg) { next_read.Set(reg, index); });
 
       if (state.live_in.size() > max_clique_size) {
-        for (const auto& reg : state.live_in) {
-          if (!spilled.Contains(reg)) return reg;
+        if (const auto reg =
+                RegReadFurthestAhead(state.live_in, next_read, spilled);
+            reg.has_value()) {
+          return reg;
         }
         assert(false);
       }
@@ -57,8 +101,10 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
       for (auto& param : am_cfg.params) state.live_in.Insert(param);
 
       if (state.live_in.size() > max_clique_size) {
-        for (const auto& reg : state.live_in) {
-          if (!spilled.Contains(reg)) return reg;
+        if (const auto reg =
+                RegReadFurthestAhead(state.live_in, next_read, spilled);
+            reg.has_value()) {
+          return reg;
         }
         assert(false);
       }
