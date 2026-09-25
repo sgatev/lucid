@@ -5,6 +5,8 @@ on: [push]
 jobs:
   test:
     runs-on: xcode-27
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
       - name: Use the Command Line Tools toolchain
