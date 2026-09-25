@@ -4,6 +4,7 @@ Lucid is an experimental programming language and toolchain developed from scrat
 
 ## Overview
 
+- [Language](LANGUAGE.md)
 - [Architecture](ARCHITECTURE.md)
 
 ## Requires
