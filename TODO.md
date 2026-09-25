@@ -24,28 +24,22 @@ its capacity to the next one.
 
 ## Register allocation
 
-### Spill a register a phi function reads
+### Keep a spilt phi function in memory
 
-Spilling a register puts a store after where it is written and a load before each
-instruction that reads it. A phi function reads its arguments too, and
-[`reg.cc`](lucid/am/reg.cc) leaves those alone, as the `TODO` beside them says. A
-register a phi reads therefore stays live from where it is written to the end of the
-block the phi takes it from, and spilling it makes no room at all.
+A phi function reads each argument where control leaves the block that argument
+comes from, so every argument has to be in a register at that point. The point
+where the sides of a branch meet therefore needs as many registers as there are
+values crossing it, and no amount of spilling changes that: spilling a value a phi
+reads now loads it back at that point, which buys room everywhere else but not
+there. Eleven values crossing a branch against ten registers cannot be coloured.
 
-What follows is that no function that branches can be given registers once it needs to
-spill. Twelve values live across a single branch are enough: spilling runs until every
-register live at the crowded point has been spilled, makes no room in the process, and
-colouring then reaches a register with no colour left for it and asserts. In a build with
-the assertions compiled out it takes whichever colour the empty set yields.
-
-A phi reads its argument where control leaves the block that argument comes from, so the
-load belongs at the end of that block, and the phi argument becomes the register loaded
-into. Until that is written, a test of a branching function that spills cannot be added:
-`BranchingValues(12, 1)` in [`reg_test`](lucid/am/reg_test.cc) is the shape of it.
+A phi whose result is spilt needs no register at all if its arguments are stored
+to the result's own slot, which is to say if the result and its arguments are
+given one slot between them.
 
 ### Pass a parameter that has no register on the stack
 
-A function reaches the same wall for a second reason, with no branch in it at all. Every
+A function runs out of registers for a second reason too, with no branch in it at all. Every
 parameter is live where the function is entered, because that is where the caller leaves
 it, and spilling one puts its store after that point rather than before it. The room a
 spill is meant to buy at the entry is therefore never bought, and a function of eleven

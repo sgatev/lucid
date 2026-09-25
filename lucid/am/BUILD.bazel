@@ -155,7 +155,6 @@ cc_test(
         ":reg",
         ":translator",
         "//lucid/core/container:hash_map",
-        "//lucid/core/container:hash_set",
         "//lucid/core/testing",
         "//lucid/syntax:ast",
         "//lucid/syntax:cfg",

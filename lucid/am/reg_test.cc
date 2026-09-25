@@ -13,7 +13,6 @@
 #include "lucid/am/opt.h"
 #include "lucid/am/translator.h"
 #include "lucid/core/container/hash_map.h"
-#include "lucid/core/container/hash_set.h"
 #include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
@@ -52,6 +51,68 @@ std::string LiveValues(int count) {
     code += std::format("  val sum{}: Int32 = sum + v{}\n", i, i);
   }
   code += std::format("  return sum{}\n}}\n", count - 1);
+  return code;
+}
+
+// `crossing` values written on one side of a branch and all read after it,
+// so that a phi function waits for each of them where the sides meet, and
+// `inside` more live only within that side, to crowd the registers there.
+//
+// What crosses the branch is what is read furthest ahead, so it is what the
+// spilling takes, which is to say a register a phi function reads.
+std::string BranchingValues(int crossing, int inside) {
+  std::string code = "fun main(): Int32 {\n  val a: Int32 = 1\n";
+  for (int i = 0; i < crossing; ++i) {
+    code += std::format("  val v{}: Int32 = {}\n", i, i + 1);
+  }
+
+  code += "  if a == 1 {\n";
+  for (int i = 0; i < inside; ++i) {
+    code += std::format("    val w{}: Int32 = {}\n", i, i + 1);
+  }
+  if (inside > 0) {
+    code += "    val t0: Int32 = w0\n";
+    for (int i = 1; i < inside; ++i) {
+      code += std::format("    val t{}: Int32 = t{} + w{}\n", i, i - 1, i);
+    }
+    for (int i = 0; i < crossing; ++i) {
+      code += std::format("    &v{} = v{} + t{}\n", i, i, inside - 1);
+    }
+  }
+  code += "  } else {\n";
+  for (int i = 0; i < crossing; ++i) {
+    code += std::format("    &v{} = v{} - 1\n", i, i);
+  }
+  code += "  }\n";
+
+  code += "  val sum0: Int32 = v0\n";
+  for (int i = 1; i < crossing; ++i) {
+    code += std::format("  val sum{}: Int32 = sum{} + v{}\n", i, i - 1, i);
+  }
+  code += std::format("  return sum{}\n}}\n", crossing - 1);
+  return code;
+}
+
+// `carried` values written on every turn of a loop and read after it, so
+// that each has a phi function where the loop is entered, taking one value
+// from before it and one from the turn before.
+std::string LoopCarriedValues(int carried) {
+  std::string code = "fun main(): Int32 {\n  val i: Int32 = 0\n";
+  for (int k = 0; k < carried; ++k) {
+    code += std::format("  val v{}: Int32 = {}\n", k, k);
+  }
+
+  code += "  loop {\n    if i == 3 {\n      break\n    }\n";
+  for (int k = 0; k < carried; ++k) {
+    code += std::format("    &v{} = v{} + 1\n", k, k);
+  }
+  code += "    &i = i + 1\n  }\n";
+
+  code += "  val s0: Int32 = v0\n";
+  for (int k = 1; k < carried; ++k) {
+    code += std::format("  val s{}: Int32 = s{} + v{}\n", k, k - 1, k);
+  }
+  code += std::format("  return s{}\n}}\n", carried - 1);
   return code;
 }
 
@@ -107,6 +168,15 @@ class ColoringTest : public Test {
     }
   }
 };
+
+TEST(ColoringTest, ColorsBranchingValuesThatSpill) {
+  ExpectValidColoring(BranchingValues(/*crossing=*/9, /*inside=*/0));
+  ExpectValidColoring(BranchingValues(/*crossing=*/10, /*inside=*/12));
+}
+
+TEST(ColoringTest, ColorsLoopCarriedValuesThatSpill) {
+  ExpectValidColoring(LoopCarriedValues(/*carried=*/8));
+}
 
 TEST(ColoringTest, ColorsASingleReturn) {
   ExpectValidColoring(R"(

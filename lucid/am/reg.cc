@@ -108,9 +108,8 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
 }
 
 void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
-                    AbstractMachineState& am_state) {
+                    AbstractMachineState& am_state, HashSet<Reg>& spilt) {
   HashMap<Reg, std::size_t> reg_stack;
-  HashMap<Reg, Reg> reg_rename;
 
   auto maybe_insert_store = [&](std::list<Instruction>& instructions,
                                 std::list<Instruction>::iterator& pos,
@@ -139,7 +138,6 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 
     Reg old_reg = reg;
     reg.id = am_cfg.next_free_reg_id++;
-    reg_rename.Insert(old_reg, reg);
 
     auto offset = reg_stack.Get(old_reg);
     if (!offset.has_value()) return;
@@ -157,7 +155,6 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 
     Reg old_reg = reg;
     reg.id = am_cfg.next_free_reg_id++;
-    reg_rename.Insert(old_reg, reg);
 
     auto offset = reg_stack.Get(old_reg);
     if (!offset.has_value()) return;
@@ -184,7 +181,6 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
       }
     }
     for (auto& phi : block.phis) {
-      // TODO: Handle spilt phi sources.
       maybe_insert_store(block.instructions, i, phi.dst);
     }
     while (i != block.instructions.end()) {
@@ -269,6 +265,45 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
       maybe_insert_load32(block.instructions, i, *block.branch_cond);
     }
   }
+
+  // A phi reads each of its arguments where control leaves the block that
+  // argument comes from, so a spilt one is loaded back at the end of that
+  // block and the phi takes the register the load wrote. Every phi reading
+  // the register out of the same block reads the one load.
+  //
+  // The loads go in once the walk above has been everywhere, because the
+  // block an argument comes from can be one the walk reaches after the block
+  // its phi is in, and a load needs the slot the store settled on.
+  //
+  // What a load writes counts as spilt itself. It is live where the block
+  // ends, which is the crowded point a phi's argument makes, so the search
+  // would otherwise pick it, spill it, and write down another register just
+  // like it, without end.
+  std::vector<std::optional<Reg>> loaded_leaving(am_cfg.Blocks().Size());
+  for (const auto& block_ref : block_refs) {
+    auto& block = am_cfg.GetBlock(block_ref);
+
+    for (auto& phi : block.phis) {
+      for (std::size_t arg = 0; arg < phi.srcs.size(); ++arg) {
+        if (phi.srcs[arg] != reg_to_spill) continue;
+
+        const auto pred_ref = block.preds[arg];
+        auto& loaded = loaded_leaving[pred_ref.id()];
+        if (!loaded.has_value()) {
+          Reg reg = reg_to_spill;
+          reg.id = am_cfg.next_free_reg_id++;
+
+          am_cfg.GetBlock(pred_ref).instructions.push_back(LoadStack{
+              .offset = reg_stack.Get(reg_to_spill).value(),
+              .dst_reg = reg,
+          });
+          spilt.Insert(reg);
+          loaded = reg;
+        }
+        phi.srcs[arg] = *loaded;
+      }
+    }
+  }
 }
 
 }  // namespace
@@ -288,9 +323,8 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
     // over, and whoever asked for the spilling is handed it.
     if (!reg_to_spill.has_value()) return liveness;
 
-    SpillRegisters(*reg_to_spill, am_cfg, am_state);
-
     spilt_regs.Insert(*reg_to_spill);
+    SpillRegisters(*reg_to_spill, am_cfg, am_state, spilt_regs);
   }
 }
 

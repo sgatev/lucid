@@ -61,6 +61,94 @@ TEST(CompilerTest, NestedBranches) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
 }
 
+// Nine values crossing a branch leave more live where the sides meet than
+// there are registers, so the allocator spills one a phi function reads. A
+// phi reads its argument where control leaves the block it comes from, so
+// that is where the value is loaded back. `a` is 1, so nothing is taken off
+// and the sum is of one through nine.
+TEST(CompilerTest, BranchingValuesThatSpill) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = 1
+      val v0: Int32 = 1
+      val v1: Int32 = 2
+      val v2: Int32 = 3
+      val v3: Int32 = 4
+      val v4: Int32 = 5
+      val v5: Int32 = 6
+      val v6: Int32 = 7
+      val v7: Int32 = 8
+      val v8: Int32 = 9
+      if a == 1 {
+      } else {
+        &v0 = v0 - 1
+        &v1 = v1 - 1
+        &v2 = v2 - 1
+        &v3 = v3 - 1
+        &v4 = v4 - 1
+        &v5 = v5 - 1
+        &v6 = v6 - 1
+        &v7 = v7 - 1
+        &v8 = v8 - 1
+      }
+      val sum0: Int32 = v0
+      val sum1: Int32 = sum0 + v1
+      val sum2: Int32 = sum1 + v2
+      val sum3: Int32 = sum2 + v3
+      val sum4: Int32 = sum3 + v4
+      val sum5: Int32 = sum4 + v5
+      val sum6: Int32 = sum5 + v6
+      val sum7: Int32 = sum6 + v7
+      val sum8: Int32 = sum7 + v8
+      return sum8
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(45));
+}
+
+// Eight values carried around a loop crowd the ten registers, so the loop
+// spills. Each turn adds one to every value and there are three turns, so
+// the values end as three through ten and their sum is 52.
+TEST(CompilerTest, LoopCarriedValuesThatSpill) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val i: Int32 = 0
+      val v0: Int32 = 0
+      val v1: Int32 = 1
+      val v2: Int32 = 2
+      val v3: Int32 = 3
+      val v4: Int32 = 4
+      val v5: Int32 = 5
+      val v6: Int32 = 6
+      val v7: Int32 = 7
+      loop {
+        if i == 3 {
+          break
+        }
+        &v0 = v0 + 1
+        &v1 = v1 + 1
+        &v2 = v2 + 1
+        &v3 = v3 + 1
+        &v4 = v4 + 1
+        &v5 = v5 + 1
+        &v6 = v6 + 1
+        &v7 = v7 + 1
+        &i = i + 1
+      }
+      val s0: Int32 = v0
+      val s1: Int32 = s0 + v1
+      val s2: Int32 = s1 + v2
+      val s3: Int32 = s2 + v3
+      val s4: Int32 = s3 + v4
+      val s5: Int32 = s4 + v5
+      val s6: Int32 = s5 + v6
+      val s7: Int32 = s6 + v7
+      return s7
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(52));
+}
+
 TEST(CompilerTest, AddInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
