@@ -48,8 +48,7 @@ A phi function's result interferes with each of its arguments, so where the side
 meet the arguments take every register there is and each result needs one that is
 not its own argument's. Whether the order the registers are taken in can be made
 to find such a colouring, or whether there is none to find, is the thing to settle
-first. Note that the failure is an assertion: a build with the assertions compiled
-out takes whichever colour the empty set yields.
+first.
 
 ### Pass a parameter that has no register on the stack
 

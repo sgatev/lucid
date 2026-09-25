@@ -538,13 +538,19 @@ HashMap<Reg, int> ColorInterferenceGraph(
       if (neighbour_color.has_value()) colors.Remove(*neighbour_color);
     }
 
-    assert(colors.begin() != colors.end());
-    int min_color = *colors.begin();
-    for (auto color : colors) {
-      if (color < min_color) min_color = color;
+    // The lowest of the colours left, which is what the register takes.
+    //
+    // There being none left means this register interferes with one of every
+    // colour, which is more live at once than there are registers to hold it
+    // and something the spilling was meant to have seen to. Checked in every
+    // build: the colours are what the code is written against, so taking one
+    // that was not free is wrong code rather than a slower answer.
+    std::optional<int> min_color;
+    for (int color : colors) {
+      if (!min_color.has_value() || color < *min_color) min_color = color;
     }
 
-    ig_colors.Insert(reg, min_color);
+    ig_colors.Insert(reg, min_color.value());
   }
 
   return ig_colors;
