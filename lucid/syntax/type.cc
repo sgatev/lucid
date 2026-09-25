@@ -68,6 +68,12 @@ class ExprTypeInferenceEngine {
                               fits_in_int32 ? "Int32" : "Int64")));
     }
 
+    // Solved again, because the defaulting above is the first type anything
+    // in an expression written out of literals alone has. The equations left
+    // over from the first solving are the ones that had nothing to reach;
+    // now they reach the literals underneath them.
+    SolveTypeEquations();
+
     for (auto int_lit_expr : int_lit_exprs_) {
       RequireLiteralFitsItsType(int_lit_expr);
     }
@@ -235,7 +241,7 @@ class ExprTypeInferenceEngine {
   }
 
   void RequireSameTypesForExprs(ExprRef lhs, ExprRef rhs) {
-    expr_from_expr_.Set(lhs, rhs);
+    expr_from_expr_.emplace_back(lhs, rhs);
   }
 
   void RequireArrayElementTypeForExpr(ExprRef element, ExprRef array) {
@@ -318,12 +324,12 @@ class ExprTypeInferenceEngine {
         }
       }
 
-      HashMap<ExprRef, ExprRef> next_expr_from_expr;
+      std::vector<std::pair<ExprRef, ExprRef>> next_expr_from_expr;
       for (auto [lhs, rhs] : expr_from_expr_) {
         if (auto it = expr_from_type_.Get(rhs); it.has_value()) {
           expr_from_type_.Set(lhs, *it);
         } else {
-          next_expr_from_expr.Set(lhs, rhs);
+          next_expr_from_expr.emplace_back(lhs, rhs);
         }
       }
       if (next_expr_from_expr.size() == expr_from_expr_.size()) break;
@@ -358,7 +364,15 @@ class ExprTypeInferenceEngine {
   SyntaxContext& syn_ctx_;
   FuncDefStmt& func_def_;
 
-  HashMap<ExprRef, ExprRef> expr_from_expr_;
+  // What each expression takes its type from, held as pairs rather than as a
+  // map from the one to the other.
+  //
+  // An expression stands in more than one of these equations and a map keeps
+  // only the last: an operation is required to have the type of its right
+  // side, and to give its type to whatever reads it. Dropping the second of
+  // those leaves an operation over two literals with nothing to take a type
+  // from, because a literal is given its own only once the solving is over.
+  std::vector<std::pair<ExprRef, ExprRef>> expr_from_expr_;
   HashMap<ExprRef, TypeRef> expr_from_type_;
   HashMap<StringIndex::Ref, TypeRef> ident_from_type_;
   HashMap<ExprRef, ExprRef> expr_from_array_;

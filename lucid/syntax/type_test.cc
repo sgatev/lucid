@@ -320,6 +320,66 @@ TEST(InferExprTypesTest, UnconstrainedIntLit) {
             })));
 }
 
+TEST(InferExprTypesTest, NestedIntLitOperation) {
+  auto func = FuncDefStmt{
+      .name = I("foo"),
+      .result_type = T("Int32"),
+      .stmts = StmtListOf({
+          S(ReturnStmt{
+              .value = E(BinaryOpExpr{
+                  .op = BinaryOp::Add,
+                  .lhs = E(IntLitExpr{
+                      .value = 1,
+                  }),
+                  .rhs = E(BinaryOpExpr{
+                      .op = BinaryOp::Mul,
+                      .lhs = E(IntLitExpr{
+                          .value = 2,
+                      }),
+                      .rhs = E(IntLitExpr{
+                          .value = 3,
+                      }),
+                  }),
+              }),
+          }),
+      }),
+  };
+
+  EXPECT_TRUE(InferExprTypes(func).has_value());
+  EXPECT_THAT(
+      func,
+      Truly(MatchesFuncDefStmt({
+          .name = I("foo"),
+          .result_type = MatchesBasicType({.name = I("Int32")}),
+          .body = {{
+              MatchesReturnStmt({
+                  .value = MatchesBinaryOpExpr({
+                      .type = MatchesBasicType({.name = I("Int32")}),
+                      .op = BinaryOp::Add,
+                      .lhs = MatchesIntLitExpr({
+                          .type = MatchesBasicType({.name = I("Int32")}),
+                          .value = 1,
+                      }),
+                      // The operation standing under another one is the one
+                      // that had no type: what reached it was written over.
+                      .rhs = MatchesBinaryOpExpr({
+                          .type = MatchesBasicType({.name = I("Int32")}),
+                          .op = BinaryOp::Mul,
+                          .lhs = MatchesIntLitExpr({
+                              .type = MatchesBasicType({.name = I("Int32")}),
+                              .value = 2,
+                          }),
+                          .rhs = MatchesIntLitExpr({
+                              .type = MatchesBasicType({.name = I("Int32")}),
+                              .value = 3,
+                          }),
+                      }),
+                  }),
+              }),
+          }},
+      })));
+}
+
 TEST(InferExprTypesTest, ArrayIndex) {
   auto func = FuncDefStmt{.name = I("foo"),
                           .result_type = T("Int32"),

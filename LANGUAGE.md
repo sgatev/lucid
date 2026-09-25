@@ -240,11 +240,6 @@ worth the name.
   code. See [TODO.md](TODO.md).
 - **A function may not have more than ten parameters**, for a related reason: parameters
   arrive in registers and there is no path for passing them on the stack.
-- **An operation on two integer literals, inside another operation, crashes the
-  compiler.** `1 + 2 * 3` is enough, and so is `1 + 2 + 3` or `(1 + 2) * 3`; parentheses
-  neither cause it nor avoid it. Giving either side of the inner operation a variable
-  instead of a literal avoids it, so `1 + b * 3` is fine. The compiler stops on a
-  reference into the expression arena that the arena does not hold.
 - **Characters outside the token set are skipped silently.** A stray `@` in a function
   body is ignored as though it were a comment.
 - `Double` has a name and a size and nothing else. No literal produces one.

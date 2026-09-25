@@ -149,6 +149,41 @@ TEST(CompilerTest, LoopCarriedValuesThatSpill) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(52));
 }
 
+// An operation whose two operands are both literals, standing under another
+// operation, once reached the backend with no type at all and stopped the
+// compiler. Neither the grouping nor the absence of it makes a difference.
+TEST(CompilerTest, NestedLiteralArithmetic) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      return 1 + 2 * 3
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(7));
+}
+
+TEST(CompilerTest, NestedLiteralArithmeticGrouped) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      return (1 + 2) * 3
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(9));
+}
+
+// Both sides of the comparison are written out of literals, so nothing in it
+// has a type until the literals are given theirs.
+TEST(CompilerTest, NestedLiteralComparison) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      if 1 + 2 * 3 > 5 {
+        return 1
+      }
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
+}
+
 TEST(CompilerTest, Grouping) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
