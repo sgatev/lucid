@@ -306,17 +306,73 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
   }
 }
 
+// Takes a register the spilling has just dealt with out of what is live
+// where, in place of working the whole answer out again.
+//
+// Nothing reads a spilt register any longer but the store that follows where
+// it is written, which stands in that same block and right after it, so the
+// register is live at the head of no block at all. The registers the loads
+// write reach no block's head either: each is written and read inside a
+// single block, and the one a phi function's argument is loaded into is
+// written where its block ends. So a spill only ever takes a register out of
+// this answer, and never puts one in.
+//
+// A spilt parameter is the exception. It is live where the function is
+// entered, because that is where the caller leaves it and the store that
+// puts it away reads it there.
+void RemoveSpiltRegister(const AbstractMachineControlFlowGraph& am_cfg, Reg reg,
+                         AbstractMachineLiveness& liveness) {
+  const bool is_param =
+      std::ranges::find(am_cfg.params, reg) != am_cfg.params.end();
+
+  for (std::size_t id = 0; id < liveness.size(); ++id) {
+    if (!liveness[id].has_value()) continue;
+    if (is_param && std::size_t(am_cfg.first.id()) == id) continue;
+
+    liveness[id]->live_in.Remove(reg);
+  }
+}
+
+// Whether what the spilling has been keeping up to date says what a fresh
+// analysis of the graph would say.
+//
+// Carrying the answer forward is sound only so long as a spill changes
+// nothing about the graph beyond the register it took out, which is a
+// property of the rewriting rather than of anything checked here. This is
+// what holds the two to each other, and it runs only where assertions do.
+bool MatchesFreshAnalysis(const AbstractMachineControlFlowGraph& am_cfg,
+                          const AbstractMachineLiveness& liveness) {
+  AbstractMachineLivenessAnalysis analysis(am_cfg);
+  const AbstractMachineLiveness fresh = RunDataflow(Backward(am_cfg), analysis);
+  if (fresh.size() != liveness.size()) return false;
+
+  for (std::size_t id = 0; id < fresh.size(); ++id) {
+    if (fresh[id].has_value() != liveness[id].has_value()) return false;
+    if (!fresh[id].has_value()) continue;
+    if (fresh[id]->live_in.size() != liveness[id]->live_in.size()) return false;
+
+    for (Reg reg : fresh[id]->live_in) {
+      if (!liveness[id]->live_in.Contains(reg)) return false;
+    }
+  }
+  return true;
+}
+
 }  // namespace
 
 AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
                                        AbstractMachineState& am_state,
                                        int max_clique_size) {
   HashSet<Reg> spilt_regs;
-  while (true) {
-    AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
-    AbstractMachineLiveness liveness =
-        RunDataflow(Backward(am_cfg), liveness_analysis);
 
+  // Worked out once and then carried through the spilling, which takes each
+  // register it spills out of it rather than leaving the whole thing to be
+  // worked out again.
+  AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
+  AbstractMachineLiveness liveness =
+      RunDataflow(Backward(am_cfg), liveness_analysis);
+
+  while (true) {
     std::optional<Reg> reg_to_spill =
         FindRegToSpill(am_cfg, liveness, spilt_regs, max_clique_size);
     // Nothing left to spill, so this is what the graph as it stands is live
@@ -325,6 +381,9 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
 
     spilt_regs.Insert(*reg_to_spill);
     SpillRegisters(*reg_to_spill, am_cfg, am_state, spilt_regs);
+
+    RemoveSpiltRegister(am_cfg, *reg_to_spill, liveness);
+    assert(MatchesFreshAnalysis(am_cfg, liveness));
   }
 }
 
