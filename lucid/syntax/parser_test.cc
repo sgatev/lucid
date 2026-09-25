@@ -287,6 +287,68 @@ TEST(ParserTest, ReturnGtExpr) {
               })));
 }
 
+TEST(ParserTest, Grouping) {
+  std::string_view src = R"(
+    fun foo(x: Int32): Int32 {
+      return (2 + x) * 4
+    }
+  )";
+  EXPECT_THAT(
+      Parse(src),
+      HoldsFuncDef(MatchesFuncDefStmt({
+          .name = I("foo"),
+          .params =
+              {
+                  MatchesFuncParam({
+                      .name = I("x"),
+                      .type_constraint = MatchesBasicType({.name = I("Int32")}),
+                  }),
+              },
+          .result_type = MatchesBasicType({.name = I("Int32")}),
+          .body = {{
+              MatchesReturnStmt({
+                  // The addition is under the multiplication, where precedence
+                  // alone would have put it over.
+                  .value = MatchesBinaryOpExpr({
+                      .op = BinaryOp::Mul,
+                      .lhs = MatchesBinaryOpExpr({
+                          .op = BinaryOp::Add,
+                          .lhs = MatchesIntLitExpr({
+                              .value = 2,
+                          }),
+                          .rhs = MatchesIdentExpr({
+                              .name = I("x"),
+                          }),
+                      }),
+                      .rhs = MatchesIntLitExpr({
+                          .value = 4,
+                      }),
+                  }),
+              }),
+          }},
+      })));
+}
+
+TEST(ParserTest, GroupingLeavesNothingBehind) {
+  std::string_view src = R"(
+    fun foo(): Int32 {
+      return (((7)))
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = I("foo"),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
+                  .body = {{
+                      MatchesReturnStmt({
+                          .value = MatchesIntLitExpr({
+                              .value = 7,
+                          }),
+                      }),
+                  }},
+              })));
+}
+
 TEST(ParserTest, Precedence) {
   std::string_view src = R"(
     fun foo(x: Int32): Bool {
@@ -1246,6 +1308,15 @@ TEST(ParserTest, Tuple) {
 
                   }),
               })));
+}
+
+TEST(ParserTest, GroupingMissingClosingParen) {
+  std::string_view src = R"(
+    fun foo(): Int32 {
+      return (1 + 2
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));
 }
 
 TEST(ParserTest, FuncDefMissingLet) {

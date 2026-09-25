@@ -149,6 +149,30 @@ TEST(CompilerTest, LoopCarriedValuesThatSpill) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(52));
 }
 
+TEST(CompilerTest, Grouping) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = 1
+      val b: Int32 = 2
+      val c: Int32 = 3
+      return (a + b) * c
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(9));
+}
+
+TEST(CompilerTest, GroupingIsNotPrecedence) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = 1
+      val b: Int32 = 2
+      val c: Int32 = 3
+      return a + b * c
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(7));
+}
+
 TEST(CompilerTest, AddInt32) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {

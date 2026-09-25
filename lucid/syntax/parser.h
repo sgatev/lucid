@@ -496,6 +496,8 @@ class Parser {
 
   std::expected<Expr, ParserError> ParseElement() {
     switch (Token next_token = PeekIgnoringNonSemantic(); next_token.kind) {
+      case Token::Kind::OpenParen:
+        return ParseParenExpr();
       case Token::Kind::Ident:
         return ParseExprStartingWithIdent(ParseIdent().value());
       case Token::Kind::Number:
@@ -508,6 +510,20 @@ class Parser {
         return std::unexpected(
             MakeError(ParserError::Kind::UnexpectedToken, next_token));
     }
+  }
+
+  // Parses an expression written inside parentheses, which is that expression
+  // and nothing more: the parentheses say how what they hold is grouped and
+  // leave nothing of themselves behind in the tree.
+  //
+  // What they hold starts again at the loosest operator, so an expression in
+  // parentheses binds tighter than whatever surrounds it however loosely its
+  // own operators bind.
+  std::expected<Expr, ParserError> ParseParenExpr() {
+    ReadIgnoringNonSemantic();
+    ASSIGN_OR_RETURN(Expr expr, ParseExpr());
+    RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::CloseParen));
+    return expr;
   }
 
   std::expected<Expr, ParserError> ParseExprStartingWithIdent(
