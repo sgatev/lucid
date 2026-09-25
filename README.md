@@ -18,7 +18,7 @@ Lucid is an experimental programming language and toolchain developed from scrat
 To build the compiler execute
 
 ```
-bazel build -c opt //lucid:compiler
+bazel build -c opt //lucid/compiler:main
 ```
 
 ## Run
@@ -26,7 +26,7 @@ bazel build -c opt //lucid:compiler
 To compile and run code execute
 
 ```
-bazel run -c opt //lucid:compiler -- run examples/main.lu
+bazel run -c opt //lucid/compiler:main -- run $PWD/examples/main.lu
 ```
 
 ## Test
@@ -68,17 +68,17 @@ To enable syntax highlighting in your editor install
 To print the abstract syntax tree derived from code execute
 
 ```
-bazel run -c opt //lucid:compiler -- print-ast examples/main.lu
+bazel run -c opt //lucid/compiler:main -- print-ast $PWD/examples/main.lu
 ```
 
 To print the syntax control flow graph derived from code execute
 
 ```
-bazel run -c opt //lucid:compiler -- print-syntax-cfg examples/main.lu
+bazel run -c opt //lucid/compiler:main -- print-syntax-cfg $PWD/examples/main.lu
 ```
 
-To print the abstract machine instructions derived from code execute
+To print the abstract machine control flow graph derived from code execute
 
 ```
-bazel run -c opt //lucid:compiler -- print-ami examples/main.lu
+bazel run -c opt //lucid/compiler:main -- print-am-cfg $PWD/examples/main.lu
 ```
