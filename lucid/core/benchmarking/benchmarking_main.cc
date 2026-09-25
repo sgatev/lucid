@@ -37,6 +37,18 @@ constexpr std::size_t kInitialIterations = 1;
 // fast to ever reach `kTargetRunTime` still finishes.
 constexpr std::size_t kMaxIterations = 1'000'000'000;
 
+// How many times a settled iteration count is measured, of which the fastest
+// is what gets reported.
+//
+// What interferes with a run only ever costs it time: the scheduler takes the
+// core away, the clock drops, something else wants the cache. So repeated
+// runs of the same work spread out on one side alone, and the fastest of them
+// is the one that was interfered with least. Measuring once leaves the figure
+// to whether that single run was an unlucky one, which for the benchmarks
+// here meant a fifth of a run's time appearing and disappearing between one
+// invocation and the next.
+constexpr std::size_t kMeasuredRuns = 3;
+
 // What one benchmark was measured to do.
 struct BenchmarkResult {
   std::string_view name;
@@ -78,17 +90,32 @@ std::size_t NextIterations(std::size_t iterations,
   return static_cast<std::size_t>(next);
 }
 
+// Measures `benchmark` over `iterations` iterations `kMeasuredRuns` times and
+// reports the fastest of those runs.
+BenchmarkResult MeasureFastestRun(Benchmark& benchmark,
+                                  std::size_t iterations) {
+  BenchmarkResult fastest = Measure(benchmark, iterations);
+  for (std::size_t run = 1; run < kMeasuredRuns; ++run) {
+    const BenchmarkResult result = Measure(benchmark, iterations);
+    if (result.elapsed_time < fastest.elapsed_time) fastest = result;
+  }
+  return fastest;
+}
+
 // Measures `benchmark` with growing iteration counts until it runs for
-// `kTargetRunTime`, and reports the last of those runs.
+// `kTargetRunTime`, and reports the fastest run at the count it settled on.
 //
 // Every run repeats whatever the benchmark itself sets up, so the count grows
-// by the factor it fell short by rather than one step at a time.
+// by the factor it fell short by rather than one step at a time. The run that
+// ends the growing is not the one reported: it is the first to cross the
+// target, which is to say the runs that cross it by being slow are the ones
+// that end it.
 BenchmarkResult MeasureUntilTargetRunTime(Benchmark& benchmark) {
   std::size_t iterations = kInitialIterations;
   while (true) {
     const BenchmarkResult result = Measure(benchmark, iterations);
     if (result.elapsed_time >= kTargetRunTime || iterations >= kMaxIterations) {
-      return result;
+      return MeasureFastestRun(benchmark, iterations);
     }
     iterations = NextIterations(iterations, result.elapsed_time);
   }
@@ -237,9 +264,10 @@ int HandleRunBenchmarksCommand(CommandContext ctx) {
   std::vector<BenchmarkResult> benchmark_results;
   benchmark_results.reserve(selected_benchmarks.size());
   for (Benchmark* benchmark : selected_benchmarks) {
-    benchmark_results.push_back(fixed_iterations.has_value()
-                                    ? Measure(*benchmark, *fixed_iterations)
-                                    : MeasureUntilTargetRunTime(*benchmark));
+    benchmark_results.push_back(
+        fixed_iterations.has_value()
+            ? MeasureFastestRun(*benchmark, *fixed_iterations)
+            : MeasureUntilTargetRunTime(*benchmark));
   }
 
   switch (format) {
