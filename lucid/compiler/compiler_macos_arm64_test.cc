@@ -184,6 +184,67 @@ TEST(CompilerTest, NestedLiteralComparison) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
 }
 
+// An array whose elements are tuples: the slots behind it run field by field
+// and element by element, and reaching into it costs the element's whole size
+// per step rather than one slot.
+TEST(CompilerTest, ArrayOfTuples) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val Point: Type = (x: Int32, y: Int32)
+
+    fun main(): Int32 {
+      val ps: Point[3]
+      &ps[0].x = 7
+      &ps[0].y = 1
+      &ps[2].x = 9
+      return ps[0].x + ps[2].x
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(16));
+}
+
+// The same, indexed by something only known as it runs.
+TEST(CompilerTest, ArrayOfTuplesIndexedByVariable) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val Point: Type = (x: Int32, y: Int32)
+
+    fun main(): Int32 {
+      val ps: Point[3]
+      val i: Int32 = 2
+      &ps[i].y = 6
+      return ps[i].y
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(6));
+}
+
+TEST(CompilerTest, TupleInTuple) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val Inner: Type = (x: Int32)
+    val Outer: Type = (i: Inner, n: Int32)
+
+    fun main(): Int32 {
+      val o: Outer
+      &o.i.x = 5
+      &o.n = 2
+      return o.i.x * o.n
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(10));
+}
+
+TEST(CompilerTest, TupleHoldingAnArray) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val Row: Type = (v: Int32[4], n: Int32)
+
+    fun main(): Int32 {
+      val r: Row
+      &r.n = 5
+      return r.n + r.v[0] - r.v[0]
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(5));
+}
+
 TEST(CompilerTest, Grouping) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {

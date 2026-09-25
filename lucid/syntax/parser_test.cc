@@ -287,6 +287,32 @@ TEST(ParserTest, ReturnGtExpr) {
               })));
 }
 
+TEST(ParserTest, ChainedSuffixes) {
+  std::string_view src = R"(
+    fun foo(): Int32 {
+      return a[0][1]
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = I("foo"),
+                  .result_type = MatchesBasicType({.name = I("Int32")}),
+                  .body = {{
+                      MatchesReturnStmt({
+                          // Each suffix takes what came before it as its
+                          // base, so they read left to right.
+                          .value = MatchesIndexExpr({
+                              .base = MatchesIndexExpr({
+                                  .base = MatchesIdentExpr({.name = I("a")}),
+                                  .index = MatchesIntLitExpr({.value = 0}),
+                              }),
+                              .index = MatchesIntLitExpr({.value = 1}),
+                          }),
+                      }),
+                  }},
+              })));
+}
+
 TEST(ParserTest, Grouping) {
   std::string_view src = R"(
     fun foo(x: Int32): Int32 {

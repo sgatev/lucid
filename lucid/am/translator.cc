@@ -243,51 +243,28 @@ class AbstractMachineFunctionGenerator {
 
   void ProcessExpr(ExprRef ref, const IndexExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
-    std::size_t base_offset = GetStackOffset(expr.base);
-    auto expr_type = std::get<BasicType>(syn_ctx_.DerefType(expr.type));
-    Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
-    Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-    am_block.instructions.push_back(SetReg{
-        .src_val = static_cast<int>(expr_type.size),
-        .dst_reg = offset_reg,
-    });
-    am_block.instructions.push_back(MulReg{
-        .res_reg = offset_reg,
-        .lhs_reg = offset_reg,
-        .rhs_reg = expr_and_stmt_to_reg_[expr.index.id()],
-    });
-    am_block.instructions.push_back(LoadStackReg{
-        .offset = base_offset,
-        .offset_reg = offset_reg,
-        .dst_reg = reg,
-    });
-    expr_and_stmt_to_reg_[ref.id()] = reg;
+    LoadFromStack(ref, expr.type, am_block);
   }
 
   void ProcessExpr(ExprRef ref, const FieldAccessExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
-    const std::size_t base_offset = GetStackOffset(expr.base);
+    LoadFromStack(ref, expr.type, am_block);
+  }
 
-    std::size_t field_offset = 0;
-    const TupleType& tuple_type = std::get<TupleType>(
-        syn_ctx_.DerefType(GetType(syn_ctx_.DerefExpr(expr.base))));
-    for (const auto& field_ref : tuple_type.fields) {
-      const auto& field = syn_ctx_.DerefParam(field_ref);
-      if (field.name == expr.field_name) break;
+  // Loads what an expression names off the stack into a register.
+  //
+  // An expression whose value is itself an array or a tuple is not loaded at
+  // all: it has no register to go in, and what it is a step towards works out
+  // where it lies for itself.
+  void LoadFromStack(ExprRef ref, TypeRef type_ref,
+                     AbstractMachineControlFlowGraph::Block& am_block) {
+    if (IsOnStack(type_ref)) return;
 
-      field_offset += GetSize(field.type_constraint);
-    }
-
-    Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-    am_block.instructions.push_back(SetReg{
-        .src_val = static_cast<int>(field_offset),
-        .dst_reg = offset_reg,
-    });
-
-    Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
+    const StackPlace place = GetStackPlace(ref, am_block);
+    Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(type_ref)};
     am_block.instructions.push_back(LoadStackReg{
-        .offset = base_offset,
-        .offset_reg = offset_reg,
+        .offset = place.base_offset,
+        .offset_reg = place.offset_reg,
         .dst_reg = reg,
     });
     expr_and_stmt_to_reg_[ref.id()] = reg;
@@ -393,23 +370,9 @@ class AbstractMachineFunctionGenerator {
 
   void Process(StmtRef ref, const VarDeclStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
-    const Type& type = syn_ctx_.DerefType(stmt.type_constraint);
-    if (const auto* array_type = std::get_if<ArrayType>(&type)) {
-      const auto& var_decl_type = std::get<BasicType>(
-          syn_ctx_.DerefType(array_type->element_type_constraint));
-      std::size_t size = array_type->size.value;
-      auto stack_offset = am_cfg_.stack_slots.size();
-      for (int i = 0; i < size; ++i) {
-        am_cfg_.stack_slots.push_back(var_decl_type.size);
-      }
-      var_stack_.Set(stmt.name, stack_offset);
-    } else if (const auto* tuple_type = std::get_if<TupleType>(&type)) {
-      auto stack_offset = am_cfg_.stack_slots.size();
-      for (const auto& field_ref : tuple_type->fields) {
-        const auto& field = syn_ctx_.DerefParam(field_ref);
-        am_cfg_.stack_slots.push_back(GetSize(field.type_constraint));
-      }
-      var_stack_.Set(stmt.name, stack_offset);
+    if (IsOnStack(stmt.type_constraint)) {
+      var_stack_.Set(stmt.name, am_cfg_.stack_slots.size());
+      PushStackSlots(stmt.type_constraint);
     } else {
       if (stmt.init.has_value()) {
         am_block.instructions.push_back(MoveReg{
@@ -425,12 +388,10 @@ class AbstractMachineFunctionGenerator {
     auto stmt_offset = var_stack_.Get(stmt.name);
     assert(stmt_offset.has_value());
 
-    auto expr_type = std::get<BasicType>(
-        syn_ctx_.DerefType(GetType(syn_ctx_.DerefExpr(stmt.expr))));
-
     Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
     am_block.instructions.push_back(SetReg{
-        .src_val = static_cast<int>(expr_type.size),
+        .src_val =
+            static_cast<int>(GetSize(GetType(syn_ctx_.DerefExpr(stmt.expr)))),
         .dst_reg = offset_reg,
     });
     am_block.instructions.push_back(MulReg{
@@ -447,26 +408,14 @@ class AbstractMachineFunctionGenerator {
 
   void Process(StmtRef ref, const FieldAssignStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
-    const std::size_t base_offset = GetStackOffset(stmt.base);
-
-    std::size_t field_offset = 0;
-    const TupleType& tuple_type = std::get<TupleType>(
-        syn_ctx_.DerefType(GetType(syn_ctx_.DerefExpr(stmt.base))));
-    for (const auto& field_ref : tuple_type.fields) {
-      const auto& field = syn_ctx_.DerefParam(field_ref);
-      if (field.name == stmt.field_name) break;
-
-      field_offset += GetSize(field.type_constraint);
-    }
-
-    Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-    am_block.instructions.push_back(SetReg{
-        .src_val = static_cast<int>(field_offset),
-        .dst_reg = offset_reg,
-    });
+    StackPlace place = GetStackPlace(stmt.base, am_block);
+    AddToStackPlace(
+        place,
+        GetFieldOffset(GetType(syn_ctx_.DerefExpr(stmt.base)), stmt.field_name),
+        am_block);
     am_block.instructions.push_back(StoreStackReg{
-        .offset = base_offset,
-        .offset_reg = offset_reg,
+        .offset = place.base_offset,
+        .offset_reg = place.offset_reg,
         .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
     });
   }
@@ -483,11 +432,76 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef ref, const BreakStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {}
 
-  std::size_t GetStackOffset(ExprRef expr_ref) {
-    const auto& expr = std::get<IdentExpr>(syn_ctx_.DerefExpr(expr_ref));
-    auto pos = var_stack_.Get(expr.name);
-    assert(pos.has_value());
-    return *pos;
+  // Where a value lies on the stack: the slot the variable holding it starts
+  // at, and a register carrying how many bytes into that variable it stands.
+  struct StackPlace {
+    std::size_t base_offset;
+    Reg offset_reg;
+  };
+
+  // Adds `offset` bytes to where `place` stands.
+  void AddToStackPlace(StackPlace& place, std::size_t offset,
+                       AbstractMachineControlFlowGraph::Block& am_block) {
+    Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
+    am_block.instructions.push_back(SetReg{
+        .src_val = static_cast<int>(offset),
+        .dst_reg = step_reg,
+    });
+    am_block.instructions.push_back(AddReg{
+        .res_reg = place.offset_reg,
+        .lhs_reg = place.offset_reg,
+        .rhs_reg = step_reg,
+    });
+  }
+
+  // Works out where the value an expression names lies, by walking the
+  // expression from the variable outwards and adding what each step into it
+  // costs: an index costs the element's size times the index, and a field
+  // costs however much of the tuple stands before it.
+  StackPlace GetStackPlace(ExprRef expr_ref,
+                           AbstractMachineControlFlowGraph::Block& am_block) {
+    const Expr& expr = syn_ctx_.DerefExpr(expr_ref);
+
+    if (const auto* ident_expr = std::get_if<IdentExpr>(&expr)) {
+      auto pos = var_stack_.Get(ident_expr->name);
+      assert(pos.has_value());
+
+      Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
+      am_block.instructions.push_back(SetReg{
+          .src_val = 0,
+          .dst_reg = offset_reg,
+      });
+      return {.base_offset = *pos, .offset_reg = offset_reg};
+    }
+
+    if (const auto* index_expr = std::get_if<IndexExpr>(&expr)) {
+      StackPlace place = GetStackPlace(index_expr->base, am_block);
+
+      Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
+      am_block.instructions.push_back(SetReg{
+          .src_val = static_cast<int>(GetSize(GetType(expr))),
+          .dst_reg = step_reg,
+      });
+      am_block.instructions.push_back(MulReg{
+          .res_reg = step_reg,
+          .lhs_reg = step_reg,
+          .rhs_reg = expr_and_stmt_to_reg_[index_expr->index.id()],
+      });
+      am_block.instructions.push_back(AddReg{
+          .res_reg = place.offset_reg,
+          .lhs_reg = place.offset_reg,
+          .rhs_reg = step_reg,
+      });
+      return place;
+    }
+
+    const auto& field_expr = std::get<FieldAccessExpr>(expr);
+    StackPlace place = GetStackPlace(field_expr.base, am_block);
+    AddToStackPlace(place,
+                    GetFieldOffset(GetType(syn_ctx_.DerefExpr(field_expr.base)),
+                                   field_expr.field_name),
+                    am_block);
+    return place;
   }
 
   Reg GetVarReg(StringIndex::Ref var_name, TypeRef var_type) {
@@ -511,9 +525,68 @@ class AbstractMachineFunctionGenerator {
     }
   }
 
+  // The bytes a value of this type takes: what its elements take altogether
+  // for an array, what its fields take for a tuple, and its own size for one
+  // of the types the language has built in.
   std::size_t GetSize(TypeRef type_ref) {
-    auto expr_type = std::get<BasicType>(syn_ctx_.DerefType(type_ref));
-    return expr_type.size;
+    const Type& type = syn_ctx_.DerefType(type_ref);
+
+    if (const auto* array_type = std::get_if<ArrayType>(&type)) {
+      return static_cast<std::size_t>(array_type->size.value) *
+             GetSize(array_type->element_type_constraint);
+    }
+    if (const auto* tuple_type = std::get_if<TupleType>(&type)) {
+      std::size_t size = 0;
+      for (const auto& field_ref : tuple_type->fields) {
+        size += GetSize(syn_ctx_.DerefParam(field_ref).type_constraint);
+      }
+      return size;
+    }
+    return std::get<BasicType>(type).size;
+  }
+
+  // Puts a stack slot behind every value of a built in type that a value of
+  // this type holds, in the order they lie one after another.
+  void PushStackSlots(TypeRef type_ref) {
+    const Type& type = syn_ctx_.DerefType(type_ref);
+
+    if (const auto* array_type = std::get_if<ArrayType>(&type)) {
+      for (std::int64_t i = 0; i < array_type->size.value; ++i) {
+        PushStackSlots(array_type->element_type_constraint);
+      }
+      return;
+    }
+    if (const auto* tuple_type = std::get_if<TupleType>(&type)) {
+      for (const auto& field_ref : tuple_type->fields) {
+        PushStackSlots(syn_ctx_.DerefParam(field_ref).type_constraint);
+      }
+      return;
+    }
+    am_cfg_.stack_slots.push_back(
+        static_cast<int>(std::get<BasicType>(type).size));
+  }
+
+  // How many bytes into a tuple the field called `field_name` stands.
+  std::size_t GetFieldOffset(TypeRef tuple_type_ref,
+                             StringIndex::Ref field_name) {
+    std::size_t offset = 0;
+    const auto& tuple_type =
+        std::get<TupleType>(syn_ctx_.DerefType(tuple_type_ref));
+    for (const auto& field_ref : tuple_type.fields) {
+      const auto& field = syn_ctx_.DerefParam(field_ref);
+      if (field.name == field_name) break;
+
+      offset += GetSize(field.type_constraint);
+    }
+    return offset;
+  }
+
+  // Whether a value of this type lies on the stack rather than in a register,
+  // which is what an array or a tuple does however small it is.
+  bool IsOnStack(TypeRef type_ref) {
+    const Type& type = syn_ctx_.DerefType(type_ref);
+    return std::holds_alternative<ArrayType>(type) ||
+           std::holds_alternative<TupleType>(type);
   }
 
   const SyntaxContext& syn_ctx_;

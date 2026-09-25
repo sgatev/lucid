@@ -380,6 +380,16 @@ class Parser {
       RETURN_IF_ERROR(
           ExpectTokenIgnoringNonSemantic(Token::Kind::CloseBracket));
 
+      // An index with fields after it names a place inside whatever the
+      // element is, and the last of those fields is what is assigned to.
+      if (PeekIgnoringNonSemantic().kind == Token::Kind::Dot) {
+        Expr base = IndexExpr{
+            .base = syn_ctx_.Add(IdentExpr{.name = ident}),
+            .index = syn_ctx_.Add(std::move(size)),
+        };
+        return ParseFieldAssignStmt(std::move(base));
+      }
+
       if (PeekIgnoringNonSemantic().kind == Token::Kind::Equal) [[likely]] {
         ReadIgnoringNonSemantic();
         ASSIGN_OR_RETURN(Expr expr, ParseExpr());
@@ -395,22 +405,7 @@ class Parser {
     }
 
     if (PeekIgnoringNonSemantic().kind == Token::Kind::Dot) {
-      ReadIgnoringNonSemantic();
-
-      ASSIGN_OR_RETURN(StringIndex::Ref field_name, ParseIdent());
-
-      if (PeekIgnoringNonSemantic().kind == Token::Kind::Equal) [[likely]] {
-        ReadIgnoringNonSemantic();
-        ASSIGN_OR_RETURN(Expr expr, ParseExpr());
-        return FieldAssignStmt{
-            .base = syn_ctx_.Add(IdentExpr{.name = ident}),
-            .field_name = field_name,
-            .expr = syn_ctx_.Add(std::move(expr)),
-        };
-      }
-
-      return std::unexpected(MakeError(ParserError::Kind::UnexpectedToken,
-                                       PeekIgnoringNonSemantic()));
+      return ParseFieldAssignStmt(IdentExpr{.name = ident});
     }
 
     if (PeekIgnoringNonSemantic().kind == Token::Kind::Equal) [[likely]] {
@@ -424,6 +419,31 @@ class Parser {
 
     return std::unexpected(MakeError(ParserError::Kind::UnexpectedToken,
                                      PeekIgnoringNonSemantic()));
+  }
+
+  // Parses the rest of an assignment to a field of `base`, which is every
+  // `.field` that follows and then the value. Only the last of those fields
+  // is assigned to: the ones before it say where to look for it.
+  std::expected<Stmt, ParserError> ParseFieldAssignStmt(Expr base) {
+    while (true) {
+      RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::Dot));
+      ASSIGN_OR_RETURN(StringIndex::Ref field_name, ParseIdent());
+
+      if (PeekIgnoringNonSemantic().kind != Token::Kind::Dot) {
+        RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::Equal));
+        ASSIGN_OR_RETURN(Expr expr, ParseExpr());
+        return FieldAssignStmt{
+            .base = syn_ctx_.Add(std::move(base)),
+            .field_name = field_name,
+            .expr = syn_ctx_.Add(std::move(expr)),
+        };
+      }
+
+      base = FieldAccessExpr{
+          .base = syn_ctx_.Add(std::move(base)),
+          .field_name = field_name,
+      };
+    }
   }
 
   std::expected<Stmt, ParserError> UnknownStmt() {
@@ -526,32 +546,42 @@ class Parser {
     return expr;
   }
 
+  // Parses what follows an identifier: a call, and then however many of `[i]`
+  // and `.field` follow it.
+  //
+  // Each of those takes what came before it as its base, so they read left to
+  // right: `a[i].x[j]` indexes `a`, takes the field of that, and indexes
+  // what the field holds.
   std::expected<Expr, ParserError> ParseExprStartingWithIdent(
       StringIndex::Ref ident) {
     ASSIGN_OR_RETURN(Expr expr, ParseIdentOrFuncCall(ident));
 
-    if (PeekIgnoringNonSemantic().kind == Token::Kind::OpenBracket) {
-      ReadIgnoringNonSemantic();
+    while (true) {
+      if (PeekIgnoringNonSemantic().kind == Token::Kind::OpenBracket) {
+        ReadIgnoringNonSemantic();
 
-      ASSIGN_OR_RETURN(Expr size, ParseExpr());
-      RETURN_IF_ERROR(
-          ExpectTokenIgnoringNonSemantic(Token::Kind::CloseBracket));
-      return IndexExpr{
-          .base = syn_ctx_.Add(std::move(expr)),
-          .index = syn_ctx_.Add(std::move(size)),
-      };
+        ASSIGN_OR_RETURN(Expr index, ParseExpr());
+        RETURN_IF_ERROR(
+            ExpectTokenIgnoringNonSemantic(Token::Kind::CloseBracket));
+        expr = IndexExpr{
+            .base = syn_ctx_.Add(std::move(expr)),
+            .index = syn_ctx_.Add(std::move(index)),
+        };
+        continue;
+      }
+
+      if (PeekIgnoringNonSemantic().kind == Token::Kind::Dot) {
+        ReadIgnoringNonSemantic();
+        ASSIGN_OR_RETURN(StringIndex::Ref field_name, ParseIdent());
+        expr = FieldAccessExpr{
+            .base = syn_ctx_.Add(std::move(expr)),
+            .field_name = field_name,
+        };
+        continue;
+      }
+
+      return expr;
     }
-
-    if (PeekIgnoringNonSemantic().kind == Token::Kind::Dot) {
-      ReadIgnoringNonSemantic();
-      ASSIGN_OR_RETURN(StringIndex::Ref field_name, ParseIdent());
-      return FieldAccessExpr{
-          .base = syn_ctx_.Add(std::move(expr)),
-          .field_name = field_name,
-      };
-    }
-
-    return expr;
   }
 
   std::expected<Expr, ParserError> ParseIdentOrFuncCall(

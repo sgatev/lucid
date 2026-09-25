@@ -126,6 +126,14 @@ declaration. It assigns to a variable, to an array element, or to a field:
 &p.x = 3
 ```
 
+A target reaches through as many steps as it needs, so long as the last of them is a
+field rather than an index:
+
+```
+&ps[i].x = 3
+&q.p.x = 5
+```
+
 **Conditionals** take an expression of type `Bool`, with no parentheses around it. `else`
 takes either a block or another `if`.
 
@@ -171,8 +179,10 @@ The remaining forms are an identifier, an integer literal, a string literal, `tr
 `false`, a call `f(a, b)`, an index `a[i]`, a field access `p.x` and an expression in
 parentheses. Commas between arguments are optional, as they are between parameters.
 
-An index and a field access apply to an identifier or a call, once. Neither `a[0][1]` nor
-`p.q.r` parses.
+An index and a field access apply to an identifier or a call, and as many of them as
+follow do so in turn, each taking what came before it as its base. `ps[1].x` indexes an
+array of tuples and reads a field of the element; `q.p.x` reads through a tuple held by
+a tuple; `r.v[0]` reads an array held by one.
 
 ## Typing
 
@@ -240,6 +250,11 @@ worth the name.
   code. See [TODO.md](TODO.md).
 - **A function may not have more than ten parameters**, for a related reason: parameters
   arrive in registers and there is no path for passing them on the stack.
+- **An array or a tuple cannot be a parameter or a result.** Both live on the stack, and
+  nothing lays one out on either side of a call. This is reported rather than attempted.
+- **An assignment cannot end in an index into something reached through.** `&r.v[0] = 1`
+  is rejected where `&r.v = …` would not be, because the statement that assigns through
+  an index names its array rather than holding an expression for it.
 - **Characters outside the token set are skipped silently.** A stray `@` in a function
   body is ignored as though it were a comment.
 - `Double` has a name and a size and nothing else. No literal produces one.
