@@ -18,8 +18,9 @@ std::expected<void, CompError> CheckCompExpr(
   if (init_comp) std::visit([](auto& expr) { expr.is_comp = true; }, expr);
   if (const auto* func_call_expr = std::get_if<FuncCallExpr>(&expr)) {
     StringIndex::Ref func_name = func_call_expr->func_name;
-    const auto& func_def = syn_ctx.GetFuncDef(func_name);
-    if (!func_def.is_comp) {
+    const FuncDefStmt* func_def = syn_ctx.FindFuncDef(func_name);
+    if (func_def == nullptr) return {};
+    if (!func_def->is_comp) {
       return std::unexpected(
           CompError("calling non-comp function not allowed in comp context"));
     }

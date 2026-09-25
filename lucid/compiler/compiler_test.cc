@@ -41,6 +41,65 @@ TEST(CompilerTest, PrintAstRejectsMalformedNode) {
   }
 }
 
+// A name that answers to nothing was once read out of an empty lookup, which
+// left the compiler walking a function definition that was never there.
+TEST(CompilerTest, ReportsNamesThatAreNotThere) {
+  const struct {
+    std::string_view source;
+    std::string_view message;
+  } kCases[] = {
+      {R"(fun main(): Int32 { return nope() })", "no function 'nope'"},
+      {R"(fun main(): Int32 { return nope })", "no variable 'nope'"},
+      {R"(fun main(): Int32 { &nope = 1 return 0 })", "no variable 'nope'"},
+      {R"(fun main(): Nope { return 0 })", "no type of this name"},
+      {R"(val P: Type = (x: Int32)
+          fun main(): Int32 { val p: P return p.nope })",
+       "no field 'nope'"},
+      {R"(fun main(): Int32 { val n: Int32 = 1 return n.x })",
+       "a value of this type has no fields"},
+      {R"(fun main(): Int32 { val n: Int32 = 1 return n[0] })",
+       "a value of this type cannot be indexed"},
+  };
+
+  for (const auto& [source, message] : kCases) {
+    ASSERT_TRUE(CreateFile("main.lu", source));
+    EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}),
+                AllOf(ReturnsCode(1), ErrorOutput(Contains(message))));
+  }
+}
+
+// The arguments are taken one for one with the parameters, so a call that
+// brings the wrong number of them once read a parameter never passed.
+TEST(CompilerTest, ReportsTheWrongNumberOfArguments) {
+  ASSERT_TRUE(CreateFile("few.lu", R"(
+    fun f(a: Int32, b: Int32): Int32 {
+      return a
+    }
+
+    fun main(): Int32 {
+      return f(1)
+    }
+  )"));
+  EXPECT_THAT(
+      RunCompiler({"compile", FullPath("few.lu")}),
+      AllOf(ReturnsCode(1),
+            ErrorOutput(Contains("function 'f' takes 2 arguments, not 1"))));
+
+  ASSERT_TRUE(CreateFile("many.lu", R"(
+    fun f(a: Int32): Int32 {
+      return a
+    }
+
+    fun main(): Int32 {
+      return f(1, 2)
+    }
+  )"));
+  EXPECT_THAT(
+      RunCompiler({"compile", FullPath("many.lu")}),
+      AllOf(ReturnsCode(1),
+            ErrorOutput(Contains("function 'f' takes 1 argument, not 2"))));
+}
+
 // An array or a tuple lives on the stack and nothing lays one out on either
 // side of a call, which is said rather than fallen over.
 TEST(CompilerTest, RejectsCompositeParamsAndResults) {

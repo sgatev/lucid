@@ -157,7 +157,13 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingStmt(StmtRef stmt_ref, const VarAssignStmt& stmt) {
-    RequireTypeForExpr(stmt.expr, GetIdentType(stmt.name));
+    const auto type = ident_from_type_.Get(stmt.name);
+    if (!type.has_value()) {
+      errors_.push_back("no variable '" +
+                        std::string(syn_ctx_.DerefIdent(stmt.name)) + "'");
+      return;
+    }
+    RequireTypeForExpr(stmt.expr, *type);
     AddPendingExpr(stmt.expr);
   }
 
@@ -191,14 +197,33 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const FuncCallExpr& expr) {
-    const auto& func_def = syn_ctx_.GetFuncDef(expr.func_name);
+    const std::string name(syn_ctx_.DerefIdent(expr.func_name));
+
+    const FuncDefStmt* func_def = syn_ctx_.FindFuncDef(expr.func_name);
+    if (func_def == nullptr) {
+      errors_.push_back("no function '" + name + "'");
+      return;
+    }
+
+    // Taken one for one with the parameters below, so a call that brings the
+    // wrong number of them is stopped rather than left to read a parameter
+    // that was never passed.
+    if (expr.args.size() != func_def->params.size()) {
+      const std::uint32_t wanted = func_def->params.size();
+      errors_.push_back("function '" + name + "' takes " +
+                        std::to_string(wanted) +
+                        (wanted == 1 ? " argument, not " : " arguments, not ") +
+                        std::to_string(expr.args.size()));
+      return;
+    }
+
     for (std::uint32_t i = 0; i < expr.args.size(); ++i) {
-      const auto& param = syn_ctx_.DerefParam(func_def.params[i]);
+      const auto& param = syn_ctx_.DerefParam(func_def->params[i]);
       ExprRef arg = expr.args[i];
       RequireTypeForExpr(arg, param.type_constraint);
       AddPendingExpr(arg);
     }
-    RequireTypeForExpr(expr_ref, func_def.result_type);
+    RequireTypeForExpr(expr_ref, func_def->result_type);
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
@@ -211,7 +236,13 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const IdentExpr& expr) {
-    RequireTypeForExpr(expr_ref, GetIdentType(expr.name));
+    const auto type = ident_from_type_.Get(expr.name);
+    if (!type.has_value()) {
+      errors_.push_back("no variable '" +
+                        std::string(syn_ctx_.DerefIdent(expr.name)) + "'");
+      return;
+    }
+    RequireTypeForExpr(expr_ref, *type);
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const IndexExpr& expr) {
@@ -273,10 +304,6 @@ class ExprTypeInferenceEngine {
     ident_from_type_.Set(ident, type_ref);
   }
 
-  TypeRef GetIdentType(StringIndex::Ref name) const {
-    return *ident_from_type_.Get(name);
-  }
-
   // Whether a value of this type lies on the stack rather than in a register.
   bool LivesOnStack(TypeRef type_ref) {
     const Type& type = syn_ctx_.DerefType(type_ref);
@@ -326,24 +353,41 @@ class ExprTypeInferenceEngine {
   void SolveTypeEquations() {
     while (true) {
       for (auto [element, array] : expr_from_array_) {
-        if (auto it = expr_from_type_.Get(array); it.has_value()) {
-          const auto& array_type = std::get<ArrayType>(syn_ctx_.DerefType(*it));
-          expr_from_type_.Set(element, array_type.element_type_constraint);
+        auto it = expr_from_type_.Get(array);
+        if (!it.has_value()) continue;
+
+        const auto* array_type =
+            std::get_if<ArrayType>(&syn_ctx_.DerefType(*it));
+        if (array_type == nullptr) {
+          errors_.push_back("a value of this type cannot be indexed");
+          continue;
         }
+        expr_from_type_.Set(element, array_type->element_type_constraint);
       }
 
       for (auto [element, base_field] : expr_from_field_) {
         auto [base, field_name] = base_field;
-        if (auto it = expr_from_type_.Get(base); it.has_value()) {
-          if (const auto* tuple_type =
-                  std::get_if<TupleType>(&syn_ctx_.DerefType(*it))) {
-            for (const auto& field_ref : tuple_type->fields) {
-              const auto& field = syn_ctx_.DerefParam(field_ref);
-              if (field.name == field_name) {
-                expr_from_type_.Set(element, field.type_constraint);
-              }
-            }
-          }
+        auto it = expr_from_type_.Get(base);
+        if (!it.has_value()) continue;
+
+        const auto* tuple_type =
+            std::get_if<TupleType>(&syn_ctx_.DerefType(*it));
+        if (tuple_type == nullptr) {
+          errors_.push_back("a value of this type has no fields");
+          continue;
+        }
+
+        bool found = false;
+        for (const auto& field_ref : tuple_type->fields) {
+          const auto& field = syn_ctx_.DerefParam(field_ref);
+          if (field.name != field_name) continue;
+
+          expr_from_type_.Set(element, field.type_constraint);
+          found = true;
+        }
+        if (!found) {
+          errors_.push_back("no field '" +
+                            std::string(syn_ctx_.DerefIdent(field_name)) + "'");
         }
       }
 

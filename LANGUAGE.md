@@ -243,8 +243,9 @@ is taken as a format. `sleep` suspends the program, through `nanosleep`.
 These are defects rather than decisions, and a program that meets one gets no diagnostic
 worth the name.
 
-- **A call to a function that is not yet defined hangs the compiler**, as does a call to a
-  name that is never defined. Definitions have to precede their uses.
+- **Definitions have to precede their uses**, so two functions cannot call each other.
+  A call to a name defined further down the file is reported as though the name were
+  not there at all, which is true of the compiler's view of it and not of the program's.
 - **More than ten values live across a branch cannot be compiled.** Ten sometimes cannot
   either, depending on what else is live. The compiler stops rather than emitting wrong
   code. See [TODO.md](TODO.md).

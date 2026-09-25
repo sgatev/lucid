@@ -41,6 +41,7 @@ class ParserError {
     ExpectedValKeyword,
     ExpectedTypeKeyword,
     IncompleteStringLiteral,
+    UnknownType,
   };
 
   explicit ParserError(Kind kind, CodeLocation loc) : kind_(kind), loc_(loc) {}
@@ -73,6 +74,8 @@ class ParserError {
         return "expected 'Type' keyword";
       case Kind::IncompleteStringLiteral:
         return "incomplete string literal";
+      case Kind::UnknownType:
+        return "no type of this name";
     }
   }
 
@@ -654,8 +657,16 @@ class Parser {
   }
 
   std::expected<TypeRef, ParserError> ParseType() {
+    const Token type_token = PeekIgnoringNonSemantic();
     ASSIGN_OR_RETURN(StringIndex::Ref type_name, ParseIdent());
+
+    // A name no type answers to would otherwise be carried on as a reference
+    // to nothing, to be dereferenced somewhere with nothing to say about it.
     TypeRef type = syn_ctx_.ResolveType(type_name);
+    if (type == Arena<Type>::kNullRef) [[unlikely]] {
+      return std::unexpected(
+          MakeError(ParserError::Kind::UnknownType, type_token));
+    }
 
     if (PeekIgnoringNonSemantic().kind == Token::Kind::OpenBracket) {
       ReadIgnoringNonSemantic();

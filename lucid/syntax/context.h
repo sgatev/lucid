@@ -109,9 +109,11 @@ class SyntaxContext {
     func_defs_.Set(func_def.name, &func_def);
   }
 
-  // Returns the definition of the function with the given name.
-  const FuncDefStmt& GetFuncDef(StringIndex::Ref name) const {
-    return **func_defs_.Get(name);
+  // Returns the definition of the function with the given name, or nothing
+  // where no function of that name has been defined.
+  const FuncDefStmt* FindFuncDef(StringIndex::Ref name) const {
+    auto func_def = func_defs_.Get(name);
+    return func_def.has_value() ? *func_def : nullptr;
   }
 
   // Registers a type with the given name.
