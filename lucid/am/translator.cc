@@ -31,7 +31,7 @@ class AbstractMachineFunctionGenerator {
       : syn_ctx_(syn_ctx),
         syn_cfg_(syn_cfg),
         am_state_(am_state),
-        vm_(am_cfgs, am_state) {
+        vm_(am_cfgs, am_state, am_cfg_.stack_slots) {
     expr_and_stmt_to_reg_.resize(syn_ctx_.Size());
   }
 
@@ -592,8 +592,8 @@ class AbstractMachineFunctionGenerator {
   const SyntaxContext& syn_ctx_;
   const SyntaxControlFlowGraph& syn_cfg_;
   AbstractMachineState& am_state_;
-  Interpreter vm_;
   AbstractMachineControlFlowGraph am_cfg_;
+  Interpreter vm_;
   Reg result_reg_;
   HashMap<StringIndex::Ref, Reg> var_to_reg_;
   HashMap<StringIndex::Ref, std::size_t> var_stack_;

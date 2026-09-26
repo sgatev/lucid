@@ -1,6 +1,7 @@
 #include "lucid/vm/interpreter.h"
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <variant>
@@ -15,7 +16,7 @@ int InterpretAbstractMachineFunction(
     const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
     const AbstractMachineControlFlowGraph& am_cfg,
     const std::vector<std::int64_t>& args, AbstractMachineState& am_state) {
-  Interpreter vm(am_cfgs, am_state);
+  Interpreter vm(am_cfgs, am_state, am_cfg.stack_slots);
 
   for (int i = 0; i < args.size(); ++i) {
     vm.Set(am_cfg.params[i], args[i]);
@@ -72,8 +73,8 @@ int InterpretAbstractMachineFunction(
 
 Interpreter::Interpreter(
     const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
-    AbstractMachineState& am_state)
-    : am_cfgs_(am_cfgs), am_state_(am_state) {}
+    AbstractMachineState& am_state, const std::vector<int>& stack_slots)
+    : am_cfgs_(am_cfgs), am_state_(am_state), stack_slots_(stack_slots) {}
 
 std::int64_t Interpreter::Result() const { return result_; }
 
@@ -112,8 +113,88 @@ Instruction Interpreter::Interpret(const Instruction& inst) {
     return Interpret(*div_reg);
   } else if (const auto* mod_reg = std::get_if<ModReg>(&inst)) {
     return Interpret(*mod_reg);
+  } else if (const auto* store_stack = std::get_if<StoreStack>(&inst)) {
+    return Interpret(*store_stack);
+  } else if (const auto* store_stack_reg = std::get_if<StoreStackReg>(&inst)) {
+    return Interpret(*store_stack_reg);
+  } else if (const auto* load_stack = std::get_if<LoadStack>(&inst)) {
+    return Interpret(*load_stack);
+  } else if (const auto* load_stack_reg = std::get_if<LoadStackReg>(&inst)) {
+    return Interpret(*load_stack_reg);
   }
   assert(false);
+  return inst;
+}
+
+std::size_t Interpreter::SlotOffset(std::size_t slot) const {
+  std::size_t offset = 0;
+  for (std::size_t i = 0; i < slot && i < stack_slots_.size(); ++i) {
+    offset += static_cast<std::size_t>(stack_slots_[i]);
+  }
+  return offset;
+}
+
+namespace {
+
+// The bytes a value of this size takes in the frame.
+std::size_t WidthOf(RegSize size) { return size == RegSize32 ? 4 : 8; }
+
+}  // namespace
+
+std::int64_t Interpreter::Read(std::size_t offset, RegSize size) {
+  const std::size_t width = WidthOf(size);
+  if (stack_.size() < offset + width) stack_.resize(offset + width, 0);
+
+  std::uint64_t value = 0;
+  for (std::size_t i = 0; i < width; ++i) {
+    value |= static_cast<std::uint64_t>(stack_[offset + i]) << (8 * i);
+  }
+  // A slot narrower than the register holding it keeps its sign on the way
+  // out, as a load of that width does.
+  if (size == RegSize32) return static_cast<std::int32_t>(value);
+  return static_cast<std::int64_t>(value);
+}
+
+void Interpreter::Write(std::size_t offset, RegSize size, std::int64_t value) {
+  const std::size_t width = WidthOf(size);
+  if (stack_.size() < offset + width) stack_.resize(offset + width, 0);
+
+  for (std::size_t i = 0; i < width; ++i) {
+    stack_[offset + i] = static_cast<std::uint8_t>(value >> (8 * i));
+  }
+}
+
+Instruction Interpreter::Interpret(const StoreStack& inst) {
+  auto src_val = values_.Get(inst.src_reg);
+  assert(src_val.has_value());
+
+  Write(SlotOffset(inst.offset), inst.src_reg.size, *src_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const StoreStackReg& inst) {
+  auto src_val = values_.Get(inst.src_reg);
+  assert(src_val.has_value());
+  auto offset_val = values_.Get(inst.offset_reg);
+  assert(offset_val.has_value());
+
+  Write(SlotOffset(inst.offset) + static_cast<std::size_t>(*offset_val),
+        inst.src_reg.size, *src_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const LoadStack& inst) {
+  values_.Set(inst.dst_reg, Read(SlotOffset(inst.offset), inst.dst_reg.size));
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const LoadStackReg& inst) {
+  auto offset_val = values_.Get(inst.offset_reg);
+  assert(offset_val.has_value());
+
+  values_.Set(inst.dst_reg, Read(SlotOffset(inst.offset) +
+                                     static_cast<std::size_t>(*offset_val),
+                                 inst.dst_reg.size));
   return inst;
 }
 

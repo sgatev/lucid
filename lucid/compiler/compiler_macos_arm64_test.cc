@@ -184,6 +184,51 @@ TEST(CompilerTest, NestedLiteralComparison) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
 }
 
+// An array or a tuple lives in the frame, which the interpreter that runs
+// comp code once had none of: what it stored went nowhere and what it read
+// back was zero.
+TEST(CompilerTest, CompFunctionUsingAnArray) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun squares(n: Int32): Int32 {
+      val a: Int32[4]
+      val i: Int32 = 0
+      loop {
+        if i == 4 {
+          break
+        }
+        &a[i] = i * i
+        &i = i + 1
+      }
+      return a[n]
+    }
+
+    fun main(): Int32 {
+      comp val c: Int32 = squares(3)
+      return c
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(9));
+}
+
+TEST(CompilerTest, CompFunctionUsingATuple) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val Point: Type = (x: Int32, y: Int32)
+
+    comp fun area(): Int32 {
+      val p: Point
+      &p.x = 3
+      &p.y = 7
+      return p.x * p.y
+    }
+
+    fun main(): Int32 {
+      comp val c: Int32 = area()
+      return c
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
+}
+
 // A `break` leaves the loop standing closest over it. An unconditional one
 // in an inner loop once took the answer the inner body gave for the outer
 // sequence as well, which cut the outer loop's own back edge and left it
