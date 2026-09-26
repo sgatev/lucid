@@ -184,6 +184,78 @@ TEST(CompilerTest, NestedLiteralComparison) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
 }
 
+// Both sides of each comparison, and the point where they meet, which is
+// the whole of what `>=` and `<=` add over `>` and `<`.
+TEST(CompilerTest, GreaterOrEqualAndLessOrEqual) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val lo: Int32 = 1
+      val hi: Int32 = 2
+      val n: Int32 = 0
+      if lo >= hi {
+        &n = n + 1
+      }
+      if hi >= lo {
+        &n = n + 2
+      }
+      if lo >= lo {
+        &n = n + 4
+      }
+      if lo <= hi {
+        &n = n + 8
+      }
+      if hi <= lo {
+        &n = n + 16
+      }
+      if lo <= lo {
+        &n = n + 32
+      }
+      return n
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(46));
+}
+
+// Held in a variable rather than branched on, which the backend sets with
+// CSET instead of folding into the branch.
+TEST(CompilerTest, ComparisonHeldInAVariable) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = 5
+      val at_least: Bool = a >= 5
+      val at_most: Bool = a <= 4
+      val n: Int32 = 0
+      if at_least {
+        &n = n + 3
+      }
+      if at_most {
+        &n = n + 4
+      }
+      return n
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
+}
+
+TEST(CompilerTest, ComparisonOfWiderAndSignedValues) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int64 = 5000000000
+      val b: Int64 = 4999999999
+      val neg: Int32 = 0 - 5
+      val n: Int32 = 0
+      if a >= b {
+        &n = n + 1
+      }
+      if neg <= 0 {
+        &n = n + 2
+      }
+      return n
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
+}
+
 // An array or a tuple lives in the frame, which the interpreter that runs
 // comp code once had none of: what it stored went nowhere and what it read
 // back was zero.

@@ -258,7 +258,8 @@ class ExprTypeInferenceEngine {
 
   void ProcessPendingExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {
     if (expr.op == BinaryOp::Eq || expr.op == BinaryOp::Lt ||
-        expr.op == BinaryOp::Gt || expr.op == BinaryOp::NotEq) {
+        expr.op == BinaryOp::Gt || expr.op == BinaryOp::NotEq ||
+        expr.op == BinaryOp::Ge || expr.op == BinaryOp::Le) {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr.lhs, expr.rhs);
       RequireTypeForExpr(expr_ref,

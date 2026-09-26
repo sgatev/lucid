@@ -97,6 +97,10 @@ Instruction Interpreter::Interpret(const Instruction& inst) {
     return Interpret(*gt_reg);
   } else if (const auto* lt_reg = std::get_if<LtReg>(&inst)) {
     return Interpret(*lt_reg);
+  } else if (const auto* ge_reg = std::get_if<GeReg>(&inst)) {
+    return Interpret(*ge_reg);
+  } else if (const auto* le_reg = std::get_if<LeReg>(&inst)) {
+    return Interpret(*le_reg);
   } else if (const auto* eq_reg = std::get_if<EqReg>(&inst)) {
     return Interpret(*eq_reg);
   } else if (const auto* not_eq_reg = std::get_if<NotEqReg>(&inst)) {
@@ -247,6 +251,28 @@ Instruction Interpreter::Interpret(const LtReg& inst) {
   assert(rhs_val.has_value());
 
   values_.Set(inst.res_reg, *lhs_val < *rhs_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const GeReg& inst) {
+  auto lhs_val = values_.Get(inst.lhs_reg);
+  assert(lhs_val.has_value());
+
+  auto rhs_val = values_.Get(inst.rhs_reg);
+  assert(rhs_val.has_value());
+
+  values_.Set(inst.res_reg, *lhs_val >= *rhs_val);
+  return inst;
+}
+
+Instruction Interpreter::Interpret(const LeReg& inst) {
+  auto lhs_val = values_.Get(inst.lhs_reg);
+  assert(lhs_val.has_value());
+
+  auto rhs_val = values_.Get(inst.rhs_reg);
+  assert(rhs_val.has_value());
+
+  values_.Set(inst.res_reg, *lhs_val <= *rhs_val);
   return inst;
 }
 

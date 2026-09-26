@@ -41,6 +41,8 @@ class Interpreter {
   Instruction Interpret(const MoveReg& inst);
   Instruction Interpret(const GtReg& inst);
   Instruction Interpret(const LtReg& inst);
+  Instruction Interpret(const GeReg& inst);
+  Instruction Interpret(const LeReg& inst);
   Instruction Interpret(const EqReg& inst);
   Instruction Interpret(const NotEqReg& inst);
   Instruction Interpret(const Return& inst);

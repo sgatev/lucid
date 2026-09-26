@@ -254,6 +254,12 @@ enum class BinaryOp : std::uint8_t {
   // Less than comparison operation.
   Lt,
 
+  // Greater than or equal comparison operation.
+  Ge,
+
+  // Less than or equal comparison operation.
+  Le,
+
   // Equals comparison operator.
   Eq,
 
@@ -277,6 +283,10 @@ inline std::string to_string(BinaryOp op) {
       return "Gt";
     case BinaryOp::Lt:
       return "Lt";
+    case BinaryOp::Ge:
+      return "Ge";
+    case BinaryOp::Le:
+      return "Le";
     case BinaryOp::Eq:
       return "Eq";
     case BinaryOp::NotEq:

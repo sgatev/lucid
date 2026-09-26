@@ -375,6 +375,69 @@ TEST(ParserTest, GroupingLeavesNothingBehind) {
               })));
 }
 
+TEST(ParserTest, ReturnGeExpr) {
+  std::string_view src = R"(
+    fun main(): Bool {
+      return 3 >= 2
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = I("main"),
+                  .result_type = MatchesBasicType({.name = I("Bool")}),
+                  .body = {{
+                      MatchesReturnStmt({
+                          .value = MatchesBinaryOpExpr({
+                              .op = BinaryOp::Ge,
+                              .lhs = MatchesIntLitExpr({
+                                  .value = 3,
+                              }),
+                              .rhs = MatchesIntLitExpr({
+                                  .value = 2,
+                              }),
+                          }),
+                      }),
+                  }},
+              })));
+}
+
+TEST(ParserTest, ReturnLeExpr) {
+  std::string_view src = R"(
+    fun main(): Bool {
+      return 3 <= 2
+    }
+  )";
+  EXPECT_THAT(Parse(src),
+              HoldsFuncDef(MatchesFuncDefStmt({
+                  .name = I("main"),
+                  .result_type = MatchesBasicType({.name = I("Bool")}),
+                  .body = {{
+                      MatchesReturnStmt({
+                          .value = MatchesBinaryOpExpr({
+                              .op = BinaryOp::Le,
+                              .lhs = MatchesIntLitExpr({
+                                  .value = 3,
+                              }),
+                              .rhs = MatchesIntLitExpr({
+                                  .value = 2,
+                              }),
+                          }),
+                      }),
+                  }},
+              })));
+}
+
+// The `=` has to stand right against the `>` to belong to it, or `a > = b`
+// would read as a comparison rather than as the mistake it is.
+TEST(ParserTest, GreaterAndEqualApart) {
+  std::string_view src = R"(
+    fun main(): Bool {
+      return 3 > = 2
+    }
+  )";
+  EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 18"));
+}
+
 TEST(ParserTest, Precedence) {
   std::string_view src = R"(
     fun foo(x: Int32): Bool {

@@ -323,6 +323,20 @@ class AbstractMachineFunctionGenerator {
             .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
         });
         break;
+      case BinaryOp::Ge:
+        am_block.instructions.push_back(GeReg{
+            .res_reg = reg,
+            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+        });
+        break;
+      case BinaryOp::Le:
+        am_block.instructions.push_back(LeReg{
+            .res_reg = reg,
+            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+        });
+        break;
       case BinaryOp::Eq:
         am_block.instructions.push_back(EqReg{
             .res_reg = reg,

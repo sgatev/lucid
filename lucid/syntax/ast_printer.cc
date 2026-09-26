@@ -322,6 +322,12 @@ class AstPrinter {
         case BinaryOp::Lt:
           Out() << Indent(indent_) << ".op = Lt\n";
           break;
+        case BinaryOp::Ge:
+          Out() << Indent(indent_) << ".op = Ge\n";
+          break;
+        case BinaryOp::Le:
+          Out() << Indent(indent_) << ".op = Le\n";
+          break;
         case BinaryOp::Eq:
           Out() << Indent(indent_) << ".op = Eq\n";
           break;

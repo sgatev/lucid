@@ -47,6 +47,12 @@ std::optional<BranchComparison> AsBranchComparison(const Instruction& inst) {
   if (const auto* cinst = std::get_if<LtReg>(&inst)) {
     return BranchComparison{Cond::Lt, cinst->lhs_reg, cinst->rhs_reg};
   }
+  if (const auto* cinst = std::get_if<GeReg>(&inst)) {
+    return BranchComparison{Cond::Ge, cinst->lhs_reg, cinst->rhs_reg};
+  }
+  if (const auto* cinst = std::get_if<LeReg>(&inst)) {
+    return BranchComparison{Cond::Le, cinst->lhs_reg, cinst->rhs_reg};
+  }
   if (const auto* cinst = std::get_if<EqReg>(&inst)) {
     return BranchComparison{Cond::Eq, cinst->lhs_reg, cinst->rhs_reg};
   }
@@ -430,6 +436,34 @@ class Arm64BinaryGenerator {
       case RegSize64:
         assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));
         assembler_.Cset(X(inst.res_reg.id), InvCond::Lt);
+        break;
+    }
+  }
+
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const GeReg& inst) {
+    switch (inst.lhs_reg.size) {
+      case RegSize32:
+        assembler_.Cmp(W(inst.lhs_reg.id), W(inst.rhs_reg.id));
+        assembler_.Cset(W(inst.res_reg.id), InvCond::Ge);
+        break;
+      case RegSize64:
+        assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));
+        assembler_.Cset(X(inst.res_reg.id), InvCond::Ge);
+        break;
+    }
+  }
+
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               const LeReg& inst) {
+    switch (inst.lhs_reg.size) {
+      case RegSize32:
+        assembler_.Cmp(W(inst.lhs_reg.id), W(inst.rhs_reg.id));
+        assembler_.Cset(W(inst.res_reg.id), InvCond::Le);
+        break;
+      case RegSize64:
+        assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));
+        assembler_.Cset(X(inst.res_reg.id), InvCond::Le);
         break;
     }
   }

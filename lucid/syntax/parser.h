@@ -462,32 +462,67 @@ class Parser {
   struct BinaryOpInfo {
     BinaryOp op;
     std::uint8_t precedence;
-    // Whether the operator is spelled with a second `=` right after the token.
-    bool takes_equal;
+
+    // Whether a second `=` has to follow the token, as it does in `==`.
+    bool needs_equal;
+
+    // The operator the token spells where a second `=` follows it. The same
+    // operator as `op` where no `=` may: `>` becomes `>=`, `+` stays `+`.
+    BinaryOp op_with_equal;
   };
 
   static constexpr BinaryOpInfo BinaryOpOf(Token::Kind kind) {
     switch (kind) {
       case Token::Kind::Greater:
-        return {.op = BinaryOp::Gt, .precedence = 1, .takes_equal = false};
+        return {.op = BinaryOp::Gt,
+                .precedence = 1,
+                .needs_equal = false,
+                .op_with_equal = BinaryOp::Ge};
       case Token::Kind::Less:
-        return {.op = BinaryOp::Lt, .precedence = 1, .takes_equal = false};
+        return {.op = BinaryOp::Lt,
+                .precedence = 1,
+                .needs_equal = false,
+                .op_with_equal = BinaryOp::Le};
       case Token::Kind::Equal:
-        return {.op = BinaryOp::Eq, .precedence = 1, .takes_equal = true};
+        return {.op = BinaryOp::Eq,
+                .precedence = 1,
+                .needs_equal = true,
+                .op_with_equal = BinaryOp::Eq};
       case Token::Kind::Exclamation:
-        return {.op = BinaryOp::NotEq, .precedence = 1, .takes_equal = true};
+        return {.op = BinaryOp::NotEq,
+                .precedence = 1,
+                .needs_equal = true,
+                .op_with_equal = BinaryOp::NotEq};
       case Token::Kind::Plus:
-        return {.op = BinaryOp::Add, .precedence = 2, .takes_equal = false};
+        return {.op = BinaryOp::Add,
+                .precedence = 2,
+                .needs_equal = false,
+                .op_with_equal = BinaryOp::Add};
       case Token::Kind::Minus:
-        return {.op = BinaryOp::Sub, .precedence = 2, .takes_equal = false};
+        return {.op = BinaryOp::Sub,
+                .precedence = 2,
+                .needs_equal = false,
+                .op_with_equal = BinaryOp::Sub};
       case Token::Kind::Star:
-        return {.op = BinaryOp::Mul, .precedence = 3, .takes_equal = false};
+        return {.op = BinaryOp::Mul,
+                .precedence = 3,
+                .needs_equal = false,
+                .op_with_equal = BinaryOp::Mul};
       case Token::Kind::Slash:
-        return {.op = BinaryOp::Div, .precedence = 3, .takes_equal = false};
+        return {.op = BinaryOp::Div,
+                .precedence = 3,
+                .needs_equal = false,
+                .op_with_equal = BinaryOp::Div};
       case Token::Kind::Percent:
-        return {.op = BinaryOp::Mod, .precedence = 3, .takes_equal = false};
+        return {.op = BinaryOp::Mod,
+                .precedence = 3,
+                .needs_equal = false,
+                .op_with_equal = BinaryOp::Mod};
       default:
-        return {.op = BinaryOp::Add, .precedence = 0, .takes_equal = false};
+        return {.op = BinaryOp::Add,
+                .precedence = 0,
+                .needs_equal = false,
+                .op_with_equal = BinaryOp::Add};
     }
   }
 
@@ -505,14 +540,22 @@ class Parser {
       if (info.precedence < min_precedence) return expr;
 
       ReadIgnoringNonSemantic();
-      if (info.takes_equal) {
+
+      // A second `=` has to stand right against the token to belong to it,
+      // so that `a > = b` is not `a >= b`.
+      BinaryOp op = info.op;
+      if (info.needs_equal) {
         RETURN_IF_ERROR(ExpectTokenImmediate(Token::Kind::Equal));
+      } else if (info.op_with_equal != info.op &&
+                 PeekImmediate().kind == Token::Kind::Equal) {
+        ReadImmediate();
+        op = info.op_with_equal;
       }
 
       // The right side stops one level up, so that the next operator of this
       // level is left to this loop: `a - b - c` is `(a - b) - c`.
       ASSIGN_OR_RETURN(Expr rhs, ParseExpr(info.precedence + 1));
-      expr = MakeBinaryOpExpr(info.op, syn_ctx_.Add(std::move(expr)),
+      expr = MakeBinaryOpExpr(op, syn_ctx_.Add(std::move(expr)),
                               syn_ctx_.Add(std::move(rhs)));
     }
   }
@@ -723,6 +766,10 @@ class Parser {
     SkipNonSemantic();
     return ReadImmediate();
   }
+
+  // The very next token, whitespace and comments included, which is what
+  // says whether a second `=` stands right against the one just read.
+  const Token& PeekImmediate() const { return next_; }
 
   const Token& PeekIgnoringNonSemantic() {
     SkipNonSemantic();

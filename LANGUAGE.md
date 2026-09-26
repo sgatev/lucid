@@ -51,8 +51,8 @@ POSIX ones, interpreted when the string is written into the program:
 | `\n` | newline | | | |
 
 **Punctuation** is `=` `(` `)` `{` `}` `[` `]` `:` `,` `+` `-` `*` `/` `%` `>` `<` `.`
-`|` `!` `&`. The two-character operators `==` and `!=` are written as `=` or `!` followed
-immediately by `=`, with no space between them.
+`|` `!` `&`. The two-character operators `==`, `!=`, `>=` and `<=` are written as their
+first character followed immediately by `=`, with no space between them.
 
 **Keywords** are not reserved. `fun`, `val`, `comp`, `if`, `else`, `loop`, `break`,
 `return`, `do`, `true` and `false` are ordinary identifiers that the parser recognises
@@ -169,7 +169,7 @@ how a function is called when its result is not wanted.
 |---|---|---|
 | 3, tightest | `*` `/` `%` | multiply, divide, remainder |
 | 2 | `+` `-` | add, subtract |
-| 1, loosest | `>` `<` `==` `!=` | compare, yielding `Bool` |
+| 1, loosest | `>` `<` `>=` `<=` `==` `!=` | compare, yielding `Bool` |
 
 All of them are binary and all associate to the left, so `a - b - c` is `(a - b) - c`.
 

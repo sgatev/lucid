@@ -208,8 +208,10 @@ class BInst {
 enum class Cond : std::uint8_t {
   Eq = 0b0000,
   Ne = 0b0001,
+  Ge = 0b1010,
   Lt = 0b1011,
   Gt = 0b1100,
+  Le = 0b1101,
 };
 
 // ARM64 inverse condition.
@@ -220,8 +222,10 @@ enum class Cond : std::uint8_t {
 enum class InvCond : std::uint8_t {
   Ne = 0b0000,
   Eq = 0b0001,
+  Ge = 0b1011,
   Lt = 0b1010,
   Gt = 0b1101,
+  Le = 0b1100,
 };
 
 // ARM64 extend.

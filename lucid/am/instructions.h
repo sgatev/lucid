@@ -265,6 +265,46 @@ struct LtReg {
   }
 };
 
+// Tests the values in two registers for a "greater than or equal" relationship.
+struct GeReg {
+  // Result register.
+  Reg res_reg;
+
+  // First operand register.
+  Reg lhs_reg;
+
+  // Second operand register.
+  Reg rhs_reg;
+
+  bool operator==(const GeReg&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const GeReg& inst) {
+    return os << "GeReg { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
+  }
+};
+
+// Tests the values in two registers for a "less than or equal" relationship.
+struct LeReg {
+  // Result register.
+  Reg res_reg;
+
+  // First operand register.
+  Reg lhs_reg;
+
+  // Second operand register.
+  Reg rhs_reg;
+
+  bool operator==(const LeReg&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const LeReg& inst) {
+    return os << "LeReg { .res_reg=" << inst.res_reg
+              << ", .lhs_reg=" << inst.lhs_reg << ", .rhs_reg=" << inst.rhs_reg
+              << " }";
+  }
+};
+
 // Tests the values in two registers for an "equals" relationship.
 struct EqReg {
   // Result register.
@@ -415,8 +455,9 @@ struct FuncCall {
 // An instruction for the Lucid abstract machine.
 using Instruction =
     std::variant<Nop, MoveReg, SetReg, SetInt, SetStr, Return, AddReg, SubReg,
-                 MulReg, DivReg, ModReg, GtReg, LtReg, EqReg, NotEqReg,
-                 StoreStack, StoreStackReg, LoadStack, LoadStackReg, FuncCall>;
+                 MulReg, DivReg, ModReg, GtReg, LtReg, GeReg, LeReg, EqReg,
+                 NotEqReg, StoreStack, StoreStackReg, LoadStack, LoadStackReg,
+                 FuncCall>;
 
 // Calls `visit` with each source register the given instruction reads.
 //
@@ -451,6 +492,12 @@ inline void ForEachSourceRegister(const Instruction& inst, VisitT visit) {
     visit(cinst->lhs_reg);
     visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<LtReg>(&inst)) {
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
+  } else if (auto* cinst = std::get_if<GeReg>(&inst)) {
+    visit(cinst->lhs_reg);
+    visit(cinst->rhs_reg);
+  } else if (auto* cinst = std::get_if<LeReg>(&inst)) {
     visit(cinst->lhs_reg);
     visit(cinst->rhs_reg);
   } else if (auto* cinst = std::get_if<EqReg>(&inst)) {
@@ -509,6 +556,10 @@ inline std::optional<Reg> GetTargetRegister(const Instruction& inst) {
   } else if (auto* cinst = std::get_if<GtReg>(&inst)) {
     return cinst->res_reg;
   } else if (auto* cinst = std::get_if<LtReg>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<GeReg>(&inst)) {
+    return cinst->res_reg;
+  } else if (auto* cinst = std::get_if<LeReg>(&inst)) {
     return cinst->res_reg;
   } else if (auto* cinst = std::get_if<EqReg>(&inst)) {
     return cinst->res_reg;
