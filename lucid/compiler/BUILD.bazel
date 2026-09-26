@@ -25,6 +25,7 @@ cc_library(
         "//lucid/syntax:comp",
         "//lucid/syntax:lexer",
         "//lucid/syntax:parser",
+        "//lucid/syntax:scope",
         "//lucid/syntax:ssa",
         "//lucid/syntax:type",
     ],

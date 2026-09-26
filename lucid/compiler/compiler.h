@@ -7,6 +7,7 @@
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/comp.h"
 #include "lucid/syntax/parser.h"
+#include "lucid/syntax/scope.h"
 #include "lucid/syntax/type.h"
 
 namespace lucid {
@@ -22,8 +23,8 @@ struct CompileConfig {
   std::filesystem::path out_path;
 };
 
-using CompileError =
-    CompositeError<ReadFileError, ParserError, TypeError, CompError>;
+using CompileError = CompositeError<ReadFileError, ParserError, ScopeError,
+                                    TypeError, CompError>;
 
 std::expected<void, CompileError> CompileCode(const CompileConfig& config);
 
@@ -32,8 +33,8 @@ struct BuildConfig {
   std::filesystem::path out_path;
 };
 
-using BuildError =
-    CompositeError<ReadFileError, ParserError, TypeError, CompError>;
+using BuildError = CompositeError<ReadFileError, ParserError, ScopeError,
+                                  TypeError, CompError>;
 
 std::expected<void, BuildError> BuildCode(BuildConfig config);
 

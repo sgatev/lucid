@@ -41,6 +41,23 @@ TEST(CompilerTest, PrintAstRejectsMalformedNode) {
   }
 }
 
+// A declaration is gone once the block holding it ends, which once left the
+// name behind for whatever came after to read.
+TEST(CompilerTest, ReportsVariablesOutOfScope) {
+  const std::string_view kCases[] = {
+      R"(fun main(): Int32 { if true { val y: Int32 = 2 } return y })",
+      R"(fun main(): Int32 { loop { val y: Int32 = 2 break } return y })",
+      R"(fun main(): Int32 { if true { val y: Int32 = 2 } &y = 3 return 0 })",
+  };
+
+  for (std::string_view source : kCases) {
+    ASSERT_TRUE(CreateFile("main.lu", source));
+    EXPECT_THAT(
+        RunCompiler({"compile", FullPath("main.lu")}),
+        AllOf(ReturnsCode(1), ErrorOutput(Contains("no variable 'y'"))));
+  }
+}
+
 // A name that answers to nothing was once read out of an empty lookup, which
 // left the compiler walking a function definition that was never there.
 TEST(CompilerTest, ReportsNamesThatAreNotThere) {

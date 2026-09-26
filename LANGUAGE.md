@@ -115,7 +115,12 @@ val buffer: Int32[101]
 ```
 
 A `val` is not constant. The name is misleading: variables are assigned freely after
-declaration, and a declaration in an inner block shadows an outer one of the same name.
+declaration.
+
+A declaration holds from where it is made to the end of the block holding it, and a
+block is what braces enclose: a function's body, either side of an `if`, a loop's body.
+A declaration inside a block is gone after it, and one that repeats a name already
+declared stands over the earlier one for as long as its own block lasts.
 
 **Assignment** is marked with a leading `&`, which is what tells it apart from a
 declaration. It assigns to a variable, to an array element, or to a field:

@@ -30,6 +30,7 @@
 #include "lucid/syntax/comp.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
+#include "lucid/syntax/scope.h"
 #include "lucid/syntax/ssa.h"
 #include "lucid/syntax/type.h"
 
@@ -61,6 +62,9 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
     if (auto* func_def = std::get_if<FuncDefStmt>(&defs.back())) {
       syn_ctx.AddFuncDef(*func_def);
 
+      if (auto res = ResolveNames(syn_ctx, *func_def); !res.has_value()) {
+        return std::unexpected(res.error());
+      }
       if (auto res = InferExprTypes(syn_ctx, *func_def); !res.has_value()) {
         return std::unexpected(res.error());
       }

@@ -314,6 +314,19 @@ cc_test(
 )
 
 cc_library(
+    name = "scope",
+    srcs = ["scope.cc"],
+    hdrs = ["scope.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":ast",
+        ":context",
+        "//lucid/core/container:hash_map",
+        "//lucid/core/string:index",
+    ],
+)
+
+cc_library(
     name = "type",
     srcs = ["type.cc"],
     hdrs = ["type.h"],

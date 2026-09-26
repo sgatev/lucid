@@ -184,6 +184,68 @@ TEST(CompilerTest, NestedLiteralComparison) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
 }
 
+// A declaration inside a block stands over an outer one of the same name
+// only while that block lasts. Reading `y` after the branch once gave the
+// two, because both declarations went by the one name.
+TEST(CompilerTest, ShadowedVariable) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val y: Int32 = 1
+      if true {
+        val y: Int32 = 2
+      }
+      return y
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
+}
+
+// A parameter is declared where the function is, so a local of the same name
+// stands over it for as long as its own block lasts.
+TEST(CompilerTest, LocalShadowingAParameter) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun f(a: Int32): Int32 {
+      val a: Int32 = 9
+      return a
+    }
+
+    fun main(): Int32 {
+      return f(1)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(9));
+}
+
+// Two blocks beside one another each declaring the same name, with different
+// types, which one map from names to types could not hold at once.
+TEST(CompilerTest, SameNameInBothBranches) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = 1
+      if a == 1 {
+        val b: Int32 = 2
+      } else {
+        val b: Int64 = 3
+      }
+      return 4
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
+}
+
+// The initializer stands before the declaration it belongs to, so the name
+// in it is the one that was in force until then.
+TEST(CompilerTest, DeclarationReadingTheEarlierOne) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val x: Int32 = 2
+      val x: Int32 = x + 3
+      return x
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(5));
+}
+
 // An array whose elements are tuples: the slots behind it run field by field
 // and element by element, and reaching into it costs the element's whole size
 // per step rather than one slot.
