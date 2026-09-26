@@ -265,6 +265,13 @@ enum class BinaryOp : std::uint8_t {
 
   // Not equals comparison operator.
   NotEq,
+
+  // Conjunction, which reads its right side only where its left side holds.
+  And,
+
+  // Disjunction, which reads its right side only where its left side does
+  // not hold.
+  Or,
 };
 
 inline std::string to_string(BinaryOp op) {
@@ -291,6 +298,10 @@ inline std::string to_string(BinaryOp op) {
       return "Eq";
     case BinaryOp::NotEq:
       return "NotEq";
+    case BinaryOp::And:
+      return "And";
+    case BinaryOp::Or:
+      return "Or";
   }
 }
 

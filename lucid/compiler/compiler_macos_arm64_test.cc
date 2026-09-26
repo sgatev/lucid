@@ -184,6 +184,213 @@ TEST(CompilerTest, NestedLiteralComparison) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
 }
 
+// Work done during compilation can have no effect of its own, so leaving
+// the right side unread there would not be worth a branch, and reading both
+// is what lets the value be worked out where every other comp value is.
+TEST(CompilerTest, ShortCircuitInACompValue) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun t(): Bool {
+      return true
+    }
+
+    comp fun f(): Bool {
+      return false
+    }
+
+    comp fun n(): Int32 {
+      return 7
+    }
+
+    fun main(): Int32 {
+      comp val both: Bool = t() and f()
+      comp val either: Bool = t() or f()
+      comp val mixed: Bool = n() > 3 and t()
+      val count: Int32 = 0
+      if both {
+        &count = count + 1
+      }
+      if either {
+        &count = count + 2
+      }
+      if mixed {
+        &count = count + 4
+      }
+      return count
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(6));
+}
+
+// Both operators over both of their sides, counted into one number so that
+// a single answer says all four came out right.
+// A whole function is run to work out what a comp value is, and running one
+// follows branches, so a short circuit inside a comp function is fine where
+// one standing in the value itself is not.
+TEST(CompilerTest, ShortCircuitInsideACompFunction) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun p(): Bool {
+      return true
+    }
+
+    comp fun q(): Bool {
+      return true
+    }
+
+    comp fun both(): Bool {
+      return p() and q()
+    }
+
+    fun main(): Int32 {
+      comp val c: Bool = both()
+      if c {
+        return 5
+      }
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(5));
+}
+
+TEST(CompilerTest, ConjunctionAndDisjunction) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val t: Bool = true
+      val f: Bool = false
+      val n: Int32 = 0
+      if t and t {
+        &n = n + 1
+      }
+      if t and f {
+        &n = n + 2
+      }
+      if f or t {
+        &n = n + 4
+      }
+      if f or f {
+        &n = n + 8
+      }
+      if !f {
+        &n = n + 16
+      }
+      return n
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
+}
+
+// The right side is read only where the left side leaves the answer open,
+// which is what each of these writes out as it goes.
+TEST(CompilerTest, ShortCircuitSkipsTheRightSide) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun printString(s: String): Int32 {
+      return 0
+    }
+
+    fun p(): Bool {
+      do printString("p")
+      return true
+    }
+
+    fun q(): Bool {
+      do printString("q")
+      return true
+    }
+
+    fun no(): Bool {
+      do printString("n")
+      return false
+    }
+
+    fun main(): Int32 {
+      if no() and q() {
+        return 0
+      }
+      if p() or q() {
+        return 0
+      }
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
+              AllOf(ReturnsCode(0), Output(Equals("np"))));
+}
+
+// A call standing before the operator in the same expression is read before
+// it, which is what taking the operator out of the expression could undo.
+TEST(CompilerTest, ShortCircuitKeepsTheOrderOfCalls) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun printString(s: String): Int32 {
+      return 0
+    }
+
+    fun p(): Bool {
+      do printString("p")
+      return true
+    }
+
+    fun q(): Bool {
+      do printString("q")
+      return true
+    }
+
+    fun no(): Bool {
+      do printString("n")
+      return false
+    }
+
+    fun first(): Int32 {
+      do printString("f")
+      return 1
+    }
+
+    fun pick(b: Bool): Int32 {
+      do printString("k")
+      return 1
+    }
+
+    fun main(): Int32 {
+      val c: Int32 = first() + pick(p() and q())
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
+              AllOf(ReturnsCode(0), Output(Equals("fpqk"))));
+}
+
+// `or` binds looser than `and`, so the conjunction is what the disjunction
+// holds and neither side of it is read where the left side already holds.
+TEST(CompilerTest, ConjunctionBindsTighterThanDisjunction) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun printString(s: String): Int32 {
+      return 0
+    }
+
+    fun p(): Bool {
+      do printString("p")
+      return true
+    }
+
+    fun q(): Bool {
+      do printString("q")
+      return true
+    }
+
+    fun no(): Bool {
+      do printString("n")
+      return false
+    }
+
+    fun main(): Int32 {
+      if p() or no() and q() {
+        return 0
+      }
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
+              AllOf(ReturnsCode(0), Output(Equals("p"))));
+}
+
 // Both sides of each comparison, and the point where they meet, which is
 // the whole of what `>=` and `<=` add over `>` and `<`.
 TEST(CompilerTest, GreaterOrEqualAndLessOrEqual) {

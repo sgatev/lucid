@@ -164,7 +164,7 @@ inline std::uint32_t VertexId(const SyntaxControlFlowGraph&,
 //
 // Requires:
 // - `func` must be associated with `ctx`.
-SyntaxControlFlowGraph BuildControlFlowGraph(const SyntaxContext& ctx,
+SyntaxControlFlowGraph BuildControlFlowGraph(SyntaxContext& ctx,
                                              const FuncDefStmt& func);
 
 template <typename T>

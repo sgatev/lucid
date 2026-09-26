@@ -334,6 +334,12 @@ class AstPrinter {
         case BinaryOp::NotEq:
           Out() << Indent(indent_) << ".op = NotEq\n";
           break;
+        case BinaryOp::And:
+          Out() << Indent(indent_) << ".op = And\n";
+          break;
+        case BinaryOp::Or:
+          Out() << Indent(indent_) << ".op = Or\n";
+          break;
       }
 
       Out() << Indent(indent_) << ".lhs = {\n";

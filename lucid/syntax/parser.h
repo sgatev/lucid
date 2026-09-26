@@ -463,65 +463,86 @@ class Parser {
     BinaryOp op;
     std::uint8_t precedence;
 
-    // Whether a second `=` has to follow the token, as it does in `==`.
-    bool needs_equal;
+    // A token that has to stand right against this one for the operator to
+    // be spelled at all, as the second `&` of `&&` does. `Kind::End` where
+    // the operator is the one token.
+    Token::Kind needs;
 
-    // The operator the token spells where a second `=` follows it. The same
-    // operator as `op` where no `=` may: `>` becomes `>=`, `+` stays `+`.
+    // The operator the token spells where a second `=` stands right against
+    // it. The same operator as `op` where no `=` may: `>` becomes `>=`.
     BinaryOp op_with_equal;
   };
 
-  static constexpr BinaryOpInfo BinaryOpOf(Token::Kind kind) {
-    switch (kind) {
+  BinaryOpInfo BinaryOpOf(const Token& token) const {
+    // `and` and `or` are words rather than punctuation. No statement begins
+    // with a word that is not one of the few that open one, so a word here
+    // continues the expression rather than starting anything.
+    if (token.kind == Token::Kind::Ident) {
+      const std::string_view text = TokenString(token);
+      if (text == "or") {
+        return {.op = BinaryOp::Or,
+                .precedence = 1,
+                .needs = Token::Kind::End,
+                .op_with_equal = BinaryOp::Or};
+      }
+      if (text == "and") {
+        return {.op = BinaryOp::And,
+                .precedence = 2,
+                .needs = Token::Kind::End,
+                .op_with_equal = BinaryOp::And};
+      }
+    }
+
+    switch (token.kind) {
       case Token::Kind::Greater:
         return {.op = BinaryOp::Gt,
-                .precedence = 1,
-                .needs_equal = false,
+                .precedence = 3,
+                .needs = Token::Kind::End,
                 .op_with_equal = BinaryOp::Ge};
       case Token::Kind::Less:
         return {.op = BinaryOp::Lt,
-                .precedence = 1,
-                .needs_equal = false,
+                .precedence = 3,
+                .needs = Token::Kind::End,
                 .op_with_equal = BinaryOp::Le};
       case Token::Kind::Equal:
         return {.op = BinaryOp::Eq,
-                .precedence = 1,
-                .needs_equal = true,
+                .precedence = 3,
+                .needs = Token::Kind::Equal,
                 .op_with_equal = BinaryOp::Eq};
       case Token::Kind::Exclamation:
         return {.op = BinaryOp::NotEq,
-                .precedence = 1,
-                .needs_equal = true,
+                .precedence = 3,
+                .needs = Token::Kind::Equal,
                 .op_with_equal = BinaryOp::NotEq};
       case Token::Kind::Plus:
         return {.op = BinaryOp::Add,
-                .precedence = 2,
-                .needs_equal = false,
+                .precedence = 4,
+                .needs = Token::Kind::End,
                 .op_with_equal = BinaryOp::Add};
       case Token::Kind::Minus:
         return {.op = BinaryOp::Sub,
-                .precedence = 2,
-                .needs_equal = false,
+                .precedence = 4,
+                .needs = Token::Kind::End,
                 .op_with_equal = BinaryOp::Sub};
       case Token::Kind::Star:
         return {.op = BinaryOp::Mul,
-                .precedence = 3,
-                .needs_equal = false,
+                .precedence = 5,
+                .needs = Token::Kind::End,
                 .op_with_equal = BinaryOp::Mul};
       case Token::Kind::Slash:
         return {.op = BinaryOp::Div,
-                .precedence = 3,
-                .needs_equal = false,
+                .precedence = 5,
+                .needs = Token::Kind::End,
                 .op_with_equal = BinaryOp::Div};
       case Token::Kind::Percent:
         return {.op = BinaryOp::Mod,
-                .precedence = 3,
-                .needs_equal = false,
+                .precedence = 5,
+                .needs = Token::Kind::End,
                 .op_with_equal = BinaryOp::Mod};
       default:
         return {.op = BinaryOp::Add,
                 .precedence = 0,
-                .needs_equal = false,
+                .needs = Token::Kind::End,
                 .op_with_equal = BinaryOp::Add};
     }
   }
@@ -536,16 +557,16 @@ class Parser {
     ASSIGN_OR_RETURN(Expr expr, ParseElement());
 
     while (true) {
-      const BinaryOpInfo info = BinaryOpOf(PeekIgnoringNonSemantic().kind);
+      const BinaryOpInfo info = BinaryOpOf(PeekIgnoringNonSemantic());
       if (info.precedence < min_precedence) return expr;
 
       ReadIgnoringNonSemantic();
 
-      // A second `=` has to stand right against the token to belong to it,
-      // so that `a > = b` is not `a >= b`.
+      // What follows has to stand right against the token to belong to it,
+      // so that `a > = b` is not `a >= b` and `a & & b` is not `a && b`.
       BinaryOp op = info.op;
-      if (info.needs_equal) {
-        RETURN_IF_ERROR(ExpectTokenImmediate(Token::Kind::Equal));
+      if (info.needs != Token::Kind::End) {
+        RETURN_IF_ERROR(ExpectTokenImmediate(info.needs));
       } else if (info.op_with_equal != info.op &&
                  PeekImmediate().kind == Token::Kind::Equal) {
         ReadImmediate();
@@ -562,6 +583,8 @@ class Parser {
 
   std::expected<Expr, ParserError> ParseElement() {
     switch (Token next_token = PeekIgnoringNonSemantic(); next_token.kind) {
+      case Token::Kind::Exclamation:
+        return ParseNotExpr();
       case Token::Kind::OpenParen:
         return ParseParenExpr();
       case Token::Kind::Ident:
@@ -576,6 +599,18 @@ class Parser {
         return std::unexpected(
             MakeError(ParserError::Kind::UnexpectedToken, next_token));
     }
+  }
+
+  // Parses `!` and what it negates, which is the same as asking whether what
+  // follows is false. Nothing in the abstract machine has to know about it.
+  std::expected<Expr, ParserError> ParseNotExpr() {
+    ReadIgnoringNonSemantic();
+    ASSIGN_OR_RETURN(Expr expr, ParseElement());
+    return BinaryOpExpr{
+        .op = BinaryOp::Eq,
+        .lhs = syn_ctx_.Add(std::move(expr)),
+        .rhs = syn_ctx_.Add(BoolLitExpr{.value = false}),
+    };
   }
 
   // Parses an expression written inside parentheses, which is that expression

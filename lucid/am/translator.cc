@@ -351,6 +351,12 @@ class AbstractMachineFunctionGenerator {
             .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
         });
         break;
+      case BinaryOp::And:
+      case BinaryOp::Or:
+        // Each of these is a branch over a variable of its own by the time
+        // anything here sees the function, and so never one of these.
+        assert(false && "short circuit operator reached the abstract machine");
+        break;
     }
     expr_and_stmt_to_reg_[ref.id()] = reg;
   }

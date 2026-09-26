@@ -51,12 +51,13 @@ POSIX ones, interpreted when the string is written into the program:
 | `\n` | newline | | | |
 
 **Punctuation** is `=` `(` `)` `{` `}` `[` `]` `:` `,` `+` `-` `*` `/` `%` `>` `<` `.`
-`|` `!` `&`. The two-character operators `==`, `!=`, `>=` and `<=` are written as their
-first character followed immediately by `=`, with no space between them.
+`|` `!` `&`. The operators `==`, `!=`, `>=` and `<=` are written as their first
+character followed immediately by `=`, with no space between them.
 
 **Keywords** are not reserved. `fun`, `val`, `comp`, `if`, `else`, `loop`, `break`,
 `return`, `do`, `true` and `false` are ordinary identifiers that the parser recognises
-where a definition or a statement begins, and `Type` is recognised only in a type
+where a definition or a statement begins; `and` and `or` are ones it recognises where an
+operator would stand, between two expressions; and `Type` is recognised only in a type
 definition. Nothing stops a variable being called `loop`.
 
 ## Types
@@ -167,9 +168,11 @@ how a function is called when its result is not wanted.
 
 | Precedence | Operators | Meaning |
 |---|---|---|
-| 3, tightest | `*` `/` `%` | multiply, divide, remainder |
-| 2 | `+` `-` | add, subtract |
-| 1, loosest | `>` `<` `>=` `<=` `==` `!=` | compare, yielding `Bool` |
+| 5, tightest | `*` `/` `%` | multiply, divide, remainder |
+| 4 | `+` `-` | add, subtract |
+| 3 | `>` `<` `>=` `<=` `==` `!=` | compare, yielding `Bool` |
+| 2 | `and` | both hold |
+| 1, loosest | `or` | either holds |
 
 All of them are binary and all associate to the left, so `a - b - c` is `(a - b) - c`.
 
@@ -177,12 +180,17 @@ All of them are binary and all associate to the left, so `a - b - c` is `(a - b)
 whatever surrounds it, so `(a + b) * c` multiplies the sum where `a + b * c` adds the
 product. They leave nothing of themselves behind: `(((7)))` is the literal `7`.
 
-**There are no unary operators.** `-1` is not an expression, and a negative value has to
-be computed, as `0 - 1`.
+**`and` and `or` read their right side only where their left side leaves the answer
+open**, so `no() and q()` never calls `q`. Everything a statement reads before reaching
+one of them is still read first: in `f() + pick(p() and q())`, `f` runs before `p`.
+
+**`!` is the one prefix operator**, and asks whether what follows is false. There is no
+prefix minus: `-1` is not an expression, and a negative value is computed, as `0 - 1`.
 
 The remaining forms are an identifier, an integer literal, a string literal, `true`,
-`false`, a call `f(a, b)`, an index `a[i]`, a field access `p.x` and an expression in
-parentheses. Commas between arguments are optional, as they are between parameters.
+`false`, a call `f(a, b)`, an index `a[i]`, a field access `p.x`, `!` and what it
+negates, and an expression in parentheses. Commas between arguments are optional, as
+they are between parameters.
 
 An index and a field access apply to an identifier or a call, and as many of them as
 follow do so in turn, each taking what came before it as its base. `ps[1].x` indexes an
