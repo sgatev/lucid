@@ -184,6 +184,36 @@ TEST(CompilerTest, NestedLiteralComparison) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
 }
 
+// A string is held as where it stands among the strings the program
+// carries, so what puts a worked-out one in a register is the instruction
+// that sets a string rather than the one that sets a number. Which of the
+// two it is cannot be told from the value or its width, only from the type
+// the call was written with.
+TEST(CompilerTest, CompValueOfAString) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun printString(s: String): Int32 {
+      return 0
+    }
+
+    comp fun pick(n: Int32): String {
+      if n > 1 {
+        return "big"
+      }
+      return "small"
+    }
+
+    fun main(): Int32 {
+      comp val a: String = pick(5)
+      comp val b: String = pick(0)
+      do printString(a)
+      do printString(b)
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
+              AllOf(ReturnsCode(0), Output(Equals("bigsmall"))));
+}
+
 // Work done during compilation can have no effect of its own, so leaving
 // the right side unread there would not be worth a branch, and reading both
 // is what lets the value be worked out where every other comp value is.

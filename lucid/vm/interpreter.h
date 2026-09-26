@@ -48,6 +48,7 @@ class Interpreter {
   Instruction Interpret(const Return& inst);
   Instruction Interpret(const SetReg& inst);
   Instruction Interpret(const SetInt& inst);
+  Instruction Interpret(const SetStr& inst);
   Instruction Interpret(const AddReg& inst);
   Instruction Interpret(const SubReg& inst);
   Instruction Interpret(const MulReg& inst);

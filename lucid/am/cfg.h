@@ -99,6 +99,9 @@ class AbstractMachineControlFlowGraph {
   // Parameters of the function.
   std::vector<Reg> params;
 
+  // What the function returns, where its size does not say.
+  ValueKind result_kind = ValueKind::Number;
+
   // Abstract machine stack slots.
   std::vector<int> stack_slots;
 

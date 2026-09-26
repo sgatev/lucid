@@ -93,6 +93,10 @@ Instruction Interpreter::Interpret(const Instruction& inst) {
     return Interpret(*set_reg);
   } else if (const auto* set_int = std::get_if<SetInt>(&inst)) {
     return Interpret(*set_int);
+  } else if (const auto* set_str = std::get_if<SetStr>(&inst)) {
+    return Interpret(*set_str);
+  } else if (std::holds_alternative<Nop>(inst)) {
+    return inst;
   } else if (const auto* gt_reg = std::get_if<GtReg>(&inst)) {
     return Interpret(*gt_reg);
   } else if (const auto* lt_reg = std::get_if<LtReg>(&inst)) {
@@ -219,9 +223,24 @@ Instruction Interpreter::Interpret(const FuncCall& inst) {
 
   values_.Set(inst.res->reg, result);
 
-  // The call is replaced by what it evaluated to, which an instruction can
-  // carry only when it is small enough.
-  return SetValue(result, inst.res->reg, am_state_);
+  // The call is replaced by what it evaluated to, as an instruction that
+  // sets a value of the kind the function returns.
+  switch (am_cfg->result_kind) {
+    case ValueKind::Number:
+      return SetValue(result, inst.res->reg, am_state_);
+    case ValueKind::String:
+      return SetStr{
+          .src_val = static_cast<std::uint32_t>(result),
+          .dst_reg = inst.res->reg,
+      };
+  }
+}
+
+// A string is held by where it stands among the strings the program carries,
+// which is what the register is set to.
+Instruction Interpreter::Interpret(const SetStr& inst) {
+  values_.Set(inst.dst_reg, inst.src_val);
+  return inst;
 }
 
 Instruction Interpreter::Interpret(const MoveReg& inst) {

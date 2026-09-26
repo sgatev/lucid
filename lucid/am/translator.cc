@@ -50,6 +50,7 @@ class AbstractMachineFunctionGenerator {
 
     result_reg_ = {am_cfg_.next_free_reg_id++,
                    GetRegSize(syn_cfg_.func_result_type)};
+    am_cfg_.result_kind = KindOf(syn_cfg_.func_result_type);
 
     if (syn_ctx_.DerefIdent(syn_cfg_.func_name) == "printString") {
       auto& first_block = am_cfg_.AddBlock();
@@ -599,6 +600,17 @@ class AbstractMachineFunctionGenerator {
       offset += GetSize(field.type_constraint);
     }
     return offset;
+  }
+
+  // What a value of this type is, where its size does not say.
+  ValueKind KindOf(TypeRef type_ref) const {
+    const auto* basic_type =
+        std::get_if<BasicType>(&syn_ctx_.DerefType(type_ref));
+    if (basic_type != nullptr &&
+        syn_ctx_.DerefIdent(basic_type->name) == "String") {
+      return ValueKind::String;
+    }
+    return ValueKind::Number;
   }
 
   // Whether a value of this type lies on the stack rather than in a register,

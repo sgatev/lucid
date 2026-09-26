@@ -15,6 +15,14 @@ namespace lucid {
 
 enum RegSize : std::uint8_t { RegSize32, RegSize64 };
 
+// What a value is, where its size does not say. A string is a pointer to
+// bytes and a number is a number, and the two are the same width, so what
+// tells them apart is this.
+//
+// It says which instruction puts a value of its own kind in a register,
+// which is what a value worked out during compilation is put back as.
+enum class ValueKind : std::uint8_t { Number, String };
+
 // A register in the Lucid abstract machine.
 struct Reg {
   std::int32_t id;
