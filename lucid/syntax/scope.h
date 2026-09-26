@@ -35,7 +35,11 @@ class ScopeError {
 // pass after this one tells two variables apart by their names alone, which
 // is what a name of its own for each declaration leaves them able to do.
 //
-// Returns an error where a name is used with no declaration standing over it.
+// A `break` is settled here too, for the same reason: what it leaves is the
+// innermost loop standing over it, which is a question of what encloses what.
+//
+// Returns an error where a name is used with no declaration standing over it,
+// or a `break` stands in no loop.
 //
 // Requires:
 // - `stmt` must be associated with `syn_ctx`.

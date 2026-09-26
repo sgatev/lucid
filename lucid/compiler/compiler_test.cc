@@ -41,6 +41,22 @@ TEST(CompilerTest, PrintAstRejectsMalformedNode) {
   }
 }
 
+// A `break` outside every loop once read the top of an empty stack of the
+// blocks a loop is left for.
+TEST(CompilerTest, ReportsBreakWithNoLoop) {
+  const std::string_view kCases[] = {
+      R"(fun main(): Int32 { break return 0 })",
+      R"(fun main(): Int32 { if true { break } return 0 })",
+  };
+
+  for (std::string_view source : kCases) {
+    ASSERT_TRUE(CreateFile("main.lu", source));
+    EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}),
+                AllOf(ReturnsCode(1),
+                      ErrorOutput(Contains("break with no loop to leave"))));
+  }
+}
+
 // A declaration is gone once the block holding it ends, which once left the
 // name behind for whatever came after to read.
 TEST(CompilerTest, ReportsVariablesOutOfScope) {

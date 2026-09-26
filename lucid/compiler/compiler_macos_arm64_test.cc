@@ -184,6 +184,57 @@ TEST(CompilerTest, NestedLiteralComparison) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
 }
 
+// A `break` leaves the loop standing closest over it. An unconditional one
+// in an inner loop once took the answer the inner body gave for the outer
+// sequence as well, which cut the outer loop's own back edge and left it
+// running once.
+TEST(CompilerTest, BreakLeavesTheInnermostLoop) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val i: Int32 = 0
+      val n: Int32 = 0
+      loop {
+        &i = i + 1
+        loop {
+          &n = n + 1
+          break
+        }
+        if i == 3 {
+          break
+        }
+      }
+      return i * 10 + n
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(33));
+}
+
+TEST(CompilerTest, BreakLeavesTheInnermostOfThreeLoops) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val i: Int32 = 0
+      val j: Int32 = 0
+      val k: Int32 = 0
+      loop {
+        &i = i + 1
+        loop {
+          &j = j + 1
+          loop {
+            &k = k + 1
+            break
+          }
+          break
+        }
+        if i == 2 {
+          break
+        }
+      }
+      return i * 100 + j * 10 + k
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(222));
+}
+
 // A declaration inside a block stands over an outer one of the same name
 // only while that block lasts. Reading `y` after the branch once gave the
 // two, because both declarations went by the one name.

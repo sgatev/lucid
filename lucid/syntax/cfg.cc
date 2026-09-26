@@ -49,11 +49,16 @@ class ControlFlowGraphBuilder {
         post_loop_blocks_.push(post_loop_block);
 
         auto loop_block = AddBlock();
-        should_connect = BuildBlock(loop_stmt->stmts, loop_block, loop_block);
+        BuildBlock(loop_stmt->stmts, loop_block, loop_block);
         graph_.get(block).succs.push_back(loop_block);
         graph_.get(loop_block).preds.push_back(block);
 
         post_loop_blocks_.pop();
+
+        // The sequence carries on in post_loop_block, which is where a `break`
+        // jumps to, so it still connects to `end`. BuildBlock's result provided
+        // an answer for the loop's body, not for this sequence.
+        should_connect = true;
 
         block = post_loop_block;
       } else if (auto* if_stmt =

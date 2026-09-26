@@ -132,7 +132,13 @@ class NameResolver {
       ResolveBlock(if_stmt->then_stmts);
       ResolveBlock(if_stmt->else_stmts);
     } else if (auto* loop_stmt = std::get_if<LoopStmt>(&stmt)) {
+      ++loops_;
       ResolveBlock(loop_stmt->stmts);
+      --loops_;
+    } else if (std::holds_alternative<BreakStmt>(stmt)) {
+      // A `break` leaves the innermost loop standing over it, and one with
+      // no loop over it at all has nowhere to go.
+      if (loops_ == 0) Fail("break with no loop to leave");
     }
   }
 
@@ -157,6 +163,11 @@ class NameResolver {
   SyntaxContext& syn_ctx_;
   FuncDefStmt& func_def_;
   Scope scope_;
+
+  // How many loops the walk stands inside, which is what says whether a
+  // `break` has one to leave.
+  int loops_ = 0;
+
   std::optional<std::string> error_;
 };
 
