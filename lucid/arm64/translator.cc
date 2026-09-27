@@ -85,17 +85,9 @@ class Arm64BinaryGenerator {
     // that, past the frame record, and takes no room here.
     outgoing_size_ = OutgoingArgsSize(layout_.outgoing_args.count);
 
-    stack_size_ = outgoing_size_ + kRegistersToPersist.size() * 8;
-    for (std::size_t i = 0; i < stack_slots_.size(); ++i) {
-      if (!OwnSlot(i)) continue;
-
-      stack_size_ += stack_slots_[i];
-    }
-    int quot = stack_size_ % 16;
-    stack_size_ = quot == 0 ? stack_size_ : stack_size_ + 16 - quot;
-
-    // Where each of them begins, which is where everything before it ends.
-    // A slot that stands somewhere the frame does not reach ends where it
+    // Where each of them begins, which is where everything before it ends,
+    // carried past whatever the one it begins on has to be a multiple of. A
+    // slot that stands somewhere the frame does not reach ends where it
     // began, because it takes none of the frame up.
     stack_offsets_.resize(stack_slots_.size() + kRegistersToPersist.size());
     int at = outgoing_size_;
@@ -104,9 +96,12 @@ class Arm64BinaryGenerator {
       at += 8;
     }
     for (int i = 0; i < stack_slots_.size(); ++i) {
+      if (OwnSlot(i)) at = RoundUpTo(at, stack_slots_[i]);
       stack_offsets_[kRegistersToPersist.size() + i] = at;
       if (OwnSlot(i)) at += stack_slots_[i];
     }
+
+    stack_size_ = RoundUpTo(at, 16);
 
     InCarriableSteps(stack_size_,
                      [&](Imm imm) { assembler_.Sub(SP, SP, imm); });
@@ -396,15 +391,18 @@ class Arm64BinaryGenerator {
     }
   }
 
+  // The numbers the language holds are signed, so the division that suits
+  // them is the signed one: an unsigned divide reads a negative dividend as
+  // the very large number its bits also stand for.
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const DivReg& inst) {
     switch (inst.res_reg.size) {
       case RegSize32:
-        assembler_.Udiv(W(inst.res_reg.id), W(inst.lhs_reg.id),
+        assembler_.Sdiv(W(inst.res_reg.id), W(inst.lhs_reg.id),
                         W(inst.rhs_reg.id));
         break;
       case RegSize64:
-        assembler_.Udiv(X(inst.res_reg.id), X(inst.lhs_reg.id),
+        assembler_.Sdiv(X(inst.res_reg.id), X(inst.lhs_reg.id),
                         X(inst.rhs_reg.id));
         break;
     }
@@ -414,13 +412,13 @@ class Arm64BinaryGenerator {
                const ModReg& inst) {
     switch (inst.res_reg.size) {
       case RegSize32:
-        assembler_.Udiv(W(inst.res_reg.id), W(inst.lhs_reg.id),
+        assembler_.Sdiv(W(inst.res_reg.id), W(inst.lhs_reg.id),
                         W(inst.rhs_reg.id));
         assembler_.Msub(W(inst.res_reg.id), W(inst.res_reg.id),
                         W(inst.rhs_reg.id), W(inst.lhs_reg.id));
         break;
       case RegSize64:
-        assembler_.Udiv(X(inst.res_reg.id), X(inst.lhs_reg.id),
+        assembler_.Sdiv(X(inst.res_reg.id), X(inst.lhs_reg.id),
                         X(inst.rhs_reg.id));
         assembler_.Msub(X(inst.res_reg.id), X(inst.res_reg.id),
                         X(inst.rhs_reg.id), X(inst.lhs_reg.id));
@@ -679,12 +677,16 @@ class Arm64BinaryGenerator {
     if (const int rest = value % 4096; rest > 0) emit(Imm(rest));
   }
 
+  // Returns `value` carried up to a multiple of `to`.
+  static int RoundUpTo(int value, int to) {
+    const int over = value % to;
+    return over == 0 ? value : value + to - over;
+  }
+
   // How much room `count` arguments take on the stack, kept to what the stack
   // pointer has to be a multiple of.
   static int OutgoingArgsSize(std::size_t count) {
-    const int size = SafeCast<int>(count) * kArgSize;
-    const int quot = size % 16;
-    return quot == 0 ? size : size + 16 - quot;
+    return RoundUpTo(SafeCast<int>(count) * kArgSize, 16);
   }
 
   static constexpr int kArgSize = kArm64CallingConvention.stack_arg_size;

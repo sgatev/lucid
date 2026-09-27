@@ -1954,5 +1954,45 @@ TEST(CompilerTest, MoreValuesCarriedAroundALoopThanThereAreRegisters) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(234));
 }
 
+// The numbers the language holds are signed, so what divides them has to
+// read a negative one as the number it is rather than as the very large one
+// its bits also stand for.
+TEST(CompilerTest, DividesNegativeNumbers) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = 0 - 8
+      val b: Int32 = 4
+      val q: Int32 = a / b
+      val r: Int32 = a - q * b
+
+      # -8 / 4 is -2, and nothing is left over. An unsigned divide would
+      # make the quotient enormous and the comparison below go the other
+      # way.
+      if q == 0 - 2 {
+        if r == 0 {
+          return 7
+        }
+        return 8
+      }
+      return 9
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(7));
+}
+
+TEST(CompilerTest, TakesTheRemainderOfANegativeNumber) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = 0 - 9
+      val b: Int32 = 4
+
+      # What is left over keeps the sign of what was divided, so -9 % 4 is
+      # -1, and adding the divisor brings it back into range.
+      return a % b + 5
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
+}
+
 }  // namespace
 }  // namespace lucid

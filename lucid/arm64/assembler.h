@@ -449,6 +449,20 @@ class Assembler {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/UDIV--Unsigned-divide-?lang=en
   void Udiv(X rd, X rn, X rm) { Insert(Udiv(true, rd, rn, rm)); }
 
+  // Inserts SDIV instruction.
+  //
+  // SDIV <Wd>, <Wn>, <Wm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SDIV--Signed-divide-?lang=en
+  void Sdiv(W rd, W rn, W rm) { Insert(Sdiv(false, rd, rn, rm)); }
+
+  // Inserts SDIV instruction.
+  //
+  // SDIV <Xd>, <Xn>, <Xm>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SDIV--Signed-divide-?lang=en
+  void Sdiv(X rd, X rn, X rm) { Insert(Sdiv(true, rd, rn, rm)); }
+
   // Inserts MSUB instruction.
   //
   // MSUB <Wd>, <Wn>, <Wm>, <Wa>
@@ -1046,6 +1060,12 @@ class Assembler {
   Lit32Inst Udiv(bool opc, internal::Reg rd, internal::Reg rn,
                  internal::Reg rm) {
     return Lit32Inst(0b00011010110000000000100000000000 | opc << 31 | rm << 16 |
+                     rn << 5 | rd);
+  }
+
+  Lit32Inst Sdiv(bool opc, internal::Reg rd, internal::Reg rn,
+                 internal::Reg rm) {
+    return Lit32Inst(0b00011010110000000000110000000000 | opc << 31 | rm << 16 |
                      rn << 5 | rd);
   }
 

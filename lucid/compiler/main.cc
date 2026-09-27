@@ -1,8 +1,11 @@
+#include <unistd.h>
+
 #include <charconv>
 #include <cstdint>
 #include <cstdlib>
 #include <expected>
 #include <filesystem>
+#include <format>
 #include <iostream>
 #include <optional>
 #include <sstream>
@@ -82,9 +85,12 @@ int HandleRunCommand(CommandContext ctx) {
     return 1;
   }
 
+  // Somewhere to put the binary that no other run of the compiler is using.
+  // The name of the source is not enough on its own: two sources of the same
+  // name, built at the same time, would each run what the other built.
   auto src_path = std::filesystem::absolute(*src_file);
-  auto bin_path = std::filesystem::temp_directory_path() / src_path.filename();
-  bin_path.replace_extension();
+  auto bin_path = std::filesystem::temp_directory_path() /
+                  std::format("{}-{}", src_path.stem().string(), getpid());
 
   return BuildCode({.src_path = src_path, .out_path = bin_path})
       .and_then([&]() -> std::expected<int, BuildError> {

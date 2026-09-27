@@ -93,6 +93,30 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "compiler_random_macos_arm64_test",
+    srcs = ["compiler_random_macos_arm64_test.cc"],
+    data = [
+        ":main",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+    deps = [
+        ":compiler_test_fixture",
+        ":random_program",
+        "//lucid/core/testing",
+    ],
+)
+
+cc_library(
+    name = "random_program",
+    testonly = True,
+    hdrs = ["random_program.h"],
+    deps = ["//lucid/core/container:hash_map"],
+)
+
 cc_library(
     name = "compiler_test_fixture",
     testonly = True,

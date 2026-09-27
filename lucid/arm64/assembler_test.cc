@@ -85,6 +85,15 @@ TEST(Test, SubEncodesBothRegisterWidths) {
               ElementsEqual(0xcb030041u));
 }
 
+TEST(Test, SignedDivisionEncodes) {
+  // sdiv w1, w2, w3
+  EXPECT_THAT(Encode([](Assembler& a) { a.Sdiv(W(1), W(2), W(3)); }),
+              ElementsEqual(0x1ac30c41u));
+  // sdiv x1, x2, x3
+  EXPECT_THAT(Encode([](Assembler& a) { a.Sdiv(X(1), X(2), X(3)); }),
+              ElementsEqual(0x9ac30c41u));
+}
+
 TEST(Test, MultiplicationAndDivisionEncode) {
   // mul w1, w2, w3
   EXPECT_THAT(Encode([](Assembler& a) { a.Mul(W(1), W(2), W(3)); }),
