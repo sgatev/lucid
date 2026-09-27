@@ -73,9 +73,9 @@ InterferenceGraph BuildInterferenceGraph(
   // them can share a register, whether or not the body ever reads them. The
   // entry puts them in their registers one after another, and one sharing
   // with another that has not been put in yet would be written over.
-  for (Reg from : am_cfg.RegisterParams()) {
+  for (Reg from : am_cfg.params) {
     put_in_graph(from);
-    for (Reg to : am_cfg.RegisterParams()) {
+    for (Reg to : am_cfg.params) {
       if (to != from) add_edge(from, to);
     }
   }

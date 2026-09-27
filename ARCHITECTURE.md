@@ -15,7 +15,10 @@ following stages:
    Graph into Static Single-Assignment form.
 7. [Semantic analysis](lucid/am/translator.cc) turns Typed Abstract Syntax Control Flow
    Graph into Abstract Machine Control Flow Graph.
-8. [Register analysis](lucid/am/reg.cc) reduces the number of registers used in Abstract
+8. [Calling convention lowering](lucid/am/abi.cc) puts the parameters and arguments
+   there are no registers to pass in slots of the frame. Until this runs the Abstract
+   Machine Control Flow Graph says nothing about how many registers a machine has.
+9. [Register analysis](lucid/am/reg.cc) reduces the number of registers used in Abstract
    Machine Control Flow Graph.
-9. [Code generation](lucid/arm64/translator.cc) turns Abstract Machine Control Flow Graph
-   into ARM64 Machine Code.
+10. [Code generation](lucid/arm64/translator.cc) turns Abstract Machine Control Flow
+   Graph into ARM64 Machine Code.

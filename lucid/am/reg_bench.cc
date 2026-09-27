@@ -8,6 +8,7 @@
 #include <utility>
 #include <variant>
 
+#include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
 #include "lucid/am/ig.h"
 #include "lucid/am/instructions.h"
@@ -31,8 +32,13 @@ namespace {
 
 using namespace std::string_literals;
 
-// The registers the ARM64 backend hands the allocator.
+// What the ARM64 backend hands the allocator: the registers it has to colour
+// with, and the call it has to pass arguments by.
 constexpr int kRegistersCount = 10;
+constexpr CallingConvention kCallingConvention = {
+    .max_register_args = kRegistersCount,
+    .stack_arg_size = 8,
+};
 
 // A function of `count` values, each one feeding only the next.
 //
@@ -99,6 +105,7 @@ void WithAbstractMachineFunction(std::string_view snippet, BenchmarkT run) {
   AbstractMachineControlFlowGraph am_cfg = GenerateAbstractMachineFunction(
       /*am_cfgs=*/{}, syn_ctx, syn_cfg, am_state);
   OptimizeAbstractMachineFunction(am_cfg);
+  LowerCallingConvention(am_cfg, kCallingConvention);
 
   run(am_cfg, am_state);
 }

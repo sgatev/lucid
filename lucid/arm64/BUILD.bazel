@@ -55,6 +55,7 @@ cc_library(
     visibility = ["//lucid:__subpackages__"],
     deps = [
         ":assembler",
+        "//lucid/am:abi",
         "//lucid/am:cfg",
         "//lucid/am:instructions",
         "//lucid/am:opt",
@@ -89,6 +90,7 @@ cc_binary(
     deps = [
         ":assembler",
         ":translator",
+        "//lucid/am:abi",
         "//lucid/am:cfg",
         "//lucid/am:ig",
         "//lucid/am:instructions",

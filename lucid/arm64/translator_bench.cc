@@ -8,6 +8,7 @@
 #include <utility>
 #include <variant>
 
+#include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
 #include "lucid/am/ig.h"
 #include "lucid/am/instructions.h"
@@ -122,6 +123,8 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
   AbstractMachineControlFlowGraph am_cfg = GenerateAbstractMachineFunction(
       /*am_cfgs=*/{}, syn_ctx, syn_cfg, am_state);
   OptimizeAbstractMachineFunction(am_cfg);
+  const FrameLayout layout =
+      LowerCallingConvention(am_cfg, kArm64CallingConvention);
   SpillRegisters(am_cfg, am_state, kRegistersCount);
   const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg);
   const HashMap<Reg, int> colors =
@@ -132,7 +135,8 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
 
   for (auto _ : state) {
     arm64::Assembler assembler;
-    GenerateArmAssemblyBinary(func_name, am_cfg.stack_slots, am_cfg, assembler);
+    GenerateArmAssemblyBinary(func_name, am_cfg.stack_slots, layout, am_cfg,
+                              assembler);
     DoNotOptimize(assembler);
   }
 

@@ -3,6 +3,29 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_library(
+    name = "abi",
+    srcs = ["abi.cc"],
+    hdrs = ["abi.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":cfg",
+        ":instructions",
+    ],
+)
+
+cc_test(
+    name = "abi_test",
+    srcs = ["abi_test.cc"],
+    deps = [
+        ":abi",
+        ":cfg",
+        ":cfg_builder",
+        ":instructions",
+        "//lucid/core/testing",
+    ],
+)
+
+cc_library(
     name = "cfg",
     hdrs = ["cfg.h"],
     visibility = ["//lucid:__subpackages__"],
@@ -40,9 +63,9 @@ cc_library(
     hdrs = ["ig.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
-        ":reg_set",
         ":cfg",
         ":liveness",
+        ":reg_set",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/container/graph:dominator",
@@ -151,11 +174,11 @@ cc_library(
     hdrs = ["reg.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
-        ":reg_set",
         ":cfg",
         ":cfg_printer",
         ":ig",
         ":liveness",
+        ":reg_set",
         ":state",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
@@ -167,6 +190,7 @@ cc_test(
     name = "reg_test",
     srcs = ["reg_test.cc"],
     deps = [
+        ":abi",
         ":cfg",
         ":ig",
         ":instructions",
@@ -189,6 +213,7 @@ cc_binary(
     name = "reg_bench",
     srcs = ["reg_bench.cc"],
     deps = [
+        ":abi",
         ":cfg",
         ":ig",
         ":instructions",

@@ -106,7 +106,7 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
     }
 
     if (block.ref == am_cfg.first) {
-      for (Reg param : am_cfg.RegisterParams()) live.Insert(param);
+      for (Reg param : am_cfg.params) live.Insert(param);
 
       if (over_full()) return reg_to_spill();
     }
@@ -114,17 +114,11 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
   return std::nullopt;
 }
 
-// Takes `reg_to_spill` out of the registers, leaving every read of it to load
-// its own copy from a slot of the frame.
-//
-// `home_slot` is the slot it is already in, where it has one. A register that
-// arrives in a slot is never written, so nothing puts it there and the reads
-// are all there is to do.
+// Takes `reg_to_spill` out of the registers, putting it away where it is
+// written and loading its own copy back for every read of it.
 void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
-                    AbstractMachineState& am_state, HashSet<Reg>& spilt,
-                    std::optional<std::size_t> home_slot = std::nullopt) {
+                    AbstractMachineState& am_state, HashSet<Reg>& spilt) {
   HashMap<Reg, std::size_t> reg_stack;
-  if (home_slot.has_value()) reg_stack.Insert(reg_to_spill, *home_slot);
 
   // Takes the slot `reg` is put away in and writes it down, so that the loads
   // that read it back know where to look.
@@ -184,7 +178,7 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     // does not read a store as one more use of what it stores.
     auto i = block.instructions.begin();
     if (block_ref == am_cfg.first) {
-      for (Reg param : am_cfg.RegisterParams()) {
+      for (Reg param : am_cfg.params) {
         if (param != reg_to_spill) continue;
 
         block.instructions.insert(i, StoreStack{
@@ -202,82 +196,10 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
                                    });
     }
     while (i != block.instructions.end()) {
-      auto& inst = *i;
-
-      if (auto* cinst = std::get_if<MoveReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->src_reg);
-        maybe_insert_store(block.instructions, i, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
-        maybe_insert_store(block.instructions, i, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<SetInt>(&inst)) {
-        maybe_insert_store(block.instructions, i, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
-        maybe_insert_store(block.instructions, i, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<AddReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<SubReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<MulReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<DivReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<ModReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<GtReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<LtReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<GeReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<LeReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<EqReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
-        maybe_insert_store(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<StoreArg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->src_reg);
-      } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->src_reg);
-      } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->src_reg);
-        maybe_insert_load(block.instructions, i, cinst->offset_reg);
-      } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
-        maybe_insert_store(block.instructions, i, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<LoadStackReg>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->offset_reg);
-        maybe_insert_store(block.instructions, i, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<Return>(&inst)) {
-        maybe_insert_load(block.instructions, i, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-        for (auto& arg : cinst->args) {
-          maybe_insert_load(block.instructions, i, arg.reg);
-        }
-        if (cinst->res.has_value()) {
-          maybe_insert_store(block.instructions, i, cinst->res->reg);
-        }
+      ForEachSourceRegister(
+          *i, [&](Reg& reg) { maybe_insert_load(block.instructions, i, reg); });
+      if (Reg* target = TargetRegister(*i)) {
+        maybe_insert_store(block.instructions, i, *target);
       }
 
       ++i;
@@ -343,7 +265,7 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 // puts it away reads it there.
 void RemoveSpiltRegister(const AbstractMachineControlFlowGraph& am_cfg, Reg reg,
                          AbstractMachineLiveness& liveness) {
-  const auto register_params = am_cfg.RegisterParams();
+  const auto register_params = am_cfg.params;
   const bool is_param =
       std::ranges::find(register_params, reg) != register_params.end();
 
@@ -387,14 +309,6 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
                                        int max_clique_size) {
   HashSet<Reg> spilt_regs;
 
-  // A parameter the caller left on the stack is already in a slot, so nothing
-  // holds it where the function is entered and every read of it loads its own
-  // copy. Spilling could not buy that room afterwards: a parameter is live
-  // from the entry, which is before any store that would put it away.
-  for (std::size_t i = 0; const Reg param : am_cfg.StackParams()) {
-    SpillRegisters(param, am_cfg, am_state, spilt_regs, i++);
-  }
-
   // Worked out once and then carried through the spilling, which takes each
   // register it spills out of it rather than leaving the whole thing to be
   // worked out again.
@@ -421,84 +335,15 @@ HashMap<Reg, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
     const InterferenceGraph& am_ig, int colors_count) {
   HashMap<Reg, int> reg_scores;
-  for (Reg param : am_cfg.RegisterParams()) {
+  for (Reg param : am_cfg.params) {
     reg_scores.Insert(param, 0);
   }
   for (const auto& block : am_cfg.Blocks()) {
     for (const auto& inst : block.instructions) {
-      if (auto* cinst = std::get_if<MoveReg>(&inst)) {
-        reg_scores.Insert(cinst->dst_reg, 0);
-        reg_scores.Insert(cinst->src_reg, 0);
-      } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
-        reg_scores.Insert(cinst->dst_reg, 0);
-      } else if (auto* cinst = std::get_if<SetInt>(&inst)) {
-        reg_scores.Insert(cinst->dst_reg, 0);
-      } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
-        reg_scores.Insert(cinst->dst_reg, 0);
-      } else if (auto* cinst = std::get_if<AddReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<SubReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<MulReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<DivReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<ModReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<GtReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<LtReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<GeReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<LeReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<EqReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-        reg_scores.Insert(cinst->lhs_reg, 0);
-        reg_scores.Insert(cinst->rhs_reg, 0);
-      } else if (auto* cinst = std::get_if<StoreArg>(&inst)) {
-        reg_scores.Insert(cinst->src_reg, 0);
-      } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
-        reg_scores.Insert(cinst->src_reg, 0);
-      } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
-        reg_scores.Insert(cinst->src_reg, 0);
-        reg_scores.Insert(cinst->offset_reg, 0);
-      } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
-        reg_scores.Insert(cinst->dst_reg, 0);
-      } else if (auto* cinst = std::get_if<LoadStackReg>(&inst)) {
-        reg_scores.Insert(cinst->dst_reg, 0);
-        reg_scores.Insert(cinst->offset_reg, 0);
-      } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-        if (cinst->res.has_value()) reg_scores.Insert(cinst->res->reg, 0);
-        for (const auto& arg : cinst->args) reg_scores.Insert(arg.reg, 0);
-      } else if (auto* cinst = std::get_if<Return>(&inst)) {
-        reg_scores.Insert(cinst->res_reg, 0);
-      } else {
-        assert(false && "unhandled instruction type");
+      if (const Reg* target = TargetRegister(inst)) {
+        reg_scores.Insert(*target, 0);
       }
+      ForEachSourceRegister(inst, [&](Reg reg) { reg_scores.Insert(reg, 0); });
     }
     for (const auto& phi : block.phis) {
       reg_scores.Insert(phi.dst, 0);
@@ -624,79 +469,13 @@ void UpdateRegister(const HashMap<Reg, int>& reg_colors, Reg& reg) {
 
 void MergeRegisters(const HashMap<Reg, int>& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg) {
-  for (Reg& param : am_cfg.RegisterParams()) UpdateRegister(reg_colors, param);
+  for (Reg& param : am_cfg.params) UpdateRegister(reg_colors, param);
   for (auto& block : am_cfg.Blocks()) {
     for (auto& inst : block.instructions) {
-      if (auto* cinst = std::get_if<MoveReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->src_reg);
-        UpdateRegister(reg_colors, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<SetInt>(&inst)) {
-        UpdateRegister(reg_colors, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
-        UpdateRegister(reg_colors, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<AddReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<SubReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<MulReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<DivReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<ModReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<GtReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<LtReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<GeReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<LeReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<EqReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->lhs_reg);
-        UpdateRegister(reg_colors, cinst->rhs_reg);
-        UpdateRegister(reg_colors, cinst->res_reg);
-      } else if (auto* cinst = std::get_if<StoreArg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->src_reg);
-      } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
-        UpdateRegister(reg_colors, cinst->src_reg);
-      } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->src_reg);
-        UpdateRegister(reg_colors, cinst->offset_reg);
-      } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
-        UpdateRegister(reg_colors, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<LoadStackReg>(&inst)) {
-        UpdateRegister(reg_colors, cinst->offset_reg);
-        UpdateRegister(reg_colors, cinst->dst_reg);
-      } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-        for (auto& arg : cinst->args) UpdateRegister(reg_colors, arg.reg);
-        if (cinst->res.has_value()) UpdateRegister(reg_colors, cinst->res->reg);
-      } else if (auto* cinst = std::get_if<Return>(&inst)) {
-        UpdateRegister(reg_colors, cinst->res_reg);
+      ForEachSourceRegister(inst,
+                            [&](Reg& reg) { UpdateRegister(reg_colors, reg); });
+      if (Reg* target = TargetRegister(inst)) {
+        UpdateRegister(reg_colors, *target);
       }
     }
     if (block.branch_cond.has_value()) {

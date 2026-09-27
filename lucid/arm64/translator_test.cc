@@ -92,7 +92,7 @@ TEST(Test, BranchDecidesTheComparisonItBranchesOn) {
       ComparingGraph(/*use_result_later=*/false);
 
   arm64::Assembler assembler;
-  GenerateArmAssemblyBinary("f", {}, am_cfg, assembler);
+  GenerateArmAssemblyBinary("f", {}, {}, am_cfg, assembler);
 
   EXPECT_TRUE(Emitted(assembler, Instruction([](arm64::Assembler& a) {
                         a.Cmp(arm64::W(1), arm64::W(2));
@@ -113,7 +113,7 @@ TEST(Test, ComparisonThatOutlivesItsBlockIsStillComputed) {
       ComparingGraph(/*use_result_later=*/true);
 
   arm64::Assembler assembler;
-  GenerateArmAssemblyBinary("f", {}, am_cfg, assembler);
+  GenerateArmAssemblyBinary("f", {}, {}, am_cfg, assembler);
 
   EXPECT_TRUE(Emitted(assembler, Instruction([](arm64::Assembler& a) {
                         a.Cset(arm64::W(3), arm64::InvCond::Gt);
@@ -190,7 +190,7 @@ TEST(Test, GenerateArmAssemblyBinaryWorks) {
   AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
 
   arm64::Assembler assembler;
-  GenerateArmAssemblyBinary("main", {}, am_cfg, assembler);
+  GenerateArmAssemblyBinary("main", {}, {}, am_cfg, assembler);
 
   const std::string bytes = Bytes(assembler);
   EXPECT_EQ(bytes.size() % 4, 0u);

@@ -14,6 +14,7 @@
 #include <variant>
 #include <vector>
 
+#include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
 #include "lucid/am/ig.h"
 #include "lucid/am/opt.h"
@@ -77,6 +78,14 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       AbstractMachineControlFlowGraph am_cfg =
           GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
       OptimizeAbstractMachineFunction(am_cfg);
+
+      // What compile-time evaluation runs is the function as the abstract
+      // machine has it, before anything about a particular machine's
+      // registers has been put on it.
+      am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), am_cfg);
+
+      const FrameLayout layout =
+          LowerCallingConvention(am_cfg, kArm64CallingConvention);
       static constexpr int kArmRegistersCount = 10;
       const AbstractMachineLiveness liveness =
           SpillRegisters(am_cfg, am_state, kArmRegistersCount);
@@ -85,8 +94,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
           ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
       MergeRegisters(am_ig_colors, am_cfg);
       GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func_def->name),
-                                am_cfg.stack_slots, am_cfg, assembler);
-      am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), std::move(am_cfg));
+                                am_cfg.stack_slots, layout, am_cfg, assembler);
     } else if (const auto* type_def = std::get_if<TypeDefStmt>(&defs.back())) {
       syn_ctx.RegisterType(type_def->name, type_def->type);
     }

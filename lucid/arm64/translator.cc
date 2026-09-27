@@ -66,10 +66,12 @@ class Arm64BinaryGenerator {
  public:
   explicit Arm64BinaryGenerator(std::string_view func_name,
                                 const std::vector<int>& stack_slots,
+                                const FrameLayout& layout,
                                 const AbstractMachineControlFlowGraph& am_cfg,
                                 Assembler& assmebler)
       : func_name_(func_name),
         stack_slots_(stack_slots),
+        layout_(layout),
         am_cfg_(am_cfg),
         assembler_(assmebler) {}
 
@@ -77,14 +79,16 @@ class Arm64BinaryGenerator {
     assembler_.Label(std::string(func_name_));
     assembler_.StpPreIndex(X(29), X(30), SP, Imm(-16));
 
-    // The arguments this function passes on the stack stand at the foot of
-    // the frame, which is where the stack pointer is when it makes a call.
-    // The leading slots stand in what its own caller wrote above the frame,
-    // so those take no room in it.
-    outgoing_size_ = OutgoingArgsSize(am_cfg_.outgoing_args);
+    // The frame, from the stack pointer up: what this function leaves for the
+    // calls it makes, then the registers it hands back as it found them, then
+    // its own slots. What its own caller left for it stands above all of
+    // that, past the frame record, and takes no room here.
+    outgoing_size_ = OutgoingArgsSize(layout_.outgoing_args.count);
 
     stack_size_ = outgoing_size_ + kRegistersToPersist.size() * 8;
-    for (std::size_t i = incoming_args(); i < stack_slots_.size(); ++i) {
+    for (std::size_t i = 0; i < stack_slots_.size(); ++i) {
+      if (!OwnSlot(i)) continue;
+
       stack_size_ += stack_slots_[i];
     }
     int quot = stack_size_ % 16;
@@ -98,7 +102,7 @@ class Arm64BinaryGenerator {
     for (int i = 0; i < stack_slots_.size(); ++i) {
       stack_offsets_[kRegistersToPersist.size() + i] =
           stack_offsets_[kRegistersToPersist.size() + i - 1] +
-          (i < incoming_args() ? 0 : stack_slots_[i]);
+          (OwnSlot(i) ? stack_slots_[i] : 0);
     }
 
     assembler_.Sub(SP, SP, Imm(SafeCast<std::int16_t>(stack_size_)));
@@ -109,7 +113,7 @@ class Arm64BinaryGenerator {
           Imm(SafeCast<std::int16_t>(stack_offsets_[i])));
     }
 
-    for (int param_idx = 1; const Reg param : am_cfg_.RegisterParams()) {
+    for (int param_idx = 1; const Reg param : am_cfg_.params) {
       switch (param.size) {
         case RegSize32:
           assembler_.Mov(W(param.id), W(param_idx++));
@@ -506,19 +510,6 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
-               const StoreArg& inst) {
-    const Imm at(SafeCast<std::int16_t>(inst.index * kStackArgSize));
-    switch (inst.src_reg.size) {
-      case RegSize32:
-        assembler_.StrUnsignedOffset(W(inst.src_reg.id), SP, at);
-        break;
-      case RegSize64:
-        assembler_.StrUnsignedOffset(X(inst.src_reg.id), SP, at);
-        break;
-    }
-  }
-
-  void Process(const AbstractMachineControlFlowGraph::Block& block,
                const StoreStack& inst) {
     switch (inst.src_reg.size) {
       case RegSize32:
@@ -620,28 +611,39 @@ class Arm64BinaryGenerator {
 
   // Where the slot with this index begins, counted from the stack pointer.
   //
-  // The leading slots are the arguments the caller left on the stack. They
-  // stand above this frame, past the frame record the prologue pushed, in the
-  // order the caller wrote them.
-  std::int16_t AdjustedOffset(std::size_t offset) {
-    if (offset < incoming_args()) {
+  // The arguments the caller left stand above this frame, past the frame
+  // record the prologue pushed; the ones this function leaves for its own
+  // calls stand at its foot. Everything else stands in the frame proper.
+  std::int16_t AdjustedOffset(std::size_t slot) {
+    if (layout_.incoming_args.Holds(slot)) {
       return SafeCast<std::int16_t>(stack_size_ + kFrameRecordSize +
-                                    offset * kStackArgSize);
+                                    (slot - layout_.incoming_args.first) *
+                                        kArgSize);
+    }
+    if (layout_.outgoing_args.Holds(slot)) {
+      return SafeCast<std::int16_t>((slot - layout_.outgoing_args.first) *
+                                    kArgSize);
     }
     return SafeCast<std::int16_t>(
-        stack_offsets_[kRegistersToPersist.size() + offset]);
+        stack_offsets_[kRegistersToPersist.size() + slot]);
   }
 
-  // How many of the leading slots the caller wrote rather than this function.
-  std::size_t incoming_args() const { return am_cfg_.StackParams().size(); }
+  // Whether the slot with this index is the function's own, rather than room
+  // for arguments that stands somewhere the frame does not reach.
+  bool OwnSlot(std::size_t slot) const {
+    return !layout_.incoming_args.Holds(slot) &&
+           !layout_.outgoing_args.Holds(slot);
+  }
 
   // How much room `count` arguments take on the stack, kept to what the stack
   // pointer has to be a multiple of.
   static int OutgoingArgsSize(std::size_t count) {
-    const int size = SafeCast<int>(count) * kStackArgSize;
+    const int size = SafeCast<int>(count) * kArgSize;
     const int quot = size % 16;
     return quot == 0 ? size : size + 16 - quot;
   }
+
+  static constexpr int kArgSize = kArm64CallingConvention.stack_arg_size;
 
   // What the prologue pushes before the frame itself: the frame pointer and
   // the return address.
@@ -653,6 +655,7 @@ class Arm64BinaryGenerator {
 
   std::string_view func_name_;
   const std::vector<int>& stack_slots_;
+  const FrameLayout& layout_;
   const AbstractMachineControlFlowGraph& am_cfg_;
   Assembler& assembler_;
   int stack_size_ = 0;
@@ -704,9 +707,11 @@ void GenerateArmEndBinary(const SyntaxContext& syn_ctx,
 
 void GenerateArmAssemblyBinary(std::string_view func_name,
                                const std::vector<int>& stack_slots,
+                               const FrameLayout& layout,
                                const AbstractMachineControlFlowGraph& am_cfg,
                                Assembler& assmebler) {
-  Arm64BinaryGenerator(func_name, stack_slots, am_cfg, assmebler).Generate();
+  Arm64BinaryGenerator(func_name, stack_slots, layout, am_cfg, assmebler)
+      .Generate();
 }
 
 }  // namespace lucid

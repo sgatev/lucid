@@ -7,6 +7,7 @@ cc_library(
     srcs = ["compiler.cc"],
     hdrs = ["compiler.h"],
     deps = [
+        "//lucid/am:abi",
         "//lucid/am:cfg",
         "//lucid/am:ig",
         "//lucid/am:opt",
@@ -37,6 +38,7 @@ cc_binary(
     deps = [
         ":compiler",
         ":version",
+        "//lucid/am:abi",
         "//lucid/am:cfg",
         "//lucid/am:cfg_printer",
         "//lucid/am:ig",

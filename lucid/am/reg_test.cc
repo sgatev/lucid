@@ -8,6 +8,7 @@
 #include <utility>
 #include <variant>
 
+#include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
 #include "lucid/am/ig.h"
 #include "lucid/am/instructions.h"
@@ -28,8 +29,13 @@ namespace {
 
 using namespace std::string_literals;
 
-// The registers the ARM64 backend hands the allocator.
+// What the ARM64 backend hands the allocator: the registers it has to colour
+// with, and the call it has to pass arguments by.
 constexpr int kRegistersCount = 10;
+constexpr CallingConvention kCallingConvention = {
+    .max_register_args = kRegistersCount,
+    .stack_arg_size = 8,
+};
 
 // A chain of values, each dying as the next is born.
 std::string ChainedValues(int count) {
@@ -162,6 +168,7 @@ class ColoringTest : public Test {
     AbstractMachineControlFlowGraph am_cfg = GenerateAbstractMachineFunction(
         /*am_cfgs=*/{}, syn_ctx, syn_cfg, am_state);
     OptimizeAbstractMachineFunction(am_cfg);
+    LowerCallingConvention(am_cfg, kCallingConvention);
     const AbstractMachineLiveness liveness =
         SpillRegisters(am_cfg, am_state, kRegistersCount);
 
@@ -172,7 +179,7 @@ class ColoringTest : public Test {
     // Every parameter is live where the function is entered, because that is
     // where the caller leaves it, so no two of them can share a colour
     // whether or not the body reads them.
-    const auto register_params = am_cfg.RegisterParams();
+    const auto register_params = am_cfg.params;
     for (std::size_t i = 0; i < register_params.size(); ++i) {
       const std::optional<const int&> color = colors.Get(register_params[i]);
       ASSERT_TRUE(color.has_value());

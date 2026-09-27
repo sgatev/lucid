@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <list>
@@ -88,17 +87,6 @@ class AbstractMachineControlFlowGraph {
   // Returns an arena with all blocks that were added to the graph.
   auto& Blocks(this auto&& self) { return self.blocks_; }
 
-  // The parameters the caller leaves in registers.
-  auto RegisterParams(this auto&& self) {
-    return std::span(self.params)
-        .first(std::min(self.params.size(), kMaxRegisterArgs));
-  }
-
-  // The parameters the caller leaves on the stack, which are the rest of them.
-  auto StackParams(this auto&& self) {
-    return std::span(self.params).subspan(self.RegisterParams().size());
-  }
-
   // Adds an edge to the control flow graph.
   void AddEdge(BlockRef from, BlockRef to) {
     GetBlock(from).succs.push_back(to);
@@ -108,23 +96,11 @@ class AbstractMachineControlFlowGraph {
   BlockRef first = kNullBlockRef;
   BlockRef last = kNullBlockRef;
 
-  // Parameters of the function, in the order they are declared.
-  //
-  // The first `kMaxRegisterArgs` of them arrive in registers and the rest on
-  // the stack, where the one after those at `i` stands in the slot of
-  // `stack_slots` at that same index. Those slots lie above this function's
-  // frame rather than in it, because the caller wrote them before the frame
-  // existed.
+  // The registers of the parameters passed to the function.
   std::vector<Reg> params;
 
   // What the function returns, where its size does not say.
   ValueKind result_kind = ValueKind::Number;
-
-  // How many arguments the widest call this function makes leaves on the
-  // stack. They stand at the foot of the frame, which is where the stack
-  // pointer is when the call is made and so where the called function looks
-  // for them.
-  std::uint32_t outgoing_args = 0;
 
   // Abstract machine stack slots.
   std::vector<int> stack_slots;

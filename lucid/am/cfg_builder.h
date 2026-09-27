@@ -22,6 +22,13 @@ class AbstractMachineControlFlowGraphBuilder {
     am_cfg_.AddEdge(from, to);
   }
 
+  // Adds a parameter to the control flow graph, in the order they are
+  // declared.
+  void AddParam(Reg reg) {
+    TakeRegisterId(reg);
+    am_cfg_.params.push_back(reg);
+  }
+
   // Adds an instruction to the control flow graph block.
   void AddInstruction(AbstractMachineControlFlowGraph::BlockRef ref,
                       Instruction inst) {

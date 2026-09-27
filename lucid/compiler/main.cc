@@ -13,12 +13,14 @@
 #include <variant>
 #include <vector>
 
+#include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_printer.h"
 #include "lucid/am/ig.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
 #include "lucid/am/translator.h"
+#include "lucid/arm64/translator.h"
 #include "lucid/compiler/compiler.h"
 #include "lucid/compiler/version.h"
 #include "lucid/core/cli/cli.h"
@@ -293,6 +295,13 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
       AbstractMachineControlFlowGraph am_cfg =
           GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
       OptimizeAbstractMachineFunction(am_cfg);
+
+      // What compile-time evaluation runs is the function as the abstract
+      // machine has it, before anything about a particular machine's
+      // registers has been put on it.
+      am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), am_cfg);
+
+      LowerCallingConvention(am_cfg, kArm64CallingConvention);
       static constexpr int kArmRegistersCount = 10;
       if (ctx.Flag("regs") == "spill") {
         SpillRegisters(am_cfg, am_state, kArmRegistersCount);
@@ -307,7 +316,6 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
 
       if (has_printed_func) std::cout << "\n";
       Print(syn_ctx.DerefIdent(func_def->name), am_cfg, ctx.Out());
-      am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), std::move(am_cfg));
       has_printed_func = true;
     } else if (const auto* type_def = std::get_if<TypeDefStmt>(&def)) {
       syn_ctx.RegisterType(type_def->name, type_def->type);

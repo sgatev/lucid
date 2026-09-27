@@ -1,11 +1,13 @@
 #pragma once
 
 #include <cassert>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <ostream>
 #include <string_view>
+#include <type_traits>
 #include <variant>
 #include <vector>
 
@@ -46,20 +48,6 @@ struct Reg {
 };
 
 inline std::size_t Hash(const Reg& reg) { return Hash(reg.id); }
-
-// How many arguments a call passes in registers. The ones past these are left
-// on the stack for the function to read where it reads them.
-//
-// Every parameter is live where a function is entered, so one that arrives in
-// a register holds a colour there and this can be no more than the number of
-// colours there are. It is exactly that, because nothing else is live at the
-// entry for the colouring to want room for.
-inline constexpr std::size_t kMaxRegisterArgs = 10;
-
-// How much room an argument left on the stack takes, whatever its width, so
-// that the one after it stands this much further along. A narrower value is
-// written into the low bytes of its own room and read back from there.
-inline constexpr int kStackArgSize = 8;
 
 // A no op instruction.
 struct Nop {
@@ -404,23 +392,6 @@ struct StoreStackReg {
   }
 };
 
-// Puts the value of a register where a call will look for an argument there
-// is no register to pass.
-struct StoreArg {
-  // Position of the argument among those the call leaves on the stack.
-  std::uint32_t index;
-
-  // Source register.
-  Reg src_reg;
-
-  bool operator==(const StoreArg&) const = default;
-
-  friend std::ostream& operator<<(std::ostream& os, const StoreArg& inst) {
-    return os << "StoreArg { .index=" << inst.index
-              << ", .src_reg=" << inst.src_reg << " }";
-  }
-};
-
 // Loads a value from the stack into a register.
 struct LoadStack {
   // Offset from the top of the stack where the value is placed.
@@ -469,13 +440,12 @@ struct FuncCall {
     bool operator==(const Slot&) const = default;
   };
 
-  // Arguments to pass to the function in registers.
+  // Arguments to pass to the function.
+  //
+  // A call that has been lowered onto a calling convention holds only the
+  // ones it passes in registers; the rest are in slots of the frame that a
+  // `StoreStack` before it wrote.
   std::vector<Slot> args;
-
-  // How many arguments the call leaves at the foot of the frame instead,
-  // which a `StoreArg` before it put there. This sits between the two members
-  // it does because an instruction is kept to a size, and the room is here.
-  std::uint32_t stack_args = 0;
 
   // Result from the function.
   std::optional<Slot> res;
@@ -489,7 +459,7 @@ struct FuncCall {
       os << arg.reg;
       has_printed_arg = true;
     }
-    os << "] .stack_args=" << inst.stack_args;
+    os << "]";
     if (inst.res.has_value()) os << " .res=" << inst.res->reg;
     os << " }";
     return os;
@@ -500,16 +470,25 @@ struct FuncCall {
 using Instruction =
     std::variant<Nop, MoveReg, SetReg, SetInt, SetStr, Return, AddReg, SubReg,
                  MulReg, DivReg, ModReg, GtReg, LtReg, GeReg, LeReg, EqReg,
-                 NotEqReg, StoreArg, StoreStack, StoreStackReg, LoadStack,
-                 LoadStackReg, FuncCall>;
+                 NotEqReg, StoreStack, StoreStackReg, LoadStack, LoadStackReg,
+                 FuncCall>;
+
+// An instruction, however it is held.
+template <typename T>
+concept InstructionLike = std::same_as<std::remove_cvref_t<T>, Instruction>;
 
 // Calls `visit` with each source register the given instruction reads.
 //
 // The registers are handed over one at a time rather than in a container of
 // their own: all but a call read two of them at most, and this is walked once
 // per instruction by every analysis that asks what is live.
-template <typename VisitT>
-inline void ForEachSourceRegister(const Instruction& inst, VisitT visit) {
+//
+// Each one is handed over where it is held, so a walk over an instruction
+// that is not const can write through it. That is what lets a pass rewrite
+// the reads of a register without listing the instructions itself, and so
+// without a new kind of instruction going unnoticed by it.
+template <InstructionLike InstT, typename VisitT>
+inline void ForEachSourceRegister(InstT&& inst, VisitT visit) {
   if (std::holds_alternative<SetReg>(inst) ||
       std::holds_alternative<SetInt>(inst) ||
       std::holds_alternative<SetStr>(inst) ||
@@ -550,8 +529,6 @@ inline void ForEachSourceRegister(const Instruction& inst, VisitT visit) {
   } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
     visit(cinst->lhs_reg);
     visit(cinst->rhs_reg);
-  } else if (auto* cinst = std::get_if<StoreArg>(&inst)) {
-    visit(cinst->src_reg);
   } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
     visit(cinst->src_reg);
   } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
@@ -560,7 +537,7 @@ inline void ForEachSourceRegister(const Instruction& inst, VisitT visit) {
   } else if (auto* cinst = std::get_if<LoadStackReg>(&inst)) {
     visit(cinst->offset_reg);
   } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-    for (const auto& arg : cinst->args) visit(arg.reg);
+    for (auto& arg : cinst->args) visit(arg.reg);
   } else if (auto* cinst = std::get_if<Return>(&inst)) {
     visit(cinst->res_reg);
   } else {
@@ -575,53 +552,69 @@ inline std::vector<Reg> GetSourceRegisters(const Instruction& inst) {
   return source_regs;
 }
 
-// Returns the target register used by the given instruction, if any.
-inline std::optional<Reg> GetTargetRegister(const Instruction& inst) {
-  if (std::holds_alternative<StoreArg>(inst) ||
-      std::holds_alternative<StoreStack>(inst) ||
+// Returns the register the given instruction writes where it has one, and
+// null where it does not.
+//
+// It is reached where it is held, as a source register is, so a walk over an
+// instruction that is not const can write through it.
+template <InstructionLike InstT>
+inline auto* TargetRegister(InstT&& inst) {
+  // A register as this instruction holds it, which is const where the
+  // instruction is.
+  using RegT =
+      std::conditional_t<std::is_const_v<std::remove_reference_t<InstT>>,
+                         const Reg, Reg>;
+
+  if (std::holds_alternative<StoreStack>(inst) ||
       std::holds_alternative<StoreStackReg>(inst) ||
       std::holds_alternative<Return>(inst)) {
-    return std::nullopt;
+    return static_cast<RegT*>(nullptr);
   } else if (auto* cinst = std::get_if<MoveReg>(&inst)) {
-    return cinst->dst_reg;
+    return &cinst->dst_reg;
   } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
-    return cinst->dst_reg;
+    return &cinst->dst_reg;
   } else if (auto* cinst = std::get_if<SetInt>(&inst)) {
-    return cinst->dst_reg;
+    return &cinst->dst_reg;
   } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
-    return cinst->dst_reg;
+    return &cinst->dst_reg;
   } else if (auto* cinst = std::get_if<AddReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<SubReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<MulReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<DivReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<ModReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<GtReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<LtReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<GeReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<LeReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<EqReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
-    return cinst->res_reg;
+    return &cinst->res_reg;
   } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
-    return cinst->dst_reg;
+    return &cinst->dst_reg;
   } else if (auto* cinst = std::get_if<LoadStackReg>(&inst)) {
-    return cinst->dst_reg;
+    return &cinst->dst_reg;
   } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
-    if (cinst->res.has_value()) return cinst->res->reg;
-    return std::nullopt;
+    if (cinst->res.has_value()) return &cinst->res->reg;
+    return static_cast<RegT*>(nullptr);
   } else {
     assert(false && "unhandled instruction type");
   }
+  return static_cast<RegT*>(nullptr);
+}
+
+// Returns the target register used by the given instruction, if any.
+inline std::optional<Reg> GetTargetRegister(const Instruction& inst) {
+  if (const Reg* reg = TargetRegister(inst)) return *reg;
   return std::nullopt;
 }
 
