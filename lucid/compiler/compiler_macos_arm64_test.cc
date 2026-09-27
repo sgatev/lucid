@@ -1814,5 +1814,101 @@ TEST(CompilerTest, AFrameWiderThanTheFieldThatReservesIt) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(96));
 }
 
+// Ten values crossing a branch, which is as many as there are registers.
+// A phi function's result sharing the register its argument is already in is
+// what leaves room for them.
+TEST(CompilerTest, TenValuesCrossABranch) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = 1
+      val v0: Int32 = 1
+      val v1: Int32 = 2
+      val v2: Int32 = 3
+      val v3: Int32 = 4
+      val v4: Int32 = 5
+      val v5: Int32 = 6
+      val v6: Int32 = 7
+      val v7: Int32 = 8
+      val v8: Int32 = 9
+      val v9: Int32 = 10
+      # Every one of them is written on both sides, so every one has a phi
+      # function where the sides meet.
+      if a == 1 {
+        &v0 = v0 + 10
+        &v1 = v1 + 10
+        &v2 = v2 + 10
+        &v3 = v3 + 10
+        &v4 = v4 + 10
+        &v5 = v5 + 10
+        &v6 = v6 + 10
+        &v7 = v7 + 10
+        &v8 = v8 + 10
+        &v9 = v9 + 10
+      } else {
+        &v0 = v0 - 1
+        &v1 = v1 - 1
+        &v2 = v2 - 1
+        &v3 = v3 - 1
+        &v4 = v4 - 1
+        &v5 = v5 - 1
+        &v6 = v6 - 1
+        &v7 = v7 - 1
+        &v8 = v8 - 1
+        &v9 = v9 - 1
+      }
+      return v0 + v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + v9
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(155));
+}
+
+// Two values that trade places every turn of a loop. Their phi functions
+// take each other's registers, so the copies that settle them run in a
+// circle and one of them has to stand somewhere else while the rest move.
+TEST(CompilerTest, ValuesThatTradePlacesAroundALoop) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = 1
+      val b: Int32 = 2
+      val i: Int32 = 0
+      loop {
+        if i >= 5 {
+          break
+        }
+        val t: Int32 = a
+        &a = b
+        &b = t
+        &i = i + 1
+      }
+      return a * 10 + b
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
+}
+
+// Three of them, so the circle is longer than a single trade.
+TEST(CompilerTest, ValuesThatMoveAroundALoopInACircle) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = 1
+      val b: Int32 = 2
+      val c: Int32 = 3
+      val i: Int32 = 0
+      loop {
+        if i >= 4 {
+          break
+        }
+        val t: Int32 = a
+        &a = b
+        &b = c
+        &c = t
+        &i = i + 1
+      }
+      return a * 100 + b * 10 + c
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(231));
+}
+
 }  // namespace
 }  // namespace lucid

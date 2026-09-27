@@ -259,8 +259,8 @@ worth the name.
 - **Definitions have to precede their uses**, so two functions cannot call each other.
   A call to a name defined further down the file is reported as though the name were
   not there at all, which is true of the compiler's view of it and not of the program's.
-- **More than ten values live across a branch cannot be compiled.** Ten sometimes cannot
-  either, depending on what else is live. The compiler stops rather than emitting wrong
+- **More than ten values live across a branch cannot be compiled**, which is one for
+  each register there is to hold them. The compiler stops rather than emitting wrong
   code. See [TODO.md](TODO.md).
 - **A function's frame may not be more than 16MB**, which is the largest a sequence of
   instructions here reserves. The stack a program is given runs out well before that.

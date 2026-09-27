@@ -28,18 +28,8 @@ A phi whose result is spilt needs no register at all if its arguments are stored
 to the result's own slot, which is to say if the result and its arguments are
 given one slot between them.
 
-### Colour a branch that ten values cross
-
-Ten values crossing a branch are coloured or not depending on what else is live
-beside them, where nine always are and eleven never can be. Of the shapes tried,
-ten crossing with four, twelve, sixteen or twenty values live inside one side
-come out coloured, and ten crossing with none or with eight do not.
-
-A phi function's result interferes with each of its arguments, so where the sides
-meet the arguments take every register there is and each result needs one that is
-not its own argument's. Whether the order the registers are taken in can be made
-to find such a colouring, or whether there is none to find, is the thing to settle
-first.
+This is what stops more values crossing a branch than there are registers. Ten
+crossing are coloured; eleven are not, however crowded the sides are.
 
 ## Tests and benchmarks
 

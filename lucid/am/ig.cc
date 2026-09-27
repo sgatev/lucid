@@ -146,13 +146,7 @@ InterferenceGraph BuildInterferenceGraph(
       }
     }
 
-    for (const auto& phi : block.phis) {
-      put_in_graph(phi.dst);
-      for (auto source : phi.srcs) {
-        add_edge(phi.dst, source);
-        add_edge(source, phi.dst);
-      }
-    }
+    for (const auto& phi : block.phis) put_in_graph(phi.dst);
   }
 
   // The ids the graph was built against are dropped here: what it is read

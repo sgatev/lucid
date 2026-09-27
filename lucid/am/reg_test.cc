@@ -213,6 +213,23 @@ TEST(ColoringTest, ColorsBranchingValuesThatSpill) {
   ExpectValidColoring(BranchingValues(/*crossing=*/10, /*inside=*/12));
 }
 
+// As many values crossing a branch as there are registers to hold them.
+//
+// Each has a phi function where the sides meet, and each of those takes the
+// register its argument already has, so what crosses needs no more registers
+// than it is already in. Holding a result apart from its own argument is
+// what once made these want one register more than there are, and what made
+// whether they were coloured turn on how crowded the sides were.
+TEST(ColoringTest, ColorsAsManyValuesCrossingABranchAsThereAreRegisters) {
+  ExpectValidColoring(BranchingValues(/*crossing=*/kRegistersCount,
+                                      /*inside=*/0));
+}
+
+TEST(ColoringTest, ColorsCrossingValuesBesideACrowdedSide) {
+  ExpectValidColoring(BranchingValues(/*crossing=*/kRegistersCount,
+                                      /*inside=*/8));
+}
+
 TEST(ColoringTest, ColorsLoopCarriedValuesThatSpill) {
   ExpectValidColoring(LoopCarriedValues(/*carried=*/8));
 }
