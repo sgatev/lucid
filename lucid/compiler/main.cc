@@ -248,7 +248,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
   std::optional<std::string_view> src_file = ctx.TakeArg();
   if (!src_file) {
     ctx.Out() << "Usage: " << ctx.CurrentCommand()
-              << " (--regs=spill|merge) <path>\n"
+              << " (--regs=abi|spill|merge) <path>\n"
               << "\n"
               << "Examples:\n"
               << "  print-am-cfg //my/source/file.lu\n"
@@ -301,11 +301,19 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
       // registers has been put on it.
       am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), am_cfg);
 
-      LowerCallingConvention(am_cfg, kArm64CallingConvention);
+      // The stages the flag names run in order, each over what the one
+      // before it left, so that asking for a later one shows the earlier
+      // ones too. Asking for none of them prints the graph as the abstract
+      // machine has it, where every parameter is still a register and no
+      // machine has been chosen to run it on.
       static constexpr int kArmRegistersCount = 10;
-      if (ctx.Flag("regs") == "spill") {
+      const std::optional<std::string_view> regs = ctx.Flag("regs");
+      if (regs == "abi" || regs == "spill" || regs == "merge") {
+        LowerCallingConvention(am_cfg, kArm64CallingConvention);
+      }
+      if (regs == "spill") {
         SpillRegisters(am_cfg, am_state, kArmRegistersCount);
-      } else if (ctx.Flag("regs") == "merge") {
+      } else if (regs == "merge") {
         const AbstractMachineLiveness liveness =
             SpillRegisters(am_cfg, am_state, kArmRegistersCount);
         InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg, liveness);
@@ -371,7 +379,10 @@ int HandleRoot(CommandContext ctx) {
                       "machine CFG.",
               .flags = {{
                   .name = "regs",
-                  .help = "Register allocation strategy: 'spill' or 'merge'.",
+                  .help = "How far to take the registers: 'abi' to settle "
+                          "which parameters and arguments get one, 'spill' to "
+                          "go on and put the rest in memory, 'merge' to go on "
+                          "and colour what is left.",
               }},
               .handler = HandlePrintAmCfgCommand,
           },
