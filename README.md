@@ -1,6 +1,13 @@
-# Lucid
-
-Lucid is an experimental programming language and toolchain developed from scratch.
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)"
+            srcset=".github/assets/lucid-header-dark.svg">
+    <img alt="Lucid"
+         src=".github/assets/lucid-header-light.svg"
+         width="360">
+  </picture>
+  <p>Lucid is an experimental programming language and toolchain developed from scratch.</p>
+</div>
 
 ## Overview
 
