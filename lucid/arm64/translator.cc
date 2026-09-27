@@ -94,15 +94,18 @@ class Arm64BinaryGenerator {
     int quot = stack_size_ % 16;
     stack_size_ = quot == 0 ? stack_size_ : stack_size_ + 16 - quot;
 
+    // Where each of them begins, which is where everything before it ends.
+    // A slot that stands somewhere the frame does not reach ends where it
+    // began, because it takes none of the frame up.
     stack_offsets_.resize(stack_slots_.size() + kRegistersToPersist.size());
-    stack_offsets_[0] = outgoing_size_;
-    for (int i = 1; i < kRegistersToPersist.size(); ++i) {
-      stack_offsets_[i] = stack_offsets_[i - 1] + 8;
+    int at = outgoing_size_;
+    for (int i = 0; i < kRegistersToPersist.size(); ++i) {
+      stack_offsets_[i] = at;
+      at += 8;
     }
     for (int i = 0; i < stack_slots_.size(); ++i) {
-      stack_offsets_[kRegistersToPersist.size() + i] =
-          stack_offsets_[kRegistersToPersist.size() + i - 1] +
-          (OwnSlot(i) ? stack_slots_[i] : 0);
+      stack_offsets_[kRegistersToPersist.size() + i] = at;
+      if (OwnSlot(i)) at += stack_slots_[i];
     }
 
     assembler_.Sub(SP, SP, Imm(SafeCast<std::int16_t>(stack_size_)));

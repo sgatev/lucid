@@ -1734,5 +1734,49 @@ TEST(CompilerTest, AParameterThatIsNotReadKeepsItsOwnRegister) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(7));
 }
 
+// A slot of the frame narrower than a register once began where the last
+// register the function hands back began, rather than where it ends, so the
+// first of them stood inside it. The caller got that register back with its
+// upper half written over, which shows where the caller was holding
+// something wider than the half that survived.
+TEST(CompilerTest, ASlotOfTheFrameStandsClearOfTheRegistersHandedBack) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun printString(s: String): Int32 {
+      return 0
+    }
+
+    fun narrow(): Int32 {
+      val buf: Int32[2]
+      &buf[0] = 12345
+      &buf[1] = 2
+      return buf[0] + buf[1]
+    }
+
+    fun main(): Int32 {
+      val a: String = ""
+      val b: String = " "
+      val c: String = "  "
+      val d: String = "   "
+      val e: String = "    "
+      val f: String = "     "
+      val g: String = "      "
+      val h: String = "       "
+      val i: String = "        "
+      val r: Int32 = narrow()
+      do printString(a)
+      do printString(b)
+      do printString(c)
+      do printString(d)
+      do printString(e)
+      do printString(f)
+      do printString(g)
+      do printString(h)
+      do printString(i)
+      return r
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(59));
+}
+
 }  // namespace
 }  // namespace lucid
