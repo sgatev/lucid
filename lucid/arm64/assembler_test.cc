@@ -41,8 +41,9 @@ TEST(Test, AddEncodesBothRegisterWidths) {
   // add x1, x2, #3
   EXPECT_THAT(Encode([](Assembler& a) { a.Add(X(1), X(2), Imm(3)); }),
               ElementsEqual(0x91000c41u));
-  // add x1, x2, #3, lsl #12
-  EXPECT_THAT(Encode([](Assembler& a) { a.Add(X(1), X(2), Imm(3), true); }),
+  // add x1, x2, #3, lsl #12. The shift is not asked for: an immediate too
+  // wide for the field is carried by it where it is a whole number of 4096s.
+  EXPECT_THAT(Encode([](Assembler& a) { a.Add(X(1), X(2), Imm(12288)); }),
               ElementsEqual(0x91400c41u));
   // add w1, w2, w3
   EXPECT_THAT(Encode([](Assembler& a) { a.Add(W(1), W(2), W(3)); }),
@@ -50,6 +51,23 @@ TEST(Test, AddEncodesBothRegisterWidths) {
   // add x1, x2, x3
   EXPECT_THAT(Encode([](Assembler& a) { a.Add(X(1), X(2), X(3)); }),
               ElementsEqual(0x8b030041u));
+}
+
+TEST(Test, AddAndSubReachPastTheirImmediateField) {
+  // The widest immediate the field holds as it stands: add w1, w2, #4095.
+  EXPECT_THAT(Encode([](Assembler& a) { a.Add(W(1), W(2), Imm(4095)); }),
+              ElementsEqual(0x113ffc41u));
+
+  // One more than that is a whole number of 4096s, so the shifted field
+  // carries it: add w1, w2, #4096. Splicing 4096 in as it stands would set
+  // the bit that says the field is shifted and leave 0 in the field, which
+  // is `add w1, w2, #0, lsl #12`, an addition of nothing.
+  EXPECT_THAT(Encode([](Assembler& a) { a.Add(W(1), W(2), Imm(4096)); }),
+              ElementsEqual(0x11400441u));
+
+  // The same for a frame that a prologue makes room for: sub sp, sp, #4096.
+  EXPECT_THAT(Encode([](Assembler& a) { a.Sub(SP, SP, Imm(4096)); }),
+              ElementsEqual(0xd14007ffu));
 }
 
 TEST(Test, SubEncodesBothRegisterWidths) {

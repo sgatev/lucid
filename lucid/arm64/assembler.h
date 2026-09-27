@@ -370,18 +370,14 @@ class Assembler {
   // ADD <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
-  void Add(W rd, W rn, Imm imm, bool sh = false) {
-    Insert(Add(false, rd, rn, imm, sh));
-  }
+  void Add(W rd, W rn, Imm imm) { Insert(Add(false, rd, rn, imm)); }
 
   // Inserts ADD (immediate) instruction.
   //
   // ADD <Xd|SP>, <Xn|SP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en
-  void Add(X rd, X rn, Imm imm, bool sh = false) {
-    Insert(Add(true, rd, rn, imm, sh));
-  }
+  void Add(X rd, X rn, Imm imm) { Insert(Add(true, rd, rn, imm)); }
 
   // Inserts ADD (shifted register) instruction.
   //
@@ -402,18 +398,14 @@ class Assembler {
   // SUB <Wd|WSP>, <Wn|WSP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--immediate---Subtract--immediate--?lang=en
-  void Sub(W rd, W rn, Imm imm, bool sh = false) {
-    Insert(Sub(false, rd, rn, imm, sh));
-  }
+  void Sub(W rd, W rn, Imm imm) { Insert(Sub(false, rd, rn, imm)); }
 
   // Inserts SUB (immediate) instruction.
   //
   // SUB <Xd|SP>, <Xn|SP>, #<imm>{, <shift>}
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/SUB--immediate---Subtract--immediate--?lang=en
-  void Sub(X rd, X rn, Imm imm, bool sh = false) {
-    Insert(Sub(true, rd, rn, imm, sh));
-  }
+  void Sub(X rd, X rn, Imm imm) { Insert(Sub(true, rd, rn, imm)); }
 
   // Inserts SUB (shifted register) instruction.
   //
@@ -861,10 +853,37 @@ class Assembler {
     return offset / access_size;
   }
 
-  Lit32Inst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
-                bool sh = false) {
-    return Lit32Inst(0b00010001000000000000000000000000 | sf << 31 | sh << 22 |
-                     imm << 10 | rn << 5 | rd);
+  // What the immediate forms of add and subtract carry: a 12-bit field, and
+  // whether the value is that field or that field shifted up by twelve.
+  struct ShiftedImm12 {
+    std::uint16_t value;
+    bool shifted;
+  };
+
+  // Returns how `imm` is carried by those forms.
+  //
+  // They hold a value under 4096, or a whole number of 4096s, and nothing
+  // between the two: an immediate that is neither has to be built up some
+  // other way and added as a register. Splicing one in as it stands would
+  // run over the bit that says the field is shifted, and past that over the
+  // opcode, which is a different instruction rather than a wrong offset.
+  static ShiftedImm12 Imm12Shifted(Imm imm) {
+    const std::int32_t value = imm;
+    assert(value >= 0);
+
+    if (value <= 0b111111111111) {
+      return {.value = static_cast<std::uint16_t>(value), .shifted = false};
+    }
+
+    assert(value % 4096 == 0);
+    assert(value / 4096 <= 0b111111111111);
+    return {.value = static_cast<std::uint16_t>(value / 4096), .shifted = true};
+  }
+
+  Lit32Inst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm) {
+    const ShiftedImm12 field = Imm12Shifted(imm);
+    return Lit32Inst(0b00010001000000000000000000000000 | sf << 31 |
+                     field.shifted << 22 | field.value << 10 | rn << 5 | rd);
   }
 
   Lit32Inst Mov(bool sf, internal::Reg rd, internal::Reg rm) {
@@ -1006,10 +1025,10 @@ class Assembler {
                      rn << 5 | rd);
   }
 
-  Lit32Inst Sub(bool sf, internal::Reg rd, internal::Reg rn, Imm imm,
-                bool sh = false) {
-    return Lit32Inst(0b01010001000000000000000000000000 | sf << 31 | sh << 22 |
-                     imm << 10 | rn << 5 | rd);
+  Lit32Inst Sub(bool sf, internal::Reg rd, internal::Reg rn, Imm imm) {
+    const ShiftedImm12 field = Imm12Shifted(imm);
+    return Lit32Inst(0b01010001000000000000000000000000 | sf << 31 |
+                     field.shifted << 22 | field.value << 10 | rn << 5 | rd);
   }
 
   Lit32Inst Mul(bool opc, internal::Reg rd, internal::Reg rn,

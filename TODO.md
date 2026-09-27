@@ -41,6 +41,24 @@ not its own argument's. Whether the order the registers are taken in can be made
 to find such a colouring, or whether there is none to find, is the thing to settle
 first.
 
+## Code generation
+
+### Make room for a frame no immediate reaches
+
+The immediate forms of `add` and `sub` carry a value under 4096, or a whole number
+of 4096s, and nothing between the two. A frame is rounded to a multiple of 16 rather
+than of 4096, so a function whose frame is over 4095 bytes and not a round number of
+pages cannot ask for it in one instruction, and the prologue asserts rather than
+emitting one. That is about a thousand `Int32` of arrays and spill slots.
+
+Building the size up in a register and subtracting that would lift the limit, and
+`x16` is free where the prologue and the epilogue need it. The same holds for the
+`add` that reaches a slot in an indexed access. `Imm` is a `std::int16_t`, so it has
+to widen along with them.
+
+Until then the check only holds where assertions do, which is to say not in the
+build the README tells you to make.
+
 ## Tests and benchmarks
 
 ### Benchmark a function that branches
