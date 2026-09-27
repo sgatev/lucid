@@ -18,8 +18,16 @@ int InterpretAbstractMachineFunction(
     const std::vector<std::int64_t>& args, AbstractMachineState& am_state) {
   Interpreter vm(am_cfgs, am_state, am_cfg.stack_slots);
 
-  for (int i = 0; i < args.size(); ++i) {
+  // A parameter the caller leaves on the stack is put in both the slot it
+  // stands in and the register it was given, because a graph that has been
+  // through the register allocator reads it from the slot and one that has
+  // not still reads it from the register.
+  const std::size_t in_registers = am_cfg.RegisterParams().size();
+  for (std::size_t i = 0; i < args.size() && i < am_cfg.params.size(); ++i) {
     vm.Set(am_cfg.params[i], args[i]);
+    if (i >= in_registers) {
+      vm.SetSlot(i - in_registers, am_cfg.params[i].size, args[i]);
+    }
   }
 
   AbstractMachineControlFlowGraph::BlockRef prev_block_ref =
@@ -84,6 +92,10 @@ std::optional<const std::int64_t&> Interpreter::Get(Reg reg) const {
 
 void Interpreter::Set(Reg reg, std::int64_t value) { values_.Set(reg, value); }
 
+void Interpreter::SetSlot(std::size_t slot, RegSize size, std::int64_t value) {
+  Write(SlotOffset(slot), size, value);
+}
+
 Instruction Interpreter::Interpret(const Instruction& inst) {
   if (const auto* func_call = std::get_if<FuncCall>(&inst)) {
     return Interpret(*func_call);
@@ -121,6 +133,8 @@ Instruction Interpreter::Interpret(const Instruction& inst) {
     return Interpret(*div_reg);
   } else if (const auto* mod_reg = std::get_if<ModReg>(&inst)) {
     return Interpret(*mod_reg);
+  } else if (const auto* store_arg = std::get_if<StoreArg>(&inst)) {
+    return Interpret(*store_arg);
   } else if (const auto* store_stack = std::get_if<StoreStack>(&inst)) {
     return Interpret(*store_stack);
   } else if (const auto* store_stack_reg = std::get_if<StoreStackReg>(&inst)) {
@@ -172,6 +186,16 @@ void Interpreter::Write(std::size_t offset, RegSize size, std::int64_t value) {
   }
 }
 
+Instruction Interpreter::Interpret(const StoreArg& inst) {
+  auto value = values_.Get(inst.src_reg);
+  assert(value.has_value());
+
+  if (outgoing_args_.size() <= inst.index)
+    outgoing_args_.resize(inst.index + 1);
+  outgoing_args_[inst.index] = *value;
+  return inst;
+}
+
 Instruction Interpreter::Interpret(const StoreStack& inst) {
   auto src_val = values_.Get(inst.src_reg);
   assert(src_val.has_value());
@@ -215,6 +239,11 @@ Instruction Interpreter::Interpret(const FuncCall& inst) {
     auto arg_val = values_.Get(arg.reg);
     assert(arg_val.has_value());
     args.push_back(*arg_val);
+  }
+  // The rest were put where the call looks for them before it was reached.
+  assert(outgoing_args_.size() >= inst.stack_args);
+  for (std::size_t i = 0; i < inst.stack_args; ++i) {
+    args.push_back(outgoing_args_[i]);
   }
   std::int64_t result =
       InterpretAbstractMachineFunction(am_cfgs_, *am_cfg, args, am_state_);

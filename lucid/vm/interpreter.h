@@ -34,6 +34,9 @@ class Interpreter {
 
   void Set(Reg reg, std::int64_t value);
 
+  // Puts `value` in the slot of the frame with this index.
+  void SetSlot(std::size_t slot, RegSize size, std::int64_t value);
+
   Instruction Interpret(const Instruction& inst);
 
  private:
@@ -54,6 +57,7 @@ class Interpreter {
   Instruction Interpret(const MulReg& inst);
   Instruction Interpret(const DivReg& inst);
   Instruction Interpret(const ModReg& inst);
+  Instruction Interpret(const StoreArg& inst);
   Instruction Interpret(const StoreStack& inst);
   Instruction Interpret(const StoreStackReg& inst);
   Instruction Interpret(const LoadStack& inst);
@@ -77,6 +81,11 @@ class Interpreter {
   // that say where one slot of it ends and the next begins.
   const std::vector<int>& stack_slots_;
   std::vector<std::uint8_t> stack_;
+
+  // What the calls this function makes leave on the stack, in the order the
+  // arguments stand. A machine would put these at the foot of the frame; here
+  // they are held apart from it, because nothing addresses them but the call.
+  std::vector<std::int64_t> outgoing_args_;
 
   std::int64_t result_;
 };

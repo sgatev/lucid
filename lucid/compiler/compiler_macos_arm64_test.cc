@@ -1554,5 +1554,185 @@ TEST(CompilerTest, CompEvaluatesNegativeValues) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(5));
 }
 
+// Eleven parameters against ten registers. The eleventh arrives on the stack,
+// because a parameter is live where the function is entered and spilling one
+// cannot buy room there: the store it would put in comes after the entry.
+TEST(CompilerTest, ParameterPastTheRegistersArrivesOnTheStack) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun total(a0: Int32, a1: Int32, a2: Int32, a3: Int32, a4: Int32,
+              a5: Int32, a6: Int32, a7: Int32, a8: Int32, a9: Int32,
+              a10: Int32): Int32 {
+      return a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8 + a9 + a10
+    }
+
+    fun main(): Int32 {
+      return total(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(66));
+}
+
+TEST(CompilerTest, ManyParametersArriveOnTheStack) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun total(a0: Int32, a1: Int32, a2: Int32, a3: Int32, a4: Int32,
+              a5: Int32, a6: Int32, a7: Int32, a8: Int32, a9: Int32,
+              a10: Int32, a11: Int32, a12: Int32, a13: Int32, a14: Int32,
+              a15: Int32, a16: Int32, a17: Int32, a18: Int32,
+              a19: Int32): Int32 {
+      return a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8 + a9 + a10 + a11 +
+             a12 + a13 + a14 + a15 + a16 + a17 + a18 + a19
+    }
+
+    fun main(): Int32 {
+      return total(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                   18, 19, 20)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(210));
+}
+
+// A parameter on the stack is read where it is read, rather than held in a
+// register from the entry, so reading it more than once reads it more than
+// once.
+TEST(CompilerTest, ParameterOnTheStackIsReadAtEveryUse) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun thrice(a0: Int32, a1: Int32, a2: Int32, a3: Int32, a4: Int32,
+               a5: Int32, a6: Int32, a7: Int32, a8: Int32, a9: Int32,
+               a10: Int32): Int32 {
+      return a10 + a10 + a10
+    }
+
+    fun main(): Int32 {
+      return thrice(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
+}
+
+// A parameter on the stack carried around a loop, where it reaches a phi
+// function as one of its arguments.
+TEST(CompilerTest, ParameterOnTheStackReachesAPhiFunction) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun count(a0: Int32, a1: Int32, a2: Int32, a3: Int32, a4: Int32,
+              a5: Int32, a6: Int32, a7: Int32, a8: Int32, a9: Int32,
+              a10: Int32): Int32 {
+      val acc: Int32 = a10
+      val i: Int32 = 0
+      loop {
+        if i >= a0 {
+          break
+        }
+        &acc = acc + 1
+        &i = i + 1
+      }
+      return acc
+    }
+
+    fun main(): Int32 {
+      return count(4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(104));
+}
+
+// A function that both takes parameters on the stack and passes some on, so
+// its frame holds room for what it was given and for what it gives.
+TEST(CompilerTest, StackArgumentsPassedOnThroughAFrameThatHasItsOwn) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun inner(a0: Int32, a1: Int32, a2: Int32, a3: Int32, a4: Int32,
+              a5: Int32, a6: Int32, a7: Int32, a8: Int32, a9: Int32,
+              a10: Int32, a11: Int32): Int32 {
+      return a10 * 10 + a11
+    }
+
+    fun outer(b0: Int32, b1: Int32, b2: Int32, b3: Int32, b4: Int32,
+              b5: Int32, b6: Int32, b7: Int32, b8: Int32, b9: Int32,
+              b10: Int32, b11: Int32): Int32 {
+      return inner(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, b10, b11) + b0
+    }
+
+    fun main(): Int32 {
+      return outer(3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 9)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(62));
+}
+
+// A caller with slots of its own, so that what it leaves for the call stands
+// apart from what it keeps for itself.
+TEST(CompilerTest, StackArgumentsBesideACallerSOwnSlots) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun last(a0: Int32, a1: Int32, a2: Int32, a3: Int32, a4: Int32,
+             a5: Int32, a6: Int32, a7: Int32, a8: Int32, a9: Int32,
+             a10: Int32): Int32 {
+      return a10
+    }
+
+    fun main(): Int32 {
+      val buf: Int32[4]
+      &buf[0] = 11
+      &buf[3] = 22
+      return last(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40) + buf[0] + buf[3]
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(73));
+}
+
+// A parameter on the stack that is a pointer rather than a number, which is
+// read back at its own width.
+TEST(CompilerTest, ParameterOnTheStackKeepsItsWidth) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun printString(s: String): Int32 {
+      return 0
+    }
+
+    fun tell(a0: Int32, a1: Int32, a2: Int32, a3: Int32, a4: Int32,
+             a5: Int32, a6: Int32, a7: Int32, a8: Int32, a9: Int32,
+             s: String, n: Int32): Int32 {
+      do printString(s)
+      return n + a0
+    }
+
+    fun main(): Int32 {
+      return tell(2, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", 5)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(7));
+}
+
+// Worked out while compiling, where nothing has been given a register and the
+// arguments past the tenth are held wherever the interpreter holds them.
+TEST(CompilerTest, CompEvaluatesACallWithArgumentsOnTheStack) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun total(a0: Int32, a1: Int32, a2: Int32, a3: Int32, a4: Int32,
+                   a5: Int32, a6: Int32, a7: Int32, a8: Int32, a9: Int32,
+                   a10: Int32, a11: Int32): Int32 {
+      return a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8 + a9 + a10 + a11
+    }
+
+    fun main(): Int32 {
+      comp val c: Int32 = total(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+      return c
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(78));
+}
+
+// A parameter the body never reads still arrives in a register of its own.
+// The entry fills them one after another, so one sharing with a parameter it
+// has not filled yet would write over it.
+TEST(CompilerTest, AParameterThatIsNotReadKeepsItsOwnRegister) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun first(a: Int32, b: Int32): Int32 {
+      return a
+    }
+
+    fun main(): Int32 {
+      return first(7, 9)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(7));
+}
+
 }  // namespace
 }  // namespace lucid

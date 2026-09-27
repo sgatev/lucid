@@ -85,9 +85,15 @@ class AbstractMachineFunctionGenerator {
     }
 
     {
+      // The parameters left on the stack take the leading slots of the frame,
+      // so that each one stands at the index the caller wrote it at. Nothing
+      // has asked for a slot yet, which is what leaves them free to take.
       for (const auto& param_ref : syn_cfg_.func_params) {
         const auto& param = syn_ctx_.DerefParam(param_ref);
         am_cfg_.params.push_back(GetVarReg(param.name, param.type_constraint));
+        if (am_cfg_.params.size() > kMaxRegisterArgs) {
+          am_cfg_.stack_slots.push_back(kStackArgSize);
+        }
       }
     }
 
@@ -127,13 +133,28 @@ class AbstractMachineFunctionGenerator {
     for (const auto& seq : block.sequences) {
       for (ExprRef expr_ref : seq.expressions) {
         const Expr& expr = syn_ctx_.DerefExpr(expr_ref);
+
+        // What stands before the expression, so that what it adds can be told
+        // apart from it.
+        const bool had_any = !am_block.instructions.empty();
+        auto before = had_any ? std::prev(am_block.instructions.end())
+                              : am_block.instructions.end();
+
         Process(expr_ref, expr, am_block);
 
         bool is_comp =
             std::visit([](const auto& expr) { return expr.is_comp; }, expr);
         if (is_comp) {
-          am_block.instructions.back() =
-              vm_.Interpret(am_block.instructions.back());
+          // An expression can take more than one instruction: a call with more
+          // arguments than there are registers to pass them in puts the rest
+          // away before it. Each is worked out, and only what the last one
+          // came to is kept, because that is what the expression is worth.
+          auto it = had_any ? std::next(before) : am_block.instructions.begin();
+          while (std::next(it) != am_block.instructions.end()) {
+            vm_.Interpret(*it);
+            it = am_block.instructions.erase(it);
+          }
+          *it = vm_.Interpret(*it);
         }
       }
       if (seq.stmt.has_value()) {
@@ -215,11 +236,24 @@ class AbstractMachineFunctionGenerator {
     FuncCall func_call = {
         .label = syn_ctx_.DerefIdent(expr.func_name),
     };
+    // The arguments past the registers there are go to the foot of the frame
+    // before the call, rather than to the call itself, so that the call needs
+    // no register for them and holds no more live at once than there are.
     for (ExprRef arg : expr.args) {
-      func_call.args.push_back(FuncCall::Slot{
-          .reg = expr_and_stmt_to_reg_[arg.id()],
+      const Reg reg = expr_and_stmt_to_reg_[arg.id()];
+      if (func_call.args.size() < kMaxRegisterArgs) {
+        func_call.args.push_back(FuncCall::Slot{.reg = reg});
+        continue;
+      }
+
+      am_block.instructions.push_back(StoreArg{
+          .index = func_call.stack_args,
+          .src_reg = reg,
       });
+      ++func_call.stack_args;
     }
+    am_cfg_.outgoing_args =
+        std::max(am_cfg_.outgoing_args, func_call.stack_args);
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
     func_call.res = {
         .reg = reg,

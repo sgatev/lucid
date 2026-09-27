@@ -106,7 +106,7 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
     }
 
     if (block.ref == am_cfg.first) {
-      for (auto& param : am_cfg.params) live.Insert(param);
+      for (Reg param : am_cfg.RegisterParams()) live.Insert(param);
 
       if (over_full()) return reg_to_spill();
     }
@@ -114,33 +114,47 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
   return std::nullopt;
 }
 
+// Takes `reg_to_spill` out of the registers, leaving every read of it to load
+// its own copy from a slot of the frame.
+//
+// `home_slot` is the slot it is already in, where it has one. A register that
+// arrives in a slot is never written, so nothing puts it there and the reads
+// are all there is to do.
 void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
-                    AbstractMachineState& am_state, HashSet<Reg>& spilt) {
+                    AbstractMachineState& am_state, HashSet<Reg>& spilt,
+                    std::optional<std::size_t> home_slot = std::nullopt) {
   HashMap<Reg, std::size_t> reg_stack;
+  if (home_slot.has_value()) reg_stack.Insert(reg_to_spill, *home_slot);
 
+  // Takes the slot `reg` is put away in and writes it down, so that the loads
+  // that read it back know where to look.
+  auto take_slot = [&](Reg reg) {
+    const std::size_t slot = am_cfg.stack_slots.size();
+    reg_stack.Insert(reg, slot);
+    am_cfg.stack_slots.push_back(reg.size == RegSize32 ? 4 : 8);
+    return slot;
+  };
+
+  // Puts the register away after the instruction that wrote it, and leaves the
+  // walk standing on the store, which the step the walk takes next carries it
+  // past. Standing on the instruction before it would read the store as one
+  // more use and load the register back to store it again.
   auto maybe_insert_store = [&](std::list<Instruction>& instructions,
                                 std::list<Instruction>::iterator& pos,
                                 Reg reg) {
     if (reg != reg_to_spill) return;
 
-    ++pos;
-    reg_stack.Insert(reg, am_cfg.stack_slots.size());
-    instructions.insert(pos, StoreStack{
-                                 .offset = am_cfg.stack_slots.size(),
-                                 .src_reg = reg,
-                             });
-    switch (reg.size) {
-      case RegSize32:
-        am_cfg.stack_slots.push_back(4);
-        break;
-      case RegSize64:
-        am_cfg.stack_slots.push_back(8);
-        break;
-    }
+    pos = instructions.insert(std::next(pos), StoreStack{
+                                                  .offset = take_slot(reg),
+                                                  .src_reg = reg,
+                                              });
   };
-  auto maybe_insert_load32 = [&](std::list<Instruction>& instructions,
-                                 std::list<Instruction>::iterator& pos,
-                                 Reg& reg) {
+  // Reads the register back before the instruction that uses it, into a
+  // register of that use's own, and leaves the walk where it is: an
+  // instruction can use it more than once, and the one after it can too.
+  auto maybe_insert_load = [&](std::list<Instruction>& instructions,
+                               std::list<Instruction>::iterator& pos,
+                               Reg& reg) {
     if (reg != reg_to_spill) return;
 
     Reg old_reg = reg;
@@ -153,24 +167,6 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
                                  .offset = *offset,
                                  .dst_reg = reg,
                              });
-    ++pos;
-  };
-  auto maybe_insert_load64 = [&](std::list<Instruction>& instructions,
-                                 std::list<Instruction>::iterator& pos,
-                                 Reg& reg) {
-    if (reg != reg_to_spill) return;
-
-    Reg old_reg = reg;
-    reg.id = am_cfg.next_free_reg_id++;
-
-    auto offset = reg_stack.Get(old_reg);
-    if (!offset.has_value()) return;
-
-    instructions.insert(pos, LoadStack{
-                                 .offset = *offset,
-                                 .dst_reg = reg,
-                             });
-    ++pos;
   };
 
   std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
@@ -181,20 +177,35 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
   for (const auto& block_ref : block_refs) {
     auto& block = am_cfg.GetBlock(block_ref);
 
+    // What the block is entered holding is put away at the top of it, ahead of
+    // everything the block does. A parameter is in its register from the entry
+    // because that is where the caller leaves it, and a phi function is
+    // settled before the block runs. The walk starts after these, so that it
+    // does not read a store as one more use of what it stores.
     auto i = block.instructions.begin();
     if (block_ref == am_cfg.first) {
-      for (auto& param : am_cfg.params) {
-        maybe_insert_store(block.instructions, i, param);
+      for (Reg param : am_cfg.RegisterParams()) {
+        if (param != reg_to_spill) continue;
+
+        block.instructions.insert(i, StoreStack{
+                                         .offset = take_slot(param),
+                                         .src_reg = param,
+                                     });
       }
     }
     for (auto& phi : block.phis) {
-      maybe_insert_store(block.instructions, i, phi.dst);
+      if (phi.dst != reg_to_spill) continue;
+
+      block.instructions.insert(i, StoreStack{
+                                       .offset = take_slot(phi.dst),
+                                       .src_reg = phi.dst,
+                                   });
     }
     while (i != block.instructions.end()) {
       auto& inst = *i;
 
       if (auto* cinst = std::get_if<MoveReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->src_reg);
+        maybe_insert_load(block.instructions, i, cinst->src_reg);
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<SetReg>(&inst)) {
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
@@ -203,71 +214,66 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
       } else if (auto* cinst = std::get_if<SetStr>(&inst)) {
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<AddReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<SubReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<MulReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<DivReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<ModReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<GtReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<LtReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<GeReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<LeReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<EqReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->lhs_reg);
-        maybe_insert_load32(block.instructions, i, cinst->rhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->lhs_reg);
+        maybe_insert_load(block.instructions, i, cinst->rhs_reg);
         maybe_insert_store(block.instructions, i, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<StoreArg>(&inst)) {
+        maybe_insert_load(block.instructions, i, cinst->src_reg);
       } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->src_reg);
+        maybe_insert_load(block.instructions, i, cinst->src_reg);
       } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->src_reg);
-        maybe_insert_load32(block.instructions, i, cinst->offset_reg);
+        maybe_insert_load(block.instructions, i, cinst->src_reg);
+        maybe_insert_load(block.instructions, i, cinst->offset_reg);
       } else if (auto* cinst = std::get_if<LoadStack>(&inst)) {
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<LoadStackReg>(&inst)) {
-        maybe_insert_load32(block.instructions, i, cinst->offset_reg);
+        maybe_insert_load(block.instructions, i, cinst->offset_reg);
         maybe_insert_store(block.instructions, i, cinst->dst_reg);
       } else if (auto* cinst = std::get_if<Return>(&inst)) {
-        maybe_insert_load64(block.instructions, i, cinst->res_reg);
+        maybe_insert_load(block.instructions, i, cinst->res_reg);
       } else if (auto* cinst = std::get_if<FuncCall>(&inst)) {
         for (auto& arg : cinst->args) {
-          switch (arg.reg.size) {
-            case RegSize32:
-              maybe_insert_load32(block.instructions, i, arg.reg);
-              break;
-            case RegSize64:
-              maybe_insert_load64(block.instructions, i, arg.reg);
-              break;
-          }
+          maybe_insert_load(block.instructions, i, arg.reg);
         }
         if (cinst->res.has_value()) {
           maybe_insert_store(block.instructions, i, cinst->res->reg);
@@ -277,7 +283,7 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
       ++i;
     }
     if (block.branch_cond.has_value()) {
-      maybe_insert_load32(block.instructions, i, *block.branch_cond);
+      maybe_insert_load(block.instructions, i, *block.branch_cond);
     }
   }
 
@@ -337,8 +343,9 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 // puts it away reads it there.
 void RemoveSpiltRegister(const AbstractMachineControlFlowGraph& am_cfg, Reg reg,
                          AbstractMachineLiveness& liveness) {
+  const auto register_params = am_cfg.RegisterParams();
   const bool is_param =
-      std::ranges::find(am_cfg.params, reg) != am_cfg.params.end();
+      std::ranges::find(register_params, reg) != register_params.end();
 
   for (std::size_t id = 0; id < liveness.size(); ++id) {
     if (!liveness[id].has_value()) continue;
@@ -380,6 +387,14 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
                                        int max_clique_size) {
   HashSet<Reg> spilt_regs;
 
+  // A parameter the caller left on the stack is already in a slot, so nothing
+  // holds it where the function is entered and every read of it loads its own
+  // copy. Spilling could not buy that room afterwards: a parameter is live
+  // from the entry, which is before any store that would put it away.
+  for (std::size_t i = 0; const Reg param : am_cfg.StackParams()) {
+    SpillRegisters(param, am_cfg, am_state, spilt_regs, i++);
+  }
+
   // Worked out once and then carried through the spilling, which takes each
   // register it spills out of it rather than leaving the whole thing to be
   // worked out again.
@@ -406,7 +421,7 @@ HashMap<Reg, int> ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
     const InterferenceGraph& am_ig, int colors_count) {
   HashMap<Reg, int> reg_scores;
-  for (const auto& param : am_cfg.params) {
+  for (Reg param : am_cfg.RegisterParams()) {
     reg_scores.Insert(param, 0);
   }
   for (const auto& block : am_cfg.Blocks()) {
@@ -464,6 +479,8 @@ HashMap<Reg, int> ColorInterferenceGraph(
         reg_scores.Insert(cinst->res_reg, 0);
         reg_scores.Insert(cinst->lhs_reg, 0);
         reg_scores.Insert(cinst->rhs_reg, 0);
+      } else if (auto* cinst = std::get_if<StoreArg>(&inst)) {
+        reg_scores.Insert(cinst->src_reg, 0);
       } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
         reg_scores.Insert(cinst->src_reg, 0);
       } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
@@ -607,7 +624,7 @@ void UpdateRegister(const HashMap<Reg, int>& reg_colors, Reg& reg) {
 
 void MergeRegisters(const HashMap<Reg, int>& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg) {
-  for (auto& param : am_cfg.params) UpdateRegister(reg_colors, param);
+  for (Reg& param : am_cfg.RegisterParams()) UpdateRegister(reg_colors, param);
   for (auto& block : am_cfg.Blocks()) {
     for (auto& inst : block.instructions) {
       if (auto* cinst = std::get_if<MoveReg>(&inst)) {
@@ -663,6 +680,8 @@ void MergeRegisters(const HashMap<Reg, int>& reg_colors,
         UpdateRegister(reg_colors, cinst->lhs_reg);
         UpdateRegister(reg_colors, cinst->rhs_reg);
         UpdateRegister(reg_colors, cinst->res_reg);
+      } else if (auto* cinst = std::get_if<StoreArg>(&inst)) {
+        UpdateRegister(reg_colors, cinst->src_reg);
       } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
         UpdateRegister(reg_colors, cinst->src_reg);
       } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {

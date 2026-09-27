@@ -262,8 +262,6 @@ worth the name.
 - **More than ten values live across a branch cannot be compiled.** Ten sometimes cannot
   either, depending on what else is live. The compiler stops rather than emitting wrong
   code. See [TODO.md](TODO.md).
-- **A function may not have more than ten parameters**, for a related reason: parameters
-  arrive in registers and there is no path for passing them on the stack.
 - **An array or a tuple cannot be a parameter or a result.** Both live on the stack, and
   nothing lays one out on either side of a call. This is reported rather than attempted.
 - **An assignment cannot end in an index into something reached through.** `&r.v[0] = 1`

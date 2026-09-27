@@ -41,18 +41,6 @@ not its own argument's. Whether the order the registers are taken in can be made
 to find such a colouring, or whether there is none to find, is the thing to settle
 first.
 
-### Pass a parameter that has no register on the stack
-
-A function runs out of registers for a reason of its own too, with no branch in it
-at all. Every parameter is live where the function is entered, because that is
-where the caller leaves it, and spilling one puts its store after that point rather
-than before it. The room a spill is meant to buy at the entry is therefore never
-bought, and a function of eleven parameters against ten registers spills every one
-of them and is still over full.
-
-Parameters past the ones there are registers for have to arrive on the stack, which is
-a question for the calling convention rather than for the allocator.
-
 ## Tests and benchmarks
 
 ### Benchmark a function that branches

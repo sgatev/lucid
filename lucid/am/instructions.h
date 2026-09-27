@@ -47,6 +47,20 @@ struct Reg {
 
 inline std::size_t Hash(const Reg& reg) { return Hash(reg.id); }
 
+// How many arguments a call passes in registers. The ones past these are left
+// on the stack for the function to read where it reads them.
+//
+// Every parameter is live where a function is entered, so one that arrives in
+// a register holds a colour there and this can be no more than the number of
+// colours there are. It is exactly that, because nothing else is live at the
+// entry for the colouring to want room for.
+inline constexpr std::size_t kMaxRegisterArgs = 10;
+
+// How much room an argument left on the stack takes, whatever its width, so
+// that the one after it stands this much further along. A narrower value is
+// written into the low bytes of its own room and read back from there.
+inline constexpr int kStackArgSize = 8;
+
 // A no op instruction.
 struct Nop {
   bool operator==(const Nop&) const = default;
@@ -390,6 +404,23 @@ struct StoreStackReg {
   }
 };
 
+// Puts the value of a register where a call will look for an argument there
+// is no register to pass.
+struct StoreArg {
+  // Position of the argument among those the call leaves on the stack.
+  std::uint32_t index;
+
+  // Source register.
+  Reg src_reg;
+
+  bool operator==(const StoreArg&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const StoreArg& inst) {
+    return os << "StoreArg { .index=" << inst.index
+              << ", .src_reg=" << inst.src_reg << " }";
+  }
+};
+
 // Loads a value from the stack into a register.
 struct LoadStack {
   // Offset from the top of the stack where the value is placed.
@@ -438,8 +469,13 @@ struct FuncCall {
     bool operator==(const Slot&) const = default;
   };
 
-  // Arguments to pass to the function.
+  // Arguments to pass to the function in registers.
   std::vector<Slot> args;
+
+  // How many arguments the call leaves at the foot of the frame instead,
+  // which a `StoreArg` before it put there. This sits between the two members
+  // it does because an instruction is kept to a size, and the room is here.
+  std::uint32_t stack_args = 0;
 
   // Result from the function.
   std::optional<Slot> res;
@@ -453,7 +489,7 @@ struct FuncCall {
       os << arg.reg;
       has_printed_arg = true;
     }
-    os << "]";
+    os << "] .stack_args=" << inst.stack_args;
     if (inst.res.has_value()) os << " .res=" << inst.res->reg;
     os << " }";
     return os;
@@ -464,8 +500,8 @@ struct FuncCall {
 using Instruction =
     std::variant<Nop, MoveReg, SetReg, SetInt, SetStr, Return, AddReg, SubReg,
                  MulReg, DivReg, ModReg, GtReg, LtReg, GeReg, LeReg, EqReg,
-                 NotEqReg, StoreStack, StoreStackReg, LoadStack, LoadStackReg,
-                 FuncCall>;
+                 NotEqReg, StoreArg, StoreStack, StoreStackReg, LoadStack,
+                 LoadStackReg, FuncCall>;
 
 // Calls `visit` with each source register the given instruction reads.
 //
@@ -514,6 +550,8 @@ inline void ForEachSourceRegister(const Instruction& inst, VisitT visit) {
   } else if (auto* cinst = std::get_if<NotEqReg>(&inst)) {
     visit(cinst->lhs_reg);
     visit(cinst->rhs_reg);
+  } else if (auto* cinst = std::get_if<StoreArg>(&inst)) {
+    visit(cinst->src_reg);
   } else if (auto* cinst = std::get_if<StoreStack>(&inst)) {
     visit(cinst->src_reg);
   } else if (auto* cinst = std::get_if<StoreStackReg>(&inst)) {
@@ -539,7 +577,8 @@ inline std::vector<Reg> GetSourceRegisters(const Instruction& inst) {
 
 // Returns the target register used by the given instruction, if any.
 inline std::optional<Reg> GetTargetRegister(const Instruction& inst) {
-  if (std::holds_alternative<StoreStack>(inst) ||
+  if (std::holds_alternative<StoreArg>(inst) ||
+      std::holds_alternative<StoreStack>(inst) ||
       std::holds_alternative<StoreStackReg>(inst) ||
       std::holds_alternative<Return>(inst)) {
     return std::nullopt;

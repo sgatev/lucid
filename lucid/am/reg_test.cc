@@ -1,5 +1,6 @@
 #include "lucid/am/reg.h"
 
+#include <cstddef>
 #include <format>
 #include <optional>
 #include <string>
@@ -49,6 +50,22 @@ std::string LiveValues(int count) {
   code += "  val sum: Int32 = v0\n";
   for (int i = 1; i < count; ++i) {
     code += std::format("  val sum{}: Int32 = sum + v{}\n", i, i);
+  }
+  code += std::format("  return sum{}\n}}\n", count - 1);
+  return code;
+}
+
+// A function of `count` parameters, each of them read. Every parameter is
+// live where the function is entered, because that is where the caller leaves
+// it, so the ones there is no register for arrive on the stack.
+std::string ManyParameters(int count) {
+  std::string code = "fun main(";
+  for (int i = 0; i < count; ++i) {
+    code += std::format("{}p{}: Int32", i == 0 ? "" : ", ", i);
+  }
+  code += "): Int32 {\n  val sum0: Int32 = p0\n";
+  for (int i = 1; i < count; ++i) {
+    code += std::format("  val sum{}: Int32 = sum{} + p{}\n", i, i - 1, i);
   }
   code += std::format("  return sum{}\n}}\n", count - 1);
   return code;
@@ -152,6 +169,21 @@ class ColoringTest : public Test {
     const HashMap<Reg, int> colors =
         ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount);
 
+    // Every parameter is live where the function is entered, because that is
+    // where the caller leaves it, so no two of them can share a colour
+    // whether or not the body reads them.
+    const auto register_params = am_cfg.RegisterParams();
+    for (std::size_t i = 0; i < register_params.size(); ++i) {
+      const std::optional<const int&> color = colors.Get(register_params[i]);
+      ASSERT_TRUE(color.has_value());
+
+      for (std::size_t j = i + 1; j < register_params.size(); ++j) {
+        const std::optional<const int&> other = colors.Get(register_params[j]);
+        ASSERT_TRUE(other.has_value());
+        EXPECT_NE(*color, *other);
+      }
+    }
+
     for (Reg reg : am_ig.Regs()) {
       const std::optional<const int&> color = colors.Get(reg);
       EXPECT_TRUE(color.has_value());
@@ -237,6 +269,27 @@ TEST(ColoringTest, ColorsAChainOfValues) {
 
 TEST(ColoringTest, ColorsValuesThatAreAllLiveAtOnce) {
   ExpectValidColoring(LiveValues(64));
+}
+
+TEST(ColoringTest, ColorsEveryParameterThereIsARegisterFor) {
+  ExpectValidColoring(ManyParameters(kRegistersCount));
+}
+
+TEST(ColoringTest, ColorsParametersThatArriveOnTheStack) {
+  ExpectValidColoring(ManyParameters(kRegistersCount + 1));
+  ExpectValidColoring(ManyParameters(32));
+}
+
+// A parameter the body never reads is live where the function is entered all
+// the same, so it cannot share a register with one that is read: the entry
+// fills them one after another, and the fill would write over what it shared
+// with.
+TEST(ColoringTest, ColorsParametersThatAreNotRead) {
+  ExpectValidColoring(R"(
+    fun main(a: Int32, b: Int32, c: Int32): Int32 {
+      return b
+    }
+  )");
 }
 
 }  // namespace
