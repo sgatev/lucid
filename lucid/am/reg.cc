@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <limits>
 #include <list>
@@ -497,12 +498,21 @@ HashMap<Reg, int> ColorInterferenceGraph(
   // register taken.
   const std::size_t regs_count = reg_scores.size();
 
+  // What each register scores, where it sits in its bucket, and whether it
+  // has been taken, all held by register id rather than in a table keyed by
+  // the register: the ids run from zero without gaps, so an index reaches
+  // them, and each of these is read once per edge of the graph.
+  const std::size_t reg_ids = am_cfg.next_free_reg_id;
+  std::vector<int> scores(reg_ids, -1);
+  std::vector<std::size_t> slots(reg_ids, 0);
+  std::vector<bool> taken(reg_ids, false);
+
   // A score counts neighbours already taken, so none can reach the number of
   // registers there are.
   std::vector<std::vector<Reg>> buckets(regs_count + 1);
-  HashMap<Reg, std::size_t> reg_slots;
   for (const auto& [reg, score] : reg_scores) {
-    reg_slots.Insert(reg, buckets[0].size());
+    slots[reg.id] = buckets[0].size();
+    scores[reg.id] = 0;
     buckets[0].push_back(reg);
   }
 
@@ -510,16 +520,15 @@ HashMap<Reg, int> ColorInterferenceGraph(
   // that was last in the bucket takes its place, so neither move is a search.
   const auto raise = [&](Reg reg, int score) {
     std::vector<Reg>& bucket = buckets[score];
-    const std::size_t slot = *reg_slots.Get(reg);
+    const std::size_t slot = slots[reg.id];
     bucket[slot] = bucket.back();
-    reg_slots.Set(bucket[slot], slot);
+    slots[bucket[slot].id] = slot;
     bucket.pop_back();
 
-    reg_slots.Set(reg, buckets[score + 1].size());
+    slots[reg.id] = buckets[score + 1].size();
     buckets[score + 1].push_back(reg);
   };
 
-  HashSet<Reg> visited;
   std::vector<Reg> seo;
   seo.reserve(regs_count);
   std::size_t top = 0;
@@ -530,28 +539,39 @@ HashMap<Reg, int> ColorInterferenceGraph(
     buckets[top].pop_back();
 
     seo.push_back(max_reg);
-    visited.Insert(max_reg);
+    taken[max_reg.id] = true;
 
     for (Reg nb : am_ig.Neighbours(max_reg)) {
-      if (visited.Contains(nb)) continue;
-      if (auto nb_score = reg_scores.Get(nb); nb_score.has_value()) {
-        raise(nb, *nb_score);
-        reg_scores.Set(nb, *nb_score + 1);
-        // Everything still waiting scored at most `top` before this, so a
-        // register can only ever be raised to the bucket just above it.
-        top = std::max<std::size_t>(top, *nb_score + 1);
-      }
+      if (taken[nb.id]) continue;
+      const int nb_score = scores[nb.id];
+      if (nb_score < 0) continue;
+
+      raise(nb, nb_score);
+      scores[nb.id] = nb_score + 1;
+      // Everything still waiting scored at most `top` before this, so a
+      // register can only ever be raised to the bucket just above it.
+      top = std::max<std::size_t>(top, static_cast<std::size_t>(nb_score) + 1);
     }
   }
 
-  HashMap<Reg, int> ig_colors;
+  // Which colour each register took, by register id, and none to begin with.
+  // A colour is read once per edge of the graph, which is what makes this
+  // worth an index rather than a hash.
+  static constexpr int kNoColor = -1;
+  std::vector<int> colors_by_reg(reg_ids, kNoColor);
+
   for (Reg reg : seo) {
-    HashSet<int> colors;
-    for (int i = 0; i < colors_count; ++i) colors.Insert(19 + i);
+    // The colours still free, a bit each, lowest first. There are no more of
+    // them than there are registers to give, so they all fit in one word.
+    std::uint64_t free_colors = colors_count >= 64
+                                    ? ~std::uint64_t{0}
+                                    : (std::uint64_t{1} << colors_count) - 1;
 
     for (Reg nb : am_ig.Neighbours(reg)) {
-      const auto& neighbour_color = ig_colors.Get(nb);
-      if (neighbour_color.has_value()) colors.Remove(*neighbour_color);
+      const int neighbour_color = colors_by_reg[nb.id];
+      if (neighbour_color != kNoColor) {
+        free_colors &= ~(std::uint64_t{1} << (neighbour_color - 19));
+      }
     }
 
     // The lowest of the colours left, which is what the register takes.
@@ -561,14 +581,15 @@ HashMap<Reg, int> ColorInterferenceGraph(
     // and something the spilling was meant to have seen to. Checked in every
     // build: the colours are what the code is written against, so taking one
     // that was not free is wrong code rather than a slower answer.
-    std::optional<int> min_color;
-    for (int color : colors) {
-      if (!min_color.has_value() || color < *min_color) min_color = color;
-    }
-
-    ig_colors.Insert(reg, min_color.value());
+    const std::optional<int> color =
+        free_colors == 0
+            ? std::nullopt
+            : std::optional<int>(19 + std::countr_zero(free_colors));
+    colors_by_reg[reg.id] = color.value();
   }
 
+  HashMap<Reg, int> ig_colors;
+  for (Reg reg : seo) ig_colors.Insert(reg, colors_by_reg[reg.id]);
   return ig_colors;
 }
 
