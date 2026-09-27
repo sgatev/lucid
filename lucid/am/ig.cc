@@ -127,14 +127,6 @@ InterferenceGraph BuildInterferenceGraph(
 
       AbstractMachineLivenessAnalysis::TransferLive(live, inst);
 
-      if (auto* cinst = std::get_if<ModReg>(&inst)) {
-        add_edge(cinst->res_reg, cinst->lhs_reg);
-        add_edge(cinst->res_reg, cinst->rhs_reg);
-
-        add_edge(cinst->lhs_reg, cinst->res_reg);
-        add_edge(cinst->rhs_reg, cinst->res_reg);
-      }
-
       for (Reg from : entering) {
         put_in_graph(from);
         for (Reg to : live) {

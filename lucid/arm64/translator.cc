@@ -408,19 +408,27 @@ class Arm64BinaryGenerator {
     }
   }
 
+  // What is left over is what the division did not account for, so it takes
+  // a division and a multiply-subtract. The quotient stands in a register of
+  // its own rather than in the one the answer goes to: the subtract reads
+  // both sides again after the division has written, and a quotient written
+  // over either of them would be reading what it had destroyed. Holding the
+  // answer apart from both would do instead, but nothing that decides what
+  // to put away in memory knows to count that, so the crowd it makes is one
+  // no amount of spilling relieves.
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const ModReg& inst) {
     switch (inst.res_reg.size) {
       case RegSize32:
-        assembler_.Sdiv(W(inst.res_reg.id), W(inst.lhs_reg.id),
+        assembler_.Sdiv(W(kQuotientScratch), W(inst.lhs_reg.id),
                         W(inst.rhs_reg.id));
-        assembler_.Msub(W(inst.res_reg.id), W(inst.res_reg.id),
+        assembler_.Msub(W(inst.res_reg.id), W(kQuotientScratch),
                         W(inst.rhs_reg.id), W(inst.lhs_reg.id));
         break;
       case RegSize64:
-        assembler_.Sdiv(X(inst.res_reg.id), X(inst.lhs_reg.id),
+        assembler_.Sdiv(X(kQuotientScratch), X(inst.lhs_reg.id),
                         X(inst.rhs_reg.id));
-        assembler_.Msub(X(inst.res_reg.id), X(inst.res_reg.id),
+        assembler_.Msub(X(inst.res_reg.id), X(kQuotientScratch),
                         X(inst.rhs_reg.id), X(inst.lhs_reg.id));
         break;
     }
@@ -697,6 +705,9 @@ class Arm64BinaryGenerator {
 
   // The register an address too far for a field of its own is worked out in.
   static constexpr std::uint8_t kAddressScratch = 16;
+
+  // The register a quotient stands in while what is left over is worked out.
+  static constexpr std::uint8_t kQuotientScratch = 17;
 
   static constexpr std::array<std::uint8_t, 10> kRegistersToPersist = {
       19, 20, 21, 22, 23, 24, 25, 26, 27, 28,

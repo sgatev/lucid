@@ -1994,5 +1994,30 @@ TEST(CompilerTest, TakesTheRemainderOfANegativeNumber) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
 }
 
+// What is left over takes a division and a multiply-subtract, and the
+// subtract reads both sides again after the division has written. The
+// quotient therefore stands somewhere neither side is, rather than in the
+// register the answer goes to.
+//
+// Holding the answer apart from both sides would do instead, but nothing
+// that decides what to put away in memory counts that, so eight parameters
+// and one remainder once could not be compiled at all.
+TEST(CompilerTest, TakesARemainderBesideMoreValuesThanThereAreRegisters) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun callee(p0: Int32, p1: Int32, p2: Int32, p3: Int32, p4: Int32,
+               p5: Int32, p6: Int32, p7: Int32, p8: Int32, p9: Int32,
+               p10: Int32, p11: Int32): Int32 {
+      val left: Int32 = 7 % 3
+      return p0 + p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + p11 +
+             left
+    }
+
+    fun main(): Int32 {
+      return callee(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(13));
+}
+
 }  // namespace
 }  // namespace lucid
