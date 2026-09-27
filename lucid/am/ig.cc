@@ -69,6 +69,17 @@ InterferenceGraph BuildInterferenceGraph(
     edges.emplace_back(from, to);
   };
 
+  // Every parameter is written where the function is entered, so no two of
+  // them can share a register, whether or not the body ever reads them. The
+  // entry puts them in their registers one after another, and one sharing
+  // with another that has not been put in yet would be written over.
+  for (Reg from : am_cfg.params) {
+    put_in_graph(from);
+    for (Reg to : am_cfg.params) {
+      if (to != from) add_edge(from, to);
+    }
+  }
+
   // One set for the whole walk, emptied between blocks, rather than a slot
   // for every register in the function built again for each of them.
   RegSet live(reg_count);
