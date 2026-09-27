@@ -2019,5 +2019,33 @@ TEST(CompilerTest, TakesARemainderBesideMoreValuesThanThereAreRegisters) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(13));
 }
 
+// A result is handed back in the width it is held in. A string is an
+// address, twice the width a number is, and half of an address was once all
+// that came back: the caller read a whole one out of a register holding half
+// of one, and printed whatever that pointed at.
+TEST(CompilerTest, HandsBackAStringWhole) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun printString(s: String): Int32 {
+      return 0
+    }
+
+    fun choose(a: String, b: String, take: Int32): String {
+      if take > 0 {
+        return a
+      }
+      return b
+    }
+
+    fun main(): Int32 {
+      val a: String = ""
+      val b: String = ""
+      do printString(choose(a, b, 1))
+      do printString(choose(a, b, 0))
+      return 3
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
+}
+
 }  // namespace
 }  // namespace lucid

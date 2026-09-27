@@ -278,7 +278,16 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const Return& inst) {
-    assembler_.Mov(W(0), W(inst.res_reg.id));
+    // Handed back in the width it is held in. A string is an address, which
+    // is twice the width a number is, and half of an address is not one.
+    switch (inst.res_reg.size) {
+      case RegSize32:
+        assembler_.Mov(W(0), W(inst.res_reg.id));
+        break;
+      case RegSize64:
+        assembler_.Mov(X(0), X(inst.res_reg.id));
+        break;
+    }
 
     for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
       assembler_.LdrUnsignedOffset(X(kRegistersToPersist[i]), SP,

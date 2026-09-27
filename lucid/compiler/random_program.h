@@ -114,6 +114,13 @@ class RandomProgram {
     Line(1, "return a + a");
     Line(0, "}");
     Line(0, "");
+    Line(0, "fun chosen(a: String, b: String, take: Int32): String {");
+    Line(1, "if take > 0 {");
+    Line(2, "return a");
+    Line(1, "}");
+    Line(1, "return b");
+    Line(0, "}");
+    Line(0, "");
     Line(0, "fun larger(a: Int32, b: Int32): Int32 {");
     Line(1, "if a > b {");
     Line(2, "return a");
@@ -433,8 +440,15 @@ class RandomProgram {
     numbers_.Set(result, callee_result_);
     scope.numbers.push_back(result);
 
+    // Some of them by way of a function that hands a string back, which is
+    // a result twice the width a number is.
     for (const std::string& name : strings) {
-      Line(1, std::format("do printString({})", name));
+      if (strings.size() > 1 && Chance(0.5)) {
+        Line(1, std::format("do printString(chosen({}, {}, {}))", name,
+                            Any(strings), Between(0, 1)));
+      } else {
+        Line(1, std::format("do printString({})", name));
+      }
     }
     Body(1, scope, Between(0, 3));
 
