@@ -39,10 +39,7 @@ void AddPhiSources(const AbstractMachineControlFlowGraph& am_cfg,
 
 void AbstractMachineLivenessAnalysis::Transfer(State& state,
                                                const Instruction& inst) {
-  if (auto reg = GetTargetRegister(inst); reg.has_value()) {
-    state.live_in.Remove(*reg);
-  }
-  ForEachSourceRegister(inst, [&](Reg reg) { state.live_in.Insert(reg); });
+  TransferLive(state.live_in, inst);
 }
 
 AbstractMachineLivenessAnalysis::AbstractMachineLivenessAnalysis(

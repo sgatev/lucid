@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -10,10 +11,10 @@
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/liveness.h"
+#include "lucid/am/reg_set.h"
 #include "lucid/core/dataflow/dataflow.h"
 
 namespace lucid {
-
 InterferenceGraph BuildInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg) {
   AbstractMachineLivenessAnalysis liveness_analysis(am_cfg);
@@ -68,21 +69,27 @@ InterferenceGraph BuildInterferenceGraph(
     edges.emplace_back(from, to);
   };
 
+  // One set for the whole walk, emptied between blocks, rather than a slot
+  // for every register in the function built again for each of them.
+  RegSet live(reg_count);
+
   for (const auto& block : am_cfg.Blocks()) {
     if (!liveness_block_states[block.ref.id()].has_value()) continue;
 
     // The walk backwards over the block starts from what is live where it
     // exits, and carries what is live at each instruction with it.
-    AbstractMachineLivenessAnalysis::State state;
-    state.live_in = LiveOut(am_cfg, liveness_block_states, block);
+    live.Clear();
+    for (Reg reg : LiveOut(am_cfg, liveness_block_states, block)) {
+      live.Insert(reg);
+    }
 
     // Reused across the instructions of the block rather than rebuilt for
     // each: at most a couple of registers enter the live set at a time.
     std::vector<Reg> entering;
 
-    for (Reg from : state.live_in) {
+    for (Reg from : live) {
       put_in_graph(from);
-      for (Reg to : state.live_in) {
+      for (Reg to : live) {
         if (to != from) add_edge(from, to);
       }
     }
@@ -90,7 +97,7 @@ InterferenceGraph BuildInterferenceGraph(
     for (const auto& inst : block.instructions | std::views::reverse) {
       if (auto target_reg = GetTargetRegister(inst); target_reg.has_value()) {
         put_in_graph(*target_reg);
-        for (Reg to : state.live_in) {
+        for (Reg to : live) {
           if (to != *target_reg) {
             add_edge(*target_reg, to);
             add_edge(to, *target_reg);
@@ -104,10 +111,10 @@ InterferenceGraph BuildInterferenceGraph(
       // instruction was joined when the later one was reached.
       entering.clear();
       ForEachSourceRegister(inst, [&](Reg reg) {
-        if (!state.live_in.Contains(reg)) entering.push_back(reg);
+        if (!live.Contains(reg)) entering.push_back(reg);
       });
 
-      AbstractMachineLivenessAnalysis::Transfer(state, inst);
+      AbstractMachineLivenessAnalysis::TransferLive(live, inst);
 
       if (auto* cinst = std::get_if<ModReg>(&inst)) {
         add_edge(cinst->res_reg, cinst->lhs_reg);
@@ -119,7 +126,7 @@ InterferenceGraph BuildInterferenceGraph(
 
       for (Reg from : entering) {
         put_in_graph(from);
-        for (Reg to : state.live_in) {
+        for (Reg to : live) {
           if (to == from) continue;
 
           add_edge(from, to);

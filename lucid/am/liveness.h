@@ -21,6 +21,18 @@ class AbstractMachineLivenessAnalysis {
 
   static void Transfer(State& state, const Instruction& inst);
 
+  // Takes `inst` backwards over what is live: the register it writes stops
+  // being live where it stands, and the registers it reads start.
+  //
+  // Written against anything that can be added to and taken from, because
+  // what holds the live registers differs with what is being worked out
+  // over them, while the step itself does not.
+  template <typename Live>
+  static void TransferLive(Live& live, const Instruction& inst) {
+    if (auto reg = GetTargetRegister(inst); reg.has_value()) live.Remove(*reg);
+    ForEachSourceRegister(inst, [&](Reg reg) { live.Insert(reg); });
+  }
+
   explicit AbstractMachineLivenessAnalysis(
       const AbstractMachineControlFlowGraph& am_cfg);
 

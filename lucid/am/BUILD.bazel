@@ -40,12 +40,23 @@ cc_library(
     hdrs = ["ig.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
+        ":reg_set",
         ":cfg",
         ":liveness",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/container/graph:dominator",
         "//lucid/core/dataflow",
+    ],
+)
+
+cc_test(
+    name = "reg_set_test",
+    srcs = ["reg_set_test.cc"],
+    deps = [
+        ":instructions",
+        ":reg_set",
+        "//lucid/core/testing",
     ],
 )
 
@@ -76,6 +87,13 @@ cc_test(
         ":instructions",
         "//lucid/core/testing",
     ],
+)
+
+cc_library(
+    name = "reg_set",
+    hdrs = ["reg_set.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [":instructions"],
 )
 
 cc_library(
@@ -133,6 +151,7 @@ cc_library(
     hdrs = ["reg.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
+        ":reg_set",
         ":cfg",
         ":cfg_printer",
         ":ig",
