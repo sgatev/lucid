@@ -31,7 +31,9 @@ void PrintPhis(int indent, const SyntaxContext& ctx,
   if (phis.empty()) return;
 
   out << Indent(indent) << ".phis = [\n";
-  for (auto phi_ref : phis) PrintPhi(indent + 2, ctx, scfg.deref(phi_ref), out);
+  for (auto phi_ref : phis) {
+    PrintPhi(indent + kIndentStep, ctx, scfg.deref(phi_ref), out);
+  }
   out << Indent(indent) << "]\n";
 }
 
@@ -119,7 +121,9 @@ void PrintNext(int indent,
   if (next.empty()) return;
 
   out << Indent(indent) << ".next = [\n";
-  for (const auto& next : next) PrintBlockRef(indent, next, out);
+  for (const auto& block_ref : next) {
+    PrintBlockRef(indent + kIndentStep, block_ref, out);
+  }
   out << Indent(indent) << "]\n";
 }
 
@@ -129,7 +133,9 @@ void PrintPreds(int indent,
   if (preds.empty()) return;
 
   out << Indent(indent) << ".preds = [\n";
-  for (const auto& pred : preds) PrintBlockRef(indent, pred, out);
+  for (const auto& pred : preds) {
+    PrintBlockRef(indent + kIndentStep, pred, out);
+  }
   out << Indent(indent) << "]\n";
 }
 

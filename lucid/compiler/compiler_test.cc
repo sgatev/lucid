@@ -228,6 +228,22 @@ TEST(CompilerTest, PrintAstExpression) {
 )"))));
 }
 
+// One blank line between functions, the same as the abstract machine graph
+// is printed with.
+TEST(CompilerTest, PrintCfgSeparatesFunctions) {
+  ASSERT_TRUE(CreateFile("two.lu", R"(
+    fun one(): Int32 {
+      return 1
+    }
+
+    fun two(): Int32 {
+      return 2
+    }
+  )"));
+  ASSERT_THAT(RunCompiler({"print-syntax-cfg", FullPath("two.lu")}),
+              AllOf(ReturnsCode(0), Output(Contains("}\n\n"))));
+}
+
 TEST(CompilerTest, PrintCfg) {
   ASSERT_TRUE(CreateFile("max.lu", R"(
     fun max(a: Int32, b: Int32): Int32 {
@@ -251,13 +267,13 @@ TEST(CompilerTest, PrintCfg) {
       [34mE3: [mBinaryOpExpr { .op = Gt, .lhs = E1, .rhs = E2 }
     ]
     .next = [
-    [34mB3[m
-    [34mB4[m
+      [34mB3[m
+      [34mB4[m
     ]
   }
   [34mB1:[m {
     .preds = [
-    [34mB2[m
+      [34mB2[m
     ]
   }
   [34mB2:[m {
@@ -269,11 +285,11 @@ TEST(CompilerTest, PrintCfg) {
       [34mS4: [mReturnStmt { .value = E6 }
     ]
     .next = [
-    [34mB1[m
+      [34mB1[m
     ]
     .preds = [
-    [34mB3[m
-    [34mB4[m
+      [34mB3[m
+      [34mB4[m
     ]
   }
   [34mB3:[m {
@@ -282,10 +298,10 @@ TEST(CompilerTest, PrintCfg) {
       [34mS6: [mVarDeclStmt { .name = '$4', .init = E4 }
     ]
     .next = [
-    [34mB2[m
+      [34mB2[m
     ]
     .preds = [
-    [34mB0[m
+      [34mB0[m
     ]
   }
   [34mB4:[m {
@@ -294,10 +310,10 @@ TEST(CompilerTest, PrintCfg) {
       [34mS5: [mVarDeclStmt { .name = '$3', .init = E5 }
     ]
     .next = [
-    [34mB2[m
+      [34mB2[m
     ]
     .preds = [
-    [34mB0[m
+      [34mB0[m
     ]
   }
 }

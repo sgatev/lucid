@@ -238,12 +238,15 @@ int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
   }
   const auto& defs = defs_or_error.value();
 
-  for (const auto& def : defs) {
+  for (bool has_printed_func = false; const auto& def : defs) {
     if (const auto* func_def = std::get_if<FuncDefStmt>(&def)) {
+      if (has_printed_func) ctx.Out() << "\n";
+
       SyntaxControlFlowGraph syn_cfg =
           BuildControlFlowGraph(syn_ctx, *func_def);
       ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
       Print(syn_ctx, syn_cfg, ctx.Out());
+      has_printed_func = true;
     }
   }
 
@@ -328,7 +331,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
         MergeRegisters(am_ig_colors, am_cfg);
       }
 
-      if (has_printed_func) std::cout << "\n";
+      if (has_printed_func) ctx.Out() << "\n";
       Print(syn_ctx.DerefIdent(func_def->name), am_cfg, ctx.Out());
       has_printed_func = true;
     } else if (const auto* type_def = std::get_if<TypeDefStmt>(&def)) {
