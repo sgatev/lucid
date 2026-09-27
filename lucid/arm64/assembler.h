@@ -72,13 +72,13 @@ class ExternalLabel {
 // Represents an ARM64 immediate.
 class Imm {
  public:
-  explicit Imm(std::int16_t value) : value_(value) {}
+  explicit Imm(std::int32_t value) : value_(value) {}
 
   // Returns the value of the immediate.
-  operator std::int16_t() const { return value_; }
+  operator std::int32_t() const { return value_; }
 
  private:
-  std::int16_t value_;
+  std::int32_t value_;
 };
 
 // Represents a 32-bit literal ARM64 instruction.
@@ -834,8 +834,10 @@ class Assembler {
   // forms address memory with. That offset is a count of bytes, not of
   // accesses, so it is the one the caller gave rather than a scaled one.
   static std::uint16_t Imm9(Imm imm) {
-    std::int16_t value = imm;
-    return value < 0 ? TwosComplement9(-value) : value;
+    const std::int32_t value = imm;
+    assert(value >= -256 && value <= 255);
+    return value < 0 ? TwosComplement9(-value)
+                     : static_cast<std::uint16_t>(value);
   }
 
   // Returns `imm` in the 12-bit field that the unsigned-offset forms address
@@ -845,12 +847,12 @@ class Assembler {
   // of one. It is also why the form encodes neither a negative offset nor one
   // that falls between two accesses: asking for either is a mistake the
   // encoding cannot carry.
-  static std::uint16_t Imm12(Imm imm, std::int16_t access_size) {
-    const std::int16_t offset = imm;
+  static std::uint16_t Imm12(Imm imm, std::int32_t access_size) {
+    const std::int32_t offset = imm;
     assert(offset >= 0);
     assert(offset % access_size == 0);
     assert(offset / access_size <= 0b111111111111);
-    return offset / access_size;
+    return static_cast<std::uint16_t>(offset / access_size);
   }
 
   // What the immediate forms of add and subtract carry: a 12-bit field, and
@@ -894,10 +896,14 @@ class Assembler {
   Lit32Inst Mov(bool sf, internal::Reg rd, Imm imm) {
     // The immediate is moved in as it is written, and there is no writing a
     // negative one: the field holds the value rather than a signed offset.
-    assert(static_cast<std::int16_t>(imm) >= 0);
+    // It is sixteen bits wide, and a wider one has to be built up out of
+    // several of these rather than spliced in over what follows the field.
+    const std::int32_t value = imm;
+    assert(value >= 0);
+    assert(value <= 0xffff);
 
-    return Lit32Inst(0b01010010100000000000000000000000 | sf << 31 | imm << 5 |
-                     rd);
+    return Lit32Inst(0b01010010100000000000000000000000 | sf << 31 |
+                     static_cast<std::uint32_t>(value) << 5 | rd);
   }
 
   Lit32Inst MovSP(bool sf, internal::Reg rd, internal::Reg rn) {

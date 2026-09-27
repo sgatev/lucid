@@ -108,12 +108,12 @@ class Arm64BinaryGenerator {
       if (OwnSlot(i)) at += stack_slots_[i];
     }
 
-    assembler_.Sub(SP, SP, Imm(SafeCast<std::int16_t>(stack_size_)));
+    InCarriableSteps(stack_size_,
+                     [&](Imm imm) { assembler_.Sub(SP, SP, imm); });
 
     for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
-      assembler_.StrUnsignedOffset(
-          X(kRegistersToPersist[i]), SP,
-          Imm(SafeCast<std::int16_t>(stack_offsets_[i])));
+      assembler_.StrUnsignedOffset(X(kRegistersToPersist[i]), SP,
+                                   Imm(stack_offsets_[i]));
     }
 
     for (int param_idx = 1; const Reg param : am_cfg_.params) {
@@ -286,12 +286,12 @@ class Arm64BinaryGenerator {
     assembler_.Mov(W(0), W(inst.res_reg.id));
 
     for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
-      assembler_.LdrUnsignedOffset(
-          X(kRegistersToPersist[i]), SP,
-          Imm(SafeCast<std::int16_t>(stack_offsets_[i])));
+      assembler_.LdrUnsignedOffset(X(kRegistersToPersist[i]), SP,
+                                   Imm(stack_offsets_[i]));
     }
 
-    assembler_.Add(SP, SP, Imm(SafeCast<std::int16_t>(stack_size_)));
+    InCarriableSteps(stack_size_,
+                     [&](Imm imm) { assembler_.Add(SP, SP, imm); });
 
     assembler_.LdpPostIndex(X(29), X(30), SP, Imm(16));
     assembler_.Ret();
@@ -514,14 +514,13 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const StoreStack& inst) {
+    const SlotAddress at = AddressOf(inst.offset, inst.src_reg.size);
     switch (inst.src_reg.size) {
       case RegSize32:
-        assembler_.StrUnsignedOffset(W(inst.src_reg.id), SP,
-                                     Imm(AdjustedOffset(inst.offset)));
+        assembler_.StrUnsignedOffset(W(inst.src_reg.id), at.base, at.offset);
         break;
       case RegSize64:
-        assembler_.StrUnsignedOffset(X(inst.src_reg.id), SP,
-                                     Imm(AdjustedOffset(inst.offset)));
+        assembler_.StrUnsignedOffset(X(inst.src_reg.id), at.base, at.offset);
         break;
     }
   }
@@ -530,14 +529,16 @@ class Arm64BinaryGenerator {
                const StoreStackReg& inst) {
     switch (inst.src_reg.size) {
       case RegSize32:
-        assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id),
-                       Imm(AdjustedOffset(inst.offset)));
+        InCarriableSteps(AdjustedOffset(inst.offset), [&](Imm imm) {
+          assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id), imm);
+        });
         assembler_.Str(W(inst.src_reg.id), SP, W(inst.offset_reg.id),
                        Extend::Uxtw, Imm(0));
         break;
       case RegSize64:
-        assembler_.Add(X(inst.offset_reg.id), X(inst.offset_reg.id),
-                       Imm(AdjustedOffset(inst.offset)));
+        InCarriableSteps(AdjustedOffset(inst.offset), [&](Imm imm) {
+          assembler_.Add(X(inst.offset_reg.id), X(inst.offset_reg.id), imm);
+        });
         assembler_.Str(X(inst.src_reg.id), SP, X(inst.offset_reg.id),
                        Extend::Lsl, Imm(0));
         break;
@@ -546,14 +547,13 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const LoadStack& inst) {
+    const SlotAddress at = AddressOf(inst.offset, inst.dst_reg.size);
     switch (inst.dst_reg.size) {
       case RegSize32:
-        assembler_.LdrUnsignedOffset(W(inst.dst_reg.id), SP,
-                                     Imm(AdjustedOffset(inst.offset)));
+        assembler_.LdrUnsignedOffset(W(inst.dst_reg.id), at.base, at.offset);
         break;
       case RegSize64:
-        assembler_.LdrUnsignedOffset(X(inst.dst_reg.id), SP,
-                                     Imm(AdjustedOffset(inst.offset)));
+        assembler_.LdrUnsignedOffset(X(inst.dst_reg.id), at.base, at.offset);
         break;
     }
   }
@@ -562,14 +562,16 @@ class Arm64BinaryGenerator {
                const LoadStackReg& inst) {
     switch (inst.dst_reg.size) {
       case RegSize32:
-        assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id),
-                       Imm(AdjustedOffset(inst.offset)));
+        InCarriableSteps(AdjustedOffset(inst.offset), [&](Imm imm) {
+          assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id), imm);
+        });
         assembler_.Ldr(W(inst.dst_reg.id), SP, W(inst.offset_reg.id),
                        Extend::Uxtw);
         break;
       case RegSize64:
-        assembler_.Add(X(inst.offset_reg.id), X(inst.offset_reg.id),
-                       Imm(AdjustedOffset(inst.offset)));
+        InCarriableSteps(AdjustedOffset(inst.offset), [&](Imm imm) {
+          assembler_.Add(X(inst.offset_reg.id), X(inst.offset_reg.id), imm);
+        });
         assembler_.Ldr(X(inst.dst_reg.id), SP, X(inst.offset_reg.id),
                        Extend::Lsl, Imm(0));
         break;
@@ -617,18 +619,15 @@ class Arm64BinaryGenerator {
   // The arguments the caller left stand above this frame, past the frame
   // record the prologue pushed; the ones this function leaves for its own
   // calls stand at its foot. Everything else stands in the frame proper.
-  std::int16_t AdjustedOffset(std::size_t slot) {
+  int AdjustedOffset(std::size_t slot) {
     if (layout_.incoming_args.Holds(slot)) {
-      return SafeCast<std::int16_t>(stack_size_ + kFrameRecordSize +
-                                    (slot - layout_.incoming_args.first) *
-                                        kArgSize);
+      return SafeCast<int>(stack_size_ + kFrameRecordSize +
+                           (slot - layout_.incoming_args.first) * kArgSize);
     }
     if (layout_.outgoing_args.Holds(slot)) {
-      return SafeCast<std::int16_t>((slot - layout_.outgoing_args.first) *
-                                    kArgSize);
+      return SafeCast<int>((slot - layout_.outgoing_args.first) * kArgSize);
     }
-    return SafeCast<std::int16_t>(
-        stack_offsets_[kRegistersToPersist.size() + slot]);
+    return stack_offsets_[kRegistersToPersist.size() + slot];
   }
 
   // Whether the slot with this index is the function's own, rather than room
@@ -636,6 +635,48 @@ class Arm64BinaryGenerator {
   bool OwnSlot(std::size_t slot) const {
     return !layout_.incoming_args.Holds(slot) &&
            !layout_.outgoing_args.Holds(slot);
+  }
+
+  // Where a slot is, as a load or a store reaches it: a register to count
+  // from, and how far along it stands.
+  struct SlotAddress {
+    X base;
+    Imm offset;
+  };
+
+  // Returns where the slot with this index is.
+  //
+  // A load or a store counts from the stack pointer in a field of twelve
+  // bits, which counts accesses rather than bytes. A slot further off than
+  // that field reaches has its address worked out first, into the register
+  // an intra-procedure call would use, which nothing between one instruction
+  // and the next here does.
+  SlotAddress AddressOf(std::size_t slot, RegSize size) {
+    const int offset = AdjustedOffset(slot);
+    const int access_size = size == RegSize32 ? 4 : 8;
+    if (offset / access_size <= 0b111111111111) {
+      return {.base = SP, .offset = Imm(offset)};
+    }
+
+    X from = SP;
+    InCarriableSteps(offset, [&](Imm imm) {
+      assembler_.Add(X(kAddressScratch), from, imm);
+      from = X(kAddressScratch);
+    });
+    return {.base = X(kAddressScratch), .offset = Imm(0)};
+  }
+
+  // Calls `emit` with immediates that add up to `value`.
+  //
+  // One add or subtract carries a value under 4096, or a whole number of
+  // 4096s, and nothing between the two, so anything else takes two of them:
+  // the whole 4096s, and then what is left over.
+  template <typename EmitT>
+  static void InCarriableSteps(int value, EmitT emit) {
+    assert(value >= 0);
+
+    if (const int pages = value - value % 4096; pages > 0) emit(Imm(pages));
+    if (const int rest = value % 4096; rest > 0) emit(Imm(rest));
   }
 
   // How much room `count` arguments take on the stack, kept to what the stack
@@ -651,6 +692,9 @@ class Arm64BinaryGenerator {
   // What the prologue pushes before the frame itself: the frame pointer and
   // the return address.
   static constexpr int kFrameRecordSize = 16;
+
+  // The register an address too far for a field of its own is worked out in.
+  static constexpr std::uint8_t kAddressScratch = 16;
 
   static constexpr std::array<std::uint8_t, 10> kRegistersToPersist = {
       19, 20, 21, 22, 23, 24, 25, 26, 27, 28,

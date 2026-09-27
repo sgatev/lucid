@@ -1778,5 +1778,41 @@ TEST(CompilerTest, ASlotOfTheFrameStandsClearOfTheRegistersHandedBack) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(59));
 }
 
+// A frame wider than the field that reserves it, and a slot further from the
+// stack pointer than the field that reaches one. Both are asked for in as
+// many instructions as they take, where a single instruction once carried
+// whatever was left of the value after the field had taken what it could.
+TEST(CompilerTest, AFrameWiderThanTheFieldThatReservesIt) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun wide(): Int32 {
+      val buf: Int32[5000]
+      &buf[0] = 7
+      &buf[4999] = 11
+
+      # More live at once than there are registers, so that what is put away
+      # stands above the array, out of reach of the field.
+      val a: Int32 = 1
+      val b: Int32 = 2
+      val c: Int32 = 3
+      val d: Int32 = 4
+      val e: Int32 = 5
+      val f: Int32 = 6
+      val g: Int32 = 7
+      val h: Int32 = 8
+      val i: Int32 = 9
+      val j: Int32 = 10
+      val k: Int32 = 11
+      val l: Int32 = 12
+      val sum: Int32 = a + b + c + d + e + f + g + h + i + j + k + l
+      return buf[0] + buf[4999] + sum
+    }
+
+    fun main(): Int32 {
+      return wide()
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(96));
+}
+
 }  // namespace
 }  // namespace lucid

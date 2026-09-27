@@ -262,10 +262,8 @@ worth the name.
 - **More than ten values live across a branch cannot be compiled.** Ten sometimes cannot
   either, depending on what else is live. The compiler stops rather than emitting wrong
   code. See [TODO.md](TODO.md).
-- **A function's frame may not be more than 4095 bytes**, unless it happens to be a
-  whole number of 4096s, because that is what the instruction reserving it can ask
-  for. A thousand `Int32` between a function's arrays and whatever it spills is about
-  the size of it. See [TODO.md](TODO.md).
+- **A function's frame may not be more than 16MB**, which is the largest a sequence of
+  instructions here reserves. The stack a program is given runs out well before that.
 - **An array or a tuple cannot be a parameter or a result.** Both live on the stack, and
   nothing lays one out on either side of a call. This is reported rather than attempted.
 - **An assignment cannot end in an index into something reached through.** `&r.v[0] = 1`
