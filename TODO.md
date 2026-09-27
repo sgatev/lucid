@@ -11,16 +11,7 @@ the one the vertex holds, and move-assigns over it, which frees the tables the o
 had sized. An `Update(State&, ...) -> bool` in place of `Transfer` would let an analysis
 grow into that capacity instead of allocating its own, but deciding whether anything
 changed needs the old value, so the change detection has to be rethought along with it.
-
-## Hash table
-
-### Let an empty table hold nothing
-
-The default constructor allocates `kInitialCapacity` slots, so an empty table costs a
-`malloc` and a state of two sets costs two. Leaving `storage_` null until the first insert
-would make the bottom element of a lattice free, which is what `RunDataflow` now starts
-every join from. There is also no `Clear`, so a table that is finished with cannot lend
-its capacity to the next one.
+A state that held a hash table would also want a `Clear` on it, which there is none of.
 
 ## Register allocation
 

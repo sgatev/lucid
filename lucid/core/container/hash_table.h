@@ -82,25 +82,33 @@ class HashTable {
     std::size_t pos_;
   };
 
-  HashTable() : HashTable(kInitialCapacity) {}
+  // A table with no slots, which takes them when it is first given something
+  // to hold. Nothing is allocated for one that never is, so an empty table
+  // costs no more than the members below.
+  HashTable() = default;
 
   explicit HashTable(std::size_t wanted_capacity)
-      : capacity_mask_(std::bit_ceil(wanted_capacity) - 1),
-        full_slots_count_(0),
-        non_empty_slots_count_(0),
-        storage_(alloc_storage(capacity())) {}
+      : capacity_(std::bit_ceil(wanted_capacity)),
+        storage_(alloc_storage(capacity_)) {}
 
+  // Leaves `other` the table with no slots, rather than one that says it has
+  // slots it no longer holds the storage for and would be walked past the end
+  // of. That is a state a table can be left in only because an empty one
+  // needs no storage.
   HashTable(HashTable&& other) noexcept
-      : capacity_mask_(other.capacity_mask_),
-        full_slots_count_(other.full_slots_count_),
-        non_empty_slots_count_(other.non_empty_slots_count_),
+      : capacity_(std::exchange(other.capacity_, 0)),
+        full_slots_count_(std::exchange(other.full_slots_count_, 0)),
+        non_empty_slots_count_(std::exchange(other.non_empty_slots_count_, 0)),
         storage_(std::exchange(other.storage_, nullptr)) {}
 
   HashTable(const HashTable& other)
-      : capacity_mask_(other.capacity_mask_),
+      : capacity_(other.capacity_),
         full_slots_count_(other.full_slots_count_),
         non_empty_slots_count_(other.non_empty_slots_count_),
-        storage_(alloc_storage(capacity())) {
+        storage_(other.storage_ == nullptr ? nullptr
+                                           : alloc_storage(capacity_)) {
+    if (storage_ == nullptr) return;
+
     // The copy has the capacity of the original, so every value belongs in the
     // slot it came from and the meta bytes carry over whole. This keeps the
     // probe chains and the slots emptied by a removal as they were.
@@ -124,7 +132,7 @@ class HashTable {
   // is left with describes the storage it is left with: a table whose capacity
   // says more than its storage holds would be walked past its end.
   HashTable& operator=(HashTable other) {
-    std::swap(capacity_mask_, other.capacity_mask_);
+    std::swap(capacity_, other.capacity_);
     std::swap(full_slots_count_, other.full_slots_count_);
     std::swap(non_empty_slots_count_, other.non_empty_slots_count_);
     std::swap(storage_, other.storage_);
@@ -155,7 +163,14 @@ class HashTable {
   // true).
   template <typename... Ts>
   inline std::pair<V*, bool> FindOrAlloc(const P& proj) {
-    if (non_empty_slots_count_ > max_load()) rehash();
+    // A table with no slots has nowhere to put a value, so the first thing it
+    // is given is what makes it take them.
+    if (storage_ == nullptr) {
+      capacity_ = kInitialCapacity;
+      storage_ = alloc_storage(capacity_);
+    } else if (non_empty_slots_count_ > max_load()) {
+      rehash();
+    }
 
     const std::size_t proj_hash = Hash(proj);
     const std::uint8_t proj_meta = hash_meta(proj_hash);
@@ -236,7 +251,7 @@ class HashTable {
   inline std::size_t size() const noexcept { return full_slots_count_; }
 
   // Returns the number of slots the table holds.
-  inline std::size_t capacity() const noexcept { return capacity_mask_ + 1; }
+  inline std::size_t capacity() const noexcept { return capacity_; }
 
   // Returns an iterator referring to the first value in the table or `end()`,
   // if there isn't one.
@@ -327,13 +342,16 @@ class HashTable {
 
   void rehash() noexcept {
     const std::size_t new_capacity =
-        full_slots_count_ > (capacity() >> 2) ? capacity() << 1 : capacity();
+        full_slots_count_ > (capacity_ >> 2) ? capacity_ << 1 : capacity_;
     *this =
         std::move(HashTable(new_capacity).with_content_from(std::move(*this)));
   }
 
   // Returns an offset that corresponds to the given projection or `capacity()`.
   inline std::size_t find_offset(const P& proj) const {
+    // A table with no slots holds nothing, and has no group to read.
+    if (storage_ == nullptr) return capacity();
+
     const std::size_t proj_hash = Hash(proj);
     const std::uint8_t proj_meta = hash_meta(proj_hash);
 
@@ -410,7 +428,7 @@ class HashTable {
 
   // Returns the group that holds the slot `hash` belongs to.
   inline std::size_t group_of(std::size_t hash) const noexcept {
-    return hash & capacity_mask_ & ~(kGroupSize - 1);
+    return hash & capacity_mask() & ~(kGroupSize - 1);
   }
 
   // Returns the group that comes `step` groups after `offset`. A capacity is
@@ -418,8 +436,13 @@ class HashTable {
   // these steps reach every one of them.
   inline std::size_t next_group(std::size_t offset,
                                 std::size_t step) const noexcept {
-    return (offset + step * kGroupSize) & capacity_mask_;
+    return (offset + step * kGroupSize) & capacity_mask();
   }
+
+  // Returns the low bits of an offset that a capacity spans, which is what
+  // takes a hash to a slot. A capacity is a power of two, so these are every
+  // bit under it.
+  inline std::size_t capacity_mask() const noexcept { return capacity_ - 1; }
 
   inline std::uint8_t* meta(std::size_t i) const noexcept {
     return storage_ + i;
@@ -429,10 +452,10 @@ class HashTable {
     return reinterpret_cast<V*>(storage_ + capacity()) + i;
   }
 
-  std::size_t capacity_mask_;
-  std::size_t full_slots_count_;
-  std::size_t non_empty_slots_count_;
-  std::uint8_t* storage_;
+  std::size_t capacity_ = 0;
+  std::size_t full_slots_count_ = 0;
+  std::size_t non_empty_slots_count_ = 0;
+  std::uint8_t* storage_ = nullptr;
 };
 
 }  // namespace lucid

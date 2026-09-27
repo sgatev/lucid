@@ -1,7 +1,9 @@
 #include "lucid/core/container/hash_table.h"
 
 #include <cstddef>
+#include <optional>
 #include <type_traits>
+#include <utility>
 
 #include "lucid/core/testing/testing.h"
 
@@ -38,11 +40,66 @@ TEST(Test, HashTableTakesACapacityItCanAddress) {
   for (int i = 0; i < 100; ++i) EXPECT_TRUE(table.Find(i) != table.end());
 }
 
+TEST(Test, HashTableHoldsNoSlotsUntilItIsGivenAValue) {
+  HashTable<int> table;
+
+  EXPECT_EQ(table.capacity(), 0);
+  EXPECT_EQ(table.size(), 0);
+  EXPECT_TRUE(table.begin() == table.end());
+
+  // Nothing is there to find or to take out, and looking costs no storage.
+  EXPECT_TRUE(table.Find(1) == table.end());
+  EXPECT_THAT(table.Remove(1), Equals(std::nullopt));
+  EXPECT_EQ(table.capacity(), 0);
+}
+
+TEST(Test, HashTableTakesSlotsForTheFirstValue) {
+  HashTable<int> table;
+
+  EXPECT_TRUE(table.Insert(1));
+
+  EXPECT_TRUE(table.capacity() > 0);
+  EXPECT_EQ(table.size(), 1);
+  EXPECT_TRUE(table.Find(1) != table.end());
+}
+
+TEST(Test, HashTableCopiedFromAnEmptyOneHoldsNoSlots) {
+  const HashTable<int> table;
+  HashTable<int> copy = table;
+
+  EXPECT_EQ(copy.capacity(), 0);
+  EXPECT_TRUE(copy == table);
+
+  // The copy takes its own slots when it is given something, rather than
+  // sharing whatever the original would have had.
+  EXPECT_TRUE(copy.Insert(1));
+  EXPECT_EQ(table.size(), 0);
+}
+
+TEST(Test, HashTableMovedFromHoldsNoSlots) {
+  HashTable<int> table;
+  table.Insert(1);
+
+  HashTable<int> moved = std::move(table);
+
+  // The storage went with the values, so what is left describes itself: a
+  // table with no slots, which can be walked and filled again.
+  EXPECT_EQ(table.capacity(), 0);
+  EXPECT_EQ(table.size(), 0);
+  EXPECT_TRUE(table.begin() == table.end());
+
+  EXPECT_TRUE(table.Insert(2));
+  EXPECT_TRUE(table.Find(2) != table.end());
+  EXPECT_TRUE(table.Find(1) == table.end());
+  EXPECT_TRUE(moved.Find(1) != moved.end());
+}
+
 TEST(Test, HashTableGrowsWhenItsValuesFillIt) {
   HashTable<int> table;
+  table.Insert(0);
   const std::size_t capacity = table.capacity();
 
-  for (std::size_t i = 0; i < capacity; ++i) table.Insert(static_cast<int>(i));
+  for (std::size_t i = 1; i < capacity; ++i) table.Insert(static_cast<int>(i));
 
   EXPECT_TRUE(table.capacity() > capacity);
   EXPECT_EQ(table.size(), capacity);
@@ -50,12 +107,16 @@ TEST(Test, HashTableGrowsWhenItsValuesFillIt) {
 
 TEST(Test, HashTableDoesNotGrowForTheSlotsARemovalEmptied) {
   HashTable<int> table;
+
+  // The slots the table takes for the first value it is given.
+  EXPECT_TRUE(table.Insert(0));
+  EXPECT_THAT(table.Remove(0), Optional(Equals(0)));
   const std::size_t capacity = table.capacity();
 
   // Many times more pairs than the table has slots. Each one empties the slot
   // it filled, so the table is never holding more than a single value and has
   // no reason to ask for more room.
-  for (int i = 0; i < 10000; ++i) {
+  for (int i = 1; i < 10000; ++i) {
     EXPECT_TRUE(table.Insert(i));
     EXPECT_THAT(table.Remove(i), Optional(Equals(i)));
   }
@@ -66,11 +127,11 @@ TEST(Test, HashTableDoesNotGrowForTheSlotsARemovalEmptied) {
 
 TEST(Test, HashTableKeepsItsValuesWhenItRebuilds) {
   HashTable<int> table;
-  const std::size_t capacity = table.capacity();
 
   // A few values that stay, against a stream that comes and goes and leaves
   // the table rebuilding itself over the slots that stream emptied.
   for (int i = 0; i < 8; ++i) table.Insert(i);
+  const std::size_t capacity = table.capacity();
   for (int i = 1000; i < 5000; ++i) {
     table.Insert(i);
     table.Remove(i);
@@ -120,11 +181,12 @@ TEST(Test, HashTableFindsValuesPastManySlotsRemovalsEmptied) {
 
 TEST(Test, HashTableGrowsForValuesThatStay) {
   HashTable<int> table;
+  table.Insert(0);
   const std::size_t capacity = table.capacity();
 
   // The same stream, but nothing is removed, so the room a rebuild would hand
   // back is not there to hand back and the table has to grow.
-  for (int i = 0; i < 5000; ++i) table.Insert(i);
+  for (int i = 1; i < 5000; ++i) table.Insert(i);
 
   EXPECT_TRUE(table.capacity() > capacity);
   EXPECT_EQ(table.size(), 5000);
