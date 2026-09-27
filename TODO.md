@@ -2,17 +2,6 @@
 
 Improvements that are known but not made yet.
 
-## Dataflow
-
-### Reuse the state a vertex already has
-
-`RunDataflow` asks `Transfer` for a whole new state on every visit, compares it against
-the one the vertex holds, and move-assigns over it, which frees the tables the old one
-had sized. An `Update(State&, ...) -> bool` in place of `Transfer` would let an analysis
-grow into that capacity instead of allocating its own, but deciding whether anything
-changed needs the old value, so the change detection has to be rethought along with it.
-A state that held a hash table would also want a `Clear` on it, which there is none of.
-
 ## Register allocation
 
 ### Search for what to spill without starting over
