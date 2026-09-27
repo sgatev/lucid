@@ -56,24 +56,14 @@ class Arena {
   // Adds `value` to the arena and returns a reference that can be used to
   // retrieve it.
   Ref Add(T value) {
-    Ref ref = indices_.size();
-    indices_.push_back(static_cast<std::uint32_t>(values_.size()));
+    Ref ref = values_.size();
     values_.push_back(std::move(value));
     return ref;
   }
 
   // Makes room for `count` values, so that adding that many does not grow
   // the arena along the way.
-  void Reserve(std::size_t count) {
-    indices_.reserve(count);
-    values_.reserve(count);
-  }
-
-  // Adds another reference for the value that `ref` refers to.
-  Ref Alias(Ref ref) {
-    indices_.push_back(indices_[ref.id()]);
-    return indices_.size() - 1;
-  }
+  void Reserve(std::size_t count) { values_.reserve(count); }
 
   // Returns the value associated with `ref` in the arena.
   //
@@ -81,19 +71,11 @@ class Arena {
   // - `ref` must not be `kNullRef`.
   auto& Get(this auto&& self, Ref ref) {
     assert(self.Contains(ref));
-    return self.values_[self.indices_[ref.id()]];
+    return self.values_[ref.id()];
   }
 
   // Returns true iff `ref` refers to a value in the arena.
-  //
-  // References are handed out by both `Add` and `Alias`, so more of them exist
-  // than there are values: an alias names a value that is already there.
-  bool Contains(Ref ref) const { return ref.id() < indices_.size(); }
-
-  // Returns true iff `lhs` and `rhs` refer to the same value.
-  bool Equiv(Ref lhs, Ref rhs) const {
-    return indices_[lhs.id()] == indices_[rhs.id()];
-  }
+  bool Contains(Ref ref) const { return ref.id() < values_.size(); }
 
   // Returns the number of values that were added to the arena.
   std::size_t Size() const { return values_.size(); }
@@ -105,7 +87,6 @@ class Arena {
   auto end(this auto&& self) { return self.values_.end(); }
 
  private:
-  std::vector<std::uint32_t> indices_;
   std::vector<T> values_;
 };
 

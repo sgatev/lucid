@@ -68,14 +68,6 @@ TEST(Test, ArenaMutableAccess) {
   EXPECT_EQ(arena.Get(age), 4);
 }
 
-TEST(Test, ArenaAliasAccess) {
-  Arena<int> arena;
-  Arena<int>::Ref three = arena.Add(3);
-  Arena<int>::Ref three_alias = arena.Alias(three);
-
-  EXPECT_EQ(arena.Get(three_alias), 3);
-}
-
 TEST(Test, ArenaContainsTheReferencesItHandedOut) {
   Arena<int> arena;
 
@@ -87,18 +79,6 @@ TEST(Test, ArenaContainsTheReferencesItHandedOut) {
   EXPECT_FALSE(arena.Contains(three + 1));
 }
 
-TEST(Test, ArenaContainsAliases) {
-  Arena<int> arena;
-  Arena<int>::Ref three = arena.Add(3);
-  Arena<int>::Ref three_alias = arena.Alias(three);
-
-  // An alias is a reference of its own without being a value of its own, so
-  // the arena hands out more references than `Size()` counts.
-  EXPECT_TRUE(arena.Contains(three_alias));
-  EXPECT_EQ(arena.Size(), 1);
-  EXPECT_TRUE(three_alias.id() >= arena.Size());
-}
-
 TEST(Test, ArenaDoesNotContainTheNullReference) {
   Arena<int> arena;
   arena.Add(3);
@@ -106,27 +86,14 @@ TEST(Test, ArenaDoesNotContainTheNullReference) {
   EXPECT_FALSE(arena.Contains(Arena<int>::kNullRef));
 }
 
-TEST(Test, ArenaEquiv) {
-  Arena<int> arena;
-  Arena<int>::Ref three = arena.Add(3);
-  Arena<int>::Ref three_alias = arena.Alias(three);
-  Arena<int>::Ref five = arena.Add(5);
-  Arena<int>::Ref other_three = arena.Add(3);
-
-  EXPECT_TRUE(arena.Equiv(three, three_alias));
-  EXPECT_FALSE(arena.Equiv(three, five));
-  EXPECT_FALSE(arena.Equiv(three, other_three));
-}
-
 TEST(Test, ArenaSize) {
   Arena<int> arena;
 
-  auto three = arena.Add(3);
-  auto five = arena.Add(5);
-  auto eight = arena.Add(8);
-  arena.Alias(three);
-  arena.Alias(five);
-  arena.Alias(eight);
+  EXPECT_EQ(arena.Size(), 0);
+
+  arena.Add(3);
+  arena.Add(5);
+  arena.Add(8);
 
   EXPECT_EQ(arena.Size(), 3);
 }

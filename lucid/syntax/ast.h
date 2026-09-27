@@ -81,6 +81,8 @@ struct ExprBase {
 
   // Whether the expression should be evaluated during compilation.
   bool is_comp : 1 = false;
+
+  bool operator==(const ExprBase&) const = default;
 };
 
 // A function parameter.
@@ -90,6 +92,8 @@ struct FuncParam {
 
   // Type of the parameter.
   TypeRef type_constraint;
+
+  bool operator==(const FuncParam&) const = default;
 };
 
 // A statement that represents a function definition.
@@ -108,6 +112,8 @@ struct FuncDefStmt {
 
   // Whether the function can be evaluated during compilation.
   bool is_comp = false;
+
+  bool operator==(const FuncDefStmt&) const = default;
 };
 
 // A statement that represents a type definition.
@@ -117,12 +123,16 @@ struct TypeDefStmt {
 
   // Definition of the type.
   TypeRef type;
+
+  bool operator==(const TypeDefStmt&) const = default;
 };
 
 // A statement that represents a return point in a function.
 struct ReturnStmt {
   // Value that is returned by the function.
   ExprRef value;
+
+  bool operator==(const ReturnStmt&) const = default;
 };
 
 // A statement that represents the execution of a procedure.
@@ -130,24 +140,32 @@ struct DoStmt {
   // The procedure that's being executed.
   // TODO: Find an appropriate representation for a procedure.
   ExprRef expr;
+
+  bool operator==(const DoStmt&) const = default;
 };
 
 // An expression that represents an integer literal.
 struct IntLitExpr : public ExprBase {
   // Value of the integer.
   std::int64_t value;
+
+  bool operator==(const IntLitExpr&) const = default;
 };
 
 // An expression that represents a boolean literal.
 struct BoolLitExpr : public ExprBase {
   // Value of the boolean.
   bool value;
+
+  bool operator==(const BoolLitExpr&) const = default;
 };
 
 // An expression that represents a string literal.
 struct StringLitExpr : public ExprBase {
   // Value of the string.
   StringIndex::Ref value;
+
+  bool operator==(const StringLitExpr&) const = default;
 };
 
 // An expression that represents a function call.
@@ -157,6 +175,8 @@ struct FuncCallExpr : public ExprBase {
 
   // Arguments to the function call.
   SuccessiveList<ExprRef> args;
+
+  bool operator==(const FuncCallExpr&) const = default;
 };
 
 // A statement that represents a variable declaration.
@@ -172,6 +192,8 @@ struct VarDeclStmt {
 
   // Whether the variable is initialized during compilation.
   bool is_comp = false;
+
+  bool operator==(const VarDeclStmt&) const = default;
 };
 
 // A statement that represents assignment of an expression to a variable.
@@ -181,6 +203,8 @@ struct VarAssignStmt {
 
   // Assigned expression.
   ExprRef expr;
+
+  bool operator==(const VarAssignStmt&) const = default;
 };
 
 // A statement that represents assignment of an expression to an array element.
@@ -193,6 +217,8 @@ struct ArrayAssignStmt {
 
   // Assigned expression.
   ExprRef expr;
+
+  bool operator==(const ArrayAssignStmt&) const = default;
 };
 
 // A statement that represents assignment of an expression to a field.
@@ -205,12 +231,16 @@ struct FieldAssignStmt {
 
   // Assigned expression.
   ExprRef expr;
+
+  bool operator==(const FieldAssignStmt&) const = default;
 };
 
 // An expression that represents an identifier.
 struct IdentExpr : public ExprBase {
   // Name of the identifier.
   StringIndex::Ref name;
+
+  bool operator==(const IdentExpr&) const = default;
 };
 
 // An expression that represents an indexing operation.
@@ -220,6 +250,8 @@ struct IndexExpr : public ExprBase {
 
   // Index of the indexing operation.
   ExprRef index;
+
+  bool operator==(const IndexExpr&) const = default;
 };
 
 // An expression that represents a field access operation.
@@ -229,6 +261,8 @@ struct FieldAccessExpr : public ExprBase {
 
   // Name of the field.
   StringIndex::Ref field_name;
+
+  bool operator==(const FieldAccessExpr&) const = default;
 };
 
 // A binary operation kind.
@@ -316,6 +350,8 @@ struct BinaryOpExpr : public ExprBase {
 
   // Right-hand side sub-expression.
   ExprRef rhs;
+
+  bool operator==(const BinaryOpExpr&) const = default;
 };
 
 // A statement that represents conditional execution.
@@ -328,16 +364,22 @@ struct IfStmt {
 
   // Body of the branch where the condition is false.
   SuccessiveList<StmtRef> else_stmts;
+
+  bool operator==(const IfStmt&) const = default;
 };
 
 // A statement that represents loop execution.
 struct LoopStmt {
   // Body of the loop.
   SuccessiveList<StmtRef> stmts;
+
+  bool operator==(const LoopStmt&) const = default;
 };
 
 // A statement that breaks from the inner-most loop execution.
-struct BreakStmt {};
+struct BreakStmt {
+  bool operator==(const BreakStmt&) const = default;
+};
 
 // Basic type in the Lucid language.
 struct BasicType {
@@ -357,6 +399,8 @@ struct ArrayType {
 
   // Number of elements in the array.
   IntLitExpr size;
+
+  bool operator==(const ArrayType&) const = default;
 };
 
 // A tuple type in the Lucid language.

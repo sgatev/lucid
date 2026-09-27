@@ -280,12 +280,18 @@ class AstFixture {
   }
 
   // Creates a list of the given expression references.
+  //
+  // A list is where its first element is and how many follow, so what it
+  // holds has to lie one after another. What the caller built does not:
+  // building one element adds whatever it is made of along the way. So each
+  // is copied into a run of its own, which leaves what the caller holds
+  // saying the same thing as what the list holds without being it.
   SuccessiveList<ExprRef> ExprListOf(std::initializer_list<ExprRef> exprs) {
     if (std::empty(exprs)) return EmptyList<Expr>();
     auto it = exprs.begin();
-    auto first_expr = syn_ctx_.AliasExpr(*it);
+    auto first_expr = syn_ctx_.Add(syn_ctx_.DerefExpr(*it));
     ++it;
-    for (; it != exprs.end(); ++it) syn_ctx_.AliasExpr(*it);
+    for (; it != exprs.end(); ++it) syn_ctx_.Add(syn_ctx_.DerefExpr(*it));
     return SuccessiveList<ExprRef>(exprs.size(), first_expr);
   }
 
@@ -293,9 +299,9 @@ class AstFixture {
   SuccessiveList<StmtRef> StmtListOf(std::initializer_list<StmtRef> stmts) {
     if (std::empty(stmts)) return EmptyList<Stmt>();
     auto it = stmts.begin();
-    auto first_stmt = syn_ctx_.AliasStmt(*it);
+    auto first_stmt = syn_ctx_.Add(syn_ctx_.DerefStmt(*it));
     ++it;
-    for (; it != stmts.end(); ++it) syn_ctx_.AliasStmt(*it);
+    for (; it != stmts.end(); ++it) syn_ctx_.Add(syn_ctx_.DerefStmt(*it));
     return SuccessiveList<StmtRef>(stmts.size(), first_stmt);
   }
 
@@ -303,10 +309,10 @@ class AstFixture {
   SuccessiveList<ParamRef> ParamListOf(std::initializer_list<ParamRef> params) {
     if (std::empty(params)) return EmptyList<FuncParam>();
     auto it = params.begin();
-    auto first_stmt = syn_ctx_.AliasParam(*it);
+    auto first_param = syn_ctx_.Add(syn_ctx_.DerefParam(*it));
     ++it;
-    for (; it != params.end(); ++it) syn_ctx_.AliasParam(*it);
-    return SuccessiveList<ParamRef>(params.size(), first_stmt);
+    for (; it != params.end(); ++it) syn_ctx_.Add(syn_ctx_.DerefParam(*it));
+    return SuccessiveList<ParamRef>(params.size(), first_param);
   }
 
   // Returns a matcher that is satisfied if the argument is a statement

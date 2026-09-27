@@ -47,15 +47,6 @@ class SyntaxContext {
     return idents_.ref(unique_idents_.back());
   }
 
-  // Creates an alias of `ref` in the context.
-  StmtRef AliasStmt(StmtRef ref) { return stmts_.Alias(ref); }
-
-  // Creates an alias of `ref` in the context.
-  ExprRef AliasExpr(ExprRef ref) { return exprs_.Alias(ref); }
-
-  // Creates an alias of `ref` in the context.
-  ParamRef AliasParam(ParamRef ref) { return params_.Alias(ref); }
-
   // Returns the statement that `ref` refers to.
   auto& DerefStmt(this auto&& self, StmtRef ref) {
     return self.stmts_.Get(ref);
@@ -90,18 +81,20 @@ class SyntaxContext {
     return idents_.deref(ref);
   }
 
-  // Returns true if and only if `lhs` and `rhs` refer to equivalent statements.
+  // Returns true if and only if `lhs` and `rhs` refer to statements that say
+  // the same thing, which two references to one statement do and so do two
+  // copies of it.
   bool EquivStmts(StmtRef lhs, StmtRef rhs) const {
-    return stmts_.Equiv(lhs, rhs);
+    return DerefStmt(lhs) == DerefStmt(rhs);
   }
 
   // Returns true if and only if `lhs` and `rhs` refer to equivalent statements.
-  bool Equiv(StmtRef lhs, StmtRef rhs) const { return stmts_.Equiv(lhs, rhs); }
+  bool Equiv(StmtRef lhs, StmtRef rhs) const { return EquivStmts(lhs, rhs); }
 
   // Returns true if and only if `lhs` and `rhs` refer to equivalent function
   // parameters.
   bool Equiv(ParamRef lhs, ParamRef rhs) const {
-    return params_.Equiv(lhs, rhs);
+    return DerefParam(lhs) == DerefParam(rhs);
   }
 
   // Adds a function definition.
