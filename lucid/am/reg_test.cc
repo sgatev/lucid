@@ -230,6 +230,29 @@ TEST(ColoringTest, ColorsCrossingValuesBesideACrowdedSide) {
                                       /*inside=*/8));
 }
 
+// More values crossing a branch than there are registers to hold them.
+//
+// A phi function held each of its arguments in a register to the end of
+// every block it came from, which no amount of spilling could take back so
+// long as the phi was there to read them. Putting the result and the
+// arguments away in one slot between them leaves nothing for the phi to
+// settle, and the room the spilling meant to buy is bought.
+TEST(ColoringTest, ColorsMoreValuesCrossingABranchThanThereAreRegisters) {
+  ExpectValidColoring(BranchingValues(/*crossing=*/kRegistersCount + 1,
+                                      /*inside=*/0));
+  ExpectValidColoring(BranchingValues(/*crossing=*/kRegistersCount + 10,
+                                      /*inside=*/4));
+  ExpectValidColoring(BranchingValues(/*crossing=*/40, /*inside=*/0));
+}
+
+// The same where the values are carried around a loop rather than across a
+// branch, which is a phi function reading its own result from the turn
+// before.
+TEST(ColoringTest, ColorsMoreLoopCarriedValuesThanThereAreRegisters) {
+  ExpectValidColoring(LoopCarriedValues(/*carried=*/kRegistersCount + 1));
+  ExpectValidColoring(LoopCarriedValues(/*carried=*/30));
+}
+
 TEST(ColoringTest, ColorsLoopCarriedValuesThatSpill) {
   ExpectValidColoring(LoopCarriedValues(/*carried=*/8));
 }

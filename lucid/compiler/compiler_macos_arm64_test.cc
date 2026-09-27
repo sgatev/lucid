@@ -1910,5 +1910,49 @@ TEST(CompilerTest, ValuesThatMoveAroundALoopInACircle) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(231));
 }
 
+// Twelve values carried around a loop, which is more than there are
+// registers to hold them, so some are put away in the frame. A phi function
+// whose result goes there has its arguments go to the same slot, which
+// leaves it nothing to settle and leaves the registers free.
+TEST(CompilerTest, MoreValuesCarriedAroundALoopThanThereAreRegisters) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val c0: Int32 = 0
+      val c1: Int32 = 0
+      val c2: Int32 = 0
+      val c3: Int32 = 0
+      val c4: Int32 = 0
+      val c5: Int32 = 0
+      val c6: Int32 = 0
+      val c7: Int32 = 0
+      val c8: Int32 = 0
+      val c9: Int32 = 0
+      val c10: Int32 = 0
+      val c11: Int32 = 0
+      val i: Int32 = 0
+      loop {
+        if i >= 3 {
+          break
+        }
+        &c0 = c0 + 1
+        &c1 = c1 + 2
+        &c2 = c2 + 3
+        &c3 = c3 + 4
+        &c4 = c4 + 5
+        &c5 = c5 + 6
+        &c6 = c6 + 7
+        &c7 = c7 + 8
+        &c8 = c8 + 9
+        &c9 = c9 + 10
+        &c10 = c10 + 11
+        &c11 = c11 + 12
+        &i = i + 1
+      }
+      return c0 + c1 + c2 + c3 + c4 + c5 + c6 + c7 + c8 + c9 + c10 + c11
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(234));
+}
+
 }  // namespace
 }  // namespace lucid

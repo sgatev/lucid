@@ -114,20 +114,51 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
   return std::nullopt;
 }
 
-// Takes `reg_to_spill` out of the registers, putting it away where it is
-// written and loading its own copy back for every read of it.
-void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
-                    AbstractMachineState& am_state, HashSet<Reg>& spilt) {
-  HashMap<Reg, std::size_t> reg_stack;
+// The registers a phi function ties `reg` to: its result and each of its
+// arguments, and whatever those are tied to in turn.
+//
+// They are the names one value goes by, reaching a block by one way or
+// another, so putting one of them away is putting all of them away.
+HashSet<Reg> TiedRegisters(const AbstractMachineControlFlowGraph& am_cfg,
+                           Reg reg) {
+  HashMap<Reg, std::vector<Reg>> ties;
+  for (const auto& block : am_cfg.Blocks()) {
+    for (const auto& phi : block.phis) {
+      for (Reg src : phi.srcs) {
+        ties.Emplace(phi.dst).push_back(src);
+        ties.Emplace(src).push_back(phi.dst);
+      }
+    }
+  }
 
-  // Takes the slot `reg` is put away in and writes it down, so that the loads
-  // that read it back know where to look.
-  auto take_slot = [&](Reg reg) {
-    const std::size_t slot = am_cfg.stack_slots.size();
-    reg_stack.Insert(reg, slot);
-    am_cfg.stack_slots.push_back(reg.size == RegSize32 ? 4 : 8);
-    return slot;
-  };
+  HashSet<Reg> tied;
+  std::vector<Reg> to_walk = {reg};
+  tied.Insert(reg);
+  while (!to_walk.empty()) {
+    const Reg from = to_walk.back();
+    to_walk.pop_back();
+
+    auto next = ties.Get(from);
+    if (!next.has_value()) continue;
+
+    for (Reg to : *next) {
+      if (tied.Insert(to)) to_walk.push_back(to);
+    }
+  }
+  return tied;
+}
+
+// Takes the registers in `to_spill` out of the registers, putting each away
+// where it is written and loading its own copy back for every read of it.
+//
+// They go in the one slot between them, because they are the names one value
+// goes by where phi functions tie them together. Those phi functions are then
+// nothing left to carry out: whichever way control reached the block, the
+// slot holds what the value came to.
+void SpillRegisters(const HashSet<Reg>& to_spill,
+                    AbstractMachineControlFlowGraph& am_cfg) {
+  const std::size_t slot = am_cfg.stack_slots.size();
+  am_cfg.stack_slots.push_back(to_spill.begin()->size == RegSize32 ? 4 : 8);
 
   // Puts the register away after the instruction that wrote it, and leaves the
   // walk standing on the store, which the step the walk takes next carries it
@@ -136,10 +167,10 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
   auto maybe_insert_store = [&](std::list<Instruction>& instructions,
                                 std::list<Instruction>::iterator& pos,
                                 Reg reg) {
-    if (reg != reg_to_spill) return;
+    if (!to_spill.Contains(reg)) return;
 
     pos = instructions.insert(std::next(pos), StoreStack{
-                                                  .offset = take_slot(reg),
+                                                  .offset = slot,
                                                   .src_reg = reg,
                                               });
   };
@@ -149,16 +180,11 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
   auto maybe_insert_load = [&](std::list<Instruction>& instructions,
                                std::list<Instruction>::iterator& pos,
                                Reg& reg) {
-    if (reg != reg_to_spill) return;
+    if (!to_spill.Contains(reg)) return;
 
-    Reg old_reg = reg;
     reg.id = am_cfg.next_free_reg_id++;
-
-    auto offset = reg_stack.Get(old_reg);
-    if (!offset.has_value()) return;
-
     instructions.insert(pos, LoadStack{
-                                 .offset = *offset,
+                                 .offset = slot,
                                  .dst_reg = reg,
                              });
   };
@@ -171,29 +197,20 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
   for (const auto& block_ref : block_refs) {
     auto& block = am_cfg.GetBlock(block_ref);
 
-    // What the block is entered holding is put away at the top of it, ahead of
-    // everything the block does. A parameter is in its register from the entry
-    // because that is where the caller leaves it, and a phi function is
-    // settled before the block runs. The walk starts after these, so that it
-    // does not read a store as one more use of what it stores.
+    // A parameter is in its register from the entry, because that is where
+    // the caller leaves it, so it is put away at the top of the block ahead
+    // of everything the block does. The walk starts after the store, so that
+    // it does not read it as one more use of what it stores.
     auto i = block.instructions.begin();
     if (block_ref == am_cfg.first) {
       for (Reg param : am_cfg.params) {
-        if (param != reg_to_spill) continue;
+        if (!to_spill.Contains(param)) continue;
 
         block.instructions.insert(i, StoreStack{
-                                         .offset = take_slot(param),
+                                         .offset = slot,
                                          .src_reg = param,
                                      });
       }
-    }
-    for (auto& phi : block.phis) {
-      if (phi.dst != reg_to_spill) continue;
-
-      block.instructions.insert(i, StoreStack{
-                                       .offset = take_slot(phi.dst),
-                                       .src_reg = phi.dst,
-                                   });
     }
     while (i != block.instructions.end()) {
       ForEachSourceRegister(
@@ -209,43 +226,20 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
     }
   }
 
-  // A phi reads each of its arguments where control leaves the block that
-  // argument comes from, so a spilt one is loaded back at the end of that
-  // block and the phi takes the register the load wrote. Every phi reading
-  // the register out of the same block reads the one load.
+  // A phi function whose result is put away has every argument put away
+  // beside it, in the same slot, so there is nothing left for it to settle.
+  // Each argument was stored where its own block wrote it, and each read of
+  // the result loads from that same slot, so the value is where it needs to
+  // be by whichever way control came.
   //
-  // The loads go in once the walk above has been everywhere, because the
-  // block an argument comes from can be one the walk reaches after the block
-  // its phi is in, and a load needs the slot the store settled on.
-  //
-  // What a load writes counts as spilt itself. It is live where the block
-  // ends, which is the crowded point a phi's argument makes, so the search
-  // would otherwise pick it, spill it, and write down another register just
-  // like it, without end.
-  std::vector<std::optional<Reg>> loaded_leaving(am_cfg.Blocks().Size());
+  // This is what buys room where the sides of a branch meet. A phi function
+  // held its arguments in registers to the end of every block they came
+  // from, which no amount of spilling could take back so long as the phi was
+  // there to read them.
   for (const auto& block_ref : block_refs) {
     auto& block = am_cfg.GetBlock(block_ref);
-
-    for (auto& phi : block.phis) {
-      for (std::size_t arg = 0; arg < phi.srcs.size(); ++arg) {
-        if (phi.srcs[arg] != reg_to_spill) continue;
-
-        const auto pred_ref = block.preds[arg];
-        auto& loaded = loaded_leaving[pred_ref.id()];
-        if (!loaded.has_value()) {
-          Reg reg = reg_to_spill;
-          reg.id = am_cfg.next_free_reg_id++;
-
-          am_cfg.GetBlock(pred_ref).instructions.push_back(LoadStack{
-              .offset = reg_stack.Get(reg_to_spill).value(),
-              .dst_reg = reg,
-          });
-          spilt.Insert(reg);
-          loaded = reg;
-        }
-        phi.srcs[arg] = *loaded;
-      }
-    }
+    std::erase_if(block.phis,
+                  [&](const auto& phi) { return to_spill.Contains(phi.dst); });
   }
 }
 
@@ -263,17 +257,19 @@ void SpillRegisters(Reg reg_to_spill, AbstractMachineControlFlowGraph& am_cfg,
 // A spilt parameter is the exception. It is live where the function is
 // entered, because that is where the caller leaves it and the store that
 // puts it away reads it there.
-void RemoveSpiltRegister(const AbstractMachineControlFlowGraph& am_cfg, Reg reg,
-                         AbstractMachineLiveness& liveness) {
-  const auto register_params = am_cfg.params;
-  const bool is_param =
-      std::ranges::find(register_params, reg) != register_params.end();
+void RemoveSpiltRegisters(const AbstractMachineControlFlowGraph& am_cfg,
+                          const HashSet<Reg>& spilt,
+                          AbstractMachineLiveness& liveness) {
+  for (Reg reg : spilt) {
+    const bool is_param =
+        std::ranges::find(am_cfg.params, reg) != am_cfg.params.end();
 
-  for (std::size_t id = 0; id < liveness.size(); ++id) {
-    if (!liveness[id].has_value()) continue;
-    if (is_param && std::size_t(am_cfg.first.id()) == id) continue;
+    for (std::size_t id = 0; id < liveness.size(); ++id) {
+      if (!liveness[id].has_value()) continue;
+      if (is_param && std::size_t(am_cfg.first.id()) == id) continue;
 
-    liveness[id]->live_in.Remove(reg);
+      liveness[id]->live_in.Remove(reg);
+    }
   }
 }
 
@@ -323,10 +319,14 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
     // over, and whoever asked for the spilling is handed it.
     if (!reg_to_spill.has_value()) return liveness;
 
-    spilt_regs.Insert(*reg_to_spill);
-    SpillRegisters(*reg_to_spill, am_cfg, am_state, spilt_regs);
+    // Whatever phi functions tie it to goes with it, because one value under
+    // several names is put away once and read back by any of them.
+    const HashSet<Reg> tied = TiedRegisters(am_cfg, *reg_to_spill);
+    for (Reg reg : tied) spilt_regs.Insert(reg);
 
-    RemoveSpiltRegister(am_cfg, *reg_to_spill, liveness);
+    SpillRegisters(tied, am_cfg);
+
+    RemoveSpiltRegisters(am_cfg, tied, liveness);
     assert(MatchesFreshAnalysis(am_cfg, liveness));
   }
 }
