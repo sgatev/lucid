@@ -63,7 +63,7 @@ TEST(CompilerTest, ReportsVariablesOutOfScope) {
   const std::string_view kCases[] = {
       R"(fun main(): Int32 { if true { val y: Int32 = 2 } return y })",
       R"(fun main(): Int32 { loop { val y: Int32 = 2 break } return y })",
-      R"(fun main(): Int32 { if true { val y: Int32 = 2 } &y = 3 return 0 })",
+      R"(fun main(): Int32 { if true { val &y: Int32 = 2 } &y = 3 return 0 })",
   };
 
   for (std::string_view source : kCases) {
@@ -71,6 +71,59 @@ TEST(CompilerTest, ReportsVariablesOutOfScope) {
     EXPECT_THAT(
         RunCompiler({"compile", FullPath("main.lu")}),
         AllOf(ReturnsCode(1), ErrorOutput(Contains("no variable 'y'"))));
+  }
+}
+
+// A write can only reach what said it could, which is what the `&` on a
+// declaration says. The mark is the same one the write itself carries.
+TEST(CompilerTest, ReportsWritesToWhatIsNotMarked) {
+  const struct {
+    std::string_view source;
+    std::string_view message;
+  } kCases[] = {
+      {R"(fun main(): Int32 { val n: Int32 = 1 &n = 2 return n })",
+       "no '&' on the declaration of 'n'"},
+      {R"(fun f(a: Int32): Int32 { &a = 1 return a }
+          fun main(): Int32 { return f(0) })",
+       "no '&' on the declaration of 'a'"},
+      {R"(fun main(): Int32 { val b: Int32[2] &b[0] = 1 return b[0] })",
+       "no '&' on the declaration of 'b'"},
+      {R"(val P: Type = (x: Int32, y: Int32)
+          fun main(): Int32 { val p: P &p.x = 1 return p.x })",
+       "no '&' on the declaration of 'p'"},
+      {R"(val P: Type = (x: Int32, y: Int32)
+          fun main(): Int32 { val ps: P[2] &ps[0].x = 1 return ps[0].x })",
+       "no '&' on the declaration of 'ps'"},
+      {R"(comp fun two(): Int32 { return 2 }
+          fun main(): Int32 { comp val c: Int32 = two() &c = 5 return c })",
+       "no '&' on the declaration of 'c'"},
+  };
+
+  for (const auto& [source, message] : kCases) {
+    ASSERT_TRUE(CreateFile("main.lu", source));
+    EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}),
+                AllOf(ReturnsCode(1), ErrorOutput(Contains(message))));
+  }
+}
+
+// What a declaration marked for writing allows, and what one not marked for
+// it still allows: reading, and being read through.
+TEST(CompilerTest, AllowsWritesToWhatIsMarked) {
+  const std::string_view kCases[] = {
+      R"(fun main(): Int32 { val &n: Int32 = 1 &n = 7 return n })",
+      R"(fun f(&a: Int32): Int32 { &a = 7 return a }
+         fun main(): Int32 { return f(0) })",
+      R"(fun main(): Int32 { val &b: Int32[2] &b[0] = 7 return b[0] })",
+      R"(val P: Type = (x: Int32, y: Int32)
+         fun main(): Int32 { val &p: P &p.x = 7 return p.x })",
+      R"(fun main(): Int32 { val n: Int32 = 7 return n })",
+      R"(val P: Type = (x: Int32, y: Int32)
+         fun main(): Int32 { val &p: P &p.x = 7 return p.x })",
+  };
+
+  for (std::string_view source : kCases) {
+    ASSERT_TRUE(CreateFile("main.lu", source));
+    EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}), ReturnsCode(0));
   }
 }
 
@@ -247,7 +300,7 @@ TEST(CompilerTest, PrintCfgSeparatesFunctions) {
 TEST(CompilerTest, PrintCfg) {
   ASSERT_TRUE(CreateFile("max.lu", R"(
     fun max(a: Int32, b: Int32): Int32 {
-      val c: Int32 = 0
+      val &c: Int32 = 0
       if a > b {
         &c = a
       } else {

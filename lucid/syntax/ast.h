@@ -93,6 +93,10 @@ struct FuncParam {
   // Type of the parameter.
   TypeRef type_constraint;
 
+  // Whether the body may write to the parameter, which is what the `&` on it
+  // says. A parameter without one is what the caller passed and stays that.
+  bool is_mutable = false;
+
   bool operator==(const FuncParam&) const = default;
 };
 
@@ -192,6 +196,11 @@ struct VarDeclStmt {
 
   // Whether the variable is initialized during compilation.
   bool is_comp = false;
+
+  // Whether the variable may be written after it is declared, which is what
+  // the `&` on it says. A declaration without one is written once and read
+  // from then on.
+  bool is_mutable = false;
 
   bool operator==(const VarDeclStmt&) const = default;
 };

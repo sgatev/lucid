@@ -1,5 +1,5 @@
 comp fun max(a: Int32, b: Int32): Int32 {
-  val m: Int32 = a
+  val &m: Int32 = a
   if b > m {
     &m = b
   }

@@ -163,13 +163,15 @@ class Parser {
         break;
       }
 
-      if (PeekIgnoringNonSemantic().kind != Token::Kind::Ident) [[unlikely]] {
+      const Token::Kind next = PeekIgnoringNonSemantic().kind;
+      if (next != Token::Kind::Ident && next != Token::Kind::Ampersand)
+          [[unlikely]] {
         return std::unexpected(
             MakeError(ParserError::Kind::ExpectedClosingParenOrParam,
                       PeekIgnoringNonSemantic()));
       }
 
-      ASSIGN_OR_RETURN(ParamRef param, ParseParam());
+      ASSIGN_OR_RETURN(ParamRef param, ParseParam(/*can_be_written=*/true));
       if (params_size == 0) first_param = param;
       ++params_size;
     }
@@ -214,7 +216,7 @@ class Parser {
                       PeekIgnoringNonSemantic()));
       }
 
-      ASSIGN_OR_RETURN(ParamRef param, ParseParam());
+      ASSIGN_OR_RETURN(ParamRef param, ParseParam(/*can_be_written=*/false));
       if (params_size == 0) first_param = param;
       ++params_size;
     }
@@ -232,11 +234,28 @@ class Parser {
                                      PeekIgnoringNonSemantic()));
   }
 
-  std::expected<ParamRef, ParserError> ParseParam() {
+  // Parses one parameter. `can_be_written` says whether an `&` may stand
+  // before its name: a function's parameter may be written by its body, and
+  // the field of a tuple is not a binding anything writes through.
+  std::expected<ParamRef, ParserError> ParseParam(bool can_be_written) {
+    const bool is_mutable =
+        can_be_written && TakeIfPresent(Token::Kind::Ampersand);
     ASSIGN_OR_RETURN(StringIndex::Ref name, ParseIdent());
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::Colon));
     ASSIGN_OR_RETURN(TypeRef type, ParseType());
-    return syn_ctx_.Add(FuncParam{.name = name, .type_constraint = type});
+    return syn_ctx_.Add(FuncParam{
+        .name = name,
+        .type_constraint = type,
+        .is_mutable = is_mutable,
+    });
+  }
+
+  // Reads the next token where it is of `kind`, and says whether it was.
+  bool TakeIfPresent(Token::Kind kind) {
+    if (PeekIgnoringNonSemantic().kind != kind) return false;
+
+    ReadIgnoringNonSemantic();
+    return true;
   }
 
   std::expected<StringIndex::Ref, ParserError> ParseIdent() {
@@ -352,6 +371,7 @@ class Parser {
   }
 
   std::expected<Stmt, ParserError> ParseVal(bool is_comp) {
+    const bool is_mutable = TakeIfPresent(Token::Kind::Ampersand);
     ASSIGN_OR_RETURN(StringIndex::Ref name, ParseIdent());
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::Colon));
     ASSIGN_OR_RETURN(TypeRef type, ParseType());
@@ -368,6 +388,7 @@ class Parser {
         .type_constraint = type,
         .init = init,
         .is_comp = is_comp,
+        .is_mutable = is_mutable,
     };
   }
 

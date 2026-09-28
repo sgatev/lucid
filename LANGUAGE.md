@@ -98,7 +98,16 @@ val Name: Type = (field: Type, …)
 ```
 
 A function takes zero or more parameters, always names its result type, and has a body in
-braces. `comp` on a function means it may be called while the program is being compiled;
+braces. **An `&` before a parameter's name says the body may write to it**, as it does on
+a declaration. Nothing is passed by reference, so a write reaches the function's own copy
+and the caller never sees it; the mark is what the signature says about the body.
+
+```
+fun gcd(&a: Int32, &b: Int32): Int32 { … }
+```
+
+A tuple's fields take no `&`: a field is not a binding anything writes through, and what
+allows a write to one is the `&` on the variable holding the tuple. `comp` on a function means it may be called while the program is being compiled;
 see [Compile-time evaluation](#compile-time-evaluation).
 
 Commas between parameters are optional. `fun f(a: Int32 b: Int32)` parses exactly as the
@@ -112,19 +121,30 @@ indeterminate value.
 
 ```
 val n: Int32 = 21
-val buffer: Int32[101]
+val &total: Int32 = 0
+val &buffer: Int32[101]
 ```
 
-A `val` is not constant. The name is misleading: variables are assigned freely after
-declaration.
+**An `&` before the name says a write can reach it.** A declaration without one is
+written where it is made and read from then on; assigning to it is rejected, and so is
+assigning through it to an element or a field. The mark is the same one every write
+carries, so wherever `&` appears it says the same thing: *this can be written*.
+
+```
+val n: Int32 = 21
+&n = 22                 # ERROR: no '&' on the declaration of 'n'
+```
+
+A `comp val` is a value worked out while the program is compiled, so it takes no `&`
+and cannot be written.
 
 A declaration holds from where it is made to the end of the block holding it, and a
 block is what braces enclose: a function's body, either side of an `if`, a loop's body.
 A declaration inside a block is gone after it, and one that repeats a name already
 declared stands over the earlier one for as long as its own block lasts.
 
-**Assignment** is marked with a leading `&`, which is what tells it apart from a
-declaration. It assigns to a variable, to an array element, or to a field:
+**Assignment** is marked with a leading `&`, the same mark the declaration of what it
+writes carries. It assigns to a variable, to an array element, or to a field:
 
 ```
 &n = n + 1
@@ -139,6 +159,9 @@ field rather than an index:
 &ps[i].x = 3
 &q.p.x = 5
 ```
+
+What the write reaches is the variable at the foot of the target, and that is the
+declaration whose `&` allows it: `&ps[i].x = 3` needs `val &ps`.
 
 **Conditionals** take an expression of type `Bool`, with no parentheses around it. `else`
 takes either a block or another `if`.

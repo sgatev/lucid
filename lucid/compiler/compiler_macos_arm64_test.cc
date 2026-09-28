@@ -41,7 +41,7 @@ TEST(CompilerTest, NestedBranches) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       val a: Int32 = 3
-      val v: Int32 = 0
+      val &v: Int32 = 0
       if a == 3 {
         if a == 2 {
           if a == 1 { &v = 1 } else { &v = 2 }
@@ -70,15 +70,15 @@ TEST(CompilerTest, BranchingValuesThatSpill) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       val a: Int32 = 1
-      val v0: Int32 = 1
-      val v1: Int32 = 2
-      val v2: Int32 = 3
-      val v3: Int32 = 4
-      val v4: Int32 = 5
-      val v5: Int32 = 6
-      val v6: Int32 = 7
-      val v7: Int32 = 8
-      val v8: Int32 = 9
+      val &v0: Int32 = 1
+      val &v1: Int32 = 2
+      val &v2: Int32 = 3
+      val &v3: Int32 = 4
+      val &v4: Int32 = 5
+      val &v5: Int32 = 6
+      val &v6: Int32 = 7
+      val &v7: Int32 = 8
+      val &v8: Int32 = 9
       if a == 1 {
       } else {
         &v0 = v0 - 1
@@ -112,15 +112,15 @@ TEST(CompilerTest, BranchingValuesThatSpill) {
 TEST(CompilerTest, LoopCarriedValuesThatSpill) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      val i: Int32 = 0
-      val v0: Int32 = 0
-      val v1: Int32 = 1
-      val v2: Int32 = 2
-      val v3: Int32 = 3
-      val v4: Int32 = 4
-      val v5: Int32 = 5
-      val v6: Int32 = 6
-      val v7: Int32 = 7
+      val &i: Int32 = 0
+      val &v0: Int32 = 0
+      val &v1: Int32 = 1
+      val &v2: Int32 = 2
+      val &v3: Int32 = 3
+      val &v4: Int32 = 4
+      val &v5: Int32 = 5
+      val &v6: Int32 = 6
+      val &v7: Int32 = 7
       loop {
         if i == 3 {
           break
@@ -235,7 +235,7 @@ TEST(CompilerTest, ShortCircuitInACompValue) {
       comp val both: Bool = t() and f()
       comp val either: Bool = t() or f()
       comp val mixed: Bool = n() > 3 and t()
-      val count: Int32 = 0
+      val &count: Int32 = 0
       if both {
         &count = count + 1
       }
@@ -286,7 +286,7 @@ TEST(CompilerTest, ConjunctionAndDisjunction) {
     fun main(): Int32 {
       val t: Bool = true
       val f: Bool = false
-      val n: Int32 = 0
+      val &n: Int32 = 0
       if t and t {
         &n = n + 1
       }
@@ -428,7 +428,7 @@ TEST(CompilerTest, GreaterOrEqualAndLessOrEqual) {
     fun main(): Int32 {
       val lo: Int32 = 1
       val hi: Int32 = 2
-      val n: Int32 = 0
+      val &n: Int32 = 0
       if lo >= hi {
         &n = n + 1
       }
@@ -461,7 +461,7 @@ TEST(CompilerTest, ComparisonHeldInAVariable) {
       val a: Int32 = 5
       val at_least: Bool = a >= 5
       val at_most: Bool = a <= 4
-      val n: Int32 = 0
+      val &n: Int32 = 0
       if at_least {
         &n = n + 3
       }
@@ -480,7 +480,7 @@ TEST(CompilerTest, ComparisonOfWiderAndSignedValues) {
       val a: Int64 = 5000000000
       val b: Int64 = 4999999999
       val neg: Int32 = 0 - 5
-      val n: Int32 = 0
+      val &n: Int32 = 0
       if a >= b {
         &n = n + 1
       }
@@ -499,8 +499,8 @@ TEST(CompilerTest, ComparisonOfWiderAndSignedValues) {
 TEST(CompilerTest, CompFunctionUsingAnArray) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     comp fun squares(n: Int32): Int32 {
-      val a: Int32[4]
-      val i: Int32 = 0
+      val &a: Int32[4]
+      val &i: Int32 = 0
       loop {
         if i == 4 {
           break
@@ -524,7 +524,7 @@ TEST(CompilerTest, CompFunctionUsingATuple) {
     val Point: Type = (x: Int32, y: Int32)
 
     comp fun area(): Int32 {
-      val p: Point
+      val &p: Point
       &p.x = 3
       &p.y = 7
       return p.x * p.y
@@ -545,8 +545,8 @@ TEST(CompilerTest, CompFunctionUsingATuple) {
 TEST(CompilerTest, BreakLeavesTheInnermostLoop) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      val i: Int32 = 0
-      val n: Int32 = 0
+      val &i: Int32 = 0
+      val &n: Int32 = 0
       loop {
         &i = i + 1
         loop {
@@ -566,9 +566,9 @@ TEST(CompilerTest, BreakLeavesTheInnermostLoop) {
 TEST(CompilerTest, BreakLeavesTheInnermostOfThreeLoops) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      val i: Int32 = 0
-      val j: Int32 = 0
-      val k: Int32 = 0
+      val &i: Int32 = 0
+      val &j: Int32 = 0
+      val &k: Int32 = 0
       loop {
         &i = i + 1
         loop {
@@ -659,7 +659,7 @@ TEST(CompilerTest, ArrayOfTuples) {
     val Point: Type = (x: Int32, y: Int32)
 
     fun main(): Int32 {
-      val ps: Point[3]
+      val &ps: Point[3]
       &ps[0].x = 7
       &ps[0].y = 1
       &ps[2].x = 9
@@ -675,7 +675,7 @@ TEST(CompilerTest, ArrayOfTuplesIndexedByVariable) {
     val Point: Type = (x: Int32, y: Int32)
 
     fun main(): Int32 {
-      val ps: Point[3]
+      val &ps: Point[3]
       val i: Int32 = 2
       &ps[i].y = 6
       return ps[i].y
@@ -690,7 +690,7 @@ TEST(CompilerTest, TupleInTuple) {
     val Outer: Type = (i: Inner, n: Int32)
 
     fun main(): Int32 {
-      val o: Outer
+      val &o: Outer
       &o.i.x = 5
       &o.n = 2
       return o.i.x * o.n
@@ -704,7 +704,7 @@ TEST(CompilerTest, TupleHoldingAnArray) {
     val Row: Type = (v: Int32[4], n: Int32)
 
     fun main(): Int32 {
-      val r: Row
+      val &r: Row
       &r.n = 5
       return r.n + r.v[0] - r.v[0]
     }
@@ -870,7 +870,7 @@ TEST(CompilerTest, IfStmtElseBranch) {
 
 TEST(CompilerTest, IfStmtBothBranches) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    fun foo(b: Bool, n: Int32): Int32 {
+    fun foo(b: Bool, &n: Int32): Int32 {
       if b {
         &n = n + 1
       } else {
@@ -1053,7 +1053,7 @@ TEST(CompilerTest, VarDeclFromVar) {
 
 TEST(CompilerTest, VarAssign) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    fun foo(n: Int32): Int32 {
+    fun foo(&n: Int32): Int32 {
       &n = 3
       return n
     }
@@ -1126,9 +1126,9 @@ TEST(CompilerTest, FibRec) {
 
 TEST(CompilerTest, FibIter) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    fun fib(n: Int32): Int32 {
-      val a: Int32 = 0
-      val b: Int32 = 1
+    fun fib(&n: Int32): Int32 {
+      val &a: Int32 = 0
+      val &b: Int32 = 1
       loop {
         if n == 0 {
           return a
@@ -1235,7 +1235,7 @@ TEST(CompilerTest, PrintMultipleValues) {
 TEST(CompilerTest, LoopAndBreak) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun four(): Int32 {
-      val n: Int32 = 0
+      val &n: Int32 = 0
       loop {
         if n > 3 {
           break
@@ -1256,9 +1256,9 @@ TEST(CompilerTest, LoopAndBreak) {
 TEST(CompilerTest, Int32Array) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      val a: Int32[10]
+      val &a: Int32[10]
 
-      val i: Int32 = 0
+      val &i: Int32 = 0
       loop {
         if i == 10 {
           break
@@ -1269,7 +1269,7 @@ TEST(CompilerTest, Int32Array) {
         &i = i + 1
       }
 
-      val r: Int32 = 0
+      val &r: Int32 = 0
       &i = 0
       loop {
         if i == 10 {
@@ -1290,9 +1290,9 @@ TEST(CompilerTest, Int32Array) {
 TEST(CompilerTest, Int64Array) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int64 {
-      val a: Int64[10]
+      val &a: Int64[10]
 
-      val i: Int64 = 0
+      val &i: Int64 = 0
       loop {
         if i == 10 {
           break
@@ -1303,7 +1303,7 @@ TEST(CompilerTest, Int64Array) {
         &i = i + 1
       }
 
-      val r: Int64 = 0
+      val &r: Int64 = 0
       &i = 0
       loop {
         if i == 10 {
@@ -1324,9 +1324,9 @@ TEST(CompilerTest, Int64Array) {
 TEST(CompilerTest, BoolArray) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      val a: Bool[10]
+      val &a: Bool[10]
 
-      val i: Int32 = 0
+      val &i: Int32 = 0
       loop {
         if i == 10 {
           break
@@ -1341,7 +1341,7 @@ TEST(CompilerTest, BoolArray) {
         &i = i + 1
       }
 
-      val r: Int32 = 0
+      val &r: Int32 = 0
       &i = 0
       loop {
         if i == 10 {
@@ -1425,7 +1425,7 @@ TEST(CompilerTest, ManyLiveVariables) {
 TEST(CompilerTest, Comp) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     comp fun max(a: Int32, b: Int32): Int32 {
-      val m: Int32 = a
+      val &m: Int32 = a
       if b > m {
         &m = b
       }
@@ -1446,7 +1446,7 @@ TEST(CompilerTest, Tuple) {
     comp val Point: Type = (x: Int32, y: Int32)
 
     fun main(): Int32 {
-      val p: Point
+      val &p: Point
       &p.x = 21
       &p.y = 42
       return p.x + p.y
@@ -1457,8 +1457,8 @@ TEST(CompilerTest, Tuple) {
 
 TEST(CompilerTest, LargeInteger) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
-    fun count3s(i: Int32): Int32 {
-      val count: Int32 = 0
+    fun count3s(&i: Int32): Int32 {
+      val &count: Int32 = 0
       loop {
         if i == 0 {
           break
@@ -1616,8 +1616,8 @@ TEST(CompilerTest, ParameterOnTheStackReachesAPhiFunction) {
     fun count(a0: Int32, a1: Int32, a2: Int32, a3: Int32, a4: Int32,
               a5: Int32, a6: Int32, a7: Int32, a8: Int32, a9: Int32,
               a10: Int32): Int32 {
-      val acc: Int32 = a10
-      val i: Int32 = 0
+      val &acc: Int32 = a10
+      val &i: Int32 = 0
       loop {
         if i >= a0 {
           break
@@ -1669,7 +1669,7 @@ TEST(CompilerTest, StackArgumentsBesideACallerSOwnSlots) {
     }
 
     fun main(): Int32 {
-      val buf: Int32[4]
+      val &buf: Int32[4]
       &buf[0] = 11
       &buf[3] = 22
       return last(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40) + buf[0] + buf[3]
@@ -1746,7 +1746,7 @@ TEST(CompilerTest, ASlotOfTheFrameStandsClearOfTheRegistersHandedBack) {
     }
 
     fun narrow(): Int32 {
-      val buf: Int32[2]
+      val &buf: Int32[2]
       &buf[0] = 12345
       &buf[1] = 2
       return buf[0] + buf[1]
@@ -1785,7 +1785,7 @@ TEST(CompilerTest, ASlotOfTheFrameStandsClearOfTheRegistersHandedBack) {
 TEST(CompilerTest, AFrameWiderThanTheFieldThatReservesIt) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun wide(): Int32 {
-      val buf: Int32[5000]
+      val &buf: Int32[5000]
       &buf[0] = 7
       &buf[4999] = 11
 
@@ -1821,16 +1821,16 @@ TEST(CompilerTest, TenValuesCrossABranch) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
       val a: Int32 = 1
-      val v0: Int32 = 1
-      val v1: Int32 = 2
-      val v2: Int32 = 3
-      val v3: Int32 = 4
-      val v4: Int32 = 5
-      val v5: Int32 = 6
-      val v6: Int32 = 7
-      val v7: Int32 = 8
-      val v8: Int32 = 9
-      val v9: Int32 = 10
+      val &v0: Int32 = 1
+      val &v1: Int32 = 2
+      val &v2: Int32 = 3
+      val &v3: Int32 = 4
+      val &v4: Int32 = 5
+      val &v5: Int32 = 6
+      val &v6: Int32 = 7
+      val &v7: Int32 = 8
+      val &v8: Int32 = 9
+      val &v9: Int32 = 10
       # Every one of them is written on both sides, so every one has a phi
       # function where the sides meet.
       if a == 1 {
@@ -1868,9 +1868,9 @@ TEST(CompilerTest, TenValuesCrossABranch) {
 TEST(CompilerTest, ValuesThatTradePlacesAroundALoop) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      val a: Int32 = 1
-      val b: Int32 = 2
-      val i: Int32 = 0
+      val &a: Int32 = 1
+      val &b: Int32 = 2
+      val &i: Int32 = 0
       loop {
         if i >= 5 {
           break
@@ -1890,10 +1890,10 @@ TEST(CompilerTest, ValuesThatTradePlacesAroundALoop) {
 TEST(CompilerTest, ValuesThatMoveAroundALoopInACircle) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      val a: Int32 = 1
-      val b: Int32 = 2
-      val c: Int32 = 3
-      val i: Int32 = 0
+      val &a: Int32 = 1
+      val &b: Int32 = 2
+      val &c: Int32 = 3
+      val &i: Int32 = 0
       loop {
         if i >= 4 {
           break
@@ -1917,19 +1917,19 @@ TEST(CompilerTest, ValuesThatMoveAroundALoopInACircle) {
 TEST(CompilerTest, MoreValuesCarriedAroundALoopThanThereAreRegisters) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {
-      val c0: Int32 = 0
-      val c1: Int32 = 0
-      val c2: Int32 = 0
-      val c3: Int32 = 0
-      val c4: Int32 = 0
-      val c5: Int32 = 0
-      val c6: Int32 = 0
-      val c7: Int32 = 0
-      val c8: Int32 = 0
-      val c9: Int32 = 0
-      val c10: Int32 = 0
-      val c11: Int32 = 0
-      val i: Int32 = 0
+      val &c0: Int32 = 0
+      val &c1: Int32 = 0
+      val &c2: Int32 = 0
+      val &c3: Int32 = 0
+      val &c4: Int32 = 0
+      val &c5: Int32 = 0
+      val &c6: Int32 = 0
+      val &c7: Int32 = 0
+      val &c8: Int32 = 0
+      val &c9: Int32 = 0
+      val &c10: Int32 = 0
+      val &c11: Int32 = 0
+      val &i: Int32 = 0
       loop {
         if i >= 3 {
           break

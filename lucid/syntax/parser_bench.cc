@@ -74,7 +74,7 @@ BENCHMARK(Comment) {
 
 BENCHMARK(Branches) {
   BenchmarkSnippet(state, R"(
-    fun gcd(a: Int32, b: Int32): Int32 {
+    fun gcd(&a: Int32, &b: Int32): Int32 {
       loop {
         if a == b {
           break

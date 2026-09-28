@@ -107,6 +107,10 @@ class AstPrinter {
       Out() << Indent(indent_) << ".name = \"" << syn_ctx_.DerefIdent(stmt.name)
             << "\"\n";
 
+      if (stmt.is_mutable) {
+        Out() << Indent(indent_) << ".is_mutable = true\n";
+      }
+
       if (stmt.init.has_value()) {
         Out() << Indent(indent_) << ".init = {\n";
         Nested([&] { PrintExpr(*stmt.init); });

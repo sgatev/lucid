@@ -56,7 +56,7 @@ BENCHMARK(Tuple) {
 
 BENCHMARK(Lambda) {
   BenchmarkSnippet(state, R"(
-    fun sortByLength(ref names: List(String)): Void {
+    fun sortByLength(ref &names: List(String)): Void {
       sort(&names, (val a: String, val b: String): Bool {
         return a.len < b.len
       })

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "lucid/core/container/hash_map.h"
+#include "lucid/core/container/hash_set.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/context.h"
@@ -69,6 +70,7 @@ class NameResolver {
     for (const auto& param_ref : func_def_.params) {
       const auto& param = syn_ctx_.DerefParam(param_ref);
       scope_.Define(param.name, param.name);
+      if (param.is_mutable) MarkWritable(param.name);
     }
 
     ResolveBlock(func_def_.stmts);
@@ -84,6 +86,40 @@ class NameResolver {
 
   std::string NameOf(StringIndex::Ref name) {
     return std::string(syn_ctx_.DerefIdent(name));
+  }
+
+  // Records that what `name` now goes by may be written.
+  void MarkWritable(StringIndex::Ref name) { writable_.Insert(name); }
+
+  // Reports a write to a name whose declaration does not allow one.
+  //
+  // The `&` on a declaration is what says a write to it can happen, so one
+  // without it is written once where it is made and read from then on.
+  void CheckWritable(StringIndex::Ref name, StringIndex::Ref written_as) {
+    if (writable_.Contains(name)) return;
+
+    Fail("no '&' on the declaration of '" + NameOf(written_as) + "'");
+  }
+
+  // Returns the name at the foot of an assignment's target, which is the
+  // variable a write through it reaches. A target that does not stand on one
+  // is left to whatever else has something to say about it.
+  std::optional<StringIndex::Ref> RootOf(ExprRef expr_ref) {
+    const Expr* expr = &syn_ctx_.DerefExpr(expr_ref);
+    while (true) {
+      if (const auto* ident = std::get_if<IdentExpr>(expr)) {
+        return ident->name;
+      }
+      if (const auto* index = std::get_if<IndexExpr>(expr)) {
+        expr = &syn_ctx_.DerefExpr(index->base);
+        continue;
+      }
+      if (const auto* field = std::get_if<FieldAccessExpr>(expr)) {
+        expr = &syn_ctx_.DerefExpr(field->base);
+        continue;
+      }
+      return std::nullopt;
+    }
   }
 
   // Rewrites `name` to the declaration standing over it.
@@ -112,17 +148,32 @@ class NameResolver {
 
       const auto new_name = syn_ctx_.AddUniqueIdent();
       scope_.Define(var_decl_stmt->name, new_name);
+      if (var_decl_stmt->is_mutable) MarkWritable(new_name);
       var_decl_stmt->name = new_name;
     } else if (auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
       ResolveExpr(var_assign_stmt->expr);
+      const auto written_as = var_assign_stmt->name;
       ResolveUse(var_assign_stmt->name);
+      CheckWritable(var_assign_stmt->name, written_as);
     } else if (auto* array_assign_stmt = std::get_if<ArrayAssignStmt>(&stmt)) {
       ResolveExpr(array_assign_stmt->index);
       ResolveExpr(array_assign_stmt->expr);
+      const auto written_as = array_assign_stmt->name;
       ResolveUse(array_assign_stmt->name);
+      CheckWritable(array_assign_stmt->name, written_as);
     } else if (auto* field_assign_stmt = std::get_if<FieldAssignStmt>(&stmt)) {
+      // Read before the walk rewrites it, so that what is reported back is
+      // the name as it was written rather than the one it now goes by.
+      const auto written_as = RootOf(field_assign_stmt->base);
+
       ResolveExpr(field_assign_stmt->base);
       ResolveExpr(field_assign_stmt->expr);
+
+      // The write reaches through the target to the variable at its foot,
+      // which is the one whose declaration has to allow it.
+      if (const auto root = RootOf(field_assign_stmt->base); root.has_value()) {
+        CheckWritable(*root, written_as.value_or(*root));
+      }
     } else if (auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
       ResolveExpr(return_stmt->value);
     } else if (auto* do_stmt = std::get_if<DoStmt>(&stmt)) {
@@ -163,6 +214,11 @@ class NameResolver {
   SyntaxContext& syn_ctx_;
   FuncDefStmt& func_def_;
   Scope scope_;
+
+  // The names a write can reach, by what each goes by after resolving. A
+  // block that ends does not take its names out of here: they are unique to
+  // the declaration that made them, so nothing later goes by one of them.
+  HashSet<StringIndex::Ref> writable_;
 
   // How many loops the walk stands inside, which is what says whether a
   // `break` has one to leave.

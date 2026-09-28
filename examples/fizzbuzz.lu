@@ -20,7 +20,7 @@ fun printInt32(i: Int32): Int32 {
 }
 
 fun main(): Int32 {
-  val n: Int32 = 1
+  val &n: Int32 = 1
   loop {
     if n > 30 {
       break

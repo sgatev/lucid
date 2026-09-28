@@ -1058,7 +1058,7 @@ TEST(ParserTest, CompVarDecl) {
 
 TEST(ParserTest, VarAssignment) {
   std::string_view src = R"(
-    fun foo(n: Int32): Void {
+    fun foo(&n: Int32): Void {
       &n = 3
     }
   )";
@@ -1597,7 +1597,7 @@ TEST(ParserTest, VarDeclMissingInit) {
 
 TEST(ParserTest, VarAssignMissingValue) {
   std::string_view src = R"(
-    fun foo(n: Int32): Void {
+    fun foo(&n: Int32): Void {
       &n =
     }
   )";

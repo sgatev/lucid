@@ -268,8 +268,8 @@ TEST(ColoringTest, ColorsASingleReturn) {
 TEST(ColoringTest, ColorsBranches) {
   ExpectValidColoring(R"(
     fun main(): Int32 {
-      val a: Int32 = 12
-      val b: Int32 = 8
+      val &a: Int32 = 12
+      val &b: Int32 = 8
       loop {
         if a == b {
           break
@@ -291,7 +291,7 @@ TEST(ColoringTest, ColorsNestedBranches) {
   ExpectValidColoring(R"(
     fun main(): Int32 {
       val a: Int32 = 3
-      val v: Int32 = 0
+      val &v: Int32 = 0
       if a == 3 {
         if a == 2 {
           if a == 1 { &v = 1 } else { &v = 2 }

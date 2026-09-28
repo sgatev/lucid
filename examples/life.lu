@@ -7,16 +7,16 @@ fun sleep(n: Int32): Int32 {
 }
 
 fun main(): Int32 {
-  val current: Int32[200]
-  val next: Int32[200]
+  val &current: Int32[200]
+  val &next: Int32[200]
 
-  val i: Int32 = 0
+  val &i: Int32 = 0
   loop {
     if i == 10 {
       break
     }
 
-    val j: Int32 = 0
+    val &j: Int32 = 0
     loop {
       if j == 20 {
         break
@@ -37,7 +37,7 @@ fun main(): Int32 {
   &current[61] = 1
   &current[62] = 1
 
-  val f: Int32 = 0
+  val &f: Int32 = 0
   loop {
     if f == 29 {
       break
@@ -51,7 +51,7 @@ fun main(): Int32 {
         break
       }
 
-      val j: Int32 = 0
+      val &j: Int32 = 0
       loop {
         if j == 20 {
           break
@@ -77,7 +77,7 @@ fun main(): Int32 {
         break
       }
 
-      val j: Int32 = 0
+      val &j: Int32 = 0
       loop {
         if j == 20 {
           break
@@ -86,7 +86,7 @@ fun main(): Int32 {
         val y: Int32 = i * 20
         val z: Int32 = y + j
 
-        val neighbours: Int32 = 0
+        val &neighbours: Int32 = 0
         if i > 0 {
           if j < 19 {
             &neighbours = neighbours + current[z - 19]
@@ -134,7 +134,7 @@ fun main(): Int32 {
         break
       }
 
-      val j: Int32 = 0
+      val &j: Int32 = 0
       loop {
         if j == 20 {
           break

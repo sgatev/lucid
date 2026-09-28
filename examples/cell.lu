@@ -35,9 +35,9 @@ fun rule(a: Int32, b: Int32, c: Int32): Int32 {
 }
 
 fun main(): Int32 {
-  val buffer: Int32[101]
+  val &buffer: Int32[101]
 
-  val col: Int32 = 0
+  val &col: Int32 = 0
   loop {
     if col == 101 {
       break
@@ -49,13 +49,13 @@ fun main(): Int32 {
   }
   &buffer[51] = 1
 
-  val row: Int32 = 0
+  val &row: Int32 = 0
   loop {
     if row == 48 {
       break
     }
 
-    val col: Int32 = 0
+    val &col: Int32 = 0
     loop {
       if col == 101 {
         break
@@ -71,7 +71,7 @@ fun main(): Int32 {
     }
     do printString("\n")
 
-    val prev: Int32 = buffer[0]
+    val &prev: Int32 = buffer[0]
     &col = 1
     loop {
       if col == 100 {
