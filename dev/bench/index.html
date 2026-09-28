@@ -221,6 +221,64 @@
         font-size: 0.875rem;
         font-weight: 600;
         word-break: break-word;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .chart h3 .rate {
+        color: var(--text-dim);
+        font-weight: 400;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      /* The throughput of each stage of the pipeline, side by side */
+      .stages {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 16px;
+        background: var(--surface);
+        margin-bottom: 24px;
+      }
+
+      .stages h2 {
+        margin: 0 0 4px;
+        font-size: 0.9375rem;
+      }
+
+      .stages p {
+        margin: 0 0 12px;
+        color: var(--text-dim);
+        font-size: 0.8125rem;
+      }
+
+      .stages ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: max-content max-content 1fr;
+        align-items: center;
+        gap: 6px 12px;
+      }
+
+      .stages .name {
+        font-size: 0.8125rem;
+      }
+
+      .stages .rate {
+        font-size: 0.8125rem;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      .stages .bar {
+        height: 10px;
+        border-radius: 2px;
+        background: var(--accent);
+        min-width: 2px;
       }
 
       .chart .canvas-box {
@@ -312,11 +370,19 @@
             what keeps a change in the line proportional to the change in the
             work.
           </dd>
+          <dt>Throughput</dt>
+          <dd>
+            Megabytes of source a second, beside the name of every benchmark
+            that counts the bytes it reads, and gathered at the top of the
+            page for each stage of the pipeline. A time cannot be compared
+            between two benchmarks that read different amounts, which is what
+            a rate is for.
+          </dd>
           <dt>Hovering</dt>
           <dd>
             Shows the commit that was measured and its message, how many
-            iterations the measurement averages over, and, for a benchmark that
-            counts the bytes it gets through, its throughput.
+            iterations the measurement averages over, and the throughput of
+            that commit rather than of the newest one.
           </dd>
           <dt>A jump with no change behind it</dt>
           <dd>
@@ -346,7 +412,9 @@
         <div id="nav-groups"></div>
       </nav>
 
-      <main id="main"></main>
+      <main id="main">
+        <div id="stages" class="stages" hidden></div>
+      </main>
     </div>
 
     <footer>
@@ -377,6 +445,31 @@
 
         Chart.defaults.global.defaultFontColor = textColor;
         Chart.defaults.global.defaultFontSize = 11;
+
+        // The stages of the compiler, in the order a program goes through
+        // them, beside the binary whose benchmarks measure each. Taken from
+        // ARCHITECTURE.md; the stages with no benchmark of their own are not
+        // here.
+        const STAGES = [
+          ["lex", "lucid/syntax/lexer_bench"],
+          ["parse", "lucid/syntax/parser_bench"],
+          ["single assignment", "lucid/syntax/ssa_bench"],
+          ["abstract machine", "lucid/am/translator_bench"],
+          ["allocate registers", "lucid/am/reg_bench"],
+          ["arm64", "lucid/arm64/translator_bench"],
+        ];
+
+        // How fast a benchmark got through what it read, which the runner
+        // writes beside the measurement for the benchmarks that count the
+        // bytes. One that does not count them has no rate.
+        function rateOf(bench) {
+          const found = /([0-9.]+)MB\/s/.exec(bench.extra || "");
+          return found === null ? null : Number(found[1]);
+        }
+
+        function formatRate(rate) {
+          return (rate >= 100 ? rate.toFixed(0) : rate.toFixed(1)) + " MB/s";
+        }
 
         // Turns the recorded entries into one series per benchmark, keeping
         // the points in the order they were measured.
@@ -506,6 +599,73 @@
           });
         }
 
+        // Writes what each stage of the pipeline got through on the newest
+        // commit, one beside the next.
+        //
+        // The slowest benchmark of a stage is the one shown, because the
+        // question this answers is which stage costs the most to get a byte
+        // of source through, and the slowest is the honest answer to that.
+        // Times cannot be compared between benchmarks that read different
+        // amounts; rates can, which is what this section is for.
+        function renderStages(groups) {
+          const rows = [];
+          for (const [name, group] of STAGES) {
+            const members = groups.get(group);
+            if (members === undefined) continue;
+
+            let slowest = null;
+            for (const series of members) {
+              const newest = series.points[series.points.length - 1];
+              if (newest === undefined) continue;
+
+              const rate = rateOf(newest.bench);
+              if (rate === null) continue;
+              if (slowest === null || rate < slowest.rate) {
+                slowest = { rate, label: series.label, id: series.id };
+              }
+            }
+            if (slowest !== null) rows.push({ name, ...slowest });
+          }
+          if (rows.length === 0) return;
+
+          const section = document.getElementById("stages");
+          section.hidden = false;
+
+          const title = document.createElement("h2");
+          title.textContent = "Throughput by stage";
+          section.appendChild(title);
+
+          const note = document.createElement("p");
+          note.textContent =
+            "The slowest benchmark of each stage on the newest commit, in " +
+            "the order a program goes through them.";
+          section.appendChild(note);
+
+          const widest = Math.max(...rows.map((row) => row.rate));
+          const list = document.createElement("ol");
+          for (const row of rows) {
+            const name = document.createElement("a");
+            name.className = "name";
+            name.href = "#" + row.id;
+            name.textContent = row.name;
+            name.title = row.label;
+            list.appendChild(name);
+
+            const rate = document.createElement("span");
+            rate.className = "rate";
+            rate.textContent = formatRate(row.rate);
+            list.appendChild(rate);
+
+            const track = document.createElement("div");
+            const bar = document.createElement("div");
+            bar.className = "bar";
+            bar.style.width = (row.rate / widest) * 100 + "%";
+            track.appendChild(bar);
+            list.appendChild(track);
+          }
+          section.appendChild(list);
+        }
+
         // Builds the menu and the charts, and returns the elements that the
         // filter and the scroll tracking work over.
         function render(groups) {
@@ -548,7 +708,18 @@
               charts.appendChild(card);
 
               const heading = document.createElement("h3");
-              heading.textContent = series.label;
+              heading.appendChild(document.createTextNode(series.label));
+
+              // What the newest commit got through, so that the rate is
+              // there without hovering over the chart for it.
+              const newest = series.points[series.points.length - 1];
+              const rate = newest === undefined ? null : rateOf(newest.bench);
+              if (rate !== null) {
+                const badge = document.createElement("span");
+                badge.className = "rate";
+                badge.textContent = formatRate(rate);
+                heading.appendChild(badge);
+              }
               card.appendChild(heading);
 
               const box = document.createElement("div");
@@ -720,7 +891,10 @@
         const series = collectSeries();
         renderHeader(series.length);
 
-        const { cards } = render(groupSeries(series));
+        const groups = groupSeries(series);
+        renderStages(groups);
+
+        const { cards } = render(groups);
         const draw = drawWhenVisible(cards);
         trackCurrent(cards);
         filterOn(cards, draw);
