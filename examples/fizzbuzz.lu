@@ -20,7 +20,7 @@ fun printInt32(i: Int32): Int32 {
 }
 
 fun main(): Int32 {
-  val &n: Int32 = 1
+  mut val n: Int32 = 1
   loop {
     if n > 30 {
       break
@@ -37,7 +37,7 @@ fun main(): Int32 {
     }
     do printString("\n")
 
-    &n = n + 1
+    mut n = n + 1
   }
   return 0
 }

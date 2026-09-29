@@ -51,14 +51,14 @@ POSIX ones, interpreted when the string is written into the program:
 | `\n` | newline | | | |
 
 **Punctuation** is `=` `(` `)` `{` `}` `[` `]` `:` `,` `+` `-` `*` `/` `%` `>` `<` `.`
-`|` `!` `&`. The operators `==`, `!=`, `>=` and `<=` are written as their first
+`|` `!`. The operators `==`, `!=`, `>=` and `<=` are written as their first
 character followed immediately by `=`, with no space between them.
 
-**Keywords** are not reserved. `fun`, `val`, `comp`, `if`, `else`, `loop`, `break`,
-`return`, `do`, `true` and `false` are ordinary identifiers that the parser recognises
-where a definition or a statement begins; `and` and `or` are ones it recognises where an
-operator would stand, between two expressions; and `Type` is recognised only in a type
-definition. Nothing stops a variable being called `loop`.
+**Keywords** are not reserved. `fun`, `val`, `mut`, `comp`, `if`, `else`, `loop`,
+`break`, `return`, `do`, `true` and `false` are ordinary identifiers that the parser
+recognises where a definition or a statement begins; `and` and `or` are ones it
+recognises where an operator would stand, between two expressions; and `Type` is
+recognised only in a type definition. Nothing stops a variable being called `loop`.
 
 ## Types
 
@@ -98,17 +98,18 @@ val Name: Type = (field: Type, …)
 ```
 
 A function takes zero or more parameters, always names its result type, and has a body in
-braces. **An `&` before a parameter's name says the body may write to it**, as it does on
-a declaration. Nothing is passed by reference, so a write reaches the function's own copy
-and the caller never sees it; the mark is what the signature says about the body.
+braces. **A `mut` before a parameter's name says the body may write to it**, as it does
+on a declaration. Nothing is passed by reference, so a write reaches the function's own
+copy and the caller never sees it; the mark is what the signature says about the body.
 
 ```
-fun gcd(&a: Int32, &b: Int32): Int32 { … }
+fun gcd(mut a: Int32, mut b: Int32): Int32 { … }
 ```
 
-A tuple's fields take no `&`: a field is not a binding anything writes through, and what
-allows a write to one is the `&` on the variable holding the tuple. `comp` on a function means it may be called while the program is being compiled;
-see [Compile-time evaluation](#compile-time-evaluation).
+A tuple's fields take no `mut`: a field is not a binding anything writes through, and
+what allows a write to one is the `mut` on the variable holding the tuple. `comp` on a
+function means it may be called while the program is being compiled; see
+[Compile-time evaluation](#compile-time-evaluation).
 
 Commas between parameters are optional. `fun f(a: Int32 b: Int32)` parses exactly as the
 version with a comma, which is a looseness in the parser rather than a style to rely on.
@@ -121,47 +122,51 @@ indeterminate value.
 
 ```
 val n: Int32 = 21
-val &total: Int32 = 0
-val &buffer: Int32[101]
+mut val total: Int32 = 0
+mut val buffer: Int32[101]
 ```
 
-**An `&` before the name says a write can reach it.** A declaration without one is
-written where it is made and read from then on; assigning to it is rejected, and so is
-assigning through it to an element or a field. The mark is the same one every write
-carries, so wherever `&` appears it says the same thing: *this can be written*.
+**A `mut` before the declaration says a write can reach what it introduces.** A
+declaration without one is written where it is made and read from then on; assigning to
+it is rejected, and so is assigning through it to an element or a field. The mark is the
+same one every write carries, so wherever `mut` appears it says the same thing: *this can
+be written*.
 
 ```
 val n: Int32 = 21
-&n = 22                 # ERROR: no '&' on the declaration of 'n'
+mut n = 22              # ERROR: no 'mut' on the declaration of 'n'
 ```
 
-A `comp val` is a value worked out while the program is compiled, so it takes no `&`
-and cannot be written.
+A `comp val` is worked out while the program is compiled. `comp mut val` initialises it
+that way and then lets writes reach it, which makes what it holds from that point on a
+matter for when the program runs; so no other `comp val` can be worked out from one, and
+reading it in a comp expression is rejected. A `comp val` without the mark cannot be
+written, and other comp values can be worked out from it.
 
 A declaration holds from where it is made to the end of the block holding it, and a
 block is what braces enclose: a function's body, either side of an `if`, a loop's body.
 A declaration inside a block is gone after it, and one that repeats a name already
 declared stands over the earlier one for as long as its own block lasts.
 
-**Assignment** is marked with a leading `&`, the same mark the declaration of what it
+**Assignment** is marked with a leading `mut`, the same mark the declaration of what it
 writes carries. It assigns to a variable, to an array element, or to a field:
 
 ```
-&n = n + 1
-&buffer[col] = 0
-&p.x = 3
+mut n = n + 1
+mut buffer[col] = 0
+mut p.x = 3
 ```
 
 A target reaches through as many steps as it needs, so long as the last of them is a
 field rather than an index:
 
 ```
-&ps[i].x = 3
-&q.p.x = 5
+mut ps[i].x = 3
+mut q.p.x = 5
 ```
 
 What the write reaches is the variable at the foot of the target, and that is the
-declaration whose `&` allows it: `&ps[i].x = 3` needs `val &ps`.
+declaration whose `mut` allows it: `mut ps[i].x = 3` needs `mut val ps`.
 
 **Conditionals** take an expression of type `Bool`, with no parentheses around it. `else`
 takes either a block or another `if`.
@@ -170,9 +175,9 @@ takes either a block or another `if`.
 if a == b {
   break
 } else if a > b {
-  &a = a - b
+  mut a = a - b
 } else {
-  &b = b - a
+  mut b = b - a
 }
 ```
 
@@ -286,8 +291,8 @@ worth the name.
   instructions here reserves. The stack a program is given runs out well before that.
 - **An array or a tuple cannot be a parameter or a result.** Both live on the stack, and
   nothing lays one out on either side of a call. This is reported rather than attempted.
-- **An assignment cannot end in an index into something reached through.** `&r.v[0] = 1`
-  is rejected where `&r.v = …` would not be, because the statement that assigns through
+- **An assignment cannot end in an index into something reached through.** `mut r.v[0] = 1`
+  is rejected where `mut r.v = …` would not be, because the statement that assigns through
   an index names its array rather than holding an expression for it.
 - **Characters outside the token set are skipped silently.** A stray `@` in a function
   body is ignored as though it were a comment.

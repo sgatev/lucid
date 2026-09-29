@@ -73,7 +73,10 @@ class Lexer {
   }();
 
   static constexpr std::array<Token::Kind, 256> kTokenKindMap = []() consteval {
-    std::array<Token::Kind, 256> map = {Token::Kind::End};
+    // A byte the language has no use for is an error rather than something
+    // passed over, so that source holding one is rejected where it stands.
+    std::array<Token::Kind, 256> map;
+    map.fill(Token::Kind::Error);
     map['='] = Token::Kind::Equal;
     map['('] = Token::Kind::OpenParen;
     map[')'] = Token::Kind::CloseParen;
@@ -95,7 +98,6 @@ class Lexer {
     map['#'] = Token::Kind::Comment;
     map['"'] = Token::Kind::String;
     map['%'] = Token::Kind::Percent;
-    map['&'] = Token::Kind::Ampersand;
     map[' '] = Token::Kind::Space;
     map['\t'] = Token::Kind::Space;
     map['\n'] = Token::Kind::Space;

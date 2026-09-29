@@ -36,6 +36,7 @@ TEST(Test, FindColumnWorks) {
   EXPECT_EQ(FindColumn("foo", Token(Token::Kind::Ident, 0, 3)), 1);
   EXPECT_EQ(FindColumn("foo\nbar", Token(Token::Kind::Ident, 4, 7)), 1);
   EXPECT_EQ(FindColumn("foo\nlet = bar", Token(Token::Kind::Ident, 10, 13)), 7);
+  EXPECT_EQ(FindColumn("let = bar", Token(Token::Kind::Ident, 6, 9)), 7);
 }
 
 }  // namespace

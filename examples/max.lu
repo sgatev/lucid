@@ -1,7 +1,7 @@
 comp fun max(a: Int32, b: Int32): Int32 {
-  val &m: Int32 = a
+  mut val m: Int32 = a
   if b > m {
-    &m = b
+    mut m = b
   }
   return m
 }

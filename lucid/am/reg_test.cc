@@ -86,7 +86,7 @@ std::string ManyParameters(int count) {
 std::string BranchingValues(int crossing, int inside) {
   std::string code = "fun main(): Int32 {\n  val a: Int32 = 1\n";
   for (int i = 0; i < crossing; ++i) {
-    code += std::format("  val v{}: Int32 = {}\n", i, i + 1);
+    code += std::format("  mut val v{}: Int32 = {}\n", i, i + 1);
   }
 
   code += "  if a == 1 {\n";
@@ -99,12 +99,12 @@ std::string BranchingValues(int crossing, int inside) {
       code += std::format("    val t{}: Int32 = t{} + w{}\n", i, i - 1, i);
     }
     for (int i = 0; i < crossing; ++i) {
-      code += std::format("    &v{} = v{} + t{}\n", i, i, inside - 1);
+      code += std::format("    mut v{} = v{} + t{}\n", i, i, inside - 1);
     }
   }
   code += "  } else {\n";
   for (int i = 0; i < crossing; ++i) {
-    code += std::format("    &v{} = v{} - 1\n", i, i);
+    code += std::format("    mut v{} = v{} - 1\n", i, i);
   }
   code += "  }\n";
 
@@ -120,16 +120,16 @@ std::string BranchingValues(int crossing, int inside) {
 // that each has a phi function where the loop is entered, taking one value
 // from before it and one from the turn before.
 std::string LoopCarriedValues(int carried) {
-  std::string code = "fun main(): Int32 {\n  val i: Int32 = 0\n";
+  std::string code = "fun main(): Int32 {\n  mut val i: Int32 = 0\n";
   for (int k = 0; k < carried; ++k) {
-    code += std::format("  val v{}: Int32 = {}\n", k, k);
+    code += std::format("  mut val v{}: Int32 = {}\n", k, k);
   }
 
   code += "  loop {\n    if i == 3 {\n      break\n    }\n";
   for (int k = 0; k < carried; ++k) {
-    code += std::format("    &v{} = v{} + 1\n", k, k);
+    code += std::format("    mut v{} = v{} + 1\n", k, k);
   }
-  code += "    &i = i + 1\n  }\n";
+  code += "    mut i = i + 1\n  }\n";
 
   code += "  val s0: Int32 = v0\n";
   for (int k = 1; k < carried; ++k) {
@@ -268,16 +268,16 @@ TEST(ColoringTest, ColorsASingleReturn) {
 TEST(ColoringTest, ColorsBranches) {
   ExpectValidColoring(R"(
     fun main(): Int32 {
-      val &a: Int32 = 12
-      val &b: Int32 = 8
+      mut val a: Int32 = 12
+      mut val b: Int32 = 8
       loop {
         if a == b {
           break
         }
         if a > b {
-          &a = a - b
+          mut a = a - b
         } else {
-          &b = b - a
+          mut b = b - a
         }
       }
       return a
@@ -291,18 +291,18 @@ TEST(ColoringTest, ColorsNestedBranches) {
   ExpectValidColoring(R"(
     fun main(): Int32 {
       val a: Int32 = 3
-      val &v: Int32 = 0
+      mut val v: Int32 = 0
       if a == 3 {
         if a == 2 {
-          if a == 1 { &v = 1 } else { &v = 2 }
+          if a == 1 { mut v = 1 } else { mut v = 2 }
         } else {
-          if a == 1 { &v = 3 } else { &v = 4 }
+          if a == 1 { mut v = 3 } else { mut v = 4 }
         }
       } else {
         if a == 2 {
-          if a == 1 { &v = 5 } else { &v = 6 }
+          if a == 1 { mut v = 5 } else { mut v = 6 }
         } else {
-          if a == 1 { &v = 7 } else { &v = 8 }
+          if a == 1 { mut v = 7 } else { mut v = 8 }
         }
       }
       return v

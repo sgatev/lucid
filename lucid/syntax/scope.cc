@@ -93,12 +93,12 @@ class NameResolver {
 
   // Reports a write to a name whose declaration does not allow one.
   //
-  // The `&` on a declaration is what says a write to it can happen, so one
+  // The `mut` on a declaration is what says a write to it can happen, so one
   // without it is written once where it is made and read from then on.
   void CheckWritable(StringIndex::Ref name, StringIndex::Ref written_as) {
     if (writable_.Contains(name)) return;
 
-    Fail("no '&' on the declaration of '" + NameOf(written_as) + "'");
+    Fail("no 'mut' on the declaration of '" + NameOf(written_as) + "'");
   }
 
   // Returns the name at the foot of an assignment's target, which is the

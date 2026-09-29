@@ -35,27 +35,27 @@ fun rule(a: Int32, b: Int32, c: Int32): Int32 {
 }
 
 fun main(): Int32 {
-  val &buffer: Int32[101]
+  mut val buffer: Int32[101]
 
-  val &col: Int32 = 0
+  mut val col: Int32 = 0
   loop {
     if col == 101 {
       break
     }
 
-    &buffer[col] = 0
+    mut buffer[col] = 0
 
-    &col = col + 1
+    mut col = col + 1
   }
-  &buffer[51] = 1
+  mut buffer[51] = 1
 
-  val &row: Int32 = 0
+  mut val row: Int32 = 0
   loop {
     if row == 48 {
       break
     }
 
-    val &col: Int32 = 0
+    mut val col: Int32 = 0
     loop {
       if col == 101 {
         break
@@ -67,25 +67,25 @@ fun main(): Int32 {
         do printString("*")
       }
 
-      &col = col + 1
+      mut col = col + 1
     }
     do printString("\n")
 
-    val &prev: Int32 = buffer[0]
-    &col = 1
+    mut val prev: Int32 = buffer[0]
+    mut col = 1
     loop {
       if col == 100 {
         break
       }
 
       val new: Int32 = rule(prev, buffer[col], buffer[col+1])
-      &prev = buffer[col]
-      &buffer[col] = new
+      mut prev = buffer[col]
+      mut buffer[col] = new
 
-      &col = col + 1
+      mut col = col + 1
     }
 
-    &row = row + 1
+    mut row = row + 1
   }
 
   return 0

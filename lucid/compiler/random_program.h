@@ -72,7 +72,7 @@ class RandomProgram {
   // The names a piece of the program can read, by what they hold, and the
   // ones a write can reach.
   //
-  // A declaration says with an `&` whether it may be written, so what is
+  // A declaration says with a `mut` whether it may be written, so what is
   // written has to be chosen from among the ones that said so. Not every
   // declaration says it, which is what keeps the other kind in the programs
   // as well.
@@ -197,9 +197,9 @@ class RandomProgram {
         // `Bool` alive far enough to want a register.
         const Cond cond = Boolean(scope, depth - 1);
         const std::string name = Name();
-        Line(pending_depth_, std::format("val &{}: Int32 = 0", name));
+        Line(pending_depth_, std::format("mut val {}: Int32 = 0", name));
         Line(pending_depth_, std::format("if {} {{", cond.text));
-        Line(pending_depth_ + 1, std::format("&{} = 1", name));
+        Line(pending_depth_ + 1, std::format("mut {} = 1", name));
         Line(pending_depth_, "}");
         numbers_.Set(name, cond.holds ? 1 : 0);
         return {.text = name, .number = cond.holds ? 1 : 0};
@@ -255,8 +255,8 @@ class RandomProgram {
     const Value value = Number(scope, 2);
     const std::string name = Name();
     const bool writable = Chance(0.6);
-    Line(depth, std::format("val {}{}: Int32 = {}", writable ? "&" : "", name,
-                            value.text));
+    Line(depth, std::format("{}val {}: Int32 = {}", writable ? "mut " : "",
+                            name, value.text));
     numbers_.Set(name, value.number);
     scope.numbers.push_back(name);
     if (writable) scope.writable.push_back(name);
@@ -286,7 +286,7 @@ class RandomProgram {
         pending_depth_ = depth;
         const std::string target = Any(scope.writable);
         const Value value = Number(scope, 2);
-        Line(depth, std::format("&{} = {}", target, value.text));
+        Line(depth, std::format("mut {} = {}", target, value.text));
         numbers_.Set(target, value.number);
       } else if (!scope.numbers.empty() && Chance(0.6)) {
         Branch(depth, scope);
@@ -311,7 +311,7 @@ class RandomProgram {
     for (const std::string& name : scope.writable) {
       if (!Chance(0.5)) continue;
 
-      Line(depth + 1, std::format("&{} = {} + 1", name, name));
+      Line(depth + 1, std::format("mut {} = {} + 1", name, name));
       then_writes.emplace_back(name,
                                Narrow(std::int64_t{*numbers_.Get(name)} + 1));
     }
@@ -319,7 +319,7 @@ class RandomProgram {
     for (const std::string& name : scope.writable) {
       if (!Chance(0.5)) continue;
 
-      Line(depth + 1, std::format("&{} = {} - 1", name, name));
+      Line(depth + 1, std::format("mut {} = {} - 1", name, name));
       else_writes.emplace_back(name,
                                Narrow(std::int64_t{*numbers_.Get(name)} - 1));
     }
@@ -335,7 +335,7 @@ class RandomProgram {
   void Loop(int depth, Scope& scope) {
     const std::string counter = Name();
     const int turns = Between(1, 3);
-    Line(depth, std::format("val &{}: Int32 = 0", counter));
+    Line(depth, std::format("mut val {}: Int32 = 0", counter));
     numbers_.Set(counter, turns);
 
     Line(depth, "loop {");
@@ -346,11 +346,11 @@ class RandomProgram {
       if (!Chance(0.5)) continue;
 
       const int step = Between(1, 3);
-      Line(depth + 1, std::format("&{} = {} + {}", name, name, step));
+      Line(depth + 1, std::format("mut {} = {} + {}", name, name, step));
       numbers_.Set(name, Narrow(std::int64_t{*numbers_.Get(name)} +
                                 std::int64_t{step} * turns));
     }
-    Line(depth + 1, std::format("&{} = {} + 1", counter, counter));
+    Line(depth + 1, std::format("mut {} = {} + 1", counter, counter));
     Line(depth, "}");
     scope.numbers.push_back(counter);
     scope.writable.push_back(counter);
@@ -361,12 +361,12 @@ class RandomProgram {
   void Array(int depth, Scope& scope) {
     const std::string buffer = Name();
     const int size = Between(1, 40);
-    Line(depth, std::format("val &{}: Int32[{}]", buffer, size));
+    Line(depth, std::format("mut val {}: Int32[{}]", buffer, size));
 
     std::vector<std::int32_t> held(size);
     for (int i = 0; i < size; ++i) {
       held[i] = Between(0, 9);
-      Line(depth, std::format("&{}[{}] = {}", buffer, i, held[i]));
+      Line(depth, std::format("mut {}[{}] = {}", buffer, i, held[i]));
     }
 
     const int at = Between(0, size - 1);
@@ -381,13 +381,13 @@ class RandomProgram {
   void Tuples(int depth, Scope& scope) {
     const std::string points = Name();
     const int size = Between(1, 6);
-    Line(depth, std::format("val &{}: Point[{}]", points, size));
+    Line(depth, std::format("mut val {}: Point[{}]", points, size));
 
     std::vector<std::pair<std::int32_t, std::int32_t>> held(size);
     for (int i = 0; i < size; ++i) {
       held[i] = {Between(0, 9), Between(0, 9)};
-      Line(depth, std::format("&{}[{}].x = {}", points, i, held[i].first));
-      Line(depth, std::format("&{}[{}].y = {}", points, i, held[i].second));
+      Line(depth, std::format("mut {}[{}].x = {}", points, i, held[i].first));
+      Line(depth, std::format("mut {}[{}].y = {}", points, i, held[i].second));
     }
 
     const int at = Between(0, size - 1);
@@ -406,10 +406,10 @@ class RandomProgram {
     for (int i = 0; i < params; ++i) {
       if (i > 0) signature += ", ";
 
-      // Some of them the body may write, which is what the `&` on a
+      // Some of them the body may write, which is what the `mut` on a
       // parameter says, and some it may only read.
       const bool writable = Chance(0.5);
-      signature += std::format("{}p{}: Int32", writable ? "&" : "", i);
+      signature += std::format("{}p{}: Int32", writable ? "mut " : "", i);
 
       args.push_back(Between(0, 9));
       numbers_.Set(std::format("p{}", i), args.back());
@@ -471,11 +471,11 @@ class RandomProgram {
     // What every condition still live came to, counted in, so that a `Bool`
     // is worth holding on to as far as here.
     const std::string total = Name();
-    Line(1, std::format("val &{}: Int32 = {}", total, Sum(scope)));
+    Line(1, std::format("mut val {}: Int32 = {}", total, Sum(scope)));
     std::int64_t sum = SumOf(scope);
     for (const std::string& flag : scope.flags) {
       Line(1, std::format("if {} {{", flag));
-      Line(2, std::format("&{} = {} + 1", total, total));
+      Line(2, std::format("mut {} = {} + 1", total, total));
       Line(1, "}");
       if (*flags_.Get(flag)) ++sum;
     }

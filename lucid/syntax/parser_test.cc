@@ -1058,8 +1058,8 @@ TEST(ParserTest, CompVarDecl) {
 
 TEST(ParserTest, VarAssignment) {
   std::string_view src = R"(
-    fun foo(&n: Int32): Void {
-      &n = 3
+    fun foo(mut n: Int32): Void {
+      mut n = 3
     }
   )";
   EXPECT_THAT(
@@ -1597,8 +1597,8 @@ TEST(ParserTest, VarDeclMissingInit) {
 
 TEST(ParserTest, VarAssignMissingValue) {
   std::string_view src = R"(
-    fun foo(&n: Int32): Void {
-      &n =
+    fun foo(mut n: Int32): Void {
+      mut n =
     }
   )";
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 4, column 5"));

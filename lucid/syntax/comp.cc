@@ -110,7 +110,13 @@ std::expected<void, CompError> CheckCompVars(
     return CheckCompVars(comp_var_names, syn_ctx, loop_stmt->stmts);
   } else if (const auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
     if (var_decl_stmt->is_comp) {
-      comp_var_names.Insert(var_decl_stmt->name);
+      // A variable a write can reach holds whatever the write left in it
+      // rather than what was worked out during compilation, so only one that
+      // stays as it was initialized is a value another comp expression can
+      // be worked out from.
+      if (!var_decl_stmt->is_mutable) {
+        comp_var_names.Insert(var_decl_stmt->name);
+      }
       if (var_decl_stmt->init.has_value()) {
         return CheckCompExpr(comp_var_names, syn_ctx, *var_decl_stmt->init,
                              /*init_comp=*/true);

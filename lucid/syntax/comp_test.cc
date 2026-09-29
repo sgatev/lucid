@@ -193,5 +193,46 @@ TEST(CompCheckTest, CompVarDeclCompBoolLitInit) {
   EXPECT_TRUE(CheckComp(src).has_value());
 }
 
+// A comp value another comp value is worked out from has to be one that
+// stays as it was initialized.
+TEST(CompCheckTest, CompVarDeclReadByCompVarDecl) {
+  std::string_view src = R"(
+    fun test(): Int32 {
+      comp val x: Int32 = 21
+      comp val y: Int32 = x + 1
+      return y
+    }
+  )";
+
+  EXPECT_TRUE(CheckComp(src).has_value());
+}
+
+// A write can reach a `comp mut val` after it is initialized, so what it
+// holds is not known during compilation and no comp value can be worked out
+// from it.
+TEST(CompCheckTest, MutCompVarDeclReadByCompVarDecl) {
+  std::string_view src = R"(
+    fun test(): Int32 {
+      comp mut val x: Int32 = 21
+      comp val y: Int32 = x + 1
+      return y
+    }
+  )";
+
+  EXPECT_FALSE(CheckComp(src).has_value());
+}
+
+TEST(CompCheckTest, MutCompVarDeclCompIntLitInit) {
+  std::string_view src = R"(
+    fun test(): Int32 {
+      comp mut val x: Int32 = 21
+      mut x = x + 1
+      return x
+    }
+  )";
+
+  EXPECT_TRUE(CheckComp(src).has_value());
+}
+
 }  // namespace
 }  // namespace lucid
