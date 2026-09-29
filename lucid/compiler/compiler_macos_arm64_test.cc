@@ -203,8 +203,8 @@ TEST(CompilerTest, CompValueOfAString) {
     }
 
     fun main(): Int32 {
-      comp val a: String = pick(5)
-      comp val b: String = pick(0)
+      val a: String = comp pick(5)
+      val b: String = comp pick(0)
       do printString(a)
       do printString(b)
       return 0
@@ -232,9 +232,9 @@ TEST(CompilerTest, ShortCircuitInACompValue) {
     }
 
     fun main(): Int32 {
-      comp val both: Bool = t() and f()
-      comp val either: Bool = t() or f()
-      comp val mixed: Bool = n() > 3 and t()
+      val both: Bool = comp (t() and f())
+      val either: Bool = comp (t() or f())
+      val mixed: Bool = comp (n() > 3 and t())
       mut val count: Int32 = 0
       if both {
         mut count = count + 1
@@ -271,7 +271,7 @@ TEST(CompilerTest, ShortCircuitInsideACompFunction) {
     }
 
     fun main(): Int32 {
-      comp val c: Bool = both()
+      val c: Bool = comp both()
       if c {
         return 5
       }
@@ -512,11 +512,80 @@ TEST(CompilerTest, CompFunctionUsingAnArray) {
     }
 
     fun main(): Int32 {
-      comp val c: Int32 = squares(3)
+      val c: Int32 = comp squares(3)
       return c
     }
   )"));
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(9));
+}
+
+// A `comp` reaches one element, so a value worked out during compilation can
+// stand beside one that is not without a declaration between them.
+TEST(CompilerTest, CompExprBesideARuntimeValue) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun twenty(): Int32 {
+      return 20
+    }
+
+    fun main(): Int32 {
+      val n: Int32 = 1
+      return comp twenty() + n
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
+}
+
+// Parentheses are what give a `comp` more than one element to work on.
+TEST(CompilerTest, CompExprOverAGroup) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun twenty(): Int32 {
+      return 20
+    }
+
+    comp fun one(): Int32 {
+      return 1
+    }
+
+    fun main(): Int32 {
+      return comp (twenty() + one())
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
+}
+
+// Nothing has to be declared for a value to be worked out during compilation:
+// a `comp` stands where the expression it works out stands.
+TEST(CompilerTest, CompExprAsAnArgument) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun twenty(): Int32 {
+      return 20
+    }
+
+    fun plusOne(a: Int32): Int32 {
+      return a + 1
+    }
+
+    fun main(): Int32 {
+      return plusOne(comp twenty())
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
+}
+
+// A comp function is one that may be called during compilation rather than
+// one that has to be, and without a `comp` the call is made while the program
+// runs.
+TEST(CompilerTest, CompFunctionCalledWhileRunning) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun twentyOne(): Int32 {
+      return 21
+    }
+
+    fun main(): Int32 {
+      return twentyOne()
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
 TEST(CompilerTest, CompFunctionUsingATuple) {
@@ -531,7 +600,7 @@ TEST(CompilerTest, CompFunctionUsingATuple) {
     }
 
     fun main(): Int32 {
-      comp val c: Int32 = area()
+      val c: Int32 = comp area()
       return c
     }
   )"));
@@ -1433,8 +1502,8 @@ TEST(CompilerTest, Comp) {
     }
 
     fun main(): Int32 {
-      comp val round1: Int32 = max(21, 105)
-      comp val round2: Int32 = max(210, round1)
+      val round1: Int32 = comp max(21, 105)
+      val round2: Int32 = comp max(210, round1)
       return round2
     }
   )"));
@@ -1532,7 +1601,7 @@ TEST(CompilerTest, CompEvaluatesValuesTooLargeToCarry) {
     }
 
     fun main(): Int32 {
-      comp val big: Int32 = twice(40000)
+      val big: Int32 = comp twice(40000)
       return big - 79999
     }
   )"));
@@ -1547,7 +1616,7 @@ TEST(CompilerTest, CompEvaluatesNegativeValues) {
     }
 
     fun main(): Int32 {
-      comp val neg: Int32 = diff(1, 5)
+      val neg: Int32 = comp diff(1, 5)
       return neg + 9
     }
   )"));
@@ -1711,7 +1780,7 @@ TEST(CompilerTest, CompEvaluatesACallWithArgumentsOnTheStack) {
     }
 
     fun main(): Int32 {
-      comp val c: Int32 = total(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+      val c: Int32 = comp total(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
       return c
     }
   )"));

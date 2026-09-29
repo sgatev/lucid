@@ -95,7 +95,7 @@ TEST(CompilerTest, ReportsWritesToWhatIsNotMarked) {
           fun main(): Int32 { val ps: P[2] mut ps[0].x = 1 return ps[0].x })",
        "no 'mut' on the declaration of 'ps'"},
       {R"(comp fun two(): Int32 { return 2 }
-          fun main(): Int32 { comp val c: Int32 = two() mut c = 5 return c })",
+          fun main(): Int32 { val c: Int32 = comp two() mut c = 5 return c })",
        "no 'mut' on the declaration of 'c'"},
   };
 
@@ -118,7 +118,7 @@ TEST(CompilerTest, AllowsWritesToWhatIsMarked) {
          fun main(): Int32 { mut val p: P mut p.x = 7 return p.x })",
       R"(fun main(): Int32 { val n: Int32 = 7 return n })",
       R"(comp fun two(): Int32 { return 2 }
-         fun main(): Int32 { comp mut val c: Int32 = two() mut c = 7 return c })",
+         fun main(): Int32 { mut val c: Int32 = comp two() mut c = 7 return c })",
       R"(val P: Type = (x: Int32, y: Int32)
          fun main(): Int32 { mut val p: P mut p.x = 7 return p.x })",
   };

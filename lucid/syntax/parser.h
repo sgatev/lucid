@@ -311,7 +311,6 @@ class Parser {
             std::pair{"loop"sv, &Parser::ParseLoopStmt},
             std::pair{"if"sv, &Parser::ParseIfStmt},
             std::pair{"val"sv, &Parser::ParseValStmt},
-            std::pair{"comp"sv, &Parser::ParseCompStmt},
             std::pair{"mut"sv, &Parser::ParseMutStmt},
             std::pair{"break"sv, &Parser::ParseBreakStmt},
         },
@@ -362,26 +361,18 @@ class Parser {
     return if_stmt;
   }
 
-  std::expected<Stmt, ParserError> ParseCompStmt() {
-    const bool is_mutable = TakeIfWord("mut");
-    ReadIgnoringNonSemantic();
-    return ParseVal(/*is_comp=*/true, is_mutable);
-  }
-
   std::expected<Stmt, ParserError> ParseValStmt() {
-    return ParseVal(/*is_comp=*/false, /*is_mutable=*/false);
+    return ParseVal(/*is_mutable=*/false);
   }
 
   // Parses what a `mut` opens: a declaration where a `val` follows it, and
   // a write to a name already declared where anything else does.
   std::expected<Stmt, ParserError> ParseMutStmt() {
-    if (TakeIfWord("val")) {
-      return ParseVal(/*is_comp=*/false, /*is_mutable=*/true);
-    }
+    if (TakeIfWord("val")) return ParseVal(/*is_mutable=*/true);
     return ParseAssignStmt();
   }
 
-  std::expected<Stmt, ParserError> ParseVal(bool is_comp, bool is_mutable) {
+  std::expected<Stmt, ParserError> ParseVal(bool is_mutable) {
     ASSIGN_OR_RETURN(StringIndex::Ref name, ParseIdent());
     RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::Colon));
     ASSIGN_OR_RETURN(TypeRef type, ParseType());
@@ -397,7 +388,6 @@ class Parser {
         .name = name,
         .type_constraint = type,
         .init = init,
-        .is_comp = is_comp,
         .is_mutable = is_mutable,
     };
   }
@@ -619,6 +609,7 @@ class Parser {
       case Token::Kind::OpenParen:
         return ParseParenExpr();
       case Token::Kind::Ident:
+        if (TokenString(next_token) == "comp") return ParseCompExpr();
         return ParseExprStartingWithIdent(ParseIdent().value());
       case Token::Kind::Number:
         return ParseIntLitExpr();
@@ -630,6 +621,19 @@ class Parser {
         return std::unexpected(
             MakeError(ParserError::Kind::UnexpectedToken, next_token));
     }
+  }
+
+  // Parses `comp` and the expression it asks for the value of during
+  // compilation.
+  //
+  // It takes the one element that follows it, so that `comp f() + n` calls
+  // `f` during compilation and adds at run time. Parentheses are what reach
+  // further: `comp (f() + g())` asks for both.
+  std::expected<Expr, ParserError> ParseCompExpr() {
+    ReadIgnoringNonSemantic();
+    ASSIGN_OR_RETURN(Expr expr, ParseElement());
+    std::visit([](auto& e) { e.is_comp = true; }, expr);
+    return expr;
   }
 
   // Parses `!` and what it negates, which is the same as asking whether what

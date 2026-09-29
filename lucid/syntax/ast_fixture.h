@@ -117,10 +117,11 @@ struct LoopStmtPattern {
 struct IntLitExprPattern {
   TypeRefMatcher type;
   int value;
+  bool is_comp = false;
 
   bool operator()(const IntLitExpr& expr) const {
     if (type != nullptr && !type(expr.type)) return false;
-    return value == expr.value;
+    return value == expr.value && is_comp == expr.is_comp;
   }
 };
 

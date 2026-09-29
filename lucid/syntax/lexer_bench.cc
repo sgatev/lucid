@@ -85,7 +85,7 @@ BENCHMARK(Comment) {
 
 BENCHMARK(Number) {
   BenchmarkSnippet(state, R"(
-    comp val c: Int64 = sum(21738572173857, 3229017232290172)
+    val c: Int64 = comp sum(21738572173857, 3229017232290172)
   )");
 }
 

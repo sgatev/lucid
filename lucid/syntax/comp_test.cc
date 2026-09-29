@@ -148,7 +148,7 @@ TEST(CompCheckTest, CompVarDeclNonCompInit) {
     }
 
     fun test(): Int32 {
-      comp val x: Int32 = foo()
+      val x: Int32 = comp foo()
       return 0
     }
   )";
@@ -163,7 +163,7 @@ TEST(CompCheckTest, CompVarDeclCompFuncCallInit) {
     }
 
     fun test(): Int32 {
-      comp val x: Int32 = foo()
+      val x: Int32 = comp foo()
       return 0
     }
   )";
@@ -174,7 +174,7 @@ TEST(CompCheckTest, CompVarDeclCompFuncCallInit) {
 TEST(CompCheckTest, CompVarDeclCompIntLitInit) {
   std::string_view src = R"(
     fun test(): Int32 {
-      comp val x: Int32 = 21
+      val x: Int32 = comp 21
       return 0
     }
   )";
@@ -185,7 +185,7 @@ TEST(CompCheckTest, CompVarDeclCompIntLitInit) {
 TEST(CompCheckTest, CompVarDeclCompBoolLitInit) {
   std::string_view src = R"(
     fun test(): Int32 {
-      comp val x: Bool = true
+      val x: Bool = comp true
       return 0
     }
   )";
@@ -198,8 +198,8 @@ TEST(CompCheckTest, CompVarDeclCompBoolLitInit) {
 TEST(CompCheckTest, CompVarDeclReadByCompVarDecl) {
   std::string_view src = R"(
     fun test(): Int32 {
-      comp val x: Int32 = 21
-      comp val y: Int32 = x + 1
+      val x: Int32 = comp 21
+      val y: Int32 = comp (x + 1)
       return y
     }
   )";
@@ -207,14 +207,13 @@ TEST(CompCheckTest, CompVarDeclReadByCompVarDecl) {
   EXPECT_TRUE(CheckComp(src).has_value());
 }
 
-// A write can reach a `comp mut val` after it is initialized, so what it
-// holds is not known during compilation and no comp value can be worked out
-// from it.
+// A write can reach a variable marked `mut` after it is initialized, so what
+// it holds is not known during compilation however it was initialized.
 TEST(CompCheckTest, MutCompVarDeclReadByCompVarDecl) {
   std::string_view src = R"(
     fun test(): Int32 {
-      comp mut val x: Int32 = 21
-      comp val y: Int32 = x + 1
+      mut val x: Int32 = comp 21
+      val y: Int32 = comp (x + 1)
       return y
     }
   )";
@@ -222,16 +221,100 @@ TEST(CompCheckTest, MutCompVarDeclReadByCompVarDecl) {
   EXPECT_FALSE(CheckComp(src).has_value());
 }
 
+// Initializing a variable during compilation says nothing about what may be
+// done to it afterwards.
 TEST(CompCheckTest, MutCompVarDeclCompIntLitInit) {
   std::string_view src = R"(
     fun test(): Int32 {
-      comp mut val x: Int32 = 21
+      mut val x: Int32 = comp 21
       mut x = x + 1
       return x
     }
   )";
 
   EXPECT_TRUE(CheckComp(src).has_value());
+}
+
+// A variable whose initializer is only partly worked out during compilation
+// does not hold what compilation worked out, so nothing can be read from it
+// there.
+TEST(CompCheckTest, PartlyCompVarDeclReadByCompVarDecl) {
+  std::string_view src = R"(
+    comp fun foo(): Int32 {
+      return 0
+    }
+
+    fun test(n: Int32): Int32 {
+      val x: Int32 = comp foo() + n
+      val y: Int32 = comp (x + 1)
+      return y
+    }
+  )";
+
+  EXPECT_FALSE(CheckComp(src).has_value());
+}
+
+// A `comp` reaches one element, so what stands beside it is left for when the
+// program runs and may read whatever is in scope.
+TEST(CompCheckTest, CompExprBesideARuntimeValue) {
+  std::string_view src = R"(
+    comp fun foo(): Int32 {
+      return 0
+    }
+
+    fun test(n: Int32): Int32 {
+      return comp foo() + n
+    }
+  )";
+
+  EXPECT_TRUE(CheckComp(src).has_value());
+}
+
+// A `comp` needs no declaration to stand on any more.
+TEST(CompCheckTest, CompExprInReturn) {
+  std::string_view src = R"(
+    comp fun foo(): Int32 {
+      return 0
+    }
+
+    fun test(): Int32 {
+      return comp foo()
+    }
+  )";
+
+  EXPECT_TRUE(CheckComp(src).has_value());
+}
+
+// A comp function called without a `comp` on the call is called while the
+// program runs, like any other.
+TEST(CompCheckTest, CompFuncCalledWithoutComp) {
+  std::string_view src = R"(
+    comp fun foo(): Int32 {
+      return 0
+    }
+
+    fun test(): Int32 {
+      return foo()
+    }
+  )";
+
+  EXPECT_TRUE(CheckComp(src).has_value());
+}
+
+// What a `comp` expression calls has to be a comp function wherever the
+// expression stands.
+TEST(CompCheckTest, CompExprCallingNonCompFunc) {
+  std::string_view src = R"(
+    fun foo(): Int32 {
+      return 0
+    }
+
+    fun test(): Int32 {
+      return comp foo()
+    }
+  )";
+
+  EXPECT_FALSE(CheckComp(src).has_value());
 }
 
 }  // namespace

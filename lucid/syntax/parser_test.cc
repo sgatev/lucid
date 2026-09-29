@@ -1019,10 +1019,13 @@ TEST(ParserTest, VarDecl) {
       })));
 }
 
-TEST(ParserTest, CompVarDecl) {
+// A `comp` stands on the expression, so that is where the parser leaves it.
+// Whether the variable holds what compilation worked out is settled later,
+// by reading the initializer back.
+TEST(ParserTest, CompExprInVarDecl) {
   std::string_view src = R"(
     fun inc(n: Int32): Int32 {
-      comp val m: Int32 = 1
+      val m: Int32 = comp 1
       return n + m
     }
   )";
@@ -1042,8 +1045,7 @@ TEST(ParserTest, CompVarDecl) {
               MatchesVarDeclStmt({
                   .name = I("m"),
                   .type_constraint = MatchesBasicType({.name = I("Int32")}),
-                  .init = MatchesIntLitExpr({.value = 1}),
-                  .is_comp = true,
+                  .init = MatchesIntLitExpr({.value = 1, .is_comp = true}),
               }),
               MatchesReturnStmt({
                   .value = MatchesBinaryOpExpr({

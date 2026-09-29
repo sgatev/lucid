@@ -137,12 +137,6 @@ val n: Int32 = 21
 mut n = 22              # ERROR: no 'mut' on the declaration of 'n'
 ```
 
-A `comp val` is worked out while the program is compiled. `comp mut val` initialises it
-that way and then lets writes reach it, which makes what it holds from that point on a
-matter for when the program runs; so no other `comp val` can be worked out from one, and
-reading it in a comp expression is rejected. A `comp val` without the mark cannot be
-written, and other comp values can be worked out from it.
-
 A declaration holds from where it is made to the end of the block holding it, and a
 block is what braces enclose: a function's body, either side of an `if`, a loop's body.
 A declaration inside a block is gone after it, and one that repeats a name already
@@ -204,6 +198,11 @@ how a function is called when its result is not wanted.
 
 All of them are binary and all associate to the left, so `a - b - c` is `(a - b) - c`.
 
+`!` and `comp` stand before one element rather than between two, and reach no further
+than that element: `!a == b` compares what `!a` came to, and `comp f() * 2` works out
+the call during compilation and multiplies while the program runs. Parentheses are what
+give either of them more to work on.
+
 **Parentheses group.** What they hold is parsed on its own and binds tighter than
 whatever surrounds it, so `(a + b) * c` multiplies the sum where `a + b * c` adds the
 product. They leave nothing of themselves behind: `(((7)))` is the literal `7`.
@@ -254,15 +253,37 @@ comp fun square(n: Int32): Int32 {
 }
 
 fun main(): Int32 {
-  comp val c: Int32 = square(21)
-  return c
+  return comp square(21)
 }
 ```
 
-A `comp val`'s initialiser is evaluated during compilation, and two rules govern what may
-appear in it: every function it calls must be a `comp fun`, and every identifier it reads
-must be another `comp val`. A `comp fun` may not contain a `do` statement, since its body
-has to be evaluable with nothing to have an effect on.
+**`comp` stands on an expression**, and asks for that expression's value to be worked out
+during compilation. It takes the one element that follows it, so parentheses are what
+reach further:
+
+```
+val a: Int32 = comp square(21)        # the call is made during compilation
+val b: Int32 = comp square(21) + n    # the call is, the addition is not
+val c: Int32 = comp (f() + g())       # both calls and the addition are
+```
+
+Two rules govern what may appear inside a `comp` expression: every function it calls must
+be a `comp fun`, and every identifier it reads must hold a value that compilation worked
+out. **A variable holds one when the whole of what initialises it is a `comp` expression
+and no `mut` allows a write to it**, which is not written down anywhere — it is read off
+the declaration:
+
+```
+val x: Int32 = comp square(4)
+val y: Int32 = comp (x + 1)           # x holds 16, worked out during compilation
+
+mut val z: Int32 = comp square(4)
+val w: Int32 = comp (z + 1)           # ERROR: a write can reach z
+```
+
+A `comp fun` may not contain a `do` statement, since its body has to be evaluable with
+nothing to have an effect on. It is a capability rather than an obligation: a `comp fun`
+called without a `comp` on the call is called while the program runs, like any other.
 
 ## Built-in functions
 

@@ -7,7 +7,7 @@ comp fun max(a: Int32, b: Int32): Int32 {
 }
 
 fun main(): Int32 {
-  comp val round1: Int32 = max(21, 105)
-  comp val round2: Int32 = max(210, round1)
+  val round1: Int32 = comp max(21, 105)
+  val round2: Int32 = comp max(210, round1)
   return round2
 }

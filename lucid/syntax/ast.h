@@ -195,7 +195,9 @@ struct VarDeclStmt {
   // Initializer expression.
   std::optional<ExprRef> init;
 
-  // Whether the variable is initialized during compilation.
+  // Whether the variable holds what compilation worked out, which is read
+  // off the initializer rather than written on the declaration: the whole of
+  // what initializes it is a `comp` expression and no write can reach it.
   bool is_comp = false;
 
   // Whether the variable may be written after it is declared, which is what
