@@ -203,6 +203,45 @@ TEST(CompilerTest, ReportsCompilationSpinningOverAlmostNothing) {
             ErrorOutput(Contains("compilation worked through more than"))));
 }
 
+// A loop with no way out leaves the rest of the function where nothing
+// reaches it, which is a function compilation still has to get through.
+TEST(CompilerTest, CompilesALoopWithNoExit) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun spin(): Int32 {
+      mut val i: Int32 = 0
+      loop {
+        mut i = i + 1
+      }
+      return i
+    }
+
+    fun main(): Int32 {
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}), ReturnsCode(0));
+}
+
+// A loop holding nothing at all is caught by what compilation will work
+// through, the same as one holding something.
+TEST(CompilerTest, ReportsCompilationSpinningOverNothing) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun spin(): Int32 {
+      loop {
+      }
+      return 0
+    }
+
+    fun main(): Int32 {
+      return comp spin()
+    }
+  )"));
+  EXPECT_THAT(
+      RunCompiler({"compile", FullPath("main.lu")}),
+      AllOf(ReturnsCode(1),
+            ErrorOutput(Contains("compilation worked through more than"))));
+}
+
 TEST(CompilerTest, ReportsNamesThatAreNotThere) {
   const struct {
     std::string_view source;

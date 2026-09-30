@@ -63,7 +63,7 @@ class VertexDomain {
 // - `Compare` member that returns a function object for performing vertex
 //   comparisons.
 // - `Domain` member that returns a finite domain of vertices in the graph.
-// - `Initial` member that returns the initial vertex of the graph.
+// - `Vertices` member that returns every vertex of the graph.
 // - `Prior` member that returns the vertices that come before a given vertex in
 //   the graph.
 // - `Subsequent` member that returns the vertices that come after a given
@@ -74,7 +74,7 @@ concept DataflowScheme = requires(S s, typename S::Graph::vertex_type v) {
   { s.Compare() } -> std::same_as<CompareVertexOrder<typename S::Graph>>;
   { s.Domain() } -> std::same_as<VertexDomain<typename S::Graph>>;
   { s.Compare() } -> std::same_as<CompareVertexOrder<typename S::Graph>>;
-  { s.Initial() } -> std::same_as<typename S::Graph::vertex_type>;
+  { s.All() } -> std::same_as<std::vector<typename S::Graph::vertex_type>>;
   { s.Prior(v) } -> VertexRange<typename S::Graph::vertex_type>;
   { s.Subsequent(v) } -> VertexRange<typename S::Graph::vertex_type>;
 };
@@ -92,7 +92,7 @@ struct Forward {
     return CompareReversePostOrder(g_);
   }
 
-  typename GraphT::vertex_type Initial() const { return SourceVertex(g_); }
+  std::vector<typename GraphT::vertex_type> All() const { return Vertices(g_); }
 
   decltype(auto) Prior(typename GraphT::vertex_type v) const {
     return PrevVertices(g_, v);
@@ -117,7 +117,7 @@ struct Backward {
 
   CompareVertexOrder<GraphT> Compare() const { return ComparePostOrder(g_); }
 
-  typename GraphT::vertex_type Initial() const { return SinkVertex(g_); }
+  std::vector<typename GraphT::vertex_type> All() const { return Vertices(g_); }
 
   decltype(auto) Prior(typename GraphT::vertex_type v) const {
     return NextVertices(g_, v);
@@ -135,7 +135,8 @@ struct Backward {
 //
 // Returns a mapping from vertex IDs to dataflow analysis states that model the
 // respective vertices. The returned vector will have the same size as the
-// number of vertices in the graph, with indices corresponding to vertex IDs.
+// number of vertices in the graph, with indices corresponding to vertex IDs,
+// and every vertex has a state in it.
 template <DataflowScheme SchemeT,
           DataflowAnalysis<typename SchemeT::Graph> AnalysisT>
 std::vector<std::optional<typename AnalysisT::State>> RunDataflow(
@@ -148,7 +149,11 @@ std::vector<std::optional<typename AnalysisT::State>> RunDataflow(
   std::vector<std::optional<State>> states(domain.size());
 
   Worklist vertices_to_process(domain, scheme.Compare());
-  vertices_to_process.push(scheme.Initial());
+  // Every vertex starts on the worklist rather than only the one an analysis
+  // begins from, so that a vertex nothing reaches from there, such as a loop
+  // with no exit walked backwards from the exit, is worked out as well as the
+  // rest.
+  vertices_to_process.push_range(scheme.All());
   while (!vertices_to_process.empty()) {
     typename GraphT::vertex_type vertex = vertices_to_process.pop();
 

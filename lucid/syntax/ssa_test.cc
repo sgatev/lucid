@@ -1,5 +1,7 @@
 #include "lucid/syntax/ssa.h"
 
+#include <cstddef>
+
 #include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
@@ -276,6 +278,42 @@ TEST(ConvertToStaticSingleAssignmentTest, Looping) {
 
   const auto& else_block = scfg.blocks().Get(6);
   EXPECT_THAT(else_block.phis, IsEmpty());
+}
+
+// A loop with no way out never reaches the end of the function, so walking
+// back from the end never reaches it. A variable carried round it is as live
+// as one carried round a loop that ends, and gets its phi function the same.
+TEST(ConvertToStaticSingleAssignmentTest, LoopingWithNoExit) {
+  auto scfg = BuildControlFlowGraph(FuncDefStmt{
+      .name = I("foo"),
+      .result_type = T("Int32"),
+      .stmts = StmtListOf({
+          S(VarDeclStmt{
+              .name = I("x"),
+              .type_constraint = T("Int32"),
+              .init = E(IntLitExpr{.value = 0}),
+          }),
+          S(LoopStmt{
+              .stmts = StmtListOf({
+                  S(VarAssignStmt{
+                      .name = I("x"),
+                      .expr = E(BinaryOpExpr{
+                          .op = BinaryOp::Add,
+                          .lhs = E(IdentExpr{.name = I("x")}),
+                          .rhs = E(IntLitExpr{.value = 1}),
+                      }),
+                  }),
+              }),
+          }),
+          S(ReturnStmt{.value = E(IdentExpr{.name = I("x")})}),
+      }),
+  });
+
+  ConvertToStaticSingleAssignment(syn_ctx_, scfg);
+
+  std::size_t phis = 0;
+  for (const auto& block : scfg.blocks()) phis += block.phis.size();
+  EXPECT_EQ(phis, 1);
 }
 
 }  // namespace

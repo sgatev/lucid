@@ -57,16 +57,16 @@ std::string ChainedValues(int count) {
 std::string Branches(int count, int vars) {
   std::string code = "fun main(): Int32 {\n";
   for (int v = 0; v < vars; ++v) {
-    code += std::format("  val x{}: Int32 = {}\n", v, v + 1);
+    code += std::format("  mut val x{}: Int32 = {}\n", v, v + 1);
   }
   for (int i = 0; i < count; ++i) {
     code += std::format("  if x0 > {} {{\n", i);
     for (int v = 0; v < vars; ++v) {
-      code += std::format("    &x{} = x{} + 1\n", v, v);
+      code += std::format("    mut x{} = x{} + 1\n", v, v);
     }
     code += "  } else {\n";
     for (int v = 0; v < vars; ++v) {
-      code += std::format("    &x{} = x{} - 1\n", v, v);
+      code += std::format("    mut x{} = x{} - 1\n", v, v);
     }
     code += "  }\n";
   }

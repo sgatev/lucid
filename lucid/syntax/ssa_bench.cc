@@ -45,16 +45,16 @@ std::string ChainedValues(int count, int index) {
 std::string Branches(int count, int vars, int index) {
   std::string code = std::format("fun f{}(): Int32 {{\n", index);
   for (int v = 0; v < vars; ++v) {
-    code += std::format("  val x{}: Int32 = {}\n", v, v + 1);
+    code += std::format("  mut val x{}: Int32 = {}\n", v, v + 1);
   }
   for (int i = 0; i < count; ++i) {
     code += std::format("  if x0 > {} {{\n", i);
     for (int v = 0; v < vars; ++v) {
-      code += std::format("    &x{} = x{} + 1\n", v, v);
+      code += std::format("    mut x{} = x{} + 1\n", v, v);
     }
     code += "  } else {\n";
     for (int v = 0; v < vars; ++v) {
-      code += std::format("    &x{} = x{} - 1\n", v, v);
+      code += std::format("    mut x{} = x{} - 1\n", v, v);
     }
     code += "  }\n";
   }
@@ -67,11 +67,11 @@ std::string Branches(int count, int vars, int index) {
 std::string Loop(int vars, int index) {
   std::string code = std::format("fun f{}(): Int32 {{\n", index);
   for (int v = 0; v < vars; ++v) {
-    code += std::format("  val x{}: Int32 = {}\n", v, v + 1);
+    code += std::format("  mut val x{}: Int32 = {}\n", v, v + 1);
   }
   code += "  loop {\n    if x0 > 100 {\n      break\n    }\n";
   for (int v = 0; v < vars; ++v) {
-    code += std::format("    &x{} = x{} + 1\n", v, v);
+    code += std::format("    mut x{} = x{} + 1\n", v, v);
   }
   code += "  }\n  return x0\n}\n";
   return code;
