@@ -31,11 +31,11 @@ class AbstractMachineFunctionGenerator {
       : syn_ctx_(syn_ctx),
         syn_cfg_(syn_cfg),
         am_state_(am_state),
-        vm_(am_cfgs, am_state, am_cfg_.stack_slots) {
+        vm_(am_cfgs, am_state, am_cfg_.stack_slots, /*depth=*/0, comp_steps_) {
     expr_and_stmt_to_reg_.resize(syn_ctx_.Size());
   }
 
-  AbstractMachineControlFlowGraph Generate() && {
+  std::expected<AbstractMachineControlFlowGraph, CompError> Generate() && {
     for (const auto& block : syn_cfg_.blocks()) {
       graph_map_.Set(block.ref, am_cfg_.AddBlock().ref);
     }
@@ -94,7 +94,9 @@ class AbstractMachineFunctionGenerator {
     for (const auto& block : syn_cfg_.blocks()) {
       auto am_cfg_block_ref = graph_map_.Get(block.ref);
       assert(am_cfg_block_ref.has_value());
-      Process(block, am_cfg_.GetBlock(*am_cfg_block_ref));
+      std::expected<void, CompError> res =
+          Process(block, am_cfg_.GetBlock(*am_cfg_block_ref));
+      if (!res.has_value()) return std::unexpected(res.error());
     }
     for (const auto& block : syn_cfg_.blocks()) {
       auto am_cfg_block_ref = graph_map_.Get(block.ref);
@@ -122,8 +124,9 @@ class AbstractMachineFunctionGenerator {
   }
 
  private:
-  void Process(const SyntaxControlFlowGraph::Block& block,
-               AbstractMachineControlFlowGraph::Block& am_block) {
+  std::expected<void, CompError> Process(
+      const SyntaxControlFlowGraph::Block& block,
+      AbstractMachineControlFlowGraph::Block& am_block) {
     for (const auto& seq : block.sequences) {
       for (ExprRef expr_ref : seq.expressions) {
         const Expr& expr = syn_ctx_.DerefExpr(expr_ref);
@@ -132,8 +135,11 @@ class AbstractMachineFunctionGenerator {
         bool is_comp =
             std::visit([](const auto& expr) { return expr.is_comp; }, expr);
         if (is_comp) {
-          am_block.instructions.back() =
+          std::expected<Instruction, CompError> res =
               vm_.Interpret(am_block.instructions.back());
+          if (!res.has_value()) return std::unexpected(res.error());
+
+          am_block.instructions.back() = std::move(*res);
         }
       }
       if (seq.stmt.has_value()) {
@@ -145,8 +151,11 @@ class AbstractMachineFunctionGenerator {
           is_comp = var_decl_stmt->is_comp;
         }
         if (is_comp) {
-          am_block.instructions.back() =
+          std::expected<Instruction, CompError> res =
               vm_.Interpret(am_block.instructions.back());
+          if (!res.has_value()) return std::unexpected(res.error());
+
+          am_block.instructions.back() = std::move(*res);
         }
       }
     }
@@ -163,6 +172,7 @@ class AbstractMachineFunctionGenerator {
       assert(am_cfg_pred.has_value());
       am_block.preds.push_back(*am_cfg_pred);
     }
+    return {};
   }
 
   void Process(ExprRef ref, const Expr& expr,
@@ -625,6 +635,12 @@ class AbstractMachineFunctionGenerator {
   const SyntaxControlFlowGraph& syn_cfg_;
   AbstractMachineState& am_state_;
   AbstractMachineControlFlowGraph am_cfg_;
+
+  // What the work this function asks to have done during compilation has
+  // spent so far, which the interpreter counts against what compilation will
+  // spend altogether.
+  std::int64_t comp_steps_ = 0;
+
   Interpreter vm_;
   Reg result_reg_;
   HashMap<StringIndex::Ref, Reg> var_to_reg_;
@@ -637,7 +653,8 @@ class AbstractMachineFunctionGenerator {
 
 }  // namespace
 
-AbstractMachineControlFlowGraph GenerateAbstractMachineFunction(
+std::expected<AbstractMachineControlFlowGraph, CompError>
+GenerateAbstractMachineFunction(
     const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
     const SyntaxContext& syn_ctx, const SyntaxControlFlowGraph& syn_cfg,
     AbstractMachineState& am_state) {

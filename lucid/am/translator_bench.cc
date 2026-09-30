@@ -23,10 +23,12 @@ using namespace std::string_literals;
 std::size_t CountInstructions(const SyntaxContext& syn_ctx,
                               const SyntaxControlFlowGraph& syn_cfg) {
   AbstractMachineState am_state;
-  AbstractMachineControlFlowGraph am_cfg = GenerateAbstractMachineFunction(
+  auto am_cfg = GenerateAbstractMachineFunction(
       /*am_cfgs=*/{}, syn_ctx, syn_cfg, am_state);
+  assert(am_cfg.has_value());
+
   std::size_t instructions_count = 0;
-  for (const auto& block : am_cfg.Blocks()) {
+  for (const auto& block : am_cfg->Blocks()) {
     instructions_count += block.instructions.size();
   }
   return instructions_count;

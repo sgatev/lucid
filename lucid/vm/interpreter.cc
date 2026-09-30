@@ -3,7 +3,9 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <optional>
+#include <string>
 #include <variant>
 #include <vector>
 
@@ -11,12 +13,22 @@
 #include "lucid/am/instructions.h"
 
 namespace lucid {
+namespace {
 
-int InterpretAbstractMachineFunction(
+// Interprets `am_cfg`, spending from the `steps` the whole compilation
+// shares. The function every call made from here reaches in turn.
+std::expected<std::int64_t, CompError> InterpretFunction(
     const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
     const AbstractMachineControlFlowGraph& am_cfg,
-    const std::vector<std::int64_t>& args, AbstractMachineState& am_state) {
-  Interpreter vm(am_cfgs, am_state, am_cfg.stack_slots);
+    const std::vector<std::int64_t>& args, AbstractMachineState& am_state,
+    int depth, std::int64_t& steps) {
+  if (depth > kMaxCompCallDepth) {
+    return std::unexpected(CompError("compilation followed more than " +
+                                     std::to_string(kMaxCompCallDepth) +
+                                     " calls into the program and gave up"));
+  }
+
+  Interpreter vm(am_cfgs, am_state, am_cfg.stack_slots, depth, steps);
 
   for (std::size_t i = 0; i < args.size() && i < am_cfg.params.size(); ++i) {
     vm.Set(am_cfg.params[i], args[i]);
@@ -27,6 +39,14 @@ int InterpretAbstractMachineFunction(
   auto curr_block_ref = am_cfg.first;
   while (true) {
     const auto& curr_block = am_cfg.GetBlock(curr_block_ref);
+
+    steps += 1 + static_cast<std::int64_t>(curr_block.instructions.size());
+    if (steps > kMaxCompSteps) {
+      return std::unexpected(CompError("compilation worked through more than " +
+                                       std::to_string(kMaxCompSteps) +
+                                       " instructions and gave up"));
+    }
+
     for (const auto& phi : curr_block.phis) {
       assert(prev_block_ref != AbstractMachineControlFlowGraph::kNullBlockRef);
 
@@ -44,7 +64,8 @@ int InterpretAbstractMachineFunction(
       vm.Set(phi.dst, *src_val);
     }
     for (const auto& inst : curr_block.instructions) {
-      vm.Interpret(inst);
+      std::expected<Instruction, CompError> res = vm.Interpret(inst);
+      if (!res.has_value()) return std::unexpected(res.error());
     }
     if (curr_block.branch_cond.has_value()) {
       assert(curr_block.succs.size() == 2);
@@ -71,10 +92,26 @@ int InterpretAbstractMachineFunction(
   return vm.Result();
 }
 
+}  // namespace
+
+std::expected<std::int64_t, CompError> InterpretAbstractMachineFunction(
+    const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
+    const AbstractMachineControlFlowGraph& am_cfg,
+    const std::vector<std::int64_t>& args, AbstractMachineState& am_state,
+    int depth) {
+  std::int64_t steps = 0;
+  return InterpretFunction(am_cfgs, am_cfg, args, am_state, depth, steps);
+}
+
 Interpreter::Interpreter(
     const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
-    AbstractMachineState& am_state, const std::vector<int>& stack_slots)
-    : am_cfgs_(am_cfgs), am_state_(am_state), stack_slots_(stack_slots) {}
+    AbstractMachineState& am_state, const std::vector<int>& stack_slots,
+    int depth, std::int64_t& steps)
+    : am_cfgs_(am_cfgs),
+      am_state_(am_state),
+      stack_slots_(stack_slots),
+      depth_(depth),
+      steps_(steps) {}
 
 std::int64_t Interpreter::Result() const { return result_; }
 
@@ -84,7 +121,8 @@ std::optional<const std::int64_t&> Interpreter::Get(Reg reg) const {
 
 void Interpreter::Set(Reg reg, std::int64_t value) { values_.Set(reg, value); }
 
-Instruction Interpreter::Interpret(const Instruction& inst) {
+std::expected<Instruction, CompError> Interpreter::Interpret(
+    const Instruction& inst) {
   if (const auto* func_call = std::get_if<FuncCall>(&inst)) {
     return Interpret(*func_call);
   } else if (const auto* mov_reg = std::get_if<MoveReg>(&inst)) {
@@ -206,7 +244,8 @@ Instruction Interpreter::Interpret(const LoadStackReg& inst) {
   return inst;
 }
 
-Instruction Interpreter::Interpret(const FuncCall& inst) {
+std::expected<Instruction, CompError> Interpreter::Interpret(
+    const FuncCall& inst) {
   auto am_cfg = am_cfgs_.Get(inst.label);
   assert(am_cfg.has_value());
 
@@ -216,21 +255,22 @@ Instruction Interpreter::Interpret(const FuncCall& inst) {
     assert(arg_val.has_value());
     args.push_back(*arg_val);
   }
-  std::int64_t result =
-      InterpretAbstractMachineFunction(am_cfgs_, *am_cfg, args, am_state_);
+  std::expected<std::int64_t, CompError> result =
+      InterpretFunction(am_cfgs_, *am_cfg, args, am_state_, depth_ + 1, steps_);
+  if (!result.has_value()) return std::unexpected(result.error());
 
   assert(inst.res.has_value());
 
-  values_.Set(inst.res->reg, result);
+  values_.Set(inst.res->reg, *result);
 
   // The call is replaced by what it evaluated to, as an instruction that
   // sets a value of the kind the function returns.
   switch (am_cfg->result_kind) {
     case ValueKind::Number:
-      return SetValue(result, inst.res->reg, am_state_);
+      return SetValue(*result, inst.res->reg, am_state_);
     case ValueKind::String:
       return SetStr{
-          .src_val = static_cast<std::uint32_t>(result),
+          .src_val = static_cast<std::uint32_t>(*result),
           .dst_reg = inst.res->reg,
       };
   }

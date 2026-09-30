@@ -1,5 +1,6 @@
 #include "lucid/am/translator.h"
 
+#include <utility>
 #include <vector>
 
 #include "lucid/am/instructions.h"
@@ -19,8 +20,11 @@ class GenerateAbstractMachineFunctionTest : public Test, public AstFixture {
     EXPECT_TRUE(InferExprTypes(syn_ctx_, func).has_value());
     auto graph = BuildControlFlowGraph(syn_ctx_, func);
     AbstractMachineState state;
-    AbstractMachineControlFlowGraph am_cfg =
+    auto am_cfg_or_error =
         GenerateAbstractMachineFunction(/*am_cfgs=*/{}, syn_ctx_, graph, state);
+    EXPECT_TRUE(am_cfg_or_error.has_value());
+
+    AbstractMachineControlFlowGraph am_cfg = std::move(am_cfg_or_error).value();
 
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
         Vertices(am_cfg);

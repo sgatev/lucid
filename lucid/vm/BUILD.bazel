@@ -13,6 +13,7 @@ cc_library(
         "//lucid/core/string:index",
         "//lucid/syntax:ast",
         "//lucid/syntax:cfg",
+        "//lucid/syntax:comp",
     ],
 )
 

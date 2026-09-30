@@ -165,8 +165,11 @@ class ColoringTest : public Test {
     ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
 
     AbstractMachineState am_state;
-    AbstractMachineControlFlowGraph am_cfg = GenerateAbstractMachineFunction(
+    auto am_cfg_or_error = GenerateAbstractMachineFunction(
         /*am_cfgs=*/{}, syn_ctx, syn_cfg, am_state);
+    ASSERT_TRUE(am_cfg_or_error.has_value());
+
+    AbstractMachineControlFlowGraph am_cfg = std::move(am_cfg_or_error).value();
     OptimizeAbstractMachineFunction(am_cfg);
     LowerCallingConvention(am_cfg, kCallingConvention);
     const AbstractMachineLiveness liveness =

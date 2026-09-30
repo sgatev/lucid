@@ -285,6 +285,19 @@ A `comp fun` may not contain a `do` statement, since its body has to be evaluabl
 nothing to have an effect on. It is a capability rather than an obligation: a `comp fun`
 called without a `comp` on the call is called while the program runs, like any other.
 
+**Compilation gives up on work that does not end, and reports where.** Two limits say
+when:
+
+- It follows a program at most **1000 calls deep**. Following a call costs a frame of the
+  compiler's own stack rather than of one the program lays out, so this is what keeps a
+  program that recurses without end from taking the compiler down with it. It counts how
+  deep the calls stand rather than how many are made: a `comp fib(20)` makes 21891 calls
+  and never stands more than 20 deep.
+- It works through at most **10 million instructions**, counted across the whole of one
+  function's compilation. This is what a loop without an end runs into. A block counts
+  along with what it holds, so `loop { }` is caught as surely as a loop that does
+  something.
+
 ## Built-in functions
 
 Two names are implemented by the compiler rather than by the program: `printString` and

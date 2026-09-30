@@ -131,6 +131,78 @@ TEST(CompilerTest, AllowsWritesToWhatIsMarked) {
 
 // A name that answers to nothing was once read out of an empty lookup, which
 // left the compiler walking a function definition that was never there.
+// Following a call during compilation costs a frame of the compiler's own
+// stack, so a program that recurses without end is told where compilation
+// gave up rather than taking the compiler down with it.
+TEST(CompilerTest, ReportsCompilationThatRunsTooDeep) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun down(n: Int32): Int32 {
+      if n == 0 {
+        return 0
+      }
+      return down(n - 1)
+    }
+
+    fun main(): Int32 {
+      return comp down(100000)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}),
+              AllOf(ReturnsCode(1),
+                    ErrorOutput(Contains("compilation followed more than"))));
+}
+
+// A loop with no end to it is what compilation runs out of work it will do
+// on, rather than out of stack. The count never reaches the number it is
+// tested against until it has run round the whole width of an `Int32`, which
+// is far more work than compilation will do.
+TEST(CompilerTest, ReportsCompilationThatRunsTooLong) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun spin(end: Int32): Int32 {
+      mut val i: Int32 = 0
+      loop {
+        if i == end {
+          break
+        }
+        mut i = i + 1
+      }
+      return i
+    }
+
+    fun main(): Int32 {
+      return comp spin(0 - 1)
+    }
+  )"));
+  EXPECT_THAT(
+      RunCompiler({"compile", FullPath("main.lu")}),
+      AllOf(ReturnsCode(1),
+            ErrorOutput(Contains("compilation worked through more than"))));
+}
+
+// A block is counted along with what it holds, so a loop that does next to
+// nothing on each turn is caught as surely as one that does plenty.
+TEST(CompilerTest, ReportsCompilationSpinningOverAlmostNothing) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun spin(end: Int32): Int32 {
+      mut val i: Int32 = 0
+      loop {
+        if i == end {
+          break
+        }
+      }
+      return i
+    }
+
+    fun main(): Int32 {
+      return comp spin(0 - 1)
+    }
+  )"));
+  EXPECT_THAT(
+      RunCompiler({"compile", FullPath("main.lu")}),
+      AllOf(ReturnsCode(1),
+            ErrorOutput(Contains("compilation worked through more than"))));
+}
+
 TEST(CompilerTest, ReportsNamesThatAreNotThere) {
   const struct {
     std::string_view source;

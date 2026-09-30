@@ -75,8 +75,14 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       SyntaxControlFlowGraph syn_cfg =
           BuildControlFlowGraph(syn_ctx, *func_def);
       ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
-      AbstractMachineControlFlowGraph am_cfg =
+      auto am_cfg_or_error =
           GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);
+      if (!am_cfg_or_error.has_value()) {
+        return std::unexpected(am_cfg_or_error.error());
+      }
+
+      AbstractMachineControlFlowGraph am_cfg =
+          std::move(am_cfg_or_error).value();
       OptimizeAbstractMachineFunction(am_cfg);
 
       // What compile-time evaluation runs is the function as the abstract

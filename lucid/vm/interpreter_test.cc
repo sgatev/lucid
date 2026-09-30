@@ -30,9 +30,10 @@ TEST(Test, InterpretAbstractMachineFunctionSetReg) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 21);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 21);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionMoveReg) {
@@ -58,9 +59,10 @@ TEST(Test, InterpretAbstractMachineFunctionMoveReg) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 21);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 21);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionAddReg) {
@@ -91,9 +93,10 @@ TEST(Test, InterpretAbstractMachineFunctionAddReg) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 63);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 63);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionSubReg) {
@@ -124,9 +127,10 @@ TEST(Test, InterpretAbstractMachineFunctionSubReg) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 18);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 18);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionMulReg) {
@@ -157,9 +161,10 @@ TEST(Test, InterpretAbstractMachineFunctionMulReg) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 42);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 42);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionDivReg) {
@@ -190,9 +195,10 @@ TEST(Test, InterpretAbstractMachineFunctionDivReg) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 10);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 10);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionGtReg) {
@@ -223,9 +229,10 @@ TEST(Test, InterpretAbstractMachineFunctionGtReg) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 0);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 0);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionLtReg) {
@@ -256,9 +263,10 @@ TEST(Test, InterpretAbstractMachineFunctionLtReg) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 1);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 1);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionEqReg) {
@@ -289,9 +297,10 @@ TEST(Test, InterpretAbstractMachineFunctionEqReg) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 0);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 0);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionNotEqReg) {
@@ -322,9 +331,10 @@ TEST(Test, InterpretAbstractMachineFunctionNotEqReg) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 1);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 1);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionSequence) {
@@ -361,9 +371,10 @@ TEST(Test, InterpretAbstractMachineFunctionSequence) {
                       });
 
   AbstractMachineState am_state;
-  int result = InterpretAbstractMachineFunction(
+  auto result = InterpretAbstractMachineFunction(
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
-  EXPECT_EQ(result, 63);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(*result, 63);
 }
 
 }  // namespace

@@ -588,6 +588,25 @@ TEST(CompilerTest, CompFunctionCalledWhileRunning) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
+// What compilation gives up after is how many calls deep it stands, not how
+// many it has made: this makes 21891 of them and never stands more than 20
+// deep.
+TEST(CompilerTest, CompExprMakingManyShallowCalls) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun fib(n: Int32): Int32 {
+      if n < 2 {
+        return n
+      }
+      return fib(n - 1) + fib(n - 2)
+    }
+
+    fun main(): Int32 {
+      return comp fib(20) - 6656
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(109));
+}
+
 TEST(CompilerTest, CompFunctionUsingATuple) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     val Point: Type = (x: Int32, y: Int32)
