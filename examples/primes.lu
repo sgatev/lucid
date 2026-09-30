@@ -1,0 +1,30 @@
+comp fun countPrimes(limit: Int32): Int32 {
+  mut val count: Int32 = 0
+
+  mut val n: Int32 = 2
+  loop {
+    if n == limit {
+      break
+    }
+
+    mut val d: Int32 = 2
+    loop {
+      if d > n / d or n % d == 0 {
+        break
+      }
+      mut d = d + 1
+    }
+
+    if d > n / d {
+      mut count = count + 1
+    }
+
+    mut n = n + 1
+  }
+
+  return count
+}
+
+fun main(): Int32 {
+  return comp countPrimes(100)
+}
