@@ -1,3 +1,6 @@
+#include <format>
+#include <string_view>
+
 #include "lucid/compiler/compiler_test_fixture.h"
 #include "lucid/core/testing/testing.h"
 
@@ -605,6 +608,121 @@ TEST(CompilerTest, CompExprMakingManyShallowCalls) {
     }
   )"));
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(109));
+}
+
+// Work done during compilation comes to what the same work comes to while
+// the program runs, at the edges of the width as well as inside it: a sum
+// that runs past the width, and the least number divided by minus one. Each
+// check that holds sets a bit, and the program returns the bits only where
+// both ways of working them out agree.
+TEST(CompilerTest, CompArithmeticComesToWhatRunningDoes) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun check(big: Int32, minusOne: Int32): Int32 {
+      mut val bits: Int32 = 0
+      val least: Int32 = 0 - big - 1
+      if least / minusOne == least {
+        mut bits = bits + 1
+      }
+      if least % minusOne == 0 {
+        mut bits = bits + 2
+      }
+      if big + 1 == least {
+        mut bits = bits + 4
+      }
+      return bits
+    }
+
+    fun main(): Int32 {
+      val running: Int32 = check(2147483647, 0 - 1)
+      val compiling: Int32 = comp check(2147483647, 0 - 1)
+      if running == compiling {
+        return compiling
+      }
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(7));
+}
+
+// A division by nothing stops the program where it happens. What it printed
+// before still comes out, ahead of the message, and nothing after it runs.
+TEST(CompilerTest, StopsAtDivisionByZero) {
+  for (const std::string_view op : {"/", "%"}) {
+    ASSERT_TRUE(CreateFile("main.lu", std::format(R"(
+      fun printString(s: String): Int32 {{
+        return 0
+      }}
+
+      fun divide(a: Int32, b: Int32): Int32 {{
+        return a {} b
+      }}
+
+      fun main(): Int32 {{
+        do printString("before\n")
+        val q: Int32 = divide(7, 0)
+        do printString("after\n")
+        return q
+      }}
+    )",
+                                                  op)));
+    EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
+                AllOf(ReturnsCode(136), Output(Equals("before\n")),
+                      ErrorOutput(Equals("division by zero\n"))));
+  }
+}
+
+// The same at the width of an `Int64`, where the arithmetic that stood in
+// for the machine's could itself overflow before.
+TEST(CompilerTest, CompInt64ArithmeticComesToWhatRunningDoes) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun check(big: Int64, minusOne: Int64): Int32 {
+      mut val bits: Int32 = 0
+      val least: Int64 = 0 - big - 1
+      if big + 1 == least {
+        mut bits = bits + 1
+      }
+      if least / minusOne == least {
+        mut bits = bits + 2
+      }
+      if least % minusOne == 0 {
+        mut bits = bits + 4
+      }
+      if big * 2 == 0 - 2 {
+        mut bits = bits + 8
+      }
+      return bits
+    }
+
+    fun main(): Int32 {
+      val running: Int32 = check(9223372036854775807, 0 - 1)
+      val compiling: Int32 = comp check(9223372036854775807, 0 - 1)
+      if running == compiling {
+        return compiling
+      }
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(15));
+}
+
+// A value that ran past the width while compiling is put into the program as
+// the number it came back round to.
+TEST(CompilerTest, CompValueThatWrappedIsPutInAsItCameBack) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun wrapped(big: Int32): Int32 {
+      return big + 1
+    }
+
+    fun main(): Int32 {
+      val x: Int32 = comp wrapped(2147483647)
+      val least: Int32 = 0 - 2147483647 - 1
+      if x == least {
+        return 1
+      }
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
 }
 
 TEST(CompilerTest, CompFunctionUsingATuple) {

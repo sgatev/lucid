@@ -78,7 +78,8 @@ class Interpreter {
   // Interprets one instruction and returns what it comes to, which is an
   // instruction that sets the same value without doing the work again.
   //
-  // A call is the one instruction that can fail, by standing too deep.
+  // A call can fail by standing too deep or running too long, and a division
+  // or a remainder by dividing by nothing.
   std::expected<Instruction, CompError> Interpret(const Instruction& inst);
 
  private:
@@ -97,8 +98,8 @@ class Interpreter {
   Instruction Interpret(const AddReg& inst);
   Instruction Interpret(const SubReg& inst);
   Instruction Interpret(const MulReg& inst);
-  Instruction Interpret(const DivReg& inst);
-  Instruction Interpret(const ModReg& inst);
+  std::expected<Instruction, CompError> Interpret(const DivReg& inst);
+  std::expected<Instruction, CompError> Interpret(const ModReg& inst);
   Instruction Interpret(const StoreStack& inst);
   Instruction Interpret(const StoreStackReg& inst);
   Instruction Interpret(const LoadStack& inst);

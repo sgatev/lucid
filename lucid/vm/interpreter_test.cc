@@ -1,5 +1,8 @@
 #include "lucid/vm/interpreter.h"
 
+#include <cstdint>
+#include <limits>
+#include <optional>
 #include <utility>
 
 #include "lucid/am/cfg.h"
@@ -10,6 +13,39 @@
 
 namespace lucid {
 namespace {
+
+constexpr int kLeast = std::numeric_limits<std::int32_t>::min();
+constexpr int kGreatest = std::numeric_limits<std::int32_t>::max();
+
+// Returns what an instruction of type `Op` comes to over `lhs` and `rhs`, set
+// into registers of `size`.
+template <typename Op>
+std::optional<std::int64_t> InterpretBinary(int lhs, int rhs,
+                                            RegSize size = RegSize32) {
+  AbstractMachineControlFlowGraphBuilder g;
+
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
+
+  const Reg l{.id = 1, .size = size};
+  const Reg r{.id = 2, .size = size};
+  const Reg res{.id = 3, .size = size};
+
+  g.SetFirst(a);
+  g.AddInstruction(a, SetReg{.src_val = lhs, .dst_reg = l});
+  g.AddInstruction(a, SetReg{.src_val = rhs, .dst_reg = r});
+  g.AddInstruction(a, Op{.res_reg = res, .lhs_reg = l, .rhs_reg = r});
+  g.AddEdge(a, z);
+
+  g.SetLast(z);
+  g.AddInstruction(z, Return{.res_reg = res});
+
+  AbstractMachineState am_state;
+  auto result = InterpretAbstractMachineFunction(
+      /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
+  if (!result.has_value()) return std::nullopt;
+  return *result;
+}
 
 TEST(Test, InterpretAbstractMachineFunctionSetReg) {
   AbstractMachineControlFlowGraphBuilder g;
@@ -375,6 +411,32 @@ TEST(Test, InterpretAbstractMachineFunctionSequence) {
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(*result, 63);
+}
+
+// A number that runs past the width of its register comes back round, as it
+// does in the machine, rather than being held wider than the register could.
+TEST(Test, InterpretAbstractMachineFunctionWrapsAtTheRegisterWidth) {
+  EXPECT_EQ(InterpretBinary<AddReg>(kGreatest, 1), kLeast);
+  EXPECT_EQ(InterpretBinary<SubReg>(kLeast, 1), kGreatest);
+  EXPECT_EQ(InterpretBinary<MulReg>(65536, 65536), 0);
+  EXPECT_EQ(InterpretBinary<AddReg>(kGreatest, 1, RegSize64),
+            std::int64_t{kGreatest} + 1);
+}
+
+// Dividing the least number by minus one has no answer in C++ and has one in
+// the machine: it runs past the width and comes back round to where it began.
+TEST(Test, InterpretAbstractMachineFunctionDividesAsTheMachineDoes) {
+  EXPECT_EQ(InterpretBinary<DivReg>(kLeast, -1), kLeast);
+  EXPECT_EQ(InterpretBinary<ModReg>(kLeast, -1), 0);
+  EXPECT_EQ(InterpretBinary<DivReg>(-7, 2), -3);
+  EXPECT_EQ(InterpretBinary<ModReg>(-7, 2), -1);
+}
+
+// A division by nothing has no answer, so working one out is reported rather
+// than given one.
+TEST(Test, InterpretAbstractMachineFunctionReportsDivisionByZero) {
+  EXPECT_EQ(InterpretBinary<DivReg>(7, 0), std::nullopt);
+  EXPECT_EQ(InterpretBinary<ModReg>(7, 0), std::nullopt);
 }
 
 }  // namespace

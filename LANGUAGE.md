@@ -203,6 +203,19 @@ than that element: `!a == b` compares what `!a` came to, and `comp f() * 2` work
 the call during compilation and multiplies while the program runs. Parentheses are what
 give either of them more to work on.
 
+**Arithmetic wraps at the width of its type.** A result that runs past what an `Int32` or
+`Int64` holds comes back round, so `2147483647 + 1` is `-2147483648`. Division truncates
+towards zero and a remainder takes the sign of what was divided: `-7 / 2` is `-3` and
+`-7 % 2` is `-1`. Dividing the least number by `-1` runs past the width too, and comes
+back round to the least number. Work done during compilation follows the same rules, so
+a `comp` expression comes to what the same expression would while the program runs.
+
+**Dividing by zero is an error.** `x / 0` and `x % 0` stop the program where they happen:
+what it printed so far is written out, `division by zero` goes to standard error, and it
+exits with status 136, which is what a shell reports for a process stopped by an
+arithmetic trap. Inside a `comp` expression the same division is reported while
+compiling instead.
+
 **Parentheses group.** What they hold is parsed on its own and binds tighter than
 whatever surrounds it, so `(a + b) * c` multiplies the sum where `a + b * c` adds the
 product. They leave nothing of themselves behind: `(((7)))` is the literal `7`.

@@ -15,6 +15,64 @@
 namespace lucid {
 namespace {
 
+// Returns `value` as a register of `size` holds it. A number that runs past
+// the width comes back round, as it does in the machine the interpreter
+// stands in for, rather than being held wider than any register could.
+std::int64_t Wrap(std::int64_t value, RegSize size) {
+  switch (size) {
+    case RegSize32:
+      return static_cast<std::int32_t>(static_cast<std::uint32_t>(value));
+    case RegSize64:
+      return value;
+  }
+}
+
+// Adds, subtracts and multiplies over the bits of the operands, which is how
+// the machine does it. Doing the same in a signed type would make an overflow
+// undefined, where in the language it only comes back round.
+std::int64_t Add(std::int64_t lhs, std::int64_t rhs) {
+  return static_cast<std::int64_t>(static_cast<std::uint64_t>(lhs) +
+                                   static_cast<std::uint64_t>(rhs));
+}
+
+std::int64_t Sub(std::int64_t lhs, std::int64_t rhs) {
+  return static_cast<std::int64_t>(static_cast<std::uint64_t>(lhs) -
+                                   static_cast<std::uint64_t>(rhs));
+}
+
+std::int64_t Mul(std::int64_t lhs, std::int64_t rhs) {
+  return static_cast<std::int64_t>(static_cast<std::uint64_t>(lhs) *
+                                   static_cast<std::uint64_t>(rhs));
+}
+
+// Divides as the machine does, which is what the program would come to if it
+// divided while running. Dividing the least number by minus one has no
+// answer in C++ and has one there: it runs past the width and comes back
+// round to where it started.
+//
+// Requires:
+// - `rhs` must not be zero, which has no answer anywhere.
+std::int64_t Div(std::int64_t lhs, std::int64_t rhs) {
+  assert(rhs != 0);
+  if (rhs == -1) return Sub(0, lhs);
+  return lhs / rhs;
+}
+
+// The remainder that goes with `Div`: what is left of `lhs` once `rhs` times
+// the quotient is taken away.
+//
+// Requires:
+// - `rhs` must not be zero.
+std::int64_t Mod(std::int64_t lhs, std::int64_t rhs) {
+  assert(rhs != 0);
+  if (rhs == -1) return 0;
+  return lhs % rhs;
+}
+
+// What a division by nothing during compilation is reported as. The program
+// would stop there were it running; compiling it stops there instead.
+CompError DivideByZero() { return CompError("compilation divided by zero"); }
+
 // Interprets `am_cfg`, spending from the `steps` the whole compilation
 // shares. The function every call made from here reaches in turn.
 std::expected<std::int64_t, CompError> InterpretFunction(
@@ -382,7 +440,7 @@ Instruction Interpreter::Interpret(const AddReg& inst) {
   auto rhs_val = values_.Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, *lhs_val + *rhs_val);
+  values_.Set(inst.res_reg, Wrap(Add(*lhs_val, *rhs_val), inst.res_reg.size));
   return inst;
 }
 
@@ -393,7 +451,7 @@ Instruction Interpreter::Interpret(const SubReg& inst) {
   auto rhs_val = values_.Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, *lhs_val - *rhs_val);
+  values_.Set(inst.res_reg, Wrap(Sub(*lhs_val, *rhs_val), inst.res_reg.size));
   return inst;
 }
 
@@ -404,29 +462,33 @@ Instruction Interpreter::Interpret(const MulReg& inst) {
   auto rhs_val = values_.Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, *lhs_val * *rhs_val);
+  values_.Set(inst.res_reg, Wrap(Mul(*lhs_val, *rhs_val), inst.res_reg.size));
   return inst;
 }
 
-Instruction Interpreter::Interpret(const DivReg& inst) {
+std::expected<Instruction, CompError> Interpreter::Interpret(
+    const DivReg& inst) {
   auto lhs_val = values_.Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
   auto rhs_val = values_.Get(inst.rhs_reg);
   assert(rhs_val.has_value());
+  if (*rhs_val == 0) return std::unexpected(DivideByZero());
 
-  values_.Set(inst.res_reg, *lhs_val / *rhs_val);
+  values_.Set(inst.res_reg, Wrap(Div(*lhs_val, *rhs_val), inst.res_reg.size));
   return inst;
 }
 
-Instruction Interpreter::Interpret(const ModReg& inst) {
+std::expected<Instruction, CompError> Interpreter::Interpret(
+    const ModReg& inst) {
   auto lhs_val = values_.Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
   auto rhs_val = values_.Get(inst.rhs_reg);
   assert(rhs_val.has_value());
+  if (*rhs_val == 0) return std::unexpected(DivideByZero());
 
-  values_.Set(inst.res_reg, *lhs_val % *rhs_val);
+  values_.Set(inst.res_reg, Wrap(Mod(*lhs_val, *rhs_val), inst.res_reg.size));
   return inst;
 }
 

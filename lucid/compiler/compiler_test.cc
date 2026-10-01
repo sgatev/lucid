@@ -1,3 +1,4 @@
+#include <format>
 #include <string_view>
 
 #include "lucid/compiler/compiler_test_fixture.h"
@@ -240,6 +241,26 @@ TEST(CompilerTest, ReportsCompilationSpinningOverNothing) {
       RunCompiler({"compile", FullPath("main.lu")}),
       AllOf(ReturnsCode(1),
             ErrorOutput(Contains("compilation worked through more than"))));
+}
+
+// A division by nothing worked out during compilation is reported there, as
+// running it would stop the program there.
+TEST(CompilerTest, ReportsCompilationDividingByZero) {
+  for (const std::string_view op : {"/", "%"}) {
+    ASSERT_TRUE(CreateFile("main.lu", std::format(R"(
+      comp fun divide(a: Int32, b: Int32): Int32 {{
+        return a {} b
+      }}
+
+      fun main(): Int32 {{
+        return comp divide(7, 0)
+      }}
+    )",
+                                                  op)));
+    EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}),
+                AllOf(ReturnsCode(1),
+                      ErrorOutput(Contains("compilation divided by zero"))));
+  }
 }
 
 TEST(CompilerTest, ReportsNamesThatAreNotThere) {

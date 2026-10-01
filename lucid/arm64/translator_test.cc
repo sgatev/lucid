@@ -134,6 +134,12 @@ TEST(Test, GenerateArmStartBinaryWorks) {
   EXPECT_TRUE(assembler.ExternalLabels().contains("_printf"));
   EXPECT_TRUE(assembler.ExternalLabels().contains("_nanosleep"));
 
+  // A division by nothing flushes what was printed, writes its message and
+  // leaves, each of which libc does for it.
+  EXPECT_TRUE(assembler.ExternalLabels().contains("_fflush"));
+  EXPECT_TRUE(assembler.ExternalLabels().contains("_write"));
+  EXPECT_TRUE(assembler.ExternalLabels().contains("_exit"));
+
   // The sequence calls the program's entry function, so it cannot be written
   // until something defines it.
   assembler.Label("main");

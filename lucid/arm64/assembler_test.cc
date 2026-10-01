@@ -304,6 +304,22 @@ TEST(Test, ConditionalBranchesEncodeTheirConditionAndDistance) {
               ElementsEqual(0xd65f03c0u, 0x54ffffecu));
 }
 
+TEST(Test, CompareAndBranchOnZeroEncodesWidthRegisterAndDistance) {
+  // ret ; cbz w3, #-4 ; cbz x3, #-8 ; cbz w0, #12 ; cbz x30, #8 ; ret
+  EXPECT_THAT(Encode([](Assembler& a) {
+                a.Label("l");
+                a.Ret();
+                a.Cbz(W(3), "l");
+                a.Cbz(X(3), "l");
+                a.Cbz(W(0), "m");
+                a.Cbz(X(30), "m");
+                a.Ret();
+                a.Label("m");
+              }),
+              ElementsEqual(0xd65f03c0u, 0x34ffffe3u, 0xb4ffffc3u, 0x34000060u,
+                            0xb400005eu, 0xd65f03c0u));
+}
+
 TEST(Test, AddressAndLiteralLoadsEncodeTheDistanceToTheirLabel) {
   // ret ; adr x1, #-4
   EXPECT_THAT(Encode([](Assembler& a) {

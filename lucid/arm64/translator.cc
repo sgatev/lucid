@@ -25,6 +25,19 @@ namespace {
 
 using namespace ::lucid::arm64;
 
+// Where a division by nothing goes, and what it says there. The message is
+// written as it stands in the program, escapes and all, and is this many
+// bytes once they are read.
+constexpr std::string_view kDivideByZero = "_divide_by_zero";
+constexpr std::string_view kDivideByZeroMessage = "_divide_by_zero_message";
+constexpr std::string_view kDivideByZeroText = "\"division by zero\\n\"";
+constexpr int kDivideByZeroTextBytes = 17;
+
+// The status a program that divided by nothing leaves with, which is what a
+// shell reports for a process stopped by an arithmetic trap: the signal for
+// one, past the 128 that marks a signal.
+constexpr int kDivideByZeroStatus = 128 + 8;
+
 // Casts an integer of type `I` to type `O`.
 template <typename O, typename I>
 constexpr O SafeCast(I i) noexcept {
@@ -403,14 +416,20 @@ class Arm64BinaryGenerator {
   // The numbers the language holds are signed, so the division that suits
   // them is the signed one: an unsigned divide reads a negative dividend as
   // the very large number its bits also stand for.
+  //
+  // A division by nothing has no answer, and the machine's own gives it one
+  // anyway, so the divisor is looked at first and the program stops where
+  // it is nothing.
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const DivReg& inst) {
     switch (inst.res_reg.size) {
       case RegSize32:
+        assembler_.Cbz(W(inst.rhs_reg.id), kDivideByZero);
         assembler_.Sdiv(W(inst.res_reg.id), W(inst.lhs_reg.id),
                         W(inst.rhs_reg.id));
         break;
       case RegSize64:
+        assembler_.Cbz(X(inst.rhs_reg.id), kDivideByZero);
         assembler_.Sdiv(X(inst.res_reg.id), X(inst.lhs_reg.id),
                         X(inst.rhs_reg.id));
         break;
@@ -425,16 +444,20 @@ class Arm64BinaryGenerator {
   // answer apart from both would do instead, but nothing that decides what
   // to put away in memory knows to count that, so the crowd it makes is one
   // no amount of spilling relieves.
+  //
+  // It is a division as well, so a divisor of nothing stops it the same way.
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const ModReg& inst) {
     switch (inst.res_reg.size) {
       case RegSize32:
+        assembler_.Cbz(W(inst.rhs_reg.id), kDivideByZero);
         assembler_.Sdiv(W(kQuotientScratch), W(inst.lhs_reg.id),
                         W(inst.rhs_reg.id));
         assembler_.Msub(W(inst.res_reg.id), W(kQuotientScratch),
                         W(inst.rhs_reg.id), W(inst.lhs_reg.id));
         break;
       case RegSize64:
+        assembler_.Cbz(X(inst.rhs_reg.id), kDivideByZero);
         assembler_.Sdiv(X(kQuotientScratch), X(inst.lhs_reg.id),
                         X(inst.rhs_reg.id));
         assembler_.Msub(X(inst.res_reg.id), X(kQuotientScratch),
@@ -747,6 +770,27 @@ void GenerateArmStartBinary(Assembler& assembler) {
   assembler.Bl(assembler.External("_printf"));
   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));
   assembler.Ret();
+
+  // Where a division by nothing stops the program. What it printed before is
+  // flushed first, so that it comes out ahead of the message rather than
+  // after; then the message goes where errors go, and the program leaves.
+  //
+  // It is reached by a branch from the middle of a function rather than by a
+  // call, which is why nothing is saved: nothing comes back here.
+  assembler.Label(std::string(kDivideByZero));
+  assembler.Mov(X(0), Imm(0));
+  assembler.Bl(assembler.External("_fflush"));
+  assembler.Mov(X(0), Imm(2));
+  assembler.Adr(X(1), kDivideByZeroMessage);
+  assembler.Mov(X(2), Imm(kDivideByZeroTextBytes));
+  assembler.Bl(assembler.External("_write"));
+  assembler.Mov(X(0), Imm(kDivideByZeroStatus));
+  assembler.Bl(assembler.External("_exit"));
+
+  // The message stands right after the code that writes it. Nothing runs
+  // into it, because the code before it leaves the program.
+  assembler.Label(std::string(kDivideByZeroMessage));
+  assembler.Asciz(kDivideByZeroText);
 
   assembler.Label("_sleep");
   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));

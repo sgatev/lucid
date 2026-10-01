@@ -264,6 +264,41 @@ class BCondInst {
   std::string label_;
 };
 
+// Represents an ARM64 CBZ instruction, which branches where a register holds
+// zero and leaves the flags as they were.
+class CbzInst {
+ public:
+  CbzInst(std::size_t this_offset, bool is_64_bit, std::uint8_t rt,
+          std::string_view label)
+      : this_offset_(this_offset),
+        is_64_bit_(is_64_bit),
+        rt_(rt),
+        label_(label) {}
+
+  // Returns the number of bytes produced by this instruction.
+  std::size_t OutputBytesCount() const { return 4; }
+
+  // Writes the bytes produced by this instruction.
+  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
+                  std::ostream& out) const {
+    auto label_offset = label_offsets.Get(std::string(label_));
+    assert(label_offset.has_value());
+    std::size_t offset =
+        ((*label_offset - this_offset_) / 4) & 0b1111111111111111111;
+    std::uint32_t res = 0b00110100000000000000000000000000 |
+                        (static_cast<std::uint32_t>(is_64_bit_) << 31) |
+                        (offset << 5) | rt_;
+
+    out.write(reinterpret_cast<const char*>(&res), 4);
+  }
+
+ private:
+  std::size_t this_offset_;
+  bool is_64_bit_;
+  std::uint8_t rt_;
+  std::string label_;
+};
+
 // Represents an ARM64 BL instruction.
 class BlInst {
  public:
@@ -321,7 +356,7 @@ class AscizInst {
 
 // Represents an ARM64 instruction.
 using Inst = std::variant<Lit32Inst, Lit64Inst, LdrLiteralInst, AdrInst, BInst,
-                          BCondInst, BlInst, AscizInst>;
+                          BCondInst, CbzInst, BlInst, AscizInst>;
 
 // Builds a list of ARM64 instructions.
 class Assembler {
@@ -782,6 +817,24 @@ class Assembler {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B-cond--Branch-conditionally-?lang=en
   void B(Cond cond, std::string_view label) {
     Insert(BCondInst(insts_size_, cond, label));
+  }
+
+  // Insert CBZ instruction.
+  //
+  // CBZ <Wt>, <label>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CBZ--Compare-and-branch-on-zero-?lang=en
+  void Cbz(W rt, std::string_view label) {
+    Insert(CbzInst(insts_size_, /*is_64_bit=*/false, rt, label));
+  }
+
+  // Insert CBZ instruction.
+  //
+  // CBZ <Xt>, <label>
+  //
+  // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CBZ--Compare-and-branch-on-zero-?lang=en
+  void Cbz(X rt, std::string_view label) {
+    Insert(CbzInst(insts_size_, /*is_64_bit=*/true, rt, label));
   }
 
   // Insert BL instruction.
