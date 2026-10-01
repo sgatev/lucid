@@ -49,6 +49,9 @@ struct Token {
   std::uint32_t end_pos;
 };
 
+// The bytes a UTF-8 byte order mark is written in.
+inline constexpr std::string_view kByteOrderMark = "\xEF\xBB\xBF";
+
 // Returns the index of the line in `buffer` that contains `token`.
 //
 // The behavior is undefined if `buffer` does not contain `token`.

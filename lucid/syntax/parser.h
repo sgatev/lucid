@@ -759,8 +759,14 @@ class Parser {
   std::expected<Expr, ParserError> ParseString() {
     Token token = ReadIgnoringNonSemantic();
     if (token.kind == Token::Kind::Error) [[unlikely]] {
+      // The lexer gives the same token for a string that runs to the end of
+      // the source and for a byte the language has no use for. Only the
+      // first opens with a quote, and only the first is a string at all.
       return std::unexpected(
-          MakeError(ParserError::Kind::IncompleteStringLiteral, token));
+          MakeError(TokenString(token).starts_with('"')
+                        ? ParserError::Kind::IncompleteStringLiteral
+                        : ParserError::Kind::UnexpectedToken,
+                    token));
     }
     if (token.kind != Token::Kind::String) [[unlikely]] {
       return std::unexpected(
@@ -830,7 +836,19 @@ class Parser {
     return buffer_.substr(token.start_pos, token.end_pos - token.start_pos);
   }
 
-  Token ReadImmediate() { return std::exchange(next_, lexer_.next()); }
+  // Reads the token looked ahead to, and looks ahead to the one after it.
+  //
+  // There is nothing after the end, or after an error: the lexer is not to be
+  // asked past either, and a lexer that read the whole source beforehand has
+  // nothing there to give. So once one of them is reached it stays the token
+  // looked ahead to, and what reads on keeps reading it.
+  Token ReadImmediate() {
+    if (next_.kind == Token::Kind::End || next_.kind == Token::Kind::Error)
+        [[unlikely]] {
+      return next_;
+    }
+    return std::exchange(next_, lexer_.next());
+  }
 
   Token ReadIgnoringNonSemantic() {
     SkipNonSemantic();

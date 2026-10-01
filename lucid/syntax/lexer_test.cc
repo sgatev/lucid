@@ -49,6 +49,9 @@ std::vector<TestToken> ReadTokens(std::string_view code) {
     tokens.emplace_back(
         token.kind,
         code.substr(token.start_pos, token.end_pos - token.start_pos));
+
+    // Nothing is to be read after an error.
+    if (token.kind == Kind::Error) break;
   }
   return tokens;
 }
@@ -111,6 +114,36 @@ TEST(Test, LexerComment) {
 TEST(Test, LexerError) {
   EXPECT_THAT(ReadTokens(R"("foo)"),
               ElementsEqual(Tok(Kind::Error, R"("foo)")));
+}
+
+// A carriage return is whitespace, so a line ending in one before its newline
+// reads the same as one that does not.
+TEST(Test, LexerCarriageReturn) {
+  EXPECT_THAT(ReadTokens("foo\r\nbar"),
+              ElementsEqual(Tok(Kind::Ident, "foo"), Tok(Kind::Space, "\r\n"),
+                            Tok(Kind::Ident, "bar")));
+}
+
+// A byte from 0x80 up is none of the language's, wherever it stands, and
+// ends whatever was being read before it.
+TEST(Test, LexerBytePastAscii) {
+  EXPECT_THAT(ReadTokens("\xc3\xa9"), ElementsEqual(Tok(Kind::Error, "\xc3")));
+  EXPECT_THAT(ReadTokens("caf\xc3\xa9"),
+              ElementsEqual(Tok(Kind::Ident, "caf"), Tok(Kind::Error, "\xc3")));
+  EXPECT_THAT(ReadTokens("21\x80"),
+              ElementsEqual(Tok(Kind::Number, "21"), Tok(Kind::Error, "\x80")));
+  EXPECT_THAT(ReadTokens("  \xff"),
+              ElementsEqual(Tok(Kind::Space, "  "), Tok(Kind::Error, "\xff")));
+}
+
+// A byte order mark is passed over at the head of the source, and is only
+// bytes anywhere else.
+TEST(Test, LexerByteOrderMark) {
+  EXPECT_THAT(ReadTokens("\xef\xbb\xbf"
+                         "foo"),
+              ElementsEqual(Tok(Kind::Ident, "foo")));
+  EXPECT_THAT(ReadTokens("foo\xef\xbb\xbf"),
+              ElementsEqual(Tok(Kind::Ident, "foo"), Tok(Kind::Error, "\xef")));
 }
 
 }  // namespace

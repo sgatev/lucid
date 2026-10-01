@@ -1,4 +1,5 @@
 #include <format>
+#include <string>
 #include <string_view>
 
 #include "lucid/compiler/compiler_test_fixture.h"
@@ -261,6 +262,32 @@ TEST(CompilerTest, ReportsCompilationDividingByZero) {
                 AllOf(ReturnsCode(1),
                       ErrorOutput(Contains("compilation divided by zero"))));
   }
+}
+
+// A file written with a carriage return before each newline, or opening with
+// a byte order mark, as some editors write them, compiles the same as one
+// written without.
+TEST(CompilerTest, CompilesCarriageReturnsAndAByteOrderMark) {
+  for (const std::string_view prefix : {"", "\xef\xbb\xbf"}) {
+    ASSERT_TRUE(CreateFile(
+        "main.lu",
+        std::string(prefix) + "fun main(): Int32 {\r\n  return 0\r\n}\r\n"));
+    EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}), ReturnsCode(0));
+  }
+}
+
+// A byte past ASCII outside a comment or a string is reported where it
+// stands, as any other byte the language has no use for is.
+TEST(CompilerTest, ReportsBytesPastAscii) {
+  ASSERT_TRUE(CreateFile("main.lu",
+                         "fun main(): Int32 {\n"
+                         "  val caf\xc3\xa9: Int32 = 21\n"
+                         "  return 21\n"
+                         "}\n"));
+  EXPECT_THAT(
+      RunCompiler({"compile", FullPath("main.lu")}),
+      AllOf(ReturnsCode(1),
+            ErrorOutput(Contains("unexpected token at line 2, column 10"))));
 }
 
 TEST(CompilerTest, ReportsNamesThatAreNotThere) {

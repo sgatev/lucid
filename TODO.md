@@ -2,24 +2,6 @@
 
 Improvements that are known but not made yet.
 
-## Lexing
-
-### Look up a byte past ASCII as the byte it is
-
-[`Lexer::next`](lucid/syntax/lexer.h) indexes `kClassMap` and `kTokenKindMap` with a
-`char`, which is signed on arm64 macOS, so a byte from `0x80` up is a negative index
-and reads from before the table. Nothing in a comment or a string is looked up, so
-UTF-8 there is safe; anywhere else it is not. A byte order mark at the head of a file
-crashes the compiler, `val café` aborts it, and a curly quote pasted in where a `"`
-was meant reads out of bounds before it is reported. Indexing with the byte as an
-`unsigned char` makes each of these the `Error` token the table already holds for it.
-
-A carriage return is not whitespace either, so a file with `\r\n` line endings is
-rejected at the end of its first line. It used to be passed over only because a byte
-the table did not name came out as a comment; naming it as a space is what makes it
-one on purpose. A byte order mark could be passed over the same way, rather than
-reported at the first column.
-
 ## Register allocation
 
 ### Search for what to spill without starting over

@@ -21,6 +21,14 @@ std::size_t FindColumn(std::string_view buffer, const Token& token) {
   std::string_view prefix = buffer.substr(0, token.start_pos);
   auto it = prefix.find_last_of('\n');
   prefix.remove_prefix(it == std::string_view::npos ? 0 : it + 1);
+
+  // A byte order mark at the head of the first line is not one of its
+  // columns: nothing shows it, and the lexer passes over it.
+  if (it == std::string_view::npos) {
+    if (prefix.starts_with(kByteOrderMark)) {
+      prefix.remove_prefix(kByteOrderMark.size());
+    }
+  }
   return prefix.size() + 1;
 }
 

@@ -14,8 +14,14 @@ class Lexer {
  public:
   // Requires:
   // - `buffer` must end in `\0`.
+  //
+  // A byte order mark says how the bytes after it are to be read rather than
+  // being one of them, so where `buffer` opens with one the source starts
+  // after it.
   explicit Lexer(std::string_view buffer)
-      : buffer_(buffer.data()), size_(buffer.size()), pos_(0) {
+      : buffer_(reinterpret_cast<const unsigned char*>(buffer.data())),
+        size_(buffer.size()),
+        pos_(buffer.starts_with(kByteOrderMark) ? kByteOrderMark.size() : 0) {
     assert(size_ > 0);
     assert(buffer_[size_ - 1] == '\0');
   }
@@ -25,7 +31,7 @@ class Lexer {
   // Requires:
   // - Must not be called after it returns a `Kind::End` or `Kind::Error` token.
   inline Token next() {
-    const char sym = buffer_[pos_];
+    const unsigned char sym = buffer_[pos_];
     const std::uint8_t sym_class = kClassMap[sym];
     const std::uint32_t start_pos = pos_++;
     if (sym_class < kOtherClass) {
@@ -68,6 +74,7 @@ class Lexer {
     for (char c = '0'; c <= '9'; ++c) map[c] = kNumClass;
     map[' '] = kSpaceClass;
     map['\n'] = kSpaceClass;
+    map['\r'] = kSpaceClass;
     map['\t'] = kSpaceClass;
     return map;
   }();
@@ -101,6 +108,7 @@ class Lexer {
     map[' '] = Token::Kind::Space;
     map['\t'] = Token::Kind::Space;
     map['\n'] = Token::Kind::Space;
+    map['\r'] = Token::Kind::Space;
     map['\0'] = Token::Kind::End;
     map['_'] = Token::Kind::Ident;
     for (char c = 'a'; c <= 'z'; ++c) map[c] = Token::Kind::Ident;
@@ -109,7 +117,11 @@ class Lexer {
     return map;
   }();
 
-  const char* buffer_;
+  // The source as bytes. A byte is read as the unsigned number it is, since
+  // it is what the tables above are looked up by: as a `char`, which is
+  // signed here, a byte from `0x80` up would be a negative index and reach
+  // before the start of the table.
+  const unsigned char* buffer_;
   const std::uint32_t size_;
   std::uint32_t pos_;
 };

@@ -1632,6 +1632,16 @@ TEST(ParserTest, SpaceBetweenEqualSigns) {
   EXPECT_THAT(Parse(src), HoldsError("unexpected token at line 3, column 13"));
 }
 
+// A byte the language has no use for is an unexpected token where it stands,
+// and is not mistaken for a string that never ends.
+TEST(ParserTest, ByteWithNoUseInAnExpression) {
+  EXPECT_THAT(Parse("\n    fun foo(): Int32 {\n      return 1 + @\n    }\n  "),
+              HoldsError("unexpected token at line 3, column 18"));
+  EXPECT_THAT(
+      Parse("\n    fun foo(): Int32 {\n      return 1 + \xc3\xa9\n    }\n  "),
+      HoldsError("unexpected token at line 3, column 18"));
+}
+
 TEST(ParserTest, MissingStringClosingQuote) {
   std::string_view src = R"(
     fun foo(): Void {

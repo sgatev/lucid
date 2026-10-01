@@ -28,7 +28,12 @@ returns is the process's exit status.
 
 The source is a sequence of bytes ending in a null byte. Nothing in the language depends
 on the layout of lines. A newline is whitespace like any other, and there is no statement
-terminator.
+terminator. A carriage return is whitespace too, so a file whose lines end in `\r\n`
+reads the same as one whose lines end in `\n`, and a UTF-8 byte order mark at the head of
+a file is passed over.
+
+Outside comments and strings the source is ASCII. A byte from `0x80` up anywhere else is
+an error where it stands, as is any ASCII byte the language has no use for, such as `@`.
 
 **Comments** run from a `#` to the end of the line.
 
