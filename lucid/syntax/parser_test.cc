@@ -1642,6 +1642,32 @@ TEST(ParserTest, ByteWithNoUseInAnExpression) {
       HoldsError("unexpected token at line 3, column 18"));
 }
 
+// `do` calls a function for what calling it does, so anything else after it
+// is reported where it starts.
+TEST(ParserTest, DoWithoutACall) {
+  EXPECT_THAT(Parse(R"(
+    fun foo(): Int32 {
+      do 1
+      return 0
+    }
+  )"),
+              HoldsError("expected a call at line 3, column 10"));
+  EXPECT_THAT(Parse(R"(
+    fun foo(): Int32 {
+      do "0"
+      return 0
+    }
+  )"),
+              HoldsError("expected a call at line 3, column 10"));
+  EXPECT_THAT(Parse(R"(
+    fun foo(): Int32 {
+      do bar() + 1
+      return 0
+    }
+  )"),
+              HoldsError("expected a call at line 3, column 10"));
+}
+
 TEST(ParserTest, MissingStringClosingQuote) {
   std::string_view src = R"(
     fun foo(): Void {

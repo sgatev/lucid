@@ -42,6 +42,7 @@ class ParserError {
     ExpectedTypeKeyword,
     IncompleteStringLiteral,
     UnknownType,
+    ExpectedCall,
   };
 
   explicit ParserError(Kind kind, CodeLocation loc) : kind_(kind), loc_(loc) {}
@@ -76,6 +77,8 @@ class ParserError {
         return "incomplete string literal";
       case Kind::UnknownType:
         return "no type of this name";
+      case Kind::ExpectedCall:
+        return "expected a call";
     }
   }
 
@@ -318,8 +321,15 @@ class Parser {
     return std::invoke(parselets[TokenString(token)], this);
   }
 
+  // `do` is how a function is called for what calling it does, so what
+  // follows it has to be a call: anything else would be worked out and thrown
+  // away, with nothing done.
   std::expected<Stmt, ParserError> ParseDoStmt() {
+    const Token start = PeekIgnoringNonSemantic();
     ASSIGN_OR_RETURN(Expr value, ParseExpr());
+    if (!std::holds_alternative<FuncCallExpr>(value)) [[unlikely]] {
+      return std::unexpected(MakeError(ParserError::Kind::ExpectedCall, start));
+    }
     return DoStmt{.expr = syn_ctx_.Add(std::move(value))};
   }
 

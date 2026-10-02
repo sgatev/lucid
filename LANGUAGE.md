@@ -24,6 +24,10 @@ is finished before the next is read. **A function must therefore be defined abov
 call to it.** The function named `main` is where the program starts, and the value it
 returns is the process's exit status.
 
+A program without a `main` is rejected. `main` takes no parameters, since nothing is
+passed to it, and returns an `Int32`, an `Int64` or a `Bool`, whose lowest byte becomes the
+exit status; `true` is 1 and `false` is 0.
+
 ## Lexical structure
 
 The source is a sequence of bytes ending in a null byte. Nothing in the language depends
@@ -188,8 +192,9 @@ function's result type. A function is not obliged to return: control may reach t
 closing brace, and the function's result is then whatever the result register happens
 to hold. Nothing warns about it.
 
-**Do.** `do expr` evaluates an expression for its effect and discards the value. It is
-how a function is called when its result is not wanted.
+**Do.** `do f(…)` calls a function for what calling it does and discards its result. What
+follows `do` has to be a call; anything else would be worked out and thrown away, and is
+rejected.
 
 ## Expressions
 

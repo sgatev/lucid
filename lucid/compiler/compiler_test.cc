@@ -290,6 +290,50 @@ TEST(CompilerTest, ReportsBytesPastAscii) {
             ErrorOutput(Contains("unexpected token at line 2, column 10"))));
 }
 
+// The start of the program calls `main`, so a program has to have one.
+TEST(CompilerTest, ReportsAProgramWithoutMain) {
+  for (const std::string_view source :
+       {"", "fun f(): Int32 { return 1 }", "fun Main(): Int32 { return 1 }"}) {
+    ASSERT_TRUE(CreateFile("main.lu", source));
+    EXPECT_THAT(
+        RunCompiler({"compile", FullPath("main.lu")}),
+        AllOf(ReturnsCode(1),
+              ErrorOutput(Contains("no function 'main' to start from"))));
+  }
+}
+
+// `main` is called with nothing, and what it returns becomes the status the
+// process leaves with, so it takes nothing and returns something a status can
+// be made of.
+TEST(CompilerTest, ReportsMainThatCannotStartAProgram) {
+  const struct {
+    std::string_view source;
+    std::string_view message;
+  } kCases[] = {
+      {"fun main(x: Int32): Int32 { return x }",
+       "function 'main' takes no parameters, not 1"},
+      {R"(fun main(): String { return "hi" })",
+       "function 'main' returns Int32, Int64 or Bool, not String"},
+      {"fun main(): Void { }",
+       "function 'main' returns Int32, Int64 or Bool, not Void"},
+  };
+
+  for (const auto& [source, message] : kCases) {
+    ASSERT_TRUE(CreateFile("main.lu", source));
+    EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}),
+                AllOf(ReturnsCode(1), ErrorOutput(Contains(message))));
+  }
+}
+
+TEST(CompilerTest, AcceptsMainReturningANumberOrABool) {
+  for (const std::string_view source :
+       {"fun main(): Int32 { return 1 }", "fun main(): Int64 { return 1 }",
+        "fun main(): Bool { return true }"}) {
+    ASSERT_TRUE(CreateFile("main.lu", source));
+    EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}), ReturnsCode(0));
+  }
+}
+
 TEST(CompilerTest, ReportsNamesThatAreNotThere) {
   const struct {
     std::string_view source;

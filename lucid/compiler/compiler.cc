@@ -38,6 +38,31 @@
 namespace lucid {
 namespace {
 
+// Checks that `main`, where the program starts, is one the start of the
+// program can call: one that takes nothing, because nothing is passed to it,
+// and returns a number or a `Bool`, the low byte of which becomes the status
+// the process leaves with. A string would leave with part of where it is
+// held, and `Void` with whatever was last left where a result goes.
+//
+// Requires:
+// - The types of `main` must have been inferred, so that its result is not
+//   an array or a tuple.
+std::expected<void, TypeError> CheckEntryPoint(const SyntaxContext& syn_ctx,
+                                               const FuncDefStmt& main) {
+  if (main.params.size() != 0) {
+    return std::unexpected(TypeError(std::format(
+        "function 'main' takes no parameters, not {}", main.params.size())));
+  }
+
+  const auto& result = std::get<BasicType>(syn_ctx.DerefType(main.result_type));
+  const std::string_view name = syn_ctx.DerefIdent(result.name);
+  if (name != "Int32" && name != "Int64" && name != "Bool") {
+    return std::unexpected(TypeError(std::format(
+        "function 'main' returns Int32, Int64 or Bool, not {}", name)));
+  }
+  return {};
+}
+
 std::expected<void, CompileError> CompileSource(std::string_view src,
                                                 std::ostream& out) {
   SyntaxContext syn_ctx;
@@ -68,6 +93,11 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       }
       if (auto res = InferExprTypes(syn_ctx, *func_def); !res.has_value()) {
         return std::unexpected(res.error());
+      }
+      if (syn_ctx.DerefIdent(func_def->name) == "main") {
+        if (auto res = CheckEntryPoint(syn_ctx, *func_def); !res.has_value()) {
+          return std::unexpected(res.error());
+        }
       }
       if (auto res = CheckComp(syn_ctx, *func_def); !res.has_value()) {
         return std::unexpected(res.error());
@@ -105,6 +135,12 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       syn_ctx.RegisterType(type_def->name, type_def->type);
     }
   }
+  // The start of the program calls `main`, so there is nothing to write
+  // without one.
+  if (syn_ctx.FindFuncDef(syn_ctx.AddIdent("main")) == nullptr) {
+    return std::unexpected(TypeError("no function 'main' to start from"));
+  }
+
   GenerateArmEndBinary(syn_ctx, am_state, assembler);
   WriteCompiledMachObject(assembler, out);
   return {};
