@@ -20,6 +20,15 @@ struct AbstractMachineState {
 
   // Integers used in `func`.
   HashSet<std::int64_t> ints;
+
+  // The register holding the value of each expression, by its id.
+  //
+  // It is kept for the whole program rather than for one function, so that
+  // translating a function only clears room for the expressions read since the
+  // last one, not for every expression in the program. What an earlier
+  // function left here is never read, as each expression is given a register
+  // before it is used.
+  std::vector<Reg> expr_regs;
 };
 
 // Returns the instruction that puts `value` in `dst`.

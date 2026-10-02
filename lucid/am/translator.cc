@@ -31,8 +31,9 @@ class AbstractMachineFunctionGenerator {
       : syn_ctx_(syn_ctx),
         syn_cfg_(syn_cfg),
         am_state_(am_state),
-        vm_(am_cfgs, am_state, am_cfg_.stack_slots, /*depth=*/0, comp_steps_) {
-    expr_and_stmt_to_reg_.resize(syn_ctx_.Size());
+        vm_(am_cfgs, am_state, am_cfg_.stack_slots, /*depth=*/0, comp_steps_),
+        expr_to_reg_(am_state.expr_regs) {
+    expr_to_reg_.resize(syn_ctx_.Size());
   }
 
   std::expected<AbstractMachineControlFlowGraph, CompError> Generate() && {
@@ -160,7 +161,7 @@ class AbstractMachineFunctionGenerator {
       }
     }
     if (block.branch_cond != Arena<Expr>::kNullRef) {
-      am_block.branch_cond = expr_and_stmt_to_reg_[block.branch_cond.id()];
+      am_block.branch_cond = expr_to_reg_[block.branch_cond.id()];
     }
     for (const auto& succ : block.succs) {
       auto am_cfg_succ = graph_map_.Get(succ);
@@ -184,7 +185,7 @@ class AbstractMachineFunctionGenerator {
                    AbstractMachineControlFlowGraph::Block& am_block) {
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
     am_block.instructions.push_back(SetValue(expr.value, reg, am_state_));
-    expr_and_stmt_to_reg_[ref.id()] = reg;
+    expr_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const BoolLitExpr& expr,
@@ -194,7 +195,7 @@ class AbstractMachineFunctionGenerator {
         .src_val = expr.value ? 1 : 0,
         .dst_reg = reg,
     });
-    expr_and_stmt_to_reg_[ref.id()] = reg;
+    expr_to_reg_[ref.id()] = reg;
   }
 
   // Returns the index that identifies `ref` in the string constant pool,
@@ -217,7 +218,7 @@ class AbstractMachineFunctionGenerator {
         .src_val = string_id,
         .dst_reg = reg,
     });
-    expr_and_stmt_to_reg_[ref.id()] = reg;
+    expr_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const FuncCallExpr& expr,
@@ -227,7 +228,7 @@ class AbstractMachineFunctionGenerator {
     };
     for (ExprRef arg : expr.args) {
       func_call.args.push_back(FuncCall::Slot{
-          .reg = expr_and_stmt_to_reg_[arg.id()],
+          .reg = expr_to_reg_[arg.id()],
       });
     }
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
@@ -235,7 +236,7 @@ class AbstractMachineFunctionGenerator {
         .reg = reg,
     };
     am_block.instructions.push_back(std::move(func_call));
-    expr_and_stmt_to_reg_[ref.id()] = reg;
+    expr_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const IdentExpr& expr,
@@ -249,7 +250,7 @@ class AbstractMachineFunctionGenerator {
         .src_reg = GetVarReg(expr.name, expr.type),
         .dst_reg = reg,
     });
-    expr_and_stmt_to_reg_[ref.id()] = reg;
+    expr_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const IndexExpr& expr,
@@ -278,7 +279,7 @@ class AbstractMachineFunctionGenerator {
         .offset_reg = place.offset_reg,
         .dst_reg = reg,
     });
-    expr_and_stmt_to_reg_[ref.id()] = reg;
+    expr_to_reg_[ref.id()] = reg;
   }
 
   void ProcessExpr(ExprRef ref, const BinaryOpExpr& expr,
@@ -288,78 +289,78 @@ class AbstractMachineFunctionGenerator {
       case BinaryOp::Add:
         am_block.instructions.push_back(AddReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Sub:
         am_block.instructions.push_back(SubReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Mul:
         am_block.instructions.push_back(MulReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Div:
         am_block.instructions.push_back(DivReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Mod:
         am_block.instructions.push_back(ModReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Gt:
         am_block.instructions.push_back(GtReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Lt:
         am_block.instructions.push_back(LtReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Ge:
         am_block.instructions.push_back(GeReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Le:
         am_block.instructions.push_back(LeReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Eq:
         am_block.instructions.push_back(EqReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::NotEq:
         am_block.instructions.push_back(NotEqReg{
             .res_reg = reg,
-            .lhs_reg = expr_and_stmt_to_reg_[expr.lhs.id()],
-            .rhs_reg = expr_and_stmt_to_reg_[expr.rhs.id()],
+            .lhs_reg = expr_to_reg_[expr.lhs.id()],
+            .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::And:
@@ -369,7 +370,7 @@ class AbstractMachineFunctionGenerator {
         assert(false && "short circuit operator reached the abstract machine");
         break;
     }
-    expr_and_stmt_to_reg_[ref.id()] = reg;
+    expr_to_reg_[ref.id()] = reg;
   }
 
   void Process(StmtRef ref, const Stmt& stmt,
@@ -380,7 +381,7 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef ref, const ReturnStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
     am_block.instructions.push_back(MoveReg{
-        .src_reg = expr_and_stmt_to_reg_[stmt.value.id()],
+        .src_reg = expr_to_reg_[stmt.value.id()],
         .dst_reg = result_reg_,
     });
   }
@@ -394,7 +395,7 @@ class AbstractMachineFunctionGenerator {
                AbstractMachineControlFlowGraph::Block& am_block) {
     auto expr_type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));
     am_block.instructions.push_back(MoveReg{
-        .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
+        .src_reg = expr_to_reg_[stmt.expr.id()],
         .dst_reg = GetVarReg(stmt.name, expr_type_ref),
     });
   }
@@ -407,7 +408,7 @@ class AbstractMachineFunctionGenerator {
     } else {
       if (stmt.init.has_value()) {
         am_block.instructions.push_back(MoveReg{
-            .src_reg = expr_and_stmt_to_reg_[stmt.init->id()],
+            .src_reg = expr_to_reg_[stmt.init->id()],
             .dst_reg = GetVarReg(stmt.name, stmt.type_constraint),
         });
       }
@@ -428,12 +429,12 @@ class AbstractMachineFunctionGenerator {
     am_block.instructions.push_back(MulReg{
         .res_reg = offset_reg,
         .lhs_reg = offset_reg,
-        .rhs_reg = expr_and_stmt_to_reg_[stmt.index.id()],
+        .rhs_reg = expr_to_reg_[stmt.index.id()],
     });
     am_block.instructions.push_back(StoreStackReg{
         .offset = *stmt_offset,
         .offset_reg = offset_reg,
-        .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
+        .src_reg = expr_to_reg_[stmt.expr.id()],
     });
   }
 
@@ -447,7 +448,7 @@ class AbstractMachineFunctionGenerator {
     am_block.instructions.push_back(StoreStackReg{
         .offset = place.base_offset,
         .offset_reg = place.offset_reg,
-        .src_reg = expr_and_stmt_to_reg_[stmt.expr.id()],
+        .src_reg = expr_to_reg_[stmt.expr.id()],
     });
   }
 
@@ -516,7 +517,7 @@ class AbstractMachineFunctionGenerator {
       am_block.instructions.push_back(MulReg{
           .res_reg = step_reg,
           .lhs_reg = step_reg,
-          .rhs_reg = expr_and_stmt_to_reg_[index_expr->index.id()],
+          .rhs_reg = expr_to_reg_[index_expr->index.id()],
       });
       am_block.instructions.push_back(AddReg{
           .res_reg = place.offset_reg,
@@ -648,7 +649,7 @@ class AbstractMachineFunctionGenerator {
   HashMap<SyntaxControlFlowGraph::BlockRef,
           AbstractMachineControlFlowGraph::BlockRef>
       graph_map_;
-  std::vector<Reg> expr_and_stmt_to_reg_;
+  std::vector<Reg>& expr_to_reg_;
 };
 
 }  // namespace
