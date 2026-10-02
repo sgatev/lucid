@@ -52,6 +52,7 @@ cc_test(
 
 cc_binary(
     name = "hash_map_bench",
+    testonly = True,
     srcs = ["hash_map_bench.cc"],
     deps = [
         ":hash_map",
@@ -79,6 +80,7 @@ cc_test(
 
 cc_binary(
     name = "hash_set_bench",
+    testonly = True,
     srcs = ["hash_set_bench.cc"],
     deps = [
         ":hash_set",

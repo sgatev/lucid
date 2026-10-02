@@ -288,6 +288,7 @@ cc_test(
 
 cc_binary(
     name = "translator_bench",
+    testonly = True,
     srcs = ["translator_bench.cc"],
     deps = [
         ":translator",

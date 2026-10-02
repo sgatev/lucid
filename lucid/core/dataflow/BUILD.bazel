@@ -40,6 +40,7 @@ cc_test(
 
 cc_binary(
     name = "worklist_bench",
+    testonly = True,
     srcs = ["worklist_bench.cc"],
     deps = [
         ":worklist",

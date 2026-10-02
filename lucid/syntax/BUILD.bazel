@@ -167,6 +167,7 @@ cc_test(
 
 cc_binary(
     name = "lexer_bench",
+    testonly = True,
     srcs = ["lexer_bench.cc"],
     data = [
         "//examples:example_sources",
@@ -237,6 +238,7 @@ cc_test(
 
 cc_binary(
     name = "parser_bench",
+    testonly = True,
     srcs = ["parser_bench.cc"],
     data = [
         "//examples:example_sources",
@@ -283,6 +285,7 @@ cc_test(
 
 cc_binary(
     name = "ssa_bench",
+    testonly = True,
     srcs = ["ssa_bench.cc"],
     deps = [
         ":ast",
