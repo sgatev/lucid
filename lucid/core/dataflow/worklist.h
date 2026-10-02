@@ -22,20 +22,21 @@ concept OrderedBefore = requires(O o, E e1, E e2) {
   { o(e1, e2) } -> std::same_as<bool>;
 };
 
-// A worklist of elements of type `T` ordered using comparator of type `C`. An
+// A worklist of elements of type `T`, taken out in the order the comparator of
+// type `O` puts them in: an element it puts before another comes out first. An
 // element can appear at most once in the worklist.
 template <typename T, FiniteDomain<T> D, OrderedBefore<T> O>
 class Worklist {
  public:
   Worklist(D domain, O compare)
       : domain_(std::move(domain)),
-        queue_(std::move(compare)),
+        queue_(ComesLater{.order = std::move(compare)}),
         present_(domain_.size(), false) {}
 
   // Returns whether the worklist is empty.
   bool empty() const { return queue_.empty(); }
 
-  // Removes and returns the top element in the worklist.
+  // Removes and returns the element that comes first in the order.
   T pop() {
     T top = queue_.top();
     queue_.pop();
@@ -58,8 +59,18 @@ class Worklist {
   }
 
  private:
+  // The order turned round. A priority queue takes out what compares greatest,
+  // so it is handed this, to take out what the order puts first.
+  struct ComesLater {
+    O order;
+
+    bool operator()(const T& lhs, const T& rhs) const {
+      return order(rhs, lhs);
+    }
+  };
+
   D domain_;
-  std::priority_queue<T, std::vector<T>, O> queue_;
+  std::priority_queue<T, std::vector<T>, ComesLater> queue_;
   std::vector<bool> present_;
 };
 

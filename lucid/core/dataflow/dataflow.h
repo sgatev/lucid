@@ -61,7 +61,8 @@ class VertexDomain {
 // Requires:
 // - `Graph` sub-type that models a single-source, single-sink graph.
 // - `Compare` member that returns a function object for performing vertex
-//   comparisons.
+//   comparisons. The analysis works through the vertices in that order, the
+//   one that comes first before the rest.
 // - `Domain` member that returns a finite domain of vertices in the graph.
 // - `Vertices` member that returns every vertex of the graph.
 // - `Prior` member that returns the vertices that come before a given vertex in

@@ -40,19 +40,19 @@ TEST(Test, WorklistOrdered) {
   worklist.push(3);
 
   ASSERT_FALSE(worklist.empty());
-  EXPECT_EQ(worklist.pop(), 5);
-
-  ASSERT_FALSE(worklist.empty());
-  EXPECT_EQ(worklist.pop(), 4);
-
-  ASSERT_FALSE(worklist.empty());
-  EXPECT_EQ(worklist.pop(), 3);
+  EXPECT_EQ(worklist.pop(), 1);
 
   ASSERT_FALSE(worklist.empty());
   EXPECT_EQ(worklist.pop(), 2);
 
   ASSERT_FALSE(worklist.empty());
-  EXPECT_EQ(worklist.pop(), 1);
+  EXPECT_EQ(worklist.pop(), 3);
+
+  ASSERT_FALSE(worklist.empty());
+  EXPECT_EQ(worklist.pop(), 4);
+
+  ASSERT_FALSE(worklist.empty());
+  EXPECT_EQ(worklist.pop(), 5);
 
   EXPECT_TRUE(worklist.empty());
 }
@@ -68,13 +68,13 @@ TEST(Test, WorklistNoDuplicates) {
   worklist.push(1);
 
   ASSERT_FALSE(worklist.empty());
-  EXPECT_EQ(worklist.pop(), 3);
+  EXPECT_EQ(worklist.pop(), 1);
 
   ASSERT_FALSE(worklist.empty());
   EXPECT_EQ(worklist.pop(), 2);
 
   ASSERT_FALSE(worklist.empty());
-  EXPECT_EQ(worklist.pop(), 1);
+  EXPECT_EQ(worklist.pop(), 3);
 
   EXPECT_TRUE(worklist.empty());
 }
@@ -87,19 +87,19 @@ TEST(Test, WorklistPushRange) {
   worklist.push_range(std::vector<int>{3, 2});
 
   ASSERT_FALSE(worklist.empty());
-  EXPECT_EQ(worklist.pop(), 5);
-
-  ASSERT_FALSE(worklist.empty());
-  EXPECT_EQ(worklist.pop(), 4);
-
-  ASSERT_FALSE(worklist.empty());
-  EXPECT_EQ(worklist.pop(), 3);
+  EXPECT_EQ(worklist.pop(), 1);
 
   ASSERT_FALSE(worklist.empty());
   EXPECT_EQ(worklist.pop(), 2);
 
   ASSERT_FALSE(worklist.empty());
-  EXPECT_EQ(worklist.pop(), 1);
+  EXPECT_EQ(worklist.pop(), 3);
+
+  ASSERT_FALSE(worklist.empty());
+  EXPECT_EQ(worklist.pop(), 4);
+
+  ASSERT_FALSE(worklist.empty());
+  EXPECT_EQ(worklist.pop(), 5);
 
   EXPECT_TRUE(worklist.empty());
 }
