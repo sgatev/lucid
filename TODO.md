@@ -19,18 +19,6 @@ is live is already carried from one spill to the next rather than worked out aga
 where the crowded points are is not, and it is the last part of the loop that still
 starts over.
 
-## Tests and benchmarks
-
-### Benchmark a function that branches
-
-The snippets `ChainedValues` and `LiveValues` in [`reg_bench`](lucid/am/reg_bench.cc) are
-straight-line, so the graph they build has almost no branching and the join path of
-`RunDataflow` barely runs. Avoiding the copies in the analyses moved these benchmarks 3-6%
-while moving a chain of diamonds 3.3-6.3x, which is to say the benchmarks do not yet
-measure the part of the work that changed.
-
-Nothing measures the part of the work that costs the most, either: none of the nine
-benchmarks branches, and branching is what spilling is slow on. `BranchingValues` and
-`LoopCarriedValues` in [`reg_test`](lucid/am/reg_test.cc) are the shapes, and they want
-a home both can read. Doing this first would give a fix for the search something to
-move.
+`AllocateDiamonds15` and `AllocateDiamonds30` in [`reg_bench`](lucid/am/reg_bench.cc)
+measure it: twice the branches take 3.7ms and 14.3ms, nearly four times as long. A
+search that kept what it found would bring the second closer to twice the first.

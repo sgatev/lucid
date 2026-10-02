@@ -13,6 +13,7 @@
 #include "lucid/am/ig.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/opt.h"
+#include "lucid/am/reg_programs.h"
 #include "lucid/am/translator.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/testing/testing.h"
@@ -36,108 +37,6 @@ constexpr CallingConvention kCallingConvention = {
     .max_register_args = kRegistersCount,
     .stack_arg_size = 8,
 };
-
-// A chain of values, each dying as the next is born.
-std::string ChainedValues(int count) {
-  std::string code = "fun main(): Int32 {\n  val v0: Int32 = 1\n";
-  for (int i = 1; i < count; ++i) {
-    code += std::format("  val v{}: Int32 = v{} + {}\n", i, i - 1, i);
-  }
-  code += std::format("  return v{}\n}}\n", count - 1);
-  return code;
-}
-
-// Values that are all live at once, so that the allocator has to spill.
-std::string LiveValues(int count) {
-  std::string code = "fun main(): Int32 {\n";
-  for (int i = 0; i < count; ++i) {
-    code += std::format("  val v{}: Int32 = {}\n", i, i);
-  }
-  code += "  val sum: Int32 = v0\n";
-  for (int i = 1; i < count; ++i) {
-    code += std::format("  val sum{}: Int32 = sum + v{}\n", i, i);
-  }
-  code += std::format("  return sum{}\n}}\n", count - 1);
-  return code;
-}
-
-// A function of `count` parameters, each of them read. Every parameter is
-// live where the function is entered, because that is where the caller leaves
-// it, so the ones there is no register for arrive on the stack.
-std::string ManyParameters(int count) {
-  std::string code = "fun main(";
-  for (int i = 0; i < count; ++i) {
-    code += std::format("{}p{}: Int32", i == 0 ? "" : ", ", i);
-  }
-  code += "): Int32 {\n  val sum0: Int32 = p0\n";
-  for (int i = 1; i < count; ++i) {
-    code += std::format("  val sum{}: Int32 = sum{} + p{}\n", i, i - 1, i);
-  }
-  code += std::format("  return sum{}\n}}\n", count - 1);
-  return code;
-}
-
-// `crossing` values written on one side of a branch and all read after it,
-// so that a phi function waits for each of them where the sides meet, and
-// `inside` more live only within that side, to crowd the registers there.
-//
-// What crosses the branch is what is read furthest ahead, so it is what the
-// spilling takes, which is to say a register a phi function reads.
-std::string BranchingValues(int crossing, int inside) {
-  std::string code = "fun main(): Int32 {\n  val a: Int32 = 1\n";
-  for (int i = 0; i < crossing; ++i) {
-    code += std::format("  mut val v{}: Int32 = {}\n", i, i + 1);
-  }
-
-  code += "  if a == 1 {\n";
-  for (int i = 0; i < inside; ++i) {
-    code += std::format("    val w{}: Int32 = {}\n", i, i + 1);
-  }
-  if (inside > 0) {
-    code += "    val t0: Int32 = w0\n";
-    for (int i = 1; i < inside; ++i) {
-      code += std::format("    val t{}: Int32 = t{} + w{}\n", i, i - 1, i);
-    }
-    for (int i = 0; i < crossing; ++i) {
-      code += std::format("    mut v{} = v{} + t{}\n", i, i, inside - 1);
-    }
-  }
-  code += "  } else {\n";
-  for (int i = 0; i < crossing; ++i) {
-    code += std::format("    mut v{} = v{} - 1\n", i, i);
-  }
-  code += "  }\n";
-
-  code += "  val sum0: Int32 = v0\n";
-  for (int i = 1; i < crossing; ++i) {
-    code += std::format("  val sum{}: Int32 = sum{} + v{}\n", i, i - 1, i);
-  }
-  code += std::format("  return sum{}\n}}\n", crossing - 1);
-  return code;
-}
-
-// `carried` values written on every turn of a loop and read after it, so
-// that each has a phi function where the loop is entered, taking one value
-// from before it and one from the turn before.
-std::string LoopCarriedValues(int carried) {
-  std::string code = "fun main(): Int32 {\n  mut val i: Int32 = 0\n";
-  for (int k = 0; k < carried; ++k) {
-    code += std::format("  mut val v{}: Int32 = {}\n", k, k);
-  }
-
-  code += "  loop {\n    if i == 3 {\n      break\n    }\n";
-  for (int k = 0; k < carried; ++k) {
-    code += std::format("    mut v{} = v{} + 1\n", k, k);
-  }
-  code += "    mut i = i + 1\n  }\n";
-
-  code += "  val s0: Int32 = v0\n";
-  for (int k = 1; k < carried; ++k) {
-    code += std::format("  val s{}: Int32 = s{} + v{}\n", k, k - 1, k);
-  }
-  code += std::format("  return s{}\n}}\n", carried - 1);
-  return code;
-}
 
 class ColoringTest : public Test {
  protected:

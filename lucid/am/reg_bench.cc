@@ -14,6 +14,7 @@
 #include "lucid/am/instructions.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
+#include "lucid/am/reg_programs.h"
 #include "lucid/am/state.h"
 #include "lucid/am/translator.h"
 #include "lucid/core/benchmarking/benchmarking.h"
@@ -39,38 +40,6 @@ constexpr CallingConvention kCallingConvention = {
     .max_register_args = kRegistersCount,
     .stack_arg_size = 8,
 };
-
-// A function of `count` values, each one feeding only the next.
-//
-// A value dies where the one after it is born, so few are ever live at once
-// and the interference graph stays sparse: what grows with `count` is the
-// number of registers in the graph rather than the edges between them.
-std::string ChainedValues(int count) {
-  std::string code = "fun main(): Int32 {\n  val v0: Int32 = 1\n";
-  for (int i = 1; i < count; ++i) {
-    code += std::format("  val v{}: Int32 = v{} + {}\n", i, i - 1, i);
-  }
-  code += std::format("  return v{}\n}}\n", count - 1);
-  return code;
-}
-
-// A function of `count` values that are all live at once.
-//
-// Every value is read after the last one is written, so each interferes with
-// every other: the graph is dense, and with only ten registers to colour it
-// with, the allocator has to spill.
-std::string LiveValues(int count) {
-  std::string code = "fun main(): Int32 {\n";
-  for (int i = 0; i < count; ++i) {
-    code += std::format("  val v{}: Int32 = {}\n", i, i);
-  }
-  code += "  val sum: Int32 = v0\n";
-  for (int i = 1; i < count; ++i) {
-    code += std::format("  val sum{}: Int32 = sum + v{}\n", i, i);
-  }
-  code += std::format("  return sum{}\n}}\n", count - 1);
-  return code;
-}
 
 // Everything the allocator needs, built from a snippet.
 //
@@ -213,6 +182,38 @@ BENCHMARK(BuildIgLive64) { BenchmarkBuildingGraph(state, LiveValues(64)); }
 BENCHMARK(AllocateChain256) { BenchmarkAllocation(state, ChainedValues(256)); }
 
 BENCHMARK(AllocateLive64) { BenchmarkAllocation(state, LiveValues(64)); }
+
+// Building the graph over a run of branches with nothing to spill, so that
+// what is measured is the analysis joining at every place the sides meet,
+// which straight-line code never asks of it. Seven values crossing is as many
+// as fit: the condition and what each side adds take the rest.
+BENCHMARK(BuildIgDiamonds30) {
+  BenchmarkBuildingGraph(state, Diamonds(/*count=*/30, /*crossing=*/7));
+}
+
+// Allocation over runs of branches with more crossing each of them than
+// there are registers, at two lengths. Spilling searches the whole function
+// again after each value it puts away, so the two read together say how
+// that grows with the length of the function.
+BENCHMARK(AllocateDiamonds15) {
+  BenchmarkAllocation(state, Diamonds(/*count=*/15, /*crossing=*/12));
+}
+
+BENCHMARK(AllocateDiamonds30) {
+  BenchmarkAllocation(state, Diamonds(/*count=*/30, /*crossing=*/12));
+}
+
+// Allocation over one branch that more values cross than there are
+// registers, which spills what a phi function reads.
+BENCHMARK(AllocateBranching40) {
+  BenchmarkAllocation(state, BranchingValues(/*crossing=*/40, /*inside=*/0));
+}
+
+// Allocation over a loop carrying more values round than there are
+// registers, each with a phi function where the loop is entered.
+BENCHMARK(AllocateLoopCarried30) {
+  BenchmarkAllocation(state, LoopCarriedValues(/*carried=*/30));
+}
 
 }  // namespace
 }  // namespace lucid

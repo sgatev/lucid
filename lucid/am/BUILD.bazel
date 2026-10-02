@@ -186,6 +186,12 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "reg_programs",
+    testonly = True,
+    hdrs = ["reg_programs.h"],
+)
+
 cc_test(
     name = "reg_test",
     srcs = ["reg_test.cc"],
@@ -196,6 +202,7 @@ cc_test(
         ":instructions",
         ":opt",
         ":reg",
+        ":reg_programs",
         ":translator",
         "//lucid/core/container:hash_map",
         "//lucid/core/testing",
@@ -211,6 +218,7 @@ cc_test(
 
 cc_binary(
     name = "reg_bench",
+    testonly = True,
     srcs = ["reg_bench.cc"],
     deps = [
         ":abi",
@@ -219,6 +227,7 @@ cc_binary(
         ":instructions",
         ":opt",
         ":reg",
+        ":reg_programs",
         ":state",
         ":translator",
         "//lucid/core/benchmarking",
