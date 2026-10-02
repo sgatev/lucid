@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <format>
 #include <random>
@@ -8,6 +9,7 @@
 #include <vector>
 
 #include "lucid/core/container/hash_map.h"
+#include "lucid/core/container/hash_set.h"
 
 namespace lucid {
 
@@ -40,6 +42,7 @@ class RandomProgram {
     lines_.clear();
     numbers_ = HashMap<std::string, std::int32_t>();
     flags_ = HashMap<std::string, bool>();
+    known_ = HashSet<std::string>();
     next_name_ = 0;
 
     Preamble();
@@ -61,6 +64,11 @@ class RandomProgram {
   struct Value {
     std::string text;
     std::int32_t number;
+
+    // Whether compilation could work it out: everything it is made of is a
+    // literal, a name that holds what compilation worked out, or a call to a
+    // comp function over those.
+    bool known = false;
   };
 
   // What a condition is, and whether it holds.
@@ -80,6 +88,11 @@ class RandomProgram {
     std::vector<std::string> numbers;
     std::vector<std::string> writable;
     std::vector<std::string> flags;
+
+    // The numbers that hold what compilation worked out, which a `comp` can
+    // read. They are a few among the rest, so they are picked from apart
+    // from them some of the time, or a `comp` would rarely come to read one.
+    std::vector<std::string> known;
   };
 
   int Between(int low, int high) {
@@ -117,7 +130,7 @@ class RandomProgram {
     Line(1, "return 0");
     Line(0, "}");
     Line(0, "");
-    Line(0, "fun twice(a: Int32): Int32 {");
+    Line(0, "comp fun twice(a: Int32): Int32 {");
     Line(1, "return a + a");
     Line(0, "}");
     Line(0, "");
@@ -128,7 +141,7 @@ class RandomProgram {
     Line(1, "return b");
     Line(0, "}");
     Line(0, "");
-    Line(0, "fun larger(a: Int32, b: Int32): Int32 {");
+    Line(0, "comp fun larger(a: Int32, b: Int32): Int32 {");
     Line(1, "if a > b {");
     Line(2, "return a");
     Line(1, "}");
@@ -137,21 +150,49 @@ class RandomProgram {
     Line(0, "");
   }
 
+  // A number to write as it is. Mostly a small one, and sometimes one near the
+  // edge of the width, so that a sum or a product of a few of them runs past
+  // it and comes back round. That is where working a number out during
+  // compilation has disagreed with working it out running, and a number that
+  // wide is also one no instruction carries in a field of its own.
+  std::int32_t Literal() {
+    static constexpr std::array<std::int32_t, 5> kWide = {
+        2147483647, 2147483646, 1073741824, 65536, 46341};
+    if (Chance(0.15)) return kWide[Between(0, kWide.size() - 1)];
+    return Between(0, 9);
+  }
+
   // A number, built out of what is live and what can be done to it.
   //
+  // One that compilation could work out is sometimes asked for there, with a
+  // `comp`. What it comes to is the same either way, so the program's answer
+  // checks the work done while compiling against the work done running, the
+  // edges of the width included.
+  Value Number(const Scope& scope, int depth) {
+    Value value = NumberOf(scope, depth);
+    if (value.known && Chance(0.15)) {
+      value.text = std::format("comp ({})", value.text);
+    }
+    return value;
+  }
+
   // Everything binds explicitly, because what this has to agree with is the
   // compiler's arithmetic rather than its reading of an expression, and the
   // tests written by hand already say how an expression is read.
-  Value Number(const Scope& scope, int depth) {
+  Value NumberOf(const Scope& scope, int depth) {
     if (depth <= 0 || scope.numbers.empty() || Chance(0.25)) {
-      const std::int32_t value = Between(0, 9);
-      return {.text = std::format("{}", value), .number = value};
+      const std::int32_t value = Literal();
+      return {.text = std::format("{}", value), .number = value, .known = true};
     }
 
     switch (Between(0, 6)) {
       case 0: {
-        const std::string& name = Any(scope.numbers);
-        return {.text = name, .number = *numbers_.Get(name)};
+        const std::string& name = !scope.known.empty() && Chance(0.3)
+                                      ? Any(scope.known)
+                                      : Any(scope.numbers);
+        return {.text = name,
+                .number = *numbers_.Get(name),
+                .known = known_.Contains(name)};
       }
       case 1:
       case 2: {
@@ -161,13 +202,16 @@ class RandomProgram {
         switch (Between(0, 2)) {
           case 0:
             return {.text = std::format("({} + {})", lhs.text, rhs.text),
-                    .number = Narrow(std::int64_t{lhs.number} + rhs.number)};
+                    .number = Narrow(std::int64_t{lhs.number} + rhs.number),
+                    .known = lhs.known && rhs.known};
           case 1:
             return {.text = std::format("({} - {})", lhs.text, rhs.text),
-                    .number = Narrow(std::int64_t{lhs.number} - rhs.number)};
+                    .number = Narrow(std::int64_t{lhs.number} - rhs.number),
+                    .known = lhs.known && rhs.known};
           default:
             return {.text = std::format("({} * {})", lhs.text, rhs.text),
-                    .number = Narrow(std::int64_t{lhs.number} * rhs.number)};
+                    .number = Narrow(std::int64_t{lhs.number} * rhs.number),
+                    .known = lhs.known && rhs.known};
         }
       }
       case 3: {
@@ -179,18 +223,21 @@ class RandomProgram {
         const bool remainder = Chance(0.5);
         return {.text = std::format("({} {} {})", lhs.text,
                                     remainder ? '%' : '/', by),
-                .number = remainder ? lhs.number % by : lhs.number / by};
+                .number = remainder ? lhs.number % by : lhs.number / by,
+                .known = lhs.known};
       }
       case 4: {
         const Value a = Number(scope, depth - 1);
         return {.text = std::format("twice({})", a.text),
-                .number = Narrow(std::int64_t{a.number} + a.number)};
+                .number = Narrow(std::int64_t{a.number} + a.number),
+                .known = a.known};
       }
       case 5: {
         const Value a = Number(scope, depth - 1);
         const Value b = Number(scope, depth - 1);
         return {.text = std::format("larger({}, {})", a.text, b.text),
-                .number = a.number > b.number ? a.number : b.number};
+                .number = a.number > b.number ? a.number : b.number,
+                .known = a.known && b.known};
       }
       default: {
         // A condition, counted as one or nothing, which is what keeps a
@@ -250,16 +297,26 @@ class RandomProgram {
     }
   }
 
+  // A declaration of a number, sometimes one written as a whole with `comp`.
+  // One of those that no write can reach holds what compilation worked out,
+  // and becomes a name that a later `comp` can read. One a write can reach is
+  // only started from that, and is a name like any other.
   void DeclareNumber(int depth, Scope& scope) {
     pending_depth_ = depth;
-    const Value value = Number(scope, 2);
+    Value value = NumberOf(scope, 2);
     const std::string name = Name();
     const bool writable = Chance(0.6);
+    const bool comp = value.known && Chance(0.5);
+    if (comp) value.text = std::format("comp ({})", value.text);
     Line(depth, std::format("{}val {}: Int32 = {}", writable ? "mut " : "",
                             name, value.text));
     numbers_.Set(name, value.number);
     scope.numbers.push_back(name);
     if (writable) scope.writable.push_back(name);
+    if (comp && !writable) {
+      known_.Insert(name);
+      scope.known.push_back(name);
+    }
   }
 
   void DeclareFlag(int depth, Scope& scope) {
@@ -356,6 +413,59 @@ class RandomProgram {
     scope.writable.push_back(counter);
   }
 
+  // Numbers worked out while compiling, each from the ones before it, which
+  // is what a `comp` reading a name relies on: a name holds what compilation
+  // worked out where the whole of what initialises it does and no write can
+  // reach it. A number built here that compilation could not work out is
+  // declared as any other would be.
+  void Known(int depth, Scope& scope) {
+    pending_depth_ = depth;
+    for (int i = Between(1, 3); i > 0; --i) {
+      Scope from_known;
+      from_known.numbers = scope.known;
+      Value value = Chance(0.3) ? Wrapped() : NumberOf(from_known, 2);
+
+      const std::string name = Name();
+      if (value.known) {
+        Line(depth, std::format("val {}: Int32 = comp ({})", name, value.text));
+        known_.Insert(name);
+        scope.known.push_back(name);
+      } else {
+        Line(depth, std::format("val {}: Int32 = {}", name, value.text));
+      }
+      numbers_.Set(name, value.number);
+      scope.numbers.push_back(name);
+    }
+  }
+
+  // A number that runs past the width while being worked out, and is then
+  // compared or divided, both of which look at what it came back round to.
+  // Put into the program as it is, a number held wider than the width would
+  // be cut back to the right one on its way into a register; only looking at
+  // it during compilation shows whether it came back round there too.
+  Value Wrapped() {
+    static constexpr std::array<std::int32_t, 3> kWide = {2147483647,
+                                                          1073741824, 65536};
+    const std::int32_t a = kWide[Between(0, kWide.size() - 1)];
+    const std::int32_t b = kWide[Between(0, kWide.size() - 1)];
+    const bool product = Chance(0.5);
+    const std::int32_t wrapped =
+        Narrow(product ? std::int64_t{a} * b : std::int64_t{a} + b);
+    const std::string text =
+        std::format("({} {} {})", a, product ? '*' : '+', b);
+
+    const std::int32_t other = Between(0, 9);
+    if (Chance(0.5)) {
+      return {.text = std::format("larger({}, {})", text, other),
+              .number = wrapped > other ? wrapped : other,
+              .known = true};
+    }
+    const std::int32_t by = Between(1, 9);
+    return {.text = std::format("({} / {})", text, by),
+            .number = wrapped / by,
+            .known = true};
+  }
+
   // An array, read through an index, which is what reaches a slot of the
   // frame the furthest from where the frame begins.
   void Array(int depth, Scope& scope) {
@@ -419,6 +529,7 @@ class RandomProgram {
     Line(0, signature + "): Int32 {");
 
     if (Chance(0.4)) Array(1, scope);
+    if (Chance(0.5)) Known(1, scope);
     if (Chance(0.3)) Tuples(1, scope);
     Body(1, scope, Between(1, 5));
     Line(1, std::format("return {}", Sum(scope)));
@@ -443,6 +554,7 @@ class RandomProgram {
 
     Scope scope;
     if (Chance(0.4)) Array(1, scope);
+    if (Chance(0.5)) Known(1, scope);
     if (Chance(0.3)) Tuples(1, scope);
     Body(1, scope, Between(1, 5));
 
@@ -517,6 +629,9 @@ class RandomProgram {
   std::vector<std::string> lines_;
   HashMap<std::string, std::int32_t> numbers_;
   HashMap<std::string, bool> flags_;
+
+  // The names that hold what compilation worked out.
+  HashSet<std::string> known_;
   std::int32_t callee_result_ = 0;
   int next_name_ = 0;
 

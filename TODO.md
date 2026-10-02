@@ -34,12 +34,3 @@ benchmarks branches, and branching is what spilling is slow on. `BranchingValues
 `LoopCarriedValues` in [`reg_test`](lucid/am/reg_test.cc) are the shapes, and they want
 a home both can read. Doing this first would give a fix for the search something to
 move.
-
-### Generate `comp` expressions in a random program
-
-[`RandomProgram`](lucid/compiler/random_program.h) never writes `comp`, so the random
-test that runs on every change never works anything out during compilation. Every
-number it builds already comes with its value, which is what checking a `comp` needs.
-Declaring `twice` and `larger` as `comp fun` would change nothing about calling them
-while the program runs, and would let a call to either whose arguments are literals, or
-names initialised by a `comp` of their own, be written `comp` too.

@@ -114,7 +114,10 @@ cc_library(
     name = "random_program",
     testonly = True,
     hdrs = ["random_program.h"],
-    deps = ["//lucid/core/container:hash_map"],
+    deps = [
+        "//lucid/core/container:hash_map",
+        "//lucid/core/container:hash_set",
+    ],
 )
 
 cc_library(
