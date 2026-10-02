@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <format>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -95,7 +96,10 @@ std::string LiveValues(int count) {
 // each iteration is given an assembler of its own: one shared between them
 // would grow with every iteration and measure the growing rather than the
 // generating.
-void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
+// Measures emitting `snippet`, and writing out its bytes as well if `write`,
+// which is when every branch finds where its label landed.
+void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet,
+                      bool write = false) {
   std::string code(snippet);
   code.append("\0"s);
 
@@ -140,6 +144,11 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
     arm64::Assembler assembler;
     GenerateArmAssemblyBinary(func_name, am_cfg.stack_slots, layout, am_cfg,
                               assembler);
+    if (write) {
+      std::ostringstream out;
+      assembler.WriteBytes(out);
+      DoNotOptimize(out);
+    }
     DoNotOptimize(assembler);
   }
 
@@ -157,6 +166,15 @@ BENCHMARK(ChainedValues512) { BenchmarkSnippet(state, ChainedValues(512)); }
 BENCHMARK(Branches32) { BenchmarkSnippet(state, Branches(32, 4)); }
 
 BENCHMARK(Branches64) { BenchmarkSnippet(state, Branches(64, 4)); }
+
+// The same, written out as bytes.
+BENCHMARK(WrittenBranches64) {
+  BenchmarkSnippet(state, Branches(64, 4), /*write=*/true);
+}
+
+BENCHMARK(WrittenChainedValues512) {
+  BenchmarkSnippet(state, ChainedValues(512), /*write=*/true);
+}
 
 // Emission for a function the allocator had to spill, so that the stack is
 // used rather than only registers.

@@ -164,6 +164,44 @@ TEST(CompilerTest, NestedLiteralArithmetic) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(7));
 }
 
+// A block was once found by the name of its function followed by its number,
+// so the first block of `f1` and the function `f10` went by the same name, and
+// a call to one could land in the other.
+TEST(CompilerTest, FunctionNamedLikeAnotherFunctionsBlock) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun f10(): Int32 {
+      return 99
+    }
+
+    fun f1(n: Int32): Int32 {
+      return n + 1
+    }
+
+    fun main(): Int32 {
+      return f10()
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(99));
+}
+
+// The same for a function named the way a constant the program uses was.
+TEST(CompilerTest, FunctionNamedLikeAConstant) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun long40000(): Int32 {
+      return 7
+    }
+
+    fun main(): Int32 {
+      val big: Int32 = 40000
+      if big > 0 {
+        return long40000()
+      }
+      return 1
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(7));
+}
+
 TEST(CompilerTest, NestedLiteralArithmeticGrouped) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {

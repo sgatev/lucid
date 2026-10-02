@@ -142,7 +142,7 @@ TEST(Test, GenerateArmStartBinaryWorks) {
 
   // The sequence calls the program's entry function, so it cannot be written
   // until something defines it.
-  assembler.Label("main");
+  assembler.Bind(assembler.Named("main"));
   EXPECT_EQ(Bytes(assembler).size(), assembler.OutputBytesCount());
   EXPECT_EQ(assembler.OutputBytesCount() % 4, 0u);
 }

@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <map>
 #include <ostream>
 #include <string>
@@ -54,6 +55,32 @@ class SP : public X {
 // ARM64 stack pointer.
 static constexpr SP SP;
 
+// A place in the code, which instructions can refer to before it is known
+// where it is.
+class Label {
+ public:
+  constexpr explicit Label(std::uint32_t id) : id_(id) {}
+
+  // Returns the ID of the label.
+  operator std::uint32_t() const { return id_; }
+
+ private:
+  std::uint32_t id_;
+};
+
+// Where each label was placed, by its ID.
+using LabelOffsets = std::vector<std::size_t>;
+
+// The offset of a label that has not been placed yet.
+inline constexpr std::size_t kUnplaced =
+    std::numeric_limits<std::size_t>::max();
+
+// Returns where `label` was placed.
+inline std::size_t OffsetOf(const LabelOffsets& label_offsets, Label label) {
+  assert(label_offsets[label] != kUnplaced);
+  return label_offsets[label];
+}
+
 // An external label.
 class ExternalLabel {
  public:
@@ -90,8 +117,7 @@ class Lit32Inst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
-                  std::ostream& out) const {
+  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
     out.write(reinterpret_cast<const char*>(&value_), 4);
   }
 
@@ -108,8 +134,7 @@ class Lit64Inst {
   std::size_t OutputBytesCount() const { return 8; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
-                  std::ostream& out) const {
+  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
     out.write(reinterpret_cast<const char*>(&value_), 8);
   }
 
@@ -120,21 +145,19 @@ class Lit64Inst {
 // Represents an ARM64 LDR literal instruction.
 class LdrLiteralInst {
  public:
-  LdrLiteralInst(std::size_t pos, X rd, std::string_view label)
+  LdrLiteralInst(std::size_t pos, X rd, Label label)
       : pos_(pos), opc_(1), rd_(rd), label_(label) {}
 
-  LdrLiteralInst(std::size_t pos, W rd, std::string_view label)
+  LdrLiteralInst(std::size_t pos, W rd, Label label)
       : pos_(pos), opc_(0), rd_(rd), label_(label) {}
 
   // Returns the number of bytes produced by this instruction.
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
-                  std::ostream& out) const {
-    auto label_offset = label_offsets.Get(std::string(label_));
-    assert(label_offset.has_value());
-    std::uint32_t imm = ((*label_offset - pos_) >> 2) & 0b1111111111111111111;
+  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+    const std::size_t label_offset = OffsetOf(label_offsets, label_);
+    std::uint32_t imm = ((label_offset - pos_) >> 2) & 0b1111111111111111111;
     std::uint32_t res =
         0b00011000000000000000000000000000 | opc_ << 30 | imm << 5 | rd_;
     out.write(reinterpret_cast<const char*>(&res), 4);
@@ -144,24 +167,22 @@ class LdrLiteralInst {
   std::size_t pos_;
   std::uint32_t opc_;
   internal::Reg rd_;
-  std::string label_;
+  Label label_;
 };
 
 // Represents an ARM64 ADR instruction.
 class AdrInst {
  public:
-  AdrInst(std::size_t pos, X rd, std::string_view label)
+  AdrInst(std::size_t pos, X rd, Label label)
       : pos_(pos), rd_(rd), label_(label) {}
 
   // Returns the number of bytes produced by this instruction.
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
-                  std::ostream& out) const {
-    auto label_offset = label_offsets.Get(std::string(label_));
-    assert(label_offset.has_value());
-    std::size_t offset = *label_offset - pos_;
+  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+    const std::size_t label_offset = OffsetOf(label_offsets, label_);
+    std::size_t offset = label_offset - pos_;
     auto immlo = offset & 0b11;
     auto immhi = (offset >> 2) & 0b1111111111111111111;
     std::uint32_t res =
@@ -173,25 +194,23 @@ class AdrInst {
  private:
   std::size_t pos_;
   X rd_;
-  std::string label_;
+  Label label_;
 };
 
 // Represents an ARM64 B instruction.
 class BInst {
  public:
-  explicit BInst(std::size_t this_offset, std::string_view label)
+  explicit BInst(std::size_t this_offset, Label label)
       : this_offset_(this_offset), label_(label) {}
 
   // Returns the number of bytes produced by this instruction.
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
-                  std::ostream& out) const {
-    auto label_offset = label_offsets.Get(std::string(label_));
-    assert(label_offset.has_value());
+  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+    const std::size_t label_offset = OffsetOf(label_offsets, label_);
     std::size_t offset =
-        ((*label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
+        ((label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
     std::uint32_t res = 0b00010100000000000000000000000000 | offset;
 
     out.write(reinterpret_cast<const char*>(&res), 4);
@@ -199,7 +218,7 @@ class BInst {
 
  private:
   std::size_t this_offset_;
-  std::string label_;
+  Label label_;
 };
 
 // ARM64 condition.
@@ -239,19 +258,17 @@ enum class Extend : std::uint8_t {
 // Represents an ARM64 B.cond instruction.
 class BCondInst {
  public:
-  BCondInst(std::size_t this_offset, Cond cond, std::string_view label)
+  BCondInst(std::size_t this_offset, Cond cond, Label label)
       : this_offset_(this_offset), cond_(cond), label_(label) {}
 
   // Returns the number of bytes produced by this instruction.
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
-                  std::ostream& out) const {
-    auto label_offset = label_offsets.Get(std::string(label_));
-    assert(label_offset.has_value());
+  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+    const std::size_t label_offset = OffsetOf(label_offsets, label_);
     std::size_t offset =
-        ((*label_offset - this_offset_) / 4) & 0b1111111111111111111;
+        ((label_offset - this_offset_) / 4) & 0b1111111111111111111;
     std::uint32_t res = 0b01010100000000000000000000000000 | (offset << 5) |
                         static_cast<std::uint8_t>(cond_);
 
@@ -261,15 +278,14 @@ class BCondInst {
  private:
   std::size_t this_offset_;
   Cond cond_;
-  std::string label_;
+  Label label_;
 };
 
 // Represents an ARM64 CBZ instruction, which branches where a register holds
 // zero and leaves the flags as they were.
 class CbzInst {
  public:
-  CbzInst(std::size_t this_offset, bool is_64_bit, std::uint8_t rt,
-          std::string_view label)
+  CbzInst(std::size_t this_offset, bool is_64_bit, std::uint8_t rt, Label label)
       : this_offset_(this_offset),
         is_64_bit_(is_64_bit),
         rt_(rt),
@@ -279,12 +295,10 @@ class CbzInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
-                  std::ostream& out) const {
-    auto label_offset = label_offsets.Get(std::string(label_));
-    assert(label_offset.has_value());
+  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+    const std::size_t label_offset = OffsetOf(label_offsets, label_);
     std::size_t offset =
-        ((*label_offset - this_offset_) / 4) & 0b1111111111111111111;
+        ((label_offset - this_offset_) / 4) & 0b1111111111111111111;
     std::uint32_t res = 0b00110100000000000000000000000000 |
                         (static_cast<std::uint32_t>(is_64_bit_) << 31) |
                         (offset << 5) | rt_;
@@ -296,28 +310,23 @@ class CbzInst {
   std::size_t this_offset_;
   bool is_64_bit_;
   std::uint8_t rt_;
-  std::string label_;
+  Label label_;
 };
 
 // Represents an ARM64 BL instruction.
 class BlInst {
  public:
-  explicit BlInst(std::size_t this_offset, std::string_view label)
+  explicit BlInst(std::size_t this_offset, Label label)
       : this_offset_(this_offset), label_(label) {}
 
   // Returns the number of bytes produced by this instruction.
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
-                  std::ostream& out) const {
-    std::size_t offset = 0;
-    if (!label_.empty()) {
-      auto label_offset = label_offsets.Get(std::string(label_));
-      assert(label_offset.has_value());
-      offset =
-          ((*label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
-    }
+  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+    const std::size_t label_offset = OffsetOf(label_offsets, label_);
+    std::size_t offset =
+        ((label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
     std::uint32_t res = 0b10010100000000000000000000000000 | offset;
 
     out.write(reinterpret_cast<const char*>(&res), 4);
@@ -325,7 +334,7 @@ class BlInst {
 
  private:
   std::size_t this_offset_;
-  std::string label_;
+  Label label_;
 };
 
 class AscizInst {
@@ -343,8 +352,7 @@ class AscizInst {
   }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const HashMap<std::string, std::size_t>& label_offsets,
-                  std::ostream& out) const {
+  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
     const std::size_t length = WriteEncodedString(s_, out);
     std::size_t remainder = 4 - (length % 4);
     for (; remainder > 0; --remainder) out.put(0);
@@ -384,9 +392,28 @@ class Assembler {
     return external_labels_;
   }
 
-  // Inserts local `label` after the last instruction that was added.
-  void Label(std::string label) {
-    label_offsets_.Set(std::move(label), insts_size_);
+  // Creates a label that is not placed anywhere yet.
+  Label NewLabel() {
+    label_offsets_.push_back(kUnplaced);
+    return Label(label_offsets_.size() - 1);
+  }
+
+  // Returns the label named `name`, creating it if there is none yet.
+  //
+  // A name is for what is referred to from elsewhere, such as a function its
+  // callers refer to, before or after it is placed.
+  Label Named(std::string_view name) {
+    std::string key(name);
+    if (auto label = named_labels_.Get(key); label.has_value()) return *label;
+    Label label = NewLabel();
+    named_labels_.Set(std::move(key), label);
+    return label;
+  }
+
+  // Places `label` after the last instruction that was added.
+  void Bind(Label label) {
+    assert(label_offsets_[label] == kUnplaced);
+    label_offsets_[label] = insts_size_;
   }
 
   // Inserts global `label` after the last instruction that was added.
@@ -517,9 +544,7 @@ class Assembler {
   // ADR <Xd>, <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADR--Form-PC-relative-address-?lang=en
-  void Adr(X rd, std::string_view label) {
-    Insert(AdrInst(insts_size_, rd, label));
-  }
+  void Adr(X rd, Label label) { Insert(AdrInst(insts_size_, rd, label)); }
 
   // Inserts MOV (register) instruction.
   //
@@ -790,7 +815,7 @@ class Assembler {
   // LDR <Wt>, <label>
   //
   // https://developer.arm.com/documentation/111108/2026-03/Base-Instructions/LDR--literal---Load-register--literal--
-  void Ldr(W rd, std::string_view label) {
+  void Ldr(W rd, Label label) {
     Insert(LdrLiteralInst(insts_size_, rd, label));
   }
 
@@ -799,7 +824,7 @@ class Assembler {
   // LDR <Xt>, <label>
   //
   // https://developer.arm.com/documentation/111108/2026-03/Base-Instructions/LDR--literal---Load-register--literal--
-  void Ldr(X rd, std::string_view label) {
+  void Ldr(X rd, Label label) {
     Insert(LdrLiteralInst(insts_size_, rd, label));
   }
 
@@ -808,14 +833,14 @@ class Assembler {
   // B <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B--Branch-?lang=en
-  void B(std::string_view label) { Insert(BInst(insts_size_, label)); }
+  void B(Label label) { Insert(BInst(insts_size_, label)); }
 
   // Insert B.cond instruction.
   //
   // B.cond <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/B-cond--Branch-conditionally-?lang=en
-  void B(Cond cond, std::string_view label) {
+  void B(Cond cond, Label label) {
     Insert(BCondInst(insts_size_, cond, label));
   }
 
@@ -824,7 +849,7 @@ class Assembler {
   // CBZ <Wt>, <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CBZ--Compare-and-branch-on-zero-?lang=en
-  void Cbz(W rt, std::string_view label) {
+  void Cbz(W rt, Label label) {
     Insert(CbzInst(insts_size_, /*is_64_bit=*/false, rt, label));
   }
 
@@ -833,7 +858,7 @@ class Assembler {
   // CBZ <Xt>, <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/CBZ--Compare-and-branch-on-zero-?lang=en
-  void Cbz(X rt, std::string_view label) {
+  void Cbz(X rt, Label label) {
     Insert(CbzInst(insts_size_, /*is_64_bit=*/true, rt, label));
   }
 
@@ -842,7 +867,7 @@ class Assembler {
   // BL <label>
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
-  void Bl(std::string_view label) { Insert(BlInst(insts_size_, label)); }
+  void Bl(Label label) { Insert(BlInst(insts_size_, label)); }
 
   // Insert BL instruction.
   //
@@ -851,7 +876,8 @@ class Assembler {
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/BL--Branch-with-link-?lang=en
   void Bl(const ExternalLabel& label) {
     external_labels_[label].push_back(insts_size_);
-    Bl("");
+    // Where it goes is left for the linker to fill in.
+    Insert(Lit32Inst(0b10010100000000000000000000000000));
   }
 
   // Insert CMP (immediate) instruction.
@@ -1134,7 +1160,8 @@ class Assembler {
     insts_.push_back(std::move(inst));
   }
 
-  HashMap<std::string, std::size_t> label_offsets_;
+  LabelOffsets label_offsets_;
+  HashMap<std::string, Label> named_labels_;
   HashMap<std::string, std::size_t> global_label_offsets_;
   std::vector<Inst> insts_;
   std::size_t insts_size_ = 0;

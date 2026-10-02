@@ -32,7 +32,7 @@ std::vector<std::uint32_t> Encode(F emit) {
   return words;
 }
 
-TEST(Test, InstSize) { EXPECT_EQ(sizeof(Inst), 48); }
+TEST(Test, InstSize) { EXPECT_EQ(sizeof(Inst), 32); }
 
 TEST(Test, AddEncodesBothRegisterWidths) {
   // add w1, w2, #3
@@ -242,23 +242,23 @@ TEST(Test, LoadsAndStoresEncodeRegisterOffsets) {
 TEST(Test, BranchesEncodeTheDistanceToTheirLabel) {
   // ret ; b #-4
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.Label("l");
+                a.Bind(a.Named("l"));
                 a.Ret();
-                a.B("l");
+                a.B(a.Named("l"));
               }),
               ElementsEqual(0xd65f03c0u, 0x17ffffffu));
   // b #8 ; ret
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.B("l");
+                a.B(a.Named("l"));
                 a.Ret();
-                a.Label("l");
+                a.Bind(a.Named("l"));
               }),
               ElementsEqual(0x14000002u, 0xd65f03c0u));
   // ret ; bl #-4
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.Label("l");
+                a.Bind(a.Named("l"));
                 a.Ret();
-                a.Bl("l");
+                a.Bl(a.Named("l"));
               }),
               ElementsEqual(0xd65f03c0u, 0x97ffffffu));
 }
@@ -266,16 +266,16 @@ TEST(Test, BranchesEncodeTheDistanceToTheirLabel) {
 TEST(Test, ConditionalBranchesEncodeTheirConditionAndDistance) {
   // ret ; b.eq #-4
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.Label("l");
+                a.Bind(a.Named("l"));
                 a.Ret();
-                a.B(Cond::Eq, "l");
+                a.B(Cond::Eq, a.Named("l"));
               }),
               ElementsEqual(0xd65f03c0u, 0x54ffffe0u));
   // b.eq #8 ; ret
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.B(Cond::Eq, "l");
+                a.B(Cond::Eq, a.Named("l"));
                 a.Ret();
-                a.Label("l");
+                a.Bind(a.Named("l"));
               }),
               ElementsEqual(0x54000040u, 0xd65f03c0u));
   // Every condition has to reach the encoding, which only a condition that is
@@ -283,23 +283,23 @@ TEST(Test, ConditionalBranchesEncodeTheirConditionAndDistance) {
   //
   // ret ; b.ne #-4
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.Label("l");
+                a.Bind(a.Named("l"));
                 a.Ret();
-                a.B(Cond::Ne, "l");
+                a.B(Cond::Ne, a.Named("l"));
               }),
               ElementsEqual(0xd65f03c0u, 0x54ffffe1u));
   // ret ; b.lt #-4
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.Label("l");
+                a.Bind(a.Named("l"));
                 a.Ret();
-                a.B(Cond::Lt, "l");
+                a.B(Cond::Lt, a.Named("l"));
               }),
               ElementsEqual(0xd65f03c0u, 0x54ffffebu));
   // ret ; b.gt #-4
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.Label("l");
+                a.Bind(a.Named("l"));
                 a.Ret();
-                a.B(Cond::Gt, "l");
+                a.B(Cond::Gt, a.Named("l"));
               }),
               ElementsEqual(0xd65f03c0u, 0x54ffffecu));
 }
@@ -307,14 +307,14 @@ TEST(Test, ConditionalBranchesEncodeTheirConditionAndDistance) {
 TEST(Test, CompareAndBranchOnZeroEncodesWidthRegisterAndDistance) {
   // ret ; cbz w3, #-4 ; cbz x3, #-8 ; cbz w0, #12 ; cbz x30, #8 ; ret
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.Label("l");
+                a.Bind(a.Named("l"));
                 a.Ret();
-                a.Cbz(W(3), "l");
-                a.Cbz(X(3), "l");
-                a.Cbz(W(0), "m");
-                a.Cbz(X(30), "m");
+                a.Cbz(W(3), a.Named("l"));
+                a.Cbz(X(3), a.Named("l"));
+                a.Cbz(W(0), a.Named("m"));
+                a.Cbz(X(30), a.Named("m"));
                 a.Ret();
-                a.Label("m");
+                a.Bind(a.Named("m"));
               }),
               ElementsEqual(0xd65f03c0u, 0x34ffffe3u, 0xb4ffffc3u, 0x34000060u,
                             0xb400005eu, 0xd65f03c0u));
@@ -323,9 +323,9 @@ TEST(Test, CompareAndBranchOnZeroEncodesWidthRegisterAndDistance) {
 TEST(Test, AddressAndLiteralLoadsEncodeTheDistanceToTheirLabel) {
   // ret ; adr x1, #-4
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.Label("l");
+                a.Bind(a.Named("l"));
                 a.Ret();
-                a.Adr(X(1), "l");
+                a.Adr(X(1), a.Named("l"));
               }),
               ElementsEqual(0xd65f03c0u, 0x10ffffe1u));
   // A literal load reads as many bytes as its register holds, so the width
@@ -333,16 +333,16 @@ TEST(Test, AddressAndLiteralLoadsEncodeTheDistanceToTheirLabel) {
   //
   // ret ; ldr x1, #-4
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.Label("l");
+                a.Bind(a.Named("l"));
                 a.Ret();
-                a.Ldr(X(1), "l");
+                a.Ldr(X(1), a.Named("l"));
               }),
               ElementsEqual(0xd65f03c0u, 0x58ffffe1u));
   // ret ; ldr w1, #-4
   EXPECT_THAT(Encode([](Assembler& a) {
-                a.Label("l");
+                a.Bind(a.Named("l"));
                 a.Ret();
-                a.Ldr(W(1), "l");
+                a.Ldr(W(1), a.Named("l"));
               }),
               ElementsEqual(0xd65f03c0u, 0x18ffffe1u));
 }

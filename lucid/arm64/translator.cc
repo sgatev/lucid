@@ -38,6 +38,19 @@ constexpr int kDivideByZeroTextBytes = 17;
 // one, past the 128 that marks a signal.
 constexpr int kDivideByZeroStatus = 128 + 8;
 
+// Returns the name of the label the string at `index` is placed at.
+//
+// It and the one below hold a character no identifier can, so that no function
+// can be named the same.
+std::string StringLabel(std::size_t index) {
+  return std::format(".str{}", index);
+}
+
+// Returns the name of the label the integer `value` is placed at.
+std::string IntLabel(std::int64_t value) {
+  return std::format(".long{}", value);
+}
+
 // Casts an integer of type `I` to type `O`.
 template <typename O, typename I>
 constexpr O SafeCast(I i) noexcept {
@@ -89,7 +102,7 @@ class Arm64BinaryGenerator {
         assembler_(assmebler) {}
 
   void Generate() && {
-    assembler_.Label(std::string(func_name_));
+    assembler_.Bind(assembler_.Named(func_name_));
     assembler_.StpPreIndex(X(29), X(30), SP, Imm(-16));
 
     // The frame, from the stack pointer up: what this function leaves for the
@@ -139,6 +152,12 @@ class Arm64BinaryGenerator {
         Vertices(am_cfg_);
     std::sort(block_refs.begin(), block_refs.end(),
               CompareReversePostOrder(am_cfg_));
+    for (const auto& ref : block_refs) {
+      if (ref.id() >= block_labels_.size()) {
+        block_labels_.resize(ref.id() + 1, Label(0));
+      }
+      block_labels_[ref.id()] = assembler_.NewLabel();
+    }
     for (const auto& ref : block_refs) Process(am_cfg_.GetBlock(ref));
   }
 
@@ -175,7 +194,7 @@ class Arm64BinaryGenerator {
   }
 
   void Process(const AbstractMachineControlFlowGraph::Block& block) {
-    assembler_.Label(std::format("{}{}", func_name_, block.ref.id()));
+    assembler_.Bind(block_labels_[block.ref.id()]);
 
     const std::optional<BranchComparison> fused = FusableComparison(block);
     // A fused comparison is emitted by the branch below rather than here.
@@ -186,10 +205,8 @@ class Arm64BinaryGenerator {
     }
 
     if (block.branch_cond.has_value()) {
-      std::string else_label_phi =
-          std::format("{}{}_phi", func_name_, block.succs[1].id());
-      std::string then_label_phi =
-          std::format("{}{}_phi", func_name_, block.succs[0].id());
+      const Label else_label_phi = assembler_.NewLabel();
+      const Label then_label_phi = assembler_.NewLabel();
 
       if (fused.has_value()) {
         Compare(fused->lhs, fused->rhs);
@@ -201,26 +218,20 @@ class Arm64BinaryGenerator {
         assembler_.B(then_label_phi);
       }
 
-      assembler_.Label(else_label_phi);
-      std::string else_label =
-          std::format("{}{}", func_name_, block.succs[1].id());
+      assembler_.Bind(else_label_phi);
       ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[1]), block.ref);
-      assembler_.B(else_label);
+      assembler_.B(block_labels_[block.succs[1].id()]);
 
-      assembler_.Label(then_label_phi);
-      std::string then_label =
-          std::format("{}{}", func_name_, block.succs[0].id());
+      assembler_.Bind(then_label_phi);
       ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[0]), block.ref);
-      assembler_.B(then_label);
+      assembler_.B(block_labels_[block.succs[0].id()]);
     } else if (block.succs.size() == 1) {
-      std::string phi_label = std::format("{}{}_{}_phi", func_name_,
-                                          block.ref.id(), block.succs[0].id());
+      const Label phi_label = assembler_.NewLabel();
       assembler_.B(phi_label);
 
-      assembler_.Label(phi_label);
+      assembler_.Bind(phi_label);
       ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[0]), block.ref);
-      std::string label = std::format("{}{}", func_name_, block.succs[0].id());
-      assembler_.B(label);
+      assembler_.B(block_labels_[block.succs[0].id()]);
     }
   }
 
@@ -272,7 +283,7 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const SetInt& inst) {
-    std::string label = std::format("long{}", inst.src_val);
+    const Label label = assembler_.Named(IntLabel(inst.src_val));
     switch (inst.dst_reg.size) {
       case RegSize32:
         assembler_.Ldr(W(inst.dst_reg.id), label);
@@ -285,7 +296,7 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const SetStr& inst) {
-    std::string label = std::format("str{}", inst.src_val);
+    const Label label = assembler_.Named(StringLabel(inst.src_val));
     assembler_.Adr(X(inst.dst_reg.id), label);
   }
 
@@ -424,12 +435,12 @@ class Arm64BinaryGenerator {
                const DivReg& inst) {
     switch (inst.res_reg.size) {
       case RegSize32:
-        assembler_.Cbz(W(inst.rhs_reg.id), kDivideByZero);
+        assembler_.Cbz(W(inst.rhs_reg.id), assembler_.Named(kDivideByZero));
         assembler_.Sdiv(W(inst.res_reg.id), W(inst.lhs_reg.id),
                         W(inst.rhs_reg.id));
         break;
       case RegSize64:
-        assembler_.Cbz(X(inst.rhs_reg.id), kDivideByZero);
+        assembler_.Cbz(X(inst.rhs_reg.id), assembler_.Named(kDivideByZero));
         assembler_.Sdiv(X(inst.res_reg.id), X(inst.lhs_reg.id),
                         X(inst.rhs_reg.id));
         break;
@@ -450,14 +461,14 @@ class Arm64BinaryGenerator {
                const ModReg& inst) {
     switch (inst.res_reg.size) {
       case RegSize32:
-        assembler_.Cbz(W(inst.rhs_reg.id), kDivideByZero);
+        assembler_.Cbz(W(inst.rhs_reg.id), assembler_.Named(kDivideByZero));
         assembler_.Sdiv(W(kQuotientScratch), W(inst.lhs_reg.id),
                         W(inst.rhs_reg.id));
         assembler_.Msub(W(inst.res_reg.id), W(kQuotientScratch),
                         W(inst.rhs_reg.id), W(inst.lhs_reg.id));
         break;
       case RegSize64:
-        assembler_.Cbz(X(inst.rhs_reg.id), kDivideByZero);
+        assembler_.Cbz(X(inst.rhs_reg.id), assembler_.Named(kDivideByZero));
         assembler_.Sdiv(X(kQuotientScratch), X(inst.lhs_reg.id),
                         X(inst.rhs_reg.id));
         assembler_.Msub(X(inst.res_reg.id), X(kQuotientScratch),
@@ -632,7 +643,7 @@ class Arm64BinaryGenerator {
       }
     }
 
-    assembler_.Bl(inst.label);
+    assembler_.Bl(assembler_.Named(inst.label));
 
     if (inst.res.has_value()) {
       switch (inst.res->reg.size) {
@@ -753,6 +764,9 @@ class Arm64BinaryGenerator {
   int stack_size_ = 0;
   int outgoing_size_ = 0;
   std::vector<int> stack_offsets_;
+
+  // The label each block starts at, by the block's ID.
+  std::vector<Label> block_labels_;
 };
 
 }  // namespace
@@ -760,11 +774,11 @@ class Arm64BinaryGenerator {
 void GenerateArmStartBinary(Assembler& assembler) {
   assembler.Global("_start");
   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));
-  assembler.Bl("main");
+  assembler.Bl(assembler.Named("main"));
   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));
   assembler.Ret();
 
-  assembler.Label("_print_string");
+  assembler.Bind(assembler.Named("_print_string"));
   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));
   assembler.Mov(X(0), X(1));
   assembler.Bl(assembler.External("_printf"));
@@ -777,11 +791,11 @@ void GenerateArmStartBinary(Assembler& assembler) {
   //
   // It is reached by a branch from the middle of a function rather than by a
   // call, which is why nothing is saved: nothing comes back here.
-  assembler.Label(std::string(kDivideByZero));
+  assembler.Bind(assembler.Named(kDivideByZero));
   assembler.Mov(X(0), Imm(0));
   assembler.Bl(assembler.External("_fflush"));
   assembler.Mov(X(0), Imm(2));
-  assembler.Adr(X(1), kDivideByZeroMessage);
+  assembler.Adr(X(1), assembler.Named(kDivideByZeroMessage));
   assembler.Mov(X(2), Imm(kDivideByZeroTextBytes));
   assembler.Bl(assembler.External("_write"));
   assembler.Mov(X(0), Imm(kDivideByZeroStatus));
@@ -789,10 +803,10 @@ void GenerateArmStartBinary(Assembler& assembler) {
 
   // The message stands right after the code that writes it. Nothing runs
   // into it, because the code before it leaves the program.
-  assembler.Label(std::string(kDivideByZeroMessage));
+  assembler.Bind(assembler.Named(kDivideByZeroMessage));
   assembler.Asciz(kDivideByZeroText);
 
-  assembler.Label("_sleep");
+  assembler.Bind(assembler.Named("_sleep"));
   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));
   assembler.Mov(X(2), X(1));
   assembler.Mov(X(3), Imm(0));
@@ -809,11 +823,11 @@ void GenerateArmEndBinary(const SyntaxContext& syn_ctx,
                           const AbstractMachineState& am_state,
                           Assembler& assmebler) {
   for (std::size_t i = 0; i < am_state.strings.size(); ++i) {
-    assmebler.Label(std::format("str{}", i));
+    assmebler.Bind(assmebler.Named(StringLabel(i)));
     assmebler.Asciz(syn_ctx.DerefIdent(am_state.strings[i]));
   }
   for (const auto& v : am_state.ints) {
-    assmebler.Label(std::format("long{}", v));
+    assmebler.Bind(assmebler.Named(IntLabel(v)));
     assmebler.Long(v);
   }
 }
