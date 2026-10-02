@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790962639949,
+  "lastUpdate": 1790978441501,
   "repoUrl": "https://github.com/sgatev/lucid",
   "entries": {
     "Lucid benchmarks": [
@@ -7758,6 +7758,396 @@ window.BENCHMARK_DATA = {
             "value": 109638.163,
             "unit": "ns/iter",
             "extra": "1532 iterations, 57.5MB/s"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sg@sgatev.com",
+            "name": "Stanislav Gatev",
+            "username": "sgatev"
+          },
+          "committer": {
+            "email": "sg@sgatev.com",
+            "name": "Stanislav Gatev",
+            "username": "sgatev"
+          },
+          "distinct": true,
+          "id": "5875ed241bf2265be8f7171fda93ed4bfcc0c32f",
+          "message": "Refer to labels by number rather than by name",
+          "timestamp": "2026-10-02T23:50:19+02:00",
+          "tree_id": "09a424693bfbcf69e9988de59e65daa413e6087d",
+          "url": "https://github.com/sgatev/lucid/commit/5875ed241bf2265be8f7171fda93ed4bfcc0c32f"
+        },
+        "date": 1790978440682,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "lucid/am/reg_bench/ColorChain64",
+            "value": 10616.083,
+            "unit": "ns/iter",
+            "extra": "10000 iterations, 168.7MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/ColorChain256",
+            "value": 40206.223,
+            "unit": "ns/iter",
+            "extra": "3060 iterations, 189.9MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/ColorChain512",
+            "value": 75975.031,
+            "unit": "ns/iter",
+            "extra": "1879 iterations, 204.9MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/ColorLive64",
+            "value": 28367.712,
+            "unit": "ns/iter",
+            "extra": "4562 iterations, 119.2MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/BuildIgChain256",
+            "value": 42664.905,
+            "unit": "ns/iter",
+            "extra": "4306 iterations, 179.0MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/BuildIgChain512",
+            "value": 71633.93,
+            "unit": "ns/iter",
+            "extra": "1857 iterations, 217.4MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/BuildIgLive64",
+            "value": 40520.857,
+            "unit": "ns/iter",
+            "extra": "4423 iterations, 83.5MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/AllocateChain256",
+            "value": 165705.106,
+            "unit": "ns/iter",
+            "extra": "1007 iterations, 46.1MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/AllocateLive64",
+            "value": 486596.092,
+            "unit": "ns/iter",
+            "extra": "271 iterations, 7.0MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/BuildIgDiamonds30",
+            "value": 329123.368,
+            "unit": "ns/iter",
+            "extra": "383 iterations, 29.5MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/AllocateDiamonds15",
+            "value": 6284904.714,
+            "unit": "ns/iter",
+            "extra": "14 iterations, 1.3MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/AllocateDiamonds30",
+            "value": 21852437.5,
+            "unit": "ns/iter",
+            "extra": "4 iterations, 0.7MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/AllocateBranching40",
+            "value": 523161.758,
+            "unit": "ns/iter",
+            "extra": "297 iterations, 6.2MB/s"
+          },
+          {
+            "name": "lucid/am/reg_bench/AllocateLoopCarried30",
+            "value": 233845.874,
+            "unit": "ns/iter",
+            "extra": "412 iterations, 10.1MB/s"
+          },
+          {
+            "name": "lucid/am/translator_bench/LastOf10Functions",
+            "value": 940.5,
+            "unit": "ns/iter",
+            "extra": "115427 iterations, 139.3MB/s"
+          },
+          {
+            "name": "lucid/am/translator_bench/LastOf1000Functions",
+            "value": 1072.038,
+            "unit": "ns/iter",
+            "extra": "140639 iterations, 124.1MB/s"
+          },
+          {
+            "name": "lucid/am/translator_bench/Function",
+            "value": 383.97,
+            "unit": "ns/iter",
+            "extra": "342664 iterations, 138.0MB/s"
+          },
+          {
+            "name": "lucid/arm64/translator_bench/ChainedValues256",
+            "value": 7154.569,
+            "unit": "ns/iter",
+            "extra": "20000 iterations, 1067.2MB/s"
+          },
+          {
+            "name": "lucid/arm64/translator_bench/ChainedValues512",
+            "value": 16030.149,
+            "unit": "ns/iter",
+            "extra": "9840 iterations, 971.4MB/s"
+          },
+          {
+            "name": "lucid/arm64/translator_bench/Branches32",
+            "value": 32231.829,
+            "unit": "ns/iter",
+            "extra": "4061 iterations, 192.4MB/s"
+          },
+          {
+            "name": "lucid/arm64/translator_bench/Branches64",
+            "value": 63535.852,
+            "unit": "ns/iter",
+            "extra": "1906 iterations, 193.3MB/s"
+          },
+          {
+            "name": "lucid/arm64/translator_bench/WrittenBranches64",
+            "value": 133405.873,
+            "unit": "ns/iter",
+            "extra": "1162 iterations, 92.0MB/s"
+          },
+          {
+            "name": "lucid/arm64/translator_bench/WrittenChainedValues512",
+            "value": 42149.098,
+            "unit": "ns/iter",
+            "extra": "3069 iterations, 369.4MB/s"
+          },
+          {
+            "name": "lucid/arm64/translator_bench/SpilledValues64",
+            "value": 4248.253,
+            "unit": "ns/iter",
+            "extra": "27761 iterations, 796.1MB/s"
+          },
+          {
+            "name": "lucid/core/container/hash_map_bench/EmplaceUnique",
+            "value": 32.962,
+            "unit": "ns/iter",
+            "extra": "8312428 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_map_bench/EmplaceDuplicate",
+            "value": 22.516,
+            "unit": "ns/iter",
+            "extra": "6930893 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_map_bench/InsertUnique",
+            "value": 56.575,
+            "unit": "ns/iter",
+            "extra": "10704318 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_map_bench/InsertDuplicate",
+            "value": 24.377,
+            "unit": "ns/iter",
+            "extra": "5474152 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_map_bench/SetUnique",
+            "value": 38.504,
+            "unit": "ns/iter",
+            "extra": "9001671 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_map_bench/SetDuplicate",
+            "value": 25.275,
+            "unit": "ns/iter",
+            "extra": "2614403 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_map_bench/FindPresent",
+            "value": 26.06,
+            "unit": "ns/iter",
+            "extra": "6758237 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_map_bench/FindMissing",
+            "value": 7.063,
+            "unit": "ns/iter",
+            "extra": "22131763 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_map_bench/RemoveMissing",
+            "value": 0,
+            "unit": "ns/iter",
+            "extra": "1000000000 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_map_bench/Random",
+            "value": 10.686,
+            "unit": "ns/iter",
+            "extra": "10293014 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_set_bench/InsertUnique",
+            "value": 36.214,
+            "unit": "ns/iter",
+            "extra": "9448499 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_set_bench/InsertDuplicate",
+            "value": 12.093,
+            "unit": "ns/iter",
+            "extra": "10996420 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_set_bench/FindPresent",
+            "value": 10.851,
+            "unit": "ns/iter",
+            "extra": "14353085 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_set_bench/FindMissing",
+            "value": 5.748,
+            "unit": "ns/iter",
+            "extra": "24828748 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_set_bench/RemoveMissing",
+            "value": 0,
+            "unit": "ns/iter",
+            "extra": "1000000000 iterations"
+          },
+          {
+            "name": "lucid/core/container/hash_set_bench/Random",
+            "value": 7.266,
+            "unit": "ns/iter",
+            "extra": "18408234 iterations"
+          },
+          {
+            "name": "lucid/core/dataflow/worklist_bench/Push",
+            "value": 0.59,
+            "unit": "ns/iter",
+            "extra": "205054472 iterations"
+          },
+          {
+            "name": "lucid/core/dataflow/worklist_bench/Pop",
+            "value": 2.4,
+            "unit": "ns/iter",
+            "extra": "57323202 iterations"
+          },
+          {
+            "name": "lucid/core/dataflow/worklist_bench/PushPop",
+            "value": 5.846,
+            "unit": "ns/iter",
+            "extra": "22758983 iterations"
+          },
+          {
+            "name": "lucid/syntax/lexer_bench/Function",
+            "value": 642607.753,
+            "unit": "ns/iter",
+            "extra": "215 iterations, 1631.7MB/s"
+          },
+          {
+            "name": "lucid/syntax/lexer_bench/Tuple",
+            "value": 642162.288,
+            "unit": "ns/iter",
+            "extra": "219 iterations, 1632.8MB/s"
+          },
+          {
+            "name": "lucid/syntax/lexer_bench/Lambda",
+            "value": 713776.46,
+            "unit": "ns/iter",
+            "extra": "200 iterations, 1468.9MB/s"
+          },
+          {
+            "name": "lucid/syntax/lexer_bench/Union",
+            "value": 665314.01,
+            "unit": "ns/iter",
+            "extra": "207 iterations, 1576.0MB/s"
+          },
+          {
+            "name": "lucid/syntax/lexer_bench/Comment",
+            "value": 635914.968,
+            "unit": "ns/iter",
+            "extra": "221 iterations, 1648.8MB/s"
+          },
+          {
+            "name": "lucid/syntax/lexer_bench/Number",
+            "value": 648182.944,
+            "unit": "ns/iter",
+            "extra": "215 iterations, 1617.6MB/s"
+          },
+          {
+            "name": "lucid/syntax/lexer_bench/Branches",
+            "value": 646252.054,
+            "unit": "ns/iter",
+            "extra": "203 iterations, 1622.3MB/s"
+          },
+          {
+            "name": "lucid/syntax/lexer_bench/Examples",
+            "value": 708713.54,
+            "unit": "ns/iter",
+            "extra": "200 iterations, 1472.1MB/s"
+          },
+          {
+            "name": "lucid/syntax/parser_bench/Function",
+            "value": 1910082.076,
+            "unit": "ns/iter",
+            "extra": "66 iterations, 549.0MB/s"
+          },
+          {
+            "name": "lucid/syntax/parser_bench/Comment",
+            "value": 2011933.448,
+            "unit": "ns/iter",
+            "extra": "67 iterations, 521.2MB/s"
+          },
+          {
+            "name": "lucid/syntax/parser_bench/Branches",
+            "value": 3038985.795,
+            "unit": "ns/iter",
+            "extra": "44 iterations, 345.0MB/s"
+          },
+          {
+            "name": "lucid/syntax/parser_bench/Examples",
+            "value": 3900099.265,
+            "unit": "ns/iter",
+            "extra": "34 iterations, 267.5MB/s"
+          },
+          {
+            "name": "lucid/syntax/ssa_bench/ChainedValues512",
+            "value": 92793.482,
+            "unit": "ns/iter",
+            "extra": "1675 iterations, 167.8MB/s"
+          },
+          {
+            "name": "lucid/syntax/ssa_bench/ChainedValues1024",
+            "value": 205628.576,
+            "unit": "ns/iter",
+            "extra": "874 iterations, 153.3MB/s"
+          },
+          {
+            "name": "lucid/syntax/ssa_bench/Branches64",
+            "value": 243498.023,
+            "unit": "ns/iter",
+            "extra": "569 iterations, 50.4MB/s"
+          },
+          {
+            "name": "lucid/syntax/ssa_bench/Branches128",
+            "value": 487391.669,
+            "unit": "ns/iter",
+            "extra": "245 iterations, 50.2MB/s"
+          },
+          {
+            "name": "lucid/syntax/ssa_bench/BranchesWideVars",
+            "value": 573639.045,
+            "unit": "ns/iter",
+            "extra": "267 iterations, 58.8MB/s"
+          },
+          {
+            "name": "lucid/syntax/ssa_bench/LoopAssignments",
+            "value": 89449.638,
+            "unit": "ns/iter",
+            "extra": "1864 iterations, 70.4MB/s"
           }
         ]
       }
