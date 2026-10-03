@@ -117,8 +117,12 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
 
       // What compile-time evaluation runs is the function as the abstract
       // machine has it, before anything about a particular machine's
-      // registers has been put on it.
-      am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), am_cfg);
+      // registers has been put on it. It can only call a comp function, so
+      // no other is kept: keeping every one copied each graph only to free
+      // it at the end.
+      if (func_def->is_comp) {
+        am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), am_cfg);
+      }
 
       const FrameLayout layout =
           LowerCallingConvention(am_cfg, kArm64CallingConvention);

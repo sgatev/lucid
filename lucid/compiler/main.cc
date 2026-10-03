@@ -314,8 +314,12 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
 
       // What compile-time evaluation runs is the function as the abstract
       // machine has it, before anything about a particular machine's
-      // registers has been put on it.
-      am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), am_cfg);
+      // registers has been put on it. It can only call a comp function, so
+      // no other is kept: keeping every one copied each graph only to free
+      // it at the end.
+      if (func_def->is_comp) {
+        am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), am_cfg);
+      }
 
       // The stages the flag names run in order, each over what the one
       // before it left, so that asking for a later one shows the earlier
