@@ -5,9 +5,9 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <limits>
 #include <map>
-#include <ostream>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -81,6 +81,19 @@ inline std::size_t OffsetOf(const LabelOffsets& label_offsets, Label label) {
   return label_offsets[label];
 }
 
+// Writes the bytes `value` is held in to the end of `out`, in the order this
+// machine holds them. That is the order ARM64 reads them in only because both
+// are little-endian.
+//
+// It grows `out` and copies into what it grew by, rather than inserting a
+// range, which for a few bytes at a time is the slower of the two.
+template <typename T>
+void AppendBytes(const T& value, std::vector<std::uint8_t>& out) {
+  const std::size_t at = out.size();
+  out.resize(at + sizeof(T));
+  std::memcpy(out.data() + at, &value, sizeof(T));
+}
+
 // An external label.
 class ExternalLabel {
  public:
@@ -117,8 +130,9 @@ class Lit32Inst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
-    out.write(reinterpret_cast<const char*>(&value_), 4);
+  void WriteBytes(const LabelOffsets& label_offsets,
+                  std::vector<std::uint8_t>& out) const {
+    AppendBytes(value_, out);
   }
 
  private:
@@ -134,8 +148,9 @@ class Lit64Inst {
   std::size_t OutputBytesCount() const { return 8; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
-    out.write(reinterpret_cast<const char*>(&value_), 8);
+  void WriteBytes(const LabelOffsets& label_offsets,
+                  std::vector<std::uint8_t>& out) const {
+    AppendBytes(value_, out);
   }
 
  private:
@@ -155,12 +170,13 @@ class LdrLiteralInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+  void WriteBytes(const LabelOffsets& label_offsets,
+                  std::vector<std::uint8_t>& out) const {
     const std::size_t label_offset = OffsetOf(label_offsets, label_);
     std::uint32_t imm = ((label_offset - pos_) >> 2) & 0b1111111111111111111;
     std::uint32_t res =
         0b00011000000000000000000000000000 | opc_ << 30 | imm << 5 | rd_;
-    out.write(reinterpret_cast<const char*>(&res), 4);
+    AppendBytes(res, out);
   }
 
  private:
@@ -180,7 +196,8 @@ class AdrInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+  void WriteBytes(const LabelOffsets& label_offsets,
+                  std::vector<std::uint8_t>& out) const {
     const std::size_t label_offset = OffsetOf(label_offsets, label_);
     std::size_t offset = label_offset - pos_;
     auto immlo = offset & 0b11;
@@ -188,7 +205,7 @@ class AdrInst {
     std::uint32_t res =
         0b00010000000000000000000000000000 | immlo << 29 | immhi << 5 | rd_;
 
-    out.write(reinterpret_cast<const char*>(&res), 4);
+    AppendBytes(res, out);
   }
 
  private:
@@ -207,13 +224,14 @@ class BInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+  void WriteBytes(const LabelOffsets& label_offsets,
+                  std::vector<std::uint8_t>& out) const {
     const std::size_t label_offset = OffsetOf(label_offsets, label_);
     std::size_t offset =
         ((label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
     std::uint32_t res = 0b00010100000000000000000000000000 | offset;
 
-    out.write(reinterpret_cast<const char*>(&res), 4);
+    AppendBytes(res, out);
   }
 
  private:
@@ -265,14 +283,15 @@ class BCondInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+  void WriteBytes(const LabelOffsets& label_offsets,
+                  std::vector<std::uint8_t>& out) const {
     const std::size_t label_offset = OffsetOf(label_offsets, label_);
     std::size_t offset =
         ((label_offset - this_offset_) / 4) & 0b1111111111111111111;
     std::uint32_t res = 0b01010100000000000000000000000000 | (offset << 5) |
                         static_cast<std::uint8_t>(cond_);
 
-    out.write(reinterpret_cast<const char*>(&res), 4);
+    AppendBytes(res, out);
   }
 
  private:
@@ -295,7 +314,8 @@ class CbzInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+  void WriteBytes(const LabelOffsets& label_offsets,
+                  std::vector<std::uint8_t>& out) const {
     const std::size_t label_offset = OffsetOf(label_offsets, label_);
     std::size_t offset =
         ((label_offset - this_offset_) / 4) & 0b1111111111111111111;
@@ -303,7 +323,7 @@ class CbzInst {
                         (static_cast<std::uint32_t>(is_64_bit_) << 31) |
                         (offset << 5) | rt_;
 
-    out.write(reinterpret_cast<const char*>(&res), 4);
+    AppendBytes(res, out);
   }
 
  private:
@@ -323,13 +343,14 @@ class BlInst {
   std::size_t OutputBytesCount() const { return 4; }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+  void WriteBytes(const LabelOffsets& label_offsets,
+                  std::vector<std::uint8_t>& out) const {
     const std::size_t label_offset = OffsetOf(label_offsets, label_);
     std::size_t offset =
         ((label_offset - this_offset_) / 4) & 0b11111111111111111111111111;
     std::uint32_t res = 0b10010100000000000000000000000000 | offset;
 
-    out.write(reinterpret_cast<const char*>(&res), 4);
+    AppendBytes(res, out);
   }
 
  private:
@@ -352,10 +373,11 @@ class AscizInst {
   }
 
   // Writes the bytes produced by this instruction.
-  void WriteBytes(const LabelOffsets& label_offsets, std::ostream& out) const {
+  void WriteBytes(const LabelOffsets& label_offsets,
+                  std::vector<std::uint8_t>& out) const {
     const std::size_t length = WriteEncodedString(s_, out);
     std::size_t remainder = 4 - (length % 4);
-    for (; remainder > 0; --remainder) out.put(0);
+    out.insert(out.end(), remainder, 0);
   }
 
  private:
@@ -372,8 +394,9 @@ class Assembler {
   // Returns the number of bytes produced by the instructions.
   std::size_t OutputBytesCount() const { return insts_size_; }
 
-  // Writes the bytes produced by the instructions.
-  void WriteBytes(std::ostream& out) const {
+  // Writes the bytes produced by the instructions to the end of `out`.
+  void WriteBytes(std::vector<std::uint8_t>& out) const {
+    out.reserve(out.size() + insts_size_);
     for (const Inst& inst : insts_) {
       std::visit(
           [&](const auto& inst) { inst.WriteBytes(label_offsets_, out); },

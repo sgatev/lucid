@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <cstring>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -23,9 +22,8 @@ std::vector<std::uint32_t> Encode(F emit) {
   Assembler assembler;
   emit(assembler);
 
-  std::ostringstream out;
-  assembler.WriteBytes(out);
-  const std::string bytes = out.str();
+  std::vector<std::uint8_t> bytes;
+  assembler.WriteBytes(bytes);
 
   std::vector<std::uint32_t> words(bytes.size() / sizeof(std::uint32_t));
   std::memcpy(words.data(), bytes.data(), words.size() * sizeof(std::uint32_t));
@@ -356,9 +354,10 @@ TEST(Test, DataIsWrittenAsItIsGiven) {
 
   EXPECT_EQ(assembler.OutputBytesCount(), 12u);
 
-  std::ostringstream out;
+  std::vector<std::uint8_t> out;
   assembler.WriteBytes(out);
-  EXPECT_EQ(out.str(), std::string("ab\0\0\7\0\0\0\0\0\0\0", 12));
+  EXPECT_EQ(
+      out, (std::vector<std::uint8_t>{'a', 'b', 0, 0, 7, 0, 0, 0, 0, 0, 0, 0}));
 }
 
 TEST(Test, LabelsRecordWhereTheyWereInserted) {

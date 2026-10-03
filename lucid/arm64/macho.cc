@@ -1,7 +1,9 @@
 #include "lucid/arm64/macho.h"
 
+#include <cassert>
 #include <cstdint>
 #include <ostream>
+#include <string>
 #include <vector>
 
 #include "lucid/arm64/assembler.h"
@@ -187,11 +189,6 @@ struct RelocationInfo {
       r_type : 4;
 };
 
-template <typename T>
-void WriteStruct(const T& obj, std::ostream& out) {
-  out.write(reinterpret_cast<const char*>(&obj), sizeof(T));
-}
-
 }  // namespace
 
 void WriteCompiledMachObject(const arm64::Assembler& assembler,
@@ -321,26 +318,34 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
                     dysym_tab.cmdsize,
       .flags = 0,
   };
-  WriteStruct(header, out);
-  WriteStruct(segment, out);
-  WriteStruct(section, out);
-  WriteStruct(build_version, out);
-  WriteStruct(sym_tab, out);
-  WriteStruct(dysym_tab, out);
-  assembler.WriteBytes(out);
-  for (const auto& reloc : relocs) WriteStruct(reloc, out);
-  for (const auto& sym : ext_def_syms) WriteStruct(sym, out);
-  for (const auto& sym : undef_syms) WriteStruct(sym, out);
+  // The object is put together in memory and written in one go. Writing it
+  // a piece at a time paid what a stream costs per write for every
+  // instruction, which outweighed the writing itself.
+  std::vector<std::uint8_t> bytes;
+  bytes.reserve(string_table_offset + sym_str_size);
+  arm64::AppendBytes(header, bytes);
+  arm64::AppendBytes(segment, bytes);
+  arm64::AppendBytes(section, bytes);
+  arm64::AppendBytes(build_version, bytes);
+  arm64::AppendBytes(sym_tab, bytes);
+  arm64::AppendBytes(dysym_tab, bytes);
+  assembler.WriteBytes(bytes);
+  for (const auto& reloc : relocs) arm64::AppendBytes(reloc, bytes);
+  for (const auto& sym : ext_def_syms) arm64::AppendBytes(sym, bytes);
+  for (const auto& sym : undef_syms) arm64::AppendBytes(sym, bytes);
 
-  out.put(0);
+  bytes.push_back(0);
   for (const auto& [label, _] : assembler.GlobalLabels()) {
-    out.write(label.data(), label.size());
-    out.put(0);
+    bytes.insert(bytes.end(), label.begin(), label.end());
+    bytes.push_back(0);
   }
   for (const auto& [label, _] : assembler.ExternalLabels()) {
-    out.write(label.data(), label.size());
-    out.put(0);
+    bytes.insert(bytes.end(), label.begin(), label.end());
+    bytes.push_back(0);
   }
+  assert(bytes.size() == string_table_offset + sym_str_size);
+
+  out.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
 }
 
 }  // namespace lucid

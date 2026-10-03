@@ -169,10 +169,10 @@ TEST(Test, SegmentHoldsTheAssembledInstructions) {
   EXPECT_EQ(std::string_view(section.segname, 6), "__TEXT");
   EXPECT_EQ(section.size, assembler.OutputBytesCount());
 
-  std::ostringstream instructions;
+  std::vector<std::uint8_t> instructions;
   assembler.WriteBytes(instructions);
   EXPECT_EQ(object.Bytes().substr(section.offset, section.size),
-            instructions.str());
+            std::string(instructions.begin(), instructions.end()));
 }
 
 TEST(Test, GlobalLabelsBecomeDefinedSymbols) {

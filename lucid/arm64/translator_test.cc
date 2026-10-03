@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -19,15 +18,15 @@ namespace lucid {
 namespace {
 
 // Returns the machine code that `assembler` produced.
-std::string Bytes(const arm64::Assembler& assembler) {
-  std::ostringstream out;
+std::vector<std::uint8_t> Bytes(const arm64::Assembler& assembler) {
+  std::vector<std::uint8_t> out;
   assembler.WriteBytes(out);
-  return out.str();
+  return out;
 }
 
 // Returns the instruction words that `assembler` produced.
 std::vector<std::uint32_t> Words(const arm64::Assembler& assembler) {
-  const std::string bytes = Bytes(assembler);
+  const std::vector<std::uint8_t> bytes = Bytes(assembler);
   std::vector<std::uint32_t> words(bytes.size() / sizeof(std::uint32_t));
   std::memcpy(words.data(), bytes.data(), words.size() * sizeof(std::uint32_t));
   return words;
@@ -163,7 +162,8 @@ TEST(Test, GenerateArmEndBinaryWritesStringsInPoolOrder) {
   GenerateArmEndBinary(syn_ctx, am_state, assembler);
 
   // Each string is terminated and padded to a four byte boundary.
-  EXPECT_EQ(Bytes(assembler), std::string("cd\0\0ab\0\0", 8));
+  EXPECT_EQ(Bytes(assembler),
+            (std::vector<std::uint8_t>{'c', 'd', 0, 0, 'a', 'b', 0, 0}));
 }
 
 TEST(Test, GenerateArmEndBinaryWritesIntegers) {
@@ -174,7 +174,8 @@ TEST(Test, GenerateArmEndBinaryWritesIntegers) {
   arm64::Assembler assembler;
   GenerateArmEndBinary(syn_ctx, am_state, assembler);
 
-  EXPECT_EQ(Bytes(assembler), std::string("\x07\0\0\0\0\0\0\0", 8));
+  EXPECT_EQ(Bytes(assembler),
+            (std::vector<std::uint8_t>{7, 0, 0, 0, 0, 0, 0, 0}));
 }
 
 TEST(Test, GenerateArmEndBinaryWritesNothingWithoutConstants) {
@@ -198,10 +199,11 @@ TEST(Test, GenerateArmAssemblyBinaryWorks) {
   arm64::Assembler assembler;
   GenerateArmAssemblyBinary("main", {}, {}, am_cfg, assembler);
 
-  const std::string bytes = Bytes(assembler);
+  const std::vector<std::uint8_t> bytes = Bytes(assembler);
   EXPECT_EQ(bytes.size() % 4, 0u);
   // A function ends by returning to its caller.
-  EXPECT_EQ(bytes.substr(bytes.size() - 4), std::string("\xc0\x03\x5f\xd6", 4));
+  EXPECT_EQ(std::vector<std::uint8_t>(bytes.end() - 4, bytes.end()),
+            (std::vector<std::uint8_t>{0xc0, 0x03, 0x5f, 0xd6}));
 }
 
 }  // namespace

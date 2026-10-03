@@ -2,8 +2,8 @@
 
 #include <array>
 #include <cstdint>
-#include <ostream>
 #include <string_view>
+#include <vector>
 
 namespace lucid {
 namespace {
@@ -75,7 +75,8 @@ std::size_t EncodedStringLength(std::string_view s) {
   return count;
 }
 
-std::size_t WriteEncodedString(std::string_view s, std::ostream& out) {
+std::size_t WriteEncodedString(std::string_view s,
+                               std::vector<std::uint8_t>& out) {
   std::size_t count = 0;
 
   while (!s.empty()) {
@@ -85,7 +86,7 @@ std::size_t WriteEncodedString(std::string_view s, std::ostream& out) {
       if (char c = kEscapeChar[s.front()]; c != 0) {
         s.remove_prefix(1);
 
-        out.put(c);
+        out.push_back(static_cast<std::uint8_t>(c));
         ++count;
 
         continue;
@@ -103,18 +104,18 @@ std::size_t WriteEncodedString(std::string_view s, std::ostream& out) {
         s.remove_prefix(1);
       }
 
-      out.put(static_cast<char>(r));
+      out.push_back(r);
       ++count;
 
       continue;
     }
 
-    out.put(s.front());
+    out.push_back(static_cast<std::uint8_t>(s.front()));
     s.remove_prefix(1);
     ++count;
   }
 
-  out.put(0);
+  out.push_back(0);
   ++count;
 
   return count;

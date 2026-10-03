@@ -3,11 +3,11 @@
 #include <cstdint>
 #include <format>
 #include <optional>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
@@ -145,7 +145,7 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet,
     GenerateArmAssemblyBinary(func_name, am_cfg.stack_slots, layout, am_cfg,
                               assembler);
     if (write) {
-      std::ostringstream out;
+      std::vector<std::uint8_t> out;
       assembler.WriteBytes(out);
       DoNotOptimize(out);
     }
