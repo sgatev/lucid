@@ -72,10 +72,27 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
     live.Clear();
     for (Reg reg : LiveOut(am_cfg, liveness, block)) live.Insert(reg);
 
-    // Where each register is next read, as an instruction's place in the
-    // block. The walk runs backwards, so the last reading it writes down for
-    // a register is the first one after wherever it has reached.
-    HashMap<Reg, std::size_t> next_read;
+    // Returns the register to spill at the point the walk has reached, which
+    // is ahead of the instruction at `from`, the `index`th of the block.
+    //
+    // An over full point always has one, unless everything live there is
+    // spilled already and the spilling bought no room. That happens to a
+    // value live across a phi function, which spilling does not yet reach.
+    // See TODO.md.
+    //
+    // Where each register is next read is worked out here, from that point
+    // on, rather than kept up at every instruction the walk passes. The walk
+    // stops at the first point over full, and many reach none at all.
+    const auto reg_to_spill = [&](std::list<Instruction>::const_iterator from,
+                                  std::size_t index) {
+      HashMap<Reg, std::size_t> next_read;
+      for (auto it = from; it != block.instructions.end(); ++it, ++index) {
+        // The first read found is the next one, and `Insert` keeps it.
+        ForEachSourceRegister(*it,
+                              [&](Reg reg) { next_read.Insert(reg, index); });
+      }
+      return RegReadFurthestAhead(live, next_read, spilled).value();
+    };
 
     // True where more is live at the point the walk has reached than there
     // are registers to hold it.
@@ -83,32 +100,24 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
       return live.size() > static_cast<std::size_t>(max_clique_size);
     };
 
-    // Returns the register to spill at the point the walk has reached.
-    //
-    // An over full point always has one, unless everything live there is
-    // spilled already and the spilling bought no room. That happens to a
-    // value live across a phi function, which spilling does not yet reach.
-    // See TODO.md.
-    const auto reg_to_spill = [&] {
-      return RegReadFurthestAhead(live, next_read, spilled).value();
-    };
-
-    if (over_full()) return reg_to_spill();
+    if (over_full()) {
+      return reg_to_spill(block.instructions.end(), block.instructions.size());
+    }
 
     std::size_t index = block.instructions.size();
-    for (const auto& inst : block.instructions | std::views::reverse) {
+    for (auto it = block.instructions.rbegin(); it != block.instructions.rend();
+         ++it) {
       --index;
 
-      AbstractMachineLivenessAnalysis::TransferLive(live, inst);
-      ForEachSourceRegister(inst, [&](Reg reg) { next_read.Set(reg, index); });
+      AbstractMachineLivenessAnalysis::TransferLive(live, *it);
 
-      if (over_full()) return reg_to_spill();
+      if (over_full()) return reg_to_spill(std::prev(it.base()), index);
     }
 
     if (block.ref == am_cfg.first) {
       for (Reg param : am_cfg.params) live.Insert(param);
 
-      if (over_full()) return reg_to_spill();
+      if (over_full()) return reg_to_spill(block.instructions.begin(), 0);
     }
   }
   return std::nullopt;
