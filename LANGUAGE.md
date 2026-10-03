@@ -194,7 +194,8 @@ to hold. Nothing warns about it.
 
 **Do.** `do f(…)` calls a function for what calling it does and discards its result. What
 follows `do` has to be a call; anything else would be worked out and thrown away, and is
-rejected.
+rejected. So is `do comp f(…)`: a call made during compilation can only be to a `comp fun`,
+which has nothing to do.
 
 ## Expressions
 

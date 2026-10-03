@@ -1668,6 +1668,36 @@ TEST(ParserTest, DoWithoutACall) {
               HoldsError("expected a call at line 3, column 10"));
 }
 
+// A call made during compilation can only be to a comp function, which has
+// nothing to do, so `do` reports one where it starts. A call made while the
+// program runs may still take an argument worked out during compilation.
+TEST(ParserTest, DoWithACallMadeDuringCompilation) {
+  EXPECT_THAT(
+      Parse(R"(
+    fun foo(): Int32 {
+      do comp bar()
+      return 0
+    }
+  )"),
+      HoldsError("expected a call made while the program runs at line 3, "
+                 "column 10"));
+  EXPECT_THAT(
+      Parse(R"(
+    fun foo(): Int32 {
+      do comp (bar())
+      return 0
+    }
+  )"),
+      HoldsError("expected a call made while the program runs at line 3, "
+                 "column 10"));
+  EXPECT_TRUE(std::holds_alternative<Def>(Parse(R"(
+    fun foo(): Int32 {
+      do bar(comp baz())
+      return 0
+    }
+  )")));
+}
+
 TEST(ParserTest, MissingStringClosingQuote) {
   std::string_view src = R"(
     fun foo(): Void {

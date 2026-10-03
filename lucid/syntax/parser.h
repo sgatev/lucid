@@ -43,6 +43,7 @@ class ParserError {
     IncompleteStringLiteral,
     UnknownType,
     ExpectedCall,
+    ExpectedRuntimeCall,
   };
 
   explicit ParserError(Kind kind, CodeLocation loc) : kind_(kind), loc_(loc) {}
@@ -79,6 +80,8 @@ class ParserError {
         return "no type of this name";
       case Kind::ExpectedCall:
         return "expected a call";
+      case Kind::ExpectedRuntimeCall:
+        return "expected a call made while the program runs";
     }
   }
 
@@ -323,12 +326,17 @@ class Parser {
 
   // `do` is how a function is called for what calling it does, so what
   // follows it has to be a call: anything else would be worked out and thrown
-  // away, with nothing done.
+  // away, with nothing done. So would a call made during compilation, which
+  // can only be to a comp function, and that has nothing to do.
   std::expected<Stmt, ParserError> ParseDoStmt() {
     const Token start = PeekIgnoringNonSemantic();
     ASSIGN_OR_RETURN(Expr value, ParseExpr());
     if (!std::holds_alternative<FuncCallExpr>(value)) [[unlikely]] {
       return std::unexpected(MakeError(ParserError::Kind::ExpectedCall, start));
+    }
+    if (std::get<FuncCallExpr>(value).is_comp) [[unlikely]] {
+      return std::unexpected(
+          MakeError(ParserError::Kind::ExpectedRuntimeCall, start));
     }
     return DoStmt{.expr = syn_ctx_.Add(std::move(value))};
   }
