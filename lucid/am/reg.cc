@@ -340,7 +340,7 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
   }
 }
 
-HashMap<Reg, int> ColorInterferenceGraph(
+RegisterColors ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
     const InterferenceGraph& am_ig, int colors_count) {
   HashMap<Reg, int> reg_scores;
@@ -434,7 +434,7 @@ HashMap<Reg, int> ColorInterferenceGraph(
   // Which colour each register took, by register id, and none to begin with.
   // A colour is read once per edge of the graph, which is what makes this
   // worth an index rather than a hash.
-  static constexpr int kNoColor = -1;
+  static constexpr int kNoColor = RegisterColors::kNone;
   std::vector<int> colors_by_reg(reg_ids, kNoColor);
 
   for (Reg reg : seo) {
@@ -465,18 +465,16 @@ HashMap<Reg, int> ColorInterferenceGraph(
     colors_by_reg[reg.id] = color.value();
   }
 
-  HashMap<Reg, int> ig_colors;
-  for (Reg reg : seo) ig_colors.Insert(reg, colors_by_reg[reg.id]);
-  return ig_colors;
+  return RegisterColors(std::move(colors_by_reg));
 }
 
-void UpdateRegister(const HashMap<Reg, int>& reg_colors, Reg& reg) {
-  std::optional<const int&> color = reg_colors.Get(reg);
+void UpdateRegister(const RegisterColors& reg_colors, Reg& reg) {
+  const std::optional<int> color = reg_colors.Get(reg);
   assert(color.has_value());
   reg.id = *color;
 }
 
-void MergeRegisters(const HashMap<Reg, int>& reg_colors,
+void MergeRegisters(const RegisterColors& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg) {
   for (Reg& param : am_cfg.params) UpdateRegister(reg_colors, param);
   for (auto& block : am_cfg.Blocks()) {

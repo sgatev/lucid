@@ -134,7 +134,7 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet,
       LowerCallingConvention(am_cfg, kArm64CallingConvention);
   SpillRegisters(am_cfg, am_state, kRegistersCount);
   const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg);
-  const HashMap<Reg, int> colors =
+  const RegisterColors colors =
       ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount);
   MergeRegisters(colors, am_cfg);
 

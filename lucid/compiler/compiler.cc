@@ -130,7 +130,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       const AbstractMachineLiveness liveness =
           SpillRegisters(am_cfg, am_state, kArmRegistersCount);
       InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg, liveness);
-      HashMap<Reg, int> am_ig_colors =
+      RegisterColors am_ig_colors =
           ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
       MergeRegisters(am_ig_colors, am_cfg);
       GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func_def->name),

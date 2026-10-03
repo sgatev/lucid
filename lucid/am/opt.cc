@@ -2,12 +2,11 @@
 
 #include <cstddef>
 #include <list>
-#include <optional>
 #include <variant>
+#include <vector>
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
-#include "lucid/core/container/hash_map.h"
 
 namespace lucid {
 namespace {
@@ -33,14 +32,12 @@ void RemoveUnnecessaryInstructions(std::list<Instruction>& instructions) {
 // liveness analysis instead: a colour is shared by values that have nothing to
 // do with one another, so what is live says little about what is read.
 void MarkConditionsOnlyReadByBranches(AbstractMachineControlFlowGraph& am_cfg) {
-  HashMap<Reg, int> writes;
-  HashMap<Reg, int> reads;
-  const auto count = [](HashMap<Reg, int>& counts, Reg reg) {
-    if (auto found = counts.Get(reg); found.has_value()) {
-      counts.Set(reg, *found + 1);
-    } else {
-      counts.Insert(reg, 1);
-    }
+  // Held by register id rather than in a table keyed by the register: the
+  // ids run from zero without gaps, and every register named is counted.
+  std::vector<int> writes(am_cfg.next_free_reg_id, 0);
+  std::vector<int> reads(am_cfg.next_free_reg_id, 0);
+  const auto count = [](std::vector<int>& counts, Reg reg) {
+    ++counts[reg.id];
   };
 
   for (Reg param : am_cfg.params) count(writes, param);
@@ -61,10 +58,8 @@ void MarkConditionsOnlyReadByBranches(AbstractMachineControlFlowGraph& am_cfg) {
   for (auto& block : am_cfg.Blocks()) {
     if (!block.branch_cond.has_value()) continue;
 
-    const std::optional<const int&> written = writes.Get(*block.branch_cond);
-    const std::optional<const int&> read = reads.Get(*block.branch_cond);
-    block.only_branch_reads_cond =
-        written.has_value() && *written == 1 && read.has_value() && *read == 1;
+    const Reg cond = *block.branch_cond;
+    block.only_branch_reads_cond = writes[cond.id] == 1 && reads[cond.id] == 1;
   }
 }
 

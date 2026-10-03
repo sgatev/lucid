@@ -154,7 +154,6 @@ cc_library(
     deps = [
         ":cfg",
         ":instructions",
-        "//lucid/core/container:hash_map",
     ],
 )
 

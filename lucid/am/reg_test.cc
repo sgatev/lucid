@@ -75,7 +75,7 @@ class ColoringTest : public Test {
         SpillRegisters(am_cfg, am_state, kRegistersCount);
 
     const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg, liveness);
-    const HashMap<Reg, int> colors =
+    const RegisterColors colors =
         ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount);
 
     // Every parameter is live where the function is entered, because that is
@@ -83,18 +83,18 @@ class ColoringTest : public Test {
     // whether or not the body reads them.
     const auto register_params = am_cfg.params;
     for (std::size_t i = 0; i < register_params.size(); ++i) {
-      const std::optional<const int&> color = colors.Get(register_params[i]);
+      const std::optional<int> color = colors.Get(register_params[i]);
       ASSERT_TRUE(color.has_value());
 
       for (std::size_t j = i + 1; j < register_params.size(); ++j) {
-        const std::optional<const int&> other = colors.Get(register_params[j]);
+        const std::optional<int> other = colors.Get(register_params[j]);
         ASSERT_TRUE(other.has_value());
         EXPECT_NE(*color, *other);
       }
     }
 
     for (Reg reg : am_ig.Regs()) {
-      const std::optional<const int&> color = colors.Get(reg);
+      const std::optional<int> color = colors.Get(reg);
       EXPECT_TRUE(color.has_value());
       if (!color.has_value()) continue;
 
@@ -102,7 +102,7 @@ class ColoringTest : public Test {
       EXPECT_TRUE(*color < 19 + kRegistersCount);
 
       for (Reg neighbour : am_ig.Neighbours(reg)) {
-        const std::optional<const int&> neighbour_color = colors.Get(neighbour);
+        const std::optional<int> neighbour_color = colors.Get(neighbour);
         if (!neighbour_color.has_value()) continue;
         EXPECT_NE(*color, *neighbour_color);
       }

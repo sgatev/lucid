@@ -94,8 +94,7 @@ void BenchmarkColoring(BenchmarkState& state, std::string_view snippet) {
         const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg);
 
         for (auto _ : state) {
-          DoNotOptimize(
-              ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount).size());
+          DoNotOptimize(ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount));
         }
       });
 
@@ -139,10 +138,10 @@ void BenchmarkAllocation(BenchmarkState& state, std::string_view snippet) {
           const AbstractMachineLiveness liveness =
               SpillRegisters(cfg, reg_state, kRegistersCount);
           const InterferenceGraph ig = BuildInterferenceGraph(cfg, liveness);
-          const HashMap<Reg, int> colors =
+          const RegisterColors colors =
               ColorInterferenceGraph(cfg, ig, kRegistersCount);
           MergeRegisters(colors, cfg);
-          DoNotOptimize(colors.size());
+          DoNotOptimize(colors);
         }
       });
 

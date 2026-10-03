@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
+#include <utility>
+#include <vector>
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/ig.h"
@@ -22,11 +25,36 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
                                        AbstractMachineState& am_state,
                                        int max_clique_size);
 
-HashMap<Reg, int> ColorInterferenceGraph(
+// The colour each register of a function took, held by register id: the ids
+// run from zero without gaps, so an index reaches every one of them, and each
+// is looked up once for every place a register is named.
+class RegisterColors {
+ public:
+  // The colour of a register that was not coloured.
+  static constexpr int kNone = -1;
+
+  explicit RegisterColors(std::vector<int> colors_by_id)
+      : colors_by_id_(std::move(colors_by_id)) {}
+
+  // Returns the colour `reg` took, if it took one.
+  std::optional<int> Get(Reg reg) const {
+    if (reg.id < 0 || std::size_t(reg.id) >= colors_by_id_.size()) {
+      return std::nullopt;
+    }
+    const int color = colors_by_id_[reg.id];
+    if (color == kNone) return std::nullopt;
+    return color;
+  }
+
+ private:
+  std::vector<int> colors_by_id_;
+};
+
+RegisterColors ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
     const InterferenceGraph& am_ig, int colors_count);
 
-void MergeRegisters(const HashMap<Reg, int>& reg_colors,
+void MergeRegisters(const RegisterColors& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg);
 
 }  // namespace lucid
