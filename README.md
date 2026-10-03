@@ -9,12 +9,35 @@
   <p>Lucid is an experimental programming language and toolchain developed from scratch.</p>
 </div>
 
+## Code
+
+```
+comp fun gcd(mut a: Int32, mut b: Int32): Int32 {
+  loop {
+    if a == b {
+      break
+    } else if a > b {
+      mut a = a - b
+    } else {
+      mut b = b - a
+    }
+  }
+  return a
+}
+
+fun main(): Int32 {
+  return comp gcd(252, 105)
+}
+```
+
 ## Overview
 
 - [Language](LANGUAGE.md)
 - [Architecture](ARCHITECTURE.md)
 
-## Requires
+## Prepare
+
+Working with the Lucid codebase requires
 
 - ARM64 macOS
 - [Xcode](https://developer.apple.com/xcode) 27
@@ -63,13 +86,6 @@ bazel run -c opt //lucid/am:reg_bench -- --format=json
 Every push to `main` records the results, which are charted at
 [sgatev.github.io/lucid/dev/bench](https://sgatev.github.io/lucid/dev/bench/).
 
-## Code
-
-To enable syntax highlighting in your editor install
-
-- [neovim-lucid](https://github.com/sgatev/nvim-lucid/tree/main) plugin for [Neovim](https://neovim.io)
-- [tree-sitter-lucid](https://github.com/sgatev/tree-sitter-lucid/tree/main) grammar for [Tree-sitter](https://tree-sitter.github.io/tree-sitter)
-
 ## Debug
 
 To print the abstract syntax tree derived from code execute
@@ -89,3 +105,10 @@ To print the abstract machine control flow graph derived from code execute
 ```
 bazel run -c opt //lucid/compiler:main -- print-am-cfg $PWD/examples/main.lu
 ```
+
+## Extras
+
+To enable syntax highlighting in your editor install
+
+- [neovim-lucid](https://github.com/sgatev/nvim-lucid/tree/main) plugin for [Neovim](https://neovim.io)
+- [tree-sitter-lucid](https://github.com/sgatev/tree-sitter-lucid/tree/main) grammar for [Tree-sitter](https://tree-sitter.github.io/tree-sitter)
