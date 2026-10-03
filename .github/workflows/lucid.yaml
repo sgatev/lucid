@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   test:
-    runs-on: xcode-27
+    runs-on: namespace-profile-macos-arm64
     permissions:
       contents: read
     steps:
@@ -22,7 +22,7 @@ jobs:
 
   benchmark:
     needs: test
-    runs-on: xcode-27
+    runs-on: namespace-profile-macos-arm64
     permissions:
       # The results of a run on main are pushed to the gh-pages branch.
       contents: write
