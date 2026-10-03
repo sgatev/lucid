@@ -5,10 +5,13 @@
 #include <algorithm>
 #include <bit>
 #include <cassert>
+#include <cstdint>
 #include <limits>
 #include <list>
 #include <optional>
 #include <ranges>
+#include <span>
+#include <tuple>
 #include <variant>
 #include <vector>
 
@@ -56,15 +59,29 @@ std::optional<Reg> RegReadFurthestAhead(
   return furthest;
 }
 
+// Returns the register to spill at the first point where more is live than
+// `max_clique_size`, looking from the block at `first_block` among the
+// blocks of `am_cfg` on, and leaves `first_block` at the block it was found
+// in.
+//
+// The walk starts where the last one stopped rather than from the first
+// block. A spill never leaves more live at a point than there was: a load's
+// register stands in for the one put away, right before the read it serves,
+// and a store follows a write the value was live after anyway. So every
+// point before where the last walk stopped still has room, and a walk from
+// the first block would come to the same block before it found anything.
 std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
                                   const AbstractMachineLiveness& liveness,
-                                  HashSet<Reg>& spilled, int max_clique_size) {
+                                  HashSet<Reg>& spilled, int max_clique_size,
+                                  std::size_t& first_block) {
   // One set for the whole walk: building one per block would cost a slot
   // for every register in the function each time, which is far more than
   // any one block has live.
   RegSet live(am_cfg.next_free_reg_id);
 
-  for (const auto& block : am_cfg.Blocks()) {
+  const auto& blocks = am_cfg.Blocks();
+  for (; first_block < blocks.Size(); ++first_block) {
+    const auto& block = *(blocks.begin() + first_block);
     if (!liveness[block.ref.id()].has_value()) continue;
 
     // The walk backwards over the block starts from what is live where it
@@ -123,14 +140,17 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
   return std::nullopt;
 }
 
-// The registers a phi function ties `reg` to: its result and each of its
-// arguments, and whatever those are tied to in turn.
+// The registers each phi function ties together: its result to each of its
+// arguments, both ways.
+using PhiTies = HashMap<Reg, std::vector<Reg>>;
+
+// Returns the ties the phi functions of `am_cfg` make.
 //
-// They are the names one value goes by, reaching a block by one way or
-// another, so putting one of them away is putting all of them away.
-HashSet<Reg> TiedRegisters(const AbstractMachineControlFlowGraph& am_cfg,
-                           Reg reg) {
-  HashMap<Reg, std::vector<Reg>> ties;
+// They are worked out once for all of the spilling. A phi function goes only
+// when its result is spilt, and everything it ties is spilt with it, so the
+// ties among the registers still to be spilt never change.
+PhiTies TiesOf(const AbstractMachineControlFlowGraph& am_cfg) {
+  PhiTies ties;
   for (const auto& block : am_cfg.Blocks()) {
     for (const auto& phi : block.phis) {
       for (Reg src : phi.srcs) {
@@ -139,7 +159,15 @@ HashSet<Reg> TiedRegisters(const AbstractMachineControlFlowGraph& am_cfg,
       }
     }
   }
+  return ties;
+}
 
+// The registers a phi function ties `reg` to: its result and each of its
+// arguments, and whatever those are tied to in turn.
+//
+// They are the names one value goes by, reaching a block by one way or
+// another, so putting one of them away is putting all of them away.
+HashSet<Reg> TiedRegisters(const PhiTies& ties, Reg reg) {
   HashSet<Reg> tied;
   std::vector<Reg> to_walk = {reg};
   tied.Insert(reg);
@@ -157,6 +185,107 @@ HashSet<Reg> TiedRegisters(const AbstractMachineControlFlowGraph& am_cfg,
   return tied;
 }
 
+// Where each register of a graph is named, kept up as the spilling rewrites
+// the graph, so that putting a register away reaches the places that name it
+// rather than every instruction there is, once for each register put away.
+//
+// A place is an instruction in a list, which stays where it is as others are
+// put in around it, and the register in it, which is renamed in place.
+class RegOccurrences {
+ public:
+  // What naming a register at a place asks of a spill there.
+  enum class Kind : std::uint8_t {
+    // A parameter, which the caller leaves in its register: stored where the
+    // function is entered.
+    kParam,
+    // An instruction reads it: loaded right before.
+    kRead,
+    // An instruction writes it: stored right after.
+    kWrite,
+    // A block branches on it: loaded where the block ends.
+    kBranch,
+    // A phi function in a block gives it its value: nothing left to settle.
+    kPhi,
+  };
+
+  struct Occurrence {
+    Kind kind;
+    // The block, by its place in reverse post-order, and the instruction, by
+    // its place in the block as the graph was when this was built. A spill
+    // goes through the places in this order, which is the order a walk of
+    // the graph would come to them in.
+    std::uint32_t block;
+    std::uint32_t inst;
+    // Which of the registers the instruction reads, in the order they are
+    // read in.
+    std::uint32_t operand;
+    std::list<Instruction>::iterator at;
+    Reg* reg;
+  };
+
+  // Where an instruction stands that comes after every other in its block,
+  // and a register that is read after every other in its instruction.
+  static constexpr std::uint32_t kLast =
+      std::numeric_limits<std::uint32_t>::max();
+
+  RegOccurrences(
+      AbstractMachineControlFlowGraph& am_cfg,
+      const std::vector<AbstractMachineControlFlowGraph::BlockRef>& rpo)
+      : by_reg_(am_cfg.next_free_reg_id) {
+    for (std::uint32_t b = 0; b < rpo.size(); ++b) {
+      auto& block = am_cfg.GetBlock(rpo[b]);
+      if (rpo[b] == am_cfg.first) {
+        for (Reg& param : am_cfg.params) {
+          Add({.kind = Kind::kParam, .block = b, .reg = &param});
+        }
+      }
+      std::uint32_t inst = 1;
+      for (auto it = block.instructions.begin(); it != block.instructions.end();
+           ++it, ++inst) {
+        std::uint32_t operand = 0;
+        ForEachSourceRegister(*it, [&](Reg& reg) {
+          Add({.kind = Kind::kRead,
+               .block = b,
+               .inst = inst,
+               .operand = operand++,
+               .at = it,
+               .reg = &reg});
+        });
+        if (Reg* target = TargetRegister(*it)) {
+          Add({.kind = Kind::kWrite,
+               .block = b,
+               .inst = inst,
+               .operand = kLast,
+               .at = it,
+               .reg = target});
+        }
+      }
+      if (block.branch_cond.has_value()) {
+        Add({.kind = Kind::kBranch,
+             .block = b,
+             .inst = kLast,
+             .reg = &*block.branch_cond});
+      }
+      for (auto& phi : block.phis) {
+        Add({.kind = Kind::kPhi, .block = b, .reg = &phi.dst});
+      }
+    }
+  }
+
+  // Records that `occurrence` names the register it points at.
+  void Add(const Occurrence& occurrence) {
+    const std::size_t id = occurrence.reg->id;
+    if (id >= by_reg_.size()) by_reg_.resize(id + 1);
+    by_reg_[id].push_back(occurrence);
+  }
+
+  // Returns the places that name `reg`, in the order a walk comes to them.
+  std::span<const Occurrence> Of(Reg reg) const { return by_reg_[reg.id]; }
+
+ private:
+  std::vector<std::vector<Occurrence>> by_reg_;
+};
+
 // Takes the registers in `to_spill` out of the registers, putting each away
 // where it is written and loading its own copy back for every read of it.
 //
@@ -164,91 +293,93 @@ HashSet<Reg> TiedRegisters(const AbstractMachineControlFlowGraph& am_cfg,
 // goes by where phi functions tie them together. Those phi functions are then
 // nothing left to carry out: whichever way control reached the block, the
 // slot holds what the value came to.
-void SpillRegisters(const HashSet<Reg>& to_spill,
-                    AbstractMachineControlFlowGraph& am_cfg) {
+//
+// Only the places `occurrences` holds for them are visited, in the order a
+// walk over the blocks in reverse post-order would come to them, so the
+// loads take their registers in the order such a walk would give them out.
+void SpillRegisters(
+    const HashSet<Reg>& to_spill, AbstractMachineControlFlowGraph& am_cfg,
+    const std::vector<AbstractMachineControlFlowGraph::BlockRef>& rpo,
+    RegOccurrences& occurrences) {
+  using Kind = RegOccurrences::Kind;
+  using Occurrence = RegOccurrences::Occurrence;
+
   const std::size_t slot = am_cfg.stack_slots.size();
   am_cfg.stack_slots.push_back(to_spill.begin()->size == RegSize32 ? 4 : 8);
 
-  // Puts the register away after the instruction that wrote it, and leaves the
-  // walk standing on the store, which the step the walk takes next carries it
-  // past. Standing on the instruction before it would read the store as one
-  // more use and load the register back to store it again.
-  auto maybe_insert_store = [&](std::list<Instruction>& instructions,
-                                std::list<Instruction>::iterator& pos,
-                                Reg reg) {
-    if (!to_spill.Contains(reg)) return;
-
-    pos = instructions.insert(std::next(pos), StoreStack{
-                                                  .offset = slot,
-                                                  .src_reg = reg,
-                                              });
-  };
-  // Reads the register back before the instruction that uses it, into a
-  // register of that use's own, and leaves the walk where it is: an
-  // instruction can use it more than once, and the one after it can too.
-  auto maybe_insert_load = [&](std::list<Instruction>& instructions,
-                               std::list<Instruction>::iterator& pos,
-                               Reg& reg) {
-    if (!to_spill.Contains(reg)) return;
-
-    reg.id = am_cfg.next_free_reg_id++;
-    instructions.insert(pos, LoadStack{
-                                 .offset = slot,
-                                 .dst_reg = reg,
-                             });
-  };
-
-  std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
-      Vertices(am_cfg);
-  std::sort(block_refs.begin(), block_refs.end(),
-            CompareReversePostOrder(am_cfg));
-
-  for (const auto& block_ref : block_refs) {
-    auto& block = am_cfg.GetBlock(block_ref);
-
-    // A parameter is in its register from the entry, because that is where
-    // the caller leaves it, so it is put away at the top of the block ahead
-    // of everything the block does. The walk starts after the store, so that
-    // it does not read it as one more use of what it stores.
-    auto i = block.instructions.begin();
-    if (block_ref == am_cfg.first) {
-      for (Reg param : am_cfg.params) {
-        if (!to_spill.Contains(param)) continue;
-
-        block.instructions.insert(i, StoreStack{
-                                         .offset = slot,
-                                         .src_reg = param,
-                                     });
-      }
-    }
-    while (i != block.instructions.end()) {
-      ForEachSourceRegister(
-          *i, [&](Reg& reg) { maybe_insert_load(block.instructions, i, reg); });
-      if (Reg* target = TargetRegister(*i)) {
-        maybe_insert_store(block.instructions, i, *target);
-      }
-
-      ++i;
-    }
-    if (block.branch_cond.has_value()) {
-      maybe_insert_load(block.instructions, i, *block.branch_cond);
-    }
+  std::vector<Occurrence> places;
+  for (Reg reg : to_spill) {
+    const auto of = occurrences.Of(reg);
+    places.insert(places.end(), of.begin(), of.end());
+  }
+  // The places of one register are already in order. Those of several, which
+  // phi functions tie together, are put in order between them.
+  if (to_spill.size() > 1) {
+    std::ranges::sort(places, {}, [](const Occurrence& place) {
+      return std::tuple(place.block, place.inst, place.operand);
+    });
   }
 
-  // A phi function whose result is put away has every argument put away
-  // beside it, in the same slot, so there is nothing left for it to settle.
-  // Each argument was stored where its own block wrote it, and each read of
-  // the result loads from that same slot, so the value is where it needs to
-  // be by whichever way control came.
-  //
-  // This is what buys room where the sides of a branch meet. A phi function
-  // held its arguments in registers to the end of every block they came
-  // from, which no amount of spilling could take back so long as the phi was
-  // there to read them.
-  for (const auto& block_ref : block_refs) {
-    auto& block = am_cfg.GetBlock(block_ref);
-    std::erase_if(block.phis,
-                  [&](const auto& phi) { return to_spill.Contains(phi.dst); });
+  // A parameter is put away ahead of everything the entry does, including
+  // the loads earlier spills put there.
+  auto& entry = am_cfg.GetBlock(am_cfg.first).instructions;
+  const auto entry_begin = entry.begin();
+
+  // Reads the register back into a register of its own, standing right
+  // before `at`, and records where that register is named in turn: it can be
+  // spilt as well, later on.
+  const auto load = [&](const Occurrence& place, Kind kind,
+                        std::list<Instruction>& instructions,
+                        std::list<Instruction>::iterator at) {
+    Reg& read = *place.reg;
+    read.id = am_cfg.next_free_reg_id++;
+    const auto loaded =
+        instructions.insert(at, LoadStack{.offset = slot, .dst_reg = read});
+    occurrences.Add({.kind = Kind::kWrite,
+                     .block = place.block,
+                     .inst = place.inst,
+                     .at = loaded,
+                     .reg = &std::get<LoadStack>(*loaded).dst_reg});
+    Occurrence read_place = place;
+    read_place.kind = kind;
+    occurrences.Add(read_place);
+  };
+
+  for (const Occurrence& place : places) {
+    auto& block = am_cfg.GetBlock(rpo[place.block]);
+    switch (place.kind) {
+      case Kind::kParam:
+        entry.insert(entry_begin,
+                     StoreStack{.offset = slot, .src_reg = *place.reg});
+        break;
+      case Kind::kRead:
+        load(place, Kind::kRead, block.instructions, place.at);
+        break;
+      case Kind::kWrite:
+        block.instructions.insert(
+            std::next(place.at),
+            StoreStack{.offset = slot, .src_reg = *place.reg});
+        break;
+      case Kind::kBranch:
+        load(place, Kind::kBranch, block.instructions,
+             block.instructions.end());
+        break;
+      case Kind::kPhi:
+        // A phi function whose result is put away has every argument put
+        // away beside it, in the same slot, so there is nothing left for it
+        // to settle. Each argument was stored where its own block wrote it,
+        // and each read of the result loads from that same slot, so the value
+        // is where it needs to be by whichever way control came.
+        //
+        // This is what buys room where the sides of a branch meet. A phi
+        // function held its arguments in registers to the end of every block
+        // they came from, which no amount of spilling could take back so long
+        // as the phi was there to read them.
+        std::erase_if(block.phis, [&](const auto& phi) {
+          return to_spill.Contains(phi.dst);
+        });
+        break;
+    }
   }
 }
 
@@ -321,19 +452,33 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
   AbstractMachineLiveness liveness =
       RunDataflow(Backward(am_cfg), liveness_analysis);
 
+  // What a spill needs to find its way around the graph, worked out at the
+  // first one: most functions have room for everything and never spill.
+  std::vector<AbstractMachineControlFlowGraph::BlockRef> rpo;
+  std::optional<RegOccurrences> occurrences;
+  std::optional<PhiTies> ties;
+
+  std::size_t first_block = 0;
   while (true) {
-    std::optional<Reg> reg_to_spill =
-        FindRegToSpill(am_cfg, liveness, spilt_regs, max_clique_size);
+    std::optional<Reg> reg_to_spill = FindRegToSpill(
+        am_cfg, liveness, spilt_regs, max_clique_size, first_block);
     // Nothing left to spill, so this is what the graph as it stands is live
     // over, and whoever asked for the spilling is handed it.
     if (!reg_to_spill.has_value()) return liveness;
 
+    if (!occurrences.has_value()) {
+      rpo = Vertices(am_cfg);
+      std::sort(rpo.begin(), rpo.end(), CompareReversePostOrder(am_cfg));
+      occurrences.emplace(am_cfg, rpo);
+      ties.emplace(TiesOf(am_cfg));
+    }
+
     // Whatever phi functions tie it to goes with it, because one value under
     // several names is put away once and read back by any of them.
-    const HashSet<Reg> tied = TiedRegisters(am_cfg, *reg_to_spill);
+    const HashSet<Reg> tied = TiedRegisters(*ties, *reg_to_spill);
     for (Reg reg : tied) spilt_regs.Insert(reg);
 
-    SpillRegisters(tied, am_cfg);
+    SpillRegisters(tied, am_cfg, rpo, *occurrences);
 
     RemoveSpiltRegisters(am_cfg, tied, liveness);
     assert(MatchesFreshAnalysis(am_cfg, liveness));
