@@ -188,9 +188,9 @@ if a == b {
 innermost enclosing loop. There is no `while` and no `for`, and no `continue`.
 
 **Return.** `return expr` leaves the function. The expression's type must be the
-function's result type. A function is not obliged to return: control may reach the
-closing brace, and the function's result is then whatever the result register happens
-to hold. Nothing warns about it.
+function's result type. A function whose result is not `Void` has to return wherever it
+ends: one where control can reach the closing brace without a `return` is rejected. Code
+nothing reaches, such as what follows a loop with no way out, does not count.
 
 **Do.** `do f(…)` calls a function for what calling it does and discards its result. What
 follows `do` has to be a call; anything else would be worked out and thrown away, and is
@@ -355,7 +355,5 @@ worth the name.
 - **Characters outside the token set are skipped silently.** A stray `@` in a function
   body is ignored as though it were a comment.
 - `Double` has a name and a size and nothing else. No literal produces one.
-- **Nothing checks that a function returns.** A function that falls off its closing
-  brace returns whatever was in the result register, and a `return` of the wrong shape
-  is caught only by the type rules above, which let `return 0` stand in a function whose
-  result is `Void`.
+- **A `return` of the wrong shape is caught only by the type rules above,** which let
+  `return 0` stand in a function whose result is `Void`.

@@ -168,6 +168,30 @@ cc_test(
 )
 
 cc_library(
+    name = "strict_ssa",
+    srcs = ["strict_ssa.cc"],
+    hdrs = ["strict_ssa.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        ":cfg",
+        ":instructions",
+        "//lucid/core/container/graph:dominator",
+    ],
+)
+
+cc_test(
+    name = "strict_ssa_test",
+    srcs = ["strict_ssa_test.cc"],
+    deps = [
+        ":cfg",
+        ":cfg_builder",
+        ":instructions",
+        ":strict_ssa",
+        "//lucid/core/testing",
+    ],
+)
+
+cc_library(
     name = "reg",
     srcs = ["reg.cc"],
     hdrs = ["reg.h"],
@@ -179,6 +203,7 @@ cc_library(
         ":liveness",
         ":reg_set",
         ":state",
+        ":strict_ssa",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
         "//lucid/core/dataflow",

@@ -267,6 +267,57 @@ TEST(CompilerTest, ReportsCompilationDividingByZero) {
 // A file written with a carriage return before each newline, or opening with
 // a byte order mark, as some editors write them, compiles the same as one
 // written without.
+// A function with a result has to return one wherever it ends. Running off
+// the closing brace on any way control can take is reported, rather than
+// leaving the caller whatever was last where a result goes.
+TEST(CompilerTest, ReportsAFunctionThatCanEndWithoutReturning) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun pick(x: Int32): Int32 {
+      if x > 1 {
+        return 5
+      }
+    }
+
+    fun main(): Int32 {
+      return pick(3)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}),
+              AllOf(ReturnsCode(1),
+                    ErrorOutput(Contains(
+                        "function 'pick' can end without returning a value"))));
+}
+
+// What follows a loop with no way out is never reached, so a function whose
+// only way to end is a `return` inside the loop returns wherever it ends, as
+// one whose sides of an `if` both return does.
+TEST(CompilerTest, AcceptsFunctionsThatReturnWhereverTheyEnd) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun first(x: Int32): Int32 {
+      mut val i: Int32 = 0
+      loop {
+        if i > x {
+          return i
+        }
+        mut i = i + 1
+      }
+    }
+
+    fun sign(x: Int32): Int32 {
+      if x < 0 {
+        return 0 - 1
+      } else {
+        return 1
+      }
+    }
+
+    fun main(): Int32 {
+      return first(3) + sign(2)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}), ReturnsCode(0));
+}
+
 TEST(CompilerTest, CompilesCarriageReturnsAndAByteOrderMark) {
   for (const std::string_view prefix : {"", "\xef\xbb\xbf"}) {
     ASSERT_TRUE(CreateFile(

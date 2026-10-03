@@ -50,6 +50,13 @@ class RegisterColors {
   std::vector<int> colors_by_id_;
 };
 
+// Gives every register in `am_ig` one of `colors_count` colours, none shared
+// by two registers that interfere.
+//
+// Requires:
+// - `am_cfg` must be in strict single assignment form, which is what lets its
+//   registers be coloured in the order its dominator tree has them in. See
+//   `CheckStrictSsa`.
 RegisterColors ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
     const InterferenceGraph& am_ig, int colors_count);

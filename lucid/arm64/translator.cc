@@ -339,6 +339,11 @@ class Arm64BinaryGenerator {
     HashMap<Reg, Reg> dst_to_srcs;
     HashSet<Reg> srcs;
     for (const auto& phi : block.phis) {
+      // An argument already in the register the phi function settles on is
+      // where it needs to be. Left in, it would read as a copy waiting on
+      // itself, and go round through the scratch register to stay put.
+      if (phi.srcs[pred_block_idx] == phi.dst) continue;
+
       dst_to_srcs.Insert(phi.dst, phi.srcs[pred_block_idx]);
       srcs.Insert(phi.srcs[pred_block_idx]);
     }

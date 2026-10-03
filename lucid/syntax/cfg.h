@@ -167,6 +167,12 @@ inline std::uint32_t VertexId(const SyntaxControlFlowGraph&,
 SyntaxControlFlowGraph BuildControlFlowGraph(SyntaxContext& ctx,
                                              const FuncDefStmt& func);
 
+// Returns whether the function `cfg` was built from can reach its end without
+// returning: whether a block that control can come to goes on to the last one
+// without a `return` taking it there.
+bool CanEndWithoutReturning(const SyntaxContext& ctx,
+                            const SyntaxControlFlowGraph& cfg);
+
 template <typename T>
 class ControlFlowGraphAnalysis {
  public:

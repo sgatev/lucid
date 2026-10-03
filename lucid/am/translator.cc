@@ -5,9 +5,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <optional>
 #include <string_view>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
@@ -115,7 +117,31 @@ class AbstractMachineFunctionGenerator {
     }
 
     {
+      // What the function returns is settled where it ends, by a phi
+      // function taking each way in the value returned along it, so that the
+      // register holding it is written in one place only. A way in that
+      // returns nothing, because nothing reaches it or the function has no
+      // result, is given a placeholder: the checks before this have made
+      // sure no other can.
       auto& last_block = am_cfg_.GetBlock(am_cfg_.last);
+      if (!last_block.preds.empty()) {
+        auto& result_phi = last_block.phis.emplace_back();
+        result_phi.dst = result_reg_;
+        for (const auto pred : last_block.preds) {
+          if (pred.id() < returned_regs_.size() &&
+              returned_regs_[pred.id()].has_value()) {
+            result_phi.srcs.push_back(*returned_regs_[pred.id()]);
+            continue;
+          }
+          const Reg placeholder = {am_cfg_.next_free_reg_id++,
+                                   result_reg_.size};
+          am_cfg_.GetBlock(pred).instructions.push_back(SetReg{
+              .src_val = 0,
+              .dst_reg = placeholder,
+          });
+          result_phi.srcs.push_back(placeholder);
+        }
+      }
       last_block.instructions.push_back(Return{
           .res_reg = result_reg_,
       });
@@ -378,12 +404,14 @@ class AbstractMachineFunctionGenerator {
     std::visit([&](const auto& stmt) { Process(ref, stmt, am_block); }, stmt);
   }
 
+  // What is returned is taken in by the phi function where the function ends,
+  // straight from the register the value was worked out in.
   void Process(StmtRef ref, const ReturnStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
-    am_block.instructions.push_back(MoveReg{
-        .src_reg = expr_to_reg_[stmt.value.id()],
-        .dst_reg = result_reg_,
-    });
+    if (am_block.ref.id() >= returned_regs_.size()) {
+      returned_regs_.resize(am_block.ref.id() + 1);
+    }
+    returned_regs_[am_block.ref.id()] = expr_to_reg_[stmt.value.id()];
   }
 
   void Process(StmtRef ref, const DoStmt& stmt,
@@ -420,15 +448,16 @@ class AbstractMachineFunctionGenerator {
     auto stmt_offset = var_stack_.Get(stmt.name);
     assert(stmt_offset.has_value());
 
-    Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
+    Reg size_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
     am_block.instructions.push_back(SetReg{
         .src_val =
             static_cast<int>(GetSize(GetType(syn_ctx_.DerefExpr(stmt.expr)))),
-        .dst_reg = offset_reg,
+        .dst_reg = size_reg,
     });
+    Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
     am_block.instructions.push_back(MulReg{
         .res_reg = offset_reg,
-        .lhs_reg = offset_reg,
+        .lhs_reg = size_reg,
         .rhs_reg = expr_to_reg_[stmt.index.id()],
     });
     am_block.instructions.push_back(StoreStackReg{
@@ -472,6 +501,11 @@ class AbstractMachineFunctionGenerator {
   };
 
   // Adds `offset` bytes to where `place` stands.
+  //
+  // The sum goes in a register of its own rather than back into the one it
+  // adds to, as every step does: no register is written more than once, which
+  // is what lets the allocator colour registers in the order the dominator
+  // tree has them in.
   void AddToStackPlace(StackPlace& place, std::size_t offset,
                        AbstractMachineControlFlowGraph::Block& am_block) {
     Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
@@ -479,11 +513,13 @@ class AbstractMachineFunctionGenerator {
         .src_val = static_cast<int>(offset),
         .dst_reg = step_reg,
     });
+    Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
     am_block.instructions.push_back(AddReg{
-        .res_reg = place.offset_reg,
+        .res_reg = sum_reg,
         .lhs_reg = place.offset_reg,
         .rhs_reg = step_reg,
     });
+    place.offset_reg = sum_reg;
   }
 
   // Works out where the value an expression names lies, by walking the
@@ -509,21 +545,24 @@ class AbstractMachineFunctionGenerator {
     if (const auto* index_expr = std::get_if<IndexExpr>(&expr)) {
       StackPlace place = GetStackPlace(index_expr->base, am_block);
 
-      Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
+      Reg size_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
           .src_val = static_cast<int>(GetSize(GetType(expr))),
-          .dst_reg = step_reg,
+          .dst_reg = size_reg,
       });
+      Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(MulReg{
           .res_reg = step_reg,
-          .lhs_reg = step_reg,
+          .lhs_reg = size_reg,
           .rhs_reg = expr_to_reg_[index_expr->index.id()],
       });
+      Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(AddReg{
-          .res_reg = place.offset_reg,
+          .res_reg = sum_reg,
           .lhs_reg = place.offset_reg,
           .rhs_reg = step_reg,
       });
+      place.offset_reg = sum_reg;
       return place;
     }
 
@@ -644,6 +683,8 @@ class AbstractMachineFunctionGenerator {
 
   Interpreter vm_;
   Reg result_reg_;
+  // The register holding the value each block returns, by the block's ID.
+  std::vector<std::optional<Reg>> returned_regs_;
   HashMap<StringIndex::Ref, Reg> var_to_reg_;
   HashMap<StringIndex::Ref, std::size_t> var_stack_;
   HashMap<SyntaxControlFlowGraph::BlockRef,

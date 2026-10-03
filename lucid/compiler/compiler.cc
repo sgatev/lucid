@@ -63,6 +63,22 @@ std::expected<void, TypeError> CheckEntryPoint(const SyntaxContext& syn_ctx,
   return {};
 }
 
+// Checks that a function with a result returns one wherever it ends. A path
+// that runs off the closing brace would leave the caller with whatever was
+// last where a result goes, which is never what was meant.
+std::expected<void, TypeError> CheckEveryPathReturns(
+    const SyntaxContext& syn_ctx, const FuncDefStmt& func_def,
+    const SyntaxControlFlowGraph& syn_cfg) {
+  const auto& result =
+      std::get<BasicType>(syn_ctx.DerefType(func_def.result_type));
+  if (syn_ctx.DerefIdent(result.name) == "Void") return {};
+  if (!CanEndWithoutReturning(syn_ctx, syn_cfg)) return {};
+
+  return std::unexpected(
+      TypeError(std::format("function '{}' can end without returning a value",
+                            syn_ctx.DerefIdent(func_def.name))));
+}
+
 std::expected<void, CompileError> CompileSource(std::string_view src,
                                                 std::ostream& out) {
   SyntaxContext syn_ctx;
@@ -104,6 +120,10 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       }
       SyntaxControlFlowGraph syn_cfg =
           BuildControlFlowGraph(syn_ctx, *func_def);
+      if (auto res = CheckEveryPathReturns(syn_ctx, *func_def, syn_cfg);
+          !res.has_value()) {
+        return std::unexpected(res.error());
+      }
       ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);
       auto am_cfg_or_error =
           GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);

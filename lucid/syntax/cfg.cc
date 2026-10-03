@@ -303,4 +303,34 @@ SyntaxControlFlowGraph BuildControlFlowGraph(SyntaxContext& ctx,
   return ControlFlowGraphBuilder(ctx, func).Consume();
 }
 
+bool CanEndWithoutReturning(const SyntaxContext& ctx,
+                            const SyntaxControlFlowGraph& cfg) {
+  // A block nothing reaches cannot end the function, however it ends itself,
+  // as the code after a loop with no way out does.
+  std::vector<bool> reached(cfg.blocks().Size(), false);
+  std::vector<SyntaxControlFlowGraph::BlockRef> to_visit = {cfg.first};
+  reached[cfg.first.id()] = true;
+  while (!to_visit.empty()) {
+    const auto block = to_visit.back();
+    to_visit.pop_back();
+    for (const auto succ : cfg.get(block).succs) {
+      if (reached[succ.id()]) continue;
+      reached[succ.id()] = true;
+      to_visit.push_back(succ);
+    }
+  }
+
+  for (const auto pred : cfg.get(cfg.last).preds) {
+    if (!reached[pred.id()]) continue;
+
+    const auto& sequences = cfg.get(pred).sequences;
+    const bool returns = !sequences.empty() &&
+                         sequences.back().stmt.has_value() &&
+                         std::holds_alternative<ReturnStmt>(
+                             ctx.DerefStmt(*sequences.back().stmt));
+    if (!returns) return true;
+  }
+  return false;
+}
+
 }  // namespace lucid

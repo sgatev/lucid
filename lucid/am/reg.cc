@@ -20,6 +20,7 @@
 #include "lucid/am/liveness.h"
 #include "lucid/am/reg_set.h"
 #include "lucid/am/state.h"
+#include "lucid/am/strict_ssa.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
@@ -488,6 +489,8 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
 RegisterColors ColorInterferenceGraph(
     const AbstractMachineControlFlowGraph& am_cfg,
     const InterferenceGraph& am_ig, int colors_count) {
+  assert(CheckStrictSsa(am_cfg).has_value());
+
   HashMap<Reg, int> reg_scores;
   for (Reg param : am_cfg.params) {
     reg_scores.Insert(param, 0);

@@ -16,15 +16,18 @@ namespace {
 
 class GenerateAbstractMachineFunctionTest : public Test, public AstFixture {
  protected:
-  std::vector<Instruction> Generate(FuncDefStmt& func) {
+  AbstractMachineControlFlowGraph GenerateGraph(FuncDefStmt& func) {
     EXPECT_TRUE(InferExprTypes(syn_ctx_, func).has_value());
     auto graph = BuildControlFlowGraph(syn_ctx_, func);
     AbstractMachineState state;
     auto am_cfg_or_error =
         GenerateAbstractMachineFunction(/*am_cfgs=*/{}, syn_ctx_, graph, state);
     EXPECT_TRUE(am_cfg_or_error.has_value());
+    return std::move(am_cfg_or_error).value();
+  }
 
-    AbstractMachineControlFlowGraph am_cfg = std::move(am_cfg_or_error).value();
+  std::vector<Instruction> Generate(FuncDefStmt& func) {
+    AbstractMachineControlFlowGraph am_cfg = GenerateGraph(func);
 
     std::vector<AbstractMachineControlFlowGraph::BlockRef> block_refs =
         Vertices(am_cfg);
@@ -57,10 +60,6 @@ TEST(GenerateAbstractMachineFunctionTest, ReturnInt32Lit) {
                                       .src_val = 21,
                                       .dst_reg = Reg(2, RegSize::RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(2, RegSize::RegSize32),
-                                      .dst_reg = Reg(1, RegSize::RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize::RegSize32),
                                   }));
@@ -81,10 +80,6 @@ TEST(GenerateAbstractMachineFunctionTest, ReturnInt64Lit) {
                                   SetReg{
                                       .src_val = 21,
                                       .dst_reg = Reg(2, RegSize::RegSize64),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(2, RegSize::RegSize64),
-                                      .dst_reg = Reg(1, RegSize::RegSize64),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize::RegSize64),
@@ -136,10 +131,6 @@ TEST(GenerateAbstractMachineFunctionTest, FuncCallWithInt32Arg) {
                                           .reg = Reg(3, RegSize32),
                                       }),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(3, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   }));
@@ -190,10 +181,6 @@ TEST(GenerateAbstractMachineFunctionTest, FuncCallWithInt64Arg) {
                                           .reg = Reg(3, RegSize64),
                                       }),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(3, RegSize64),
-                                      .dst_reg = Reg(1, RegSize64),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize64),
                                   }));
@@ -227,10 +214,6 @@ TEST(GenerateAbstractMachineFunctionTest, AddInt32) {
                                       .res_reg = Reg(4, RegSize32),
                                       .lhs_reg = Reg(2, RegSize32),
                                       .rhs_reg = Reg(3, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -266,10 +249,6 @@ TEST(GenerateAbstractMachineFunctionTest, AddInt64) {
                                       .lhs_reg = Reg(2, RegSize64),
                                       .rhs_reg = Reg(3, RegSize64),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize64),
-                                      .dst_reg = Reg(1, RegSize64),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize64),
                                   }));
@@ -303,10 +282,6 @@ TEST(GenerateAbstractMachineFunctionTest, SubtractInt32) {
                                       .res_reg = Reg(4, RegSize32),
                                       .lhs_reg = Reg(2, RegSize32),
                                       .rhs_reg = Reg(3, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -342,10 +317,6 @@ TEST(GenerateAbstractMachineFunctionTest, SubtractInt64) {
                                       .lhs_reg = Reg(2, RegSize64),
                                       .rhs_reg = Reg(3, RegSize64),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize64),
-                                      .dst_reg = Reg(1, RegSize64),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize64),
                                   }));
@@ -379,10 +350,6 @@ TEST(GenerateAbstractMachineFunctionTest, MultiplyInt32) {
                                       .res_reg = Reg(4, RegSize32),
                                       .lhs_reg = Reg(2, RegSize32),
                                       .rhs_reg = Reg(3, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -418,10 +385,6 @@ TEST(GenerateAbstractMachineFunctionTest, MultiplyInt64) {
                                       .lhs_reg = Reg(2, RegSize64),
                                       .rhs_reg = Reg(3, RegSize64),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize64),
-                                      .dst_reg = Reg(1, RegSize64),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize64),
                                   }));
@@ -455,10 +418,6 @@ TEST(GenerateAbstractMachineFunctionTest, DivideInt32) {
                                       .res_reg = Reg(4, RegSize32),
                                       .lhs_reg = Reg(2, RegSize32),
                                       .rhs_reg = Reg(3, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -494,10 +453,6 @@ TEST(GenerateAbstractMachineFunctionTest, DivideInt64) {
                                       .lhs_reg = Reg(2, RegSize64),
                                       .rhs_reg = Reg(3, RegSize64),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize64),
-                                      .dst_reg = Reg(1, RegSize64),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize64),
                                   }));
@@ -532,10 +487,6 @@ TEST(GenerateAbstractMachineFunctionTest, ModuloInt32) {
                                       .lhs_reg = Reg(2, RegSize32),
                                       .rhs_reg = Reg(3, RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   }));
@@ -569,10 +520,6 @@ TEST(GenerateAbstractMachineFunctionTest, ModuloInt64) {
                                       .res_reg = Reg(4, RegSize64),
                                       .lhs_reg = Reg(2, RegSize64),
                                       .rhs_reg = Reg(3, RegSize64),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize64),
-                                      .dst_reg = Reg(1, RegSize64),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize64),
@@ -624,10 +571,6 @@ TEST(GenerateAbstractMachineFunctionTest, IfStmt) {
                                       .lhs_reg = Reg(3, RegSize32),
                                       .rhs_reg = Reg(4, RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(5, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(6, RegSize32),
@@ -640,10 +583,6 @@ TEST(GenerateAbstractMachineFunctionTest, IfStmt) {
                                       .res_reg = Reg(8, RegSize32),
                                       .lhs_reg = Reg(6, RegSize32),
                                       .rhs_reg = Reg(7, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(8, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -697,10 +636,6 @@ TEST(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                       .lhs_reg = Reg(6, RegSize32),
                                       .rhs_reg = Reg(7, RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(8, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(3, RegSize32),
@@ -713,10 +648,6 @@ TEST(GenerateAbstractMachineFunctionTest, IfElseStmt) {
                                       .res_reg = Reg(5, RegSize32),
                                       .lhs_reg = Reg(3, RegSize32),
                                       .rhs_reg = Reg(4, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(5, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -751,10 +682,6 @@ TEST(GenerateAbstractMachineFunctionTest, GtInt) {
                                       .res_reg = Reg(4, RegSize32),
                                       .lhs_reg = Reg(2, RegSize32),
                                       .rhs_reg = Reg(3, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -800,10 +727,6 @@ TEST(GenerateAbstractMachineFunctionTest, GtInt32) {
                                       .lhs_reg = Reg(4, RegSize32),
                                       .rhs_reg = Reg(5, RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(6, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   }));
@@ -848,10 +771,6 @@ TEST(GenerateAbstractMachineFunctionTest, GtInt64) {
                                       .lhs_reg = Reg(4, RegSize64),
                                       .rhs_reg = Reg(5, RegSize64),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(6, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   }));
@@ -885,10 +804,6 @@ TEST(GenerateAbstractMachineFunctionTest, LtInt) {
                                       .res_reg = Reg(4, RegSize32),
                                       .lhs_reg = Reg(2, RegSize32),
                                       .rhs_reg = Reg(3, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -934,10 +849,6 @@ TEST(GenerateAbstractMachineFunctionTest, LtInt32) {
                                       .lhs_reg = Reg(4, RegSize32),
                                       .rhs_reg = Reg(5, RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(6, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   }));
@@ -981,10 +892,6 @@ TEST(GenerateAbstractMachineFunctionTest, LtInt64) {
                                       .res_reg = Reg(6, RegSize32),
                                       .lhs_reg = Reg(4, RegSize64),
                                       .rhs_reg = Reg(5, RegSize64),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(6, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -1030,10 +937,6 @@ TEST(GenerateAbstractMachineFunctionTest, EqInt32) {
                                       .lhs_reg = Reg(4, RegSize32),
                                       .rhs_reg = Reg(5, RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(6, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   }));
@@ -1077,10 +980,6 @@ TEST(GenerateAbstractMachineFunctionTest, EqInt64) {
                                       .res_reg = Reg(6, RegSize32),
                                       .lhs_reg = Reg(4, RegSize64),
                                       .rhs_reg = Reg(5, RegSize64),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(6, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -1126,10 +1025,6 @@ TEST(GenerateAbstractMachineFunctionTest, NotEqInt32) {
                                       .lhs_reg = Reg(4, RegSize32),
                                       .rhs_reg = Reg(5, RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(6, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   }));
@@ -1174,10 +1069,6 @@ TEST(GenerateAbstractMachineFunctionTest, NotEqInt64) {
                                       .lhs_reg = Reg(4, RegSize64),
                                       .rhs_reg = Reg(5, RegSize64),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(6, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   }));
@@ -1213,10 +1104,6 @@ TEST(GenerateAbstractMachineFunctionTest, VarDeclInt32) {
                                   MoveReg{
                                       .src_reg = Reg(3, RegSize32),
                                       .dst_reg = Reg(4, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
@@ -1254,10 +1141,6 @@ TEST(GenerateAbstractMachineFunctionTest, VarDeclInt64) {
                                       .src_reg = Reg(3, RegSize64),
                                       .dst_reg = Reg(4, RegSize64),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize64),
-                                      .dst_reg = Reg(1, RegSize64),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize64),
                                   }));
@@ -1285,10 +1168,6 @@ TEST(GenerateAbstractMachineFunctionTest, VarDeclInt32Array) {
                                       .src_val = 0,
                                       .dst_reg = Reg(2, RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(2, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   }));
@@ -1315,10 +1194,6 @@ TEST(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
                                   SetReg{
                                       .src_val = 0,
                                       .dst_reg = Reg(2, RegSize64),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(2, RegSize64),
-                                      .dst_reg = Reg(1, RegSize64),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize64),
@@ -1359,10 +1234,6 @@ TEST(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
                                       .src_reg = Reg(2, RegSize32),
                                       .dst_reg = Reg(4, RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   }));
@@ -1402,10 +1273,6 @@ TEST(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
                                       .src_reg = Reg(2, RegSize64),
                                       .dst_reg = Reg(4, RegSize64),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize64),
-                                      .dst_reg = Reg(1, RegSize64),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize64),
                                   }));
@@ -1434,21 +1301,43 @@ TEST(GenerateAbstractMachineFunctionTest, Loop) {
                                       .src_val = 1,
                                       .dst_reg = Reg(3, RegSize32),
                                   },
-                                  MoveReg{
-                                      .src_reg = Reg(3, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
-                                  },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
                                   },
                                   SetReg{
                                       .src_val = 2,
                                       .dst_reg = Reg(2, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(2, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   }));
+}
+
+// What a function returns is settled where it ends, by one phi function
+// taking each way in the value returned along it, so that the register
+// holding the result is written once. Here one way returns from inside the
+// loop and the other returns after it, which nothing reaches.
+TEST(GenerateAbstractMachineFunctionTest, ReturnsMeetWhereTheFunctionEnds) {
+  auto func = FuncDefStmt{
+      .name = I("foo"),
+      .result_type = T("Int32"),
+      .stmts = StmtListOf({
+          S(LoopStmt{
+              .stmts = StmtListOf({
+                  S(ReturnStmt{
+                      .value = E(IntLitExpr{.value = 1}),
+                  }),
+              }),
+          }),
+          S(ReturnStmt{
+              .value = E(IntLitExpr{.value = 2}),
+          }),
+      }),
+  };
+
+  const AbstractMachineControlFlowGraph am_cfg = GenerateGraph(func);
+  const auto& phis = am_cfg.GetBlock(am_cfg.last).phis;
+  ASSERT_EQ(phis.size(), 1u);
+  EXPECT_EQ(phis[0].dst, Reg(1, RegSize32));
+  EXPECT_THAT(phis[0].srcs,
+              ElementsEqual(Reg(3, RegSize32), Reg(2, RegSize32)));
 }
 
 TEST(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
@@ -1531,10 +1420,6 @@ TEST(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {
                                   MoveReg{
                                       .src_reg = Reg(3, RegSize32),
                                       .dst_reg = Reg(4, RegSize32),
-                                  },
-                                  MoveReg{
-                                      .src_reg = Reg(4, RegSize32),
-                                      .dst_reg = Reg(1, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
