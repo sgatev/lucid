@@ -168,46 +168,26 @@ class HashTable {
     if (storage_ == nullptr) {
       capacity_ = kInitialCapacity;
       storage_ = alloc_storage(capacity_);
-    } else if (non_empty_slots_count_ > max_load()) {
-      rehash();
     }
 
     const std::size_t proj_hash = Hash(proj);
     const std::uint8_t proj_meta = hash_meta(proj_hash);
 
-    std::size_t first_free_offset = capacity();
-    std::size_t offset = group_of(proj_hash);
-    for (std::size_t step = 1;; ++step) {
-      const std::uint64_t group_meta = group(offset);
+    const Probe probed = probe(proj, proj_hash, proj_meta);
+    if (probed.held) return std::make_pair(slot(probed.offset), false);
 
-      for (std::uint64_t matches = match(group_meta, proj_meta); matches != 0;
-           matches &= matches - 1) {
-        const std::size_t match_offset = first_match(offset, matches);
-        if (Project(*slot(match_offset)) == proj) {
-          return std::make_pair(slot(match_offset), false);
-        }
-      }
-
-      // The first slot of the chain holding nothing, which is where the value
-      // goes if the search runs out without finding `proj`. A slot holding
-      // nothing is one that carries a high bit, whether it was never filled
-      // or a removal emptied it.
-      if (first_free_offset == capacity()) {
-        if (const std::uint64_t frees = group_meta & kMetaHighs; frees != 0) {
-          first_free_offset = first_match(offset, frees);
-        }
-      }
-
-      // An empty slot is the end of the chain, so `proj` is not here.
-      if (match(group_meta, kEmptyMeta) != 0) break;
-
-      offset = next_group(offset, step);
+    // The table is rebuilt only for a value that is going in, and so only
+    // once the search has not found it. Rebuilding moves every value, and
+    // with them the order the table is walked in, so asking for a value it
+    // already holds has to leave it as it was. The slot the search found goes
+    // with the rebuild, and the value is known not to be held, so all that is
+    // left to find is a free slot.
+    std::size_t offset = probed.offset;
+    if (non_empty_slots_count_ > max_load()) {
+      rehash();
+      offset = free_offset(proj_hash);
     }
-
-    ++full_slots_count_;
-    if (empty(*meta(first_free_offset))) ++non_empty_slots_count_;
-    *meta(first_free_offset) = proj_meta;
-    return std::make_pair(slot(first_free_offset), true);
+    return std::make_pair(alloc_at(offset, proj_meta), true);
   }
 
   // Inserts the given `val` and returns true if `Project(val)` is not already
@@ -348,6 +328,67 @@ class HashTable {
   }
 
   // Returns an offset that corresponds to the given projection or `capacity()`.
+  // Where a search for a value lands: the slot that holds it, or, when none
+  // does, the first slot of its chain holding nothing, which is where it goes.
+  struct Probe {
+    std::size_t offset;
+    bool held;
+  };
+
+  // Searches the chain of `proj`, whose hash and meta byte are given.
+  inline Probe probe(const P& proj, std::size_t proj_hash,
+                     std::uint8_t proj_meta) const {
+    std::size_t first_free_offset = capacity();
+    std::size_t offset = group_of(proj_hash);
+    for (std::size_t step = 1;; ++step) {
+      const std::uint64_t group_meta = group(offset);
+
+      for (std::uint64_t matches = match(group_meta, proj_meta); matches != 0;
+           matches &= matches - 1) {
+        const std::size_t match_offset = first_match(offset, matches);
+        if (Project(*slot(match_offset)) == proj) {
+          return {.offset = match_offset, .held = true};
+        }
+      }
+
+      // A slot holding nothing is one that carries a high bit, whether it was
+      // never filled or a removal emptied it.
+      if (first_free_offset == capacity()) {
+        if (const std::uint64_t frees = group_meta & kMetaHighs; frees != 0) {
+          first_free_offset = first_match(offset, frees);
+        }
+      }
+
+      // An empty slot is the end of the chain, so `proj` is not here.
+      if (match(group_meta, kEmptyMeta) != 0) {
+        return {.offset = first_free_offset, .held = false};
+      }
+
+      offset = next_group(offset, step);
+    }
+  }
+
+  // Returns the first slot holding nothing along the chain of `hash`, for a
+  // value known not to be held, which needs no comparing on the way.
+  inline std::size_t free_offset(std::size_t hash) const {
+    std::size_t offset = group_of(hash);
+    for (std::size_t step = 1;; ++step) {
+      if (const std::uint64_t frees = group(offset) & kMetaHighs; frees != 0) {
+        return first_match(offset, frees);
+      }
+      offset = next_group(offset, step);
+    }
+  }
+
+  // Counts the slot at `offset` as full and marks it with `proj_meta`, and
+  // returns it for the value to be put in.
+  inline V* alloc_at(std::size_t offset, std::uint8_t proj_meta) {
+    ++full_slots_count_;
+    if (empty(*meta(offset))) ++non_empty_slots_count_;
+    *meta(offset) = proj_meta;
+    return slot(offset);
+  }
+
   inline std::size_t find_offset(const P& proj) const {
     // A table with no slots holds nothing, and has no group to read.
     if (storage_ == nullptr) return capacity();

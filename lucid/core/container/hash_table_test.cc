@@ -4,6 +4,7 @@
 #include <optional>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "lucid/core/testing/testing.h"
 
@@ -103,6 +104,31 @@ TEST(Test, HashTableGrowsWhenItsValuesFillIt) {
 
   EXPECT_TRUE(table.capacity() > capacity);
   EXPECT_EQ(table.size(), capacity);
+}
+
+// Returns the values of `table` in the order it is walked in.
+std::vector<int> WalkOrder(const HashTable<int>& table) {
+  std::vector<int> order;
+  for (int value : table) order.push_back(value);
+  return order;
+}
+
+// A value the table already holds is found rather than inserted, so it leaves
+// the table as it was: a rebuild moves every value, and with them the order the
+// table is walked in. Checked at every size up to a few growths, which takes
+// in the moment the table is just past what it holds before it grows.
+TEST(Test, HashTableDoesNotRebuildForAValueItHolds) {
+  HashTable<int> table;
+  for (int count = 1; count < 300; ++count) {
+    table.Insert(count - 1);
+    const std::size_t capacity = table.capacity();
+    const std::vector<int> order = WalkOrder(table);
+
+    for (int i = 0; i < count; ++i) EXPECT_FALSE(table.Insert(i));
+
+    EXPECT_EQ(table.capacity(), capacity);
+    EXPECT_EQ(WalkOrder(table), order);
+  }
 }
 
 TEST(Test, HashTableDoesNotGrowForTheSlotsARemovalEmptied) {
