@@ -9,7 +9,7 @@
   <p>Lucid is an experimental programming language and toolchain developed from scratch.</p>
 </div>
 
-## Code
+## Example
 
 ```
 comp fun gcd(mut a: Int32, mut b: Int32): Int32 {
