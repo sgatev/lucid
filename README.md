@@ -35,7 +35,9 @@ fun main(): Int32 {
 - [Language](LANGUAGE.md)
 - [Architecture](ARCHITECTURE.md)
 
-## Prepare
+## Development
+
+### Prepare
 
 Working with the Lucid codebase requires
 
@@ -43,7 +45,7 @@ Working with the Lucid codebase requires
 - [Xcode](https://developer.apple.com/xcode) 27
 - [Bazel](https://bazel.build)
 
-## Build
+### Build
 
 To build the compiler execute
 
@@ -51,7 +53,7 @@ To build the compiler execute
 bazel build -c opt //lucid/compiler:main
 ```
 
-## Run
+### Run
 
 To compile and run code execute
 
@@ -59,7 +61,7 @@ To compile and run code execute
 bazel run -c opt //lucid/compiler:main -- run $PWD/examples/main.lu
 ```
 
-## Test
+### Test
 
 To test all targets execute
 
@@ -67,7 +69,7 @@ To test all targets execute
 bazel test ...
 ```
 
-## Benchmark
+### Benchmark
 
 To run every benchmark execute
 
@@ -86,7 +88,7 @@ bazel run -c opt //lucid/am:reg_bench -- --format=json
 Every push to `main` records the results, which are charted at
 [sgatev.github.io/lucid/dev/bench](https://sgatev.github.io/lucid/dev/bench/).
 
-## Debug
+### Debug
 
 To print the abstract syntax tree derived from code execute
 
@@ -106,7 +108,7 @@ To print the abstract machine control flow graph derived from code execute
 bazel run -c opt //lucid/compiler:main -- print-am-cfg $PWD/examples/main.lu
 ```
 
-## Extras
+## Tooling
 
 To enable syntax highlighting in your editor install
 
