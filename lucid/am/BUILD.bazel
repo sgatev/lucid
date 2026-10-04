@@ -57,16 +57,6 @@ cc_library(
     ],
 )
 
-cc_test(
-    name = "reg_set_test",
-    srcs = ["reg_set_test.cc"],
-    deps = [
-        ":instructions",
-        ":reg_set",
-        "//lucid/core/testing",
-    ],
-)
-
 cc_library(
     name = "instructions",
     hdrs = ["instructions.h"],
@@ -90,6 +80,16 @@ cc_library(
     hdrs = ["reg_set.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [":instructions"],
+)
+
+cc_test(
+    name = "reg_set_test",
+    srcs = ["reg_set_test.cc"],
+    deps = [
+        ":instructions",
+        ":reg_set",
+        "//lucid/core/testing",
+    ],
 )
 
 cc_library(
@@ -184,12 +184,6 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "reg_programs",
-    testonly = True,
-    hdrs = ["reg_programs.h"],
-)
-
 cc_test(
     name = "reg_test",
     srcs = ["reg_test.cc"],
@@ -238,6 +232,12 @@ cc_binary(
         "//lucid/syntax:ssa",
         "//lucid/syntax:type",
     ],
+)
+
+cc_library(
+    name = "reg_programs",
+    testonly = True,
+    hdrs = ["reg_programs.h"],
 )
 
 cc_library(

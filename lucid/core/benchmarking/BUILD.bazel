@@ -3,15 +3,6 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_library(
-    name = "benchmarking_library",
-    hdrs = ["benchmarking.h"],
-    visibility = ["//lucid:__subpackages__"],
-    deps = [
-        "//lucid/core/meta:macros",
-    ],
-)
-
-cc_library(
     name = "benchmarking",
     srcs = ["benchmarking_main.cc"],
     hdrs = ["benchmarking.h"],
@@ -33,13 +24,20 @@ cc_test(
     ],
 )
 
+cc_library(
+    name = "benchmarking_library",
+    hdrs = ["benchmarking.h"],
+    visibility = ["//lucid:__subpackages__"],
+    deps = [
+        "//lucid/core/meta:macros",
+    ],
+)
+
 genrule(
     name = "run_example_benchmarks",
     testonly = True,
     outs = ["example_benchmarks_output"],
-    # Durations vary from run to run, so they are replaced with a placeholder,
-    # and the iteration count is fixed rather than measured. What is being
-    # pinned is the shape of the report, not what the machine managed.
+    # Mask measurements, which vary from run to run.
     cmd = "$(location //lucid/core/benchmarking/testdata:example_benchmarks) --iterations=1000 | sed -E 's/[(][0-9]+[^)]*[)]/(<duration>)/g' > $@",
     tools = ["//lucid/core/benchmarking/testdata:example_benchmarks"],
 )
@@ -54,9 +52,7 @@ genrule(
     name = "run_json_benchmarks",
     testonly = True,
     outs = ["json_benchmarks_output"],
-    # What varies from run to run is the measurement, so the value and the
-    # throughput are replaced with placeholders. What is being pinned is the
-    # shape of the report a benchmark tracker reads.
+    # Mask measurements, which vary from run to run.
     cmd = """
     $(location //lucid/core/benchmarking/testdata:example_benchmarks) --iterations=1000 --format=json |
       sed -E 's|"value": [0-9.]+|"value": <value>|; s|, [0-9.]+MB/s|, <throughput>MB/s|' > $@

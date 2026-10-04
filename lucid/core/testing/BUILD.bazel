@@ -8,11 +8,13 @@ package(
 )
 
 cc_library(
-    name = "testing_library",
-    srcs = ["testing.cc"],
+    name = "testing",
+    srcs = ["testing_main.cc"],
     hdrs = ["testing.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
+        ":testing_library",
+        "//lucid/core/cli",
         "//lucid/core/meta:macros",
         "//lucid/core/testing/internal:all_matcher",
         "//lucid/core/testing/internal:boolean_matcher",
@@ -36,13 +38,11 @@ cc_library(
 )
 
 cc_library(
-    name = "testing",
-    srcs = ["testing_main.cc"],
+    name = "testing_library",
+    srcs = ["testing.cc"],
     hdrs = ["testing.h"],
     visibility = ["//lucid:__subpackages__"],
     deps = [
-        ":testing_library",
-        "//lucid/core/cli",
         "//lucid/core/meta:macros",
         "//lucid/core/testing/internal:all_matcher",
         "//lucid/core/testing/internal:boolean_matcher",
@@ -81,8 +81,7 @@ diff_test(
 genrule(
     name = "run_timed_tests",
     outs = ["timed_tests_output"],
-    # Durations vary from run to run, so they are replaced with a placeholder. What is
-    # being pinned is that they are printed, and where.
+    # Mask measurements, which vary from run to run.
     cmd = "$(location //lucid/core/testing/testdata:passing_tests) --filter=Boolean | sed -E 's/[(][0-9]+[^)]*[)]/(<duration>)/g' > $@",
     tools = ["//lucid/core/testing/testdata:passing_tests"],
 )
