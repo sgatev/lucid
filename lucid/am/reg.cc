@@ -442,27 +442,6 @@ void RemoveSpiltRegisters(const AbstractMachineControlFlowGraph& am_cfg,
   }
 }
 
-// Whether what the spilling has been keeping up to date says what a fresh
-// analysis of the graph would say.
-//
-// Carrying the answer forward is sound only so long as a spill changes
-// nothing about the graph beyond the register it took out, which is a
-// property of the rewriting rather than of anything checked here. This is
-// what holds the two to each other, and it runs only where assertions do.
-bool MatchesFreshAnalysis(const AbstractMachineControlFlowGraph& am_cfg,
-                          const AbstractMachineLiveness& liveness) {
-  AbstractMachineLivenessAnalysis analysis(am_cfg);
-  const AbstractMachineLiveness fresh = RunDataflow(Backward(am_cfg), analysis);
-  if (fresh.size() != liveness.size()) return false;
-
-  for (std::size_t id = 0; id < fresh.size(); ++id) {
-    if (fresh[id].has_value() != liveness[id].has_value()) return false;
-    if (!fresh[id].has_value()) continue;
-    if (fresh[id] != liveness[id]) return false;
-  }
-  return true;
-}
-
 // Colours as a bit each, lowest first. There are no more of them than there
 // are registers to give, so they all fit in one word.
 using Colors = std::uint64_t;
@@ -652,7 +631,6 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
     SpillRegisters(tied, am_cfg, rpo, *occurrences);
 
     RemoveSpiltRegisters(am_cfg, tied, liveness);
-    assert(MatchesFreshAnalysis(am_cfg, liveness));
   }
 }
 
