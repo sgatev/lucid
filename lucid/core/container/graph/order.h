@@ -1,7 +1,7 @@
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
-#include <stack>
 #include <utility>
 #include <vector>
 
@@ -10,84 +10,89 @@
 namespace lucid {
 namespace internal {
 
-// Returns a vector whose elements correspond to post-order traversal
-// indices of blocks of `cfg`.
+// Appends to `order` the vertices a depth-first walk of `g` from `from`
+// finishes, in the order it finishes them. The walk skips the vertices
+// `visited` marks, and marks the ones it comes to.
 template <Graph GraphT>
-std::vector<int> ComputePostOrder(const GraphT& g) {
-  const std::size_t vertex_count = VertexCount(g);
-  std::vector<int> post_order(vertex_count, static_cast<int>(vertex_count));
-
-  std::stack<typename GraphT::vertex_type> pending;
-  std::vector<int> visited(vertex_count, 0);
-
-  int priority = 0;
-
-  pending.push(SourceVertex(g));
-  visited[VertexId(g, SourceVertex(g))] = 1;
+void AppendPostOrder(const GraphT& g, typename GraphT::vertex_type from,
+                     std::vector<bool>& visited,
+                     std::vector<typename GraphT::vertex_type>& order) {
+  // The vertices the walk has come to and not yet finished. A vector rather
+  // than a `std::stack`, whose deque takes a large block to hold the first
+  // vertex, and a walk is begun for every function there is.
+  std::vector<typename GraphT::vertex_type> pending = {from};
+  visited[VertexId(g, from)] = true;
 
   while (!pending.empty()) {
-    auto v = pending.top();
-    pending.pop();
+    const auto v = pending.back();
 
-    bool inserted = false;
+    // The walk goes on to the first vertex after `v` it has not come to, and
+    // finishes `v` once there are none left.
+    bool descended = false;
     for (auto n : NextVertices(g, v)) {
-      if (visited[VertexId(g, n)] == 1) continue;
+      if (visited[VertexId(g, n)]) continue;
 
-      pending.push(v);
-      visited[VertexId(g, v)] = 1;
-
-      pending.push(n);
-      visited[VertexId(g, n)] = 1;
-
-      inserted = true;
+      visited[VertexId(g, n)] = true;
+      pending.push_back(n);
+      descended = true;
       break;
     }
-    if (!inserted) post_order[VertexId(g, v)] = priority++;
-  }
+    if (descended) continue;
 
-  return post_order;
+    pending.pop_back();
+    order.push_back(v);
+  }
 }
 
-// Returns a vector whose elements correspond to reverse post-order traversal
-// indices of blocks of `cfg`.
-template <Graph GraphT>
-std::vector<int> ComputeReversePostOrder(const GraphT& g) {
+// Returns every vertex of `g`: those reached from its source vertex in the
+// order `arrange` puts the post-order of a walk from there in, then the rest.
+template <Graph GraphT, typename ArrangeT>
+std::vector<typename GraphT::vertex_type> ReachedThenRest(const GraphT& g,
+                                                          ArrangeT arrange) {
   const std::size_t vertex_count = VertexCount(g);
-  std::vector<int> reverse_post_order(vertex_count,
-                                      static_cast<int>(vertex_count));
+  std::vector<bool> visited(vertex_count, false);
+  std::vector<typename GraphT::vertex_type> order;
+  order.reserve(vertex_count);
 
-  std::stack<typename GraphT::vertex_type> pending;
-  std::vector<int> visited(vertex_count, 0);
+  AppendPostOrder(g, SourceVertex(g), visited, order);
+  arrange(order);
 
-  int priority = static_cast<int>(vertex_count - 1);
-
-  pending.push(SourceVertex(g));
-  visited[VertexId(g, SourceVertex(g))] = 1;
-
-  while (!pending.empty()) {
-    auto v = pending.top();
-    pending.pop();
-
-    bool inserted = false;
-    for (auto n : NextVertices(g, v)) {
-      if (visited[VertexId(g, n)] == 1) continue;
-
-      pending.push(v);
-      visited[VertexId(g, v)] = 1;
-
-      pending.push(n);
-      visited[VertexId(g, n)] = 1;
-
-      inserted = true;
-      break;
+  if (order.size() < vertex_count) {
+    for (auto v : Vertices(g)) {
+      if (!visited[VertexId(g, v)]) order.push_back(v);
     }
-    if (!inserted) reverse_post_order[VertexId(g, v)] = priority--;
   }
+  return order;
+}
 
-  return reverse_post_order;
+// Returns a vector indexed by vertex ID whose elements are the places the
+// vertices of `g` take in `order`, which holds each of them once.
+template <Graph GraphT>
+std::vector<int> PlacesIn(
+    const GraphT& g, const std::vector<typename GraphT::vertex_type>& order) {
+  std::vector<int> places(VertexCount(g));
+  for (std::size_t i = 0; i < order.size(); ++i) {
+    places[VertexId(g, order[i])] = static_cast<int>(i);
+  }
+  return places;
 }
 
 }  // namespace internal
+
+// Returns every vertex of `g`: those reached from its source vertex in
+// post-order, then the rest.
+template <Graph GraphT>
+std::vector<typename GraphT::vertex_type> PostOrder(const GraphT& g) {
+  return internal::ReachedThenRest(g, [](auto&) {});
+}
+
+// Returns every vertex of `g`: those reached from its source vertex in
+// reverse post-order, then the rest.
+template <Graph GraphT>
+std::vector<typename GraphT::vertex_type> ReversePostOrder(const GraphT& g) {
+  return internal::ReachedThenRest(
+      g, [](auto& order) { std::reverse(order.begin(), order.end()); });
+}
 
 // Function object for performing vertex comparisons.
 template <Graph GraphT>
@@ -110,14 +115,15 @@ struct CompareVertexOrder {
 // given graph.
 template <Graph GraphT>
 CompareVertexOrder<GraphT> ComparePostOrder(const GraphT& g) {
-  return CompareVertexOrder<GraphT>(g, internal::ComputePostOrder(g));
+  return CompareVertexOrder<GraphT>(g, internal::PlacesIn(g, PostOrder(g)));
 }
 
 // Returns a function object for performing reverse post-order vertex
 // comparisons on the given graph.
 template <Graph GraphT>
 CompareVertexOrder<GraphT> CompareReversePostOrder(const GraphT& g) {
-  return CompareVertexOrder<GraphT>(g, internal::ComputeReversePostOrder(g));
+  return CompareVertexOrder<GraphT>(g,
+                                    internal::PlacesIn(g, ReversePostOrder(g)));
 }
 
 }  // namespace lucid

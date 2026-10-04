@@ -60,11 +60,10 @@ class VertexDomain {
 //
 // Requires:
 // - `Graph` sub-type that models a single-source, single-sink graph.
-// - `Compare` member that returns a function object for performing vertex
-//   comparisons. The analysis works through the vertices in that order, the
-//   one that comes first before the rest.
 // - `Domain` member that returns a finite domain of vertices in the graph.
-// - `Vertices` member that returns every vertex of the graph.
+// - `Order` member that returns every vertex of the graph once, in the order
+//   the analysis works through them: of the vertices waiting to be worked out,
+//   the one that comes first goes before the rest.
 // - `Prior` member that returns the vertices that come before a given vertex in
 //   the graph.
 // - `Subsequent` member that returns the vertices that come after a given
@@ -72,10 +71,8 @@ class VertexDomain {
 template <typename S>
 concept DataflowScheme = requires(S s, typename S::Graph::vertex_type v) {
   requires Graph<typename S::Graph>;
-  { s.Compare() } -> std::same_as<CompareVertexOrder<typename S::Graph>>;
   { s.Domain() } -> std::same_as<VertexDomain<typename S::Graph>>;
-  { s.Compare() } -> std::same_as<CompareVertexOrder<typename S::Graph>>;
-  { s.All() } -> std::same_as<std::vector<typename S::Graph::vertex_type>>;
+  { s.Order() } -> std::same_as<std::vector<typename S::Graph::vertex_type>>;
   { s.Prior(v) } -> VertexRange<typename S::Graph::vertex_type>;
   { s.Subsequent(v) } -> VertexRange<typename S::Graph::vertex_type>;
 };
@@ -89,11 +86,9 @@ struct Forward {
 
   VertexDomain<GraphT> Domain() const { return VertexDomain(g_); }
 
-  CompareVertexOrder<GraphT> Compare() const {
-    return CompareReversePostOrder(g_);
+  std::vector<typename GraphT::vertex_type> Order() const {
+    return ReversePostOrder(g_);
   }
-
-  std::vector<typename GraphT::vertex_type> All() const { return Vertices(g_); }
 
   decltype(auto) Prior(typename GraphT::vertex_type v) const {
     return PrevVertices(g_, v);
@@ -116,9 +111,9 @@ struct Backward {
 
   VertexDomain<GraphT> Domain() const { return VertexDomain(g_); }
 
-  CompareVertexOrder<GraphT> Compare() const { return ComparePostOrder(g_); }
-
-  std::vector<typename GraphT::vertex_type> All() const { return Vertices(g_); }
+  std::vector<typename GraphT::vertex_type> Order() const {
+    return PostOrder(g_);
+  }
 
   decltype(auto) Prior(typename GraphT::vertex_type v) const {
     return NextVertices(g_, v);
@@ -149,12 +144,12 @@ std::vector<std::optional<typename AnalysisT::State>> RunDataflow(
 
   std::vector<std::optional<State>> states(domain.size());
 
-  Worklist vertices_to_process(domain, scheme.Compare());
+  Worklist vertices_to_process(domain, scheme.Order());
   // Every vertex starts on the worklist rather than only the one an analysis
   // begins from, so that a vertex nothing reaches from there, such as a loop
   // with no exit walked backwards from the exit, is worked out as well as the
   // rest.
-  vertices_to_process.push_range(scheme.All());
+  vertices_to_process.push_all();
   while (!vertices_to_process.empty()) {
     typename GraphT::vertex_type vertex = vertices_to_process.pop();
 

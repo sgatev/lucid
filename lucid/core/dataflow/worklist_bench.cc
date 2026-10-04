@@ -1,6 +1,6 @@
 #include <cstddef>
 #include <cstdlib>
-#include <functional>
+#include <numeric>
 #include <vector>
 
 #include "lucid/core/benchmarking/benchmarking.h"
@@ -23,9 +23,15 @@ class BoundedNatDomain {
   std::size_t size_;
 };
 
+// The numbers below `size`, from the least up.
+std::vector<int> Ascending(int size) {
+  std::vector<int> order(size);
+  std::iota(order.begin(), order.end(), 0);
+  return order;
+}
+
 BENCHMARK(Push) {
-  Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(1000),
-                                                        std::less());
+  Worklist worklist(BoundedNatDomain(1000), Ascending(1000));
 
   std::vector<int> inputs;
   inputs.reserve(state.MaxIterations());
@@ -39,20 +45,18 @@ BENCHMARK(Push) {
 }
 
 BENCHMARK(Pop) {
-  Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(1000),
-                                                        std::less());
+  Worklist worklist(BoundedNatDomain(1000), Ascending(1000));
 
-  for (std::size_t i = 0; i < state.MaxIterations(); ++i) {
-    worklist.push(std::rand() % 1000);
+  // Every element goes back in whenever the last is taken out: there are only
+  // as many of them as the domain holds, far fewer than the iterations.
+  for (auto _ : state) {
+    if (worklist.empty()) worklist.push_all();
+    DoNotOptimize(worklist.pop());
   }
-
-  for (auto _ : state) worklist.pop();
-  DoNotOptimize(worklist.empty());
 }
 
 BENCHMARK(PushPop) {
-  Worklist<int, BoundedNatDomain, std::less<>> worklist(BoundedNatDomain(1000),
-                                                        std::less());
+  Worklist worklist(BoundedNatDomain(1000), Ascending(1000));
 
   std::vector<int> inputs;
   inputs.reserve(state.MaxIterations());
