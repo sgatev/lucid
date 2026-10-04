@@ -1,5 +1,7 @@
 build --cxxopt=-std=c++26
 build --host_cxxopt=-std=c++26
+build --copt=-Werror
+build --host_copt=-Werror
 
 build:opt --cxxopt=-O3
 
