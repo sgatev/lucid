@@ -78,6 +78,8 @@ std::expected<void, TypeError> CheckEveryPathReturns(
                             syn_ctx.DerefIdent(func_def.name))));
 }
 
+}  // namespace
+
 std::expected<void, CompileError> CompileSource(std::string_view src,
                                                 std::ostream& out) {
   SyntaxContext syn_ctx;
@@ -167,8 +169,6 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
   WriteCompiledMachObject(assembler, out);
   return {};
 }
-
-}  // namespace
 
 std::expected<std::vector<Def>, ParserError> ParseDefs(std::string_view src,
                                                        SyntaxContext& ctx) {

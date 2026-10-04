@@ -1,5 +1,6 @@
 #include <expected>
 #include <filesystem>
+#include <ostream>
 #include <string_view>
 #include <variant>
 
@@ -25,6 +26,13 @@ struct CompileConfig {
 
 using CompileError = CompositeError<ReadFileError, ParserError, ScopeError,
                                     TypeError, CompError>;
+
+// Compiles the program `src` and writes it to `out` as an object file.
+//
+// Requires:
+// - `src` must end with a zero byte, which is where the lexer stops.
+std::expected<void, CompileError> CompileSource(std::string_view src,
+                                                std::ostream& out);
 
 std::expected<void, CompileError> CompileCode(const CompileConfig& config);
 

@@ -374,9 +374,9 @@
           <dd>
             Megabytes of source a second, beside the name of every benchmark
             that counts the bytes it reads, and gathered at the top of the
-            page for each stage of the pipeline. A time cannot be compared
-            between two benchmarks that read different amounts, which is what
-            a rate is for.
+            page for each stage of the pipeline and for the compiler as a
+            whole. A time cannot be compared between two benchmarks that read
+            different amounts, which is what a rate is for.
           </dd>
           <dt>Hovering</dt>
           <dd>
@@ -450,6 +450,13 @@
         // them, beside the binary whose benchmarks measure each. Taken from
         // ARCHITECTURE.md; the stages with no benchmark of their own are not
         // here.
+        //
+        // The compiler as a whole comes last, for what all the stages come to
+        // together. It names the one benchmark to show rather than leaving it
+        // to the slowest: the slowest compiles the examples, whose time goes
+        // mostly to what they ask to have run while they are compiled, which
+        // says how long that takes to run rather than how fast the compiler
+        // gets through source.
         const STAGES = [
           ["lex", "lucid/syntax/lexer_bench"],
           ["parse", "lucid/syntax/parser_bench"],
@@ -457,6 +464,11 @@
           ["abstract machine", "lucid/am/translator_bench"],
           ["allocate registers", "lucid/am/reg_bench"],
           ["arm64", "lucid/arm64/translator_bench"],
+          [
+            "whole compiler",
+            "lucid/compiler/compiler_bench",
+            "ExampleFunctions",
+          ],
         ];
 
         // How fast a benchmark got through what it read, which the runner
@@ -604,17 +616,20 @@
         //
         // The slowest benchmark of a stage is the one shown, because the
         // question this answers is which stage costs the most to get a byte
-        // of source through, and the slowest is the honest answer to that.
+        // of source through, and the slowest is the honest answer to that. A
+        // stage that names a benchmark of its own shows that one instead.
         // Times cannot be compared between benchmarks that read different
         // amounts; rates can, which is what this section is for.
         function renderStages(groups) {
           const rows = [];
-          for (const [name, group] of STAGES) {
+          for (const [name, group, only] of STAGES) {
             const members = groups.get(group);
             if (members === undefined) continue;
 
             let slowest = null;
             for (const series of members) {
+              if (only !== undefined && series.label !== only) continue;
+
               const newest = series.points[series.points.length - 1];
               if (newest === undefined) continue;
 
@@ -638,7 +653,8 @@
           const note = document.createElement("p");
           note.textContent =
             "The slowest benchmark of each stage on the newest commit, in " +
-            "the order a program goes through them.";
+            "the order a program goes through them, and then the compiler " +
+            "as a whole.";
           section.appendChild(note);
 
           const widest = Math.max(...rows.map((row) => row.rate));

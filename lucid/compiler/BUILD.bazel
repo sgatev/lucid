@@ -63,6 +63,21 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "compiler_bench",
+    testonly = True,
+    srcs = ["compiler_bench.cc"],
+    data = [
+        "//examples:example_sources",
+    ],
+    deps = [
+        ":compiler",
+        "//lucid/core/benchmarking",
+        "//lucid/core/container:hash_set",
+        "//lucid/core/io:file",
+    ],
+)
+
 cc_test(
     name = "compiler_test",
     srcs = ["compiler_test.cc"],
