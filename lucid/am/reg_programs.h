@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <format>
 #include <string>
 
@@ -146,6 +147,36 @@ inline std::string LoopCarriedValues(int carried) {
     code += std::format("  val s{}: Int32 = s{} + v{}\n", k, k - 1, k);
   }
   code += std::format("  return s{}\n}}\n", carried - 1);
+  return code;
+}
+
+// `count` branches one after another, each after a value of its own that the
+// branch decides on and adds to a running total, with `held` of those values,
+// spread from the first on, read again after the last branch.
+//
+// The values read at the end are written early and live to the end, while
+// the registers written after them keep being given higher IDs. Whatever
+// holds what is live at a point by register ID, rather than by the registers
+// it holds, grows with both, which is quadratic in the length of the function.
+inline std::string EarlyValuesHeldLong(int count, int held) {
+  std::string code =
+      "fun main(): Int32 {\n  val a: Int32 = 1\n  mut val acc: Int32 = a\n";
+  for (int k = 0; k < count; ++k) {
+    code += std::format("  val v{}: Int32 = acc + {}\n", k, k);
+    code += std::format("  if v{} > {} {{\n", k, k);
+    code += std::format("    mut acc = acc + v{}\n", k);
+    code += "  } else {\n";
+    code += std::format("    mut acc = acc - v{}\n", k);
+    code += "  }\n";
+  }
+  code += "  val s0: Int32 = acc\n";
+  const int step = std::max(1, count / held);
+  int sums = 0;
+  for (int k = 0; k < count; k += step) {
+    code += std::format("  val s{}: Int32 = s{} + v{}\n", sums + 1, sums, k);
+    ++sums;
+  }
+  code += std::format("  return s{}\n}}\n", sums);
   return code;
 }
 

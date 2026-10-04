@@ -171,5 +171,121 @@ TEST(Test, RegSetAgreesWithAPlainSetOverManyChanges) {
   EXPECT_TRUE(held == expected);
 }
 
+TEST(Test, RegBitSetHoldsNothingToBeginWith) {
+  RegBitSet set;
+
+  EXPECT_EQ(set.size(), 0);
+  EXPECT_TRUE(set.empty());
+  EXPECT_THAT(set, IsEmpty());
+  EXPECT_FALSE(set.Contains(R(0)));
+  EXPECT_FALSE(set.Contains(R(500)));
+}
+
+// The registers come back in order of their ids, across the words that hold
+// them, each as wide as it went in.
+TEST(Test, RegBitSetGivesBackWhatIsPutIn) {
+  RegBitSet set;
+
+  set.Insert(R(200));
+  set.Insert(Reg{.id = 64, .size = RegSize64});
+  set.Insert(R(0));
+  set.Insert(Reg{.id = 63, .size = RegSize64});
+  set.Insert(R(200));
+
+  EXPECT_EQ(set.size(), 4);
+  EXPECT_FALSE(set.empty());
+  EXPECT_TRUE(set.Contains(R(63)));
+  EXPECT_FALSE(set.Contains(R(65)));
+  EXPECT_THAT(std::vector<Reg>(set.begin(), set.end()),
+              ElementsEqual(R(0), Reg{.id = 63, .size = RegSize64},
+                            Reg{.id = 64, .size = RegSize64}, R(200)));
+}
+
+TEST(Test, RegBitSetForgetsWhatIsTakenOut) {
+  RegBitSet set;
+
+  set.Insert(Reg{.id = 5, .size = RegSize64});
+  set.Insert(R(70));
+  set.Remove(Reg{.id = 5, .size = RegSize64});
+  set.Remove(R(900));
+
+  EXPECT_FALSE(set.Contains(R(5)));
+  EXPECT_THAT(set, ElementsEqual(R(70)));
+
+  // Taken out and put back narrower, it is as narrow as it now went in.
+  set.Insert(R(5));
+
+  EXPECT_THAT(set, ElementsEqual(R(5), R(70)));
+}
+
+TEST(Test, RegBitSetTakesInAnotherWhole) {
+  RegBitSet set;
+  set.Insert(R(3));
+
+  RegBitSet other;
+  other.Insert(R(3));
+  other.Insert(Reg{.id = 130, .size = RegSize64});
+
+  set.InsertAll(other);
+
+  EXPECT_THAT(set, ElementsEqual(R(3), Reg{.id = 130, .size = RegSize64}));
+}
+
+// Two sets holding the same registers are equal, even where one has grown
+// further than the other to hold a register it no longer does.
+TEST(Test, RegBitSetEqualityIsByWhatIsHeld) {
+  RegBitSet grown;
+  grown.Insert(R(1));
+  grown.Insert(R(300));
+  grown.Remove(R(300));
+
+  RegBitSet small;
+  small.Insert(R(1));
+
+  EXPECT_TRUE(grown == small);
+  EXPECT_TRUE(small == grown);
+
+  small.Insert(R(2));
+
+  EXPECT_FALSE(grown == small);
+  EXPECT_FALSE(small == grown);
+
+  // The same id is not the same register at another width.
+  RegBitSet wide;
+  wide.Insert(Reg{.id = 1, .size = RegSize64});
+
+  EXPECT_FALSE(wide == grown);
+}
+
+// Put in and taken out in whatever order, against a set that is known to be
+// right, over enough ids to span several words.
+TEST(Test, RegBitSetAgreesWithAPlainSetOverManyChanges) {
+  static constexpr std::int32_t kRegs = 300;
+
+  RegBitSet set;
+  std::set<std::int32_t> expected;
+  std::mt19937 random(7);
+
+  for (int step = 0; step < 4000; ++step) {
+    const std::int32_t id = random() % kRegs;
+    if (random() % 2 == 0) {
+      set.Insert(R(id));
+      expected.insert(id);
+    } else {
+      set.Remove(R(id));
+      expected.erase(id);
+    }
+
+    ASSERT_EQ(set.size(), expected.size());
+    ASSERT_TRUE(set.Contains(R(id)) == expected.contains(id));
+  }
+
+  std::vector<std::int32_t> held;
+  for (Reg reg : set) held.push_back(reg.id);
+
+  EXPECT_TRUE(held ==
+              std::vector<std::int32_t>(expected.begin(), expected.end()));
+}
+
 }  // namespace
 }  // namespace lucid

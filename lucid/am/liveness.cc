@@ -8,6 +8,7 @@
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
+#include "lucid/am/reg_set.h"
 
 namespace lucid {
 namespace {
@@ -19,7 +20,7 @@ using Block = AbstractMachineControlFlowGraph::Block;
 // from it. A phi reads its argument where control leaves the block that
 // argument came from, so those registers are live where `block` exits.
 void AddPhiSources(const AbstractMachineControlFlowGraph& am_cfg,
-                   const Block& block, HashSet<Reg>& regs) {
+                   const Block& block, RegBitSet& regs) {
   for (const auto& succ_ref : block.succs) {
     const auto& succ_block = am_cfg.GetBlock(succ_ref);
     for (const auto& phi : succ_block.phis) {
@@ -72,18 +73,18 @@ State AbstractMachineLivenessAnalysis::Transfer(
 }
 
 void AbstractMachineLivenessAnalysis::Join(State& left, const State& right) {
-  for (Reg reg : right.live_in) left.live_in.Insert(reg);
+  left.live_in.InsertAll(right.live_in);
 }
 
-HashSet<Reg> LiveOut(const AbstractMachineControlFlowGraph& am_cfg,
-                     const std::vector<std::optional<State>>& states,
-                     const Block& block) {
-  HashSet<Reg> live_out;
+RegBitSet LiveOut(const AbstractMachineControlFlowGraph& am_cfg,
+                  const std::vector<std::optional<State>>& states,
+                  const Block& block) {
+  RegBitSet live_out;
   for (const auto& succ_ref : block.succs) {
     const auto& succ_state = states[succ_ref.id()];
     if (!succ_state.has_value()) continue;
 
-    for (Reg reg : succ_state->live_in) live_out.Insert(reg);
+    live_out.InsertAll(succ_state->live_in);
   }
   AddPhiSources(am_cfg, block, live_out);
   return live_out;

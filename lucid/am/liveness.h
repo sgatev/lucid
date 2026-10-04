@@ -5,7 +5,7 @@
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
-#include "lucid/core/container/hash_set.h"
+#include "lucid/am/reg_set.h"
 
 namespace lucid {
 
@@ -16,7 +16,7 @@ class AbstractMachineLivenessAnalysis {
     bool operator==(const State&) const = default;
 
     // Registers that are live before entering the block modeled by this state.
-    HashSet<Reg> live_in;
+    RegBitSet live_in;
   };
 
   static void Transfer(State& state, const Instruction& inst);
@@ -52,8 +52,8 @@ using AbstractMachineLiveness =
 
 // Returns the registers that are live where `block` exits, given the `states`
 // that an analysis over `am_cfg` settled on.
-HashSet<Reg> LiveOut(const AbstractMachineControlFlowGraph& am_cfg,
-                     const AbstractMachineLiveness& states,
-                     const AbstractMachineControlFlowGraph::Block& block);
+RegBitSet LiveOut(const AbstractMachineControlFlowGraph& am_cfg,
+                  const AbstractMachineLiveness& states,
+                  const AbstractMachineControlFlowGraph::Block& block);
 
 }  // namespace lucid

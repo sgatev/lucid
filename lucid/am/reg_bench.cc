@@ -180,5 +180,18 @@ BENCHMARK(AllocateLoopCarried30) {
   BenchmarkAllocation(state, LoopCarriedValues(/*carried=*/30));
 }
 
+// Allocation over a long function that holds a few early values to its end,
+// at two lengths, one four times the other. Read together they say whether
+// allocation grows with the length of the function and no faster, which it
+// once did not: what was live where was held by register ID, and cost every
+// block as much as the highest register live there.
+BENCHMARK(AllocateHeldLong500) {
+  BenchmarkAllocation(state, EarlyValuesHeldLong(/*count=*/500, /*held=*/8));
+}
+
+BENCHMARK(AllocateHeldLong2000) {
+  BenchmarkAllocation(state, EarlyValuesHeldLong(/*count=*/2000, /*held=*/8));
+}
+
 }  // namespace
 }  // namespace lucid

@@ -7,7 +7,7 @@
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_builder.h"
 #include "lucid/am/instructions.h"
-#include "lucid/core/container/hash_set.h"
+#include "lucid/am/reg_set.h"
 #include "lucid/core/dataflow/dataflow.h"
 #include "lucid/core/testing/testing.h"
 
@@ -24,12 +24,12 @@ class LivenessAnalysisGraphBuilder
     AbstractMachineControlFlowGraph am_cfg;
     std::vector<std::optional<AbstractMachineLivenessAnalysis::State>> states;
 
-    const HashSet<Reg>& live_in(
+    const RegBitSet& live_in(
         AbstractMachineControlFlowGraph::BlockRef ref) const {
       return states[ref.id()]->live_in;
     }
 
-    HashSet<Reg> live_out(AbstractMachineControlFlowGraph::BlockRef ref) const {
+    RegBitSet live_out(AbstractMachineControlFlowGraph::BlockRef ref) const {
       return LiveOut(am_cfg, states, am_cfg.GetBlock(ref));
     }
   };

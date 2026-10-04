@@ -16,9 +16,9 @@
 #include "lucid/am/liveness.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg_programs.h"
+#include "lucid/am/reg_set.h"
 #include "lucid/am/translator.h"
 #include "lucid/core/container/hash_map.h"
-#include "lucid/core/container/hash_set.h"
 #include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
@@ -89,7 +89,7 @@ class ColoringTest : public Test {
       return color.value_or(-1);
     };
     // No two registers in `regs` share a colour.
-    const auto expect_apart = [&](const HashSet<Reg>& regs) {
+    const auto expect_apart = [&](const RegBitSet& regs) {
       for (Reg reg : regs) {
         for (Reg other : regs) {
           if (other != reg) EXPECT_NE(color(reg), color(other));
@@ -110,7 +110,7 @@ class ColoringTest : public Test {
     for (const auto& block : am_cfg.Blocks()) {
       // The walk backwards over the block starts from what is live where it
       // exits, which takes in what the branch reads there.
-      HashSet<Reg> live = LiveOut(am_cfg, liveness, block);
+      RegBitSet live = LiveOut(am_cfg, liveness, block);
       if (block.branch_cond.has_value()) live.Insert(*block.branch_cond);
       expect_apart(live);
 
@@ -177,6 +177,12 @@ TEST(ColoringTest, ColorsMoreValuesCrossingABranchThanThereAreRegisters) {
 TEST(ColoringTest, ColorsMoreLoopCarriedValuesThanThereAreRegisters) {
   ExpectValidColoring(LoopCarriedValues(/*carried=*/kRegistersCount + 1));
   ExpectValidColoring(LoopCarriedValues(/*carried=*/30));
+}
+
+// Early values held to the end of a long function, past many registers
+// written after them.
+TEST(ColoringTest, ColorsEarlyValuesHeldLong) {
+  ExpectValidColoring(EarlyValuesHeldLong(/*count=*/200, /*held=*/8));
 }
 
 TEST(ColoringTest, ColorsLoopCarriedValuesThatSpill) {

@@ -453,11 +453,7 @@ bool MatchesFreshAnalysis(const AbstractMachineControlFlowGraph& am_cfg,
   for (std::size_t id = 0; id < fresh.size(); ++id) {
     if (fresh[id].has_value() != liveness[id].has_value()) return false;
     if (!fresh[id].has_value()) continue;
-    if (fresh[id]->live_in.size() != liveness[id]->live_in.size()) return false;
-
-    for (Reg reg : fresh[id]->live_in) {
-      if (!liveness[id]->live_in.Contains(reg)) return false;
-    }
+    if (fresh[id]->live_in != liveness[id]->live_in) return false;
   }
   return true;
 }
