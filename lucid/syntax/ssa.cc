@@ -52,13 +52,24 @@ HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>> CollectVarDefs(
 void InitPhiFunctions(const SyntaxContext& syn_ctx,
                       SyntaxControlFlowGraph& syn_cfg,
                       const std::vector<std::optional<BlockRef>>& idoms) {
-  SyntaxLivenessAnalysis liveness_analysis(syn_ctx, syn_cfg);
+  const HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>>
+      var_defs = CollectVarDefs(syn_ctx, syn_cfg);
+
+  // A variable defined in one block alone is the same value wherever it is
+  // read, and needs no phi function. Only the others are asked about below,
+  // so only they are worked out, and a function with none of them is left
+  // as it is without working anything out.
+  HashSet<StringIndex::Ref> redefined;
+  for (const auto& [var, add] : var_defs) {
+    if (add.second.size() >= 2) redefined.Insert(var);
+  }
+  if (redefined.empty()) return;
+
+  SyntaxLivenessAnalysis liveness_analysis(syn_ctx, syn_cfg, redefined);
   std::vector<std::optional<SyntaxLivenessAnalysis::State>>
       liveness_block_states = RunDataflow(Backward(syn_cfg), liveness_analysis);
   const HashMap<BlockRef, HashSet<BlockRef>> dom_fronts =
       ComputeDominanceFrontiers(syn_cfg, idoms);
-  const HashMap<StringIndex::Ref, std::pair<TypeRef, HashSet<BlockRef>>>
-      var_defs = CollectVarDefs(syn_ctx, syn_cfg);
 
   for (const auto& [var, add] : var_defs) {
     const auto& [type, def_blocks] = add;

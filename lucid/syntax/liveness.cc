@@ -26,8 +26,8 @@ void SyntaxLivenessAnalysis::Transfer(
     }
   }
   for (ExprRef expr_ref : seq.expressions) {
-    if (const auto* ident_expr =
-            std::get_if<IdentExpr>(&sctx_.DerefExpr(expr_ref))) {
+    const auto* ident_expr = std::get_if<IdentExpr>(&sctx_.DerefExpr(expr_ref));
+    if (ident_expr != nullptr && Tracks(ident_expr->name)) {
       state.live_in.Insert(ident_expr->name);
     }
   }
@@ -36,6 +36,11 @@ void SyntaxLivenessAnalysis::Transfer(
 SyntaxLivenessAnalysis::SyntaxLivenessAnalysis(
     const SyntaxContext& sctx, const SyntaxControlFlowGraph& scfg)
     : sctx_(sctx), scfg_(scfg) {}
+
+SyntaxLivenessAnalysis::SyntaxLivenessAnalysis(
+    const SyntaxContext& sctx, const SyntaxControlFlowGraph& scfg,
+    const HashSet<StringIndex::Ref>& vars)
+    : sctx_(sctx), scfg_(scfg), vars_(&vars) {}
 
 State SyntaxLivenessAnalysis::Transfer(
     std::optional<State>&& prior_state,
@@ -56,7 +61,7 @@ State SyntaxLivenessAnalysis::Transfer(
         // this block at whichever position it holds among them.
         for (int i = 0; i < succ_block.preds.size(); ++i) {
           if (succ_block.preds[i] == block.ref) {
-            state.live_in.Insert(phi.args[i]);
+            if (Tracks(phi.args[i])) state.live_in.Insert(phi.args[i]);
             break;
           }
         }

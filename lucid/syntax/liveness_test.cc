@@ -3,7 +3,9 @@
 #include <cstddef>
 #include <string_view>
 
+#include "lucid/core/container/hash_set.h"
 #include "lucid/core/dataflow/dataflow.h"
+#include "lucid/core/string/index.h"
 #include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
@@ -19,6 +21,13 @@ class SyntaxLivenessAnalysisTest : public Test, public AstFixture {
   std::vector<std::optional<State>> AnalyzeLiveness(FuncDefStmt func_def) {
     auto syn_cfg = ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
     SyntaxLivenessAnalysis analysis(syn_ctx_, syn_cfg);
+    return RunDataflow(Backward(syn_cfg), analysis);
+  }
+
+  std::vector<std::optional<State>> AnalyzeLiveness(
+      FuncDefStmt func_def, const HashSet<StringIndex::Ref>& vars) {
+    auto syn_cfg = ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
+    SyntaxLivenessAnalysis analysis(syn_ctx_, syn_cfg, vars);
     return RunDataflow(Backward(syn_cfg), analysis);
   }
 
@@ -165,6 +174,47 @@ TEST(SyntaxLivenessAnalysisTest, ParameterReadAfterABranch) {
           S(ReturnStmt{.value = E(IdentExpr{.name = I("a")})}),
       }),
   });
+
+  static constexpr std::size_t kEntry = 0;
+  static constexpr std::size_t kLast = 1;
+  static constexpr std::size_t kAfterBranch = 2;
+  static constexpr std::size_t kThen = 3;
+
+  ASSERT_THAT(states, SizeIs(4));
+
+  EXPECT_THAT(states[kEntry]->live_in, UnorderedElementsEqual(I("a")));
+  EXPECT_THAT(states[kThen]->live_in, UnorderedElementsEqual(I("a")));
+  EXPECT_THAT(states[kAfterBranch]->live_in, UnorderedElementsEqual(I("a")));
+  EXPECT_THAT(states[kLast]->live_in, IsEmpty());
+}
+
+// Two parameters read after a branch, of which only one is asked about: the
+// other is live in all the same places, but is never taken to be.
+TEST(SyntaxLivenessAnalysisTest, OnlyTheVariablesAskedAbout) {
+  HashSet<StringIndex::Ref> vars;
+  vars.Insert(I("a"));
+  const auto states = AnalyzeLiveness(
+      FuncDefStmt{
+          .name = I("foo"),
+          .params = ParamListOf({
+              P(FuncParam{.name = I("a"), .type_constraint = T("Int32")}),
+              P(FuncParam{.name = I("b"), .type_constraint = T("Int32")}),
+          }),
+          .result_type = T("Int32"),
+          .stmts = StmtListOf({
+              S(IfStmt{
+                  .cond = E(BoolLitExpr{.value = true}),
+                  .then_stmts = StmtListOf({}),
+                  .else_stmts = StmtListOf({}),
+              }),
+              S(ReturnStmt{.value = E(BinaryOpExpr{
+                               .op = BinaryOp::Add,
+                               .lhs = E(IdentExpr{.name = I("a")}),
+                               .rhs = E(IdentExpr{.name = I("b")}),
+                           })}),
+          }),
+      },
+      vars);
 
   static constexpr std::size_t kEntry = 0;
   static constexpr std::size_t kLast = 1;
