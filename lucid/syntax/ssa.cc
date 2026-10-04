@@ -92,7 +92,9 @@ void InitPhiFunctions(const SyntaxContext& syn_ctx,
       for (auto y : *dom_front_it) {
         if (visited.Contains(y)) continue;
 
-        if (!liveness_block_states[y.id()]->live_in.Contains(var)) continue;
+        if (!liveness_analysis.IsLiveIn(*liveness_block_states[y.id()], var)) {
+          continue;
+        }
 
         auto& yb = syn_cfg.get(y);
 

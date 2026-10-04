@@ -1,7 +1,9 @@
 #include "lucid/syntax/liveness.h"
 
 #include <cstddef>
+#include <optional>
 #include <string_view>
+#include <vector>
 
 #include "lucid/core/container/hash_set.h"
 #include "lucid/core/dataflow/dataflow.h"
@@ -16,19 +18,29 @@ namespace {
 
 class SyntaxLivenessAnalysisTest : public Test, public AstFixture {
  protected:
-  using State = SyntaxLivenessAnalysis::State;
-
-  std::vector<std::optional<State>> AnalyzeLiveness(FuncDefStmt func_def) {
+  // Returns the variables live where each block is entered, by block id.
+  std::vector<std::vector<StringIndex::Ref>> AnalyzeLiveness(
+      FuncDefStmt func_def) {
     auto syn_cfg = ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
     SyntaxLivenessAnalysis analysis(syn_ctx_, syn_cfg);
-    return RunDataflow(Backward(syn_cfg), analysis);
+    return LiveIn(analysis, RunDataflow(Backward(syn_cfg), analysis));
   }
 
-  std::vector<std::optional<State>> AnalyzeLiveness(
+  std::vector<std::vector<StringIndex::Ref>> AnalyzeLiveness(
       FuncDefStmt func_def, const HashSet<StringIndex::Ref>& vars) {
     auto syn_cfg = ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
     SyntaxLivenessAnalysis analysis(syn_ctx_, syn_cfg, vars);
-    return RunDataflow(Backward(syn_cfg), analysis);
+    return LiveIn(analysis, RunDataflow(Backward(syn_cfg), analysis));
+  }
+
+  static std::vector<std::vector<StringIndex::Ref>> LiveIn(
+      const SyntaxLivenessAnalysis& analysis,
+      const std::vector<std::optional<SyntaxLivenessAnalysis::State>>& states) {
+    std::vector<std::vector<StringIndex::Ref>> live_in;
+    for (const auto& state : states) {
+      live_in.push_back(analysis.LiveIn(state.value()));
+    }
+    return live_in;
   }
 
   StmtRef DeclareInt32Var(std::string_view name, int value) {
@@ -46,13 +58,11 @@ TEST(SyntaxLivenessAnalysisTest, EmptyFunc) {
       .result_type = T("Void"),
   };
 
-  EXPECT_THAT(AnalyzeLiveness(func_def),
-              Elements(Optional(Field(&State::live_in, IsEmpty())),
-                       Optional(Field(&State::live_in, IsEmpty()))));
+  EXPECT_THAT(AnalyzeLiveness(func_def), Elements(IsEmpty(), IsEmpty()));
 }
 
 TEST(SyntaxLivenessAnalysisTest, VariableReadInTheBlockThatWroteIt) {
-  const auto states = AnalyzeLiveness(FuncDefStmt{
+  const auto live_in = AnalyzeLiveness(FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
       .stmts = StmtListOf({
@@ -61,14 +71,14 @@ TEST(SyntaxLivenessAnalysisTest, VariableReadInTheBlockThatWroteIt) {
       }),
   });
 
-  ASSERT_THAT(states, SizeIs(2));
+  ASSERT_THAT(live_in, SizeIs(2));
 
-  EXPECT_THAT(states[0]->live_in, IsEmpty());
-  EXPECT_THAT(states[1]->live_in, IsEmpty());
+  EXPECT_THAT(live_in[0], IsEmpty());
+  EXPECT_THAT(live_in[1], IsEmpty());
 }
 
 TEST(SyntaxLivenessAnalysisTest, VariableNeverRead) {
-  const auto states = AnalyzeLiveness(FuncDefStmt{
+  const auto live_in = AnalyzeLiveness(FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
       .stmts = StmtListOf({
@@ -82,15 +92,15 @@ TEST(SyntaxLivenessAnalysisTest, VariableNeverRead) {
       }),
   });
 
-  ASSERT_THAT(states, SizeIs(4));
+  ASSERT_THAT(live_in, SizeIs(4));
 
-  for (const auto& state : states) {
-    EXPECT_THAT(state->live_in, IsEmpty());
+  for (const auto& block_live_in : live_in) {
+    EXPECT_THAT(block_live_in, IsEmpty());
   }
 }
 
 TEST(SyntaxLivenessAnalysisTest, VariableReadOnOneBranchOnly) {
-  const auto states = AnalyzeLiveness(FuncDefStmt{
+  const auto live_in = AnalyzeLiveness(FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
       .stmts = StmtListOf({
@@ -114,17 +124,17 @@ TEST(SyntaxLivenessAnalysisTest, VariableReadOnOneBranchOnly) {
   static constexpr std::size_t kThen = 3;
   static constexpr std::size_t kElse = 4;
 
-  ASSERT_THAT(states, SizeIs(5));
+  ASSERT_THAT(live_in, SizeIs(5));
 
-  EXPECT_THAT(states[kThen]->live_in, UnorderedElementsEqual(I("x")));
-  EXPECT_THAT(states[kElse]->live_in, IsEmpty());
-  EXPECT_THAT(states[kEntry]->live_in, IsEmpty());
-  EXPECT_THAT(states[kAfterBranch]->live_in, IsEmpty());
-  EXPECT_THAT(states[kLast]->live_in, IsEmpty());
+  EXPECT_THAT(live_in[kThen], UnorderedElementsEqual(I("x")));
+  EXPECT_THAT(live_in[kElse], IsEmpty());
+  EXPECT_THAT(live_in[kEntry], IsEmpty());
+  EXPECT_THAT(live_in[kAfterBranch], IsEmpty());
+  EXPECT_THAT(live_in[kLast], IsEmpty());
 }
 
 TEST(SyntaxLivenessAnalysisTest, VariableReadAroundALoop) {
-  const auto states = AnalyzeLiveness(FuncDefStmt{
+  const auto live_in = AnalyzeLiveness(FuncDefStmt{
       .name = I("foo"),
       .result_type = T("Int32"),
       .stmts = StmtListOf({
@@ -147,18 +157,18 @@ TEST(SyntaxLivenessAnalysisTest, VariableReadAroundALoop) {
   static constexpr std::size_t kLoopBody = 4;
   static constexpr std::size_t kBreak = 5;
 
-  ASSERT_THAT(states, SizeIs(6));
+  ASSERT_THAT(live_in, SizeIs(6));
 
-  EXPECT_THAT(states[kLoopHeader]->live_in, UnorderedElementsEqual(I("x")));
-  EXPECT_THAT(states[kLoopBody]->live_in, UnorderedElementsEqual(I("x")));
-  EXPECT_THAT(states[kBreak]->live_in, IsEmpty());
-  EXPECT_THAT(states[kAfterLoop]->live_in, IsEmpty());
-  EXPECT_THAT(states[kLast]->live_in, IsEmpty());
-  EXPECT_THAT(states[kEntry]->live_in, IsEmpty());
+  EXPECT_THAT(live_in[kLoopHeader], UnorderedElementsEqual(I("x")));
+  EXPECT_THAT(live_in[kLoopBody], UnorderedElementsEqual(I("x")));
+  EXPECT_THAT(live_in[kBreak], IsEmpty());
+  EXPECT_THAT(live_in[kAfterLoop], IsEmpty());
+  EXPECT_THAT(live_in[kLast], IsEmpty());
+  EXPECT_THAT(live_in[kEntry], IsEmpty());
 }
 
 TEST(SyntaxLivenessAnalysisTest, ParameterReadAfterABranch) {
-  const auto states = AnalyzeLiveness(FuncDefStmt{
+  const auto live_in = AnalyzeLiveness(FuncDefStmt{
       .name = I("foo"),
       .params = ParamListOf({P(FuncParam{
           .name = I("a"),
@@ -180,12 +190,12 @@ TEST(SyntaxLivenessAnalysisTest, ParameterReadAfterABranch) {
   static constexpr std::size_t kAfterBranch = 2;
   static constexpr std::size_t kThen = 3;
 
-  ASSERT_THAT(states, SizeIs(4));
+  ASSERT_THAT(live_in, SizeIs(4));
 
-  EXPECT_THAT(states[kEntry]->live_in, UnorderedElementsEqual(I("a")));
-  EXPECT_THAT(states[kThen]->live_in, UnorderedElementsEqual(I("a")));
-  EXPECT_THAT(states[kAfterBranch]->live_in, UnorderedElementsEqual(I("a")));
-  EXPECT_THAT(states[kLast]->live_in, IsEmpty());
+  EXPECT_THAT(live_in[kEntry], UnorderedElementsEqual(I("a")));
+  EXPECT_THAT(live_in[kThen], UnorderedElementsEqual(I("a")));
+  EXPECT_THAT(live_in[kAfterBranch], UnorderedElementsEqual(I("a")));
+  EXPECT_THAT(live_in[kLast], IsEmpty());
 }
 
 // Two parameters read after a branch, of which only one is asked about: the
@@ -193,7 +203,7 @@ TEST(SyntaxLivenessAnalysisTest, ParameterReadAfterABranch) {
 TEST(SyntaxLivenessAnalysisTest, OnlyTheVariablesAskedAbout) {
   HashSet<StringIndex::Ref> vars;
   vars.Insert(I("a"));
-  const auto states = AnalyzeLiveness(
+  const auto live_in = AnalyzeLiveness(
       FuncDefStmt{
           .name = I("foo"),
           .params = ParamListOf({
@@ -221,12 +231,12 @@ TEST(SyntaxLivenessAnalysisTest, OnlyTheVariablesAskedAbout) {
   static constexpr std::size_t kAfterBranch = 2;
   static constexpr std::size_t kThen = 3;
 
-  ASSERT_THAT(states, SizeIs(4));
+  ASSERT_THAT(live_in, SizeIs(4));
 
-  EXPECT_THAT(states[kEntry]->live_in, UnorderedElementsEqual(I("a")));
-  EXPECT_THAT(states[kThen]->live_in, UnorderedElementsEqual(I("a")));
-  EXPECT_THAT(states[kAfterBranch]->live_in, UnorderedElementsEqual(I("a")));
-  EXPECT_THAT(states[kLast]->live_in, IsEmpty());
+  EXPECT_THAT(live_in[kEntry], UnorderedElementsEqual(I("a")));
+  EXPECT_THAT(live_in[kThen], UnorderedElementsEqual(I("a")));
+  EXPECT_THAT(live_in[kAfterBranch], UnorderedElementsEqual(I("a")));
+  EXPECT_THAT(live_in[kLast], IsEmpty());
 }
 
 }  // namespace
