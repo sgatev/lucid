@@ -59,9 +59,13 @@ BENCHMARK(FindMissing) {
   for (int i = kCount; auto _ : state) DoNotOptimize(map.Get(i++));
 }
 
+// The map is filled first: an empty one has no slots to look through, and a
+// removal from it returns before reading anything.
 BENCHMARK(RemoveMissing) {
+  static constexpr int kCount = 1'000'000;
   HashMap<int, int> map;
-  for (int i = 0; auto _ : state) map.Remove(i++);
+  for (int i = 0; i < kCount; ++i) map.Insert(i, 0);
+  for (int i = kCount; auto _ : state) DoNotOptimize(map.Remove(i++));
 }
 
 BENCHMARK(Random) {

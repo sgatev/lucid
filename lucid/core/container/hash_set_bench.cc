@@ -37,9 +37,13 @@ BENCHMARK(FindMissing) {
   }
 }
 
+// The set is filled first: an empty one has no slots to look through, and a
+// removal from it returns before reading anything.
 BENCHMARK(RemoveMissing) {
+  static constexpr int kCount = 1'000'000;
   HashSet<int> set;
-  for (int i = 0; auto _ : state) set.Remove(i++);
+  for (int i = 0; i < kCount; ++i) set.Insert(i);
+  for (int i = kCount; auto _ : state) DoNotOptimize(set.Remove(i++));
 }
 
 BENCHMARK(Random) {
