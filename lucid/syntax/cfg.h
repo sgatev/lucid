@@ -167,6 +167,10 @@ inline std::uint32_t VertexId(const SyntaxControlFlowGraph&,
 SyntaxControlFlowGraph BuildControlFlowGraph(SyntaxContext& ctx,
                                              const FuncDefStmt& func);
 
+// Returns which blocks of `cfg` control can come to from its first block, by
+// block ID.
+std::vector<bool> ReachedBlocks(const SyntaxControlFlowGraph& cfg);
+
 // Returns whether the function `cfg` was built from can reach its end without
 // returning: whether a block that control can come to goes on to the last one
 // without a `return` taking it there.

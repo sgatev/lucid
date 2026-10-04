@@ -495,11 +495,6 @@ class Coloring {
     taken |= Bit(reg);
   }
 
-  // Gives `reg` a colour if it has none yet, whichever one.
-  void TakeAny(Reg reg) {
-    if (colors_[reg.id] == RegisterColors::kNone) colors_[reg.id] = kFirstColor;
-  }
-
   RegisterColors Finalize() && { return RegisterColors(std::move(colors_)); }
 
  private:
@@ -572,24 +567,6 @@ class LastReads {
   std::vector<Reg> marked_;
 };
 
-// Returns which blocks of `am_cfg` control can come to, by block id.
-std::vector<bool> ReachedBlocks(const AbstractMachineControlFlowGraph& am_cfg) {
-  std::vector<bool> reached(am_cfg.Blocks().Size(), false);
-  std::vector<AbstractMachineControlFlowGraph::BlockRef> to_visit = {
-      am_cfg.first};
-  reached[am_cfg.first.id()] = true;
-  while (!to_visit.empty()) {
-    const auto ref = to_visit.back();
-    to_visit.pop_back();
-    for (const auto succ : am_cfg.GetBlock(ref).succs) {
-      if (reached[succ.id()]) continue;
-      reached[succ.id()] = true;
-      to_visit.push_back(succ);
-    }
-  }
-  return reached;
-}
-
 // Colours every register `block` writes, keeping clear of the colours of
 // what is live into it, which its dominators have already given out.
 void ColorBlock(const AbstractMachineControlFlowGraph& am_cfg,
@@ -628,28 +605,6 @@ void ColorBlock(const AbstractMachineControlFlowGraph& am_cfg,
       if (reads.Unread(*target)) taken &= ~coloring.Bit(*target);
     }
     ++at;
-  }
-}
-
-// Gives a colour to every register named in a block nothing reaches. Such a
-// block is never run, but it is still written out, so what it names needs a
-// colour, and any will do.
-void ColorUnreachedBlocks(const AbstractMachineControlFlowGraph& am_cfg,
-                          const std::vector<bool>& reached,
-                          Coloring& coloring) {
-  const auto any_color = [&](Reg reg) { coloring.TakeAny(reg); };
-  for (const auto& block : am_cfg.Blocks()) {
-    if (reached[block.ref.id()]) continue;
-
-    for (const auto& phi : block.phis) {
-      any_color(phi.dst);
-      for (Reg src : phi.srcs) any_color(src);
-    }
-    for (const auto& inst : block.instructions) {
-      ForEachSourceRegister(inst, any_color);
-      if (const Reg* target = TargetRegister(inst)) any_color(*target);
-    }
-    if (block.branch_cond.has_value()) any_color(*block.branch_cond);
   }
 }
 
@@ -709,8 +664,6 @@ RegisterColors ColorRegisters(const AbstractMachineControlFlowGraph& am_cfg,
   Coloring coloring(am_cfg.next_free_reg_id, colors_count);
   LastReads reads(am_cfg.next_free_reg_id);
 
-  const std::vector<bool> reached = ReachedBlocks(am_cfg);
-
   // The blocks in reverse post-order, which comes to every block after all
   // of those that dominate it. A register live where a block starts is
   // written in one of those, so it has its colour by the time the block is
@@ -720,14 +673,12 @@ RegisterColors ColorRegisters(const AbstractMachineControlFlowGraph& am_cfg,
       Vertices(am_cfg);
   std::sort(order.begin(), order.end(), CompareReversePostOrder(am_cfg));
   for (const auto ref : order) {
-    if (!reached[ref.id()]) continue;
     const auto& block = am_cfg.GetBlock(ref);
 
     reads.Fill(am_cfg, liveness, block);
     ColorBlock(am_cfg, liveness, block, reads, coloring);
     reads.Clear();
   }
-  ColorUnreachedBlocks(am_cfg, reached, coloring);
 
   return std::move(coloring).Finalize();
 }

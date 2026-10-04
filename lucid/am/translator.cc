@@ -39,18 +39,6 @@ class AbstractMachineFunctionGenerator {
   }
 
   std::expected<AbstractMachineControlFlowGraph, CompError> Generate() && {
-    for (const auto& block : syn_cfg_.blocks()) {
-      graph_map_.Set(block.ref, am_cfg_.AddBlock().ref);
-    }
-
-    auto scfg_first = graph_map_.Get(syn_cfg_.first);
-    assert(scfg_first.has_value());
-    am_cfg_.first = *scfg_first;
-
-    auto scfg_last = graph_map_.Get(syn_cfg_.last);
-    assert(scfg_last.has_value());
-    am_cfg_.last = *scfg_last;
-
     result_reg_ = {am_cfg_.next_free_reg_id++,
                    GetRegSize(syn_cfg_.func_result_type)};
     am_cfg_.result_kind = KindOf(syn_cfg_.func_result_type);
@@ -58,6 +46,7 @@ class AbstractMachineFunctionGenerator {
     if (syn_ctx_.DerefIdent(syn_cfg_.func_name) == "printString") {
       auto& first_block = am_cfg_.AddBlock();
       am_cfg_.first = first_block.ref;
+      am_cfg_.last = first_block.ref;
 
       first_block.instructions.push_back(FuncCall{
           .label = "_print_string",
@@ -73,6 +62,7 @@ class AbstractMachineFunctionGenerator {
     } else if (syn_ctx_.DerefIdent(syn_cfg_.func_name) == "sleep") {
       auto& first_block = am_cfg_.AddBlock();
       am_cfg_.first = first_block.ref;
+      am_cfg_.last = first_block.ref;
 
       first_block.instructions.push_back(FuncCall{
           .label = "_sleep",
@@ -87,6 +77,22 @@ class AbstractMachineFunctionGenerator {
       return std::move(am_cfg_);
     }
 
+    // Only the blocks control can come to are carried over, with the edges
+    // between them. A block nothing reaches is never run, and leaving it out
+    // keeps every block dominated by the first, which colouring the
+    // registers asks of the graph. It is also not renamed into single
+    // assignment form, so what it names would not be registers written once.
+    const std::vector<bool> reached = ReachedBlocks(syn_cfg_);
+    for (const auto& block : syn_cfg_.blocks()) {
+      if (!reached[block.ref.id()]) continue;
+      graph_map_.Set(block.ref, am_cfg_.AddBlock().ref);
+    }
+    am_cfg_.first = *graph_map_.Get(syn_cfg_.first);
+    // A function that never ends has no way to its last block.
+    if (reached[syn_cfg_.last.id()]) {
+      am_cfg_.last = *graph_map_.Get(syn_cfg_.last);
+    }
+
     {
       for (const auto& param_ref : syn_cfg_.func_params) {
         const auto& param = syn_ctx_.DerefParam(param_ref);
@@ -96,33 +102,36 @@ class AbstractMachineFunctionGenerator {
 
     for (const auto& block : syn_cfg_.blocks()) {
       auto am_cfg_block_ref = graph_map_.Get(block.ref);
-      assert(am_cfg_block_ref.has_value());
+      if (!am_cfg_block_ref.has_value()) continue;
       std::expected<void, CompError> res =
           Process(block, am_cfg_.GetBlock(*am_cfg_block_ref));
       if (!res.has_value()) return std::unexpected(res.error());
     }
     for (const auto& block : syn_cfg_.blocks()) {
       auto am_cfg_block_ref = graph_map_.Get(block.ref);
-      assert(am_cfg_block_ref.has_value());
+      if (!am_cfg_block_ref.has_value()) continue;
       auto& am_block = am_cfg_.GetBlock(*am_cfg_block_ref);
       for (auto phi_ref : block.phis) {
         const auto& phi = syn_cfg_.deref(phi_ref);
 
+        // A phi function takes an argument along each way in, in the order
+        // of the block's predecessors, and a way in from a block nothing
+        // reaches is left out along with it.
         auto& am_phi = am_block.phis.emplace_back();
         am_phi.dst = GetVarReg(phi.name, phi.type_constraint);
-        for (const auto& arg : phi.args) {
-          am_phi.srcs.push_back(GetVarReg(arg, phi.type_constraint));
+        for (std::size_t i = 0; i < phi.args.size(); ++i) {
+          if (!reached[block.preds[i].id()]) continue;
+          am_phi.srcs.push_back(GetVarReg(phi.args[i], phi.type_constraint));
         }
       }
     }
 
-    {
+    if (am_cfg_.last != AbstractMachineControlFlowGraph::kNullBlockRef) {
       // What the function returns is settled where it ends, by a phi
       // function taking each way in the value returned along it, so that the
       // register holding it is written in one place only. A way in that
-      // returns nothing, because nothing reaches it or the function has no
-      // result, is given a placeholder: the checks before this have made
-      // sure no other can.
+      // returns nothing, because the function has no result, is given a
+      // placeholder: the checks before this have made sure no other can.
       auto& last_block = am_cfg_.GetBlock(am_cfg_.last);
       if (!last_block.preds.empty()) {
         auto& result_phi = last_block.phis.emplace_back();
@@ -196,7 +205,7 @@ class AbstractMachineFunctionGenerator {
     }
     for (const auto& pred : block.preds) {
       auto am_cfg_pred = graph_map_.Get(pred);
-      assert(am_cfg_pred.has_value());
+      if (!am_cfg_pred.has_value()) continue;
       am_block.preds.push_back(*am_cfg_pred);
     }
     return {};

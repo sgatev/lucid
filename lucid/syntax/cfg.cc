@@ -303,10 +303,7 @@ SyntaxControlFlowGraph BuildControlFlowGraph(SyntaxContext& ctx,
   return ControlFlowGraphBuilder(ctx, func).Consume();
 }
 
-bool CanEndWithoutReturning(const SyntaxContext& ctx,
-                            const SyntaxControlFlowGraph& cfg) {
-  // A block nothing reaches cannot end the function, however it ends itself,
-  // as the code after a loop with no way out does.
+std::vector<bool> ReachedBlocks(const SyntaxControlFlowGraph& cfg) {
   std::vector<bool> reached(cfg.blocks().Size(), false);
   std::vector<SyntaxControlFlowGraph::BlockRef> to_visit = {cfg.first};
   reached[cfg.first.id()] = true;
@@ -319,6 +316,14 @@ bool CanEndWithoutReturning(const SyntaxContext& ctx,
       to_visit.push_back(succ);
     }
   }
+  return reached;
+}
+
+bool CanEndWithoutReturning(const SyntaxContext& ctx,
+                            const SyntaxControlFlowGraph& cfg) {
+  // A block nothing reaches cannot end the function, however it ends itself,
+  // as the code after a loop with no way out does.
+  const std::vector<bool> reached = ReachedBlocks(cfg);
 
   for (const auto pred : cfg.get(cfg.last).preds) {
     if (!reached[pred.id()]) continue;

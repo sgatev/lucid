@@ -1,6 +1,7 @@
 #include "lucid/am/translator.h"
 
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "lucid/am/instructions.h"
@@ -1278,6 +1279,8 @@ TEST(GenerateAbstractMachineFunctionTest, VarAssignInt64) {
                                   }));
 }
 
+// The `return` after a loop with no way out is never reached, so nothing of
+// it is carried over.
 TEST(GenerateAbstractMachineFunctionTest, Loop) {
   auto func = FuncDefStmt{
       .name = I("foo"),
@@ -1299,21 +1302,17 @@ TEST(GenerateAbstractMachineFunctionTest, Loop) {
   EXPECT_THAT(Generate(func), ElementsEqual(
                                   SetReg{
                                       .src_val = 1,
-                                      .dst_reg = Reg(3, RegSize32),
+                                      .dst_reg = Reg(2, RegSize32),
                                   },
                                   Return{
                                       .res_reg = Reg(1, RegSize32),
-                                  },
-                                  SetReg{
-                                      .src_val = 2,
-                                      .dst_reg = Reg(2, RegSize32),
                                   }));
 }
 
 // What a function returns is settled where it ends, by one phi function
 // taking each way in the value returned along it, so that the register
-// holding the result is written once. Here one way returns from inside the
-// loop and the other returns after it, which nothing reaches.
+// holding the result is written once. Here the only way in returns from
+// inside the loop: the `return` after it is never reached, and has no say.
 TEST(GenerateAbstractMachineFunctionTest, ReturnsMeetWhereTheFunctionEnds) {
   auto func = FuncDefStmt{
       .name = I("foo"),
@@ -1336,8 +1335,38 @@ TEST(GenerateAbstractMachineFunctionTest, ReturnsMeetWhereTheFunctionEnds) {
   const auto& phis = am_cfg.GetBlock(am_cfg.last).phis;
   ASSERT_EQ(phis.size(), 1u);
   EXPECT_EQ(phis[0].dst, Reg(1, RegSize32));
-  EXPECT_THAT(phis[0].srcs,
-              ElementsEqual(Reg(3, RegSize32), Reg(2, RegSize32)));
+  EXPECT_THAT(phis[0].srcs, ElementsEqual(Reg(2, RegSize32)));
+}
+
+// A function that never ends has no way to where it would, so it has no last
+// block, and nothing after its loop is carried over.
+TEST(GenerateAbstractMachineFunctionTest, FunctionThatNeverEndsHasNoLastBlock) {
+  auto func = FuncDefStmt{
+      .name = I("foo"),
+      .result_type = T("Int32"),
+      .stmts = StmtListOf({
+          S(LoopStmt{
+              .stmts = StmtListOf({
+                  S(VarDeclStmt{
+                      .name = I("n"),
+                      .type_constraint = T("Int32"),
+                      .init = E(IntLitExpr{.value = 1}),
+                  }),
+              }),
+          }),
+          S(ReturnStmt{
+              .value = E(IntLitExpr{.value = 2}),
+          }),
+      }),
+  };
+
+  const AbstractMachineControlFlowGraph am_cfg = GenerateGraph(func);
+  EXPECT_EQ(am_cfg.last, AbstractMachineControlFlowGraph::kNullBlockRef);
+  for (const auto& block : am_cfg.Blocks()) {
+    for (const auto& inst : block.instructions) {
+      EXPECT_FALSE(std::holds_alternative<Return>(inst));
+    }
+  }
 }
 
 TEST(GenerateAbstractMachineFunctionTest, SingleLoopAndBreak) {

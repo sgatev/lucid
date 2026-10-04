@@ -29,9 +29,14 @@ struct Write {
 std::expected<void, std::string> CheckStrictSsa(
     const AbstractMachineControlFlowGraph& am_cfg) {
   const auto idoms = ComputeImmediateDominators(am_cfg);
-  const auto reached = [&](BlockRef block) {
-    return idoms[block.id()].has_value();
-  };
+  // A block nothing reaches has no dominators, so whether a write comes
+  // first on every way there has no answer.
+  for (const auto& block : am_cfg.Blocks()) {
+    if (!idoms[block.ref.id()].has_value()) {
+      return std::unexpected(std::format(
+          "block {} is not reached from the entry", block.ref.id()));
+    }
+  }
   // Whether every way from the entry to `to` passes through `from`.
   const auto dominates = [&](BlockRef from, BlockRef to) {
     while (true) {
@@ -85,8 +90,6 @@ std::expected<void, std::string> CheckStrictSsa(
     result = result.and_then([&] { return write(param, {am_cfg.first, 0}); });
   }
   for (const auto& block : am_cfg.Blocks()) {
-    if (!reached(block.ref)) continue;
-
     for (const auto& phi : block.phis) {
       result = result.and_then([&] { return write(phi.dst, {block.ref, 0}); });
     }
@@ -102,8 +105,6 @@ std::expected<void, std::string> CheckStrictSsa(
   if (!result.has_value()) return result;
 
   for (const auto& block : am_cfg.Blocks()) {
-    if (!reached(block.ref)) continue;
-
     std::size_t at = 1;
     for (const auto& inst : block.instructions) {
       ForEachSourceRegister(inst, [&](Reg reg) {
@@ -120,8 +121,6 @@ std::expected<void, std::string> CheckStrictSsa(
     for (const auto& phi : block.phis) {
       for (std::size_t i = 0; i < phi.srcs.size(); ++i) {
         const BlockRef pred = block.preds[i];
-        if (!reached(pred)) continue;
-
         const std::size_t end = am_cfg.GetBlock(pred).instructions.size() + 1;
         result = result.and_then([&] { return read(phi.srcs[i], pred, end); });
       }

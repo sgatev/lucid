@@ -15,7 +15,7 @@ namespace lucid {
 // block that argument comes from.
 //
 // Returns what is wrong with the first register found that is not, if one
-// is. Blocks control cannot reach are not looked at.
+// is, or the first block control cannot reach, if there is one.
 //
 // A graph in this form is one whose registers can be coloured in the order
 // its dominator tree has them in, needing no more colours than are live at

@@ -107,25 +107,7 @@ class ColoringTest : public Test {
       }
     }
 
-    // Only what control can come to is held to this: every block has an
-    // answer in `liveness`, reached or not.
-    std::vector<bool> reached(am_cfg.Blocks().Size(), false);
-    std::vector<AbstractMachineControlFlowGraph::BlockRef> to_visit = {
-        am_cfg.first};
-    reached[am_cfg.first.id()] = true;
-    while (!to_visit.empty()) {
-      const auto ref = to_visit.back();
-      to_visit.pop_back();
-      for (const auto succ : am_cfg.GetBlock(ref).succs) {
-        if (reached[succ.id()]) continue;
-        reached[succ.id()] = true;
-        to_visit.push_back(succ);
-      }
-    }
-
     for (const auto& block : am_cfg.Blocks()) {
-      if (!reached[block.ref.id()]) continue;
-
       // The walk backwards over the block starts from what is live where it
       // exits, which takes in what the branch reads there.
       HashSet<Reg> live = LiveOut(am_cfg, liveness, block);
@@ -205,6 +187,23 @@ TEST(ColoringTest, ColorsASingleReturn) {
   ExpectValidColoring(R"(
     fun main(): Int32 {
       return 2 + 3
+    }
+  )");
+}
+
+// What follows a loop with no way out is never reached, and is gone by the
+// time the registers are coloured, so nothing it names needs a colour.
+TEST(ColoringTest, ColorsAFunctionWithCodeNothingReaches) {
+  ExpectValidColoring(R"(
+    fun main(): Int32 {
+      mut val i: Int32 = 0
+      loop {
+        if i > 3 {
+          return i
+        }
+        mut i = i + 1
+      }
+      return i + 2
     }
   )");
 }

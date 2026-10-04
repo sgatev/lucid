@@ -66,6 +66,22 @@ TEST(Test, CheckStrictSsaReportsARegisterNeverWritten) {
               Equals("register 1 is read in block 0 but never written"));
 }
 
+// Nothing in a block control never comes to is looked at, so it is reported
+// in place of whatever it holds.
+TEST(Test, CheckStrictSsaReportsABlockNothingReaches) {
+  AbstractMachineControlFlowGraphBuilder g;
+  auto entry = g.AddBlock();
+  auto dead = g.AddBlock();
+  g.SetFirst(entry);
+  g.SetLast(entry);
+  g.AddInstruction(entry, SetReg{.src_val = 1, .dst_reg = Reg(1)});
+  g.AddInstruction(entry, Return{.res_reg = Reg(1)});
+  g.AddInstruction(dead, Return{.res_reg = Reg(2)});
+
+  EXPECT_THAT(Violation(std::move(g)),
+              Equals("block 1 is not reached from the entry"));
+}
+
 // Written on one side of a branch and read where the sides meet, which the
 // other side reaches without it.
 TEST(Test, CheckStrictSsaReportsAWriteOnOneSideOfABranch) {

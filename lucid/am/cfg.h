@@ -94,6 +94,8 @@ class AbstractMachineControlFlowGraph {
   }
 
   BlockRef first = kNullBlockRef;
+  // The block every way out of the function goes through, or `kNullBlockRef`
+  // in a function that never ends, where nothing reaches one.
   BlockRef last = kNullBlockRef;
 
   // The registers of the parameters passed to the function.

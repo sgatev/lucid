@@ -58,7 +58,9 @@ class RegisterColors {
 // so no graph of which registers interfere is needed.
 //
 // Requires:
-// - `am_cfg` must be in strict single assignment form. See `CheckStrictSsa`.
+// - `am_cfg` must be in strict single assignment form, with every block
+//   reached from the entry, as `GenerateAbstractMachineFunction` leaves it.
+//   See `CheckStrictSsa`.
 // - `liveness` must be what is live where each block of `am_cfg` starts.
 RegisterColors ColorRegisters(const AbstractMachineControlFlowGraph& am_cfg,
                               const AbstractMachineLiveness& liveness,
