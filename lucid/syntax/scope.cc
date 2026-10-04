@@ -1,13 +1,16 @@
 #include "lucid/syntax/scope.h"
 
+#include <cstddef>
 #include <expected>
 #include <optional>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/container/hash_set.h"
+#include "lucid/core/container/successive_list.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/context.h"

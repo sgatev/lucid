@@ -1,6 +1,8 @@
 #include "lucid/core/container/fixed_map.h"
 
+#include <array>
 #include <string_view>
+#include <utility>
 
 #include "lucid/core/testing/testing.h"
 

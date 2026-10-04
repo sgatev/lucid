@@ -2,7 +2,10 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <ranges>
+#include <span>
+#include <string>
 #include <string_view>
 
 namespace lucid {

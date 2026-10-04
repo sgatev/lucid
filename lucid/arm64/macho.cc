@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstdint>
 #include <ostream>
-#include <string>
 #include <vector>
 
 #include "lucid/arm64/assembler.h"

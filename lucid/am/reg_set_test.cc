@@ -1,6 +1,7 @@
 #include "lucid/am/reg_set.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <random>
 #include <set>
 #include <vector>

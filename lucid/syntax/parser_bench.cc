@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <expected>
 #include <filesystem>
 #include <optional>
@@ -11,6 +12,7 @@
 #include "lucid/core/io/file.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/buffered_lexer.h"
+#include "lucid/syntax/context.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
 

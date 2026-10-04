@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <format>
 #include <list>
 #include <optional>
@@ -9,11 +10,13 @@
 #include <utility>
 #include <variant>
 
+#include "lucid/am/state.h"
 #include "lucid/am/translator.h"
 #include "lucid/core/benchmarking/benchmarking.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
 #include "lucid/syntax/comp.h"
+#include "lucid/syntax/context.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
 #include "lucid/syntax/scope.h"

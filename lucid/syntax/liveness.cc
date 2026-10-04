@@ -7,9 +7,12 @@
 #include <ranges>
 #include <utility>
 #include <variant>
+#include <vector>
 
+#include "lucid/core/container/hash_set.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
+#include "lucid/syntax/cfg.h"
 #include "lucid/syntax/context.h"
 
 namespace lucid {

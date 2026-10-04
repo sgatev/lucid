@@ -1,5 +1,6 @@
 #include "lucid/core/hash/hash.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <string_view>
 

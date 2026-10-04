@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstddef>
 #include <optional>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -14,6 +15,7 @@
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
+#include "lucid/syntax/context.h"
 #include "lucid/syntax/liveness.h"
 
 namespace lucid {

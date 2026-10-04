@@ -1,10 +1,14 @@
 #include "lucid/am/translator.h"
 
+#include <algorithm>
+#include <optional>
 #include <utility>
 #include <variant>
 #include <vector>
 
+#include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
+#include "lucid/am/state.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"

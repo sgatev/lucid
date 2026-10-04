@@ -1,11 +1,13 @@
 #include "lucid/core/cli/cli.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <initializer_list>
 #include <iomanip>
 #include <iostream>
 #include <optional>
 #include <span>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>

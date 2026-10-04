@@ -1,3 +1,4 @@
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include <charconv>
@@ -18,18 +19,23 @@
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_printer.h"
+#include "lucid/am/liveness.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
+#include "lucid/am/state.h"
 #include "lucid/am/translator.h"
 #include "lucid/arm64/translator.h"
 #include "lucid/compiler/compiler.h"
 #include "lucid/compiler/version.h"
 #include "lucid/core/cli/cli.h"
+#include "lucid/core/container/hash_map.h"
 #include "lucid/core/io/file.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_printer.h"
 #include "lucid/syntax/cfg.h"
 #include "lucid/syntax/cfg_printer.h"
+#include "lucid/syntax/comp.h"
+#include "lucid/syntax/context.h"
 #include "lucid/syntax/parser.h"
 #include "lucid/syntax/ssa.h"
 #include "lucid/syntax/type.h"

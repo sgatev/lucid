@@ -9,7 +9,10 @@
 #include <optional>
 #include <ostream>
 #include <string_view>
+#include <system_error>
 #include <utility>
+#include <variant>
+#include <vector>
 
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/fixed_map.h"

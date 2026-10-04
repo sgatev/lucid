@@ -3,6 +3,7 @@
 #include <concepts>
 #include <functional>
 #include <string>
+#include <type_traits>
 
 #include "lucid/core/testing/internal/matcher.h"
 

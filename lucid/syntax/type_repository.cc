@@ -1,5 +1,6 @@
 #include "lucid/syntax/type_repository.h"
 
+#include <cstddef>
 #include <string_view>
 #include <variant>
 

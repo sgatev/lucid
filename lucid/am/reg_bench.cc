@@ -1,7 +1,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <format>
+#include <expected>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -10,7 +10,7 @@
 
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
-#include "lucid/am/instructions.h"
+#include "lucid/am/liveness.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
 #include "lucid/am/reg_programs.h"
@@ -18,10 +18,10 @@
 #include "lucid/am/translator.h"
 #include "lucid/core/benchmarking/benchmarking.h"
 #include "lucid/core/container/hash_map.h"
-#include "lucid/core/container/hash_set.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
 #include "lucid/syntax/comp.h"
+#include "lucid/syntax/context.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
 #include "lucid/syntax/ssa.h"

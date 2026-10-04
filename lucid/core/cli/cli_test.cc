@@ -1,5 +1,6 @@
 #include "lucid/core/cli/cli.h"
 
+#include <optional>
 #include <span>
 #include <sstream>
 #include <string>

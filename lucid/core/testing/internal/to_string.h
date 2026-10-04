@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <string_view>

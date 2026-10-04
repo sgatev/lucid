@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <format>
+#include <iostream>
 
 #include "lucid/compiler/compiler_test_fixture.h"
 #include "lucid/compiler/random_program.h"

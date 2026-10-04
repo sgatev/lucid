@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <format>
+#include <ios>
 #include <ostream>
 #include <streambuf>
 #include <string>

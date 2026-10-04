@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <ostream>
+#include <ratio>
 #include <string>
 #include <string_view>
 #include <system_error>

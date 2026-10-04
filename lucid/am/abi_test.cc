@@ -1,5 +1,8 @@
 #include "lucid/am/abi.h"
 
+#include <cstdint>
+#include <utility>
+
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_builder.h"
 #include "lucid/am/instructions.h"

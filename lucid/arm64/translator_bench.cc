@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <format>
 #include <optional>
 #include <string>
@@ -11,6 +12,7 @@
 
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
+#include "lucid/am/liveness.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
 #include "lucid/am/state.h"

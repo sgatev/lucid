@@ -2,6 +2,7 @@
 
 #include <sys/wait.h>
 
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>

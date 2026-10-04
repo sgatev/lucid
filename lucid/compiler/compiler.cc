@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <expected>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -16,8 +17,10 @@
 
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
+#include "lucid/am/liveness.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
+#include "lucid/am/state.h"
 #include "lucid/am/translator.h"
 #include "lucid/arm64/assembler.h"
 #include "lucid/arm64/macho.h"
@@ -28,6 +31,7 @@
 #include "lucid/syntax/buffered_lexer.h"
 #include "lucid/syntax/cfg.h"
 #include "lucid/syntax/comp.h"
+#include "lucid/syntax/context.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
 #include "lucid/syntax/scope.h"

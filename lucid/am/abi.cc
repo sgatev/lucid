@@ -1,5 +1,7 @@
 #include "lucid/am/abi.h"
 
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <list>
 #include <optional>

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -11,6 +12,7 @@
 
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/successive_list.h"
+#include "lucid/core/hash/hash.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/context.h"

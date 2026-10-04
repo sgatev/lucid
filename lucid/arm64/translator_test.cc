@@ -4,13 +4,16 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "lucid/am/cfg.h"
 #include "lucid/am/cfg_builder.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/state.h"
 #include "lucid/arm64/assembler.h"
+#include "lucid/core/string/index.h"
 #include "lucid/core/testing/testing.h"
 #include "lucid/syntax/context.h"
 

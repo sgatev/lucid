@@ -6,11 +6,15 @@
 #include <expected>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
 #include "lucid/am/cfg.h"
 #include "lucid/am/instructions.h"
+#include "lucid/am/state.h"
+#include "lucid/core/container/hash_map.h"
+#include "lucid/syntax/comp.h"
 
 namespace lucid {
 namespace {

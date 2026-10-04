@@ -8,6 +8,7 @@
 #include "lucid/core/container/hash_map.h"
 #include "lucid/syntax/cfg.h"
 #include "lucid/syntax/comp.h"
+#include "lucid/syntax/context.h"
 
 namespace lucid {
 

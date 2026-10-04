@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <expected>
 #include <optional>
 #include <string_view>
 #include <utility>
@@ -19,6 +20,8 @@
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
+#include "lucid/syntax/comp.h"
+#include "lucid/syntax/context.h"
 #include "lucid/vm/interpreter.h"
 
 namespace lucid {

@@ -9,6 +9,7 @@ cc_library(
     deps = [
         "//lucid/core/container:arena",
         "//lucid/core/container:successive_list",
+        "//lucid/core/hash",
         "//lucid/core/string:index",
     ],
 )
@@ -79,6 +80,7 @@ cc_library(
         ":context",
         "//lucid/core/container:arena",
         "//lucid/core/container:successive_list",
+        "//lucid/core/hash",
     ],
 )
 
@@ -248,6 +250,7 @@ cc_binary(
     ],
     deps = [
         ":buffered_lexer",
+        ":context",
         ":lexer",
         ":parser",
         ":token",
@@ -329,6 +332,7 @@ cc_library(
         ":context",
         "//lucid/core/container:hash_map",
         "//lucid/core/container:hash_set",
+        "//lucid/core/container:successive_list",
         "//lucid/core/string:index",
     ],
 )

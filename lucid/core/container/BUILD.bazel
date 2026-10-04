@@ -46,6 +46,7 @@ cc_test(
     srcs = ["hash_map_test.cc"],
     deps = [
         ":hash_map",
+        "//lucid/core/hash",
         "//lucid/core/testing",
     ],
 )
@@ -74,6 +75,7 @@ cc_test(
     srcs = ["hash_set_test.cc"],
     deps = [
         ":hash_set",
+        "//lucid/core/hash",
         "//lucid/core/testing",
     ],
 )

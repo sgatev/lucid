@@ -4,6 +4,8 @@
 #include <expected>
 #include <list>
 #include <optional>
+#include <string>
+#include <string_view>
 #include <utility>
 #include <variant>
 

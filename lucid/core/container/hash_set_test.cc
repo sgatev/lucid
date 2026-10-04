@@ -1,10 +1,12 @@
 #include "lucid/core/container/hash_set.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string_view>
 #include <utility>
 
+#include "lucid/core/hash/hash.h"
 #include "lucid/core/testing/testing.h"
 
 namespace lucid {

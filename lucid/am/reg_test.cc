@@ -1,7 +1,6 @@
 #include "lucid/am/reg.h"
 
 #include <cstddef>
-#include <format>
 #include <optional>
 #include <ranges>
 #include <string>
@@ -17,12 +16,14 @@
 #include "lucid/am/opt.h"
 #include "lucid/am/reg_programs.h"
 #include "lucid/am/reg_set.h"
+#include "lucid/am/state.h"
 #include "lucid/am/translator.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
 #include "lucid/syntax/comp.h"
+#include "lucid/syntax/context.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
 #include "lucid/syntax/ssa.h"

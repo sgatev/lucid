@@ -1,6 +1,7 @@
 #include "lucid/core/string/encoding.h"
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <string_view>
 #include <vector>

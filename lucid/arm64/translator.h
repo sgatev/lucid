@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view>
+#include <vector>
 
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
