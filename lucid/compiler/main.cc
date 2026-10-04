@@ -6,7 +6,6 @@
 #include <expected>
 #include <filesystem>
 #include <format>
-#include <iostream>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -19,7 +18,6 @@
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
 #include "lucid/am/cfg_printer.h"
-#include "lucid/am/ig.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
 #include "lucid/am/translator.h"
@@ -336,10 +334,9 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
       } else if (regs == "merge") {
         const AbstractMachineLiveness liveness =
             SpillRegisters(am_cfg, am_state, kArmRegistersCount);
-        InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg, liveness);
-        RegisterColors am_ig_colors =
-            ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
-        MergeRegisters(am_ig_colors, am_cfg);
+        const RegisterColors colors =
+            ColorRegisters(am_cfg, liveness, kArmRegistersCount);
+        MergeRegisters(colors, am_cfg);
       }
 
       if (has_printed_func) ctx.Out() << "\n";

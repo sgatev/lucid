@@ -11,9 +11,9 @@ namespace lucid {
 
 // A function of `count` values, each one feeding only the next.
 //
-// A value dies where the one after it is born, so few are ever live at once
-// and the interference graph stays sparse: what grows with `count` is the
-// number of registers in the graph rather than the edges between them.
+// A value dies where the one after it is born, so few are ever live at once:
+// what grows with `count` is the number of registers rather than how many
+// are live together.
 inline std::string ChainedValues(int count) {
   std::string code = "fun main(): Int32 {\n  val v0: Int32 = 1\n";
   for (int i = 1; i < count; ++i) {

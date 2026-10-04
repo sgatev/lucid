@@ -3,19 +3,22 @@
 #include <cstddef>
 #include <format>
 #include <optional>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
-#include "lucid/am/ig.h"
 #include "lucid/am/instructions.h"
+#include "lucid/am/liveness.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg_programs.h"
 #include "lucid/am/translator.h"
 #include "lucid/core/container/hash_map.h"
+#include "lucid/core/container/hash_set.h"
 #include "lucid/core/testing/testing.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
@@ -41,8 +44,8 @@ constexpr CallingConvention kCallingConvention = {
 class ColoringTest : public Test {
  protected:
   // What a colouring has to hold for, whatever order it takes the registers
-  // in: every register in the graph gets a colour, from the colours it was
-  // allowed, and no two registers that interfere share one.
+  // in: every register gets a colour, from the colours it was allowed, and no
+  // two registers live at the same point share one.
   void ExpectValidColoring(std::string_view source) {
     std::string code(source);
     code.append("\0"s);
@@ -74,38 +77,77 @@ class ColoringTest : public Test {
     const AbstractMachineLiveness liveness =
         SpillRegisters(am_cfg, am_state, kRegistersCount);
 
-    const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg, liveness);
     const RegisterColors colors =
-        ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount);
+        ColorRegisters(am_cfg, liveness, kRegistersCount);
+    const auto color = [&](Reg reg) {
+      const std::optional<int> color = colors.Get(reg);
+      EXPECT_TRUE(color.has_value());
+      if (color.has_value()) {
+        EXPECT_TRUE(*color >= 19);
+        EXPECT_TRUE(*color < 19 + kRegistersCount);
+      }
+      return color.value_or(-1);
+    };
+    // No two registers in `regs` share a colour.
+    const auto expect_apart = [&](const HashSet<Reg>& regs) {
+      for (Reg reg : regs) {
+        for (Reg other : regs) {
+          if (other != reg) EXPECT_NE(color(reg), color(other));
+        }
+      }
+    };
 
-    // Every parameter is live where the function is entered, because that is
-    // where the caller leaves it, so no two of them can share a colour
-    // whether or not the body reads them.
+    // Every parameter is written where the function is entered, one after
+    // another, so no two of them can share a colour whether or not the body
+    // reads them.
     const auto register_params = am_cfg.params;
     for (std::size_t i = 0; i < register_params.size(); ++i) {
-      const std::optional<int> color = colors.Get(register_params[i]);
-      ASSERT_TRUE(color.has_value());
-
       for (std::size_t j = i + 1; j < register_params.size(); ++j) {
-        const std::optional<int> other = colors.Get(register_params[j]);
-        ASSERT_TRUE(other.has_value());
-        EXPECT_NE(*color, *other);
+        EXPECT_NE(color(register_params[i]), color(register_params[j]));
       }
     }
 
-    for (Reg reg : am_ig.Regs()) {
-      const std::optional<int> color = colors.Get(reg);
-      EXPECT_TRUE(color.has_value());
-      if (!color.has_value()) continue;
-
-      EXPECT_TRUE(*color >= 19);
-      EXPECT_TRUE(*color < 19 + kRegistersCount);
-
-      for (Reg neighbour : am_ig.Neighbours(reg)) {
-        const std::optional<int> neighbour_color = colors.Get(neighbour);
-        if (!neighbour_color.has_value()) continue;
-        EXPECT_NE(*color, *neighbour_color);
+    // Only what control can come to is held to this: every block has an
+    // answer in `liveness`, reached or not.
+    std::vector<bool> reached(am_cfg.Blocks().Size(), false);
+    std::vector<AbstractMachineControlFlowGraph::BlockRef> to_visit = {
+        am_cfg.first};
+    reached[am_cfg.first.id()] = true;
+    while (!to_visit.empty()) {
+      const auto ref = to_visit.back();
+      to_visit.pop_back();
+      for (const auto succ : am_cfg.GetBlock(ref).succs) {
+        if (reached[succ.id()]) continue;
+        reached[succ.id()] = true;
+        to_visit.push_back(succ);
       }
+    }
+
+    for (const auto& block : am_cfg.Blocks()) {
+      if (!reached[block.ref.id()]) continue;
+
+      // The walk backwards over the block starts from what is live where it
+      // exits, which takes in what the branch reads there.
+      HashSet<Reg> live = LiveOut(am_cfg, liveness, block);
+      if (block.branch_cond.has_value()) live.Insert(*block.branch_cond);
+      expect_apart(live);
+
+      for (const auto& inst : block.instructions | std::views::reverse) {
+        // What an instruction writes is apart from everything live after it,
+        // whether or not anything reads it.
+        if (auto target = GetTargetRegister(inst); target.has_value()) {
+          for (Reg reg : live) {
+            if (reg != *target) EXPECT_NE(color(*target), color(reg));
+          }
+        }
+        AbstractMachineLivenessAnalysis::TransferLive(live, inst);
+        expect_apart(live);
+      }
+
+      // The phi functions settle on their results together where the block
+      // starts, beside everything live into it.
+      for (const auto& phi : block.phis) live.Insert(phi.dst);
+      expect_apart(live);
     }
   }
 };

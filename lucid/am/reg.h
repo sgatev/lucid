@@ -6,12 +6,9 @@
 #include <vector>
 
 #include "lucid/am/cfg.h"
-#include "lucid/am/ig.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/liveness.h"
 #include "lucid/am/state.h"
-#include "lucid/core/container/hash_map.h"
-#include "lucid/core/container/hash_set.h"
 
 namespace lucid {
 
@@ -20,7 +17,7 @@ namespace lucid {
 //
 // Deciding what to spill is mostly a matter of working out what is live
 // where, and the answer that ends it is the answer for the graph as it is
-// left, which is what an interference graph over it is built from.
+// left, which is what colouring its registers goes by.
 AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
                                        AbstractMachineState& am_state,
                                        int max_clique_size);
@@ -50,16 +47,22 @@ class RegisterColors {
   std::vector<int> colors_by_id_;
 };
 
-// Gives every register in `am_ig` one of `colors_count` colours, none shared
-// by two registers that interfere.
+// Gives every register in `am_cfg` one of `colors_count` colours, none shared
+// by two registers live at the same point, given the `liveness` the spilling
+// left it with.
+//
+// The registers are taken in the order the blocks are dominated in, each
+// given the lowest colour free where it is written. In strict single
+// assignment form that never needs more colours than the most registers live
+// at any one point, which the spilling has brought down to `colors_count`,
+// so no graph of which registers interfere is needed.
 //
 // Requires:
-// - `am_cfg` must be in strict single assignment form, which is what lets its
-//   registers be coloured in the order its dominator tree has them in. See
-//   `CheckStrictSsa`.
-RegisterColors ColorInterferenceGraph(
-    const AbstractMachineControlFlowGraph& am_cfg,
-    const InterferenceGraph& am_ig, int colors_count);
+// - `am_cfg` must be in strict single assignment form. See `CheckStrictSsa`.
+// - `liveness` must be what is live where each block of `am_cfg` starts.
+RegisterColors ColorRegisters(const AbstractMachineControlFlowGraph& am_cfg,
+                              const AbstractMachineLiveness& liveness,
+                              int colors_count);
 
 void MergeRegisters(const RegisterColors& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg);

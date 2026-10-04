@@ -49,6 +49,12 @@ class AbstractMachineControlFlowGraphBuilder {
     am_cfg_.GetBlock(ref).phis.push_back(std::move(phi));
   }
 
+  // Has the control flow graph block branch on `reg` where it ends.
+  void SetBranchCond(AbstractMachineControlFlowGraph::BlockRef ref, Reg reg) {
+    TakeRegisterId(reg);
+    am_cfg_.GetBlock(ref).branch_cond = reg;
+  }
+
   // Marks the first block of the control flow graph.
   void SetFirst(AbstractMachineControlFlowGraph::BlockRef ref) {
     am_cfg_.first = ref;

@@ -16,7 +16,6 @@
 
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
-#include "lucid/am/ig.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
 #include "lucid/am/translator.h"
@@ -149,10 +148,9 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       static constexpr int kArmRegistersCount = 10;
       const AbstractMachineLiveness liveness =
           SpillRegisters(am_cfg, am_state, kArmRegistersCount);
-      InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg, liveness);
-      RegisterColors am_ig_colors =
-          ColorInterferenceGraph(am_cfg, am_ig, kArmRegistersCount);
-      MergeRegisters(am_ig_colors, am_cfg);
+      const RegisterColors colors =
+          ColorRegisters(am_cfg, liveness, kArmRegistersCount);
+      MergeRegisters(colors, am_cfg);
       GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func_def->name),
                                 am_cfg.stack_slots, layout, am_cfg, assembler);
     } else if (const auto* type_def = std::get_if<TypeDefStmt>(&defs.back())) {

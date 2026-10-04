@@ -9,7 +9,6 @@ cc_library(
     deps = [
         "//lucid/am:abi",
         "//lucid/am:cfg",
-        "//lucid/am:ig",
         "//lucid/am:opt",
         "//lucid/am:reg",
         "//lucid/am:translator",
@@ -41,7 +40,6 @@ cc_binary(
         "//lucid/am:abi",
         "//lucid/am:cfg",
         "//lucid/am:cfg_printer",
-        "//lucid/am:ig",
         "//lucid/am:opt",
         "//lucid/am:reg",
         "//lucid/am:translator",

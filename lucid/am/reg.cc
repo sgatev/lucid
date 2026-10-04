@@ -9,10 +9,8 @@
 #include <limits>
 #include <list>
 #include <optional>
-#include <ranges>
 #include <span>
 #include <tuple>
-#include <variant>
 #include <vector>
 
 #include "lucid/am/cfg.h"
@@ -60,6 +58,80 @@ std::optional<Reg> RegReadFurthestAhead(
   return furthest;
 }
 
+// Returns where each register is next read in `block`, counting from the
+// instruction at `from`, which is the `index`th of the block.
+HashMap<Reg, std::size_t> NextReads(
+    const AbstractMachineControlFlowGraph::Block& block,
+    std::list<Instruction>::const_iterator from, std::size_t index) {
+  HashMap<Reg, std::size_t> next_read;
+  for (auto it = from; it != block.instructions.end(); ++it, ++index) {
+    // The first read found is the next one, and `Insert` keeps it.
+    ForEachSourceRegister(*it, [&](Reg reg) { next_read.Insert(reg, index); });
+  }
+  return next_read;
+}
+
+// Returns the register to spill at the first point in `block` where more is
+// live than `max_clique_size`, walking it backwards from where it exits.
+//
+// `live` is only somewhere to keep what is live as the walk goes, handed in
+// so that one set serves every block.
+std::optional<Reg> FindRegToSpillInBlock(
+    const AbstractMachineControlFlowGraph& am_cfg,
+    const AbstractMachineLiveness& liveness,
+    const AbstractMachineControlFlowGraph::Block& block,
+    const HashSet<Reg>& spilled, int max_clique_size, RegSet& live) {
+  // The walk starts from what is live where the block exits, and what the
+  // branch reads there, and carries what is live at each instruction with it.
+  live.Clear();
+  for (Reg reg : LiveOut(am_cfg, liveness, block)) live.Insert(reg);
+  if (block.branch_cond.has_value()) live.Insert(*block.branch_cond);
+
+  // Returns the register to spill at the point the walk has reached, which
+  // is ahead of the instruction at `from`, the `index`th of the block.
+  //
+  // An over full point always has one, unless everything live there is
+  // spilled already and the spilling bought no room. That happens to a value
+  // live across a phi function, which spilling does not yet reach. See
+  // TODO.md.
+  //
+  // Where each register is next read is worked out here, from that point on,
+  // rather than kept up at every instruction the walk passes. The walk stops
+  // at the first point over full, and many reach none at all.
+  const auto reg_to_spill = [&](std::list<Instruction>::const_iterator from,
+                                std::size_t index) {
+    return RegReadFurthestAhead(live, NextReads(block, from, index), spilled)
+        .value();
+  };
+
+  // True where more is live at the point the walk has reached than there are
+  // registers to hold it.
+  const auto over_full = [&] {
+    return live.size() > static_cast<std::size_t>(max_clique_size);
+  };
+
+  if (over_full()) {
+    return reg_to_spill(block.instructions.end(), block.instructions.size());
+  }
+
+  std::size_t index = block.instructions.size();
+  for (auto it = block.instructions.rbegin(); it != block.instructions.rend();
+       ++it) {
+    --index;
+
+    AbstractMachineLivenessAnalysis::TransferLive(live, *it);
+
+    if (over_full()) return reg_to_spill(std::prev(it.base()), index);
+  }
+
+  if (block.ref == am_cfg.first) {
+    for (Reg param : am_cfg.params) live.Insert(param);
+
+    if (over_full()) return reg_to_spill(block.instructions.begin(), 0);
+  }
+  return std::nullopt;
+}
+
 // Returns the register to spill at the first point where more is live than
 // `max_clique_size`, looking from the block at `first_block` among the
 // blocks of `am_cfg` on, and leaves `first_block` at the block it was found
@@ -85,58 +157,9 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
     const auto& block = *(blocks.begin() + first_block);
     if (!liveness[block.ref.id()].has_value()) continue;
 
-    // The walk backwards over the block starts from what is live where it
-    // exits, and carries what is live at each instruction with it.
-    live.Clear();
-    for (Reg reg : LiveOut(am_cfg, liveness, block)) live.Insert(reg);
-
-    // Returns the register to spill at the point the walk has reached, which
-    // is ahead of the instruction at `from`, the `index`th of the block.
-    //
-    // An over full point always has one, unless everything live there is
-    // spilled already and the spilling bought no room. That happens to a
-    // value live across a phi function, which spilling does not yet reach.
-    // See TODO.md.
-    //
-    // Where each register is next read is worked out here, from that point
-    // on, rather than kept up at every instruction the walk passes. The walk
-    // stops at the first point over full, and many reach none at all.
-    const auto reg_to_spill = [&](std::list<Instruction>::const_iterator from,
-                                  std::size_t index) {
-      HashMap<Reg, std::size_t> next_read;
-      for (auto it = from; it != block.instructions.end(); ++it, ++index) {
-        // The first read found is the next one, and `Insert` keeps it.
-        ForEachSourceRegister(*it,
-                              [&](Reg reg) { next_read.Insert(reg, index); });
-      }
-      return RegReadFurthestAhead(live, next_read, spilled).value();
-    };
-
-    // True where more is live at the point the walk has reached than there
-    // are registers to hold it.
-    const auto over_full = [&] {
-      return live.size() > static_cast<std::size_t>(max_clique_size);
-    };
-
-    if (over_full()) {
-      return reg_to_spill(block.instructions.end(), block.instructions.size());
-    }
-
-    std::size_t index = block.instructions.size();
-    for (auto it = block.instructions.rbegin(); it != block.instructions.rend();
-         ++it) {
-      --index;
-
-      AbstractMachineLivenessAnalysis::TransferLive(live, *it);
-
-      if (over_full()) return reg_to_spill(std::prev(it.base()), index);
-    }
-
-    if (block.ref == am_cfg.first) {
-      for (Reg param : am_cfg.params) live.Insert(param);
-
-      if (over_full()) return reg_to_spill(block.instructions.begin(), 0);
-    }
+    const std::optional<Reg> reg = FindRegToSpillInBlock(
+        am_cfg, liveness, block, spilled, max_clique_size, live);
+    if (reg.has_value()) return reg;
   }
   return std::nullopt;
 }
@@ -439,6 +462,197 @@ bool MatchesFreshAnalysis(const AbstractMachineControlFlowGraph& am_cfg,
   return true;
 }
 
+// Colours as a bit each, lowest first. There are no more of them than there
+// are registers to give, so they all fit in one word.
+using Colors = std::uint64_t;
+
+// The colour each register has been given so far, by register id.
+class Coloring {
+ public:
+  Coloring(std::size_t reg_ids, int colors_count)
+      : colors_(reg_ids, RegisterColors::kNone),
+        all_colors_(colors_count == 64 ? ~Colors{0}
+                                       : (Colors{1} << colors_count) - 1) {}
+
+  // Returns the colour `reg` has been given, as a bit.
+  Colors Bit(Reg reg) const {
+    assert(colors_[reg.id] != RegisterColors::kNone);
+    return Colors{1} << (colors_[reg.id] - kFirstColor);
+  }
+
+  // Gives `reg` the lowest colour not in `taken`, and takes it.
+  //
+  // There being none left means more is live at once than there are
+  // registers to hold it, which the spilling was meant to have seen to.
+  // Checked in every build: the colours are what the code is written
+  // against, so taking one that was not free is wrong code rather than a
+  // slower answer.
+  void Take(Reg reg, Colors& taken) {
+    const Colors free = all_colors_ & ~taken;
+    const std::optional<int> color =
+        free == 0 ? std::nullopt : std::optional<int>(std::countr_zero(free));
+    colors_[reg.id] = kFirstColor + color.value();
+    taken |= Bit(reg);
+  }
+
+  // Gives `reg` a colour if it has none yet, whichever one.
+  void TakeAny(Reg reg) {
+    if (colors_[reg.id] == RegisterColors::kNone) colors_[reg.id] = kFirstColor;
+  }
+
+  RegisterColors Finalize() && { return RegisterColors(std::move(colors_)); }
+
+ private:
+  // The colours are the registers from 19 on, which a call hands back as it
+  // found them.
+  static constexpr int kFirstColor = 19;
+
+  std::vector<int> colors_;
+  Colors all_colors_;
+};
+
+// Where in a block each register is read for the last time, and whether it
+// is live where the block exits, by register id. It is filled for one block
+// and emptied again after it, so the slots for every register are made once
+// rather than once for each block.
+class LastReads {
+ public:
+  explicit LastReads(std::size_t reg_ids)
+      : last_read_(reg_ids, -1), live_out_(reg_ids, false) {}
+
+  void Fill(const AbstractMachineControlFlowGraph& am_cfg,
+            const AbstractMachineLiveness& liveness,
+            const AbstractMachineControlFlowGraph::Block& block) {
+    std::int32_t at = 0;
+    for (const auto& inst : block.instructions) {
+      ForEachSourceRegister(inst, [&](Reg reg) { Mark(reg).last_read = at; });
+      ++at;
+    }
+    // The branch reads what it decides on after everything the block does.
+    if (block.branch_cond.has_value()) Mark(*block.branch_cond).last_read = at;
+    for (Reg reg : LiveOut(am_cfg, liveness, block)) {
+      Mark(reg).live_out = true;
+    }
+  }
+
+  void Clear() {
+    for (Reg reg : marked_) {
+      last_read_[reg.id] = -1;
+      live_out_[reg.id] = false;
+    }
+    marked_.clear();
+  }
+
+  // Whether the block reads `reg` for the last time at `at`, and so frees
+  // its colour there.
+  bool DiesAt(Reg reg, std::int32_t at) const {
+    return !live_out_[reg.id] && last_read_[reg.id] == at;
+  }
+
+  // Whether nothing reads `reg` after it is written in the block. A register
+  // is read only after it is written, so any read the block holds of it
+  // stands later.
+  bool Unread(Reg reg) const {
+    return !live_out_[reg.id] && last_read_[reg.id] < 0;
+  }
+
+ private:
+  struct Slots {
+    std::int32_t& last_read;
+    std::vector<bool>::reference live_out;
+  };
+
+  Slots Mark(Reg reg) {
+    marked_.push_back(reg);
+    return {last_read_[reg.id], live_out_[reg.id]};
+  }
+
+  std::vector<std::int32_t> last_read_;
+  std::vector<bool> live_out_;
+  std::vector<Reg> marked_;
+};
+
+// Returns which blocks of `am_cfg` control can come to, by block id.
+std::vector<bool> ReachedBlocks(const AbstractMachineControlFlowGraph& am_cfg) {
+  std::vector<bool> reached(am_cfg.Blocks().Size(), false);
+  std::vector<AbstractMachineControlFlowGraph::BlockRef> to_visit = {
+      am_cfg.first};
+  reached[am_cfg.first.id()] = true;
+  while (!to_visit.empty()) {
+    const auto ref = to_visit.back();
+    to_visit.pop_back();
+    for (const auto succ : am_cfg.GetBlock(ref).succs) {
+      if (reached[succ.id()]) continue;
+      reached[succ.id()] = true;
+      to_visit.push_back(succ);
+    }
+  }
+  return reached;
+}
+
+// Colours every register `block` writes, keeping clear of the colours of
+// what is live into it, which its dominators have already given out.
+void ColorBlock(const AbstractMachineControlFlowGraph& am_cfg,
+                const AbstractMachineLiveness& liveness,
+                const AbstractMachineControlFlowGraph::Block& block,
+                const LastReads& reads, Coloring& coloring) {
+  Colors taken = 0;
+  // The parameters are written where the function is entered, one after
+  // another, so each has a colour of its own whether or not anything reads
+  // it, and one that nothing reads gives its colour back once they all have
+  // theirs.
+  if (block.ref == am_cfg.first) {
+    for (Reg param : am_cfg.params) coloring.Take(param, taken);
+    for (Reg param : am_cfg.params) {
+      if (reads.Unread(param)) taken &= ~coloring.Bit(param);
+    }
+  }
+  for (Reg reg : liveness[block.ref.id()]->live_in) taken |= coloring.Bit(reg);
+
+  // The phi functions settle on their results together where the block
+  // starts, beside everything live into it.
+  for (const auto& phi : block.phis) coloring.Take(phi.dst, taken);
+  for (const auto& phi : block.phis) {
+    if (reads.Unread(phi.dst)) taken &= ~coloring.Bit(phi.dst);
+  }
+
+  // A register an instruction reads for the last time frees its colour for
+  // the one the instruction writes, as nothing reads it after.
+  std::int32_t at = 0;
+  for (const auto& inst : block.instructions) {
+    ForEachSourceRegister(inst, [&](Reg reg) {
+      if (reads.DiesAt(reg, at)) taken &= ~coloring.Bit(reg);
+    });
+    if (const Reg* target = TargetRegister(inst)) {
+      coloring.Take(*target, taken);
+      if (reads.Unread(*target)) taken &= ~coloring.Bit(*target);
+    }
+    ++at;
+  }
+}
+
+// Gives a colour to every register named in a block nothing reaches. Such a
+// block is never run, but it is still written out, so what it names needs a
+// colour, and any will do.
+void ColorUnreachedBlocks(const AbstractMachineControlFlowGraph& am_cfg,
+                          const std::vector<bool>& reached,
+                          Coloring& coloring) {
+  const auto any_color = [&](Reg reg) { coloring.TakeAny(reg); };
+  for (const auto& block : am_cfg.Blocks()) {
+    if (reached[block.ref.id()]) continue;
+
+    for (const auto& phi : block.phis) {
+      any_color(phi.dst);
+      for (Reg src : phi.srcs) any_color(src);
+    }
+    for (const auto& inst : block.instructions) {
+      ForEachSourceRegister(inst, any_color);
+      if (const Reg* target = TargetRegister(inst)) any_color(*target);
+    }
+    if (block.branch_cond.has_value()) any_color(*block.branch_cond);
+  }
+}
+
 }  // namespace
 
 AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
@@ -486,134 +700,36 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
   }
 }
 
-RegisterColors ColorInterferenceGraph(
-    const AbstractMachineControlFlowGraph& am_cfg,
-    const InterferenceGraph& am_ig, int colors_count) {
+RegisterColors ColorRegisters(const AbstractMachineControlFlowGraph& am_cfg,
+                              const AbstractMachineLiveness& liveness,
+                              int colors_count) {
   assert(CheckStrictSsa(am_cfg).has_value());
+  assert(colors_count > 0 && colors_count <= 64);
 
-  HashMap<Reg, int> reg_scores;
-  for (Reg param : am_cfg.params) {
-    reg_scores.Insert(param, 0);
+  Coloring coloring(am_cfg.next_free_reg_id, colors_count);
+  LastReads reads(am_cfg.next_free_reg_id);
+
+  const std::vector<bool> reached = ReachedBlocks(am_cfg);
+
+  // The blocks in reverse post-order, which comes to every block after all
+  // of those that dominate it. A register live where a block starts is
+  // written in one of those, so it has its colour by the time the block is
+  // reached, and the colours of what is live there are what the block has
+  // to keep clear of.
+  std::vector<AbstractMachineControlFlowGraph::BlockRef> order =
+      Vertices(am_cfg);
+  std::sort(order.begin(), order.end(), CompareReversePostOrder(am_cfg));
+  for (const auto ref : order) {
+    if (!reached[ref.id()]) continue;
+    const auto& block = am_cfg.GetBlock(ref);
+
+    reads.Fill(am_cfg, liveness, block);
+    ColorBlock(am_cfg, liveness, block, reads, coloring);
+    reads.Clear();
   }
-  for (const auto& block : am_cfg.Blocks()) {
-    for (const auto& inst : block.instructions) {
-      if (const Reg* target = TargetRegister(inst)) {
-        reg_scores.Insert(*target, 0);
-      }
-      ForEachSourceRegister(inst, [&](Reg reg) { reg_scores.Insert(reg, 0); });
-    }
-    for (const auto& phi : block.phis) {
-      reg_scores.Insert(phi.dst, 0);
-      for (const auto& source : phi.srcs) reg_scores.Insert(source, 0);
-    }
-    if (block.branch_cond.has_value()) {
-      reg_scores.Insert(*block.branch_cond, 0);
-    }
-  }
+  ColorUnreachedBlocks(am_cfg, reached, coloring);
 
-  // The registers in the order they are coloured in: each one taken has as
-  // many already-taken neighbours as any register still to come.
-  //
-  // A register waits in the bucket of its score rather than being looked for
-  // among all of them. Taking one raises each of its neighbours by a single
-  // bucket, so the bucket to take from rises only when a register moves up
-  // and falls only as buckets empty. That is one move per edge and one step
-  // per register over the whole ordering, where searching for the highest
-  // score meant reading every register still in the running for every
-  // register taken.
-  const std::size_t regs_count = reg_scores.size();
-
-  // What each register scores, where it sits in its bucket, and whether it
-  // has been taken, all held by register id rather than in a table keyed by
-  // the register: the ids run from zero without gaps, so an index reaches
-  // them, and each of these is read once per edge of the graph.
-  const std::size_t reg_ids = am_cfg.next_free_reg_id;
-  std::vector<int> scores(reg_ids, -1);
-  std::vector<std::size_t> slots(reg_ids, 0);
-  std::vector<bool> taken(reg_ids, false);
-
-  // A score counts neighbours already taken, so none can reach the number of
-  // registers there are.
-  std::vector<std::vector<Reg>> buckets(regs_count + 1);
-  for (const auto& [reg, score] : reg_scores) {
-    slots[reg.id] = buckets[0].size();
-    scores[reg.id] = 0;
-    buckets[0].push_back(reg);
-  }
-
-  // Moves `reg` from the bucket of `score` to the one above it. The register
-  // that was last in the bucket takes its place, so neither move is a search.
-  const auto raise = [&](Reg reg, int score) {
-    std::vector<Reg>& bucket = buckets[score];
-    const std::size_t slot = slots[reg.id];
-    bucket[slot] = bucket.back();
-    slots[bucket[slot].id] = slot;
-    bucket.pop_back();
-
-    slots[reg.id] = buckets[score + 1].size();
-    buckets[score + 1].push_back(reg);
-  };
-
-  std::vector<Reg> seo;
-  seo.reserve(regs_count);
-  std::size_t top = 0;
-  while (seo.size() < regs_count) {
-    while (buckets[top].empty()) --top;
-
-    const Reg max_reg = buckets[top].back();
-    buckets[top].pop_back();
-
-    seo.push_back(max_reg);
-    taken[max_reg.id] = true;
-
-    for (Reg nb : am_ig.Neighbours(max_reg)) {
-      if (taken[nb.id]) continue;
-      const int nb_score = scores[nb.id];
-      if (nb_score < 0) continue;
-
-      raise(nb, nb_score);
-      scores[nb.id] = nb_score + 1;
-      // Everything still waiting scored at most `top` before this, so a
-      // register can only ever be raised to the bucket just above it.
-      top = std::max<std::size_t>(top, static_cast<std::size_t>(nb_score) + 1);
-    }
-  }
-
-  // Which colour each register took, by register id, and none to begin with.
-  // A colour is read once per edge of the graph, which is what makes this
-  // worth an index rather than a hash.
-  static constexpr int kNoColor = RegisterColors::kNone;
-  std::vector<int> colors_by_reg(reg_ids, kNoColor);
-
-  for (Reg reg : seo) {
-    // The colours still free, a bit each, lowest first. There are no more of
-    // them than there are registers to give, so they all fit in one word.
-    std::uint64_t free_colors = colors_count >= 64
-                                    ? ~std::uint64_t{0}
-                                    : (std::uint64_t{1} << colors_count) - 1;
-
-    for (Reg nb : am_ig.Neighbours(reg)) {
-      const int neighbour_color = colors_by_reg[nb.id];
-      if (neighbour_color != kNoColor) {
-        free_colors &= ~(std::uint64_t{1} << (neighbour_color - 19));
-      }
-    }
-
-    // The lowest of the colours left, which is what the register takes.
-    //
-    // There being none left means this register interferes with one of every
-    // colour, which is more live at once than there are registers to hold it
-    // and something the spilling was meant to have seen to. Checked in every
-    // build: the colours are what the code is written against, so taking one
-    // that was not free is wrong code rather than a slower answer.
-    const std::optional<int> color =
-        free_colors == 0
-            ? std::nullopt
-            : std::optional<int>(19 + std::countr_zero(free_colors));
-    colors_by_reg[reg.id] = color.value();
-  }
-
-  return RegisterColors(std::move(colors_by_reg));
+  return std::move(coloring).Finalize();
 }
 
 void UpdateRegister(const RegisterColors& reg_colors, Reg& reg) {

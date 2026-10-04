@@ -58,6 +58,11 @@ State AbstractMachineLivenessAnalysis::Transfer(
     state.live_in = std::move(prior_state->live_in);
     AddPhiSources(am_cfg_, block, state.live_in);
   }
+  // The branch reads what it decides on where the block ends, after
+  // everything the block does, so that is live to the end. An instruction
+  // can follow the one that works it out, as the copy a short circuit makes
+  // of a value it has already decided on does.
+  if (block.branch_cond.has_value()) state.live_in.Insert(*block.branch_cond);
   for (const auto& inst : block.instructions | std::views::reverse) {
     Transfer(state, inst);
   }

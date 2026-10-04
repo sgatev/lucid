@@ -247,5 +247,42 @@ TEST(Test, AbstractMachineLivenessAnalysisSkipBlockUse) {
   EXPECT_THAT(result.live_out(z), IsEmpty());
 }
 
+// The branch at the end of a block reads what it decides on after everything
+// the block does, so that is live through the block even when something
+// follows the instruction that worked it out, and live into the block when
+// it was worked out before.
+TEST(Test, AbstractMachineLivenessAnalysisBranchReadsItsCondition) {
+  LivenessAnalysisGraphBuilder g;
+
+  auto a = g.AddBlock();
+  auto b = g.AddBlock();
+  auto c = g.AddBlock();
+  auto z = g.AddBlock();
+
+  g.SetFirst(a);
+  g.AddInstruction(a, SetReg{
+                          .src_val = 1,
+                          .dst_reg = Reg(1),
+                      });
+  g.AddEdge(a, b);
+
+  g.AddInstruction(b, SetReg{
+                          .src_val = 2,
+                          .dst_reg = Reg(2),
+                      });
+  g.SetBranchCond(b, Reg(1));
+  g.AddEdge(b, c);
+  g.AddEdge(b, z);
+  g.AddEdge(c, z);
+
+  g.SetLast(z);
+
+  LivenessAnalysisGraphBuilder::Result result = std::move(g).run();
+
+  EXPECT_THAT(result.live_out(a), UnorderedElementsEqual(Reg(1)));
+  EXPECT_THAT(result.live_in(b), UnorderedElementsEqual(Reg(1)));
+  EXPECT_THAT(result.live_out(b), IsEmpty());
+}
+
 }  // namespace
 }  // namespace lucid

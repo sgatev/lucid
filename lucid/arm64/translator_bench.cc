@@ -11,8 +11,6 @@
 
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
-#include "lucid/am/ig.h"
-#include "lucid/am/instructions.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
 #include "lucid/am/state.h"
@@ -21,7 +19,6 @@
 #include "lucid/arm64/translator.h"
 #include "lucid/core/benchmarking/benchmarking.h"
 #include "lucid/core/container/hash_map.h"
-#include "lucid/core/container/hash_set.h"
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/cfg.h"
 #include "lucid/syntax/comp.h"
@@ -132,10 +129,10 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet,
   OptimizeAbstractMachineFunction(am_cfg);
   const FrameLayout layout =
       LowerCallingConvention(am_cfg, kArm64CallingConvention);
-  SpillRegisters(am_cfg, am_state, kRegistersCount);
-  const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg);
+  const AbstractMachineLiveness liveness =
+      SpillRegisters(am_cfg, am_state, kRegistersCount);
   const RegisterColors colors =
-      ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount);
+      ColorRegisters(am_cfg, liveness, kRegistersCount);
   MergeRegisters(colors, am_cfg);
 
   const std::string func_name(syn_ctx.DerefIdent(func_def.name));

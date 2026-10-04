@@ -10,7 +10,6 @@
 
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
-#include "lucid/am/ig.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/opt.h"
 #include "lucid/am/reg.h"
@@ -82,19 +81,19 @@ void WithAbstractMachineFunction(std::string_view snippet, BenchmarkT run) {
   run(am_cfg, am_state);
 }
 
-// Measures colouring on its own, over a graph that is built once.
+// Measures colouring on its own, over a function that is spilled once.
 //
-// Colouring reads the graph and returns a map of its own, so an iteration
-// leaves nothing behind for the next one to find.
+// Colouring reads the function and what is live in it, and returns colours of
+// its own, so an iteration leaves nothing behind for the next one to find.
 void BenchmarkColoring(BenchmarkState& state, std::string_view snippet) {
   WithAbstractMachineFunction(
       snippet, [&](AbstractMachineControlFlowGraph& am_cfg,
                    AbstractMachineState& am_state) {
-        SpillRegisters(am_cfg, am_state, kRegistersCount);
-        const InterferenceGraph am_ig = BuildInterferenceGraph(am_cfg);
+        const AbstractMachineLiveness liveness =
+            SpillRegisters(am_cfg, am_state, kRegistersCount);
 
         for (auto _ : state) {
-          DoNotOptimize(ColorInterferenceGraph(am_cfg, am_ig, kRegistersCount));
+          DoNotOptimize(ColorRegisters(am_cfg, liveness, kRegistersCount));
         }
       });
 
@@ -102,27 +101,7 @@ void BenchmarkColoring(BenchmarkState& state, std::string_view snippet) {
                           std::int64_t(snippet.size()));
 }
 
-// Measures building the interference graph on its own, over a function that
-// is spilled once.
-//
-// Building reads the function and returns a graph of its own, so an iteration
-// leaves nothing behind for the next one to find.
-void BenchmarkBuildingGraph(BenchmarkState& state, std::string_view snippet) {
-  WithAbstractMachineFunction(
-      snippet, [&](AbstractMachineControlFlowGraph& am_cfg,
-                   AbstractMachineState& am_state) {
-        SpillRegisters(am_cfg, am_state, kRegistersCount);
-
-        for (auto _ : state) {
-          DoNotOptimize(BuildInterferenceGraph(am_cfg).size());
-        }
-      });
-
-  state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
-                          std::int64_t(snippet.size()));
-}
-
-// Measures allocation whole: spilling, the graph, colouring and the rewrite.
+// Measures allocation whole: spilling, colouring and the rewrite.
 //
 // Spilling and the rewrite both change the function, so each iteration works
 // on a copy of it. The copy is measured along with the rest, which is what
@@ -137,9 +116,8 @@ void BenchmarkAllocation(BenchmarkState& state, std::string_view snippet) {
 
           const AbstractMachineLiveness liveness =
               SpillRegisters(cfg, reg_state, kRegistersCount);
-          const InterferenceGraph ig = BuildInterferenceGraph(cfg, liveness);
           const RegisterColors colors =
-              ColorInterferenceGraph(cfg, ig, kRegistersCount);
+              ColorRegisters(cfg, liveness, kRegistersCount);
           MergeRegisters(colors, cfg);
           DoNotOptimize(colors);
         }
@@ -149,51 +127,39 @@ void BenchmarkAllocation(BenchmarkState& state, std::string_view snippet) {
                           std::int64_t(snippet.size()));
 }
 
-// Colouring over a sparse graph, at three sizes.
+// Colouring over a chain of values, few of them live at once, at three sizes.
 //
-// The three read together: the ordering that colouring starts from picks the
-// highest-scoring register by scanning every register still in the running,
-// so the cost of one is expected to grow faster than the size of the graph.
+// The three read together: colouring takes each register once, where it is
+// written, so the cost is expected to grow with the size of the function and
+// no faster.
 BENCHMARK(ColorChain64) { BenchmarkColoring(state, ChainedValues(64)); }
 
 BENCHMARK(ColorChain256) { BenchmarkColoring(state, ChainedValues(256)); }
 
 BENCHMARK(ColorChain512) { BenchmarkColoring(state, ChainedValues(512)); }
 
-// Colouring over a dense graph, where every register interferes with the rest.
+// Colouring over values that are all live at once, until the spilling puts
+// all but as many as there are registers away.
 BENCHMARK(ColorLive64) { BenchmarkColoring(state, LiveValues(64)); }
-
-// Building the graph, over a sparse graph at two sizes and a dense one.
-//
-// What it costs is set by how many registers are live at once rather than by
-// how many there are, so the dense case is the one that moves.
-BENCHMARK(BuildIgChain256) {
-  BenchmarkBuildingGraph(state, ChainedValues(256));
-}
-
-BENCHMARK(BuildIgChain512) {
-  BenchmarkBuildingGraph(state, ChainedValues(512));
-}
-
-BENCHMARK(BuildIgLive64) { BenchmarkBuildingGraph(state, LiveValues(64)); }
 
 // Allocation whole, for what a change to colouring is worth in context.
 BENCHMARK(AllocateChain256) { BenchmarkAllocation(state, ChainedValues(256)); }
 
 BENCHMARK(AllocateLive64) { BenchmarkAllocation(state, LiveValues(64)); }
 
-// Building the graph over a run of branches with nothing to spill, so that
-// what is measured is the analysis joining at every place the sides meet,
-// which straight-line code never asks of it. Seven values crossing is as many
-// as fit: the condition and what each side adds take the rest.
-BENCHMARK(BuildIgDiamonds30) {
-  BenchmarkBuildingGraph(state, Diamonds(/*count=*/30, /*crossing=*/7));
+// Colouring over a run of branches with nothing to spill, so that what is
+// measured includes a phi function at every place the sides meet, which
+// straight-line code never has. Seven values crossing is as many as fit: the
+// condition and what each side adds take the rest.
+BENCHMARK(ColorDiamonds30) {
+  BenchmarkColoring(state, Diamonds(/*count=*/30, /*crossing=*/7));
 }
 
 // Allocation over runs of branches with more crossing each of them than
-// there are registers, at two lengths. Spilling searches the whole function
-// again after each value it puts away, so the two read together say how
-// that grows with the length of the function.
+// there are registers, at two lengths. Read together they say how allocation
+// grows with the length of the function, which spilling once made grow far
+// faster than the function did, by searching all of it again after each value
+// it put away.
 BENCHMARK(AllocateDiamonds15) {
   BenchmarkAllocation(state, Diamonds(/*count=*/15, /*crossing=*/12));
 }
