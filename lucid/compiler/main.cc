@@ -37,6 +37,20 @@
 namespace lucid {
 namespace {
 
+// Returns `path` resolved against the directory the compiler was asked to
+// work in. Under `bazel run` that is the directory the command was typed in,
+// which Bazel passes on in `BUILD_WORKING_DIRECTORY` because it starts the
+// compiler elsewhere, among the files it was built with. Anywhere else it is
+// the current directory. A path that is already absolute is left as it is.
+std::filesystem::path FromWorkingDirectory(std::string_view path) {
+  const char* bazel_working_directory = std::getenv("BUILD_WORKING_DIRECTORY");
+  const std::filesystem::path base =
+      bazel_working_directory != nullptr
+          ? std::filesystem::path(bazel_working_directory)
+          : std::filesystem::current_path();
+  return base / path;
+}
+
 int HandleCompileCommand(CommandContext ctx) {
   std::optional<std::string_view> src_file = ctx.TakeArg();
   if (!src_file) {
@@ -44,8 +58,8 @@ int HandleCompileCommand(CommandContext ctx) {
     return 1;
   }
 
-  auto src_path = std::filesystem::absolute(*src_file);
-  auto out_path = std::filesystem::current_path() / src_path.filename();
+  auto src_path = FromWorkingDirectory(*src_file);
+  auto out_path = FromWorkingDirectory(src_path.filename().string());
   out_path.replace_extension("o");
 
   return CompileCode({.src_path = src_path, .out_path = out_path})
@@ -65,9 +79,10 @@ int HandleBuildCommand(CommandContext ctx) {
     return 1;
   }
 
-  auto src_path = std::filesystem::absolute(*src_file);
+  auto src_path = FromWorkingDirectory(*src_file);
 
-  return BuildCode({.src_path = src_path, .out_path = *bin_path})
+  return BuildCode({.src_path = src_path,
+                    .out_path = FromWorkingDirectory(*bin_path)})
       .and_then([]() -> std::expected<int, BuildError> { return 0; })
       .or_else([&](BuildError err) -> std::expected<int, BuildError> {
         std::visit([&](const auto& err) { ctx.Err() << err << "\n"; }, err);
@@ -86,7 +101,7 @@ int HandleRunCommand(CommandContext ctx) {
   // Somewhere to put the binary that no other run of the compiler is using.
   // The name of the source is not enough on its own: two sources of the same
   // name, built at the same time, would each run what the other built.
-  auto src_path = std::filesystem::absolute(*src_file);
+  auto src_path = FromWorkingDirectory(*src_file);
   auto bin_path = std::filesystem::temp_directory_path() /
                   std::format("{}-{}", src_path.stem().string(), getpid());
 
@@ -109,7 +124,7 @@ int HandleParseCommand(CommandContext ctx) {
     return 1;
   }
 
-  auto src_path = std::filesystem::absolute(*src_file);
+  auto src_path = FromWorkingDirectory(*src_file);
 
   return ReadFile(src_path, /*with_trailing_zero=*/true)
       .or_else([](const ReadFileError& err)
@@ -148,7 +163,7 @@ int HandlePrintAstCommand(CommandContext ctx) {
 
   std::optional<std::string_view> id = ctx.TakeArg();
 
-  auto src_path = std::filesystem::absolute(*src_file);
+  auto src_path = FromWorkingDirectory(*src_file);
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (!maybe_src.has_value()) {
     ctx.Err() << maybe_src.error() << "\n";
@@ -219,7 +234,7 @@ int HandlePrintSyntaxCfgCommand(CommandContext ctx) {
     return 0;
   }
 
-  auto src_path = std::filesystem::absolute(*src_file);
+  auto src_path = FromWorkingDirectory(*src_file);
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (!maybe_src.has_value()) {
     ctx.Err() << maybe_src.error() << "\n";
@@ -263,7 +278,7 @@ int HandlePrintAmCfgCommand(CommandContext ctx) {
     return 0;
   }
 
-  auto src_path = std::filesystem::absolute(*src_file);
+  auto src_path = FromWorkingDirectory(*src_file);
   const auto maybe_src = ReadFile(src_path, /*with_trailing_zero=*/true);
   if (!maybe_src.has_value()) {
     ctx.Err() << maybe_src.error() << "\n";

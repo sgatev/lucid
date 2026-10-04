@@ -32,8 +32,8 @@ fun main(): Int32 {
 
 ## Overview
 
-- [Language](LANGUAGE.md)
-- [Architecture](ARCHITECTURE.md)
+- [Language](LANGUAGE.md) describes Lucid as the compiler accepts it today.
+- [Architecture](ARCHITECTURE.md) follows a program through the stages of the compiler.
 
 ## Development
 
@@ -42,7 +42,7 @@ fun main(): Int32 {
 Working with the Lucid codebase requires
 
 - ARM64 macOS
-- [Xcode](https://developer.apple.com/xcode) 27
+- [Xcode](https://developer.apple.com/xcode) Command Line Tools that support C++ 26
 - [Bazel](https://bazel.build)
 
 ### Build
@@ -55,10 +55,10 @@ bazel build -c opt //lucid/compiler:main
 
 ### Run
 
-To compile and run code execute
+To compile and run a program execute
 
 ```
-bazel run -c opt //lucid/compiler:main -- run $PWD/examples/main.lu
+bazel run -c opt //lucid/compiler:main -- run examples/fizzbuzz.lu
 ```
 
 ### Test
@@ -67,6 +67,16 @@ To test all targets execute
 
 ```
 bazel test ...
+```
+
+Continuous integration also runs every test optimized and under the address and
+undefined behavior sanitizers, which is worth doing before pushing a change to code
+that manages memory:
+
+```
+bazel test -c opt ...
+bazel test --config=asan ...
+bazel test --config=ubsan ...
 ```
 
 ### Benchmark
@@ -93,24 +103,28 @@ Every push to `main` records the results, which are charted at
 To print the abstract syntax tree derived from code execute
 
 ```
-bazel run -c opt //lucid/compiler:main -- print-ast $PWD/examples/main.lu
+bazel run -c opt //lucid/compiler:main -- print-ast examples/fib.lu
 ```
 
 To print the syntax control flow graph derived from code execute
 
 ```
-bazel run -c opt //lucid/compiler:main -- print-syntax-cfg $PWD/examples/main.lu
+bazel run -c opt //lucid/compiler:main -- print-syntax-cfg examples/fib.lu
 ```
 
 To print the abstract machine control flow graph derived from code execute
 
 ```
-bazel run -c opt //lucid/compiler:main -- print-am-cfg $PWD/examples/main.lu
+bazel run -c opt //lucid/compiler:main -- print-am-cfg examples/fib.lu
 ```
 
 ## Tooling
 
 To enable syntax highlighting in your editor install
 
-- [neovim-lucid](https://github.com/sgatev/nvim-lucid/tree/main) plugin for [Neovim](https://neovim.io)
+- [nvim-lucid](https://github.com/sgatev/nvim-lucid/tree/main) plugin for [Neovim](https://neovim.io)
 - [tree-sitter-lucid](https://github.com/sgatev/tree-sitter-lucid/tree/main) grammar for [Tree-sitter](https://tree-sitter.github.io/tree-sitter)
+
+## License
+
+Lucid is released under the [MIT License](LICENSE).
