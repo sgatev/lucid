@@ -1,6 +1,8 @@
 build --cxxopt=-std=c++26
 build --host_cxxopt=-std=c++26
+
 build:opt --cxxopt=-O3
+
 build:release --stamp --workspace_status_command="scripts/workspace_status.sh"
 
 build:asan --strip=never
@@ -9,6 +11,7 @@ build:asan --copt -O1
 build:asan --copt -g
 build:asan --copt -fno-omit-frame-pointer
 build:asan --linkopt -fsanitize=address
+build:asan --platform_suffix=asan
 
 build:ubsan --strip=never
 build:ubsan --copt -fsanitize=undefined
@@ -16,3 +19,4 @@ build:ubsan --copt -fno-omit-frame-pointer
 build:ubsan --copt -fno-sanitize=function,vptr
 build:ubsan --linkopt -fsanitize=undefined
 build:ubsan --action_env=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+build:ubsan --platform_suffix=ubsan
