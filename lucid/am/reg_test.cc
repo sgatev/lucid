@@ -110,7 +110,7 @@ class ColoringTest : public Test {
     for (const auto& block : am_cfg.Blocks()) {
       // The walk backwards over the block starts from what is live where it
       // exits, which takes in what the branch reads there.
-      RegBitSet live = LiveOut(am_cfg, liveness, block);
+      RegBitSet live = LiveOut(liveness, block);
       if (block.branch_cond.has_value()) live.Insert(*block.branch_cond);
       expect_apart(live);
 

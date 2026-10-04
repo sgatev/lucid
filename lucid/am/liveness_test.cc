@@ -30,7 +30,7 @@ class LivenessAnalysisGraphBuilder
     }
 
     RegBitSet live_out(AbstractMachineControlFlowGraph::BlockRef ref) const {
-      return LiveOut(am_cfg, states, am_cfg.GetBlock(ref));
+      return LiveOut(states, am_cfg.GetBlock(ref));
     }
   };
 

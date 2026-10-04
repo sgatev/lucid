@@ -56,8 +56,9 @@ State AbstractMachineLivenessAnalysis::Transfer(
   // backwards over it turns that into what is live where it enters.
   const auto& block = am_cfg_.GetBlock(block_ref);
   if (prior_state.has_value()) {
-    state.live_in = std::move(prior_state->live_in);
-    AddPhiSources(am_cfg_, block, state.live_in);
+    state.live_out = std::move(prior_state->live_in);
+    AddPhiSources(am_cfg_, block, state.live_out);
+    state.live_in = state.live_out;
   }
   // The branch reads what it decides on where the block ends, after
   // everything the block does, so that is live to the end. An instruction
@@ -76,18 +77,10 @@ void AbstractMachineLivenessAnalysis::Join(State& left, const State& right) {
   left.live_in.InsertAll(right.live_in);
 }
 
-RegBitSet LiveOut(const AbstractMachineControlFlowGraph& am_cfg,
-                  const std::vector<std::optional<State>>& states,
-                  const Block& block) {
-  RegBitSet live_out;
-  for (const auto& succ_ref : block.succs) {
-    const auto& succ_state = states[succ_ref.id()];
-    if (!succ_state.has_value()) continue;
-
-    live_out.InsertAll(succ_state->live_in);
-  }
-  AddPhiSources(am_cfg, block, live_out);
-  return live_out;
+const RegBitSet& LiveOut(const std::vector<std::optional<State>>& states,
+                         const Block& block) {
+  assert(states[block.ref.id()].has_value());
+  return states[block.ref.id()]->live_out;
 }
 
 }  // namespace lucid

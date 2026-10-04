@@ -84,7 +84,7 @@ std::optional<Reg> FindRegToSpillInBlock(
   // The walk starts from what is live where the block exits, and what the
   // branch reads there, and carries what is live at each instruction with it.
   live.Clear();
-  for (Reg reg : LiveOut(am_cfg, liveness, block)) live.Insert(reg);
+  for (Reg reg : LiveOut(liveness, block)) live.Insert(reg);
   if (block.branch_cond.has_value()) live.Insert(*block.branch_cond);
 
   // Returns the register to spill at the point the walk has reached, which
@@ -416,7 +416,10 @@ void SpillRegisters(
 // write reach no block's head either: each is written and read inside a
 // single block, and the one a phi function's argument is loaded into is
 // written where its block ends. So a spill only ever takes a register out of
-// this answer, and never puts one in.
+// this answer, and never puts one in. The same goes for what is live where a
+// block exits, which is what is live at the heads of the blocks after it and
+// what their phi functions read, and a phi function whose result is spilt
+// goes along with its arguments.
 //
 // A spilt parameter is the exception. It is live where the function is
 // entered, because that is where the caller leaves it and the store that
@@ -430,8 +433,9 @@ void RemoveSpiltRegisters(const AbstractMachineControlFlowGraph& am_cfg,
 
     for (std::size_t id = 0; id < liveness.size(); ++id) {
       if (!liveness[id].has_value()) continue;
-      if (is_param && std::size_t(am_cfg.first.id()) == id) continue;
 
+      liveness[id]->live_out.Remove(reg);
+      if (is_param && std::size_t(am_cfg.first.id()) == id) continue;
       liveness[id]->live_in.Remove(reg);
     }
   }
@@ -453,7 +457,7 @@ bool MatchesFreshAnalysis(const AbstractMachineControlFlowGraph& am_cfg,
   for (std::size_t id = 0; id < fresh.size(); ++id) {
     if (fresh[id].has_value() != liveness[id].has_value()) return false;
     if (!fresh[id].has_value()) continue;
-    if (fresh[id]->live_in != liveness[id]->live_in) return false;
+    if (fresh[id] != liveness[id]) return false;
   }
   return true;
 }
@@ -521,7 +525,7 @@ class LastReads {
     }
     // The branch reads what it decides on after everything the block does.
     if (block.branch_cond.has_value()) Mark(*block.branch_cond).last_read = at;
-    for (Reg reg : LiveOut(am_cfg, liveness, block)) {
+    for (Reg reg : LiveOut(liveness, block)) {
       Mark(reg).live_out = true;
     }
   }

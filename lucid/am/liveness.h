@@ -17,6 +17,12 @@ class AbstractMachineLivenessAnalysis {
 
     // Registers that are live before entering the block modeled by this state.
     RegBitSet live_in;
+
+    // Registers that are live where the block modeled by this state exits,
+    // which is what the walk backwards over it started from. Kept, rather
+    // than put together again from the blocks after it, because the
+    // spilling and colouring that follow start every block from it.
+    RegBitSet live_out;
   };
 
   static void Transfer(State& state, const Instruction& inst);
@@ -51,9 +57,11 @@ using AbstractMachineLiveness =
     std::vector<std::optional<AbstractMachineLivenessAnalysis::State>>;
 
 // Returns the registers that are live where `block` exits, given the `states`
-// that an analysis over `am_cfg` settled on.
-RegBitSet LiveOut(const AbstractMachineControlFlowGraph& am_cfg,
-                  const AbstractMachineLiveness& states,
-                  const AbstractMachineControlFlowGraph::Block& block);
+// that an analysis settled on.
+//
+// Requires:
+// - The analysis must have reached `block`.
+const RegBitSet& LiveOut(const AbstractMachineLiveness& states,
+                         const AbstractMachineControlFlowGraph::Block& block);
 
 }  // namespace lucid
