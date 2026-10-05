@@ -158,7 +158,7 @@ std::string Throughput(const BenchmarkResult& benchmark_result) {
 }
 
 // How the results of a run are reported.
-enum class ReportFormat { kText, kJson };
+enum class ReportFormat : std::uint8_t { kText, kJson };
 
 // Prints `benchmark_results` as the report a person reads.
 void PrintTextReport(std::ostream& out,

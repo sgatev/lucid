@@ -36,7 +36,8 @@ template <Matcher FM, Matcher SM>
 class PairMatcher {
  public:
   explicit PairMatcher(FM first_matcher, SM second_matcher)
-      : first_matcher_(first_matcher), second_matcher_(second_matcher) {}
+      : first_matcher_(std::move(first_matcher)),
+        second_matcher_(std::move(second_matcher)) {}
 
   std::string DescribeExpected() {
     return "a pair with key " + first_matcher_.DescribeExpected() +

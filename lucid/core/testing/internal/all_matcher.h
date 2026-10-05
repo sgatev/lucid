@@ -2,6 +2,7 @@
 
 #include <string>
 #include <tuple>
+#include <utility>
 
 #include "lucid/core/meta/static_for.h"
 #include "lucid/core/testing/internal/matcher.h"
@@ -17,7 +18,7 @@ template <Matcher... Ms>
 class AllMatcher {
  public:
   explicit AllMatcher(Ms... matchers)
-      : matchers_(std::make_tuple(matchers...)) {}
+      : matchers_(std::make_tuple(std::move(matchers)...)) {}
 
   std::string DescribeExpected() {
     std::string description;

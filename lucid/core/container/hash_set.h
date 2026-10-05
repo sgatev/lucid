@@ -19,7 +19,7 @@ class HashSet {
   bool operator==(const HashSet&) const noexcept = default;
 
   // Returns true iff the table contains `val`.
-  inline bool Contains(V val) const { return table_.Find(val) != end(); }
+  inline bool Contains(const V& val) const { return table_.Find(val) != end(); }
 
   // Inserts the given `val` and returns true if it is not already in the
   // table. Otherwise returns false.

@@ -22,11 +22,13 @@ enum class CpuType : int {
 };
 
 // Machine subtypes.
+// NOLINTNEXTLINE(performance-enum-size): its size is part of the file format.
 enum class CpuSubType : int {
   Arm64All = 0,
 };
 
 // VM protection values.
+// NOLINTNEXTLINE(performance-enum-size): its size is part of the file format.
 enum class VmProt : int {
   Read = 0x01,
   Write = 0x02,
@@ -35,6 +37,7 @@ enum class VmProt : int {
 };
 
 // Values for the `file_type` field of the `MachHeader64`.
+// NOLINTNEXTLINE(performance-enum-size): its size is part of the file format.
 enum class FileType : std::uint32_t {
   // Relocatable object file.
   Object = 0x1,

@@ -6,6 +6,7 @@
 #include <memory>
 #include <source_location>
 #include <string_view>
+#include <utility>
 #include <variant>
 
 #include "lucid/core/meta/macros.h"
@@ -96,7 +97,7 @@ int AddTest(std::unique_ptr<Test> test);
 // Matches a value that is accepted by `predicate`.
 template <typename P>
 inline internal::PredicateMatcher<P> Truly(P predicate) {
-  return internal::PredicateMatcher<P>(predicate);
+  return internal::PredicateMatcher<P>(std::move(predicate));
 }
 
 // Matches a value that is true.
@@ -118,7 +119,7 @@ inline internal::EqualityMatcher<E> Equals(E expected_value) {
 // Matches a value that is not equal to `expected_value`.
 template <typename E>
 inline internal::EqualityMatcher<E> NotEquals(E expected_value) {
-  return internal::EqualityMatcher<E>(expected_value, false);
+  return internal::EqualityMatcher<E>(std::move(expected_value), false);
 }
 
 // Matches a value whose size is `expected_size`.
@@ -133,14 +134,14 @@ inline internal::EmptyMatcher IsEmpty() { return internal::EmptyMatcher(); }
 // order.
 template <internal::Matcher... Ms>
 internal::ElementsMatcher<Ms...> Elements(Ms... element_matchers) {
-  return internal::ElementsMatcher<Ms...>(element_matchers...);
+  return internal::ElementsMatcher<Ms...>(std::move(element_matchers)...);
 }
 
 // Matches a value that contains `expected_elements` in the given order.
 template <typename... Ts>
 internal::ElementsMatcher<internal::EqualityMatcher<Ts>...> ElementsEqual(
     Ts... expected_elements) {
-  return Elements(Equals(expected_elements)...);
+  return Elements(Equals(std::move(expected_elements))...);
 }
 
 // Matches a value that whose elements match `element_matchers` in no particular
@@ -148,52 +149,55 @@ internal::ElementsMatcher<internal::EqualityMatcher<Ts>...> ElementsEqual(
 template <internal::Matcher... Ms>
 internal::UnorderedElementsMatcher<Ms...> UnorderedElements(
     Ms... element_matchers) {
-  return internal::UnorderedElementsMatcher<Ms...>(element_matchers...);
+  return internal::UnorderedElementsMatcher<Ms...>(
+      std::move(element_matchers)...);
 }
 
 // Matches a value that contains `expected_elements` in no particular order.
 template <typename... Ts>
 internal::UnorderedElementsMatcher<internal::EqualityMatcher<Ts>...>
 UnorderedElementsEqual(Ts... expected_elements) {
-  return UnorderedElements(Equals(expected_elements)...);
+  return UnorderedElements(Equals(std::move(expected_elements))...);
 }
 
 // Matches a value that has a field accepted by `field_matcher`.
 template <typename F, internal::Matcher M>
 internal::FieldMatcher<F, M> Field(F field, M field_matcher) {
-  return internal::FieldMatcher<F, M>(field, field_matcher);
+  return internal::FieldMatcher<F, M>(std::move(field),
+                                      std::move(field_matcher));
 }
 
 // Matches an optional that contains a value accepted by `value_matcher`.
 template <internal::Matcher M>
 internal::OptionalMatcher<M> Optional(M value_matcher) {
-  return internal::OptionalMatcher<M>(value_matcher);
+  return internal::OptionalMatcher<M>(std::move(value_matcher));
 }
 
 // Matches a variant that contains value of type `T` accepted by
 // `value_matcher`.
 template <typename T, internal::Matcher M>
 internal::VariantMatcher<T, M> Variant(M value_matcher) {
-  return internal::VariantMatcher<T, M>(value_matcher);
+  return internal::VariantMatcher<T, M>(std::move(value_matcher));
 }
 
 // Matches a pair value whose first element is accepted by `first_matcher` and
 // whose seccond element is accepted by `second_matcher`.
 template <internal::Matcher FM, internal::Matcher SM>
 internal::PairMatcher<FM, SM> Pair(FM first_matcher, SM second_matcher) {
-  return internal::PairMatcher<FM, SM>(first_matcher, second_matcher);
+  return internal::PairMatcher<FM, SM>(std::move(first_matcher),
+                                       std::move(second_matcher));
 }
 
 // Matches a value that is accepted by all `matchers`.
 template <internal::Matcher... Ms>
 internal::AllMatcher<Ms...> AllOf(Ms... matchers) {
-  return internal::AllMatcher<Ms...>(matchers...);
+  return internal::AllMatcher<Ms...>(std::move(matchers)...);
 }
 
 // Matches a value not accepted by `matcher`.
 template <internal::Matcher M>
 internal::NotMatcher<M> Not(M matcher) {
-  return internal::NotMatcher<M>(matcher);
+  return internal::NotMatcher<M>(std::move(matcher));
 }
 
 // Matches a string that starts with `prefix`.

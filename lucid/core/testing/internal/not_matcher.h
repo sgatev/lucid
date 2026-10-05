@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
 #include "lucid/core/testing/internal/matcher.h"
 
@@ -10,7 +11,7 @@ namespace lucid::internal {
 template <Matcher M>
 class NotMatcher {
  public:
-  explicit NotMatcher(M matcher) : matcher_(matcher) {}
+  explicit NotMatcher(M matcher) : matcher_(std::move(matcher)) {}
 
   std::string DescribeExpected() {
     return "not " + matcher_.DescribeExpected();

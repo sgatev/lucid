@@ -37,6 +37,7 @@ class SyntaxLivenessAnalysisTest : public Test, public AstFixture {
       const SyntaxLivenessAnalysis& analysis,
       const std::vector<std::optional<SyntaxLivenessAnalysis::State>>& states) {
     std::vector<std::vector<StringIndex::Ref>> live_in;
+    live_in.reserve(states.size());
     for (const auto& state : states) {
       live_in.push_back(analysis.LiveIn(state.value()));
     }

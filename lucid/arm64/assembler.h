@@ -1179,7 +1179,7 @@ class Assembler {
   void Insert(Inst inst) {
     insts_size_ += std::visit(
         [](const auto& inst) { return inst.OutputBytesCount(); }, inst);
-    insts_.push_back(std::move(inst));
+    insts_.push_back(inst);
   }
 
   LabelOffsets label_offsets_;

@@ -286,7 +286,7 @@ class Parser {
       if (PeekIgnoringNonSemantic().kind == Token::Kind::CloseBrace) break;
 
       ASSIGN_OR_RETURN(Stmt stmt, ParseStmt());
-      pending_stmts_.push_back(std::move(stmt));
+      pending_stmts_.push_back(stmt);
     }
 
     ReadIgnoringNonSemantic();
@@ -294,10 +294,10 @@ class Parser {
     const std::uint32_t args_size = pending_stmts_.size() - start_idx;
     StmtRef args_first = Arena<Stmt>::kNullRef;
     if (args_size > 0) {
-      args_first = syn_ctx_.Add(std::move(pending_stmts_[start_idx]));
+      args_first = syn_ctx_.Add(pending_stmts_[start_idx]);
     }
     for (std::size_t i = 1; i < args_size; ++i) {
-      syn_ctx_.Add(std::move(pending_stmts_[start_idx + i]));
+      syn_ctx_.Add(pending_stmts_[start_idx + i]);
     }
     pending_stmts_.erase(pending_stmts_.begin() + start_idx,
                          pending_stmts_.end());
@@ -341,12 +341,12 @@ class Parser {
       return std::unexpected(
           MakeError(ParserError::Kind::ExpectedRuntimeCall, start));
     }
-    return DoStmt{.expr = syn_ctx_.Add(std::move(value))};
+    return DoStmt{.expr = syn_ctx_.Add(value)};
   }
 
   std::expected<Stmt, ParserError> ParseReturnStmt() {
     ASSIGN_OR_RETURN(Expr value, ParseExpr());
-    return ReturnStmt{.value = syn_ctx_.Add(std::move(value))};
+    return ReturnStmt{.value = syn_ctx_.Add(value)};
   }
 
   std::expected<Stmt, ParserError> ParseLoopStmt() {
@@ -358,7 +358,7 @@ class Parser {
     IfStmt if_stmt;
 
     ASSIGN_OR_RETURN(Expr cond, ParseExpr());
-    if_stmt.cond = syn_ctx_.Add(std::move(cond));
+    if_stmt.cond = syn_ctx_.Add(cond);
 
     ASSIGN_OR_RETURN(SuccessiveList<StmtRef> then_stmts, ParseCompoundStmt());
     if_stmt.then_stmts = then_stmts;
@@ -370,8 +370,7 @@ class Parser {
       if (PeekIgnoringNonSemantic().kind == Token::Kind::Ident &&
           TokenString(PeekIgnoringNonSemantic()) == "if") {
         ASSIGN_OR_RETURN(Stmt stmt, ParseStmt());
-        if_stmt.else_stmts =
-            SuccessiveList<StmtRef>(1, syn_ctx_.Add(std::move(stmt)));
+        if_stmt.else_stmts = SuccessiveList<StmtRef>(1, syn_ctx_.Add(stmt));
       } else {
         ASSIGN_OR_RETURN(SuccessiveList<StmtRef> else_stmts,
                          ParseCompoundStmt());
@@ -402,7 +401,7 @@ class Parser {
     if (PeekIgnoringNonSemantic().kind == Token::Kind::Equal) {
       ReadIgnoringNonSemantic();
       ASSIGN_OR_RETURN(Expr init_expr, ParseExpr());
-      init = syn_ctx_.Add(std::move(init_expr));
+      init = syn_ctx_.Add(init_expr);
     }
 
     return VarDeclStmt{
@@ -430,7 +429,7 @@ class Parser {
       if (PeekIgnoringNonSemantic().kind == Token::Kind::Dot) {
         Expr base = IndexExpr{
             .base = syn_ctx_.Add(IdentExpr{.name = ident}),
-            .index = syn_ctx_.Add(std::move(size)),
+            .index = syn_ctx_.Add(size),
         };
         return ParseFieldAssignStmt(std::move(base));
       }
@@ -440,8 +439,8 @@ class Parser {
         ASSIGN_OR_RETURN(Expr expr, ParseExpr());
         return ArrayAssignStmt{
             .name = ident,
-            .index = syn_ctx_.Add(std::move(size)),
-            .expr = syn_ctx_.Add(std::move(expr)),
+            .index = syn_ctx_.Add(size),
+            .expr = syn_ctx_.Add(expr),
         };
       }
 
@@ -458,7 +457,7 @@ class Parser {
       ASSIGN_OR_RETURN(Expr expr, ParseExpr());
       return VarAssignStmt{
           .name = ident,
-          .expr = syn_ctx_.Add(std::move(expr)),
+          .expr = syn_ctx_.Add(expr),
       };
     }
 
@@ -478,14 +477,14 @@ class Parser {
         RETURN_IF_ERROR(ExpectTokenIgnoringNonSemantic(Token::Kind::Equal));
         ASSIGN_OR_RETURN(Expr expr, ParseExpr());
         return FieldAssignStmt{
-            .base = syn_ctx_.Add(std::move(base)),
+            .base = syn_ctx_.Add(base),
             .field_name = field_name,
-            .expr = syn_ctx_.Add(std::move(expr)),
+            .expr = syn_ctx_.Add(expr),
         };
       }
 
       base = FieldAccessExpr{
-          .base = syn_ctx_.Add(std::move(base)),
+          .base = syn_ctx_.Add(base),
           .field_name = field_name,
       };
     }
@@ -618,8 +617,7 @@ class Parser {
       // The right side stops one level up, so that the next operator of this
       // level is left to this loop: `a - b - c` is `(a - b) - c`.
       ASSIGN_OR_RETURN(Expr rhs, ParseExpr(info.precedence + 1));
-      expr = MakeBinaryOpExpr(op, syn_ctx_.Add(std::move(expr)),
-                              syn_ctx_.Add(std::move(rhs)));
+      expr = MakeBinaryOpExpr(op, syn_ctx_.Add(expr), syn_ctx_.Add(rhs));
     }
   }
 
@@ -664,7 +662,7 @@ class Parser {
     ASSIGN_OR_RETURN(Expr expr, ParseElement());
     return BinaryOpExpr{
         .op = BinaryOp::Eq,
-        .lhs = syn_ctx_.Add(std::move(expr)),
+        .lhs = syn_ctx_.Add(expr),
         .rhs = syn_ctx_.Add(BoolLitExpr{.value = false}),
     };
   }
@@ -701,8 +699,8 @@ class Parser {
         RETURN_IF_ERROR(
             ExpectTokenIgnoringNonSemantic(Token::Kind::CloseBracket));
         expr = IndexExpr{
-            .base = syn_ctx_.Add(std::move(expr)),
-            .index = syn_ctx_.Add(std::move(index)),
+            .base = syn_ctx_.Add(expr),
+            .index = syn_ctx_.Add(index),
         };
         continue;
       }
@@ -711,7 +709,7 @@ class Parser {
         ReadIgnoringNonSemantic();
         ASSIGN_OR_RETURN(StringIndex::Ref field_name, ParseIdent());
         expr = FieldAccessExpr{
-            .base = syn_ctx_.Add(std::move(expr)),
+            .base = syn_ctx_.Add(expr),
             .field_name = field_name,
         };
         continue;
@@ -729,7 +727,7 @@ class Parser {
       const auto start_idx = pending_exprs_.size();
       while (PeekIgnoringNonSemantic().kind != Token::Kind::CloseParen) {
         ASSIGN_OR_RETURN(Expr arg, ParseExpr());
-        pending_exprs_.push_back(std::move(arg));
+        pending_exprs_.push_back(arg);
 
         if (PeekIgnoringNonSemantic().kind == Token::Kind::Comma) {
           ReadIgnoringNonSemantic();
@@ -740,10 +738,10 @@ class Parser {
       const std::uint32_t args_size = pending_exprs_.size() - start_idx;
       ExprRef args_first = Arena<Expr>::kNullRef;
       if (args_size > 0) {
-        args_first = syn_ctx_.Add(std::move(pending_exprs_[start_idx]));
+        args_first = syn_ctx_.Add(pending_exprs_[start_idx]);
       }
       for (std::size_t i = 1; i < args_size; ++i) {
-        syn_ctx_.Add(std::move(pending_exprs_[start_idx + i]));
+        syn_ctx_.Add(pending_exprs_[start_idx + i]);
       }
       pending_exprs_.erase(pending_exprs_.begin() + start_idx,
                            pending_exprs_.end());
@@ -814,7 +812,7 @@ class Parser {
       ASSIGN_OR_RETURN(array_type.size, ParseIntLitExpr());
       RETURN_IF_ERROR(
           ExpectTokenIgnoringNonSemantic(Token::Kind::CloseBracket));
-      return syn_ctx_.Add(std::move(array_type));
+      return syn_ctx_.Add(array_type);
     }
 
     return type;

@@ -3,6 +3,7 @@
 #include <concepts>
 #include <functional>
 #include <string>
+#include <utility>
 
 #include "lucid/core/testing/internal/to_string.h"
 
@@ -16,7 +17,7 @@ namespace lucid::internal {
 template <typename P>
 class PredicateMatcher {
  public:
-  explicit PredicateMatcher(P predicate) : predicate_(predicate) {}
+  explicit PredicateMatcher(P predicate) : predicate_(std::move(predicate)) {}
 
   std::string DescribeExpected() { return "accepted by the predicate"; }
 

@@ -30,7 +30,8 @@ concept OptionalMatchableBy =
 template <Matcher M>
 class OptionalMatcher {
  public:
-  explicit OptionalMatcher(M value_matcher) : value_matcher_(value_matcher) {}
+  explicit OptionalMatcher(M value_matcher)
+      : value_matcher_(std::move(value_matcher)) {}
 
   std::string DescribeExpected() {
     return "an optional holding a value " + value_matcher_.DescribeExpected();

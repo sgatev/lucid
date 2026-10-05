@@ -6,9 +6,9 @@
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
-#include <iostream>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "lucid/core/io/file.h"
 #include "lucid/core/testing/testing.h"
@@ -42,13 +42,13 @@ auto ReturnsCode(int expected_return_code) {
 // Matches the string printed on stdout by a command.
 template <typename M>
 auto Output(M matcher) {
-  return Field(&CommandResult::out, matcher);
+  return Field(&CommandResult::out, std::move(matcher));
 }
 
 // Matches the string printed on stderr by a command.
 template <typename M>
 auto ErrorOutput(M matcher) {
-  return Field(&CommandResult::err, matcher);
+  return Field(&CommandResult::err, std::move(matcher));
 }
 
 // A fixture that can be used to test both the compiler and the compiled binary,
@@ -84,7 +84,6 @@ class CompilerTest : public Test {
     std::string c = std::string(command) + " > " + out_path + " 2> " + err_path;
     const int result = std::system(c.c_str());
     const int return_code = WEXITSTATUS(result);
-    std::cout << return_code << std::endl;
     return {
         .return_code = return_code,
         .out = ReadFile(out_path).value(),

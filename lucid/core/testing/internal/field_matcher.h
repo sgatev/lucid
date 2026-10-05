@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include "lucid/core/testing/internal/matcher.h"
 
@@ -23,7 +24,7 @@ template <typename F, Matcher M>
 class FieldMatcher {
  public:
   explicit FieldMatcher(F field, M field_matcher)
-      : field_(field), field_matcher_(field_matcher) {}
+      : field_(std::move(field)), field_matcher_(std::move(field_matcher)) {}
 
   std::string DescribeExpected() {
     return "with a field " + field_matcher_.DescribeExpected();

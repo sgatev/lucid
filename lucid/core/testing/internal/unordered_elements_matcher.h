@@ -5,6 +5,7 @@
 #include <format>
 #include <string>
 #include <tuple>
+#include <utility>
 
 #include "lucid/core/meta/static_for.h"
 #include "lucid/core/testing/internal/matcher.h"
@@ -21,7 +22,7 @@ template <Matcher... Ms>
 class UnorderedElementsMatcher {
  public:
   UnorderedElementsMatcher(Ms... element_matchers)
-      : element_matchers_(std::make_tuple(element_matchers...)) {}
+      : element_matchers_(std::make_tuple(std::move(element_matchers)...)) {}
 
   std::string DescribeExpected() {
     std::string elements;

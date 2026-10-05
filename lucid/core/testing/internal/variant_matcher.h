@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <string>
+#include <utility>
 #include <variant>
 
 #include "lucid/core/testing/internal/matcher.h"
@@ -25,7 +26,8 @@ concept VariantMatchableBy = VariantLike<A, T> and MatcherFor<M, T>;
 template <typename T, Matcher M>
 class VariantMatcher {
  public:
-  explicit VariantMatcher(M value_matcher) : value_matcher_(value_matcher) {}
+  explicit VariantMatcher(M value_matcher)
+      : value_matcher_(std::move(value_matcher)) {}
 
   std::string DescribeExpected() {
     return "a variant holding a value " + value_matcher_.DescribeExpected();

@@ -176,7 +176,7 @@ std::string ExampleFunctions(std::size_t size) {
       const std::string suffix = std::format("_{}_{}", functions.name, copy);
       for (const std::string& function : functions.sources) {
         program += Rename(function, functions.names, suffix);
-        program += "\n";
+        program += '\n';
       }
     }
   }
