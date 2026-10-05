@@ -20,6 +20,21 @@ jobs:
       - name: Run tests in UBSan mode
         run: bazel test --config=ubsan ...
 
+  clang-tidy:
+    runs-on: namespace-profile-macos-arm64
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - name: Use the Command Line Tools toolchain
+        run: sudo xcode-select -s /Library/Developer/CommandLineTools
+      # The latest LLVM, so a release that adds to a check can fail a run
+      # that passed before, with nothing in the tree having changed.
+      - name: Install clang-tidy
+        run: brew install llvm
+      - name: Run clang-tidy
+        run: scripts/run_clang_tidy.sh
+
   benchmark:
     needs: test
     runs-on: namespace-profile-macos-arm64
