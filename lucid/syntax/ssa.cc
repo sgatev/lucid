@@ -210,9 +210,10 @@ void RenameBlock(SyntaxContext& syn_ctx, SyntaxControlFlowGraph& syn_cfg,
       ident_expr->name = scope.InForce(ident_expr->name);
     }
 
-    if (!seq.stmt.has_value()) continue;
+    const auto& stmt_ref = seq.stmt;
+    if (!stmt_ref.has_value()) continue;
 
-    auto& stmt = syn_ctx.DerefStmt(*seq.stmt);
+    auto& stmt = syn_ctx.DerefStmt(*stmt_ref);
     if (auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
       const auto new_name = syn_ctx.AddUniqueIdent();
       scope.Define(var_decl_stmt->name, new_name);
@@ -240,10 +241,8 @@ void RenameBlock(SyntaxContext& syn_ctx, SyntaxControlFlowGraph& syn_cfg,
 
     // A block reached by more than one edge from this one is named more than
     // once among the successors, and is taken care of by the first of them.
-    if (std::find(block.succs.begin(), block.succs.begin() + i, succ_ref) !=
-        block.succs.begin() + i) {
-      continue;
-    }
+    const auto earlier = block.succs.begin() + static_cast<std::ptrdiff_t>(i);
+    if (std::find(block.succs.begin(), earlier, succ_ref) != earlier) continue;
 
     auto& succ_block = syn_cfg.get(succ_ref);
     for (std::size_t pred = 0; pred < succ_block.preds.size(); ++pred) {

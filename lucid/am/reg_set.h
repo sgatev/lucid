@@ -106,7 +106,7 @@ class RegBitSet {
 
     Reg operator*() const {
       const Word& word = (*words_)[word_];
-      const int bit = std::countr_zero(bits_);
+      const auto bit = static_cast<unsigned>(std::countr_zero(bits_));
       const bool wide = (word.wide & (std::uint64_t{1} << bit)) != 0;
       return Reg{
           .id = static_cast<std::int32_t>(word.index * kWordBits + bit),

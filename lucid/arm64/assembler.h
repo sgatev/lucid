@@ -25,7 +25,7 @@ class Reg {
   constexpr explicit Reg(std::uint8_t id) : id_(id) { assert(id <= 0b11111); }
 
   // Returns the ID of the register.
-  operator std::uint8_t() const { return id_; }
+  operator std::uint32_t() const { return id_; }
 
  private:
   std::uint8_t id_;
@@ -625,7 +625,8 @@ class Assembler {
   //
   // https://developer.arm.com/documentation/ddi0602/2024-09/Base-Instructions/SVC--Supervisor-call-?lang=en
   void Svc(Imm imm) {
-    Insert(Lit32Inst(0b11010100000000000000000000000001 | imm << 5));
+    Insert(Lit32Inst(0b11010100000000000000000000000001 |
+                     static_cast<std::uint32_t>(imm) << 5));
   }
 
   // Insert a null-terminated string.
@@ -948,7 +949,7 @@ class Assembler {
   // Returns `imm` in the 9-bit signed field that the pre- and post-index
   // forms address memory with. That offset is a count of bytes, not of
   // accesses, so it is the one the caller gave rather than a scaled one.
-  static std::uint16_t Imm9(Imm imm) {
+  static std::uint32_t Imm9(Imm imm) {
     const std::int32_t value = imm;
     assert(value >= -256 && value <= 255);
     return value < 0 ? TwosComplement9(-value)
@@ -962,7 +963,7 @@ class Assembler {
   // of one. It is also why the form encodes neither a negative offset nor one
   // that falls between two accesses: asking for either is a mistake the
   // encoding cannot carry.
-  static std::uint16_t Imm12(Imm imm, std::int32_t access_size) {
+  static std::uint32_t Imm12(Imm imm, std::int32_t access_size) {
     const std::int32_t offset = imm;
     assert(offset >= 0);
     assert(offset % access_size == 0);
@@ -973,7 +974,7 @@ class Assembler {
   // What the immediate forms of add and subtract carry: a 12-bit field, and
   // whether the value is that field or that field shifted up by twelve.
   struct ShiftedImm12 {
-    std::uint16_t value;
+    std::uint32_t value;
     bool shifted;
   };
 
@@ -989,23 +990,24 @@ class Assembler {
     assert(value >= 0);
 
     if (value <= 0b111111111111) {
-      return {.value = static_cast<std::uint16_t>(value), .shifted = false};
+      return {.value = static_cast<std::uint32_t>(value), .shifted = false};
     }
 
     assert(value % 4096 == 0);
     assert(value / 4096 <= 0b111111111111);
-    return {.value = static_cast<std::uint16_t>(value / 4096), .shifted = true};
+    return {.value = static_cast<std::uint32_t>(value / 4096), .shifted = true};
   }
 
   Lit32Inst Add(bool sf, internal::Reg rd, internal::Reg rn, Imm imm) {
     const ShiftedImm12 field = Imm12Shifted(imm);
-    return Lit32Inst(0b00010001000000000000000000000000 | sf << 31 |
-                     field.shifted << 22 | field.value << 10 | rn << 5 | rd);
+    return Lit32Inst(
+        0b00010001000000000000000000000000 | std::uint32_t{sf} << 31 |
+        std::uint32_t{field.shifted} << 22 | field.value << 10 | rn << 5 | rd);
   }
 
   Lit32Inst Mov(bool sf, internal::Reg rd, internal::Reg rm) {
-    return Lit32Inst(0b00101010000000000000001111100000 | sf << 31 | rm << 16 |
-                     rd);
+    return Lit32Inst(0b00101010000000000000001111100000 |
+                     std::uint32_t{sf} << 31 | rm << 16 | rd);
   }
 
   Lit32Inst Mov(bool sf, internal::Reg rd, Imm imm) {
@@ -1017,163 +1019,177 @@ class Assembler {
     assert(value >= 0);
     assert(value <= 0xffff);
 
-    return Lit32Inst(0b01010010100000000000000000000000 | sf << 31 |
+    return Lit32Inst(0b01010010100000000000000000000000 |
+                     std::uint32_t{sf} << 31 |
                      static_cast<std::uint32_t>(value) << 5 | rd);
   }
 
   Lit32Inst MovSP(bool sf, internal::Reg rd, internal::Reg rn) {
-    return Lit32Inst(0b00010001000000000000000000000000 | sf << 31 | rn << 5 |
-                     rd);
+    return Lit32Inst(0b00010001000000000000000000000000 |
+                     std::uint32_t{sf} << 31 | rn << 5 | rd);
   }
 
   Lit32Inst StpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
                          internal::Reg rn, Imm imm) {
-    std::int16_t imme = imm;
+    std::int32_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return Lit32Inst(0b00101000100000000000000000000000 | opc << 31 |
-                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
+    return Lit32Inst(
+        0b00101000100000000000000000000000 | std::uint32_t{opc} << 31 |
+        static_cast<std::uint32_t>(imme) << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
   Lit32Inst StpPreIndex(bool opc, internal::Reg rt1, internal::Reg rt2,
                         internal::Reg rn, Imm imm) {
-    std::int16_t imme = imm;
+    std::int32_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return Lit32Inst(0b00101001100000000000000000000000 | opc << 31 |
-                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
+    return Lit32Inst(
+        0b00101001100000000000000000000000 | std::uint32_t{opc} << 31 |
+        static_cast<std::uint32_t>(imme) << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
   Lit32Inst StpSignedOffset(bool opc, internal::Reg rt1, internal::Reg rt2,
                             internal::Reg rn, Imm imm) {
-    std::int16_t imme = imm;
+    std::int32_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return Lit32Inst(0b00101001000000000000000000000000 | opc << 31 |
-                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
+    return Lit32Inst(
+        0b00101001000000000000000000000000 | std::uint32_t{opc} << 31 |
+        static_cast<std::uint32_t>(imme) << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
   Lit32Inst StrPostIndex(bool opc, internal::Reg rt, internal::Reg rn,
                          Imm imm) {
-    return Lit32Inst(0b10111000000000000000010000000000 | opc << 30 |
-                     imm << 12 | rn << 5 | rt);
+    return Lit32Inst(0b10111000000000000000010000000000 |
+                     std::uint32_t{opc} << 30 | Imm9(imm) << 12 | rn << 5 | rt);
   }
 
   Lit32Inst StrPreIndex(bool opc, internal::Reg rt, internal::Reg rn, Imm imm) {
-    return Lit32Inst(0b10111000000000000000110000000000 | (opc << 30) |
-                     Imm9(imm) << 12 | rn << 5 | rt);
+    return Lit32Inst(0b10111000000000000000110000000000 |
+                     (std::uint32_t{opc} << 30) | Imm9(imm) << 12 | rn << 5 |
+                     rt);
   }
 
   Lit32Inst StrUnsignedOffset(bool opc, internal::Reg rt, internal::Reg rn,
                               Imm imm) {
-    return Lit32Inst(0b10111001000000000000000000000000 | opc << 30 |
-                     Imm12(imm, opc ? 8 : 4) << 10 | rn << 5 | rt);
+    return Lit32Inst(0b10111001000000000000000000000000 |
+                     std::uint32_t{opc} << 30 | Imm12(imm, opc ? 8 : 4) << 10 |
+                     rn << 5 | rt);
   }
 
   Lit32Inst Str(bool opc, internal::Reg rt, X rn, internal::Reg rm,
                 Extend extend, Imm amount) {
-    return Lit32Inst(0b10111000001000000000100000000000 | opc << 30 | rm << 16 |
-                     static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
-                     rn << 5 | rt);
+    return Lit32Inst(0b10111000001000000000100000000000 |
+                     std::uint32_t{opc} << 30 | rm << 16 |
+                     static_cast<std::uint32_t>(extend) << 13 |
+                     static_cast<std::uint32_t>(amount) << 12 | rn << 5 | rt);
   }
 
   Lit32Inst LdpPostIndex(bool opc, internal::Reg rt1, internal::Reg rt2, X rn,
                          Imm imm) {
-    std::int16_t imme = imm;
+    std::int32_t imme = imm;
     if (opc)
       imme /= 8;
     else
       imme /= 4;
     if (imme < 0) imme = TwosComplement7(-imme);
 
-    return Lit32Inst(0b00101000110000000000000000000000 | opc << 31 |
-                     imme << 15 | rt2 << 10 | rn << 5 | rt1);
+    return Lit32Inst(
+        0b00101000110000000000000000000000 | std::uint32_t{opc} << 31 |
+        static_cast<std::uint32_t>(imme) << 15 | rt2 << 10 | rn << 5 | rt1);
   }
 
   Lit32Inst LdrPreIndex(bool opc, internal::Reg rt, X rn, Imm imm) {
-    return Lit32Inst(0b10111000010000000000110000000000 | opc << 30 |
-                     Imm9(imm) << 12 | rn << 5 | rt);
+    return Lit32Inst(0b10111000010000000000110000000000 |
+                     std::uint32_t{opc} << 30 | Imm9(imm) << 12 | rn << 5 | rt);
   }
 
   Lit32Inst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {
-    return Lit32Inst(0b10111001010000000000000000000000 | opc << 30 |
-                     Imm12(imm, opc ? 8 : 4) << 10 | rn << 5 | rt);
+    return Lit32Inst(0b10111001010000000000000000000000 |
+                     std::uint32_t{opc} << 30 | Imm12(imm, opc ? 8 : 4) << 10 |
+                     rn << 5 | rt);
   }
 
   Lit32Inst Ldr(bool opc, internal::Reg rt, X rn, internal::Reg rm,
                 Extend extend, Imm amount) {
-    return Lit32Inst(0b10111000011000000000100000000000 | opc << 30 | rm << 16 |
-                     static_cast<std::uint8_t>(extend) << 13 | amount << 12 |
-                     rn << 5 | rt);
+    return Lit32Inst(0b10111000011000000000100000000000 |
+                     std::uint32_t{opc} << 30 | rm << 16 |
+                     static_cast<std::uint32_t>(extend) << 13 |
+                     static_cast<std::uint32_t>(amount) << 12 | rn << 5 | rt);
   }
 
   Lit32Inst Cmp(bool opc, internal::Reg rn, Imm imm) {
-    return Lit32Inst(0b01110001000000000000000000011111 | opc << 31 |
-                     imm << 10 | rn << 5);
+    return Lit32Inst(0b01110001000000000000000000011111 |
+                     std::uint32_t{opc} << 31 |
+                     static_cast<std::uint32_t>(imm) << 10 | rn << 5);
   }
 
   Lit32Inst Cmp(bool opc, internal::Reg rn, internal::Reg rm) {
-    return Lit32Inst(0b01101011000000000000000000011111 | opc << 31 | rm << 16 |
-                     rn << 5);
+    return Lit32Inst(0b01101011000000000000000000011111 |
+                     std::uint32_t{opc} << 31 | rm << 16 | rn << 5);
   }
 
   Lit32Inst Cset(bool opc, internal::Reg rd, InvCond inv_cond) {
-    return Lit32Inst(0b00011010100111110000011111100000 | opc << 31 |
-                     static_cast<std::uint8_t>(inv_cond) << 12 | rd);
+    return Lit32Inst(0b00011010100111110000011111100000 |
+                     std::uint32_t{opc} << 31 |
+                     static_cast<std::uint32_t>(inv_cond) << 12 | rd);
   }
 
   Lit32Inst Add(bool opc, internal::Reg rd, internal::Reg rn,
                 internal::Reg rm) {
-    return Lit32Inst(0b00001011000000000000000000000000 | opc << 31 | rm << 16 |
-                     rn << 5 | rd);
+    return Lit32Inst(0b00001011000000000000000000000000 |
+                     std::uint32_t{opc} << 31 | rm << 16 | rn << 5 | rd);
   }
 
   Lit32Inst Sub(bool opc, internal::Reg rd, internal::Reg rn,
                 internal::Reg rm) {
-    return Lit32Inst(0b01001011000000000000000000000000 | opc << 31 | rm << 16 |
-                     rn << 5 | rd);
+    return Lit32Inst(0b01001011000000000000000000000000 |
+                     std::uint32_t{opc} << 31 | rm << 16 | rn << 5 | rd);
   }
 
   Lit32Inst Sub(bool sf, internal::Reg rd, internal::Reg rn, Imm imm) {
     const ShiftedImm12 field = Imm12Shifted(imm);
-    return Lit32Inst(0b01010001000000000000000000000000 | sf << 31 |
-                     field.shifted << 22 | field.value << 10 | rn << 5 | rd);
+    return Lit32Inst(
+        0b01010001000000000000000000000000 | std::uint32_t{sf} << 31 |
+        std::uint32_t{field.shifted} << 22 | field.value << 10 | rn << 5 | rd);
   }
 
   Lit32Inst Mul(bool opc, internal::Reg rd, internal::Reg rn,
                 internal::Reg rm) {
-    return Lit32Inst(0b00011011000000000111110000000000 | opc << 31 | rm << 16 |
-                     rn << 5 | rd);
+    return Lit32Inst(0b00011011000000000111110000000000 |
+                     std::uint32_t{opc} << 31 | rm << 16 | rn << 5 | rd);
   }
 
   Lit32Inst Udiv(bool opc, internal::Reg rd, internal::Reg rn,
                  internal::Reg rm) {
-    return Lit32Inst(0b00011010110000000000100000000000 | opc << 31 | rm << 16 |
-                     rn << 5 | rd);
+    return Lit32Inst(0b00011010110000000000100000000000 |
+                     std::uint32_t{opc} << 31 | rm << 16 | rn << 5 | rd);
   }
 
   Lit32Inst Sdiv(bool opc, internal::Reg rd, internal::Reg rn,
                  internal::Reg rm) {
-    return Lit32Inst(0b00011010110000000000110000000000 | opc << 31 | rm << 16 |
-                     rn << 5 | rd);
+    return Lit32Inst(0b00011010110000000000110000000000 |
+                     std::uint32_t{opc} << 31 | rm << 16 | rn << 5 | rd);
   }
 
   Lit32Inst Msub(bool opc, internal::Reg rd, internal::Reg rn, internal::Reg rm,
                  internal::Reg ra) {
-    return Lit32Inst(0b00011011000000001000000000000000 | opc << 31 | rm << 16 |
-                     ra << 10 | rn << 5 | rd);
+    return Lit32Inst(0b00011011000000001000000000000000 |
+                     std::uint32_t{opc} << 31 | rm << 16 | ra << 10 | rn << 5 |
+                     rd);
   }
 
   void Insert(Inst inst) {

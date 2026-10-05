@@ -43,15 +43,11 @@ ComputeImmediateDominators(const GraphT& graph) {
           new_idom = prev_vertex;
         } else {
           while (new_idom != prev_vertex) {
-            assert(new_idom.has_value());
-            while (compare(prev_vertex, *new_idom)) {
-              assert(new_idom.has_value());
-              new_idom = idoms[VertexId(graph, *new_idom)];
+            while (compare(prev_vertex, new_idom.value())) {
+              new_idom = idoms[VertexId(graph, new_idom.value())];
             }
-            assert(new_idom.has_value());
-            while (compare(*new_idom, prev_vertex)) {
-              assert(idoms[VertexId(graph, prev_vertex)].has_value());
-              prev_vertex = *idoms[VertexId(graph, prev_vertex)];
+            while (compare(new_idom.value(), prev_vertex)) {
+              prev_vertex = idoms[VertexId(graph, prev_vertex)].value();
             }
           }
         }
@@ -87,11 +83,12 @@ ComputeDominanceFrontiers(
     for (auto prev_vertex : prev_vertices) {
       while (prev_vertex != idoms[VertexId(graph, front_vertex)]) {
         dom_fronts.Insert(prev_vertex, {});
-        dom_fronts.Get(prev_vertex)->Insert(front_vertex);
+        dom_fronts.Get(prev_vertex).value().Insert(front_vertex);
 
-        if (!idoms[VertexId(graph, prev_vertex)].has_value()) break;
+        const auto& idom = idoms[VertexId(graph, prev_vertex)];
+        if (!idom.has_value()) break;
 
-        prev_vertex = *idoms[VertexId(graph, prev_vertex)];
+        prev_vertex = *idom;
       }
     }
   }
@@ -108,10 +105,11 @@ BuildDominatorTree(
 
   HashMap<vertex_type, HashSet<vertex_type>> dom_tree;
   for (vertex_type to : Vertices(graph)) {
-    if (!idoms[VertexId(graph, to)].has_value()) continue;
-    vertex_type from = *idoms[VertexId(graph, to)];
+    const auto& idom = idoms[VertexId(graph, to)];
+    if (!idom.has_value()) continue;
+    vertex_type from = *idom;
     dom_tree.Insert(from, {});
-    dom_tree.Get(from)->Insert(to);
+    dom_tree.Get(from).value().Insert(to);
   }
   return dom_tree;
 }

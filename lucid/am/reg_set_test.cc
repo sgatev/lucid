@@ -150,10 +150,11 @@ TEST(Test, RegSetAgreesWithAPlainSetOverManyChanges) {
 
   RegSet set(kRegs);
   std::set<std::int32_t> expected;
+  // NOLINTNEXTLINE(bugprone-random-generator-seed): a failure must reproduce.
   std::mt19937 random(7);
 
   for (int step = 0; step < 4000; ++step) {
-    const std::int32_t id = random() % kRegs;
+    const auto id = static_cast<std::int32_t>(random() % kRegs);
     if (random() % 2 == 0) {
       set.Insert(R(id));
       expected.insert(id);
@@ -265,10 +266,11 @@ TEST(Test, RegBitSetAgreesWithAPlainSetOverManyChanges) {
 
   RegBitSet set;
   std::set<std::int32_t> expected;
+  // NOLINTNEXTLINE(bugprone-random-generator-seed): a failure must reproduce.
   std::mt19937 random(7);
 
   for (int step = 0; step < 4000; ++step) {
-    const std::int32_t id = random() % kRegs;
+    const auto id = static_cast<std::int32_t>(random() % kRegs);
     if (random() % 2 == 0) {
       set.Insert(R(id));
       expected.insert(id);

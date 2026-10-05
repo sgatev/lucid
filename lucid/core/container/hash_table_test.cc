@@ -85,6 +85,7 @@ TEST(Test, HashTableMovedFromHoldsNoSlots) {
 
   // The storage went with the values, so what is left describes itself: a
   // table with no slots, which can be walked and filled again.
+  // NOLINTNEXTLINE(bugprone-use-after-move): the moved-from state is the test.
   EXPECT_EQ(table.capacity(), 0);
   EXPECT_EQ(table.size(), 0);
   EXPECT_TRUE(table.begin() == table.end());

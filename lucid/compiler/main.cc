@@ -113,6 +113,7 @@ int HandleRunCommand(CommandContext ctx) {
 
   return BuildCode({.src_path = src_path, .out_path = bin_path})
       .and_then([&]() -> std::expected<int, BuildError> {
+        // NOLINTNEXTLINE(bugprone-command-processor): runs what was just built.
         int status = std::system(bin_path.c_str());
         return WEXITSTATUS(status);
       })

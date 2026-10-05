@@ -90,10 +90,10 @@ class AbstractMachineFunctionGenerator {
       if (!reached[block.ref.id()]) continue;
       graph_map_.Set(block.ref, am_cfg_.AddBlock().ref);
     }
-    am_cfg_.first = *graph_map_.Get(syn_cfg_.first);
+    am_cfg_.first = graph_map_.Get(syn_cfg_.first).value();
     // A function that never ends has no way to its last block.
     if (reached[syn_cfg_.last.id()]) {
-      am_cfg_.last = *graph_map_.Get(syn_cfg_.last);
+      am_cfg_.last = graph_map_.Get(syn_cfg_.last).value();
     }
 
     {
@@ -142,7 +142,7 @@ class AbstractMachineFunctionGenerator {
         for (const auto pred : last_block.preds) {
           if (pred.id() < returned_regs_.size() &&
               returned_regs_[pred.id()].has_value()) {
-            result_phi.srcs.push_back(*returned_regs_[pred.id()]);
+            result_phi.srcs.push_back(returned_regs_[pred.id()].value());
             continue;
           }
           const Reg placeholder = {am_cfg_.next_free_reg_id++,
@@ -181,9 +181,9 @@ class AbstractMachineFunctionGenerator {
           am_block.instructions.back() = std::move(*res);
         }
       }
-      if (seq.stmt.has_value()) {
-        const auto& stmt = syn_ctx_.DerefStmt(*seq.stmt);
-        Process(*seq.stmt, stmt, am_block);
+      if (const auto& stmt_ref = seq.stmt; stmt_ref.has_value()) {
+        const auto& stmt = syn_ctx_.DerefStmt(*stmt_ref);
+        Process(*stmt_ref, stmt, am_block);
 
         bool is_comp = false;
         if (const auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {

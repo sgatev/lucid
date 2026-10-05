@@ -208,6 +208,9 @@ TEST(Test, LoadsAndStoresEncodeTheirIndexing) {
   // str w1, [sp], #4
   EXPECT_THAT(Encode([](Assembler& a) { a.StrPostIndex(W(1), SP, Imm(4)); }),
               ElementsEqual(0xb80047e1u));
+  // str w1, [sp], #-4
+  EXPECT_THAT(Encode([](Assembler& a) { a.StrPostIndex(W(1), SP, Imm(-4)); }),
+              ElementsEqual(0xb81fc7e1u));
   // str x1, [sp, #16]
   EXPECT_THAT(
       Encode([](Assembler& a) { a.StrUnsignedOffset(X(1), SP, Imm(16)); }),

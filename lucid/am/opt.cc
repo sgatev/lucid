@@ -52,7 +52,9 @@ void MarkConditionsOnlyReadByBranches(AbstractMachineControlFlowGraph& am_cfg) {
       count(writes, phi.dst);
       for (Reg src : phi.srcs) count(reads, src);
     }
-    if (block.branch_cond.has_value()) count(reads, *block.branch_cond);
+    if (const auto& cond = block.branch_cond; cond.has_value()) {
+      count(reads, *cond);
+    }
   }
 
   for (auto& block : am_cfg.Blocks()) {

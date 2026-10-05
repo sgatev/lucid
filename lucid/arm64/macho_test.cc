@@ -62,13 +62,13 @@ class Object {
 
   // Returns the only section of the only segment.
   section_64 Section() const {
-    return Read<section_64>(*CommandOffset(LC_SEGMENT_64) +
+    return Read<section_64>(CommandOffset(LC_SEGMENT_64).value() +
                             sizeof(segment_command_64));
   }
 
   // Returns the symbols in the symbol table.
   std::vector<nlist_64> Symbols() const {
-    const symtab_command symtab = *Command<symtab_command>(LC_SYMTAB);
+    const symtab_command symtab = Command<symtab_command>(LC_SYMTAB).value();
 
     std::vector<nlist_64> symbols;
     symbols.reserve(symtab.nsyms);
@@ -80,7 +80,7 @@ class Object {
 
   // Returns the name `symbol` carries in the string table.
   std::string_view SymbolName(const nlist_64& symbol) const {
-    const symtab_command symtab = *Command<symtab_command>(LC_SYMTAB);
+    const symtab_command symtab = Command<symtab_command>(LC_SYMTAB).value();
     return bytes_.data() + symtab.stroff + symbol.n_un.n_strx;
   }
 
@@ -240,10 +240,10 @@ TEST(Test, DefinedAndUndefinedSymbolsAreIndexedForTheLinker) {
   ASSERT_EQ(symbols.size(), 2u);
   EXPECT_EQ(object.SymbolName(symbols[0]), "_main");
   EXPECT_EQ(object.SymbolName(symbols[1]), "_printf");
-  EXPECT_EQ(dysymtab->iextdefsym, 0u);
-  EXPECT_EQ(dysymtab->nextdefsym, 1u);
-  EXPECT_EQ(dysymtab->iundefsym, 1u);
-  EXPECT_EQ(dysymtab->nundefsym, 1u);
+  EXPECT_EQ(dysymtab.value().iextdefsym, 0u);
+  EXPECT_EQ(dysymtab.value().nextdefsym, 1u);
+  EXPECT_EQ(dysymtab.value().iundefsym, 1u);
+  EXPECT_EQ(dysymtab.value().nundefsym, 1u);
 }
 
 }  // namespace

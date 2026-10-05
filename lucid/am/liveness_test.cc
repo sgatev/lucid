@@ -26,7 +26,7 @@ class LivenessAnalysisGraphBuilder
 
     const RegBitSet& live_in(
         AbstractMachineControlFlowGraph::BlockRef ref) const {
-      return states[ref.id()]->live_in;
+      return states[ref.id()].value().live_in;
     }
 
     RegBitSet live_out(AbstractMachineControlFlowGraph::BlockRef ref) const {

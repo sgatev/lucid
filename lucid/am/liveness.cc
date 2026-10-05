@@ -79,8 +79,9 @@ void AbstractMachineLivenessAnalysis::Join(State& left, const State& right) {
 
 const RegBitSet& LiveOut(const std::vector<std::optional<State>>& states,
                          const Block& block) {
-  assert(states[block.ref.id()].has_value());
-  return states[block.ref.id()]->live_out;
+  const std::optional<State>& state = states[block.ref.id()];
+  assert(state.has_value());
+  return state->live_out;
 }
 
 }  // namespace lucid

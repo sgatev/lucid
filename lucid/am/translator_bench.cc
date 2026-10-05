@@ -133,7 +133,7 @@ void BenchmarkLastFunction(BenchmarkState& state, int count) {
   AbstractMachineState am_state;
   for (auto _ : state) {
     auto am_cfg = GenerateAbstractMachineFunction(/*am_cfgs=*/{}, syn_ctx,
-                                                  *syn_cfg, am_state);
+                                                  syn_cfg.value(), am_state);
     assert(am_cfg.has_value());
     DoNotOptimize(am_cfg->next_free_reg_id);
   }

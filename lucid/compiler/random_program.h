@@ -110,7 +110,8 @@ class RandomProgram {
   }
 
   void Line(int depth, std::string text) {
-    lines_.push_back(std::string(depth * 2, ' ') + std::move(text));
+    lines_.push_back(std::string(static_cast<std::size_t>(depth) * 2, ' ') +
+                     std::move(text));
   }
 
   std::string Name() { return std::format("v{}", next_name_++); }
@@ -192,7 +193,7 @@ class RandomProgram {
                                       ? Any(scope.known)
                                       : Any(scope.numbers);
         return {.text = name,
-                .number = *numbers_.Get(name),
+                .number = numbers_.Get(name).value(),
                 .known = known_.Contains(name)};
       }
       case 1:
@@ -259,7 +260,7 @@ class RandomProgram {
   Cond Boolean(const Scope& scope, int depth) {
     if (depth > 0 && !scope.flags.empty() && Chance(0.2)) {
       const std::string& name = Any(scope.flags);
-      return {.text = name, .holds = *flags_.Get(name)};
+      return {.text = name, .holds = flags_.Get(name).value()};
     }
     if (depth > 0 && Chance(0.3)) {
       const Cond lhs = Boolean(scope, depth - 1);
@@ -336,6 +337,7 @@ class RandomProgram {
   // asks the allocator for more registers than there are to give.
   void Body(int depth, Scope& scope, int budget) {
     for (int i = 0; i < budget; ++i) {
+      // NOLINTNEXTLINE(bugprone-branch-clone): the last branch is the fallback.
       if (depth >= 2 || Chance(0.35)) {
         DeclareNumber(depth, scope);
       } else if (Chance(0.15)) {
@@ -370,16 +372,16 @@ class RandomProgram {
       if (!Chance(0.5)) continue;
 
       Line(depth + 1, std::format("mut {} = {} + 1", name, name));
-      then_writes.emplace_back(name,
-                               Narrow(std::int64_t{*numbers_.Get(name)} + 1));
+      then_writes.emplace_back(
+          name, Narrow(std::int64_t{numbers_.Get(name).value()} + 1));
     }
     Line(depth, "} else {");
     for (const std::string& name : scope.writable) {
       if (!Chance(0.5)) continue;
 
       Line(depth + 1, std::format("mut {} = {} - 1", name, name));
-      else_writes.emplace_back(name,
-                               Narrow(std::int64_t{*numbers_.Get(name)} - 1));
+      else_writes.emplace_back(
+          name, Narrow(std::int64_t{numbers_.Get(name).value()} - 1));
     }
     Line(depth, "}");
 
@@ -405,7 +407,7 @@ class RandomProgram {
 
       const int step = Between(1, 3);
       Line(depth + 1, std::format("mut {} = {} + {}", name, name, step));
-      numbers_.Set(name, Narrow(std::int64_t{*numbers_.Get(name)} +
+      numbers_.Set(name, Narrow(std::int64_t{numbers_.Get(name).value()} +
                                 std::int64_t{step} * turns));
     }
     Line(depth + 1, std::format("mut {} = {} + 1", counter, counter));
@@ -590,7 +592,7 @@ class RandomProgram {
       Line(1, std::format("if {} {{", flag));
       Line(2, std::format("mut {} = {} + 1", total, total));
       Line(1, "}");
-      if (*flags_.Get(flag)) ++sum;
+      if (flags_.Get(flag).value()) ++sum;
     }
 
     // Folded into what an exit code holds, and never negative, so that what
@@ -618,10 +620,10 @@ class RandomProgram {
     return sum;
   }
 
-  std::int64_t SumOf(const Scope& scope) {
-    std::int64_t total = 0;
+  std::int32_t SumOf(const Scope& scope) {
+    std::int32_t total = 0;
     for (const std::string& name : scope.numbers) {
-      total = Narrow(total + *numbers_.Get(name));
+      total = Narrow(std::int64_t{total} + numbers_.Get(name).value());
     }
     return total;
   }

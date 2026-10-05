@@ -155,7 +155,8 @@ std::optional<Reg> FindRegToSpill(const AbstractMachineControlFlowGraph& am_cfg,
 
   const auto& blocks = am_cfg.Blocks();
   for (; first_block < blocks.Size(); ++first_block) {
-    const auto& block = *(blocks.begin() + first_block);
+    const auto& block =
+        *(blocks.begin() + static_cast<std::ptrdiff_t>(first_block));
     if (!liveness[block.ref.id()].has_value()) continue;
 
     const std::optional<Reg> reg = FindRegToSpillInBlock(
@@ -433,11 +434,12 @@ void RemoveSpiltRegisters(const AbstractMachineControlFlowGraph& am_cfg,
         std::ranges::find(am_cfg.params, reg) != am_cfg.params.end();
 
     for (std::size_t id = 0; id < liveness.size(); ++id) {
-      if (!liveness[id].has_value()) continue;
+      auto& state = liveness[id];
+      if (!state.has_value()) continue;
 
-      liveness[id]->live_out.Remove(reg);
+      state->live_out.Remove(reg);
       if (is_param && std::size_t(am_cfg.first.id()) == id) continue;
-      liveness[id]->live_in.Remove(reg);
+      state->live_in.Remove(reg);
     }
   }
 }
@@ -451,13 +453,12 @@ class Coloring {
  public:
   Coloring(std::size_t reg_ids, int colors_count)
       : colors_(reg_ids, RegisterColors::kNone),
-        all_colors_(colors_count == 64 ? ~Colors{0}
-                                       : (Colors{1} << colors_count) - 1) {}
+        all_colors_(~Colors{0} >> static_cast<unsigned>(64 - colors_count)) {}
 
   // Returns the colour `reg` has been given, as a bit.
   Colors Bit(Reg reg) const {
     assert(colors_[reg.id] != RegisterColors::kNone);
-    return Colors{1} << (colors_[reg.id] - kFirstColor);
+    return Colors{1} << static_cast<unsigned>(colors_[reg.id] - kFirstColor);
   }
 
   // Gives `reg` the lowest colour not in `taken`, and takes it.
@@ -564,7 +565,8 @@ void ColorBlock(const AbstractMachineControlFlowGraph& am_cfg,
       if (reads.Unread(param)) taken &= ~coloring.Bit(param);
     }
   }
-  for (Reg reg : liveness[block.ref.id()]->live_in) taken |= coloring.Bit(reg);
+  for (Reg reg : liveness[block.ref.id()].value().live_in)
+    taken |= coloring.Bit(reg);
 
   // The phi functions settle on their results together where the block
   // starts, beside everything live into it.
@@ -625,10 +627,10 @@ AbstractMachineLiveness SpillRegisters(AbstractMachineControlFlowGraph& am_cfg,
 
     // Whatever phi functions tie it to goes with it, because one value under
     // several names is put away once and read back by any of them.
-    const HashSet<Reg> tied = TiedRegisters(*ties, *reg_to_spill);
+    const HashSet<Reg> tied = TiedRegisters(ties.value(), *reg_to_spill);
     for (Reg reg : tied) spilt_regs.Insert(reg);
 
-    SpillRegisters(tied, am_cfg, rpo, *occurrences);
+    SpillRegisters(tied, am_cfg, rpo, occurrences.value());
 
     RemoveSpiltRegisters(am_cfg, tied, liveness);
   }
@@ -679,8 +681,8 @@ void MergeRegisters(const RegisterColors& reg_colors,
         UpdateRegister(reg_colors, *target);
       }
     }
-    if (block.branch_cond.has_value()) {
-      UpdateRegister(reg_colors, *block.branch_cond);
+    if (auto& cond = block.branch_cond; cond.has_value()) {
+      UpdateRegister(reg_colors, *cond);
     }
     for (auto& phi : block.phis) {
       UpdateRegister(reg_colors, phi.dst);

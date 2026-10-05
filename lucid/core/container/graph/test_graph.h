@@ -29,8 +29,8 @@ class TestGraph {
     AddVertex(from);
     AddVertex(to);
 
-    nexts_.Get(from)->Insert(to);
-    prevs_.Get(to)->Insert(from);
+    nexts_.Get(from).value().Insert(to);
+    prevs_.Get(to).value().Insert(from);
   }
 
   const std::vector<char>& Vertices() const { return vertices_; }
@@ -88,7 +88,7 @@ inline std::vector<char> PrevVertices(const TestGraph& g, char v) {
 }
 
 inline std::uint32_t VertexId(const TestGraph& g, char v) {
-  return *g.order_.Get(v);
+  return g.order_.Get(v).value();
 }
 
 }  // namespace lucid

@@ -3,6 +3,12 @@ Checks: '
 -*,
 bugprone-*,
 -bugprone-exception-escape,
+-bugprone-easily-swappable-parameters,
 performance-*,
 '
+CheckOptions:
+  # A positive literal is never the operand that goes wrong.
+  bugprone-signed-bitwise.IgnorePositiveIntegerLiterals: true
+  # `value()` is how an optional that must hold a value is read: it checks.
+  bugprone-unchecked-optional-access.IgnoreValueCalls: true
 ...

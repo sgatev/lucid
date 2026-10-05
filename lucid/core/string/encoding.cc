@@ -101,7 +101,7 @@ std::size_t WriteEncodedString(std::string_view s,
 
       std::uint8_t r = 0;
       for (; i >= 0; --i) {
-        r += kEscapeOctet[s.front()] * (1 << (3 * i));
+        r = r * 8 + kEscapeOctet[s.front()];
         s.remove_prefix(1);
       }
 

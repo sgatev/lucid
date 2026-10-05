@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
+#include <ostream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -82,6 +83,7 @@ class CompilerTest : public Test {
     const std::string out_path = FullPath("stdout");
     const std::string err_path = FullPath("stderr");
     std::string c = std::string(command) + " > " + out_path + " 2> " + err_path;
+    // NOLINTNEXTLINE(bugprone-command-processor): the shell redirects output.
     const int result = std::system(c.c_str());
     const int return_code = WEXITSTATUS(result);
     return {

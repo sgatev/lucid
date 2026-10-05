@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <ios>
 #include <ostream>
 #include <vector>
 
@@ -18,6 +19,7 @@ enum CpuArch : int {
 // Machine types.
 enum class CpuType : int {
   Arm = 12,
+  // NOLINTNEXTLINE(bugprone-signed-bitwise): `cpu_type_t` is signed.
   Arm64 = Arm | CpuArch::Abi64,
 };
 
@@ -33,6 +35,7 @@ enum class VmProt : int {
   Read = 0x01,
   Write = 0x02,
   Execute = 0x04,
+  // NOLINTNEXTLINE(bugprone-signed-bitwise): `vm_prot_t` is signed.
   ReadWriteExecute = Read | Write | Execute,
 };
 
@@ -347,7 +350,8 @@ void WriteCompiledMachObject(const arm64::Assembler& assembler,
   }
   assert(bytes.size() == string_table_offset + sym_str_size);
 
-  out.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+  out.write(reinterpret_cast<const char*>(bytes.data()),
+            static_cast<std::streamsize>(bytes.size()));
 }
 
 }  // namespace lucid

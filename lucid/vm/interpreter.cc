@@ -268,7 +268,8 @@ void Interpreter::Write(std::size_t offset, RegSize size, std::int64_t value) {
   if (stack_.size() < offset + width) stack_.resize(offset + width, 0);
 
   for (std::size_t i = 0; i < width; ++i) {
-    stack_[offset + i] = static_cast<std::uint8_t>(value >> (8 * i));
+    stack_[offset + i] =
+        static_cast<std::uint8_t>(static_cast<std::uint64_t>(value) >> (8 * i));
   }
 }
 

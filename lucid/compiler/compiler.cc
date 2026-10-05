@@ -207,6 +207,7 @@ std::expected<void, BuildError> BuildCode(BuildConfig cfg) {
 
   return CompileCode({.src_path = cfg.src_path, .out_path = obj_path})
       .and_then([&] -> std::expected<void, BuildError> {
+        // NOLINTNEXTLINE(bugprone-command-processor): the shell finds the SDK.
         std::system(std::format("ld -o {} {} -lSystem -syslibroot `xcrun -sdk "
                                 "macosx --show-sdk-path` -e _start -arch arm64",
                                 cfg.out_path.c_str(), obj_path.c_str())

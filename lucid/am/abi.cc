@@ -68,9 +68,8 @@ void LoadAtEveryUse(AbstractMachineControlFlowGraph& am_cfg, Reg reg,
 
     // A branch reads what it decides on where its block ends, so the load
     // stands there, after everything the block does.
-    if (block.branch_cond.has_value() && *block.branch_cond == reg) {
-      load_into(block.instructions, block.instructions.end(),
-                *block.branch_cond);
+    if (auto& cond = block.branch_cond; cond.has_value() && *cond == reg) {
+      load_into(block.instructions, block.instructions.end(), *cond);
     }
   }
 
