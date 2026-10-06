@@ -35,6 +35,24 @@ jobs:
       - name: Run clang-tidy
         run: scripts/run_clang_tidy.sh
 
+  coverage:
+    runs-on: namespace-profile-macos-arm64
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - name: Use the Command Line Tools toolchain
+        run: sudo xcode-select -s /Library/Developer/CommandLineTools
+      - name: Install genhtml
+        run: brew install lcov
+      - name: Run tests with coverage
+        run: scripts/run_coverage.sh
+      - name: Keep the report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+
   benchmark:
     needs: test
     runs-on: namespace-profile-macos-arm64

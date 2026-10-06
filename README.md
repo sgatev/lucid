@@ -79,6 +79,18 @@ bazel test --config=asan ...
 bazel test --config=ubsan ...
 ```
 
+### Coverage
+
+To see which lines the tests reach execute
+
+```
+scripts/run_coverage.sh
+open coverage/index.html
+```
+
+The report is drawn by `genhtml`, which comes with `brew install lcov`. Every
+push also attaches it to its run on GitHub, as the `coverage` artifact.
+
 ### Benchmark
 
 To run every benchmark execute

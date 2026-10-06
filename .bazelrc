@@ -22,3 +22,11 @@ build:ubsan --copt -fno-sanitize=function,vptr
 build:ubsan --linkopt -fsanitize=undefined
 build:ubsan --action_env=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
 build:ubsan --platform_suffix=ubsan
+
+# A coverage build is compiled in a sandbox whose path differs from action to
+# action, and the sources it reports under that absolute path match none of
+# those Bazel asked about, so their coverage is dropped. They are reported
+# relative to the workspace instead.
+coverage --combined_report=lcov
+coverage --experimental_generate_llvm_lcov
+coverage --copt=-ffile-compilation-dir=.
