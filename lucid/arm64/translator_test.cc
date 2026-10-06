@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <initializer_list>
 #include <string>
 #include <utility>
 #include <vector>
@@ -123,6 +124,106 @@ TEST(Test, ComparisonThatOutlivesItsBlockIsStillComputed) {
   EXPECT_TRUE(Emitted(assembler, Instruction([](arm64::Assembler& a) {
                         a.Cmp(arm64::W(3), arm64::Imm(0));
                       })));
+}
+
+// Generates code for a function that compares the 64-bit registers 1 and 2
+// with `Comparison` and returns the result, so that the result is kept in a
+// register rather than branched on.
+//
+// The result is a `Bool`, which is held in 32 bits whatever the width of what
+// was compared.
+template <typename Comparison>
+void GenerateWideComparison(arm64::Assembler& assembler) {
+  const Reg result{3, RegSize32};
+
+  AbstractMachineControlFlowGraphBuilder builder;
+  const auto block = builder.AddBlock();
+  builder.SetFirst(block);
+  builder.SetLast(block);
+  builder.AddInstruction(block, Comparison{.res_reg = result,
+                                           .lhs_reg = Reg{1, RegSize64},
+                                           .rhs_reg = Reg{2, RegSize64}});
+  builder.AddInstruction(block, Return{.res_reg = result});
+  AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
+
+  GenerateArmAssemblyBinary("f", {}, {}, am_cfg, assembler);
+}
+
+// Returns whether the comparison `Comparison` of two 64-bit registers is
+// computed from all 64 bits of each and sets its result on `cond`.
+template <typename Comparison>
+bool ComparesWideRegisters(arm64::InvCond cond) {
+  arm64::Assembler assembler;
+  GenerateWideComparison<Comparison>(assembler);
+
+  return Emitted(assembler, Instruction([](arm64::Assembler& a) {
+                   a.Cmp(arm64::X(1), arm64::X(2));
+                 })) &&
+         Emitted(assembler, Instruction([&](arm64::Assembler& a) {
+                   a.Cset(arm64::X(3), cond);
+                 }));
+}
+
+TEST(Test, ComparisonOfWideRegistersComparesAllOfThem) {
+  EXPECT_TRUE(ComparesWideRegisters<GtReg>(arm64::InvCond::Gt));
+  EXPECT_TRUE(ComparesWideRegisters<LtReg>(arm64::InvCond::Lt));
+  EXPECT_TRUE(ComparesWideRegisters<GeReg>(arm64::InvCond::Ge));
+  EXPECT_TRUE(ComparesWideRegisters<LeReg>(arm64::InvCond::Le));
+  EXPECT_TRUE(ComparesWideRegisters<EqReg>(arm64::InvCond::Eq));
+  EXPECT_TRUE(ComparesWideRegisters<NotEqReg>(arm64::InvCond::Ne));
+}
+
+// Generates code for a function whose first block falls through to one that
+// settles `phis`, each taking its one argument from the first block.
+void GeneratePhiMoves(std::vector<AbstractMachineControlFlowGraph::Phi> phis,
+                      arm64::Assembler& assembler) {
+  AbstractMachineControlFlowGraphBuilder builder;
+  const auto entry = builder.AddBlock();
+  const auto exit = builder.AddBlock();
+  builder.SetFirst(entry);
+  builder.SetLast(exit);
+  builder.AddEdge(entry, exit);
+  for (auto& phi : phis) builder.AddPhi(exit, std::move(phi));
+  builder.AddInstruction(exit, Return{.res_reg = {1, RegSize64}});
+  AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
+
+  GenerateArmAssemblyBinary("f", {}, {}, am_cfg, assembler);
+}
+
+// Returns the instructions that the moves in `dst_src_pairs` assemble to, in
+// order, each one moving the 64-bit register `src` into `dst`.
+std::vector<std::uint32_t> Moves(
+    std::initializer_list<std::pair<int, int>> dst_src_pairs) {
+  arm64::Assembler assembler;
+  for (const auto [dst, src] : dst_src_pairs) {
+    assembler.Mov(arm64::X(dst), arm64::X(src));
+  }
+  return Words(assembler);
+}
+
+TEST(Test, PhiOfWideRegistersMovesAllOfIt) {
+  arm64::Assembler assembler;
+  GeneratePhiMoves({{.dst = {4, RegSize64}, .srcs = {{1, RegSize64}}}},
+                   assembler);
+
+  EXPECT_TRUE(Emitted(assembler, Moves({{4, 1}}).front()));
+}
+
+TEST(Test, PhisSwappingWideRegistersGoThroughTheScratchRegister) {
+  // Each phi reads what the other writes, so neither move can go first
+  // without overwriting what the other still has to read. One of the two is
+  // set aside in the scratch register to break the cycle, and which one that
+  // is depends on the order the moves are kept in.
+  arm64::Assembler assembler;
+  GeneratePhiMoves({{.dst = {1, RegSize64}, .srcs = {{2, RegSize64}}},
+                    {.dst = {2, RegSize64}, .srcs = {{1, RegSize64}}}},
+                   assembler);
+
+  const std::vector<std::uint32_t> words = Words(assembler);
+  EXPECT_TRUE(
+      std::ranges::contains_subrange(words,
+                                     Moves({{15, 1}, {1, 2}, {2, 15}})) ||
+      std::ranges::contains_subrange(words, Moves({{15, 2}, {2, 1}, {1, 15}})));
 }
 
 TEST(Test, GenerateArmStartBinaryWorks) {

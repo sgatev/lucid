@@ -534,6 +534,47 @@ TEST(CompilerTest, ComparisonOfWiderAndSignedValues) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
 }
 
+// Each comparison held in a variable, which the backend sets with CSET, at
+// the width of an `Int64`. `big` is 2^32, which has nothing in its lower 32
+// bits, so a comparison of only those would find it less than `one` and equal
+// to `zero`, and come to 26 rather than 37.
+TEST(CompilerTest, ComparisonOfWiderValuesHeldInAVariable) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val big: Int64 = 4294967296
+      val one: Int64 = 1
+      val zero: Int64 = 0
+      val gt: Bool = big > one
+      val lt: Bool = big < one
+      val ge: Bool = big >= one
+      val le: Bool = big <= one
+      val eq: Bool = big == zero
+      val ne: Bool = big != zero
+      mut val n: Int32 = 0
+      if gt {
+        mut n = n + 1
+      }
+      if lt {
+        mut n = n + 2
+      }
+      if ge {
+        mut n = n + 4
+      }
+      if le {
+        mut n = n + 8
+      }
+      if eq {
+        mut n = n + 16
+      }
+      if ne {
+        mut n = n + 32
+      }
+      return n
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(37));
+}
+
 // An array or a tuple lives in the frame, which the interpreter that runs
 // comp code once had none of: what it stored went nowhere and what it read
 // back was zero.
