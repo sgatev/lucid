@@ -233,6 +233,33 @@ TEST(Test, RegBitSetTakesInAnotherWhole) {
   EXPECT_THAT(set, ElementsEqual(R(3), Reg{.id = 130, .size = RegSize64}));
 }
 
+// The words of the two sets alternate: each has one below, between and
+// above those of the other, and one word they share. Taken in either way
+// round, the registers come out the same.
+TEST(Test, RegBitSetTakesInAnotherWhoseWordsAlternateWithItsOwn) {
+  RegBitSet set;
+  set.Insert(R(70));
+  set.Insert(R(200));
+
+  RegBitSet other;
+  other.Insert(R(3));
+  other.Insert(Reg{.id = 130, .size = RegSize64});
+  other.Insert(R(201));
+  other.Insert(R(300));
+
+  RegBitSet merged = set;
+  merged.InsertAll(other);
+  EXPECT_THAT(merged,
+              ElementsEqual(R(3), R(70), Reg{.id = 130, .size = RegSize64},
+                            R(200), R(201), R(300)));
+
+  merged = other;
+  merged.InsertAll(set);
+  EXPECT_THAT(merged,
+              ElementsEqual(R(3), R(70), Reg{.id = 130, .size = RegSize64},
+                            R(200), R(201), R(300)));
+}
+
 // Two sets holding the same registers are equal, even where one has grown
 // further than the other to hold a register it no longer does.
 TEST(Test, RegBitSetEqualityIsByWhatIsHeld) {
