@@ -205,6 +205,7 @@ cc_test(
         ":ast_fixture",
         ":cfg",
         ":liveness",
+        ":ssa",
         "//lucid/core/container:hash_set",
         "//lucid/core/dataflow",
         "//lucid/core/string:index",

@@ -1,5 +1,6 @@
 #include "lucid/syntax/liveness.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <optional>
 #include <string_view>
@@ -12,6 +13,7 @@
 #include "lucid/syntax/ast.h"
 #include "lucid/syntax/ast_fixture.h"
 #include "lucid/syntax/cfg.h"
+#include "lucid/syntax/ssa.h"
 
 namespace lucid {
 namespace {
@@ -21,7 +23,11 @@ class SyntaxLivenessAnalysisTest : public Test, public AstFixture {
   // Returns the variables live where each block is entered, by block id.
   std::vector<std::vector<StringIndex::Ref>> AnalyzeLiveness(
       FuncDefStmt func_def) {
-    auto syn_cfg = ::lucid::BuildControlFlowGraph(syn_ctx_, func_def);
+    return AnalyzeLiveness(::lucid::BuildControlFlowGraph(syn_ctx_, func_def));
+  }
+
+  std::vector<std::vector<StringIndex::Ref>> AnalyzeLiveness(
+      const SyntaxControlFlowGraph& syn_cfg) {
     SyntaxLivenessAnalysis analysis(syn_ctx_, syn_cfg);
     return LiveIn(analysis, RunDataflow(Backward(syn_cfg), analysis));
   }
@@ -196,6 +202,61 @@ TEST(SyntaxLivenessAnalysisTest, ParameterReadAfterABranch) {
   EXPECT_THAT(live_in[kEntry], UnorderedElementsEqual(I("a")));
   EXPECT_THAT(live_in[kThen], UnorderedElementsEqual(I("a")));
   EXPECT_THAT(live_in[kAfterBranch], UnorderedElementsEqual(I("a")));
+  EXPECT_THAT(live_in[kLast], IsEmpty());
+}
+
+// A parameter written on one branch only, in static single assignment form:
+// where the branches meet, a phi takes the new value from the branch that
+// wrote it and the parameter from the one that did not. The parameter is
+// read by nothing but that phi, and is live along the branch it is taken
+// from alone.
+TEST(SyntaxLivenessAnalysisTest, PhiArgumentsAreLiveAlongTheirOwnEdge) {
+  auto syn_cfg = ::lucid::BuildControlFlowGraph(
+      syn_ctx_, FuncDefStmt{
+                    .name = I("foo"),
+                    .params = ParamListOf({P(FuncParam{
+                        .name = I("a"),
+                        .type_constraint = T("Int32"),
+                    })}),
+                    .result_type = T("Int32"),
+                    .stmts = StmtListOf({
+                        S(IfStmt{
+                            .cond = E(BoolLitExpr{.value = true}),
+                            .then_stmts = StmtListOf({
+                                S(VarAssignStmt{
+                                    .name = I("a"),
+                                    .expr = E(IntLitExpr{.value = 2}),
+                                }),
+                            }),
+                            .else_stmts = StmtListOf({DeclareInt32Var("b", 3)}),
+                        }),
+                        S(ReturnStmt{.value = E(IdentExpr{.name = I("a")})}),
+                    }),
+                });
+  ConvertToStaticSingleAssignment(syn_ctx_, syn_cfg);
+
+  static constexpr std::size_t kEntry = 0;
+  static constexpr std::size_t kLast = 1;
+  static constexpr std::size_t kAfterBranch = 2;
+  static constexpr std::size_t kThen = 3;
+  static constexpr std::size_t kElse = 4;
+
+  // The parameter as it was renamed, which is what the phi takes from the
+  // branch that leaves it as it is.
+  const StringIndex::Ref param =
+      syn_ctx_.DerefParam(syn_cfg.func_params[0]).name;
+  const auto& phis = syn_cfg.blocks().Get(kAfterBranch).phis;
+  ASSERT_THAT(phis, SizeIs(1));
+  ASSERT_TRUE(std::ranges::contains(syn_cfg.deref(phis[0]).args, param));
+
+  const auto live_in = AnalyzeLiveness(syn_cfg);
+
+  ASSERT_THAT(live_in, SizeIs(5));
+
+  EXPECT_THAT(live_in[kElse], UnorderedElementsEqual(param));
+  EXPECT_THAT(live_in[kEntry], UnorderedElementsEqual(param));
+  EXPECT_THAT(live_in[kThen], IsEmpty());
+  EXPECT_THAT(live_in[kAfterBranch], IsEmpty());
   EXPECT_THAT(live_in[kLast], IsEmpty());
 }
 
