@@ -1,5 +1,6 @@
 #include "lucid/vm/interpreter.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <optional>
@@ -371,6 +372,65 @@ TEST(Test, InterpretAbstractMachineFunctionNotEqReg) {
       /*am_cfgs=*/{}, std::move(g).Build(), /*args=*/{}, am_state);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(*result, 1);
+}
+
+// Both sides of each comparison, and the point where they meet, which is the
+// whole of what `>=` and `<=` add over `>` and `<`.
+TEST(Test, InterpretAbstractMachineFunctionGeRegAndLeReg) {
+  EXPECT_EQ(InterpretBinary<GeReg>(1, 2), 0);
+  EXPECT_EQ(InterpretBinary<GeReg>(2, 1), 1);
+  EXPECT_EQ(InterpretBinary<GeReg>(2, 2), 1);
+  EXPECT_EQ(InterpretBinary<LeReg>(1, 2), 1);
+  EXPECT_EQ(InterpretBinary<LeReg>(2, 1), 0);
+  EXPECT_EQ(InterpretBinary<LeReg>(2, 2), 1);
+}
+
+constexpr std::int64_t kWide = (std::int64_t{1} << 40) + 3;
+
+// Returns what the slot with index `slot` comes to when read back, in a frame
+// of slots 4, 8 and 4 bytes wide that have had -5, `kWide` and 7 stored in
+// them, in that order.
+std::optional<std::int64_t> InterpretStoredSlot(std::size_t slot) {
+  AbstractMachineControlFlowGraphBuilder g;
+
+  auto a = g.AddBlock();
+  auto z = g.AddBlock();
+
+  const Reg first{.id = 1, .size = RegSize32};
+  const Reg second{.id = 2, .size = RegSize64};
+  const Reg third{.id = 3, .size = RegSize32};
+  const Reg read{.id = 4, .size = slot == 1 ? RegSize64 : RegSize32};
+
+  g.SetFirst(a);
+  g.AddInstruction(a, SetReg{.src_val = -5, .dst_reg = first});
+  g.AddInstruction(a, SetInt{.src_val = kWide, .dst_reg = second});
+  g.AddInstruction(a, SetReg{.src_val = 7, .dst_reg = third});
+  g.AddInstruction(a, StoreStack{.offset = 0, .src_reg = first});
+  g.AddInstruction(a, StoreStack{.offset = 1, .src_reg = second});
+  g.AddInstruction(a, StoreStack{.offset = 2, .src_reg = third});
+  g.AddInstruction(a, LoadStack{.offset = slot, .dst_reg = read});
+  g.AddEdge(a, z);
+
+  g.SetLast(z);
+  g.AddInstruction(z, Return{.res_reg = read});
+
+  AbstractMachineControlFlowGraph am_cfg = std::move(g).Build();
+  am_cfg.stack_slots = {4, 8, 4};
+
+  AbstractMachineState am_state;
+  auto result = InterpretAbstractMachineFunction(
+      /*am_cfgs=*/{}, am_cfg, /*args=*/{}, am_state);
+  if (!result.has_value()) return std::nullopt;
+  return *result;
+}
+
+// Each slot begins where the ones before it end, so storing into one leaves
+// the others as they were. A value comes back whole at the width it was
+// stored at, and one narrower than a register comes back with its sign.
+TEST(Test, InterpretAbstractMachineFunctionKeepsStackSlotsApart) {
+  EXPECT_EQ(InterpretStoredSlot(0), -5);
+  EXPECT_EQ(InterpretStoredSlot(1), kWide);
+  EXPECT_EQ(InterpretStoredSlot(2), 7);
 }
 
 TEST(Test, InterpretAbstractMachineFunctionSequence) {
