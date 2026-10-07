@@ -758,7 +758,7 @@ class Assembler {
   //
   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--register---Store-register--register--?lang=en
   void Str(X rt, X rn, internal::Reg rm, Extend extend, Imm amount) {
-    Insert(Str(false, rt, rn, rm, extend, amount));
+    Insert(Str(true, rt, rn, rm, extend, amount));
   }
 
   // Insert LDP post-index instruction.

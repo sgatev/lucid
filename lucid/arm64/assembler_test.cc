@@ -233,6 +233,11 @@ TEST(Test, LoadsAndStoresEncodeRegisterOffsets) {
                 a.Str(W(1), X(2), W(3), Extend::Uxtw, Imm(1));
               }),
               ElementsEqual(0xb8235841u));
+  // str x1, [x2, x3, lsl #3]
+  EXPECT_THAT(Encode([](Assembler& a) {
+                a.Str(X(1), X(2), X(3), Extend::Lsl, Imm(1));
+              }),
+              ElementsEqual(0xf8237841u));
   // ldr x1, [x2, x3, lsl #3]
   EXPECT_THAT(Encode([](Assembler& a) {
                 a.Ldr(X(1), X(2), X(3), Extend::Lsl, Imm(1));

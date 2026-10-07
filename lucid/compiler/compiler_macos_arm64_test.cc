@@ -534,6 +534,49 @@ TEST(CompilerTest, ComparisonOfWiderAndSignedValues) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(3));
 }
 
+// An `Int64` and an `Int32` carried around a loop together. Going into the
+// loop they swap registers, the one of them in its lower half, and the copy
+// into one once wrote over the other before it was read, so `n` came into
+// the loop as 0.
+TEST(CompilerTest, ValuesOfEitherWidthCarriedAroundALoop) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int64 {
+      mut val n: Int64 = 42
+      mut val k: Int32 = 0
+      loop {
+        if k == 1 {
+          break
+        }
+        mut n = n + 1
+        mut k = k + 1
+      }
+      return n
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(43));
+}
+
+// An element of an `Int64` array holds all 64 bits of what is stored in it.
+// The store once wrote only the lower 32, and left the upper ones as the
+// stack had them. `big` is 3 * 2^32 + 5, since a return address left there
+// has 1 in its upper half and would make 2^32 come out right. It is indexed
+// by a variable, which is the form of store that went wrong.
+TEST(CompilerTest, Int64ArrayElementHoldsAllOfAValue) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      mut val a: Int64[2]
+      val i: Int32 = 1
+      val big: Int64 = 12884901893
+      mut a[i] = big
+      if a[1] == big {
+        return 1
+      }
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
+}
+
 // Each comparison held in a variable, which the backend sets with CSET, at
 // the width of an `Int64`. `big` is 2^32, which has nothing in its lower 32
 // bits, so a comparison of only those would find it less than `one` and equal

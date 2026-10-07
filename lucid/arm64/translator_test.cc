@@ -226,6 +226,57 @@ TEST(Test, PhisSwappingWideRegistersGoThroughTheScratchRegister) {
       std::ranges::contains_subrange(words, Moves({{15, 2}, {2, 1}, {1, 15}})));
 }
 
+// Returns the instructions that `emit` assembles to.
+template <typename F>
+std::vector<std::uint32_t> Assembled(F emit) {
+  arm64::Assembler assembler;
+  emit(assembler);
+  return Words(assembler);
+}
+
+TEST(Test, PhisSwappingRegistersOfEitherWidthGoThroughTheScratchRegister) {
+  // `w19` is the lower half of `x19`, so writing it overwrites what the move
+  // into `x20` still has to read, and the two moves wait on each other as
+  // much as two of the same width would. Whichever register is set aside is
+  // set aside whole.
+  arm64::Assembler assembler;
+  GeneratePhiMoves({{.dst = {20, RegSize64}, .srcs = {{19, RegSize64}}},
+                    {.dst = {19, RegSize32}, .srcs = {{20, RegSize32}}}},
+                   assembler);
+
+  const std::vector<std::uint32_t> words = Words(assembler);
+  EXPECT_TRUE(
+      std::ranges::contains_subrange(words, Assembled([](arm64::Assembler& a) {
+                                       a.Mov(arm64::X(15), arm64::X(20));
+                                       a.Mov(arm64::X(20), arm64::X(19));
+                                       a.Mov(arm64::W(19), arm64::W(15));
+                                     })) ||
+      std::ranges::contains_subrange(words, Assembled([](arm64::Assembler& a) {
+                                       a.Mov(arm64::X(15), arm64::X(19));
+                                       a.Mov(arm64::W(19), arm64::W(20));
+                                       a.Mov(arm64::X(20), arm64::X(15));
+                                     })));
+}
+
+TEST(Test, PhisReadingOneRegisterBothReadItBeforeItIsWritten) {
+  // Two phis take what `x1` holds, and a third writes `x1`. It can only be
+  // written once both of the others have read it.
+  arm64::Assembler assembler;
+  GeneratePhiMoves({{.dst = {3, RegSize64}, .srcs = {{1, RegSize64}}},
+                    {.dst = {4, RegSize64}, .srcs = {{1, RegSize64}}},
+                    {.dst = {1, RegSize64}, .srcs = {{2, RegSize64}}}},
+                   assembler);
+
+  const std::vector<std::uint32_t> words = Words(assembler);
+  const auto at = [&](int dst, int src) {
+    return std::ranges::find(words, Moves({{dst, src}}).front()) -
+           words.begin();
+  };
+  ASSERT_TRUE(at(1, 2) < std::ssize(words));
+  EXPECT_TRUE(at(3, 1) < at(1, 2));
+  EXPECT_TRUE(at(4, 1) < at(1, 2));
+}
+
 TEST(Test, GenerateArmStartBinaryWorks) {
   arm64::Assembler assembler;
 

@@ -21,7 +21,6 @@
 #include "lucid/arm64/assembler.h"
 #include "lucid/core/container/graph/order.h"
 #include "lucid/core/container/hash_map.h"
-#include "lucid/core/container/hash_set.h"
 #include "lucid/core/string/index.h"
 #include "lucid/syntax/context.h"
 
@@ -341,8 +340,13 @@ class Arm64BinaryGenerator {
       }
     }
 
+    // The moves still to be made, and how many of them read each register.
+    // A register is counted by its ID alone: `w19` and `x19` are one
+    // register, so a move that writes either overwrites what a read of the
+    // other would find. Two moves can read the same register, and it is
+    // still read until both of them are made.
     HashMap<Reg, Reg> dst_to_srcs;
-    HashSet<Reg> srcs;
+    HashMap<std::int32_t, int> reads;
     for (const auto& phi : block.phis) {
       // An argument already in the register the phi function settles on is
       // where it needs to be. Left in, it would read as a copy waiting on
@@ -350,15 +354,15 @@ class Arm64BinaryGenerator {
       if (phi.srcs[pred_block_idx] == phi.dst) continue;
 
       dst_to_srcs.Insert(phi.dst, phi.srcs[pred_block_idx]);
-      srcs.Insert(phi.srcs[pred_block_idx]);
+      ++reads.Emplace(phi.srcs[pred_block_idx].id);
     }
     while (!dst_to_srcs.empty()) {
       bool removed = false;
       for (const auto [target, source] : dst_to_srcs) {
-        if (srcs.Contains(target)) continue;
+        if (reads.Get(target.id).has_value()) continue;
 
         dst_to_srcs.Remove(target);
-        srcs.Remove(source);
+        if (--reads.Get(source.id).value() == 0) reads.Remove(source.id);
 
         switch (target.size) {
           case RegSize32:
@@ -372,22 +376,22 @@ class Arm64BinaryGenerator {
         break;
       }
       if (!removed) {
+        // Every register still to be written is still to be read, so the
+        // moves wait on each other in a cycle. What one of them holds is set
+        // aside in the scratch register, whole, since a read of it can be
+        // wider than the write waiting on it. Its reads take the scratch
+        // register instead, each at its own width, and it is free to write.
         const auto [target, source] = *dst_to_srcs.begin();
-        switch (target.size) {
-          case RegSize32:
-            assembler_.Mov(W(15), W(target.id));
-            break;
-          case RegSize64:
-            assembler_.Mov(X(15), X(target.id));
-            break;
-        }
+        assembler_.Mov(X(15), X(target.id));
+        int moved_reads = 0;
         for (const auto [t, s] : dst_to_srcs) {
-          if (s == target) {
-            dst_to_srcs.Set(t, Reg{.id = 15, .size = target.size});
+          if (s.id == target.id) {
+            dst_to_srcs.Set(t, Reg{.id = 15, .size = s.size});
+            ++moved_reads;
           }
         }
-        srcs.Remove(target);
-        srcs.Insert(Reg{.id = 15, .size = target.size});
+        reads.Remove(target.id);
+        reads.Emplace(15) += moved_reads;
       }
     }
   }
