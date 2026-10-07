@@ -89,7 +89,9 @@ open coverage/index.html
 ```
 
 The report is drawn by `genhtml`, which comes with `brew install lcov`. Every
-push also attaches it to its run on GitHub, as the `coverage` artifact.
+push also attaches it to its run on GitHub, as the `coverage` artifact, and
+every push to `main` publishes it at
+[sgatev.github.io/lucid/dev/coverage](https://sgatev.github.io/lucid/dev/coverage/).
 
 ### Benchmark
 

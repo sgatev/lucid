@@ -38,7 +38,13 @@ jobs:
   coverage:
     runs-on: namespace-profile-macos-arm64
     permissions:
-      contents: read
+      # The report of a run on main is pushed to the gh-pages branch.
+      contents: write
+    # Two runs that both push to gh-pages would race, so they are serialized
+    # rather than cancelled.
+    concurrency:
+      group: coverage-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
       - name: Use the Command Line Tools toolchain
@@ -52,9 +58,14 @@ jobs:
         with:
           name: coverage
           path: coverage
+      - name: Publish the report
+        if: github.ref == 'refs/heads/main'
+        run: scripts/publish_coverage_report.sh
 
   benchmark:
-    needs: test
+    # After coverage as well, whose report goes to the same branch the results
+    # do, so that the two of a run do not push to it at once.
+    needs: [test, coverage]
     runs-on: namespace-profile-macos-arm64
     permissions:
       # The results of a run on main are pushed to the gh-pages branch.
