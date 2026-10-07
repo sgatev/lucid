@@ -1,0 +1,28 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+# The C++ side of the comparison, built the way the benchmarks are, which is
+# with `-c opt`.
+cc_binary(
+    name = "quicksort_cc",
+    testonly = True,
+    srcs = ["quicksort.cc"],
+)
+
+cc_binary(
+    name = "quicksort_bench",
+    testonly = True,
+    srcs = ["quicksort_bench.cc"],
+    data = [
+        "quicksort.lu",
+        ":quicksort_cc",
+    ],
+    # What Lucid compiles to runs on nothing else.
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+    deps = [
+        "//lucid/compiler",
+        "//lucid/core/benchmarking",
+    ],
+)

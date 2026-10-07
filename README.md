@@ -112,6 +112,13 @@ bazel run -c opt //lucid/am:reg_bench -- --format=json
 Every push to `main` records the results, which are charted at
 [sgatev.github.io/lucid/dev/bench](https://sgatev.github.io/lucid/dev/bench/).
 
+The benchmarks in `lucid/benchmarks` time a program written once in Lucid and
+once in C++, and the page charts the two side by side
+
+```
+bazel run -c opt //lucid/benchmarks/quicksort:quicksort_bench
+```
+
 ### Debug
 
 To print the abstract syntax tree derived from code execute

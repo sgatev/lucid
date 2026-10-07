@@ -15,6 +15,7 @@
         --text-dim: #57606a;
         --accent: #3273dc;
         --accent-soft: #3273dc1a;
+        --other: #bc4c00;
         --grid: #e1e4e8;
       }
 
@@ -27,6 +28,7 @@
           --text-dim: #9198a1;
           --accent: #58a6ff;
           --accent-soft: #58a6ff26;
+          --other: #f0883e;
           --grid: #21262d;
         }
       }
@@ -281,6 +283,39 @@
         min-width: 2px;
       }
 
+      /* Lucid against C++, the same program in each */
+      .comparison + .comparison {
+        margin-top: 16px;
+      }
+
+      .comparison h3 {
+        margin: 0 0 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      .comparison .summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 20px;
+        margin-bottom: 8px;
+        font-size: 0.8125rem;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .comparison .swatch {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        margin-right: 6px;
+        vertical-align: -1px;
+      }
+
+      .comparison .ratio {
+        color: var(--text-dim);
+      }
+
       .chart .canvas-box {
         position: relative;
         height: 220px;
@@ -378,6 +413,14 @@
             whole. A time cannot be compared between two benchmarks that read
             different amounts, which is what a rate is for.
           </dd>
+          <dt>Lucid against C++</dt>
+          <dd>
+            The same program written in each language, run whole as a
+            process of its own, so starting it and generating its input are
+            in both times. The C++ is built with <code>-c opt</code>. Both
+            lines share one chart, in milliseconds, and the ratio is of the
+            newest commit.
+          </dd>
           <dt>Hovering</dt>
           <dd>
             Shows the commit that was measured and its message, how many
@@ -413,6 +456,7 @@
       </nav>
 
       <main id="main">
+        <div id="comparisons" class="stages" hidden></div>
         <div id="stages" class="stages" hidden></div>
       </main>
     </div>
@@ -440,6 +484,7 @@
         const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         const style = getComputedStyle(document.documentElement);
         const accent = style.getPropertyValue("--accent").trim();
+        const other = style.getPropertyValue("--other").trim();
         const gridColor = style.getPropertyValue("--grid").trim();
         const textColor = style.getPropertyValue("--text-dim").trim();
 
@@ -469,6 +514,17 @@
             "lucid/compiler/compiler_bench",
             "ExampleFunctions",
           ],
+        ];
+
+        // Programs written once in Lucid and once in C++, and the binary
+        // whose benchmarks time each of them, by the name of each benchmark.
+        const COMPARISONS = [
+          {
+            name: "QuickSort",
+            group: "lucid/benchmarks/quicksort/quicksort_bench",
+            lucid: "Lucid",
+            cpp: "Cpp",
+          },
         ];
 
         // How fast a benchmark got through what it read, which the runner
@@ -609,6 +665,161 @@
               },
             },
           });
+        }
+
+        function formatMs(ns) {
+          return (ns / 1e6).toFixed(0) + " ms";
+        }
+
+        // Draws the Lucid and the C++ timings of one program on one chart, at
+        // the commits that measured both.
+        function renderComparisonChart(canvas, lucid, cpp) {
+          const cppByCommit = new Map(
+            cpp.points.map((p) => [p.commit.id, p.bench.value]),
+          );
+          const points = lucid.points.filter((p) =>
+            cppByCommit.has(p.commit.id),
+          );
+
+          const dataset = (label, color, values) => ({
+            label,
+            data: values,
+            borderColor: color,
+            backgroundColor: "transparent",
+            borderWidth: 2,
+            pointRadius: 2,
+            pointHoverRadius: 4,
+          });
+
+          new Chart(canvas, {
+            type: "line",
+            data: {
+              labels: points.map((p) => p.commit.id.slice(0, 7)),
+              datasets: [
+                dataset(
+                  "Lucid",
+                  accent,
+                  points.map((p) => p.bench.value / 1e6),
+                ),
+                dataset(
+                  "C++",
+                  other,
+                  points.map((p) => cppByCommit.get(p.commit.id) / 1e6),
+                ),
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              legend: { display: false },
+              scales: {
+                xAxes: [
+                  {
+                    gridLines: { color: gridColor, zeroLineColor: gridColor },
+                    ticks: { maxTicksLimit: 8 },
+                  },
+                ],
+                yAxes: [
+                  {
+                    scaleLabel: { display: true, labelString: "ms" },
+                    gridLines: { color: gridColor, zeroLineColor: gridColor },
+                    ticks: { beginAtZero: true },
+                  },
+                ],
+              },
+              tooltips: {
+                mode: "index",
+                intersect: false,
+                callbacks: {
+                  afterTitle: (items) =>
+                    "\n" + points[items[0].index].commit.message,
+                  label: (item) =>
+                    (item.datasetIndex === 0 ? "Lucid" : "C++") +
+                    ": " +
+                    Number(item.value).toFixed(0) +
+                    " ms",
+                },
+              },
+              onClick: (_event, elements) => {
+                if (elements.length === 0) return;
+                // XXX: Undocumented, and what the default page reads too.
+                const index = elements[0]._index;
+                window.open(points[index].commit.url, "_blank");
+              },
+            },
+          });
+        }
+
+        // Writes how long each program of `COMPARISONS` took in Lucid and in
+        // C++ on the newest commit, how many times as long the Lucid took,
+        // and both over the commits that measured them.
+        function renderComparisons(groups) {
+          const rows = [];
+          for (const comparison of COMPARISONS) {
+            const members = groups.get(comparison.group) || [];
+            const lucid = members.find((s) => s.label === comparison.lucid);
+            const cpp = members.find((s) => s.label === comparison.cpp);
+            if (lucid === undefined || cpp === undefined) continue;
+            if (lucid.points.length === 0 || cpp.points.length === 0) continue;
+            rows.push({ name: comparison.name, lucid, cpp });
+          }
+          if (rows.length === 0) return;
+
+          const section = document.getElementById("comparisons");
+          section.hidden = false;
+
+          const title = document.createElement("h2");
+          title.textContent = "Lucid against C++";
+          section.appendChild(title);
+
+          const note = document.createElement("p");
+          note.textContent =
+            "The same program in each language, run whole, on the newest " +
+            "commit and over the commits before it. Lower is better.";
+          section.appendChild(note);
+
+          for (const { name, lucid, cpp } of rows) {
+            const block = document.createElement("div");
+            block.className = "comparison";
+            section.appendChild(block);
+
+            const heading = document.createElement("h3");
+            heading.textContent = name;
+            block.appendChild(heading);
+
+            const lucidNs = lucid.points[lucid.points.length - 1].bench.value;
+            const cppNs = cpp.points[cpp.points.length - 1].bench.value;
+
+            const summary = document.createElement("div");
+            summary.className = "summary";
+            for (const [label, color, ns] of [
+              ["Lucid", accent, lucidNs],
+              ["C++", other, cppNs],
+            ]) {
+              const item = document.createElement("span");
+              const swatch = document.createElement("span");
+              swatch.className = "swatch";
+              swatch.style.background = color;
+              item.appendChild(swatch);
+              item.appendChild(
+                document.createTextNode(label + " " + formatMs(ns)),
+              );
+              summary.appendChild(item);
+            }
+            const ratio = document.createElement("span");
+            ratio.className = "ratio";
+            ratio.textContent =
+              "Lucid takes " + (lucidNs / cppNs).toFixed(2) + "× as long";
+            summary.appendChild(ratio);
+            block.appendChild(summary);
+
+            const box = document.createElement("div");
+            box.className = "canvas-box";
+            block.appendChild(box);
+            const canvas = document.createElement("canvas");
+            box.appendChild(canvas);
+            renderComparisonChart(canvas, lucid, cpp);
+          }
         }
 
         // Writes what each stage of the pipeline got through on the newest
@@ -908,6 +1119,7 @@
         renderHeader(series.length);
 
         const groups = groupSeries(series);
+        renderComparisons(groups);
         renderStages(groups);
 
         const { cards } = render(groups);

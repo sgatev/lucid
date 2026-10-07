@@ -1,0 +1,116 @@
+# Sorts 50 arrays of 100000 pseudo-random numbers with an iterative QuickSort,
+# and returns a checksum of the sorted arrays, or 255 if one came out
+# unsorted. quicksort.cc is the same program in C++, statement for statement,
+# and quicksort_bench.cc times the two against each other.
+
+fun main(): Int64 {
+  mut val a: Int64[100000]
+  val n: Int32 = 100000
+  val rounds: Int32 = 50
+
+  # Pairs of bounds still to be sorted. The smaller side of each partition is
+  # sorted first and the larger one waits here, so it never holds more than
+  # log2(n) pairs.
+  mut val stack: Int32[128]
+
+  mut val seed: Int64 = 42
+  mut val checksum: Int64 = 0
+
+  mut val round: Int32 = 0
+  loop {
+    if round == rounds {
+      break
+    }
+
+    mut val k: Int32 = 0
+    loop {
+      if k == n {
+        break
+      }
+      mut seed = (seed * 1103515245 + 12345) % 2147483648
+      mut a[k] = seed % 1000000
+      mut k = k + 1
+    }
+
+    mut val sp: Int32 = 2
+    mut stack[0] = 0
+    mut stack[1] = n - 1
+    loop {
+      if sp == 0 {
+        break
+      }
+      mut sp = sp - 2
+      mut val lo: Int32 = stack[sp]
+      mut val hi: Int32 = stack[sp + 1]
+
+      loop {
+        if lo >= hi {
+          break
+        }
+
+        val pivot: Int64 = a[lo + (hi - lo) / 2]
+        mut val i: Int32 = lo - 1
+        mut val j: Int32 = hi + 1
+        loop {
+          loop {
+            mut i = i + 1
+            if a[i] >= pivot {
+              break
+            }
+          }
+          loop {
+            mut j = j - 1
+            if a[j] <= pivot {
+              break
+            }
+          }
+          if i >= j {
+            break
+          }
+          val tmp: Int64 = a[i]
+          mut a[i] = a[j]
+          mut a[j] = tmp
+        }
+
+        if j - lo < hi - j {
+          mut stack[sp] = j + 1
+          mut stack[sp + 1] = hi
+          mut sp = sp + 2
+          mut hi = j
+        } else {
+          mut stack[sp] = lo
+          mut stack[sp + 1] = j
+          mut sp = sp + 2
+          mut lo = j + 1
+        }
+      }
+    }
+
+    mut val m: Int32 = 1
+    loop {
+      if m == n {
+        break
+      }
+      if a[m - 1] > a[m] {
+        return 255
+      }
+      mut m = m + 1
+    }
+
+    # Weighs every 997th position, so that a sort that lost or duplicated
+    # values comes to another checksum.
+    mut val p: Int32 = 0
+    loop {
+      if p >= n {
+        break
+      }
+      mut checksum = (checksum * 31 + a[p]) % 1000000007
+      mut p = p + 997
+    }
+
+    mut round = round + 1
+  }
+
+  # The exit status is the lowest byte, and 255 means unsorted.
+  return checksum % 251
+}
