@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td class="headerValue">2026-10-07 20:46:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -75,7 +75,7 @@
 <span id="L13"><span class="lineNum">      13</span>              : class AbstractMachineLivenessAnalysis {</span>
 <span id="L14"><span class="lineNum">      14</span>              :  public:</span>
 <span id="L15"><span class="lineNum">      15</span>              :   struct State {</span>
-<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">         470 :     bool operator==(const State&amp;) const = default;</span></span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">         475 :     bool operator==(const State&amp;) const = default;</span></span>
 <span id="L17"><span class="lineNum">      17</span>              : </span>
 <span id="L18"><span class="lineNum">      18</span>              :     // Registers that are live before entering the block modeled by this state.</span>
 <span id="L19"><span class="lineNum">      19</span>              :     RegBitSet live_in;</span>
@@ -96,10 +96,10 @@
 <span id="L34"><span class="lineNum">      34</span>              :   // what holds the live registers differs with what is being worked out</span>
 <span id="L35"><span class="lineNum">      35</span>              :   // over them, while the step itself does not.</span>
 <span id="L36"><span class="lineNum">      36</span>              :   template &lt;typename Live&gt;</span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">       89629 :   static void TransferLive(Live&amp; live, const Instruction&amp; inst) {</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">       89629 :     if (auto reg = GetTargetRegister(inst); reg.has_value()) live.Remove(*reg);</span></span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       91263 :     ForEachSourceRegister(inst, [&amp;](Reg reg) { live.Insert(reg); });</span></span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       89629 :   }</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">       89714 :   static void TransferLive(Live&amp; live, const Instruction&amp; inst) {</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">       89714 :     if (auto reg = GetTargetRegister(inst); reg.has_value()) live.Remove(*reg);</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       91348 :     ForEachSourceRegister(inst, [&amp;](Reg reg) { live.Insert(reg); });</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       89714 :   }</span></span>
 <span id="L41"><span class="lineNum">      41</span>              : </span>
 <span id="L42"><span class="lineNum">      42</span>              :   explicit AbstractMachineLivenessAnalysis(</span>
 <span id="L43"><span class="lineNum">      43</span>              :       const AbstractMachineControlFlowGraph&amp; am_cfg);</span>

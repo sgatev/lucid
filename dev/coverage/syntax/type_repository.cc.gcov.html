@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td class="headerValue">2026-10-07 20:46:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -72,35 +72,35 @@
 <span id="L10"><span class="lineNum">      10</span>              : </span>
 <span id="L11"><span class="lineNum">      11</span>              : namespace lucid {</span>
 <span id="L12"><span class="lineNum">      12</span>              : </span>
-<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">         442 : TypeRepository::TypeRepository(StringIndex&amp; idents) : idents_(idents) {</span></span>
-<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">         442 :   static constexpr struct {</span></span>
-<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">         442 :     std::string_view name;</span></span>
-<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">         442 :     std::size_t size;</span></span>
-<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">         442 :   } kBuiltinTypes[] = {</span></span>
-<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">         442 :       {.name = &quot;Void&quot;, .size = 0},   {.name = &quot;Bool&quot;, .size = 4},</span></span>
-<span id="L19"><span class="lineNum">      19</span> <span class="tlaGNC">         442 :       {.name = &quot;Int32&quot;, .size = 4},  {.name = &quot;Int64&quot;, .size = 8},</span></span>
-<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">         442 :       {.name = &quot;Double&quot;, .size = 8}, {.name = &quot;String&quot;, .size = 8},</span></span>
-<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">         442 :   };</span></span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">        2652 :   for (const auto&amp; type : kBuiltinTypes) {</span></span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">        2652 :     StringIndex::Ref name = idents_.ref(type.name);</span></span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">        2652 :     TypeRef ref = Add(BasicType{.name = name, .size = type.size});</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">        2652 :     Register(name, ref);</span></span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">        2652 :   }</span></span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">         442 : }</span></span>
+<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">         444 : TypeRepository::TypeRepository(StringIndex&amp; idents) : idents_(idents) {</span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">         444 :   static constexpr struct {</span></span>
+<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">         444 :     std::string_view name;</span></span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">         444 :     std::size_t size;</span></span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">         444 :   } kBuiltinTypes[] = {</span></span>
+<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">         444 :       {.name = &quot;Void&quot;, .size = 0},   {.name = &quot;Bool&quot;, .size = 4},</span></span>
+<span id="L19"><span class="lineNum">      19</span> <span class="tlaGNC">         444 :       {.name = &quot;Int32&quot;, .size = 4},  {.name = &quot;Int64&quot;, .size = 8},</span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">         444 :       {.name = &quot;Double&quot;, .size = 8}, {.name = &quot;String&quot;, .size = 8},</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">         444 :   };</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">        2664 :   for (const auto&amp; type : kBuiltinTypes) {</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">        2664 :     StringIndex::Ref name = idents_.ref(type.name);</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">        2664 :     TypeRef ref = Add(BasicType{.name = name, .size = type.size});</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">        2664 :     Register(name, ref);</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">        2664 :   }</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">         444 : }</span></span>
 <span id="L28"><span class="lineNum">      28</span>              : </span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">        2818 : TypeRef TypeRepository::Add(Type type) { return types_.Add(type); }</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">        2831 : TypeRef TypeRepository::Add(Type type) { return types_.Add(type); }</span></span>
 <span id="L30"><span class="lineNum">      30</span>              : </span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">       66999 : const Type&amp; TypeRepository::Deref(TypeRef ref) const { return types_.Get(ref); }</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">       67086 : const Type&amp; TypeRepository::Deref(TypeRef ref) const { return types_.Get(ref); }</span></span>
 <span id="L32"><span class="lineNum">      32</span>              : </span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">        2727 : void TypeRepository::Register(StringIndex::Ref name, TypeRef ref) {</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">        2727 :   name_to_type_.Insert(name, ref);</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">        2727 : }</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">        2739 : void TypeRepository::Register(StringIndex::Ref name, TypeRef ref) {</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">        2739 :   name_to_type_.Insert(name, ref);</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">        2739 : }</span></span>
 <span id="L36"><span class="lineNum">      36</span>              : </span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">        9701 : TypeRef TypeRepository::Resolve(StringIndex::Ref name) const {</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">        9701 :   return name_to_type_.Get(name).value_or(Arena&lt;Type&gt;::kNullRef);</span></span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">        9701 : }</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">        9715 : TypeRef TypeRepository::Resolve(StringIndex::Ref name) const {</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">        9715 :   return name_to_type_.Get(name).value_or(Arena&lt;Type&gt;::kNullRef);</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">        9715 : }</span></span>
 <span id="L40"><span class="lineNum">      40</span>              : </span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">         645 : std::size_t TypeRepository::Size() const { return types_.Size(); }</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">         647 : std::size_t TypeRepository::Size() const { return types_.Size(); }</span></span>
 <span id="L42"><span class="lineNum">      42</span>              : </span>
 <span id="L43"><span class="lineNum">      43</span>              : }  // namespace lucid</span>
         </pre>

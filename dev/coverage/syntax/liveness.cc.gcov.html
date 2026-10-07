@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td class="headerValue">2026-10-07 20:46:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -82,21 +82,21 @@
 <span id="L20"><span class="lineNum">      20</span>              : using State = SyntaxLivenessAnalysis::State;</span>
 <span id="L21"><span class="lineNum">      21</span>              : </span>
 <span id="L22"><span class="lineNum">      22</span>              : void SyntaxLivenessAnalysis::Transfer(</span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">        5898 :     State&amp; state, const SyntaxControlFlowGraph::Sequence&amp; seq) {</span></span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">        5898 :   if (seq.stmt.has_value()) {</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">        5232 :     if (const auto* var_decl_stmt =</span></span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">        5232 :             std::get_if&lt;VarDeclStmt&gt;(&amp;sctx_.DerefStmt(*seq.stmt))) {</span></span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">        1871 :       Remove(state, var_decl_stmt-&gt;name);</span></span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">        3361 :     } else if (const auto* var_assign_stmt =</span></span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">        3361 :                    std::get_if&lt;VarAssignStmt&gt;(&amp;sctx_.DerefStmt(*seq.stmt))) {</span></span>
-<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">        1673 :       Remove(state, var_assign_stmt-&gt;name);</span></span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">        1673 :     }</span></span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">        5232 :   }</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">       16162 :   for (ExprRef expr_ref : seq.expressions) {</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">       16162 :     const auto* ident_expr = std::get_if&lt;IdentExpr&gt;(&amp;sctx_.DerefExpr(expr_ref));</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">       16162 :     if (ident_expr != nullptr) Insert(state, ident_expr-&gt;name);</span></span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">       16162 :   }</span></span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">        5898 : }</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">        5907 :     State&amp; state, const SyntaxControlFlowGraph::Sequence&amp; seq) {</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">        5907 :   if (seq.stmt.has_value()) {</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">        5240 :     if (const auto* var_decl_stmt =</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">        5240 :             std::get_if&lt;VarDeclStmt&gt;(&amp;sctx_.DerefStmt(*seq.stmt))) {</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">        1873 :       Remove(state, var_decl_stmt-&gt;name);</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">        3367 :     } else if (const auto* var_assign_stmt =</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">        3367 :                    std::get_if&lt;VarAssignStmt&gt;(&amp;sctx_.DerefStmt(*seq.stmt))) {</span></span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">        1677 :       Remove(state, var_assign_stmt-&gt;name);</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">        1677 :     }</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">        5240 :   }</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">       16180 :   for (ExprRef expr_ref : seq.expressions) {</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">       16180 :     const auto* ident_expr = std::get_if&lt;IdentExpr&gt;(&amp;sctx_.DerefExpr(expr_ref));</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">       16180 :     if (ident_expr != nullptr) Insert(state, ident_expr-&gt;name);</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">       16180 :   }</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">        5907 : }</span></span>
 <span id="L38"><span class="lineNum">      38</span>              : </span>
 <span id="L39"><span class="lineNum">      39</span>              : SyntaxLivenessAnalysis::SyntaxLivenessAnalysis(</span>
 <span id="L40"><span class="lineNum">      40</span>              :     const SyntaxContext&amp; sctx, const SyntaxControlFlowGraph&amp; scfg)</span>
@@ -120,28 +120,28 @@
 <span id="L58"><span class="lineNum">      58</span>              : SyntaxLivenessAnalysis::SyntaxLivenessAnalysis(</span>
 <span id="L59"><span class="lineNum">      59</span>              :     const SyntaxContext&amp; sctx, const SyntaxControlFlowGraph&amp; scfg,</span>
 <span id="L60"><span class="lineNum">      60</span>              :     const HashSet&lt;StringIndex::Ref&gt;&amp; vars)</span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">         159 :     : sctx_(sctx), scfg_(scfg) {</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">         713 :   for (StringIndex::Ref var : vars) Track(var);</span></span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">         159 : }</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">         160 :     : sctx_(sctx), scfg_(scfg) {</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">         715 :   for (StringIndex::Ref var : vars) Track(var);</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">         160 : }</span></span>
 <span id="L64"><span class="lineNum">      64</span>              : </span>
 <span id="L65"><span class="lineNum">      65</span>              : State SyntaxLivenessAnalysis::Transfer(</span>
 <span id="L66"><span class="lineNum">      66</span>              :     std::optional&lt;State&gt;&amp;&amp; prior_state,</span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">        2485 :     const SyntaxControlFlowGraph::BlockRef&amp; block_ref) {</span></span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">        2485 :   State state;</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">        2492 :     const SyntaxControlFlowGraph::BlockRef&amp; block_ref) {</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">        2492 :   State state;</span></span>
 <span id="L69"><span class="lineNum">      69</span>              : </span>
 <span id="L70"><span class="lineNum">      70</span>              :   // What reaches the block is what is live where it exits, and the walk</span>
 <span id="L71"><span class="lineNum">      71</span>              :   // backwards over it turns that into what is live where it enters.</span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">        2485 :   const auto&amp; block = scfg_.get(block_ref);</span></span>
-<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">        2485 :   if (prior_state.has_value()) {</span></span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">        2210 :     state.live_in = std::move(prior_state-&gt;live_in);</span></span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">        2210 :   }</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">        2492 :   const auto&amp; block = scfg_.get(block_ref);</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">        2492 :   if (prior_state.has_value()) {</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">        2215 :     state.live_in = std::move(prior_state-&gt;live_in);</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">        2215 :   }</span></span>
 <span id="L76"><span class="lineNum">      76</span>              :   // Every state holds a word for every 64 variables worked out, so that two</span>
 <span id="L77"><span class="lineNum">      77</span>              :   // holding the same variables compare equal.</span>
-<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">        2485 :   state.live_in.resize((vars_.size() + kWordBits - 1) / kWordBits);</span></span>
-<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">        2485 :   if (prior_state.has_value()) {</span></span>
-<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">        2985 :     for (const auto&amp; succ_ref : block.succs) {</span></span>
-<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">        2985 :       const auto&amp; succ_block = scfg_.get(succ_ref);</span></span>
-<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">        2985 :       for (const auto&amp; phi_ref : succ_block.phis) {</span></span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">        2492 :   state.live_in.resize((vars_.size() + kWordBits - 1) / kWordBits);</span></span>
+<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">        2492 :   if (prior_state.has_value()) {</span></span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">        2991 :     for (const auto&amp; succ_ref : block.succs) {</span></span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">        2991 :       const auto&amp; succ_block = scfg_.get(succ_ref);</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">        2991 :       for (const auto&amp; phi_ref : succ_block.phis) {</span></span>
 <span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">           2 :         const auto&amp; phi = scfg_.deref(phi_ref);</span></span>
 <span id="L84"><span class="lineNum">      84</span>              :         // An argument is paired with the predecessor it comes from, which is</span>
 <span id="L85"><span class="lineNum">      85</span>              :         // this block at whichever position it holds among them.</span>
@@ -152,37 +152,37 @@
 <span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">           2 :           }</span></span>
 <span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">           3 :         }</span></span>
 <span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">           2 :       }</span></span>
-<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">        2985 :     }</span></span>
-<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">        2210 :   }</span></span>
-<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">        5918 :   for (const auto&amp; seq : block.sequences | std::views::reverse) {</span></span>
-<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">        5898 :     Transfer(state, seq);</span></span>
-<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">        5898 :   }</span></span>
-<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">        2485 :   for (const auto&amp; phi_ref : block.phis) {</span></span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">        2991 :     }</span></span>
+<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">        2215 :   }</span></span>
+<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">        5927 :   for (const auto&amp; seq : block.sequences | std::views::reverse) {</span></span>
+<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">        5907 :     Transfer(state, seq);</span></span>
+<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">        5907 :   }</span></span>
+<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">        2492 :   for (const auto&amp; phi_ref : block.phis) {</span></span>
 <span id="L99"><span class="lineNum">      99</span> <span class="tlaGNC">           1 :     const auto&amp; phi = scfg_.deref(phi_ref);</span></span>
 <span id="L100"><span class="lineNum">     100</span> <span class="tlaGNC">           1 :     Remove(state, phi.name);</span></span>
 <span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">           1 :   }</span></span>
 <span id="L102"><span class="lineNum">     102</span>              : </span>
-<span id="L103"><span class="lineNum">     103</span> <span class="tlaGNC">        2485 :   return state;</span></span>
-<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">        2485 : }</span></span>
+<span id="L103"><span class="lineNum">     103</span> <span class="tlaGNC">        2492 :   return state;</span></span>
+<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">        2492 : }</span></span>
 <span id="L105"><span class="lineNum">     105</span>              : </span>
-<span id="L106"><span class="lineNum">     106</span> <span class="tlaGNC">        2985 : void SyntaxLivenessAnalysis::Join(State&amp; left, const State&amp; right) {</span></span>
+<span id="L106"><span class="lineNum">     106</span> <span class="tlaGNC">        2991 : void SyntaxLivenessAnalysis::Join(State&amp; left, const State&amp; right) {</span></span>
 <span id="L107"><span class="lineNum">     107</span>              :   // What a join starts from holds no words at all.</span>
-<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">        2985 :   if (left.live_in.empty()) {</span></span>
-<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">        2211 :     left.live_in = right.live_in;</span></span>
-<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">        2211 :     return;</span></span>
-<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">        2211 :   }</span></span>
-<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">        2985 :   assert(left.live_in.size() == right.live_in.size());</span></span>
-<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">        1548 :   for (std::size_t i = 0; i &lt; right.live_in.size(); ++i) {</span></span>
-<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">         774 :     left.live_in[i] |= right.live_in[i];</span></span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">         774 :   }</span></span>
-<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">         774 : }</span></span>
+<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">        2991 :   if (left.live_in.empty()) {</span></span>
+<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">        2216 :     left.live_in = right.live_in;</span></span>
+<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">        2216 :     return;</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">        2216 :   }</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">        2991 :   assert(left.live_in.size() == right.live_in.size());</span></span>
+<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">        1550 :   for (std::size_t i = 0; i &lt; right.live_in.size(); ++i) {</span></span>
+<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">         775 :     left.live_in[i] |= right.live_in[i];</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">         775 :   }</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">         775 : }</span></span>
 <span id="L117"><span class="lineNum">     117</span>              : </span>
 <span id="L118"><span class="lineNum">     118</span>              : bool SyntaxLivenessAnalysis::IsLiveIn(const State&amp; state,</span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">        1096 :                                       StringIndex::Ref var) const {</span></span>
-<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">        1096 :   const auto bit = bits_.Get(var);</span></span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">        1096 :   if (!bit.has_value()) return false;</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">        1096 :   return (state.live_in[*bit / kWordBits] &gt;&gt; (*bit % kWordBits) &amp; 1) != 0;</span></span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">        1096 : }</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">        1098 :                                       StringIndex::Ref var) const {</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">        1098 :   const auto bit = bits_.Get(var);</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">        1098 :   if (!bit.has_value()) return false;</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">        1098 :   return (state.live_in[*bit / kWordBits] &gt;&gt; (*bit % kWordBits) &amp; 1) != 0;</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">        1098 : }</span></span>
 <span id="L124"><span class="lineNum">     124</span>              : </span>
 <span id="L125"><span class="lineNum">     125</span>              : std::vector&lt;StringIndex::Ref&gt; SyntaxLivenessAnalysis::LiveIn(</span>
 <span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">          32 :     const State&amp; state) const {</span></span>
@@ -195,23 +195,23 @@
 <span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">          32 :   return live;</span></span>
 <span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">          32 : }</span></span>
 <span id="L135"><span class="lineNum">     135</span>              : </span>
-<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">         720 : void SyntaxLivenessAnalysis::Track(StringIndex::Ref var) {</span></span>
-<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">         720 :   if (bits_.Insert(var, static_cast&lt;std::uint32_t&gt;(vars_.size()))) {</span></span>
-<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">         720 :     vars_.push_back(var);</span></span>
-<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">         720 :   }</span></span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">         720 : }</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">         722 : void SyntaxLivenessAnalysis::Track(StringIndex::Ref var) {</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">         722 :   if (bits_.Insert(var, static_cast&lt;std::uint32_t&gt;(vars_.size()))) {</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">         722 :     vars_.push_back(var);</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">         722 :   }</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">         722 : }</span></span>
 <span id="L141"><span class="lineNum">     141</span>              : </span>
-<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">        5069 : void SyntaxLivenessAnalysis::Insert(State&amp; state, StringIndex::Ref var) const {</span></span>
-<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">        5069 :   const auto bit = bits_.Get(var);</span></span>
-<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">        5069 :   if (!bit.has_value()) return;</span></span>
-<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">        2542 :   state.live_in[*bit / kWordBits] |= std::uint64_t{1} &lt;&lt; (*bit % kWordBits);</span></span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">        2542 : }</span></span>
+<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">        5075 : void SyntaxLivenessAnalysis::Insert(State&amp; state, StringIndex::Ref var) const {</span></span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">        5075 :   const auto bit = bits_.Get(var);</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">        5075 :   if (!bit.has_value()) return;</span></span>
+<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">        2548 :   state.live_in[*bit / kWordBits] |= std::uint64_t{1} &lt;&lt; (*bit % kWordBits);</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">        2548 : }</span></span>
 <span id="L147"><span class="lineNum">     147</span>              : </span>
-<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">        3545 : void SyntaxLivenessAnalysis::Remove(State&amp; state, StringIndex::Ref var) const {</span></span>
-<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">        3545 :   const auto bit = bits_.Get(var);</span></span>
-<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">        3545 :   if (!bit.has_value()) return;</span></span>
-<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">        2258 :   state.live_in[*bit / kWordBits] &amp;= ~(std::uint64_t{1} &lt;&lt; (*bit % kWordBits));</span></span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">        2258 : }</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">        3551 : void SyntaxLivenessAnalysis::Remove(State&amp; state, StringIndex::Ref var) const {</span></span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">        3551 :   const auto bit = bits_.Get(var);</span></span>
+<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">        3551 :   if (!bit.has_value()) return;</span></span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">        2264 :   state.live_in[*bit / kWordBits] &amp;= ~(std::uint64_t{1} &lt;&lt; (*bit % kWordBits));</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">        2264 : }</span></span>
 <span id="L153"><span class="lineNum">     153</span>              : </span>
 <span id="L154"><span class="lineNum">     154</span>              : }  // namespace lucid</span>
         </pre>

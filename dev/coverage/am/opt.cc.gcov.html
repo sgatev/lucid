@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td class="headerValue">2026-10-07 20:46:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -73,15 +73,15 @@
 <span id="L11"><span class="lineNum">      11</span>              : namespace lucid {</span>
 <span id="L12"><span class="lineNum">      12</span>              : namespace {</span>
 <span id="L13"><span class="lineNum">      13</span>              : </span>
-<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">        3486 : void RemoveUnnecessaryInstructions(std::list&lt;Instruction&gt;&amp; instructions) {</span></span>
-<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">       27641 :   for (auto&amp; inst : instructions) {</span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">        3496 : void RemoveUnnecessaryInstructions(std::list&lt;Instruction&gt;&amp; instructions) {</span></span>
+<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">       27678 :   for (auto&amp; inst : instructions) {</span></span>
 <span id="L16"><span class="lineNum">      16</span>              :     // Remove MoveReg where src and dst registrars are the same.</span>
-<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">       27638 :     auto* cinst = std::get_if&lt;MoveReg&gt;(&amp;inst);</span></span>
-<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">       27638 :     if (cinst == nullptr) continue;</span></span>
-<span id="L19"><span class="lineNum">      19</span> <span class="tlaGNC">        9517 :     if (cinst-&gt;src_reg != cinst-&gt;dst_reg) continue;</span></span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">       27675 :     auto* cinst = std::get_if&lt;MoveReg&gt;(&amp;inst);</span></span>
+<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">       27675 :     if (cinst == nullptr) continue;</span></span>
+<span id="L19"><span class="lineNum">      19</span> <span class="tlaGNC">        9530 :     if (cinst-&gt;src_reg != cinst-&gt;dst_reg) continue;</span></span>
 <span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">           1 :     inst = Nop{};</span></span>
 <span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">           1 :   }</span></span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">        3486 : }</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">        3496 : }</span></span>
 <span id="L23"><span class="lineNum">      23</span>              : </span>
 <span id="L24"><span class="lineNum">      24</span>              : // Records for every branching block whether anything but its branch reads the</span>
 <span id="L25"><span class="lineNum">      25</span>              : // value it branches on.</span>
@@ -93,52 +93,52 @@
 <span id="L31"><span class="lineNum">      31</span>              : // Asking this after the registers have been given their colours would take a</span>
 <span id="L32"><span class="lineNum">      32</span>              : // liveness analysis instead: a colour is shared by values that have nothing to</span>
 <span id="L33"><span class="lineNum">      33</span>              : // do with one another, so what is live says little about what is read.</span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         603 : void MarkConditionsOnlyReadByBranches(AbstractMachineControlFlowGraph&amp; am_cfg) {</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         605 : void MarkConditionsOnlyReadByBranches(AbstractMachineControlFlowGraph&amp; am_cfg) {</span></span>
 <span id="L35"><span class="lineNum">      35</span>              :   // Held by register id rather than in a table keyed by the register: the</span>
 <span id="L36"><span class="lineNum">      36</span>              :   // ids run from zero without gaps, and every register named is counted.</span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         603 :   std::vector&lt;int&gt; writes(am_cfg.next_free_reg_id, 0);</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">         603 :   std::vector&lt;int&gt; reads(am_cfg.next_free_reg_id, 0);</span></span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       58072 :   const auto count = [](std::vector&lt;int&gt;&amp; counts, Reg reg) {</span></span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       58072 :     ++counts[reg.id];</span></span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">       58072 :   };</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         605 :   std::vector&lt;int&gt; writes(am_cfg.next_free_reg_id, 0);</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">         605 :   std::vector&lt;int&gt; reads(am_cfg.next_free_reg_id, 0);</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       58151 :   const auto count = [](std::vector&lt;int&gt;&amp; counts, Reg reg) {</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       58151 :     ++counts[reg.id];</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">       58151 :   };</span></span>
 <span id="L42"><span class="lineNum">      42</span>              : </span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">        1041 :   for (Reg param : am_cfg.params) count(writes, param);</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">        3485 :   for (const auto&amp; block : am_cfg.Blocks()) {</span></span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">       27638 :     for (const auto&amp; inst : block.instructions) {</span></span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">       27635 :       if (auto target = GetTargetRegister(inst); target.has_value()) {</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">       25409 :         count(writes, *target);</span></span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">       25409 :       }</span></span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">       28099 :       ForEachSourceRegister(inst, [&amp;](Reg reg) { count(reads, reg); });</span></span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">       27635 :     }</span></span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">        3485 :     for (const auto&amp; phi : block.phis) {</span></span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">        1557 :       count(writes, phi.dst);</span></span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">        2802 :       for (Reg src : phi.srcs) count(reads, src);</span></span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">        1557 :     }</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">        3485 :     if (const auto&amp; cond = block.branch_cond; cond.has_value()) {</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">         915 :       count(reads, *cond);</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">         915 :     }</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">        3485 :   }</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">        1043 :   for (Reg param : am_cfg.params) count(writes, param);</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">        3495 :   for (const auto&amp; block : am_cfg.Blocks()) {</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">       27675 :     for (const auto&amp; inst : block.instructions) {</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">       27672 :       if (auto target = GetTargetRegister(inst); target.has_value()) {</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">       25443 :         count(writes, *target);</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">       25443 :       }</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">       28136 :       ForEachSourceRegister(inst, [&amp;](Reg reg) { count(reads, reg); });</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">       27672 :     }</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">        3495 :     for (const auto&amp; phi : block.phis) {</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">        1561 :       count(writes, phi.dst);</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">        2809 :       for (Reg src : phi.srcs) count(reads, src);</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">        1561 :     }</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">        3495 :     if (const auto&amp; cond = block.branch_cond; cond.has_value()) {</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">         917 :       count(reads, *cond);</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">         917 :     }</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">        3495 :   }</span></span>
 <span id="L59"><span class="lineNum">      59</span>              : </span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">        3485 :   for (auto&amp; block : am_cfg.Blocks()) {</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">        3485 :     if (!block.branch_cond.has_value()) continue;</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">        3495 :   for (auto&amp; block : am_cfg.Blocks()) {</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">        3495 :     if (!block.branch_cond.has_value()) continue;</span></span>
 <span id="L62"><span class="lineNum">      62</span>              : </span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">         915 :     const Reg cond = *block.branch_cond;</span></span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">         915 :     block.only_branch_reads_cond = writes[cond.id] == 1 &amp;&amp; reads[cond.id] == 1;</span></span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">         915 :   }</span></span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">         603 : }</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">         917 :     const Reg cond = *block.branch_cond;</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">         917 :     block.only_branch_reads_cond = writes[cond.id] == 1 &amp;&amp; reads[cond.id] == 1;</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">         917 :   }</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">         605 : }</span></span>
 <span id="L67"><span class="lineNum">      67</span>              : </span>
 <span id="L68"><span class="lineNum">      68</span>              : }  // namespace</span>
 <span id="L69"><span class="lineNum">      69</span>              : </span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">        3486 : void OptimizeAbstractMachineInstructions(std::list&lt;Instruction&gt;&amp; instructions) {</span></span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">        3486 :   RemoveUnnecessaryInstructions(instructions);</span></span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">        3486 : }</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">        3496 : void OptimizeAbstractMachineInstructions(std::list&lt;Instruction&gt;&amp; instructions) {</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">        3496 :   RemoveUnnecessaryInstructions(instructions);</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">        3496 : }</span></span>
 <span id="L73"><span class="lineNum">      73</span>              : </span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         603 : void OptimizeAbstractMachineFunction(AbstractMachineControlFlowGraph&amp; am_cfg) {</span></span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">        3485 :   for (auto&amp; block : am_cfg.Blocks()) {</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">        3485 :     OptimizeAbstractMachineInstructions(block.instructions);</span></span>
-<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">        3485 :   }</span></span>
-<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">         603 :   MarkConditionsOnlyReadByBranches(am_cfg);</span></span>
-<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">         603 : }</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         605 : void OptimizeAbstractMachineFunction(AbstractMachineControlFlowGraph&amp; am_cfg) {</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">        3495 :   for (auto&amp; block : am_cfg.Blocks()) {</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">        3495 :     OptimizeAbstractMachineInstructions(block.instructions);</span></span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">        3495 :   }</span></span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">         605 :   MarkConditionsOnlyReadByBranches(am_cfg);</span></span>
+<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">         605 : }</span></span>
 <span id="L80"><span class="lineNum">      80</span>              : </span>
 <span id="L81"><span class="lineNum">      81</span>              : }  // namespace lucid</span>
         </pre>

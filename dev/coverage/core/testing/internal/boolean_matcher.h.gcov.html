@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td class="headerValue">2026-10-07 20:46:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryLo">50.0&nbsp;%</td>
@@ -73,7 +73,7 @@
 <span id="L11"><span class="lineNum">      11</span>              : class BooleanMatcher {</span>
 <span id="L12"><span class="lineNum">      12</span>              :  public:</span>
 <span id="L13"><span class="lineNum">      13</span>              :   explicit BooleanMatcher(bool expected_value)</span>
-<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">     1548237 :       : expected_value_(expected_value) {}</span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">     1548243 :       : expected_value_(expected_value) {}</span></span>
 <span id="L15"><span class="lineNum">      15</span>              : </span>
 <span id="L16"><span class="lineNum">      16</span> <span class="tlaUNC">           0 :   std::string DescribeExpected() { return expected_value_ ? &quot;true&quot; : &quot;false&quot;; }</span></span>
 <span id="L17"><span class="lineNum">      17</span>              : </span>
@@ -81,9 +81,9 @@
 <span id="L19"><span class="lineNum">      19</span> <span class="tlaUNC">           0 :     return actual_value ? &quot;true&quot; : &quot;false&quot;;</span></span>
 <span id="L20"><span class="lineNum">      20</span> <span class="tlaUNC">           0 :   }</span></span>
 <span id="L21"><span class="lineNum">      21</span>              : </span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">     1548237 :   bool Matches(bool actual_value) const {</span></span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">     1548237 :     return actual_value == expected_value_;</span></span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">     1548237 :   }</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">     1548243 :   bool Matches(bool actual_value) const {</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">     1548243 :     return actual_value == expected_value_;</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">     1548243 :   }</span></span>
 <span id="L25"><span class="lineNum">      25</span>              : </span>
 <span id="L26"><span class="lineNum">      26</span>              :  private:</span>
 <span id="L27"><span class="lineNum">      27</span>              :   bool expected_value_;</span>

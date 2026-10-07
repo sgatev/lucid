@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td class="headerValue">2026-10-07 20:46:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -71,20 +71,20 @@
 <span id="L9"><span class="lineNum">       9</span>              : namespace lucid {</span>
 <span id="L10"><span class="lineNum">      10</span>              : </span>
 <span id="L11"><span class="lineNum">      11</span>              : std::expected&lt;std::string, ReadFileError&gt; ReadFile(</span>
-<span id="L12"><span class="lineNum">      12</span> <span class="tlaGNC">         730 :     const std::filesystem::path&amp; path, bool with_trailing_zero) {</span></span>
-<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">         730 :   std::ifstream file(path);</span></span>
-<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">         730 :   if (!file) return std::unexpected(ReadFileError(path));</span></span>
+<span id="L12"><span class="lineNum">      12</span> <span class="tlaGNC">         736 :     const std::filesystem::path&amp; path, bool with_trailing_zero) {</span></span>
+<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">         736 :   std::ifstream file(path);</span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">         736 :   if (!file) return std::unexpected(ReadFileError(path));</span></span>
 <span id="L15"><span class="lineNum">      15</span>              : </span>
-<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">         728 :   file.seekg(0, std::ios::end);</span></span>
-<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">         728 :   std::streamsize size = file.tellg();</span></span>
-<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">         728 :   if (with_trailing_zero) ++size;</span></span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">         734 :   file.seekg(0, std::ios::end);</span></span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">         734 :   std::streamsize size = file.tellg();</span></span>
+<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">         734 :   if (with_trailing_zero) ++size;</span></span>
 <span id="L19"><span class="lineNum">      19</span>              : </span>
-<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">         728 :   std::string buffer(size, '\0');</span></span>
-<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">         728 :   file.seekg(0);</span></span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">         728 :   file.read(&amp;buffer[0], size);</span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">         734 :   std::string buffer(size, '\0');</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">         734 :   file.seekg(0);</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">         734 :   file.read(&amp;buffer[0], size);</span></span>
 <span id="L23"><span class="lineNum">      23</span>              : </span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">         728 :   return buffer;</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">         730 : }</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">         734 :   return buffer;</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">         736 : }</span></span>
 <span id="L26"><span class="lineNum">      26</span>              : </span>
 <span id="L27"><span class="lineNum">      27</span>              : }  // namespace lucid</span>
         </pre>

@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td class="headerValue">2026-10-07 20:46:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -99,13 +99,13 @@
 <span id="L37"><span class="lineNum">      37</span>              : // else is recorded in `am_state` as a constant the program needs, and loaded</span>
 <span id="L38"><span class="lineNum">      38</span>              : // from there instead.</span>
 <span id="L39"><span class="lineNum">      39</span>              : inline Instruction SetValue(std::int64_t value, Reg dst,</span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       28849 :                             AbstractMachineState&amp; am_state) {</span></span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">       28849 :   if (value &lt; 0 || value &gt; std::numeric_limits&lt;std::int16_t&gt;::max()) {</span></span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">         232 :     am_state.ints.Insert(value);</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">         232 :     return SetInt{.src_val = value, .dst_reg = dst};</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">         232 :   }</span></span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">       28617 :   return SetReg{.src_val = static_cast&lt;int&gt;(value), .dst_reg = dst};</span></span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">       28849 : }</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       28859 :                             AbstractMachineState&amp; am_state) {</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">       28859 :   if (value &lt; 0 || value &gt; std::numeric_limits&lt;std::int16_t&gt;::max()) {</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">         233 :     am_state.ints.Insert(value);</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">         233 :     return SetInt{.src_val = value, .dst_reg = dst};</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">         233 :   }</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">       28626 :   return SetReg{.src_val = static_cast&lt;int&gt;(value), .dst_reg = dst};</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">       28859 : }</span></span>
 <span id="L47"><span class="lineNum">      47</span>              : </span>
 <span id="L48"><span class="lineNum">      48</span>              : }  // namespace lucid</span>
         </pre>

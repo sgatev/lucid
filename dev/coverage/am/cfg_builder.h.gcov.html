@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td class="headerValue">2026-10-07 20:46:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -74,15 +74,15 @@
 <span id="L12"><span class="lineNum">      12</span>              : class AbstractMachineControlFlowGraphBuilder {</span>
 <span id="L13"><span class="lineNum">      13</span>              :  public:</span>
 <span id="L14"><span class="lineNum">      14</span>              :   // Adds a block to the control flow graph.</span>
-<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">         123 :   AbstractMachineControlFlowGraph::BlockRef AddBlock() {</span></span>
-<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">         123 :     return am_cfg_.AddBlock().ref;</span></span>
-<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">         123 :   }</span></span>
+<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">         127 :   AbstractMachineControlFlowGraph::BlockRef AddBlock() {</span></span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC">         127 :     return am_cfg_.AddBlock().ref;</span></span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">         127 :   }</span></span>
 <span id="L18"><span class="lineNum">      18</span>              : </span>
 <span id="L19"><span class="lineNum">      19</span>              :   // Adds an edge between blocks in the control flow graph.</span>
 <span id="L20"><span class="lineNum">      20</span>              :   void AddEdge(AbstractMachineControlFlowGraph::BlockRef from,</span>
-<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">          70 :                AbstractMachineControlFlowGraph::BlockRef to) {</span></span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">          70 :     am_cfg_.AddEdge(from, to);</span></span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">          70 :   }</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">          72 :                AbstractMachineControlFlowGraph::BlockRef to) {</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">          72 :     am_cfg_.AddEdge(from, to);</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">          72 :   }</span></span>
 <span id="L24"><span class="lineNum">      24</span>              : </span>
 <span id="L25"><span class="lineNum">      25</span>              :   // Adds a parameter to the control flow graph, in the order they are</span>
 <span id="L26"><span class="lineNum">      26</span>              :   // declared.</span>
@@ -93,23 +93,23 @@
 <span id="L31"><span class="lineNum">      31</span>              : </span>
 <span id="L32"><span class="lineNum">      32</span>              :   // Adds an instruction to the control flow graph block.</span>
 <span id="L33"><span class="lineNum">      33</span>              :   void AddInstruction(AbstractMachineControlFlowGraph::BlockRef ref,</span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         185 :                       Instruction inst) {</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">         185 :     if (auto target_reg = GetTargetRegister(inst); target_reg.has_value()) {</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         187 :                       Instruction inst) {</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">         187 :     if (auto target_reg = GetTargetRegister(inst); target_reg.has_value()) {</span></span>
 <span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">         126 :       TakeRegisterId(*target_reg);</span></span>
 <span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         126 :     }</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">         206 :     ForEachSourceRegister(inst, [this](Reg reg) { TakeRegisterId(reg); });</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">         208 :     ForEachSourceRegister(inst, [this](Reg reg) { TakeRegisterId(reg); });</span></span>
 <span id="L39"><span class="lineNum">      39</span>              : </span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">         185 :     am_cfg_.GetBlock(ref).instructions.push_back(std::move(inst));</span></span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">         185 :   }</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">         187 :     am_cfg_.GetBlock(ref).instructions.push_back(std::move(inst));</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">         187 :   }</span></span>
 <span id="L42"><span class="lineNum">      42</span>              : </span>
 <span id="L43"><span class="lineNum">      43</span>              :   // Adds a phi function to the control flow graph block.</span>
 <span id="L44"><span class="lineNum">      44</span>              :   void AddPhi(AbstractMachineControlFlowGraph::BlockRef ref,</span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           6 :               AbstractMachineControlFlowGraph::Phi phi) {</span></span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">           6 :     TakeRegisterId(phi.dst);</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">           8 :     for (Reg source : phi.srcs) TakeRegisterId(source);</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">          11 :               AbstractMachineControlFlowGraph::Phi phi) {</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          11 :     TakeRegisterId(phi.dst);</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          13 :     for (Reg source : phi.srcs) TakeRegisterId(source);</span></span>
 <span id="L48"><span class="lineNum">      48</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">           6 :     am_cfg_.GetBlock(ref).phis.push_back(std::move(phi));</span></span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           6 :   }</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">          11 :     am_cfg_.GetBlock(ref).phis.push_back(std::move(phi));</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">          11 :   }</span></span>
 <span id="L51"><span class="lineNum">      51</span>              : </span>
 <span id="L52"><span class="lineNum">      52</span>              :   // Has the control flow graph block branch on `reg` where it ends.</span>
 <span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">           1 :   void SetBranchCond(AbstractMachineControlFlowGraph::BlockRef ref, Reg reg) {</span></span>
@@ -118,24 +118,24 @@
 <span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           1 :   }</span></span>
 <span id="L57"><span class="lineNum">      57</span>              : </span>
 <span id="L58"><span class="lineNum">      58</span>              :   // Marks the first block of the control flow graph.</span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">          59 :   void SetFirst(AbstractMachineControlFlowGraph::BlockRef ref) {</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">          59 :     am_cfg_.first = ref;</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">          59 :   }</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">          61 :   void SetFirst(AbstractMachineControlFlowGraph::BlockRef ref) {</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">          61 :     am_cfg_.first = ref;</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">          61 :   }</span></span>
 <span id="L62"><span class="lineNum">      62</span>              : </span>
 <span id="L63"><span class="lineNum">      63</span>              :   // Marks the last block of the control flow graph.</span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">          59 :   void SetLast(AbstractMachineControlFlowGraph::BlockRef ref) {</span></span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">          59 :     am_cfg_.last = ref;</span></span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          59 :   }</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">          61 :   void SetLast(AbstractMachineControlFlowGraph::BlockRef ref) {</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">          61 :     am_cfg_.last = ref;</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          61 :   }</span></span>
 <span id="L67"><span class="lineNum">      67</span>              : </span>
 <span id="L68"><span class="lineNum">      68</span>              :   // Returns the assembled control flow graph.</span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          59 :   AbstractMachineControlFlowGraph Build() &amp;&amp; { return std::move(am_cfg_); }</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          61 :   AbstractMachineControlFlowGraph Build() &amp;&amp; { return std::move(am_cfg_); }</span></span>
 <span id="L70"><span class="lineNum">      70</span>              : </span>
 <span id="L71"><span class="lineNum">      71</span>              :  private:</span>
 <span id="L72"><span class="lineNum">      72</span>              :   // Moves the next free register ID past `reg`, which a graph the translator</span>
 <span id="L73"><span class="lineNum">      73</span>              :   // builds does as it hands the IDs out.</span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         308 :   void TakeRegisterId(Reg reg) {</span></span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">         308 :     am_cfg_.next_free_reg_id = std::max(am_cfg_.next_free_reg_id, reg.id + 1);</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">         308 :   }</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         320 :   void TakeRegisterId(Reg reg) {</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">         320 :     am_cfg_.next_free_reg_id = std::max(am_cfg_.next_free_reg_id, reg.id + 1);</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">         320 :   }</span></span>
 <span id="L77"><span class="lineNum">      77</span>              : </span>
 <span id="L78"><span class="lineNum">      78</span>              :   AbstractMachineControlFlowGraph am_cfg_;</span>
 <span id="L79"><span class="lineNum">      79</span>              : };</span>

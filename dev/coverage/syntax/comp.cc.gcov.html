@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td class="headerValue">2026-10-07 20:46:44</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryMed">89.7&nbsp;%</td>
@@ -83,16 +83,16 @@
 <span id="L21"><span class="lineNum">      21</span>              : // what the body of a comp function is held to.</span>
 <span id="L22"><span class="lineNum">      22</span>              : std::expected&lt;void, CompError&gt; CheckCompExpr(</span>
 <span id="L23"><span class="lineNum">      23</span>              :     const HashSet&lt;StringIndex::Ref&gt;&amp; comp_var_names, SyntaxContext&amp; syn_ctx,</span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">       19215 :     ExprRef expr_ref, bool in_comp, bool only_comp_calls) {</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">       19215 :   Expr&amp; expr = syn_ctx.DerefExpr(expr_ref);</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">       19238 :     ExprRef expr_ref, bool in_comp, bool only_comp_calls) {</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">       19238 :   Expr&amp; expr = syn_ctx.DerefExpr(expr_ref);</span></span>
 <span id="L26"><span class="lineNum">      26</span>              : </span>
 <span id="L27"><span class="lineNum">      27</span>              :   // An expression is worked out during compilation where a `comp` stands on</span>
 <span id="L28"><span class="lineNum">      28</span>              :   // it, and so is everything it is made of.</span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">       19215 :   const bool init_comp =</span></span>
-<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">       19215 :       in_comp ||</span></span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">       19215 :       std::visit([](const auto&amp; expr) { return expr.is_comp; }, expr);</span></span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">       19215 :   if (init_comp) std::visit([](auto&amp; expr) { expr.is_comp = true; }, expr);</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">       19215 :   if (const auto* func_call_expr = std::get_if&lt;FuncCallExpr&gt;(&amp;expr)) {</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">       19238 :   const bool init_comp =</span></span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">       19238 :       in_comp ||</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">       19238 :       std::visit([](const auto&amp; expr) { return expr.is_comp; }, expr);</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">       19238 :   if (init_comp) std::visit([](auto&amp; expr) { expr.is_comp = true; }, expr);</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">       19238 :   if (const auto* func_call_expr = std::get_if&lt;FuncCallExpr&gt;(&amp;expr)) {</span></span>
 <span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         836 :     StringIndex::Ref func_name = func_call_expr-&gt;func_name;</span></span>
 <span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">         836 :     const FuncDefStmt* func_def = syn_ctx.FindFuncDef(func_name);</span></span>
 <span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">         836 :     if (func_def == nullptr) return {};</span></span>
@@ -109,28 +109,28 @@
 <span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">        1676 :       });</span></span>
 <span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">        1676 :     }</span></span>
 <span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">         834 :     return result;</span></span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">       18379 :   } else if (const auto* index_expr = std::get_if&lt;IndexExpr&gt;(&amp;expr)) {</span></span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">         249 :     return CheckCompExpr(comp_var_names, syn_ctx, index_expr-&gt;base, init_comp,</span></span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">         249 :                          only_comp_calls)</span></span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">         249 :         .and_then([&amp;] {</span></span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         249 :           return CheckCompExpr(comp_var_names, syn_ctx, index_expr-&gt;index,</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">         249 :                                init_comp, only_comp_calls);</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">         249 :         });</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">       18130 :   } else if (const auto* binary_op_expr = std::get_if&lt;BinaryOpExpr&gt;(&amp;expr)) {</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">        4469 :     return CheckCompExpr(comp_var_names, syn_ctx, binary_op_expr-&gt;lhs,</span></span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">        4469 :                          init_comp, only_comp_calls)</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">        4469 :         .and_then([&amp;] {</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">        4467 :           return CheckCompExpr(comp_var_names, syn_ctx, binary_op_expr-&gt;rhs,</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">        4467 :                                init_comp, only_comp_calls);</span></span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">        4467 :         });</span></span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">       13661 :   } else if (const auto* ident_expr = std::get_if&lt;IdentExpr&gt;(&amp;expr)) {</span></span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">        6254 :     if (init_comp &amp;&amp; !comp_var_names.Contains(ident_expr-&gt;name)) {</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">       18402 :   } else if (const auto* index_expr = std::get_if&lt;IndexExpr&gt;(&amp;expr)) {</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">         250 :     return CheckCompExpr(comp_var_names, syn_ctx, index_expr-&gt;base, init_comp,</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">         250 :                          only_comp_calls)</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">         250 :         .and_then([&amp;] {</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         250 :           return CheckCompExpr(comp_var_names, syn_ctx, index_expr-&gt;index,</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">         250 :                                init_comp, only_comp_calls);</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">         250 :         });</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">       18152 :   } else if (const auto* binary_op_expr = std::get_if&lt;BinaryOpExpr&gt;(&amp;expr)) {</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">        4473 :     return CheckCompExpr(comp_var_names, syn_ctx, binary_op_expr-&gt;lhs,</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">        4473 :                          init_comp, only_comp_calls)</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">        4473 :         .and_then([&amp;] {</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">        4471 :           return CheckCompExpr(comp_var_names, syn_ctx, binary_op_expr-&gt;rhs,</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">        4471 :                                init_comp, only_comp_calls);</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">        4471 :         });</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">       13679 :   } else if (const auto* ident_expr = std::get_if&lt;IdentExpr&gt;(&amp;expr)) {</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">        6262 :     if (init_comp &amp;&amp; !comp_var_names.Contains(ident_expr-&gt;name)) {</span></span>
 <span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           2 :       return std::unexpected(</span></span>
 <span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           2 :           CompError(&quot;non-comp identifier not allowed in comp context&quot;));</span></span>
 <span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           2 :     }</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">        6254 :   }</span></span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">       13659 :   return {};</span></span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">       19215 : }</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">        6262 :   }</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">       13677 :   return {};</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">       19238 : }</span></span>
 <span id="L72"><span class="lineNum">      72</span>              : </span>
 <span id="L73"><span class="lineNum">      73</span>              : std::expected&lt;void, CompError&gt; CheckCompFunc(SyntaxContext&amp; syn_ctx,</span>
 <span id="L74"><span class="lineNum">      74</span>              :                                              SuccessiveList&lt;StmtRef&gt; stmts);</span>
@@ -177,86 +177,86 @@
 <span id="L115"><span class="lineNum">     115</span>              : </span>
 <span id="L116"><span class="lineNum">     116</span>              : std::expected&lt;void, CompError&gt; CheckCompVars(</span>
 <span id="L117"><span class="lineNum">     117</span>              :     HashSet&lt;StringIndex::Ref&gt;&amp; comp_var_names, SyntaxContext&amp; syn_ctx,</span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">        7005 :     StmtRef stmt_ref) {</span></span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">        7005 :   Stmt&amp; stmt = syn_ctx.DerefStmt(stmt_ref);</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">        7020 :     StmtRef stmt_ref) {</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">        7020 :   Stmt&amp; stmt = syn_ctx.DerefStmt(stmt_ref);</span></span>
 <span id="L120"><span class="lineNum">     120</span>              : </span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">        7920 :   const auto check = [&amp;](ExprRef expr_ref) {</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">        7873 :     return CheckCompExpr(comp_var_names, syn_ctx, expr_ref, /*in_comp=*/false,</span></span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">        7873 :                          /*only_comp_calls=*/false);</span></span>
-<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">        7873 :   };</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">        7935 :   const auto check = [&amp;](ExprRef expr_ref) {</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">        7886 :     return CheckCompExpr(comp_var_names, syn_ctx, expr_ref, /*in_comp=*/false,</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">        7886 :                          /*only_comp_calls=*/false);</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">        7886 :   };</span></span>
 <span id="L125"><span class="lineNum">     125</span>              : </span>
-<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">        7005 :   if (const auto* if_stmt = std::get_if&lt;IfStmt&gt;(&amp;stmt)) {</span></span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">         807 :     return check(if_stmt-&gt;cond)</span></span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">         807 :         .and_then([&amp;] {</span></span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">         807 :           return CheckCompVars(comp_var_names, syn_ctx, if_stmt-&gt;then_stmts);</span></span>
-<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">         807 :         })</span></span>
-<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">         807 :         .and_then([&amp;] {</span></span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">         807 :           return CheckCompVars(comp_var_names, syn_ctx, if_stmt-&gt;else_stmts);</span></span>
-<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">         807 :         });</span></span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">        6198 :   } else if (const auto* loop_stmt = std::get_if&lt;LoopStmt&gt;(&amp;stmt)) {</span></span>
-<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">         112 :     return CheckCompVars(comp_var_names, syn_ctx, loop_stmt-&gt;stmts);</span></span>
-<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">        6086 :   } else if (auto* var_decl_stmt = std::get_if&lt;VarDeclStmt&gt;(&amp;stmt)) {</span></span>
-<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">        2287 :     if (!var_decl_stmt-&gt;init.has_value()) return {};</span></span>
+<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">        7020 :   if (const auto* if_stmt = std::get_if&lt;IfStmt&gt;(&amp;stmt)) {</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">         809 :     return check(if_stmt-&gt;cond)</span></span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">         809 :         .and_then([&amp;] {</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">         809 :           return CheckCompVars(comp_var_names, syn_ctx, if_stmt-&gt;then_stmts);</span></span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">         809 :         })</span></span>
+<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">         809 :         .and_then([&amp;] {</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">         809 :           return CheckCompVars(comp_var_names, syn_ctx, if_stmt-&gt;else_stmts);</span></span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">         809 :         });</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">        6211 :   } else if (const auto* loop_stmt = std::get_if&lt;LoopStmt&gt;(&amp;stmt)) {</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">         113 :     return CheckCompVars(comp_var_names, syn_ctx, loop_stmt-&gt;stmts);</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">        6098 :   } else if (auto* var_decl_stmt = std::get_if&lt;VarDeclStmt&gt;(&amp;stmt)) {</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">        2292 :     if (!var_decl_stmt-&gt;init.has_value()) return {};</span></span>
 <span id="L138"><span class="lineNum">     138</span>              : </span>
-<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">        2199 :     std::expected&lt;void, CompError&gt; res = check(*var_decl_stmt-&gt;init);</span></span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">        2199 :     if (!res.has_value()) return res;</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">        2203 :     std::expected&lt;void, CompError&gt; res = check(*var_decl_stmt-&gt;init);</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">        2203 :     if (!res.has_value()) return res;</span></span>
 <span id="L141"><span class="lineNum">     141</span>              : </span>
 <span id="L142"><span class="lineNum">     142</span>              :     // What the variable holds is known during compilation where the whole</span>
 <span id="L143"><span class="lineNum">     143</span>              :     // of what initializes it was worked out there and no write can reach it</span>
 <span id="L144"><span class="lineNum">     144</span>              :     // afterwards. That is what lets another comp expression read it, and</span>
 <span id="L145"><span class="lineNum">     145</span>              :     // what asks for the write into it to be worked out during compilation</span>
 <span id="L146"><span class="lineNum">     146</span>              :     // as well.</span>
-<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">        2196 :     const Expr&amp; init = syn_ctx.DerefExpr(*var_decl_stmt-&gt;init);</span></span>
-<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">        2196 :     const bool init_is_comp =</span></span>
-<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">        2196 :         std::visit([](const auto&amp; expr) { return expr.is_comp; }, init);</span></span>
-<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">        2196 :     if (init_is_comp &amp;&amp; !var_decl_stmt-&gt;is_mutable) {</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">        2200 :     const Expr&amp; init = syn_ctx.DerefExpr(*var_decl_stmt-&gt;init);</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">        2200 :     const bool init_is_comp =</span></span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">        2200 :         std::visit([](const auto&amp; expr) { return expr.is_comp; }, init);</span></span>
+<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">        2200 :     if (init_is_comp &amp;&amp; !var_decl_stmt-&gt;is_mutable) {</span></span>
 <span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">         148 :       var_decl_stmt-&gt;is_comp = true;</span></span>
 <span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">         148 :       comp_var_names.Insert(var_decl_stmt-&gt;name);</span></span>
 <span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">         148 :     }</span></span>
-<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">        2196 :     return {};</span></span>
-<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">        4061 :   } else if (const auto* var_assign_stmt = std::get_if&lt;VarAssignStmt&gt;(&amp;stmt)) {</span></span>
-<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">        1298 :     return check(var_assign_stmt-&gt;expr);</span></span>
-<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">        3088 :   } else if (const auto* array_assign_stmt =</span></span>
-<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">        2501 :                  std::get_if&lt;ArrayAssignStmt&gt;(&amp;stmt)) {</span></span>
-<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">         973 :     return check(array_assign_stmt-&gt;index).and_then([&amp;] {</span></span>
-<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">         973 :       return check(array_assign_stmt-&gt;expr);</span></span>
-<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">         973 :     });</span></span>
-<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">        1528 :   } else if (const auto* field_assign_stmt =</span></span>
-<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">        1528 :                  std::get_if&lt;FieldAssignStmt&gt;(&amp;stmt)) {</span></span>
+<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">        2200 :     return {};</span></span>
+<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">        4068 :   } else if (const auto* var_assign_stmt = std::get_if&lt;VarAssignStmt&gt;(&amp;stmt)) {</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">        1300 :     return check(var_assign_stmt-&gt;expr);</span></span>
+<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">        3093 :   } else if (const auto* array_assign_stmt =</span></span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">        2506 :                  std::get_if&lt;ArrayAssignStmt&gt;(&amp;stmt)) {</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">         974 :     return check(array_assign_stmt-&gt;index).and_then([&amp;] {</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">         974 :       return check(array_assign_stmt-&gt;expr);</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">         974 :     });</span></span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">        1532 :   } else if (const auto* field_assign_stmt =</span></span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">        1532 :                  std::get_if&lt;FieldAssignStmt&gt;(&amp;stmt)) {</span></span>
 <span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">         201 :     return check(field_assign_stmt-&gt;base).and_then([&amp;] {</span></span>
 <span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">         201 :       return check(field_assign_stmt-&gt;expr);</span></span>
 <span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">         201 :     });</span></span>
-<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">        1327 :   } else if (const auto* return_stmt = std::get_if&lt;ReturnStmt&gt;(&amp;stmt)) {</span></span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         839 :     return check(return_stmt-&gt;value);</span></span>
-<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">         839 :   } else if (const auto* do_stmt = std::get_if&lt;DoStmt&gt;(&amp;stmt)) {</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">        1331 :   } else if (const auto* return_stmt = std::get_if&lt;ReturnStmt&gt;(&amp;stmt)) {</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         842 :     return check(return_stmt-&gt;value);</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">         842 :   } else if (const auto* do_stmt = std::get_if&lt;DoStmt&gt;(&amp;stmt)) {</span></span>
 <span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">         382 :     return check(do_stmt-&gt;expr);</span></span>
 <span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">         382 :   }</span></span>
-<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">         106 :   return {};</span></span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">        7005 : }</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">         107 :   return {};</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">        7020 : }</span></span>
 <span id="L174"><span class="lineNum">     174</span>              : </span>
 <span id="L175"><span class="lineNum">     175</span>              : std::expected&lt;void, CompError&gt; CheckCompVars(</span>
 <span id="L176"><span class="lineNum">     176</span>              :     HashSet&lt;StringIndex::Ref&gt;&amp; comp_var_names, SyntaxContext&amp; syn_ctx,</span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">        2352 :     SuccessiveList&lt;StmtRef&gt; stmts) {</span></span>
-<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">        7005 :   for (StmtRef stmt_ref : stmts) {</span></span>
-<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">        7005 :     std::expected&lt;void, CompError&gt; res =</span></span>
-<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">        7005 :         CheckCompVars(comp_var_names, syn_ctx, stmt_ref);</span></span>
-<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">        7005 :     if (!res.has_value()) return res;</span></span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">        7005 :   }</span></span>
-<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">        2348 :   return {};</span></span>
-<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">        2352 : }</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">        2359 :     SuccessiveList&lt;StmtRef&gt; stmts) {</span></span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">        7020 :   for (StmtRef stmt_ref : stmts) {</span></span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">        7020 :     std::expected&lt;void, CompError&gt; res =</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">        7020 :         CheckCompVars(comp_var_names, syn_ctx, stmt_ref);</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">        7020 :     if (!res.has_value()) return res;</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">        7020 :   }</span></span>
+<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">        2355 :   return {};</span></span>
+<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">        2359 : }</span></span>
 <span id="L185"><span class="lineNum">     185</span>              : </span>
 <span id="L186"><span class="lineNum">     186</span>              : }  // namespace</span>
 <span id="L187"><span class="lineNum">     187</span>              : </span>
 <span id="L188"><span class="lineNum">     188</span>              : std::expected&lt;void, CompError&gt; CheckComp(SyntaxContext&amp; syn_ctx,</span>
-<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">         626 :                                          FuncDefStmt&amp; stmt) {</span></span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">         626 :   HashSet&lt;StringIndex::Ref&gt; comp_var_names;</span></span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">         626 :   std::expected&lt;void, CompError&gt; res =</span></span>
-<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">         626 :       CheckCompVars(comp_var_names, syn_ctx, stmt.stmts);</span></span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">         626 :   if (res.has_value() &amp;&amp; stmt.is_comp) {</span></span>
+<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">         628 :                                          FuncDefStmt&amp; stmt) {</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">         628 :   HashSet&lt;StringIndex::Ref&gt; comp_var_names;</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">         628 :   std::expected&lt;void, CompError&gt; res =</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">         628 :       CheckCompVars(comp_var_names, syn_ctx, stmt.stmts);</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">         628 :   if (res.has_value() &amp;&amp; stmt.is_comp) {</span></span>
 <span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">         154 :     res = CheckCompFunc(syn_ctx, stmt.stmts);</span></span>
 <span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">         154 :   }</span></span>
-<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">         626 :   return res;</span></span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">         626 : }</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">         628 :   return res;</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">         628 : }</span></span>
 <span id="L198"><span class="lineNum">     198</span>              : </span>
 <span id="L199"><span class="lineNum">     199</span>              : }  // namespace lucid</span>
         </pre>
