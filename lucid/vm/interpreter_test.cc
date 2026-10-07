@@ -385,7 +385,8 @@ TEST(Test, InterpretAbstractMachineFunctionGeRegAndLeReg) {
   EXPECT_EQ(InterpretBinary<LeReg>(2, 2), 1);
 }
 
-constexpr std::int64_t kWide = (std::int64_t{1} << 40) + 3;
+// 2^40 + 3, which needs more than 32 bits.
+constexpr std::int64_t kWide = 0x100'0000'0003;
 
 // Returns what the slot with index `slot` comes to when read back, in a frame
 // of slots 4, 8 and 4 bytes wide that have had -5, `kWide` and 7 stored in
