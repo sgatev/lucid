@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - _coverage_report.dat - am/abi.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory am">am</a> - abi.h<span style="font-size: 80%;"> (source / <a href="abi.h.func-c.html" title="Click to go to function table">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">_coverage_report.dat</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntry">3</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+          </tr>
+                  <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : #pragma once</span>
+<span id="L2"><span class="lineNum">       2</span>              : </span>
+<span id="L3"><span class="lineNum">       3</span>              : #include &lt;cstddef&gt;</span>
+<span id="L4"><span class="lineNum">       4</span>              : #include &lt;cstdint&gt;</span>
+<span id="L5"><span class="lineNum">       5</span>              : </span>
+<span id="L6"><span class="lineNum">       6</span>              : #include &quot;lucid/am/cfg.h&quot;</span>
+<span id="L7"><span class="lineNum">       7</span>              : </span>
+<span id="L8"><span class="lineNum">       8</span>              : namespace lucid {</span>
+<span id="L9"><span class="lineNum">       9</span>              : </span>
+<span id="L10"><span class="lineNum">      10</span>              : // Where a call leaves what it is passing, which is a matter for the machine</span>
+<span id="L11"><span class="lineNum">      11</span>              : // the code is compiled for rather than for the abstract machine.</span>
+<span id="L12"><span class="lineNum">      12</span>              : struct CallingConvention {</span>
+<span id="L13"><span class="lineNum">      13</span>              :   // How many arguments a call passes in registers. The ones past these it</span>
+<span id="L14"><span class="lineNum">      14</span>              :   // leaves on the stack, for the called function to read where it reads</span>
+<span id="L15"><span class="lineNum">      15</span>              :   // them.</span>
+<span id="L16"><span class="lineNum">      16</span>              :   //</span>
+<span id="L17"><span class="lineNum">      17</span>              :   // Every parameter is live where a function is entered, so one that arrives</span>
+<span id="L18"><span class="lineNum">      18</span>              :   // in a register holds a colour there. This can therefore be no more than</span>
+<span id="L19"><span class="lineNum">      19</span>              :   // the number of colours there are to hand out.</span>
+<span id="L20"><span class="lineNum">      20</span>              :   std::size_t max_register_args;</span>
+<span id="L21"><span class="lineNum">      21</span>              : </span>
+<span id="L22"><span class="lineNum">      22</span>              :   // How much room an argument left on the stack takes, whatever its width,</span>
+<span id="L23"><span class="lineNum">      23</span>              :   // so that the one after it stands this much further along. A narrower</span>
+<span id="L24"><span class="lineNum">      24</span>              :   // value is written into the low bytes of its own room and read back from</span>
+<span id="L25"><span class="lineNum">      25</span>              :   // there.</span>
+<span id="L26"><span class="lineNum">      26</span>              :   int stack_arg_size;</span>
+<span id="L27"><span class="lineNum">      27</span>              : };</span>
+<span id="L28"><span class="lineNum">      28</span>              : </span>
+<span id="L29"><span class="lineNum">      29</span>              : // A run of a function's stack slots, given by where it begins and how many</span>
+<span id="L30"><span class="lineNum">      30</span>              : // slots it holds.</span>
+<span id="L31"><span class="lineNum">      31</span>              : struct SlotRange {</span>
+<span id="L32"><span class="lineNum">      32</span>              :   std::uint32_t first = 0;</span>
+<span id="L33"><span class="lineNum">      33</span>              :   std::uint32_t count = 0;</span>
+<span id="L34"><span class="lineNum">      34</span>              : </span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">       33458 :   bool Holds(std::size_t slot) const {</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">       33458 :     return slot &gt;= first &amp;&amp; slot - first &lt; count;</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">       33458 :   }</span></span>
+<span id="L38"><span class="lineNum">      38</span>              : };</span>
+<span id="L39"><span class="lineNum">      39</span>              : </span>
+<span id="L40"><span class="lineNum">      40</span>              : // Where the arguments a function was handed and the arguments it hands on</span>
+<span id="L41"><span class="lineNum">      41</span>              : // stand among its stack slots, which is what lowering a calling convention</span>
+<span id="L42"><span class="lineNum">      42</span>              : // settles and what laying out a frame needs to know.</span>
+<span id="L43"><span class="lineNum">      43</span>              : struct FrameLayout {</span>
+<span id="L44"><span class="lineNum">      44</span>              :   // The slots the caller left the parameters it had no register to pass. They</span>
+<span id="L45"><span class="lineNum">      45</span>              :   // stand above this function's frame rather than in it, because the caller</span>
+<span id="L46"><span class="lineNum">      46</span>              :   // wrote them before the frame existed.</span>
+<span id="L47"><span class="lineNum">      47</span>              :   SlotRange incoming_args;</span>
+<span id="L48"><span class="lineNum">      48</span>              : </span>
+<span id="L49"><span class="lineNum">      49</span>              :   // The slots this function leaves the arguments it has no register to pass.</span>
+<span id="L50"><span class="lineNum">      50</span>              :   // They stand at the foot of the frame, which is where the stack pointer is</span>
+<span id="L51"><span class="lineNum">      51</span>              :   // when a call is made and so where the called function looks for them. As</span>
+<span id="L52"><span class="lineNum">      52</span>              :   // many as the widest call the function makes needs.</span>
+<span id="L53"><span class="lineNum">      53</span>              :   SlotRange outgoing_args;</span>
+<span id="L54"><span class="lineNum">      54</span>              : };</span>
+<span id="L55"><span class="lineNum">      55</span>              : </span>
+<span id="L56"><span class="lineNum">      56</span>              : // Rewrites `am_cfg` to pass and to take its arguments the way `convention`</span>
+<span id="L57"><span class="lineNum">      57</span>              : // says, and returns where that leaves them.</span>
+<span id="L58"><span class="lineNum">      58</span>              : //</span>
+<span id="L59"><span class="lineNum">      59</span>              : // Until this has run the graph says nothing about registers: a function has</span>
+<span id="L60"><span class="lineNum">      60</span>              : // its parameters and a call has its arguments, however many there are of</span>
+<span id="L61"><span class="lineNum">      61</span>              : // either. After it, the ones there is no register for stand in slots of the</span>
+<span id="L62"><span class="lineNum">      62</span>              : // frame, which is where the machine leaves them.</span>
+<span id="L63"><span class="lineNum">      63</span>              : //</span>
+<span id="L64"><span class="lineNum">      64</span>              : // A parameter left in a slot is read from there wherever it is read, and is</span>
+<span id="L65"><span class="lineNum">      65</span>              : // no longer among the registers the function is entered holding. Nothing in</span>
+<span id="L66"><span class="lineNum">      66</span>              : // the graph names it afterwards, so nothing downstream has to know that a</span>
+<span id="L67"><span class="lineNum">      67</span>              : // parameter was ever anything but a register.</span>
+<span id="L68"><span class="lineNum">      68</span>              : FrameLayout LowerCallingConvention(AbstractMachineControlFlowGraph&amp; am_cfg,</span>
+<span id="L69"><span class="lineNum">      69</span>              :                                    const CallingConvention&amp; convention);</span>
+<span id="L70"><span class="lineNum">      70</span>              : </span>
+<span id="L71"><span class="lineNum">      71</span>              : }  // namespace lucid</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 2.5-0</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

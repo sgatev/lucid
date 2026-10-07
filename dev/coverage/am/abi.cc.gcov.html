@@ -1,0 +1,234 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - _coverage_report.dat - am/abi.cc</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory am">am</a> - abi.cc<span style="font-size: 80%;"> (source / <a href="abi.cc.func-c.html" title="Click to go to function table">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">_coverage_report.dat</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryHi">97.9&nbsp;%</td>
+            <td class="headerCovTableEntry">96</td>
+            <td class="headerCovTableEntry">94</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2026-10-07 04:57:16</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">6</td>
+          </tr>
+                  <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : #include &quot;lucid/am/abi.h&quot;</span>
+<span id="L2"><span class="lineNum">       2</span>              : </span>
+<span id="L3"><span class="lineNum">       3</span>              : #include &lt;algorithm&gt;</span>
+<span id="L4"><span class="lineNum">       4</span>              : #include &lt;cstddef&gt;</span>
+<span id="L5"><span class="lineNum">       5</span>              : #include &lt;cstdint&gt;</span>
+<span id="L6"><span class="lineNum">       6</span>              : #include &lt;list&gt;</span>
+<span id="L7"><span class="lineNum">       7</span>              : #include &lt;optional&gt;</span>
+<span id="L8"><span class="lineNum">       8</span>              : #include &lt;variant&gt;</span>
+<span id="L9"><span class="lineNum">       9</span>              : #include &lt;vector&gt;</span>
+<span id="L10"><span class="lineNum">      10</span>              : </span>
+<span id="L11"><span class="lineNum">      11</span>              : #include &quot;lucid/am/cfg.h&quot;</span>
+<span id="L12"><span class="lineNum">      12</span>              : #include &quot;lucid/am/instructions.h&quot;</span>
+<span id="L13"><span class="lineNum">      13</span>              : </span>
+<span id="L14"><span class="lineNum">      14</span>              : namespace lucid {</span>
+<span id="L15"><span class="lineNum">      15</span>              : namespace {</span>
+<span id="L16"><span class="lineNum">      16</span>              : </span>
+<span id="L17"><span class="lineNum">      17</span>              : // Takes `count` slots of the frame for arguments to stand in, and says where</span>
+<span id="L18"><span class="lineNum">      18</span>              : // they begin.</span>
+<span id="L19"><span class="lineNum">      19</span>              : SlotRange TakeArgSlots(AbstractMachineControlFlowGraph&amp; am_cfg,</span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">          57 :                        const CallingConvention&amp; c, std::size_t count) {</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">          57 :   const SlotRange range = {</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">          57 :       .first = static_cast&lt;std::uint32_t&gt;(am_cfg.stack_slots.size()),</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">          57 :       .count = static_cast&lt;std::uint32_t&gt;(count),</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">          57 :   };</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">         203 :   for (std::size_t i = 0; i &lt; count; ++i) {</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">         146 :     am_cfg.stack_slots.push_back(c.stack_arg_size);</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">         146 :   }</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">          57 :   return range;</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">          57 : }</span></span>
+<span id="L30"><span class="lineNum">      30</span>              : </span>
+<span id="L31"><span class="lineNum">      31</span>              : // How many arguments `am_cfg` leaves on the stack for the widest call it</span>
+<span id="L32"><span class="lineNum">      32</span>              : // makes.</span>
+<span id="L33"><span class="lineNum">      33</span>              : std::size_t WidestStackCall(const AbstractMachineControlFlowGraph&amp; am_cfg,</span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         607 :                             const CallingConvention&amp; c) {</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">         607 :   std::size_t widest = 0;</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">        3484 :   for (const auto&amp; block : am_cfg.Blocks()) {</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">       27731 :     for (const auto&amp; inst : block.instructions) {</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">       27731 :       const auto* call = std::get_if&lt;FuncCall&gt;(&amp;inst);</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       27731 :       if (call == nullptr || call-&gt;args.size() &lt;= c.max_register_args) continue;</span></span>
+<span id="L40"><span class="lineNum">      40</span>              : </span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">          28 :       widest = std::max(widest, call-&gt;args.size() - c.max_register_args);</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">          28 :     }</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">        3484 :   }</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">         607 :   return widest;</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">         607 : }</span></span>
+<span id="L46"><span class="lineNum">      46</span>              : </span>
+<span id="L47"><span class="lineNum">      47</span>              : // Leaves every read of `reg` reading a register of its own, loaded from</span>
+<span id="L48"><span class="lineNum">      48</span>              : // `slot` where the read stands.</span>
+<span id="L49"><span class="lineNum">      49</span>              : //</span>
+<span id="L50"><span class="lineNum">      50</span>              : // A value that is already in memory is one that is already spilt, and this</span>
+<span id="L51"><span class="lineNum">      51</span>              : // is what spilling would have done to it, but for the store: nothing writes</span>
+<span id="L52"><span class="lineNum">      52</span>              : // a parameter, so there is nothing to put away.</span>
+<span id="L53"><span class="lineNum">      53</span>              : void LoadAtEveryUse(AbstractMachineControlFlowGraph&amp; am_cfg, Reg reg,</span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">          84 :                     std::uint32_t slot) {</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          84 :   const auto load_into = [&amp;](std::list&lt;Instruction&gt;&amp; instructions,</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">          86 :                              std::list&lt;Instruction&gt;::iterator at, Reg&amp; read) {</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">          82 :     read.id = am_cfg.next_free_reg_id++;</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">          82 :     instructions.insert(at, LoadStack{.offset = slot, .dst_reg = read});</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">          82 :   };</span></span>
+<span id="L60"><span class="lineNum">      60</span>              : </span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">         370 :   for (auto&amp; block : am_cfg.Blocks()) {</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">       10201 :     for (auto i = block.instructions.begin(); i != block.instructions.end();</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">        9833 :          ++i) {</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">       10499 :       ForEachSourceRegister(*i, [&amp;](Reg&amp; read) {</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">       10277 :         if (read == reg) load_into(block.instructions, i, read);</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">       10277 :       });</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">        9831 :     }</span></span>
+<span id="L68"><span class="lineNum">      68</span>              : </span>
+<span id="L69"><span class="lineNum">      69</span>              :     // A branch reads what it decides on where its block ends, so the load</span>
+<span id="L70"><span class="lineNum">      70</span>              :     // stands there, after everything the block does.</span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">         370 :     if (auto&amp; cond = block.branch_cond; cond.has_value() &amp;&amp; *cond == reg) {</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaUNC">           0 :       load_into(block.instructions, block.instructions.end(), *cond);</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaUNC">           0 :     }</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         370 :   }</span></span>
+<span id="L75"><span class="lineNum">      75</span>              : </span>
+<span id="L76"><span class="lineNum">      76</span>              :   // A phi function reads its argument where control leaves the block that</span>
+<span id="L77"><span class="lineNum">      77</span>              :   // argument comes from, so a load for it stands at the end of that block.</span>
+<span id="L78"><span class="lineNum">      78</span>              :   // Every phi reading it out of the same block reads the one load.</span>
+<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">          84 :   std::vector&lt;std::optional&lt;Reg&gt;&gt; loaded_leaving(am_cfg.Blocks().Size());</span></span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">         370 :   for (auto&amp; block : am_cfg.Blocks()) {</span></span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">         416 :     for (auto&amp; phi : block.phis) {</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">        1010 :       for (std::size_t arg = 0; arg &lt; phi.srcs.size(); ++arg) {</span></span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">         646 :         if (phi.srcs[arg] != reg) continue;</span></span>
+<span id="L84"><span class="lineNum">      84</span>              : </span>
+<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">          13 :         auto&amp; loaded = loaded_leaving[block.preds[arg].id()];</span></span>
+<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">          13 :         if (!loaded.has_value()) {</span></span>
+<span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC">          13 :           Reg fresh = reg;</span></span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">          13 :           fresh.id = am_cfg.next_free_reg_id++;</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">          13 :           am_cfg.GetBlock(block.preds[arg])</span></span>
+<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">          13 :               .instructions.push_back(LoadStack{</span></span>
+<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">          13 :                   .offset = slot,</span></span>
+<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">          13 :                   .dst_reg = fresh,</span></span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">          13 :               });</span></span>
+<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">          13 :           loaded = fresh;</span></span>
+<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">          13 :         }</span></span>
+<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">          13 :         phi.srcs[arg] = *loaded;</span></span>
+<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">          13 :       }</span></span>
+<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">         364 :     }</span></span>
+<span id="L99"><span class="lineNum">      99</span> <span class="tlaGNC">         370 :   }</span></span>
+<span id="L100"><span class="lineNum">     100</span> <span class="tlaGNC">          84 : }</span></span>
+<span id="L101"><span class="lineNum">     101</span>              : </span>
+<span id="L102"><span class="lineNum">     102</span>              : }  // namespace</span>
+<span id="L103"><span class="lineNum">     103</span>              : </span>
+<span id="L104"><span class="lineNum">     104</span>              : FrameLayout LowerCallingConvention(AbstractMachineControlFlowGraph&amp; am_cfg,</span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">         607 :                                    const CallingConvention&amp; convention) {</span></span>
+<span id="L106"><span class="lineNum">     106</span> <span class="tlaGNC">         607 :   FrameLayout layout;</span></span>
+<span id="L107"><span class="lineNum">     107</span>              : </span>
+<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">         607 :   if (am_cfg.params.size() &gt; convention.max_register_args) {</span></span>
+<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">          30 :     const std::size_t on_stack =</span></span>
+<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">          30 :         am_cfg.params.size() - convention.max_register_args;</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">          30 :     layout.incoming_args = TakeArgSlots(am_cfg, convention, on_stack);</span></span>
+<span id="L112"><span class="lineNum">     112</span>              : </span>
+<span id="L113"><span class="lineNum">     113</span>              :     // Nothing holds a parameter that arrived in a slot, so every read of it</span>
+<span id="L114"><span class="lineNum">     114</span>              :     // comes from there, and it is no longer one of the registers the</span>
+<span id="L115"><span class="lineNum">     115</span>              :     // function is entered holding.</span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">         114 :     for (std::size_t i = 0; i &lt; on_stack; ++i) {</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          84 :       LoadAtEveryUse(am_cfg, am_cfg.params[convention.max_register_args + i],</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">          84 :                      layout.incoming_args.first + i);</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">          84 :     }</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">          30 :     am_cfg.params.resize(convention.max_register_args);</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">          30 :   }</span></span>
+<span id="L122"><span class="lineNum">     122</span>              : </span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">         607 :   const std::size_t widest = WidestStackCall(am_cfg, convention);</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">         607 :   if (widest == 0) return layout;</span></span>
+<span id="L125"><span class="lineNum">     125</span>              : </span>
+<span id="L126"><span class="lineNum">     126</span>              :   // One run of slots for every call, because only one call is being made at</span>
+<span id="L127"><span class="lineNum">     127</span>              :   // a time and each fills what it needs of them.</span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">          27 :   layout.outgoing_args = TakeArgSlots(am_cfg, convention, widest);</span></span>
+<span id="L129"><span class="lineNum">     129</span>              : </span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">         222 :   for (auto&amp; block : am_cfg.Blocks()) {</span></span>
+<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">        3129 :     for (auto i = block.instructions.begin(); i != block.instructions.end();</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">        2907 :          ++i) {</span></span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">        2907 :       auto* call = std::get_if&lt;FuncCall&gt;(&amp;*i);</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">        2907 :       if (call == nullptr ||</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">        2907 :           call-&gt;args.size() &lt;= convention.max_register_args) {</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">        2879 :         continue;</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">        2879 :       }</span></span>
+<span id="L138"><span class="lineNum">     138</span>              : </span>
+<span id="L139"><span class="lineNum">     139</span>              :       // Put the arguments there is no register for where the call will look</span>
+<span id="L140"><span class="lineNum">     140</span>              :       // for them, and take them off the call, so that nothing has to hold</span>
+<span id="L141"><span class="lineNum">     141</span>              :       // them in a register while it is made. A call that read them all would</span>
+<span id="L142"><span class="lineNum">     142</span>              :       // read more registers at once than there are.</span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">          28 :       for (std::size_t at = convention.max_register_args;</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">          91 :            at &lt; call-&gt;args.size(); ++at) {</span></span>
+<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">          63 :         block.instructions.insert(</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">          63 :             i, StoreStack{</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">          63 :                    .offset = layout.outgoing_args.first +</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">          63 :                              (at - convention.max_register_args),</span></span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">          63 :                    .src_reg = call-&gt;args[at].reg,</span></span>
+<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">          63 :                });</span></span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">          63 :       }</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">          28 :       call-&gt;args.resize(convention.max_register_args);</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">          28 :     }</span></span>
+<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">         222 :   }</span></span>
+<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">          27 :   return layout;</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">         607 : }</span></span>
+<span id="L157"><span class="lineNum">     157</span>              : </span>
+<span id="L158"><span class="lineNum">     158</span>              : }  // namespace lucid</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com/linux-test-project/lcov" target="_parent">LCOV version 2.5-0</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>
