@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 20:59:16</td>
+            <td class="headerValue">2026-10-08 19:54:33</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -71,10 +71,10 @@
 <span id="L9"><span class="lineNum">       9</span>              : //</span>
 <span id="L10"><span class="lineNum">      10</span>              : // Requires:</span>
 <span id="L11"><span class="lineNum">      11</span>              : // - `n` must be in the range [0, 128).</span>
-<span id="L12"><span class="lineNum">      12</span> <span class="tlaGNC">        1519 : constexpr std::uint8_t TwosComplement7(std::uint8_t n) {</span></span>
-<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">        1519 :   assert((n &amp; 0b10000000) == 0);</span></span>
-<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">        1519 :   return static_cast&lt;std::uint8_t&gt;((~std::uint32_t{n} + 1) &amp; 0b01111111);</span></span>
-<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">        1519 : }</span></span>
+<span id="L12"><span class="lineNum">      12</span> <span class="tlaGNC">        1521 : constexpr std::uint8_t TwosComplement7(std::uint8_t n) {</span></span>
+<span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">        1521 :   assert((n &amp; 0b10000000) == 0);</span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">        1521 :   return static_cast&lt;std::uint8_t&gt;((~std::uint32_t{n} + 1) &amp; 0b01111111);</span></span>
+<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">        1521 : }</span></span>
 <span id="L16"><span class="lineNum">      16</span>              : </span>
 <span id="L17"><span class="lineNum">      17</span>              : // Returns the two's complement of `n` interpreted as 9-bit signed integer.</span>
 <span id="L18"><span class="lineNum">      18</span>              : //</span>

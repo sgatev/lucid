@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 20:59:16</td>
+            <td class="headerValue">2026-10-08 19:54:33</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryMed">87.4&nbsp;%</td>
@@ -86,7 +86,7 @@
 <span id="L24"><span class="lineNum">      24</span>              :    public:</span>
 <span id="L25"><span class="lineNum">      25</span>              :     using value_type = V;</span>
 <span id="L26"><span class="lineNum">      26</span>              : </span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">    34623865 :     bool operator==(const Iterator&amp;) const = default;</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">    34623871 :     bool operator==(const Iterator&amp;) const = default;</span></span>
 <span id="L28"><span class="lineNum">      28</span>              : </span>
 <span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">       22825 :     value_type&amp; operator*() const { return *(table_-&gt;slot(pos_)); }</span></span>
 <span id="L30"><span class="lineNum">      30</span>              : </span>
@@ -107,7 +107,7 @@
 <span id="L45"><span class="lineNum">      45</span>              :     friend class HashTable;</span>
 <span id="L46"><span class="lineNum">      46</span>              : </span>
 <span id="L47"><span class="lineNum">      47</span>              :     Iterator(const HashTable&amp; table, std::size_t pos)</span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">    34525695 :         : table_(&amp;table), pos_(pos) {}</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">    34525699 :         : table_(&amp;table), pos_(pos) {}</span></span>
 <span id="L49"><span class="lineNum">      49</span>              : </span>
 <span id="L50"><span class="lineNum">      50</span>              :     const HashTable* table_;</span>
 <span id="L51"><span class="lineNum">      51</span>              :     std::size_t pos_;</span>
@@ -147,7 +147,7 @@
 <span id="L85"><span class="lineNum">      85</span>              :   // A table with no slots, which takes them when it is first given something</span>
 <span id="L86"><span class="lineNum">      86</span>              :   // to hold. Nothing is allocated for one that never is, so an empty table</span>
 <span id="L87"><span class="lineNum">      87</span>              :   // costs no more than the members below.</span>
-<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">       50391 :   HashTable() = default;</span></span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">       48539 :   HashTable() = default;</span></span>
 <span id="L89"><span class="lineNum">      89</span>              : </span>
 <span id="L90"><span class="lineNum">      90</span>              :   explicit HashTable(std::size_t wanted_capacity)</span>
 <span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">        1089 :       : capacity_(std::bit_ceil(wanted_capacity)),</span></span>
@@ -180,12 +180,12 @@
 <span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">        1344 :     }</span></span>
 <span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">          21 :   }</span></span>
 <span id="L120"><span class="lineNum">     120</span>              : </span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">       62731 :   ~HashTable() {</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">       62731 :     if (storage_ == nullptr) return;</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">       60879 :   ~HashTable() {</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">       60879 :     if (storage_ == nullptr) return;</span></span>
 <span id="L123"><span class="lineNum">     123</span>              : </span>
-<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">       38248 :     destroy_values();</span></span>
-<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">       38248 :     std::free(storage_);</span></span>
-<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">       38248 :   }</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">       38250 :     destroy_values();</span></span>
+<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">       38250 :     std::free(storage_);</span></span>
+<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">       38250 :   }</span></span>
 <span id="L127"><span class="lineNum">     127</span>              : </span>
 <span id="L128"><span class="lineNum">     128</span>              :   // Takes over the content of `other`, which is left holding what this table</span>
 <span id="L129"><span class="lineNum">     129</span>              :   // had and destroys it in turn.</span>
@@ -210,9 +210,9 @@
 <span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">          20 :   }</span></span>
 <span id="L149"><span class="lineNum">     149</span>              : </span>
 <span id="L150"><span class="lineNum">     150</span>              :   // Returns an iterator that corresponds to the given projection or `end()`.</span>
-<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">    17257498 :   inline Iterator Find(const P&amp; proj) {</span></span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">    17257498 :     return Iterator(*this, find_offset(proj));</span></span>
-<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">    17257498 :   }</span></span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">    17257500 :   inline Iterator Find(const P&amp; proj) {</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">    17257500 :     return Iterator(*this, find_offset(proj));</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">    17257500 :   }</span></span>
 <span id="L154"><span class="lineNum">     154</span>              : </span>
 <span id="L155"><span class="lineNum">     155</span>              :   // Returns a const iterator that corresponds to the given projection or</span>
 <span id="L156"><span class="lineNum">     156</span>              :   // `end()`.</span>
@@ -224,19 +224,19 @@
 <span id="L162"><span class="lineNum">     162</span>              :   // `proj`. Otherwise, allocates a new slot for a value and returns (slot,</span>
 <span id="L163"><span class="lineNum">     163</span>              :   // true).</span>
 <span id="L164"><span class="lineNum">     164</span>              :   template &lt;typename... Ts&gt;</span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">    15353563 :   inline std::pair&lt;V*, bool&gt; FindOrAlloc(const P&amp; proj) {</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">    15353565 :   inline std::pair&lt;V*, bool&gt; FindOrAlloc(const P&amp; proj) {</span></span>
 <span id="L166"><span class="lineNum">     166</span>              :     // A table with no slots has nowhere to put a value, so the first thing it</span>
 <span id="L167"><span class="lineNum">     167</span>              :     // is given is what makes it take them.</span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">    15353563 :     if (storage_ == nullptr) {</span></span>
-<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">       37511 :       capacity_ = kInitialCapacity;</span></span>
-<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">       37511 :       storage_ = alloc_storage(capacity_);</span></span>
-<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">       37511 :     }</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">    15353565 :     if (storage_ == nullptr) {</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">       37513 :       capacity_ = kInitialCapacity;</span></span>
+<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">       37513 :       storage_ = alloc_storage(capacity_);</span></span>
+<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">       37513 :     }</span></span>
 <span id="L172"><span class="lineNum">     172</span>              : </span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">    15353563 :     const std::size_t proj_hash = Hash(proj);</span></span>
-<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">    15353563 :     const std::uint8_t proj_meta = hash_meta(proj_hash);</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">    15353565 :     const std::size_t proj_hash = Hash(proj);</span></span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">    15353565 :     const std::uint8_t proj_meta = hash_meta(proj_hash);</span></span>
 <span id="L175"><span class="lineNum">     175</span>              : </span>
-<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">    15353563 :     const Probe probed = probe(proj, proj_hash, proj_meta);</span></span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">    15353563 :     if (probed.held) return std::make_pair(slot(probed.offset), false);</span></span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">    15353565 :     const Probe probed = probe(proj, proj_hash, proj_meta);</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">    15353565 :     if (probed.held) return std::make_pair(slot(probed.offset), false);</span></span>
 <span id="L178"><span class="lineNum">     178</span>              : </span>
 <span id="L179"><span class="lineNum">     179</span>              :     // The table is rebuilt only for a value that is going in, and so only</span>
 <span id="L180"><span class="lineNum">     180</span>              :     // once the search has not found it. Rebuilding moves every value, and</span>
@@ -244,13 +244,13 @@
 <span id="L182"><span class="lineNum">     182</span>              :     // already holds has to leave it as it was. The slot the search found goes</span>
 <span id="L183"><span class="lineNum">     183</span>              :     // with the rebuild, and the value is known not to be held, so all that is</span>
 <span id="L184"><span class="lineNum">     184</span>              :     // left to find is a free slot.</span>
-<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">      395567 :     std::size_t offset = probed.offset;</span></span>
-<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">      395567 :     if (non_empty_slots_count_ &gt; max_load()) {</span></span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">      395569 :     std::size_t offset = probed.offset;</span></span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">      395569 :     if (non_empty_slots_count_ &gt; max_load()) {</span></span>
 <span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">        1088 :       rehash();</span></span>
 <span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">        1088 :       offset = free_offset(proj_hash);</span></span>
 <span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">        1088 :     }</span></span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">      395567 :     return std::make_pair(alloc_at(offset, proj_meta), true);</span></span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">    15353563 :   }</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">      395569 :     return std::make_pair(alloc_at(offset, proj_meta), true);</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">    15353565 :   }</span></span>
 <span id="L192"><span class="lineNum">     192</span>              : </span>
 <span id="L193"><span class="lineNum">     193</span>              :   // Inserts the given `val` and returns true if `Project(val)` is not already</span>
 <span id="L194"><span class="lineNum">     194</span>              :   // inserted. Otherwise returns false.</span>
@@ -262,15 +262,15 @@
 <span id="L200"><span class="lineNum">     200</span>              : </span>
 <span id="L201"><span class="lineNum">     201</span>              :   // Inserts the given `val` and returns true if `Project(val)` is not already</span>
 <span id="L202"><span class="lineNum">     202</span>              :   // inserted. Otherwise overrides the value and returns false.</span>
-<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">    15171605 :   inline bool Set(V val) {</span></span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">    15171605 :     auto [val_slot, allocated] = FindOrAlloc(Project(val));</span></span>
-<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">    15171605 :     if (allocated) {</span></span>
-<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">      263960 :       new (val_slot) V(std::move(val));</span></span>
-<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">    15145199 :     } else {</span></span>
+<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">    15171607 :   inline bool Set(V val) {</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">    15171607 :     auto [val_slot, allocated] = FindOrAlloc(Project(val));</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">    15171607 :     if (allocated) {</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">      263962 :       new (val_slot) V(std::move(val));</span></span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">    15145201 :     } else {</span></span>
 <span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">    14907645 :       *val_slot = std::move(val);</span></span>
 <span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">    14907645 :     }</span></span>
-<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">    15171605 :     return allocated;</span></span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">    15171605 :   }</span></span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">    15171607 :     return allocated;</span></span>
+<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">    15171607 :   }</span></span>
 <span id="L212"><span class="lineNum">     212</span>              : </span>
 <span id="L213"><span class="lineNum">     213</span>              :   // Removes the value that corresponds to the given projection and returns it</span>
 <span id="L214"><span class="lineNum">     214</span>              :   // if present. Otherwise returns nullopt.</span>
@@ -290,10 +290,10 @@
 <span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">       38585 :   }</span></span>
 <span id="L229"><span class="lineNum">     229</span>              : </span>
 <span id="L230"><span class="lineNum">     230</span>              :   // Returns the number of unique values inserted so far.</span>
-<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">       11317 :   inline std::size_t size() const noexcept { return full_slots_count_; }</span></span>
+<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">       10389 :   inline std::size_t size() const noexcept { return full_slots_count_; }</span></span>
 <span id="L232"><span class="lineNum">     232</span>              : </span>
 <span id="L233"><span class="lineNum">     233</span>              :   // Returns the number of slots the table holds.</span>
-<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">   112950200 :   inline std::size_t capacity() const noexcept { return capacity_; }</span></span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">   112950344 :   inline std::size_t capacity() const noexcept { return capacity_; }</span></span>
 <span id="L235"><span class="lineNum">     235</span>              : </span>
 <span id="L236"><span class="lineNum">     236</span>              :   // Returns an iterator referring to the first value in the table or `end()`,</span>
 <span id="L237"><span class="lineNum">     237</span>              :   // if there isn't one.</span>
@@ -306,7 +306,7 @@
 <span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">        8090 :   }</span></span>
 <span id="L245"><span class="lineNum">     245</span>              : </span>
 <span id="L246"><span class="lineNum">     246</span>              :   // Returns an iterator past the last value in the table.</span>
-<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">    17262813 :   Iterator end() noexcept { return Iterator(*this, capacity()); }</span></span>
+<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">    17262815 :   Iterator end() noexcept { return Iterator(*this, capacity()); }</span></span>
 <span id="L248"><span class="lineNum">     248</span>              : </span>
 <span id="L249"><span class="lineNum">     249</span>              :   // Returns a const iterator past the last value in the table.</span>
 <span id="L250"><span class="lineNum">     250</span> <span class="tlaGNC">     4375409 :   ConstIterator end() const noexcept {</span></span>
@@ -319,12 +319,12 @@
 <span id="L257"><span class="lineNum">     257</span>              :     return ((64 + max_align - 1) / max_align) * max_align;</span>
 <span id="L258"><span class="lineNum">     258</span>              :   }();</span>
 <span id="L259"><span class="lineNum">     259</span>              : </span>
-<span id="L260"><span class="lineNum">     260</span> <span class="tlaGNC">       38621 :   static constexpr std::uint8_t* alloc_storage(std::size_t size) noexcept {</span></span>
-<span id="L261"><span class="lineNum">     261</span> <span class="tlaGNC">       38621 :     auto* storage =</span></span>
-<span id="L262"><span class="lineNum">     262</span> <span class="tlaGNC">       38621 :         static_cast&lt;std::uint8_t*&gt;(std::malloc(size + size * sizeof(V)));</span></span>
-<span id="L263"><span class="lineNum">     263</span> <span class="tlaGNC">       38621 :     std::fill_n(storage, size, kEmptyMeta);</span></span>
-<span id="L264"><span class="lineNum">     264</span> <span class="tlaGNC">       38621 :     return storage;</span></span>
-<span id="L265"><span class="lineNum">     265</span> <span class="tlaGNC">       38621 :   }</span></span>
+<span id="L260"><span class="lineNum">     260</span> <span class="tlaGNC">       38623 :   static constexpr std::uint8_t* alloc_storage(std::size_t size) noexcept {</span></span>
+<span id="L261"><span class="lineNum">     261</span> <span class="tlaGNC">       38623 :     auto* storage =</span></span>
+<span id="L262"><span class="lineNum">     262</span> <span class="tlaGNC">       38623 :         static_cast&lt;std::uint8_t*&gt;(std::malloc(size + size * sizeof(V)));</span></span>
+<span id="L263"><span class="lineNum">     263</span> <span class="tlaGNC">       38623 :     std::fill_n(storage, size, kEmptyMeta);</span></span>
+<span id="L264"><span class="lineNum">     264</span> <span class="tlaGNC">       38623 :     return storage;</span></span>
+<span id="L265"><span class="lineNum">     265</span> <span class="tlaGNC">       38623 :   }</span></span>
 <span id="L266"><span class="lineNum">     266</span>              : </span>
 <span id="L267"><span class="lineNum">     267</span>              :   // Returns the byte that stands in for a value with the given hash, which a</span>
 <span id="L268"><span class="lineNum">     268</span>              :   // probe compares before it reaches for the value itself.</span>
@@ -334,9 +334,9 @@
 <span id="L272"><span class="lineNum">     272</span>              :   // nothing, leaving every probe to compare the value. That holds while a</span>
 <span id="L273"><span class="lineNum">     273</span>              :   // table has fewer than 2^25 slots, which is where the bits that choose the</span>
 <span id="L274"><span class="lineNum">     274</span>              :   // slot would start to reach the ones used here.</span>
-<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">    37009280 :   static constexpr std::uint8_t hash_meta(std::size_t hash) noexcept {</span></span>
-<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC">    37009280 :     return (hash &gt;&gt; 25) &amp; 0b01111111;</span></span>
-<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC">    37009280 :   }</span></span>
+<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">    37009282 :   static constexpr std::uint8_t hash_meta(std::size_t hash) noexcept {</span></span>
+<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC">    37009282 :     return (hash &gt;&gt; 25) &amp; 0b01111111;</span></span>
+<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC">    37009282 :   }</span></span>
 <span id="L278"><span class="lineNum">     278</span>              : </span>
 <span id="L279"><span class="lineNum">     279</span>              :   static constexpr std::size_t kGroupSize = sizeof(std::uint64_t);</span>
 <span id="L280"><span class="lineNum">     280</span>              :   static constexpr std::uint8_t kEmptyMeta = 0b10000000;</span>
@@ -345,37 +345,37 @@
 <span id="L283"><span class="lineNum">     283</span>              :   static constexpr std::uint64_t kMetaHighs = 0x8080808080808080ULL;</span>
 <span id="L284"><span class="lineNum">     284</span>              : </span>
 <span id="L285"><span class="lineNum">     285</span>              :   // Returns the meta bytes of the group that starts at `offset`.</span>
-<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">    37117452 :   inline std::uint64_t group(std::size_t offset) const noexcept {</span></span>
-<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">    37117452 :     std::uint64_t group_meta;</span></span>
-<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">    37117452 :     std::memcpy(&amp;group_meta, meta(offset), sizeof(group_meta));</span></span>
-<span id="L289"><span class="lineNum">     289</span> <span class="tlaGNC">    37117452 :     return group_meta;</span></span>
-<span id="L290"><span class="lineNum">     290</span> <span class="tlaGNC">    37117452 :   }</span></span>
+<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">    37117454 :   inline std::uint64_t group(std::size_t offset) const noexcept {</span></span>
+<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">    37117454 :     std::uint64_t group_meta;</span></span>
+<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">    37117454 :     std::memcpy(&amp;group_meta, meta(offset), sizeof(group_meta));</span></span>
+<span id="L289"><span class="lineNum">     289</span> <span class="tlaGNC">    37117454 :     return group_meta;</span></span>
+<span id="L290"><span class="lineNum">     290</span> <span class="tlaGNC">    37117454 :   }</span></span>
 <span id="L291"><span class="lineNum">     291</span>              : </span>
 <span id="L292"><span class="lineNum">     292</span>              :   // Returns the bytes of `group_meta` that equal `value`, each marked by its</span>
 <span id="L293"><span class="lineNum">     293</span>              :   // high bit. A byte holding a value is under `kEmptyMeta` and a meta byte</span>
 <span id="L294"><span class="lineNum">     294</span>              :   // asked about here never is, so the two cannot be taken for one another.</span>
 <span id="L295"><span class="lineNum">     295</span>              :   static constexpr std::uint64_t match(std::uint64_t group_meta,</span>
-<span id="L296"><span class="lineNum">     296</span> <span class="tlaGNC">    37471241 :                                        std::uint8_t value) noexcept {</span></span>
-<span id="L297"><span class="lineNum">     297</span> <span class="tlaGNC">    37471241 :     const std::uint64_t diff = group_meta ^ (kMetaOnes * value);</span></span>
-<span id="L298"><span class="lineNum">     298</span> <span class="tlaGNC">    37471241 :     return (diff - kMetaOnes) &amp; ~diff &amp; kMetaHighs;</span></span>
-<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">    37471241 :   }</span></span>
+<span id="L296"><span class="lineNum">     296</span> <span class="tlaGNC">    37471245 :                                        std::uint8_t value) noexcept {</span></span>
+<span id="L297"><span class="lineNum">     297</span> <span class="tlaGNC">    37471245 :     const std::uint64_t diff = group_meta ^ (kMetaOnes * value);</span></span>
+<span id="L298"><span class="lineNum">     298</span> <span class="tlaGNC">    37471245 :     return (diff - kMetaOnes) &amp; ~diff &amp; kMetaHighs;</span></span>
+<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">    37471245 :   }</span></span>
 <span id="L300"><span class="lineNum">     300</span>              : </span>
 <span id="L301"><span class="lineNum">     301</span>              :   // Returns the offset of the first byte `matches` marks, within the group</span>
 <span id="L302"><span class="lineNum">     302</span>              :   // that starts at `offset`.</span>
 <span id="L303"><span class="lineNum">     303</span>              :   static constexpr std::size_t first_match(std::size_t offset,</span>
-<span id="L304"><span class="lineNum">     304</span> <span class="tlaGNC">    37056976 :                                            std::uint64_t matches) noexcept {</span></span>
-<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">    37056976 :     static_assert(std::endian::native == std::endian::little,</span></span>
-<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">    37056976 :                   &quot;the first byte of a group is the lowest of the word&quot;);</span></span>
-<span id="L307"><span class="lineNum">     307</span> <span class="tlaGNC">    37056976 :     return offset + (std::size_t(std::countr_zero(matches)) / 8);</span></span>
-<span id="L308"><span class="lineNum">     308</span> <span class="tlaGNC">    37056976 :   }</span></span>
+<span id="L304"><span class="lineNum">     304</span> <span class="tlaGNC">    37056978 :                                            std::uint64_t matches) noexcept {</span></span>
+<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">    37056978 :     static_assert(std::endian::native == std::endian::little,</span></span>
+<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">    37056978 :                   &quot;the first byte of a group is the lowest of the word&quot;);</span></span>
+<span id="L307"><span class="lineNum">     307</span> <span class="tlaGNC">    37056978 :     return offset + (std::size_t(std::countr_zero(matches)) / 8);</span></span>
+<span id="L308"><span class="lineNum">     308</span> <span class="tlaGNC">    37056978 :   }</span></span>
 <span id="L309"><span class="lineNum">     309</span>              : </span>
-<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">     1161054 :   static constexpr bool full(std::uint8_t meta) noexcept {</span></span>
-<span id="L311"><span class="lineNum">     311</span> <span class="tlaGNC">     1161054 :     return (meta &amp; 0b10000000) == 0;</span></span>
-<span id="L312"><span class="lineNum">     312</span> <span class="tlaGNC">     1161054 :   }</span></span>
+<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">     1161182 :   static constexpr bool full(std::uint8_t meta) noexcept {</span></span>
+<span id="L311"><span class="lineNum">     311</span> <span class="tlaGNC">     1161182 :     return (meta &amp; 0b10000000) == 0;</span></span>
+<span id="L312"><span class="lineNum">     312</span> <span class="tlaGNC">     1161182 :   }</span></span>
 <span id="L313"><span class="lineNum">     313</span>              : </span>
-<span id="L314"><span class="lineNum">     314</span> <span class="tlaGNC">      395567 :   static constexpr bool empty(std::uint8_t meta) noexcept {</span></span>
-<span id="L315"><span class="lineNum">     315</span> <span class="tlaGNC">      395567 :     return meta == kEmptyMeta;</span></span>
-<span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">      395567 :   }</span></span>
+<span id="L314"><span class="lineNum">     314</span> <span class="tlaGNC">      395569 :   static constexpr bool empty(std::uint8_t meta) noexcept {</span></span>
+<span id="L315"><span class="lineNum">     315</span> <span class="tlaGNC">      395569 :     return meta == kEmptyMeta;</span></span>
+<span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">      395569 :   }</span></span>
 <span id="L317"><span class="lineNum">     317</span>              : </span>
 <span id="L318"><span class="lineNum">     318</span> <span class="tlaGNC">      140565 :   inline std::size_t next_full(std::size_t pos) const noexcept {</span></span>
 <span id="L319"><span class="lineNum">     319</span> <span class="tlaGNC">      842690 :     while (pos &lt; capacity() &amp;&amp; !full(*meta(pos))) ++pos;</span></span>
@@ -399,14 +399,14 @@
 <span id="L337"><span class="lineNum">     337</span>              : </span>
 <span id="L338"><span class="lineNum">     338</span>              :   // Searches the chain of `proj`, whose hash and meta byte are given.</span>
 <span id="L339"><span class="lineNum">     339</span>              :   inline Probe probe(const P&amp; proj, std::size_t proj_hash,</span>
-<span id="L340"><span class="lineNum">     340</span> <span class="tlaGNC">    15353563 :                      std::uint8_t proj_meta) const {</span></span>
-<span id="L341"><span class="lineNum">     341</span> <span class="tlaGNC">    15353563 :     std::size_t first_free_offset = capacity();</span></span>
-<span id="L342"><span class="lineNum">     342</span> <span class="tlaGNC">    15353563 :     std::size_t offset = group_of(proj_hash);</span></span>
-<span id="L343"><span class="lineNum">     343</span> <span class="tlaGNC">    15354336 :     for (std::size_t step = 1;; ++step) {</span></span>
-<span id="L344"><span class="lineNum">     344</span> <span class="tlaGNC">    15354336 :       const std::uint64_t group_meta = group(offset);</span></span>
+<span id="L340"><span class="lineNum">     340</span> <span class="tlaGNC">    15353565 :                      std::uint8_t proj_meta) const {</span></span>
+<span id="L341"><span class="lineNum">     341</span> <span class="tlaGNC">    15353565 :     std::size_t first_free_offset = capacity();</span></span>
+<span id="L342"><span class="lineNum">     342</span> <span class="tlaGNC">    15353565 :     std::size_t offset = group_of(proj_hash);</span></span>
+<span id="L343"><span class="lineNum">     343</span> <span class="tlaGNC">    15354338 :     for (std::size_t step = 1;; ++step) {</span></span>
+<span id="L344"><span class="lineNum">     344</span> <span class="tlaGNC">    15354338 :       const std::uint64_t group_meta = group(offset);</span></span>
 <span id="L345"><span class="lineNum">     345</span>              : </span>
-<span id="L346"><span class="lineNum">     346</span> <span class="tlaGNC">    15357221 :       for (std::uint64_t matches = match(group_meta, proj_meta); matches != 0;</span></span>
-<span id="L347"><span class="lineNum">     347</span> <span class="tlaGNC">    15354336 :            matches &amp;= matches - 1) {</span></span>
+<span id="L346"><span class="lineNum">     346</span> <span class="tlaGNC">    15357223 :       for (std::uint64_t matches = match(group_meta, proj_meta); matches != 0;</span></span>
+<span id="L347"><span class="lineNum">     347</span> <span class="tlaGNC">    15354338 :            matches &amp;= matches - 1) {</span></span>
 <span id="L348"><span class="lineNum">     348</span> <span class="tlaGNC">    14960881 :         const std::size_t match_offset = first_match(offset, matches);</span></span>
 <span id="L349"><span class="lineNum">     349</span> <span class="tlaGNC">    14960881 :         if (Project(*slot(match_offset)) == proj) {</span></span>
 <span id="L350"><span class="lineNum">     350</span> <span class="tlaGNC">    14957996 :           return {.offset = match_offset, .held = true};</span></span>
@@ -415,20 +415,20 @@
 <span id="L353"><span class="lineNum">     353</span>              : </span>
 <span id="L354"><span class="lineNum">     354</span>              :       // A slot holding nothing is one that carries a high bit, whether it was</span>
 <span id="L355"><span class="lineNum">     355</span>              :       // never filled or a removal emptied it.</span>
-<span id="L356"><span class="lineNum">     356</span> <span class="tlaGNC">      396340 :       if (first_free_offset == capacity()) {</span></span>
-<span id="L357"><span class="lineNum">     357</span> <span class="tlaGNC">      396340 :         if (const std::uint64_t frees = group_meta &amp; kMetaHighs; frees != 0) {</span></span>
-<span id="L358"><span class="lineNum">     358</span> <span class="tlaGNC">      395567 :           first_free_offset = first_match(offset, frees);</span></span>
-<span id="L359"><span class="lineNum">     359</span> <span class="tlaGNC">      395567 :         }</span></span>
-<span id="L360"><span class="lineNum">     360</span> <span class="tlaGNC">      396340 :       }</span></span>
+<span id="L356"><span class="lineNum">     356</span> <span class="tlaGNC">      396342 :       if (first_free_offset == capacity()) {</span></span>
+<span id="L357"><span class="lineNum">     357</span> <span class="tlaGNC">      396342 :         if (const std::uint64_t frees = group_meta &amp; kMetaHighs; frees != 0) {</span></span>
+<span id="L358"><span class="lineNum">     358</span> <span class="tlaGNC">      395569 :           first_free_offset = first_match(offset, frees);</span></span>
+<span id="L359"><span class="lineNum">     359</span> <span class="tlaGNC">      395569 :         }</span></span>
+<span id="L360"><span class="lineNum">     360</span> <span class="tlaGNC">      396342 :       }</span></span>
 <span id="L361"><span class="lineNum">     361</span>              : </span>
 <span id="L362"><span class="lineNum">     362</span>              :       // An empty slot is the end of the chain, so `proj` is not here.</span>
-<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">      396340 :       if (match(group_meta, kEmptyMeta) != 0) {</span></span>
-<span id="L364"><span class="lineNum">     364</span> <span class="tlaGNC">      395567 :         return {.offset = first_free_offset, .held = false};</span></span>
-<span id="L365"><span class="lineNum">     365</span> <span class="tlaGNC">      395567 :       }</span></span>
+<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">      396342 :       if (match(group_meta, kEmptyMeta) != 0) {</span></span>
+<span id="L364"><span class="lineNum">     364</span> <span class="tlaGNC">      395569 :         return {.offset = first_free_offset, .held = false};</span></span>
+<span id="L365"><span class="lineNum">     365</span> <span class="tlaGNC">      395569 :       }</span></span>
 <span id="L366"><span class="lineNum">     366</span>              : </span>
 <span id="L367"><span class="lineNum">     367</span> <span class="tlaGNC">         773 :       offset = next_group(offset, step);</span></span>
 <span id="L368"><span class="lineNum">     368</span> <span class="tlaGNC">         773 :     }</span></span>
-<span id="L369"><span class="lineNum">     369</span> <span class="tlaGNC">    15353563 :   }</span></span>
+<span id="L369"><span class="lineNum">     369</span> <span class="tlaGNC">    15353565 :   }</span></span>
 <span id="L370"><span class="lineNum">     370</span>              : </span>
 <span id="L371"><span class="lineNum">     371</span>              :   // Returns the first slot holding nothing along the chain of `hash`, for a</span>
 <span id="L372"><span class="lineNum">     372</span>              :   // value known not to be held, which needs no comparing on the way.</span>
@@ -444,16 +444,16 @@
 <span id="L382"><span class="lineNum">     382</span>              : </span>
 <span id="L383"><span class="lineNum">     383</span>              :   // Counts the slot at `offset` as full and marks it with `proj_meta`, and</span>
 <span id="L384"><span class="lineNum">     384</span>              :   // returns it for the value to be put in.</span>
-<span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">      395567 :   inline V* alloc_at(std::size_t offset, std::uint8_t proj_meta) {</span></span>
-<span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">      395567 :     ++full_slots_count_;</span></span>
-<span id="L387"><span class="lineNum">     387</span> <span class="tlaGNC">      395567 :     if (empty(*meta(offset))) ++non_empty_slots_count_;</span></span>
-<span id="L388"><span class="lineNum">     388</span> <span class="tlaGNC">      395567 :     *meta(offset) = proj_meta;</span></span>
-<span id="L389"><span class="lineNum">     389</span> <span class="tlaGNC">      395567 :     return slot(offset);</span></span>
-<span id="L390"><span class="lineNum">     390</span> <span class="tlaGNC">      395567 :   }</span></span>
+<span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">      395569 :   inline V* alloc_at(std::size_t offset, std::uint8_t proj_meta) {</span></span>
+<span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">      395569 :     ++full_slots_count_;</span></span>
+<span id="L387"><span class="lineNum">     387</span> <span class="tlaGNC">      395569 :     if (empty(*meta(offset))) ++non_empty_slots_count_;</span></span>
+<span id="L388"><span class="lineNum">     388</span> <span class="tlaGNC">      395569 :     *meta(offset) = proj_meta;</span></span>
+<span id="L389"><span class="lineNum">     389</span> <span class="tlaGNC">      395569 :     return slot(offset);</span></span>
+<span id="L390"><span class="lineNum">     390</span> <span class="tlaGNC">      395569 :   }</span></span>
 <span id="L391"><span class="lineNum">     391</span>              : </span>
-<span id="L392"><span class="lineNum">     392</span> <span class="tlaGNC">    21664175 :   inline std::size_t find_offset(const P&amp; proj) const {</span></span>
+<span id="L392"><span class="lineNum">     392</span> <span class="tlaGNC">    21664177 :   inline std::size_t find_offset(const P&amp; proj) const {</span></span>
 <span id="L393"><span class="lineNum">     393</span>              :     // A table with no slots holds nothing, and has no group to read.</span>
-<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">    21664175 :     if (storage_ == nullptr) return capacity();</span></span>
+<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">    21664177 :     if (storage_ == nullptr) return capacity();</span></span>
 <span id="L395"><span class="lineNum">     395</span>              : </span>
 <span id="L396"><span class="lineNum">     396</span> <span class="tlaGNC">    21655717 :     const std::size_t proj_hash = Hash(proj);</span></span>
 <span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">    21655717 :     const std::uint8_t proj_meta = hash_meta(proj_hash);</span></span>
@@ -512,13 +512,13 @@
 <span id="L450"><span class="lineNum">     450</span> <span class="tlaGNC">        1088 :   }</span></span>
 <span id="L451"><span class="lineNum">     451</span>              : </span>
 <span id="L452"><span class="lineNum">     452</span>              :   // Destroys the values in the full slots of this table if needed.</span>
-<span id="L453"><span class="lineNum">     453</span> <span class="tlaGNC">       38248 :   void destroy_values() noexcept {</span></span>
-<span id="L454"><span class="lineNum">     454</span> <span class="tlaGNC">       38173 :     if constexpr (!std::is_trivially_destructible_v&lt;V&gt;) {</span></span>
-<span id="L455"><span class="lineNum">     455</span> <span class="tlaGNC">      121238 :       for (std::size_t pos = 0; pos &lt; capacity(); ++pos) {</span></span>
-<span id="L456"><span class="lineNum">     456</span> <span class="tlaGNC">      119616 :         if (full(*meta(pos))) slot(pos)-&gt;~V();</span></span>
-<span id="L457"><span class="lineNum">     457</span> <span class="tlaGNC">      119616 :       }</span></span>
-<span id="L458"><span class="lineNum">     458</span> <span class="tlaGNC">        1622 :     }</span></span>
-<span id="L459"><span class="lineNum">     459</span> <span class="tlaGNC">       38248 :   }</span></span>
+<span id="L453"><span class="lineNum">     453</span> <span class="tlaGNC">       38250 :   void destroy_values() noexcept {</span></span>
+<span id="L454"><span class="lineNum">     454</span> <span class="tlaGNC">       38175 :     if constexpr (!std::is_trivially_destructible_v&lt;V&gt;) {</span></span>
+<span id="L455"><span class="lineNum">     455</span> <span class="tlaGNC">      121368 :       for (std::size_t pos = 0; pos &lt; capacity(); ++pos) {</span></span>
+<span id="L456"><span class="lineNum">     456</span> <span class="tlaGNC">      119744 :         if (full(*meta(pos))) slot(pos)-&gt;~V();</span></span>
+<span id="L457"><span class="lineNum">     457</span> <span class="tlaGNC">      119744 :       }</span></span>
+<span id="L458"><span class="lineNum">     458</span> <span class="tlaGNC">        1624 :     }</span></span>
+<span id="L459"><span class="lineNum">     459</span> <span class="tlaGNC">       38250 :   }</span></span>
 <span id="L460"><span class="lineNum">     460</span>              : </span>
 <span id="L461"><span class="lineNum">     461</span>              :   // Returns how many slots may be spoken for before the table is rebuilt.</span>
 <span id="L462"><span class="lineNum">     462</span>              :   //</span>
@@ -527,12 +527,12 @@
 <span id="L465"><span class="lineNum">     465</span>              :   // what a table takes up and leaves the chains nearly as short, but a fuller</span>
 <span id="L466"><span class="lineNum">     466</span>              :   // group answers a search with more candidates to compare, which costs a</span>
 <span id="L467"><span class="lineNum">     467</span>              :   // lookup more than it saves a rebuild.</span>
-<span id="L468"><span class="lineNum">     468</span> <span class="tlaGNC">      395567 :   inline std::size_t max_load() const noexcept { return capacity() &gt;&gt; 1; }</span></span>
+<span id="L468"><span class="lineNum">     468</span> <span class="tlaGNC">      395569 :   inline std::size_t max_load() const noexcept { return capacity() &gt;&gt; 1; }</span></span>
 <span id="L469"><span class="lineNum">     469</span>              : </span>
 <span id="L470"><span class="lineNum">     470</span>              :   // Returns the group that holds the slot `hash` belongs to.</span>
-<span id="L471"><span class="lineNum">     471</span> <span class="tlaGNC">    37116284 :   inline std::size_t group_of(std::size_t hash) const noexcept {</span></span>
-<span id="L472"><span class="lineNum">     472</span> <span class="tlaGNC">    37116284 :     return hash &amp; capacity_mask() &amp; ~(kGroupSize - 1);</span></span>
-<span id="L473"><span class="lineNum">     473</span> <span class="tlaGNC">    37116284 :   }</span></span>
+<span id="L471"><span class="lineNum">     471</span> <span class="tlaGNC">    37116286 :   inline std::size_t group_of(std::size_t hash) const noexcept {</span></span>
+<span id="L472"><span class="lineNum">     472</span> <span class="tlaGNC">    37116286 :     return hash &amp; capacity_mask() &amp; ~(kGroupSize - 1);</span></span>
+<span id="L473"><span class="lineNum">     473</span> <span class="tlaGNC">    37116286 :   }</span></span>
 <span id="L474"><span class="lineNum">     474</span>              : </span>
 <span id="L475"><span class="lineNum">     475</span>              :   // Returns the group that comes `step` groups after `offset`. A capacity is</span>
 <span id="L476"><span class="lineNum">     476</span>              :   // a power of two and so is the number of groups in it, which is what makes</span>
@@ -545,15 +545,15 @@
 <span id="L483"><span class="lineNum">     483</span>              :   // Returns the low bits of an offset that a capacity spans, which is what</span>
 <span id="L484"><span class="lineNum">     484</span>              :   // takes a hash to a slot. A capacity is a power of two, so these are every</span>
 <span id="L485"><span class="lineNum">     485</span>              :   // bit under it.</span>
-<span id="L486"><span class="lineNum">     486</span> <span class="tlaGNC">    37117452 :   inline std::size_t capacity_mask() const noexcept { return capacity_ - 1; }</span></span>
+<span id="L486"><span class="lineNum">     486</span> <span class="tlaGNC">    37117454 :   inline std::size_t capacity_mask() const noexcept { return capacity_ - 1; }</span></span>
 <span id="L487"><span class="lineNum">     487</span>              : </span>
-<span id="L488"><span class="lineNum">     488</span> <span class="tlaGNC">    39214138 :   inline std::uint8_t* meta(std::size_t i) const noexcept {</span></span>
-<span id="L489"><span class="lineNum">     489</span> <span class="tlaGNC">    39214138 :     return storage_ + i;</span></span>
-<span id="L490"><span class="lineNum">     490</span> <span class="tlaGNC">    39214138 :   }</span></span>
+<span id="L488"><span class="lineNum">     488</span> <span class="tlaGNC">    39214272 :   inline std::uint8_t* meta(std::size_t i) const noexcept {</span></span>
+<span id="L489"><span class="lineNum">     489</span> <span class="tlaGNC">    39214272 :     return storage_ + i;</span></span>
+<span id="L490"><span class="lineNum">     490</span> <span class="tlaGNC">    39214272 :   }</span></span>
 <span id="L491"><span class="lineNum">     491</span>              : </span>
-<span id="L492"><span class="lineNum">     492</span> <span class="tlaGNC">    73878713 :   inline V* slot(std::size_t i) const noexcept {</span></span>
-<span id="L493"><span class="lineNum">     493</span> <span class="tlaGNC">    73878713 :     return reinterpret_cast&lt;V*&gt;(storage_ + capacity()) + i;</span></span>
-<span id="L494"><span class="lineNum">     494</span> <span class="tlaGNC">    73878713 :   }</span></span>
+<span id="L492"><span class="lineNum">     492</span> <span class="tlaGNC">    73878717 :   inline V* slot(std::size_t i) const noexcept {</span></span>
+<span id="L493"><span class="lineNum">     493</span> <span class="tlaGNC">    73878717 :     return reinterpret_cast&lt;V*&gt;(storage_ + capacity()) + i;</span></span>
+<span id="L494"><span class="lineNum">     494</span> <span class="tlaGNC">    73878717 :   }</span></span>
 <span id="L495"><span class="lineNum">     495</span>              : </span>
 <span id="L496"><span class="lineNum">     496</span>              :   std::size_t capacity_ = 0;</span>
 <span id="L497"><span class="lineNum">     497</span>              :   std::size_t full_slots_count_ = 0;</span>

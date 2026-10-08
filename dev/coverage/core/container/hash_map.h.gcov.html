@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-07 20:59:16</td>
+            <td class="headerValue">2026-10-08 19:54:33</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -82,10 +82,10 @@
 <span id="L20"><span class="lineNum">      20</span>              : </span>
 <span id="L21"><span class="lineNum">      21</span>              :   // Returns a reference to the value that corresponds to the given `key` if the</span>
 <span id="L22"><span class="lineNum">      22</span>              :   // table contains it. Otherwise returns nullopt.</span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">    17252384 :   inline std::optional&lt;V&amp;&gt; Get(const K&amp; key) {</span></span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">    17252384 :     if (auto it = table_.Find(key); it != end()) return it-&gt;second;</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">       48500 :     return std::nullopt;</span></span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">    17252384 :   }</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">    17252386 :   inline std::optional&lt;V&amp;&gt; Get(const K&amp; key) {</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">    17252386 :     if (auto it = table_.Find(key); it != end()) return it-&gt;second;</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">       48502 :     return std::nullopt;</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">    17252386 :   }</span></span>
 <span id="L27"><span class="lineNum">      27</span>              : </span>
 <span id="L28"><span class="lineNum">      28</span>              :   // Returns a const reference to the value that corresponds to the given `key`</span>
 <span id="L29"><span class="lineNum">      29</span>              :   // if the table contains it. Otherwise returns nullopt.</span>
@@ -113,9 +113,9 @@
 <span id="L51"><span class="lineNum">      51</span>              : </span>
 <span id="L52"><span class="lineNum">      52</span>              :   // Inserts the given `key` and `val` pair and returns true if `key` is not</span>
 <span id="L53"><span class="lineNum">      53</span>              :   // already inserted. Otherwise overrides the value and returns false.</span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">    15171605 :   inline bool Set(K key, V val) {</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">    15171605 :     return table_.Set(std::make_pair(std::move(key), std::move(val)));</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">    15171605 :   }</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">    15171607 :   inline bool Set(K key, V val) {</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">    15171607 :     return table_.Set(std::make_pair(std::move(key), std::move(val)));</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">    15171607 :   }</span></span>
 <span id="L57"><span class="lineNum">      57</span>              : </span>
 <span id="L58"><span class="lineNum">      58</span>              :   // Removes the given `key` and its corresponding value from the map and</span>
 <span id="L59"><span class="lineNum">      59</span>              :   // returns the value if present. Otherwise returns nullopt.</span>
@@ -125,17 +125,17 @@
 <span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">       14576 :   }</span></span>
 <span id="L64"><span class="lineNum">      64</span>              : </span>
 <span id="L65"><span class="lineNum">      65</span>              :   // Returns the number of unique keys inserted so far.</span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">        3457 :   inline std::size_t size() const { return table_.size(); }</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">        2529 :   inline std::size_t size() const { return table_.size(); }</span></span>
 <span id="L67"><span class="lineNum">      67</span>              : </span>
 <span id="L68"><span class="lineNum">      68</span>              :   // Returns true iff there are no key-value pairs in the map.</span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">        3337 :   inline bool empty() const { return size() == 0; }</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">        2409 :   inline bool empty() const { return size() == 0; }</span></span>
 <span id="L70"><span class="lineNum">      70</span>              : </span>
 <span id="L71"><span class="lineNum">      71</span>              :   // Returns an iterator referring to the first key-value pair in the map or</span>
 <span id="L72"><span class="lineNum">      72</span>              :   // `end()`, if there isn't one.</span>
 <span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">        6555 :   inline auto begin(this auto&amp;&amp; self) { return self.table_.begin(); }</span></span>
 <span id="L74"><span class="lineNum">      74</span>              : </span>
 <span id="L75"><span class="lineNum">      75</span>              :   // Returns an iterator past the last key-value pair in the map.</span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">    21600405 :   inline auto end(this auto&amp;&amp; self) { return self.table_.end(); }</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">    21600407 :   inline auto end(this auto&amp;&amp; self) { return self.table_.end(); }</span></span>
 <span id="L77"><span class="lineNum">      77</span>              : </span>
 <span id="L78"><span class="lineNum">      78</span>              :  private:</span>
 <span id="L79"><span class="lineNum">      79</span>              :   HashTableT table_;</span>
