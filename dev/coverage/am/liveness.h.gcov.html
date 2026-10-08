@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 19:54:33</td>
+            <td class="headerValue">2026-10-08 20:23:27</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -96,10 +96,10 @@
 <span id="L34"><span class="lineNum">      34</span>              :   // what holds the live registers differs with what is being worked out</span>
 <span id="L35"><span class="lineNum">      35</span>              :   // over them, while the step itself does not.</span>
 <span id="L36"><span class="lineNum">      36</span>              :   template &lt;typename Live&gt;</span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">       89714 :   static void TransferLive(Live&amp; live, const Instruction&amp; inst) {</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">       89714 :     if (auto reg = GetTargetRegister(inst); reg.has_value()) live.Remove(*reg);</span></span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       91348 :     ForEachSourceRegister(inst, [&amp;](Reg reg) { live.Insert(reg); });</span></span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       89714 :   }</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">       84259 :   static void TransferLive(Live&amp; live, const Instruction&amp; inst) {</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">       84259 :     if (auto reg = GetTargetRegister(inst); reg.has_value()) live.Remove(*reg);</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       85893 :     ForEachSourceRegister(inst, [&amp;](Reg reg) { live.Insert(reg); });</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       84259 :   }</span></span>
 <span id="L41"><span class="lineNum">      41</span>              : </span>
 <span id="L42"><span class="lineNum">      42</span>              :   explicit AbstractMachineLivenessAnalysis(</span>
 <span id="L43"><span class="lineNum">      43</span>              :       const AbstractMachineControlFlowGraph&amp; am_cfg);</span>

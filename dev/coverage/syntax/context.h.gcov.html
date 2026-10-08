@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 19:54:33</td>
+            <td class="headerValue">2026-10-08 20:23:27</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">92.3&nbsp;%</td>
@@ -78,7 +78,7 @@
 <span id="L16"><span class="lineNum">      16</span>              : // A context for syntactic operations.</span>
 <span id="L17"><span class="lineNum">      17</span>              : class SyntaxContext {</span>
 <span id="L18"><span class="lineNum">      18</span>              :  public:</span>
-<span id="L19"><span class="lineNum">      19</span> <span class="tlaGNC">         440 :   SyntaxContext() : types_(idents_) {}</span></span>
+<span id="L19"><span class="lineNum">      19</span> <span class="tlaGNC">         441 :   SyntaxContext() : types_(idents_) {}</span></span>
 <span id="L20"><span class="lineNum">      20</span>              : </span>
 <span id="L21"><span class="lineNum">      21</span>              :   // Makes room for the nodes of a source of `size` characters.</span>
 <span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">         370 :   void ReserveForSource(std::size_t size) {</span></span>
@@ -87,21 +87,21 @@
 <span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">         370 :   }</span></span>
 <span id="L26"><span class="lineNum">      26</span>              : </span>
 <span id="L27"><span class="lineNum">      27</span>              :   // Adds `stmt` to the context.</span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">        9087 :   StmtRef Add(Stmt stmt) { return stmts_.Add(stmt); }</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">        9093 :   StmtRef Add(Stmt stmt) { return stmts_.Add(stmt); }</span></span>
 <span id="L29"><span class="lineNum">      29</span>              : </span>
 <span id="L30"><span class="lineNum">      30</span>              :   // Adds `expr` to the context.</span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">       19501 :   ExprRef Add(Expr expr) { return exprs_.Add(expr); }</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">       19506 :   ExprRef Add(Expr expr) { return exprs_.Add(expr); }</span></span>
 <span id="L32"><span class="lineNum">      32</span>              : </span>
 <span id="L33"><span class="lineNum">      33</span>              :   // Adds `type` to the context.</span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         166 :   TypeRef Add(Type type) { return types_.Add(type); }</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         167 :   TypeRef Add(Type type) { return types_.Add(type); }</span></span>
 <span id="L35"><span class="lineNum">      35</span>              : </span>
 <span id="L36"><span class="lineNum">      36</span>              :   // Adds `param` to the context.</span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">        1308 :   ParamRef Add(FuncParam param) { return params_.Add(param); }</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">        1312 :   ParamRef Add(FuncParam param) { return params_.Add(param); }</span></span>
 <span id="L38"><span class="lineNum">      38</span>              : </span>
 <span id="L39"><span class="lineNum">      39</span>              :   // Adds `ident` to the context.</span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       25430 :   StringIndex::Ref AddIdent(std::string_view ident) {</span></span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">       25430 :     return idents_.ref(ident);</span></span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">       25430 :   }</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       25444 :   StringIndex::Ref AddIdent(std::string_view ident) {</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">       25444 :     return idents_.ref(ident);</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">       25444 :   }</span></span>
 <span id="L43"><span class="lineNum">      43</span>              : </span>
 <span id="L44"><span class="lineNum">      44</span>              :   // Adds a unique ident to the context.</span>
 <span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">        7428 :   StringIndex::Ref AddUniqueIdent() {</span></span>
@@ -110,38 +110,38 @@
 <span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">        7428 :   }</span></span>
 <span id="L49"><span class="lineNum">      49</span>              : </span>
 <span id="L50"><span class="lineNum">      50</span>              :   // Returns the statement that `ref` refers to.</span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">       81634 :   auto&amp; DerefStmt(this auto&amp;&amp; self, StmtRef ref) {</span></span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">       81634 :     return self.stmts_.Get(ref);</span></span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">       81634 :   }</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">       81657 :   auto&amp; DerefStmt(this auto&amp;&amp; self, StmtRef ref) {</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">       81657 :     return self.stmts_.Get(ref);</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">       81657 :   }</span></span>
 <span id="L54"><span class="lineNum">      54</span>              : </span>
 <span id="L55"><span class="lineNum">      55</span>              :   // Returns true iff `ref` refers to a statement in the context.</span>
 <span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           2 :   bool ContainsStmt(StmtRef ref) const { return stmts_.Contains(ref); }</span></span>
 <span id="L57"><span class="lineNum">      57</span>              : </span>
 <span id="L58"><span class="lineNum">      58</span>              :   // Returns the expression that `ref` refers to.</span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">      161588 :   auto&amp; DerefExpr(this auto&amp;&amp; self, ExprRef ref) {</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">      161588 :     return self.exprs_.Get(ref);</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">      161588 :   }</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">      161611 :   auto&amp; DerefExpr(this auto&amp;&amp; self, ExprRef ref) {</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">      161611 :     return self.exprs_.Get(ref);</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">      161611 :   }</span></span>
 <span id="L62"><span class="lineNum">      62</span>              : </span>
 <span id="L63"><span class="lineNum">      63</span>              :   // Returns true iff `ref` refers to an expression in the context.</span>
 <span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           2 :   bool ContainsExpr(ExprRef ref) const { return exprs_.Contains(ref); }</span></span>
 <span id="L65"><span class="lineNum">      65</span>              : </span>
 <span id="L66"><span class="lineNum">      66</span>              :   // Returns a reference to the type that `name` resolves to.</span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">        9712 :   TypeRef ResolveType(StringIndex::Ref name) const {</span></span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">        9712 :     return types_.Resolve(name);</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">        9712 :   }</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">        9717 :   TypeRef ResolveType(StringIndex::Ref name) const {</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">        9717 :     return types_.Resolve(name);</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">        9717 :   }</span></span>
 <span id="L70"><span class="lineNum">      70</span>              : </span>
 <span id="L71"><span class="lineNum">      71</span>              :   // Returns the type that `ref` refers to.</span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">       67084 :   const Type&amp; DerefType(TypeRef ref) const { return types_.Deref(ref); }</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">       67119 :   const Type&amp; DerefType(TypeRef ref) const { return types_.Deref(ref); }</span></span>
 <span id="L73"><span class="lineNum">      73</span>              : </span>
 <span id="L74"><span class="lineNum">      74</span>              :   // Returns the parameter that `ref` refers to.</span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">       11792 :   auto&amp; DerefParam(this auto&amp;&amp; self, ParamRef ref) {</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">       11792 :     return self.params_.Get(ref);</span></span>
-<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">       11792 :   }</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">       11800 :   auto&amp; DerefParam(this auto&amp;&amp; self, ParamRef ref) {</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">       11800 :     return self.params_.Get(ref);</span></span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">       11800 :   }</span></span>
 <span id="L78"><span class="lineNum">      78</span>              : </span>
 <span id="L79"><span class="lineNum">      79</span>              :   // Returns the identifier that `ref` refers to.</span>
-<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">        6063 :   std::string_view DerefIdent(StringIndex::Ref ref) const {</span></span>
-<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">        6063 :     return idents_.deref(ref);</span></span>
-<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">        6063 :   }</span></span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">        6066 :   std::string_view DerefIdent(StringIndex::Ref ref) const {</span></span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">        6066 :     return idents_.deref(ref);</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">        6066 :   }</span></span>
 <span id="L83"><span class="lineNum">      83</span>              : </span>
 <span id="L84"><span class="lineNum">      84</span>              :   // Returns true if and only if `lhs` and `rhs` refer to statements that say</span>
 <span id="L85"><span class="lineNum">      85</span>              :   // the same thing, which two references to one statement do and so do two</span>
@@ -176,9 +176,9 @@
 <span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">          74 :     types_.Register(name, ref);</span></span>
 <span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">          74 :   }</span></span>
 <span id="L116"><span class="lineNum">     116</span>              : </span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">         645 :   std::size_t Size() const {</span></span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">         645 :     return stmts_.Size() + exprs_.Size() + types_.Size();</span></span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">         645 :   }</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">         646 :   std::size_t Size() const {</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">         646 :     return stmts_.Size() + exprs_.Size() + types_.Size();</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">         646 :   }</span></span>
 <span id="L120"><span class="lineNum">     120</span>              : </span>
 <span id="L121"><span class="lineNum">     121</span>              :  private:</span>
 <span id="L122"><span class="lineNum">     122</span>              :   static constexpr std::size_t kCharsPerStmt = 20;</span>

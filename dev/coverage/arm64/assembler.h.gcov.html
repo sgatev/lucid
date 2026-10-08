@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 19:54:33</td>
+            <td class="headerValue">2026-10-08 20:23:27</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">95.9&nbsp;%</td>
@@ -84,10 +84,10 @@
 <span id="L22"><span class="lineNum">      22</span>              : // Represents an ARM64 register.</span>
 <span id="L23"><span class="lineNum">      23</span>              : class Reg {</span>
 <span id="L24"><span class="lineNum">      24</span>              :  public:</span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">       61316 :   constexpr explicit Reg(std::uint8_t id) : id_(id) { assert(id &lt;= 0b11111); }</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">       55886 :   constexpr explicit Reg(std::uint8_t id) : id_(id) { assert(id &lt;= 0b11111); }</span></span>
 <span id="L26"><span class="lineNum">      26</span>              : </span>
 <span id="L27"><span class="lineNum">      27</span>              :   // Returns the ID of the register.</span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">       82064 :   operator std::uint32_t() const { return id_; }</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">       76632 :   operator std::uint32_t() const { return id_; }</span></span>
 <span id="L29"><span class="lineNum">      29</span>              : </span>
 <span id="L30"><span class="lineNum">      30</span>              :  private:</span>
 <span id="L31"><span class="lineNum">      31</span>              :   std::uint8_t id_;</span>
@@ -98,13 +98,13 @@
 <span id="L36"><span class="lineNum">      36</span>              : // Represents a 32-bit ARM64 register.</span>
 <span id="L37"><span class="lineNum">      37</span>              : class W : public internal::Reg {</span>
 <span id="L38"><span class="lineNum">      38</span>              :  public:</span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       35734 :   constexpr explicit W(std::uint8_t id) : Reg(id) {}</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       27710 :   constexpr explicit W(std::uint8_t id) : Reg(id) {}</span></span>
 <span id="L40"><span class="lineNum">      40</span>              : };</span>
 <span id="L41"><span class="lineNum">      41</span>              : </span>
 <span id="L42"><span class="lineNum">      42</span>              : // Represents a 64-bit ARM64 register.</span>
 <span id="L43"><span class="lineNum">      43</span>              : class X : public internal::Reg {</span>
 <span id="L44"><span class="lineNum">      44</span>              :  public:</span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">       25582 :   constexpr explicit X(std::uint8_t id) : Reg(id) {}</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">       28176 :   constexpr explicit X(std::uint8_t id) : Reg(id) {}</span></span>
 <span id="L46"><span class="lineNum">      46</span>              : };</span>
 <span id="L47"><span class="lineNum">      47</span>              : </span>
 <span id="L48"><span class="lineNum">      48</span>              : // Represents a 64-bit ARM64 stack pointer.</span>
@@ -149,11 +149,11 @@
 <span id="L87"><span class="lineNum">      87</span>              : // It grows `out` and copies into what it grew by, rather than inserting a</span>
 <span id="L88"><span class="lineNum">      88</span>              : // range, which for a few bytes at a time is the slower of the two.</span>
 <span id="L89"><span class="lineNum">      89</span>              : template &lt;typename T&gt;</span>
-<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">       48482 : void AppendBytes(const T&amp; value, std::vector&lt;std::uint8_t&gt;&amp; out) {</span></span>
-<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">       48482 :   const std::size_t at = out.size();</span></span>
-<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">       48482 :   out.resize(at + sizeof(T));</span></span>
-<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">       48482 :   std::memcpy(out.data() + at, &amp;value, sizeof(T));</span></span>
-<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">       48482 : }</span></span>
+<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">       45766 : void AppendBytes(const T&amp; value, std::vector&lt;std::uint8_t&gt;&amp; out) {</span></span>
+<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">       45766 :   const std::size_t at = out.size();</span></span>
+<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">       45766 :   out.resize(at + sizeof(T));</span></span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">       45766 :   std::memcpy(out.data() + at, &amp;value, sizeof(T));</span></span>
+<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">       45766 : }</span></span>
 <span id="L95"><span class="lineNum">      95</span>              : </span>
 <span id="L96"><span class="lineNum">      96</span>              : // An external label.</span>
 <span id="L97"><span class="lineNum">      97</span>              : class ExternalLabel {</span>
@@ -173,10 +173,10 @@
 <span id="L111"><span class="lineNum">     111</span>              : // Represents an ARM64 immediate.</span>
 <span id="L112"><span class="lineNum">     112</span>              : class Imm {</span>
 <span id="L113"><span class="lineNum">     113</span>              :  public:</span>
-<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">       29771 :   explicit Imm(std::int32_t value) : value_(value) {}</span></span>
+<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">       28412 :   explicit Imm(std::int32_t value) : value_(value) {}</span></span>
 <span id="L115"><span class="lineNum">     115</span>              : </span>
 <span id="L116"><span class="lineNum">     116</span>              :   // Returns the value of the immediate.</span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">       29771 :   operator std::int32_t() const { return value_; }</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">       28412 :   operator std::int32_t() const { return value_; }</span></span>
 <span id="L118"><span class="lineNum">     118</span>              : </span>
 <span id="L119"><span class="lineNum">     119</span>              :  private:</span>
 <span id="L120"><span class="lineNum">     120</span>              :   std::int32_t value_;</span>
@@ -185,16 +185,16 @@
 <span id="L123"><span class="lineNum">     123</span>              : // Represents a 32-bit literal ARM64 instruction.</span>
 <span id="L124"><span class="lineNum">     124</span>              : class Lit32Inst {</span>
 <span id="L125"><span class="lineNum">     125</span>              :  public:</span>
-<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">       43046 :   explicit Lit32Inst(std::uint32_t value) : value_(value) {}</span></span>
+<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">       40330 :   explicit Lit32Inst(std::uint32_t value) : value_(value) {}</span></span>
 <span id="L127"><span class="lineNum">     127</span>              : </span>
 <span id="L128"><span class="lineNum">     128</span>              :   // Returns the number of bytes produced by this instruction.</span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">       43046 :   std::size_t OutputBytesCount() const { return 4; }</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">       40330 :   std::size_t OutputBytesCount() const { return 4; }</span></span>
 <span id="L130"><span class="lineNum">     130</span>              : </span>
 <span id="L131"><span class="lineNum">     131</span>              :   // Writes the bytes produced by this instruction.</span>
 <span id="L132"><span class="lineNum">     132</span>              :   void WriteBytes(const LabelOffsets&amp; label_offsets,</span>
-<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">       42041 :                   std::vector&lt;std::uint8_t&gt;&amp; out) const {</span></span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">       42041 :     AppendBytes(value_, out);</span></span>
-<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">       42041 :   }</span></span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">       39325 :                   std::vector&lt;std::uint8_t&gt;&amp; out) const {</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">       39325 :     AppendBytes(value_, out);</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">       39325 :   }</span></span>
 <span id="L136"><span class="lineNum">     136</span>              : </span>
 <span id="L137"><span class="lineNum">     137</span>              :  private:</span>
 <span id="L138"><span class="lineNum">     138</span>              :   std::uint32_t value_;</span>
@@ -458,11 +458,11 @@
 <span id="L396"><span class="lineNum">     396</span>              :   // Writes the bytes produced by the instructions to the end of `out`.</span>
 <span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">         317 :   void WriteBytes(std::vector&lt;std::uint8_t&gt;&amp; out) const {</span></span>
 <span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC">         317 :     out.reserve(out.size() + insts_size_);</span></span>
-<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">       45771 :     for (const Inst&amp; inst : insts_) {</span></span>
-<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">       45771 :       std::visit(</span></span>
-<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">       45771 :           [&amp;](const auto&amp; inst) { inst.WriteBytes(label_offsets_, out); },</span></span>
-<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">       45771 :           inst);</span></span>
-<span id="L403"><span class="lineNum">     403</span> <span class="tlaGNC">       45771 :     }</span></span>
+<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">       43055 :     for (const Inst&amp; inst : insts_) {</span></span>
+<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">       43055 :       std::visit(</span></span>
+<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">       43055 :           [&amp;](const auto&amp; inst) { inst.WriteBytes(label_offsets_, out); },</span></span>
+<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">       43055 :           inst);</span></span>
+<span id="L403"><span class="lineNum">     403</span> <span class="tlaGNC">       43055 :     }</span></span>
 <span id="L404"><span class="lineNum">     404</span> <span class="tlaGNC">         317 :   }</span></span>
 <span id="L405"><span class="lineNum">     405</span>              : </span>
 <span id="L406"><span class="lineNum">     406</span>              :   // Returns all global labels that were inserted.</span>
@@ -516,21 +516,21 @@
 <span id="L454"><span class="lineNum">     454</span>              :   // ADD &lt;Wd|WSP&gt;, &lt;Wn|WSP&gt;, #&lt;imm&gt;{, &lt;shift&gt;}</span>
 <span id="L455"><span class="lineNum">     455</span>              :   //</span>
 <span id="L456"><span class="lineNum">     456</span>              :   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en</span>
-<span id="L457"><span class="lineNum">     457</span> <span class="tlaGNC">        1301 :   void Add(W rd, W rn, Imm imm) { Insert(Add(false, rd, rn, imm)); }</span></span>
+<span id="L457"><span class="lineNum">     457</span> <span class="tlaGNC">           3 :   void Add(W rd, W rn, Imm imm) { Insert(Add(false, rd, rn, imm)); }</span></span>
 <span id="L458"><span class="lineNum">     458</span>              : </span>
 <span id="L459"><span class="lineNum">     459</span>              :   // Inserts ADD (immediate) instruction.</span>
 <span id="L460"><span class="lineNum">     460</span>              :   //</span>
 <span id="L461"><span class="lineNum">     461</span>              :   // ADD &lt;Xd|SP&gt;, &lt;Xn|SP&gt;, #&lt;imm&gt;{, &lt;shift&gt;}</span>
 <span id="L462"><span class="lineNum">     462</span>              :   //</span>
 <span id="L463"><span class="lineNum">     463</span>              :   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/ADD--immediate---Add--immediate--?lang=en</span>
-<span id="L464"><span class="lineNum">     464</span> <span class="tlaGNC">         844 :   void Add(X rd, X rn, Imm imm) { Insert(Add(true, rd, rn, imm)); }</span></span>
+<span id="L464"><span class="lineNum">     464</span> <span class="tlaGNC">        2142 :   void Add(X rd, X rn, Imm imm) { Insert(Add(true, rd, rn, imm)); }</span></span>
 <span id="L465"><span class="lineNum">     465</span>              : </span>
 <span id="L466"><span class="lineNum">     466</span>              :   // Inserts ADD (shifted register) instruction.</span>
 <span id="L467"><span class="lineNum">     467</span>              :   //</span>
 <span id="L468"><span class="lineNum">     468</span>              :   // ADD &lt;Wd&gt;, &lt;Wn&gt;, &lt;Wm&gt;{, &lt;shift&gt; #&lt;amount&gt;}</span>
 <span id="L469"><span class="lineNum">     469</span>              :   //</span>
 <span id="L470"><span class="lineNum">     470</span>              :   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/ADD--shifted-register---Add--shifted-register--?lang=en</span>
-<span id="L471"><span class="lineNum">     471</span> <span class="tlaGNC">        2129 :   void Add(W rd, W rn, W rm) { Insert(Add(false, rd, rn, rm)); }</span></span>
+<span id="L471"><span class="lineNum">     471</span> <span class="tlaGNC">        1801 :   void Add(W rd, W rn, W rm) { Insert(Add(false, rd, rn, rm)); }</span></span>
 <span id="L472"><span class="lineNum">     472</span>              : </span>
 <span id="L473"><span class="lineNum">     473</span>              :   // Inserts ADD (shifted register) instruction.</span>
 <span id="L474"><span class="lineNum">     474</span>              :   //</span>
@@ -572,7 +572,7 @@
 <span id="L510"><span class="lineNum">     510</span>              :   // MUL &lt;Wd&gt;, &lt;Wn&gt;, &lt;Wm&gt;</span>
 <span id="L511"><span class="lineNum">     511</span>              :   //</span>
 <span id="L512"><span class="lineNum">     512</span>              :   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/MUL--Multiply--an-alias-of-MADD-?lang=en</span>
-<span id="L513"><span class="lineNum">     513</span> <span class="tlaGNC">        1424 :   void Mul(W rd, W rn, W rm) { Insert(Mul(false, rd, rn, rm)); }</span></span>
+<span id="L513"><span class="lineNum">     513</span> <span class="tlaGNC">         395 :   void Mul(W rd, W rn, W rm) { Insert(Mul(false, rd, rn, rm)); }</span></span>
 <span id="L514"><span class="lineNum">     514</span>              : </span>
 <span id="L515"><span class="lineNum">     515</span>              :   // Inserts MUL instruction.</span>
 <span id="L516"><span class="lineNum">     516</span>              :   //</span>
@@ -649,7 +649,7 @@
 <span id="L587"><span class="lineNum">     587</span>              :   // MOV &lt;Wd&gt;, #&lt;imm&gt;</span>
 <span id="L588"><span class="lineNum">     588</span>              :   //</span>
 <span id="L589"><span class="lineNum">     589</span>              :   // https://developer.arm.com/documentation/ddi0602/2022-09/Base-Instructions/MOV--wide-immediate---Move--wide-immediate---an-alias-of-MOVZ-?lang=en</span>
-<span id="L590"><span class="lineNum">     590</span> <span class="tlaGNC">        7667 :   void Mov(W rd, Imm imm) { Insert(Mov(false, rd, imm)); }</span></span>
+<span id="L590"><span class="lineNum">     590</span> <span class="tlaGNC">        6310 :   void Mov(W rd, Imm imm) { Insert(Mov(false, rd, imm)); }</span></span>
 <span id="L591"><span class="lineNum">     591</span>              : </span>
 <span id="L592"><span class="lineNum">     592</span>              :   // Insert MOV (wide immediate) instruction.</span>
 <span id="L593"><span class="lineNum">     593</span>              :   //</span>
@@ -792,9 +792,9 @@
 <span id="L730"><span class="lineNum">     730</span>              :   // STR &lt;Wt&gt;, [&lt;Xn|SP&gt;{, #&lt;pimm&gt;}]</span>
 <span id="L731"><span class="lineNum">     731</span>              :   //</span>
 <span id="L732"><span class="lineNum">     732</span>              :   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/STR--immediate---Store-register--immediate--?lang=en</span>
-<span id="L733"><span class="lineNum">     733</span> <span class="tlaGNC">         574 :   void StrUnsignedOffset(W rt, X rn, Imm imm) {</span></span>
-<span id="L734"><span class="lineNum">     734</span> <span class="tlaGNC">         574 :     Insert(StrUnsignedOffset(false, rt, rn, imm));</span></span>
-<span id="L735"><span class="lineNum">     735</span> <span class="tlaGNC">         574 :   }</span></span>
+<span id="L733"><span class="lineNum">     733</span> <span class="tlaGNC">         573 :   void StrUnsignedOffset(W rt, X rn, Imm imm) {</span></span>
+<span id="L734"><span class="lineNum">     734</span> <span class="tlaGNC">         573 :     Insert(StrUnsignedOffset(false, rt, rn, imm));</span></span>
+<span id="L735"><span class="lineNum">     735</span> <span class="tlaGNC">         573 :   }</span></span>
 <span id="L736"><span class="lineNum">     736</span>              : </span>
 <span id="L737"><span class="lineNum">     737</span>              :   // Insert STR (immediate) unsigned offset instruction.</span>
 <span id="L738"><span class="lineNum">     738</span>              :   //</span>
@@ -864,9 +864,9 @@
 <span id="L802"><span class="lineNum">     802</span>              :   // LDR &lt;Wt&gt;, [&lt;Xn|SP&gt;{, #&lt;pimm&gt;}]</span>
 <span id="L803"><span class="lineNum">     803</span>              :   //</span>
 <span id="L804"><span class="lineNum">     804</span>              :   // https://developer.arm.com/documentation/ddi0602/2024-06/Base-Instructions/LDR--immediate---Load-register--immediate--?lang=en</span>
-<span id="L805"><span class="lineNum">     805</span> <span class="tlaGNC">         653 :   void LdrUnsignedOffset(W rt, X rn, Imm imm) {</span></span>
-<span id="L806"><span class="lineNum">     806</span> <span class="tlaGNC">         653 :     Insert(LdrUnsignedOffset(false, rt, rn, imm));</span></span>
-<span id="L807"><span class="lineNum">     807</span> <span class="tlaGNC">         653 :   }</span></span>
+<span id="L805"><span class="lineNum">     805</span> <span class="tlaGNC">         652 :   void LdrUnsignedOffset(W rt, X rn, Imm imm) {</span></span>
+<span id="L806"><span class="lineNum">     806</span> <span class="tlaGNC">         652 :     Insert(LdrUnsignedOffset(false, rt, rn, imm));</span></span>
+<span id="L807"><span class="lineNum">     807</span> <span class="tlaGNC">         652 :   }</span></span>
 <span id="L808"><span class="lineNum">     808</span>              : </span>
 <span id="L809"><span class="lineNum">     809</span>              :   // Insert LDP signed offset instruction.</span>
 <span id="L810"><span class="lineNum">     810</span>              :   //</span>
@@ -1025,13 +1025,13 @@
 <span id="L963"><span class="lineNum">     963</span>              :   // of one. It is also why the form encodes neither a negative offset nor one</span>
 <span id="L964"><span class="lineNum">     964</span>              :   // that falls between two accesses: asking for either is a mistake the</span>
 <span id="L965"><span class="lineNum">     965</span>              :   // encoding cannot carry.</span>
-<span id="L966"><span class="lineNum">     966</span> <span class="tlaGNC">       13597 :   static std::uint32_t Imm12(Imm imm, std::int32_t access_size) {</span></span>
-<span id="L967"><span class="lineNum">     967</span> <span class="tlaGNC">       13597 :     const std::int32_t offset = imm;</span></span>
-<span id="L968"><span class="lineNum">     968</span> <span class="tlaGNC">       13597 :     assert(offset &gt;= 0);</span></span>
-<span id="L969"><span class="lineNum">     969</span> <span class="tlaGNC">       13597 :     assert(offset % access_size == 0);</span></span>
-<span id="L970"><span class="lineNum">     970</span> <span class="tlaGNC">       13597 :     assert(offset / access_size &lt;= 0b111111111111);</span></span>
-<span id="L971"><span class="lineNum">     971</span> <span class="tlaGNC">       13597 :     return static_cast&lt;std::uint16_t&gt;(offset / access_size);</span></span>
-<span id="L972"><span class="lineNum">     972</span> <span class="tlaGNC">       13597 :   }</span></span>
+<span id="L966"><span class="lineNum">     966</span> <span class="tlaGNC">       13595 :   static std::uint32_t Imm12(Imm imm, std::int32_t access_size) {</span></span>
+<span id="L967"><span class="lineNum">     967</span> <span class="tlaGNC">       13595 :     const std::int32_t offset = imm;</span></span>
+<span id="L968"><span class="lineNum">     968</span> <span class="tlaGNC">       13595 :     assert(offset &gt;= 0);</span></span>
+<span id="L969"><span class="lineNum">     969</span> <span class="tlaGNC">       13595 :     assert(offset % access_size == 0);</span></span>
+<span id="L970"><span class="lineNum">     970</span> <span class="tlaGNC">       13595 :     assert(offset / access_size &lt;= 0b111111111111);</span></span>
+<span id="L971"><span class="lineNum">     971</span> <span class="tlaGNC">       13595 :     return static_cast&lt;std::uint16_t&gt;(offset / access_size);</span></span>
+<span id="L972"><span class="lineNum">     972</span> <span class="tlaGNC">       13595 :   }</span></span>
 <span id="L973"><span class="lineNum">     973</span>              : </span>
 <span id="L974"><span class="lineNum">     974</span>              :   // What the immediate forms of add and subtract carry: a 12-bit field, and</span>
 <span id="L975"><span class="lineNum">     975</span>              :   // whether the value is that field or that field shifted up by twelve.</span>
@@ -1072,19 +1072,19 @@
 <span id="L1010"><span class="lineNum">    1010</span> <span class="tlaGNC">        5591 :                      std::uint32_t{sf} &lt;&lt; 31 | rm &lt;&lt; 16 | rd);</span></span>
 <span id="L1011"><span class="lineNum">    1011</span> <span class="tlaGNC">        5591 :   }</span></span>
 <span id="L1012"><span class="lineNum">    1012</span>              : </span>
-<span id="L1013"><span class="lineNum">    1013</span> <span class="tlaGNC">        9092 :   Lit32Inst Mov(bool sf, internal::Reg rd, Imm imm) {</span></span>
+<span id="L1013"><span class="lineNum">    1013</span> <span class="tlaGNC">        7735 :   Lit32Inst Mov(bool sf, internal::Reg rd, Imm imm) {</span></span>
 <span id="L1014"><span class="lineNum">    1014</span> <span class="tlaUNC">           0 :     // The immediate is moved in as it is written, and there is no writing a</span></span>
 <span id="L1015"><span class="lineNum">    1015</span> <span class="tlaUNC">           0 :     // negative one: the field holds the value rather than a signed offset.</span></span>
 <span id="L1016"><span class="lineNum">    1016</span> <span class="tlaUNC">           0 :     // It is sixteen bits wide, and a wider one has to be built up out of</span></span>
 <span id="L1017"><span class="lineNum">    1017</span> <span class="tlaUNC">           0 :     // several of these rather than spliced in over what follows the field.</span></span>
-<span id="L1018"><span class="lineNum">    1018</span> <span class="tlaGNC">        9092 :     const std::int32_t value = imm;</span></span>
-<span id="L1019"><span class="lineNum">    1019</span> <span class="tlaGNC">        9092 :     assert(value &gt;= 0);</span></span>
-<span id="L1020"><span class="lineNum">    1020</span> <span class="tlaGNC">        9092 :     assert(value &lt;= 0xffff);</span></span>
+<span id="L1018"><span class="lineNum">    1018</span> <span class="tlaGNC">        7735 :     const std::int32_t value = imm;</span></span>
+<span id="L1019"><span class="lineNum">    1019</span> <span class="tlaGNC">        7735 :     assert(value &gt;= 0);</span></span>
+<span id="L1020"><span class="lineNum">    1020</span> <span class="tlaGNC">        7735 :     assert(value &lt;= 0xffff);</span></span>
 <span id="L1021"><span class="lineNum">    1021</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L1022"><span class="lineNum">    1022</span> <span class="tlaGNC">        9092 :     return Lit32Inst(0b01010010100000000000000000000000 |</span></span>
-<span id="L1023"><span class="lineNum">    1023</span> <span class="tlaGNC">        9092 :                      std::uint32_t{sf} &lt;&lt; 31 |</span></span>
-<span id="L1024"><span class="lineNum">    1024</span> <span class="tlaGNC">        9092 :                      static_cast&lt;std::uint32_t&gt;(value) &lt;&lt; 5 | rd);</span></span>
-<span id="L1025"><span class="lineNum">    1025</span> <span class="tlaGNC">        9092 :   }</span></span>
+<span id="L1022"><span class="lineNum">    1022</span> <span class="tlaGNC">        7735 :     return Lit32Inst(0b01010010100000000000000000000000 |</span></span>
+<span id="L1023"><span class="lineNum">    1023</span> <span class="tlaGNC">        7735 :                      std::uint32_t{sf} &lt;&lt; 31 |</span></span>
+<span id="L1024"><span class="lineNum">    1024</span> <span class="tlaGNC">        7735 :                      static_cast&lt;std::uint32_t&gt;(value) &lt;&lt; 5 | rd);</span></span>
+<span id="L1025"><span class="lineNum">    1025</span> <span class="tlaGNC">        7735 :   }</span></span>
 <span id="L1026"><span class="lineNum">    1026</span>              : </span>
 <span id="L1027"><span class="lineNum">    1027</span> <span class="tlaGNC">         232 :   Lit32Inst MovSP(bool sf, internal::Reg rd, internal::Reg rn) {</span></span>
 <span id="L1028"><span class="lineNum">    1028</span> <span class="tlaGNC">         232 :     return Lit32Inst(0b00010001000000000000000000000000 |</span></span>
@@ -1146,11 +1146,11 @@
 <span id="L1084"><span class="lineNum">    1084</span> <span class="tlaGNC">           2 :   }</span></span>
 <span id="L1085"><span class="lineNum">    1085</span>              : </span>
 <span id="L1086"><span class="lineNum">    1086</span>              :   Lit32Inst StrUnsignedOffset(bool opc, internal::Reg rt, internal::Reg rn,</span>
-<span id="L1087"><span class="lineNum">    1087</span> <span class="tlaGNC">        6723 :                               Imm imm) {</span></span>
-<span id="L1088"><span class="lineNum">    1088</span> <span class="tlaGNC">        6723 :     return Lit32Inst(0b10111001000000000000000000000000 |</span></span>
-<span id="L1089"><span class="lineNum">    1089</span> <span class="tlaGNC">        6723 :                      std::uint32_t{opc} &lt;&lt; 30 | Imm12(imm, opc ? 8 : 4) &lt;&lt; 10 |</span></span>
-<span id="L1090"><span class="lineNum">    1090</span> <span class="tlaGNC">        6723 :                      rn &lt;&lt; 5 | rt);</span></span>
-<span id="L1091"><span class="lineNum">    1091</span> <span class="tlaGNC">        6723 :   }</span></span>
+<span id="L1087"><span class="lineNum">    1087</span> <span class="tlaGNC">        6722 :                               Imm imm) {</span></span>
+<span id="L1088"><span class="lineNum">    1088</span> <span class="tlaGNC">        6722 :     return Lit32Inst(0b10111001000000000000000000000000 |</span></span>
+<span id="L1089"><span class="lineNum">    1089</span> <span class="tlaGNC">        6722 :                      std::uint32_t{opc} &lt;&lt; 30 | Imm12(imm, opc ? 8 : 4) &lt;&lt; 10 |</span></span>
+<span id="L1090"><span class="lineNum">    1090</span> <span class="tlaGNC">        6722 :                      rn &lt;&lt; 5 | rt);</span></span>
+<span id="L1091"><span class="lineNum">    1091</span> <span class="tlaGNC">        6722 :   }</span></span>
 <span id="L1092"><span class="lineNum">    1092</span>              : </span>
 <span id="L1093"><span class="lineNum">    1093</span>              :   Lit32Inst Str(bool opc, internal::Reg rt, X rn, internal::Reg rm,</span>
 <span id="L1094"><span class="lineNum">    1094</span> <span class="tlaGNC">        1177 :                 Extend extend, Imm amount) {</span></span>
@@ -1179,11 +1179,11 @@
 <span id="L1117"><span class="lineNum">    1117</span> <span class="tlaGNC">           2 :                      std::uint32_t{opc} &lt;&lt; 30 | Imm9(imm) &lt;&lt; 12 | rn &lt;&lt; 5 | rt);</span></span>
 <span id="L1118"><span class="lineNum">    1118</span> <span class="tlaGNC">           2 :   }</span></span>
 <span id="L1119"><span class="lineNum">    1119</span>              : </span>
-<span id="L1120"><span class="lineNum">    1120</span> <span class="tlaGNC">        6874 :   Lit32Inst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {</span></span>
-<span id="L1121"><span class="lineNum">    1121</span> <span class="tlaGNC">        6874 :     return Lit32Inst(0b10111001010000000000000000000000 |</span></span>
-<span id="L1122"><span class="lineNum">    1122</span> <span class="tlaGNC">        6874 :                      std::uint32_t{opc} &lt;&lt; 30 | Imm12(imm, opc ? 8 : 4) &lt;&lt; 10 |</span></span>
-<span id="L1123"><span class="lineNum">    1123</span> <span class="tlaGNC">        6874 :                      rn &lt;&lt; 5 | rt);</span></span>
-<span id="L1124"><span class="lineNum">    1124</span> <span class="tlaGNC">        6874 :   }</span></span>
+<span id="L1120"><span class="lineNum">    1120</span> <span class="tlaGNC">        6873 :   Lit32Inst LdrUnsignedOffset(bool opc, internal::Reg rt, X rn, Imm imm) {</span></span>
+<span id="L1121"><span class="lineNum">    1121</span> <span class="tlaGNC">        6873 :     return Lit32Inst(0b10111001010000000000000000000000 |</span></span>
+<span id="L1122"><span class="lineNum">    1122</span> <span class="tlaGNC">        6873 :                      std::uint32_t{opc} &lt;&lt; 30 | Imm12(imm, opc ? 8 : 4) &lt;&lt; 10 |</span></span>
+<span id="L1123"><span class="lineNum">    1123</span> <span class="tlaGNC">        6873 :                      rn &lt;&lt; 5 | rt);</span></span>
+<span id="L1124"><span class="lineNum">    1124</span> <span class="tlaGNC">        6873 :   }</span></span>
 <span id="L1125"><span class="lineNum">    1125</span>              : </span>
 <span id="L1126"><span class="lineNum">    1126</span>              :   Lit32Inst Ldr(bool opc, internal::Reg rt, X rn, internal::Reg rm,</span>
 <span id="L1127"><span class="lineNum">    1127</span> <span class="tlaGNC">         128 :                 Extend extend, Imm amount) {</span></span>
@@ -1211,10 +1211,10 @@
 <span id="L1149"><span class="lineNum">    1149</span> <span class="tlaGNC">         239 :   }</span></span>
 <span id="L1150"><span class="lineNum">    1150</span>              : </span>
 <span id="L1151"><span class="lineNum">    1151</span>              :   Lit32Inst Add(bool opc, internal::Reg rd, internal::Reg rn,</span>
-<span id="L1152"><span class="lineNum">    1152</span> <span class="tlaGNC">        2136 :                 internal::Reg rm) {</span></span>
-<span id="L1153"><span class="lineNum">    1153</span> <span class="tlaGNC">        2136 :     return Lit32Inst(0b00001011000000000000000000000000 |</span></span>
-<span id="L1154"><span class="lineNum">    1154</span> <span class="tlaGNC">        2136 :                      std::uint32_t{opc} &lt;&lt; 31 | rm &lt;&lt; 16 | rn &lt;&lt; 5 | rd);</span></span>
-<span id="L1155"><span class="lineNum">    1155</span> <span class="tlaGNC">        2136 :   }</span></span>
+<span id="L1152"><span class="lineNum">    1152</span> <span class="tlaGNC">        1808 :                 internal::Reg rm) {</span></span>
+<span id="L1153"><span class="lineNum">    1153</span> <span class="tlaGNC">        1808 :     return Lit32Inst(0b00001011000000000000000000000000 |</span></span>
+<span id="L1154"><span class="lineNum">    1154</span> <span class="tlaGNC">        1808 :                      std::uint32_t{opc} &lt;&lt; 31 | rm &lt;&lt; 16 | rn &lt;&lt; 5 | rd);</span></span>
+<span id="L1155"><span class="lineNum">    1155</span> <span class="tlaGNC">        1808 :   }</span></span>
 <span id="L1156"><span class="lineNum">    1156</span>              : </span>
 <span id="L1157"><span class="lineNum">    1157</span>              :   Lit32Inst Sub(bool opc, internal::Reg rd, internal::Reg rn,</span>
 <span id="L1158"><span class="lineNum">    1158</span> <span class="tlaGNC">         277 :                 internal::Reg rm) {</span></span>
@@ -1230,10 +1230,10 @@
 <span id="L1168"><span class="lineNum">    1168</span> <span class="tlaGNC">         601 :   }</span></span>
 <span id="L1169"><span class="lineNum">    1169</span>              : </span>
 <span id="L1170"><span class="lineNum">    1170</span>              :   Lit32Inst Mul(bool opc, internal::Reg rd, internal::Reg rn,</span>
-<span id="L1171"><span class="lineNum">    1171</span> <span class="tlaGNC">        1427 :                 internal::Reg rm) {</span></span>
-<span id="L1172"><span class="lineNum">    1172</span> <span class="tlaGNC">        1427 :     return Lit32Inst(0b00011011000000000111110000000000 |</span></span>
-<span id="L1173"><span class="lineNum">    1173</span> <span class="tlaGNC">        1427 :                      std::uint32_t{opc} &lt;&lt; 31 | rm &lt;&lt; 16 | rn &lt;&lt; 5 | rd);</span></span>
-<span id="L1174"><span class="lineNum">    1174</span> <span class="tlaGNC">        1427 :   }</span></span>
+<span id="L1171"><span class="lineNum">    1171</span> <span class="tlaGNC">         398 :                 internal::Reg rm) {</span></span>
+<span id="L1172"><span class="lineNum">    1172</span> <span class="tlaGNC">         398 :     return Lit32Inst(0b00011011000000000111110000000000 |</span></span>
+<span id="L1173"><span class="lineNum">    1173</span> <span class="tlaGNC">         398 :                      std::uint32_t{opc} &lt;&lt; 31 | rm &lt;&lt; 16 | rn &lt;&lt; 5 | rd);</span></span>
+<span id="L1174"><span class="lineNum">    1174</span> <span class="tlaGNC">         398 :   }</span></span>
 <span id="L1175"><span class="lineNum">    1175</span>              : </span>
 <span id="L1176"><span class="lineNum">    1176</span>              :   Lit32Inst Udiv(bool opc, internal::Reg rd, internal::Reg rn,</span>
 <span id="L1177"><span class="lineNum">    1177</span> <span class="tlaGNC">           2 :                  internal::Reg rm) {</span></span>
@@ -1254,11 +1254,11 @@
 <span id="L1192"><span class="lineNum">    1192</span> <span class="tlaGNC">          39 :                      rd);</span></span>
 <span id="L1193"><span class="lineNum">    1193</span> <span class="tlaGNC">          39 :   }</span></span>
 <span id="L1194"><span class="lineNum">    1194</span>              : </span>
-<span id="L1195"><span class="lineNum">    1195</span> <span class="tlaGNC">       46898 :   void Insert(Inst inst) {</span></span>
-<span id="L1196"><span class="lineNum">    1196</span> <span class="tlaGNC">       46898 :     insts_size_ += std::visit(</span></span>
-<span id="L1197"><span class="lineNum">    1197</span> <span class="tlaGNC">       46898 :         [](const auto&amp; inst) { return inst.OutputBytesCount(); }, inst);</span></span>
-<span id="L1198"><span class="lineNum">    1198</span> <span class="tlaGNC">       46898 :     insts_.push_back(inst);</span></span>
-<span id="L1199"><span class="lineNum">    1199</span> <span class="tlaGNC">       46898 :   }</span></span>
+<span id="L1195"><span class="lineNum">    1195</span> <span class="tlaGNC">       44182 :   void Insert(Inst inst) {</span></span>
+<span id="L1196"><span class="lineNum">    1196</span> <span class="tlaGNC">       44182 :     insts_size_ += std::visit(</span></span>
+<span id="L1197"><span class="lineNum">    1197</span> <span class="tlaGNC">       44182 :         [](const auto&amp; inst) { return inst.OutputBytesCount(); }, inst);</span></span>
+<span id="L1198"><span class="lineNum">    1198</span> <span class="tlaGNC">       44182 :     insts_.push_back(inst);</span></span>
+<span id="L1199"><span class="lineNum">    1199</span> <span class="tlaGNC">       44182 :   }</span></span>
 <span id="L1200"><span class="lineNum">    1200</span>              : </span>
 <span id="L1201"><span class="lineNum">    1201</span>              :   LabelOffsets label_offsets_;</span>
 <span id="L1202"><span class="lineNum">    1202</span>              :   HashMap&lt;std::string, Label&gt; named_labels_;</span>

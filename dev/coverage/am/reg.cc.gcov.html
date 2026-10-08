@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 19:54:33</td>
+            <td class="headerValue">2026-10-08 20:23:27</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -109,12 +109,12 @@
 <span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">         773 :   std::optional&lt;Reg&gt; furthest;</span></span>
 <span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">         773 :   std::size_t furthest_read = 0;</span></span>
 <span id="L49"><span class="lineNum">      49</span>              : </span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">        9812 :   for (Reg reg : live) {</span></span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">        9812 :     if (spilled.Contains(reg)) continue;</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">        9813 :   for (Reg reg : live) {</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">        9813 :     if (spilled.Contains(reg)) continue;</span></span>
 <span id="L52"><span class="lineNum">      52</span>              : </span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">        9804 :     const auto read = next_read.Get(reg);</span></span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">        9804 :     const std::size_t at = read.has_value() ? *read : kReadBeyondTheBlock;</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">        9804 :     if (furthest.has_value() &amp;&amp; at &lt;= furthest_read) continue;</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">        9805 :     const auto read = next_read.Get(reg);</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">        9805 :     const std::size_t at = read.has_value() ? *read : kReadBeyondTheBlock;</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">        9805 :     if (furthest.has_value() &amp;&amp; at &lt;= furthest_read) continue;</span></span>
 <span id="L56"><span class="lineNum">      56</span>              : </span>
 <span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">        1029 :     furthest = reg;</span></span>
 <span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">        1029 :     furthest_read = at;</span></span>
@@ -128,10 +128,10 @@
 <span id="L66"><span class="lineNum">      66</span>              :     const AbstractMachineControlFlowGraph::Block&amp; block,</span>
 <span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">         773 :     std::list&lt;Instruction&gt;::const_iterator from, std::size_t index) {</span></span>
 <span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">         773 :   HashMap&lt;Reg, std::size_t&gt; next_read;</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">       24916 :   for (auto it = from; it != block.instructions.end(); ++it, ++index) {</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">       24915 :   for (auto it = from; it != block.instructions.end(); ++it, ++index) {</span></span>
 <span id="L70"><span class="lineNum">      70</span>              :     // The first read found is the next one, and `Insert` keeps it.</span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">       27430 :     ForEachSourceRegister(*it, [&amp;](Reg reg) { next_read.Insert(reg, index); });</span></span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">       24143 :   }</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">       27447 :     ForEachSourceRegister(*it, [&amp;](Reg reg) { next_read.Insert(reg, index); });</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">       24142 :   }</span></span>
 <span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">         773 :   return next_read;</span></span>
 <span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         773 : }</span></span>
 <span id="L75"><span class="lineNum">      75</span>              : </span>
@@ -148,7 +148,7 @@
 <span id="L86"><span class="lineNum">      86</span>              :   // The walk starts from what is live where the block exits, and what the</span>
 <span id="L87"><span class="lineNum">      87</span>              :   // branch reads there, and carries what is live at each instruction with it.</span>
 <span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">        4260 :   live.Clear();</span></span>
-<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">       15532 :   for (Reg reg : LiveOut(liveness, block)) live.Insert(reg);</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">       15516 :   for (Reg reg : LiveOut(liveness, block)) live.Insert(reg);</span></span>
 <span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">        4260 :   if (block.branch_cond.has_value()) live.Insert(*block.branch_cond);</span></span>
 <span id="L91"><span class="lineNum">      91</span>              : </span>
 <span id="L92"><span class="lineNum">      92</span>              :   // Returns the register to spill at the point the walk has reached, which</span>
@@ -170,23 +170,23 @@
 <span id="L108"><span class="lineNum">     108</span>              : </span>
 <span id="L109"><span class="lineNum">     109</span>              :   // True where more is live at the point the walk has reached than there are</span>
 <span id="L110"><span class="lineNum">     110</span>              :   // registers to hold it.</span>
-<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">       58571 :   const auto over_full = [&amp;] {</span></span>
-<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">       58571 :     return live.size() &gt; static_cast&lt;std::size_t&gt;(max_clique_size);</span></span>
-<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">       58571 :   };</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">       55852 :   const auto over_full = [&amp;] {</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">       55852 :     return live.size() &gt; static_cast&lt;std::size_t&gt;(max_clique_size);</span></span>
+<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">       55852 :   };</span></span>
 <span id="L114"><span class="lineNum">     114</span>              : </span>
 <span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">        4260 :   if (over_full()) {</span></span>
 <span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">         218 :     return reg_to_spill(block.instructions.end(), block.instructions.size());</span></span>
 <span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">         218 :   }</span></span>
 <span id="L118"><span class="lineNum">     118</span>              : </span>
 <span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">        4042 :   std::size_t index = block.instructions.size();</span></span>
-<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">       57195 :   for (auto it = block.instructions.rbegin(); it != block.instructions.rend();</span></span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">       53708 :        ++it) {</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">       53708 :     --index;</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">       54476 :   for (auto it = block.instructions.rbegin(); it != block.instructions.rend();</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">       50989 :        ++it) {</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">       50989 :     --index;</span></span>
 <span id="L123"><span class="lineNum">     123</span>              : </span>
-<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">       53708 :     AbstractMachineLivenessAnalysis::TransferLive(live, *it);</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">       50989 :     AbstractMachineLivenessAnalysis::TransferLive(live, *it);</span></span>
 <span id="L125"><span class="lineNum">     125</span>              : </span>
-<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">       53708 :     if (over_full()) return reg_to_spill(std::prev(it.base()), index);</span></span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">       53708 :   }</span></span>
+<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">       50989 :     if (over_full()) return reg_to_spill(std::prev(it.base()), index);</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">       50989 :   }</span></span>
 <span id="L128"><span class="lineNum">     128</span>              : </span>
 <span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">        3487 :   if (block.ref == am_cfg.first) {</span></span>
 <span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">         984 :     for (Reg param : am_cfg.params) live.Insert(param);</span></span>
@@ -260,17 +260,17 @@
 <span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">         773 :   HashSet&lt;Reg&gt; tied;</span></span>
 <span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">         773 :   std::vector&lt;Reg&gt; to_walk = {reg};</span></span>
 <span id="L200"><span class="lineNum">     200</span> <span class="tlaGNC">         773 :   tied.Insert(reg);</span></span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">        1936 :   while (!to_walk.empty()) {</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">        1163 :     const Reg from = to_walk.back();</span></span>
-<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">        1163 :     to_walk.pop_back();</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">        1934 :   while (!to_walk.empty()) {</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">        1161 :     const Reg from = to_walk.back();</span></span>
+<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">        1161 :     to_walk.pop_back();</span></span>
 <span id="L204"><span class="lineNum">     204</span>              : </span>
-<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">        1163 :     auto next = ties.Get(from);</span></span>
-<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">        1163 :     if (!next.has_value()) continue;</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">        1161 :     auto next = ties.Get(from);</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">        1161 :     if (!next.has_value()) continue;</span></span>
 <span id="L207"><span class="lineNum">     207</span>              : </span>
-<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">         780 :     for (Reg to : *next) {</span></span>
-<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">         780 :       if (tied.Insert(to)) to_walk.push_back(to);</span></span>
-<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">         780 :     }</span></span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">         562 :   }</span></span>
+<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">         776 :     for (Reg to : *next) {</span></span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">         776 :       if (tied.Insert(to)) to_walk.push_back(to);</span></span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">         776 :     }</span></span>
+<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">         559 :   }</span></span>
 <span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">         773 :   return tied;</span></span>
 <span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">         773 : }</span></span>
 <span id="L214"><span class="lineNum">     214</span>              : </span>
@@ -329,26 +329,26 @@
 <span id="L267"><span class="lineNum">     267</span> <span class="tlaGNC">         327 :         }</span></span>
 <span id="L268"><span class="lineNum">     268</span> <span class="tlaGNC">         118 :       }</span></span>
 <span id="L269"><span class="lineNum">     269</span> <span class="tlaGNC">        1777 :       std::uint32_t inst = 1;</span></span>
-<span id="L270"><span class="lineNum">     270</span> <span class="tlaGNC">       22705 :       for (auto it = block.instructions.begin(); it != block.instructions.end();</span></span>
-<span id="L271"><span class="lineNum">     271</span> <span class="tlaGNC">       20928 :            ++it, ++inst) {</span></span>
-<span id="L272"><span class="lineNum">     272</span> <span class="tlaGNC">       20928 :         std::uint32_t operand = 0;</span></span>
-<span id="L273"><span class="lineNum">     273</span> <span class="tlaGNC">       21351 :         ForEachSourceRegister(*it, [&amp;](Reg&amp; reg) {</span></span>
-<span id="L274"><span class="lineNum">     274</span> <span class="tlaGNC">       20087 :           Add({.kind = Kind::kRead,</span></span>
-<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">       20087 :                .block = b,</span></span>
-<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC">       20087 :                .inst = inst,</span></span>
-<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC">       20087 :                .operand = operand++,</span></span>
-<span id="L278"><span class="lineNum">     278</span> <span class="tlaGNC">       20087 :                .at = it,</span></span>
-<span id="L279"><span class="lineNum">     279</span> <span class="tlaGNC">       20087 :                .reg = &amp;reg});</span></span>
-<span id="L280"><span class="lineNum">     280</span> <span class="tlaGNC">       20087 :         });</span></span>
-<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">       20928 :         if (Reg* target = TargetRegister(*it)) {</span></span>
-<span id="L282"><span class="lineNum">     282</span> <span class="tlaGNC">       19495 :           Add({.kind = Kind::kWrite,</span></span>
-<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">       19495 :                .block = b,</span></span>
-<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">       19495 :                .inst = inst,</span></span>
-<span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">       19495 :                .operand = kLast,</span></span>
-<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">       19495 :                .at = it,</span></span>
-<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">       19495 :                .reg = target});</span></span>
-<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">       19495 :         }</span></span>
-<span id="L289"><span class="lineNum">     289</span> <span class="tlaGNC">       20928 :       }</span></span>
+<span id="L270"><span class="lineNum">     270</span> <span class="tlaGNC">       20535 :       for (auto it = block.instructions.begin(); it != block.instructions.end();</span></span>
+<span id="L271"><span class="lineNum">     271</span> <span class="tlaGNC">       18758 :            ++it, ++inst) {</span></span>
+<span id="L272"><span class="lineNum">     272</span> <span class="tlaGNC">       18758 :         std::uint32_t operand = 0;</span></span>
+<span id="L273"><span class="lineNum">     273</span> <span class="tlaGNC">       19181 :         ForEachSourceRegister(*it, [&amp;](Reg&amp; reg) {</span></span>
+<span id="L274"><span class="lineNum">     274</span> <span class="tlaGNC">       17917 :           Add({.kind = Kind::kRead,</span></span>
+<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">       17917 :                .block = b,</span></span>
+<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC">       17917 :                .inst = inst,</span></span>
+<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC">       17917 :                .operand = operand++,</span></span>
+<span id="L278"><span class="lineNum">     278</span> <span class="tlaGNC">       17917 :                .at = it,</span></span>
+<span id="L279"><span class="lineNum">     279</span> <span class="tlaGNC">       17917 :                .reg = &amp;reg});</span></span>
+<span id="L280"><span class="lineNum">     280</span> <span class="tlaGNC">       17917 :         });</span></span>
+<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">       18758 :         if (Reg* target = TargetRegister(*it)) {</span></span>
+<span id="L282"><span class="lineNum">     282</span> <span class="tlaGNC">       17325 :           Add({.kind = Kind::kWrite,</span></span>
+<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">       17325 :                .block = b,</span></span>
+<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">       17325 :                .inst = inst,</span></span>
+<span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">       17325 :                .operand = kLast,</span></span>
+<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">       17325 :                .at = it,</span></span>
+<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">       17325 :                .reg = target});</span></span>
+<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">       17325 :         }</span></span>
+<span id="L289"><span class="lineNum">     289</span> <span class="tlaGNC">       18758 :       }</span></span>
 <span id="L290"><span class="lineNum">     290</span> <span class="tlaGNC">        1777 :       if (block.branch_cond.has_value()) {</span></span>
 <span id="L291"><span class="lineNum">     291</span> <span class="tlaGNC">         571 :         Add({.kind = Kind::kBranch,</span></span>
 <span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">         571 :              .block = b,</span></span>
@@ -362,14 +362,14 @@
 <span id="L300"><span class="lineNum">     300</span> <span class="tlaGNC">         118 :   }</span></span>
 <span id="L301"><span class="lineNum">     301</span>              : </span>
 <span id="L302"><span class="lineNum">     302</span>              :   // Records that `occurrence` names the register it points at.</span>
-<span id="L303"><span class="lineNum">     303</span> <span class="tlaGNC">       43730 :   void Add(const Occurrence&amp; occurrence) {</span></span>
-<span id="L304"><span class="lineNum">     304</span> <span class="tlaGNC">       43730 :     const std::size_t id = occurrence.reg-&gt;id;</span></span>
-<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">       43730 :     if (id &gt;= by_reg_.size()) by_reg_.resize(id + 1);</span></span>
-<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">       43730 :     by_reg_[id].push_back(occurrence);</span></span>
-<span id="L307"><span class="lineNum">     307</span> <span class="tlaGNC">       43730 :   }</span></span>
+<span id="L303"><span class="lineNum">     303</span> <span class="tlaGNC">       39388 :   void Add(const Occurrence&amp; occurrence) {</span></span>
+<span id="L304"><span class="lineNum">     304</span> <span class="tlaGNC">       39388 :     const std::size_t id = occurrence.reg-&gt;id;</span></span>
+<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">       39388 :     if (id &gt;= by_reg_.size()) by_reg_.resize(id + 1);</span></span>
+<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">       39388 :     by_reg_[id].push_back(occurrence);</span></span>
+<span id="L307"><span class="lineNum">     307</span> <span class="tlaGNC">       39388 :   }</span></span>
 <span id="L308"><span class="lineNum">     308</span>              : </span>
 <span id="L309"><span class="lineNum">     309</span>              :   // Returns the places that name `reg`, in the order a walk comes to them.</span>
-<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">        1163 :   std::span&lt;const Occurrence&gt; Of(Reg reg) const { return by_reg_[reg.id]; }</span></span>
+<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">        1161 :   std::span&lt;const Occurrence&gt; Of(Reg reg) const { return by_reg_[reg.id]; }</span></span>
 <span id="L311"><span class="lineNum">     311</span>              : </span>
 <span id="L312"><span class="lineNum">     312</span>              :  private:</span>
 <span id="L313"><span class="lineNum">     313</span>              :   std::vector&lt;std::vector&lt;Occurrence&gt;&gt; by_reg_;</span>
@@ -397,17 +397,17 @@
 <span id="L335"><span class="lineNum">     335</span> <span class="tlaGNC">         773 :   am_cfg.stack_slots.push_back(to_spill.begin()-&gt;size == RegSize32 ? 4 : 8);</span></span>
 <span id="L336"><span class="lineNum">     336</span>              : </span>
 <span id="L337"><span class="lineNum">     337</span> <span class="tlaGNC">         773 :   std::vector&lt;Occurrence&gt; places;</span></span>
-<span id="L338"><span class="lineNum">     338</span> <span class="tlaGNC">        1163 :   for (Reg reg : to_spill) {</span></span>
-<span id="L339"><span class="lineNum">     339</span> <span class="tlaGNC">        1163 :     const auto of = occurrences.Of(reg);</span></span>
-<span id="L340"><span class="lineNum">     340</span> <span class="tlaGNC">        1163 :     places.insert(places.end(), of.begin(), of.end());</span></span>
-<span id="L341"><span class="lineNum">     341</span> <span class="tlaGNC">        1163 :   }</span></span>
+<span id="L338"><span class="lineNum">     338</span> <span class="tlaGNC">        1161 :   for (Reg reg : to_spill) {</span></span>
+<span id="L339"><span class="lineNum">     339</span> <span class="tlaGNC">        1161 :     const auto of = occurrences.Of(reg);</span></span>
+<span id="L340"><span class="lineNum">     340</span> <span class="tlaGNC">        1161 :     places.insert(places.end(), of.begin(), of.end());</span></span>
+<span id="L341"><span class="lineNum">     341</span> <span class="tlaGNC">        1161 :   }</span></span>
 <span id="L342"><span class="lineNum">     342</span>              :   // The places of one register are already in order. Those of several, which</span>
 <span id="L343"><span class="lineNum">     343</span>              :   // phi functions tie together, are put in order between them.</span>
 <span id="L344"><span class="lineNum">     344</span> <span class="tlaGNC">         773 :   if (to_spill.size() &gt; 1) {</span></span>
-<span id="L345"><span class="lineNum">     345</span> <span class="tlaGNC">        3112 :     std::ranges::sort(places, {}, [](const Occurrence&amp; place) {</span></span>
-<span id="L346"><span class="lineNum">     346</span> <span class="tlaGNC">        3112 :       return std::tuple(place.block, place.inst, place.operand);</span></span>
-<span id="L347"><span class="lineNum">     347</span> <span class="tlaGNC">        3112 :     });</span></span>
-<span id="L348"><span class="lineNum">     348</span> <span class="tlaGNC">         172 :   }</span></span>
+<span id="L345"><span class="lineNum">     345</span> <span class="tlaGNC">        3080 :     std::ranges::sort(places, {}, [](const Occurrence&amp; place) {</span></span>
+<span id="L346"><span class="lineNum">     346</span> <span class="tlaGNC">        3080 :       return std::tuple(place.block, place.inst, place.operand);</span></span>
+<span id="L347"><span class="lineNum">     347</span> <span class="tlaGNC">        3080 :     });</span></span>
+<span id="L348"><span class="lineNum">     348</span> <span class="tlaGNC">         171 :   }</span></span>
 <span id="L349"><span class="lineNum">     349</span>              : </span>
 <span id="L350"><span class="lineNum">     350</span>              :   // A parameter is put away ahead of everything the entry does, including</span>
 <span id="L351"><span class="lineNum">     351</span>              :   // the loads earlier spills put there.</span>
@@ -419,31 +419,31 @@
 <span id="L357"><span class="lineNum">     357</span>              :   // spilt as well, later on.</span>
 <span id="L358"><span class="lineNum">     358</span> <span class="tlaGNC">         773 :   const auto load = [&amp;](const Occurrence&amp; place, Kind kind,</span></span>
 <span id="L359"><span class="lineNum">     359</span> <span class="tlaGNC">         773 :                         std::list&lt;Instruction&gt;&amp; instructions,</span></span>
-<span id="L360"><span class="lineNum">     360</span> <span class="tlaGNC">        1141 :                         std::list&lt;Instruction&gt;::iterator at) {</span></span>
-<span id="L361"><span class="lineNum">     361</span> <span class="tlaGNC">        1141 :     Reg&amp; read = *place.reg;</span></span>
-<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">        1141 :     read.id = am_cfg.next_free_reg_id++;</span></span>
-<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">        1141 :     const auto loaded =</span></span>
-<span id="L364"><span class="lineNum">     364</span> <span class="tlaGNC">        1141 :         instructions.insert(at, LoadStack{.offset = slot, .dst_reg = read});</span></span>
-<span id="L365"><span class="lineNum">     365</span> <span class="tlaGNC">        1141 :     occurrences.Add({.kind = Kind::kWrite,</span></span>
-<span id="L366"><span class="lineNum">     366</span> <span class="tlaGNC">        1141 :                      .block = place.block,</span></span>
-<span id="L367"><span class="lineNum">     367</span> <span class="tlaGNC">        1141 :                      .inst = place.inst,</span></span>
-<span id="L368"><span class="lineNum">     368</span> <span class="tlaGNC">        1141 :                      .at = loaded,</span></span>
-<span id="L369"><span class="lineNum">     369</span> <span class="tlaGNC">        1141 :                      .reg = &amp;std::get&lt;LoadStack&gt;(*loaded).dst_reg});</span></span>
-<span id="L370"><span class="lineNum">     370</span> <span class="tlaGNC">        1141 :     Occurrence read_place = place;</span></span>
-<span id="L371"><span class="lineNum">     371</span> <span class="tlaGNC">        1141 :     read_place.kind = kind;</span></span>
-<span id="L372"><span class="lineNum">     372</span> <span class="tlaGNC">        1141 :     occurrences.Add(read_place);</span></span>
-<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">        1141 :   };</span></span>
+<span id="L360"><span class="lineNum">     360</span> <span class="tlaGNC">        1140 :                         std::list&lt;Instruction&gt;::iterator at) {</span></span>
+<span id="L361"><span class="lineNum">     361</span> <span class="tlaGNC">        1140 :     Reg&amp; read = *place.reg;</span></span>
+<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">        1140 :     read.id = am_cfg.next_free_reg_id++;</span></span>
+<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">        1140 :     const auto loaded =</span></span>
+<span id="L364"><span class="lineNum">     364</span> <span class="tlaGNC">        1140 :         instructions.insert(at, LoadStack{.offset = slot, .dst_reg = read});</span></span>
+<span id="L365"><span class="lineNum">     365</span> <span class="tlaGNC">        1140 :     occurrences.Add({.kind = Kind::kWrite,</span></span>
+<span id="L366"><span class="lineNum">     366</span> <span class="tlaGNC">        1140 :                      .block = place.block,</span></span>
+<span id="L367"><span class="lineNum">     367</span> <span class="tlaGNC">        1140 :                      .inst = place.inst,</span></span>
+<span id="L368"><span class="lineNum">     368</span> <span class="tlaGNC">        1140 :                      .at = loaded,</span></span>
+<span id="L369"><span class="lineNum">     369</span> <span class="tlaGNC">        1140 :                      .reg = &amp;std::get&lt;LoadStack&gt;(*loaded).dst_reg});</span></span>
+<span id="L370"><span class="lineNum">     370</span> <span class="tlaGNC">        1140 :     Occurrence read_place = place;</span></span>
+<span id="L371"><span class="lineNum">     371</span> <span class="tlaGNC">        1140 :     read_place.kind = kind;</span></span>
+<span id="L372"><span class="lineNum">     372</span> <span class="tlaGNC">        1140 :     occurrences.Add(read_place);</span></span>
+<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">        1140 :   };</span></span>
 <span id="L374"><span class="lineNum">     374</span>              : </span>
-<span id="L375"><span class="lineNum">     375</span> <span class="tlaGNC">        2304 :   for (const Occurrence&amp; place : places) {</span></span>
-<span id="L376"><span class="lineNum">     376</span> <span class="tlaGNC">        2304 :     auto&amp; block = am_cfg.GetBlock(rpo[place.block]);</span></span>
-<span id="L377"><span class="lineNum">     377</span> <span class="tlaGNC">        2304 :     switch (place.kind) {</span></span>
-<span id="L378"><span class="lineNum">     378</span> <span class="tlaGNC">         145 :       case Kind::kParam:</span></span>
-<span id="L379"><span class="lineNum">     379</span> <span class="tlaGNC">         145 :         entry.insert(entry_begin,</span></span>
-<span id="L380"><span class="lineNum">     380</span> <span class="tlaGNC">         145 :                      StoreStack{.offset = slot, .src_reg = *place.reg});</span></span>
-<span id="L381"><span class="lineNum">     381</span> <span class="tlaGNC">         145 :         break;</span></span>
-<span id="L382"><span class="lineNum">     382</span> <span class="tlaGNC">        1141 :       case Kind::kRead:</span></span>
-<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">        1141 :         load(place, Kind::kRead, block.instructions, place.at);</span></span>
-<span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">        1141 :         break;</span></span>
+<span id="L375"><span class="lineNum">     375</span> <span class="tlaGNC">        2301 :   for (const Occurrence&amp; place : places) {</span></span>
+<span id="L376"><span class="lineNum">     376</span> <span class="tlaGNC">        2301 :     auto&amp; block = am_cfg.GetBlock(rpo[place.block]);</span></span>
+<span id="L377"><span class="lineNum">     377</span> <span class="tlaGNC">        2301 :     switch (place.kind) {</span></span>
+<span id="L378"><span class="lineNum">     378</span> <span class="tlaGNC">         144 :       case Kind::kParam:</span></span>
+<span id="L379"><span class="lineNum">     379</span> <span class="tlaGNC">         144 :         entry.insert(entry_begin,</span></span>
+<span id="L380"><span class="lineNum">     380</span> <span class="tlaGNC">         144 :                      StoreStack{.offset = slot, .src_reg = *place.reg});</span></span>
+<span id="L381"><span class="lineNum">     381</span> <span class="tlaGNC">         144 :         break;</span></span>
+<span id="L382"><span class="lineNum">     382</span> <span class="tlaGNC">        1140 :       case Kind::kRead:</span></span>
+<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">        1140 :         load(place, Kind::kRead, block.instructions, place.at);</span></span>
+<span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">        1140 :         break;</span></span>
 <span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">         823 :       case Kind::kWrite:</span></span>
 <span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">         823 :         block.instructions.insert(</span></span>
 <span id="L387"><span class="lineNum">     387</span> <span class="tlaGNC">         823 :             std::next(place.at),</span></span>
@@ -453,7 +453,7 @@
 <span id="L391"><span class="lineNum">     391</span> <span class="tlaUNC">           0 :         load(place, Kind::kBranch, block.instructions,</span></span>
 <span id="L392"><span class="lineNum">     392</span> <span class="tlaUNC">           0 :              block.instructions.end());</span></span>
 <span id="L393"><span class="lineNum">     393</span> <span class="tlaUNC">           0 :         break;</span></span>
-<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">         195 :       case Kind::kPhi:</span></span>
+<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">         194 :       case Kind::kPhi:</span></span>
 <span id="L395"><span class="lineNum">     395</span>              :         // A phi function whose result is put away has every argument put</span>
 <span id="L396"><span class="lineNum">     396</span>              :         // away beside it, in the same slot, so there is nothing left for it</span>
 <span id="L397"><span class="lineNum">     397</span>              :         // to settle. Each argument was stored where its own block wrote it,</span>
@@ -464,12 +464,12 @@
 <span id="L402"><span class="lineNum">     402</span>              :         // function held its arguments in registers to the end of every block</span>
 <span id="L403"><span class="lineNum">     403</span>              :         // they came from, which no amount of spilling could take back so long</span>
 <span id="L404"><span class="lineNum">     404</span>              :         // as the phi was there to read them.</span>
-<span id="L405"><span class="lineNum">     405</span> <span class="tlaGNC">        2016 :         std::erase_if(block.phis, [&amp;](const auto&amp; phi) {</span></span>
-<span id="L406"><span class="lineNum">     406</span> <span class="tlaGNC">        2016 :           return to_spill.Contains(phi.dst);</span></span>
-<span id="L407"><span class="lineNum">     407</span> <span class="tlaGNC">        2016 :         });</span></span>
-<span id="L408"><span class="lineNum">     408</span> <span class="tlaGNC">         195 :         break;</span></span>
-<span id="L409"><span class="lineNum">     409</span> <span class="tlaGNC">        2304 :     }</span></span>
-<span id="L410"><span class="lineNum">     410</span> <span class="tlaGNC">        2304 :   }</span></span>
+<span id="L405"><span class="lineNum">     405</span> <span class="tlaGNC">        2013 :         std::erase_if(block.phis, [&amp;](const auto&amp; phi) {</span></span>
+<span id="L406"><span class="lineNum">     406</span> <span class="tlaGNC">        2013 :           return to_spill.Contains(phi.dst);</span></span>
+<span id="L407"><span class="lineNum">     407</span> <span class="tlaGNC">        2013 :         });</span></span>
+<span id="L408"><span class="lineNum">     408</span> <span class="tlaGNC">         194 :         break;</span></span>
+<span id="L409"><span class="lineNum">     409</span> <span class="tlaGNC">        2301 :     }</span></span>
+<span id="L410"><span class="lineNum">     410</span> <span class="tlaGNC">        2301 :   }</span></span>
 <span id="L411"><span class="lineNum">     411</span> <span class="tlaGNC">         773 : }</span></span>
 <span id="L412"><span class="lineNum">     412</span>              : </span>
 <span id="L413"><span class="lineNum">     413</span>              : // Takes a register the spilling has just dealt with out of what is live</span>
@@ -492,19 +492,19 @@
 <span id="L430"><span class="lineNum">     430</span>              : void RemoveSpiltRegisters(const AbstractMachineControlFlowGraph&amp; am_cfg,</span>
 <span id="L431"><span class="lineNum">     431</span>              :                           const HashSet&lt;Reg&gt;&amp; spilt,</span>
 <span id="L432"><span class="lineNum">     432</span> <span class="tlaGNC">         773 :                           AbstractMachineLiveness&amp; liveness) {</span></span>
-<span id="L433"><span class="lineNum">     433</span> <span class="tlaGNC">        1163 :   for (Reg reg : spilt) {</span></span>
-<span id="L434"><span class="lineNum">     434</span> <span class="tlaGNC">        1163 :     const bool is_param =</span></span>
-<span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">        1163 :         std::ranges::find(am_cfg.params, reg) != am_cfg.params.end();</span></span>
+<span id="L433"><span class="lineNum">     433</span> <span class="tlaGNC">        1161 :   for (Reg reg : spilt) {</span></span>
+<span id="L434"><span class="lineNum">     434</span> <span class="tlaGNC">        1161 :     const bool is_param =</span></span>
+<span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">        1161 :         std::ranges::find(am_cfg.params, reg) != am_cfg.params.end();</span></span>
 <span id="L436"><span class="lineNum">     436</span>              : </span>
-<span id="L437"><span class="lineNum">     437</span> <span class="tlaGNC">       13637 :     for (std::size_t id = 0; id &lt; liveness.size(); ++id) {</span></span>
-<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">       12474 :       auto&amp; state = liveness[id];</span></span>
-<span id="L439"><span class="lineNum">     439</span> <span class="tlaGNC">       12474 :       if (!state.has_value()) continue;</span></span>
+<span id="L437"><span class="lineNum">     437</span> <span class="tlaGNC">       13623 :     for (std::size_t id = 0; id &lt; liveness.size(); ++id) {</span></span>
+<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">       12462 :       auto&amp; state = liveness[id];</span></span>
+<span id="L439"><span class="lineNum">     439</span> <span class="tlaGNC">       12462 :       if (!state.has_value()) continue;</span></span>
 <span id="L440"><span class="lineNum">     440</span>              : </span>
-<span id="L441"><span class="lineNum">     441</span> <span class="tlaGNC">       12474 :       state-&gt;live_out.Remove(reg);</span></span>
-<span id="L442"><span class="lineNum">     442</span> <span class="tlaGNC">       12474 :       if (is_param &amp;&amp; std::size_t(am_cfg.first.id()) == id) continue;</span></span>
-<span id="L443"><span class="lineNum">     443</span> <span class="tlaGNC">       12329 :       state-&gt;live_in.Remove(reg);</span></span>
-<span id="L444"><span class="lineNum">     444</span> <span class="tlaGNC">       12329 :     }</span></span>
-<span id="L445"><span class="lineNum">     445</span> <span class="tlaGNC">        1163 :   }</span></span>
+<span id="L441"><span class="lineNum">     441</span> <span class="tlaGNC">       12462 :       state-&gt;live_out.Remove(reg);</span></span>
+<span id="L442"><span class="lineNum">     442</span> <span class="tlaGNC">       12462 :       if (is_param &amp;&amp; std::size_t(am_cfg.first.id()) == id) continue;</span></span>
+<span id="L443"><span class="lineNum">     443</span> <span class="tlaGNC">       12318 :       state-&gt;live_in.Remove(reg);</span></span>
+<span id="L444"><span class="lineNum">     444</span> <span class="tlaGNC">       12318 :     }</span></span>
+<span id="L445"><span class="lineNum">     445</span> <span class="tlaGNC">        1161 :   }</span></span>
 <span id="L446"><span class="lineNum">     446</span> <span class="tlaGNC">         773 : }</span></span>
 <span id="L447"><span class="lineNum">     447</span>              : </span>
 <span id="L448"><span class="lineNum">     448</span>              : // Colours as a bit each, lowest first. There are no more of them than there</span>
@@ -519,10 +519,10 @@
 <span id="L457"><span class="lineNum">     457</span> <span class="tlaGNC">         603 :         all_colors_(~Colors{0} &gt;&gt; static_cast&lt;unsigned&gt;(64 - colors_count)) {}</span></span>
 <span id="L458"><span class="lineNum">     458</span>              : </span>
 <span id="L459"><span class="lineNum">     459</span>              :   // Returns the colour `reg` has been given, as a bit.</span>
-<span id="L460"><span class="lineNum">     460</span> <span class="tlaGNC">       63316 :   Colors Bit(Reg reg) const {</span></span>
-<span id="L461"><span class="lineNum">     461</span> <span class="tlaGNC">       63316 :     assert(colors_[reg.id] != RegisterColors::kNone);</span></span>
-<span id="L462"><span class="lineNum">     462</span> <span class="tlaGNC">       63316 :     return Colors{1} &lt;&lt; static_cast&lt;unsigned&gt;(colors_[reg.id] - kFirstColor);</span></span>
-<span id="L463"><span class="lineNum">     463</span> <span class="tlaGNC">       63316 :   }</span></span>
+<span id="L460"><span class="lineNum">     460</span> <span class="tlaGNC">       57886 :   Colors Bit(Reg reg) const {</span></span>
+<span id="L461"><span class="lineNum">     461</span> <span class="tlaGNC">       57886 :     assert(colors_[reg.id] != RegisterColors::kNone);</span></span>
+<span id="L462"><span class="lineNum">     462</span> <span class="tlaGNC">       57886 :     return Colors{1} &lt;&lt; static_cast&lt;unsigned&gt;(colors_[reg.id] - kFirstColor);</span></span>
+<span id="L463"><span class="lineNum">     463</span> <span class="tlaGNC">       57886 :   }</span></span>
 <span id="L464"><span class="lineNum">     464</span>              : </span>
 <span id="L465"><span class="lineNum">     465</span>              :   // Gives `reg` the lowest colour not in `taken`, and takes it.</span>
 <span id="L466"><span class="lineNum">     466</span>              :   //</span>
@@ -531,13 +531,13 @@
 <span id="L469"><span class="lineNum">     469</span>              :   // Checked in every build: the colours are what the code is written</span>
 <span id="L470"><span class="lineNum">     470</span>              :   // against, so taking one that was not free is wrong code rather than a</span>
 <span id="L471"><span class="lineNum">     471</span>              :   // slower answer.</span>
-<span id="L472"><span class="lineNum">     472</span> <span class="tlaGNC">       28952 :   void Take(Reg reg, Colors&amp; taken) {</span></span>
-<span id="L473"><span class="lineNum">     473</span> <span class="tlaGNC">       28952 :     const Colors free = all_colors_ &amp; ~taken;</span></span>
-<span id="L474"><span class="lineNum">     474</span> <span class="tlaGNC">       28952 :     const std::optional&lt;int&gt; color =</span></span>
-<span id="L475"><span class="lineNum">     475</span> <span class="tlaGNC">       28952 :         free == 0 ? std::nullopt : std::optional&lt;int&gt;(std::countr_zero(free));</span></span>
-<span id="L476"><span class="lineNum">     476</span> <span class="tlaGNC">       28952 :     colors_[reg.id] = kFirstColor + color.value();</span></span>
-<span id="L477"><span class="lineNum">     477</span> <span class="tlaGNC">       28952 :     taken |= Bit(reg);</span></span>
-<span id="L478"><span class="lineNum">     478</span> <span class="tlaGNC">       28952 :   }</span></span>
+<span id="L472"><span class="lineNum">     472</span> <span class="tlaGNC">       26238 :   void Take(Reg reg, Colors&amp; taken) {</span></span>
+<span id="L473"><span class="lineNum">     473</span> <span class="tlaGNC">       26238 :     const Colors free = all_colors_ &amp; ~taken;</span></span>
+<span id="L474"><span class="lineNum">     474</span> <span class="tlaGNC">       26238 :     const std::optional&lt;int&gt; color =</span></span>
+<span id="L475"><span class="lineNum">     475</span> <span class="tlaGNC">       26238 :         free == 0 ? std::nullopt : std::optional&lt;int&gt;(std::countr_zero(free));</span></span>
+<span id="L476"><span class="lineNum">     476</span> <span class="tlaGNC">       26238 :     colors_[reg.id] = kFirstColor + color.value();</span></span>
+<span id="L477"><span class="lineNum">     477</span> <span class="tlaGNC">       26238 :     taken |= Bit(reg);</span></span>
+<span id="L478"><span class="lineNum">     478</span> <span class="tlaGNC">       26238 :   }</span></span>
 <span id="L479"><span class="lineNum">     479</span>              : </span>
 <span id="L480"><span class="lineNum">     480</span> <span class="tlaGNC">         603 :   RegisterColors Finalize() &amp;&amp; { return RegisterColors(std::move(colors_)); }</span></span>
 <span id="L481"><span class="lineNum">     481</span>              : </span>
@@ -563,10 +563,10 @@
 <span id="L501"><span class="lineNum">     501</span>              :             const AbstractMachineLiveness&amp; liveness,</span>
 <span id="L502"><span class="lineNum">     502</span> <span class="tlaGNC">        3487 :             const AbstractMachineControlFlowGraph::Block&amp; block) {</span></span>
 <span id="L503"><span class="lineNum">     503</span> <span class="tlaGNC">        3487 :     std::int32_t at = 0;</span></span>
-<span id="L504"><span class="lineNum">     504</span> <span class="tlaGNC">       29923 :     for (const auto&amp; inst : block.instructions) {</span></span>
-<span id="L505"><span class="lineNum">     505</span> <span class="tlaGNC">       30076 :       ForEachSourceRegister(inst, [&amp;](Reg reg) { Mark(reg).last_read = at; });</span></span>
-<span id="L506"><span class="lineNum">     506</span> <span class="tlaGNC">       29923 :       ++at;</span></span>
-<span id="L507"><span class="lineNum">     507</span> <span class="tlaGNC">       29923 :     }</span></span>
+<span id="L504"><span class="lineNum">     504</span> <span class="tlaGNC">       27207 :     for (const auto&amp; inst : block.instructions) {</span></span>
+<span id="L505"><span class="lineNum">     505</span> <span class="tlaGNC">       27360 :       ForEachSourceRegister(inst, [&amp;](Reg reg) { Mark(reg).last_read = at; });</span></span>
+<span id="L506"><span class="lineNum">     506</span> <span class="tlaGNC">       27207 :       ++at;</span></span>
+<span id="L507"><span class="lineNum">     507</span> <span class="tlaGNC">       27207 :     }</span></span>
 <span id="L508"><span class="lineNum">     508</span>              :     // The branch reads what it decides on after everything the block does.</span>
 <span id="L509"><span class="lineNum">     509</span> <span class="tlaGNC">        3487 :     if (block.branch_cond.has_value()) Mark(*block.branch_cond).last_read = at;</span></span>
 <span id="L510"><span class="lineNum">     510</span> <span class="tlaGNC">        8663 :     for (Reg reg : LiveOut(liveness, block)) {</span></span>
@@ -575,25 +575,25 @@
 <span id="L513"><span class="lineNum">     513</span> <span class="tlaGNC">        3487 :   }</span></span>
 <span id="L514"><span class="lineNum">     514</span>              : </span>
 <span id="L515"><span class="lineNum">     515</span> <span class="tlaGNC">        3487 :   void Clear() {</span></span>
-<span id="L516"><span class="lineNum">     516</span> <span class="tlaGNC">       36943 :     for (Reg reg : marked_) {</span></span>
-<span id="L517"><span class="lineNum">     517</span> <span class="tlaGNC">       36943 :       last_read_[reg.id] = -1;</span></span>
-<span id="L518"><span class="lineNum">     518</span> <span class="tlaGNC">       36943 :       live_out_[reg.id] = false;</span></span>
-<span id="L519"><span class="lineNum">     519</span> <span class="tlaGNC">       36943 :     }</span></span>
+<span id="L516"><span class="lineNum">     516</span> <span class="tlaGNC">       34228 :     for (Reg reg : marked_) {</span></span>
+<span id="L517"><span class="lineNum">     517</span> <span class="tlaGNC">       34228 :       last_read_[reg.id] = -1;</span></span>
+<span id="L518"><span class="lineNum">     518</span> <span class="tlaGNC">       34228 :       live_out_[reg.id] = false;</span></span>
+<span id="L519"><span class="lineNum">     519</span> <span class="tlaGNC">       34228 :     }</span></span>
 <span id="L520"><span class="lineNum">     520</span> <span class="tlaGNC">        3487 :     marked_.clear();</span></span>
 <span id="L521"><span class="lineNum">     521</span> <span class="tlaGNC">        3487 :   }</span></span>
 <span id="L522"><span class="lineNum">     522</span>              : </span>
 <span id="L523"><span class="lineNum">     523</span>              :   // Whether the block reads `reg` for the last time at `at`, and so frees</span>
 <span id="L524"><span class="lineNum">     524</span>              :   // its colour there.</span>
-<span id="L525"><span class="lineNum">     525</span> <span class="tlaGNC">       27387 :   bool DiesAt(Reg reg, std::int32_t at) const {</span></span>
-<span id="L526"><span class="lineNum">     526</span> <span class="tlaGNC">       27387 :     return !live_out_[reg.id] &amp;&amp; last_read_[reg.id] == at;</span></span>
-<span id="L527"><span class="lineNum">     527</span> <span class="tlaGNC">       27387 :   }</span></span>
+<span id="L525"><span class="lineNum">     525</span> <span class="tlaGNC">       24672 :   bool DiesAt(Reg reg, std::int32_t at) const {</span></span>
+<span id="L526"><span class="lineNum">     526</span> <span class="tlaGNC">       24672 :     return !live_out_[reg.id] &amp;&amp; last_read_[reg.id] == at;</span></span>
+<span id="L527"><span class="lineNum">     527</span> <span class="tlaGNC">       24672 :   }</span></span>
 <span id="L528"><span class="lineNum">     528</span>              : </span>
 <span id="L529"><span class="lineNum">     529</span>              :   // Whether nothing reads `reg` after it is written in the block. A register</span>
 <span id="L530"><span class="lineNum">     530</span>              :   // is read only after it is written, so any read the block holds of it</span>
 <span id="L531"><span class="lineNum">     531</span>              :   // stands later.</span>
-<span id="L532"><span class="lineNum">     532</span> <span class="tlaGNC">       28952 :   bool Unread(Reg reg) const {</span></span>
-<span id="L533"><span class="lineNum">     533</span> <span class="tlaGNC">       28952 :     return !live_out_[reg.id] &amp;&amp; last_read_[reg.id] &lt; 0;</span></span>
-<span id="L534"><span class="lineNum">     534</span> <span class="tlaGNC">       28952 :   }</span></span>
+<span id="L532"><span class="lineNum">     532</span> <span class="tlaGNC">       26238 :   bool Unread(Reg reg) const {</span></span>
+<span id="L533"><span class="lineNum">     533</span> <span class="tlaGNC">       26238 :     return !live_out_[reg.id] &amp;&amp; last_read_[reg.id] &lt; 0;</span></span>
+<span id="L534"><span class="lineNum">     534</span> <span class="tlaGNC">       26238 :   }</span></span>
 <span id="L535"><span class="lineNum">     535</span>              : </span>
 <span id="L536"><span class="lineNum">     536</span>              :  private:</span>
 <span id="L537"><span class="lineNum">     537</span>              :   struct Slots {</span>
@@ -601,10 +601,10 @@
 <span id="L539"><span class="lineNum">     539</span>              :     std::vector&lt;bool&gt;::reference live_out;</span>
 <span id="L540"><span class="lineNum">     540</span>              :   };</span>
 <span id="L541"><span class="lineNum">     541</span>              : </span>
-<span id="L542"><span class="lineNum">     542</span> <span class="tlaGNC">       36943 :   Slots Mark(Reg reg) {</span></span>
-<span id="L543"><span class="lineNum">     543</span> <span class="tlaGNC">       36943 :     marked_.push_back(reg);</span></span>
-<span id="L544"><span class="lineNum">     544</span> <span class="tlaGNC">       36943 :     return {last_read_[reg.id], live_out_[reg.id]};</span></span>
-<span id="L545"><span class="lineNum">     545</span> <span class="tlaGNC">       36943 :   }</span></span>
+<span id="L542"><span class="lineNum">     542</span> <span class="tlaGNC">       34228 :   Slots Mark(Reg reg) {</span></span>
+<span id="L543"><span class="lineNum">     543</span> <span class="tlaGNC">       34228 :     marked_.push_back(reg);</span></span>
+<span id="L544"><span class="lineNum">     544</span> <span class="tlaGNC">       34228 :     return {last_read_[reg.id], live_out_[reg.id]};</span></span>
+<span id="L545"><span class="lineNum">     545</span> <span class="tlaGNC">       34228 :   }</span></span>
 <span id="L546"><span class="lineNum">     546</span>              : </span>
 <span id="L547"><span class="lineNum">     547</span>              :   std::vector&lt;std::int32_t&gt; last_read_;</span>
 <span id="L548"><span class="lineNum">     548</span>              :   std::vector&lt;bool&gt; live_out_;</span>
@@ -629,28 +629,28 @@
 <span id="L567"><span class="lineNum">     567</span> <span class="tlaGNC">         914 :     }</span></span>
 <span id="L568"><span class="lineNum">     568</span> <span class="tlaGNC">         603 :   }</span></span>
 <span id="L569"><span class="lineNum">     569</span> <span class="tlaGNC">        3487 :   for (Reg reg : liveness[block.ref.id()].value().live_in)</span></span>
-<span id="L570"><span class="lineNum">     570</span> <span class="tlaGNC">        7903 :     taken |= coloring.Bit(reg);</span></span>
+<span id="L570"><span class="lineNum">     570</span> <span class="tlaGNC">        7902 :     taken |= coloring.Bit(reg);</span></span>
 <span id="L571"><span class="lineNum">     571</span>              : </span>
 <span id="L572"><span class="lineNum">     572</span>              :   // The phi functions settle on their results together where the block</span>
 <span id="L573"><span class="lineNum">     573</span>              :   // starts, beside everything live into it.</span>
 <span id="L574"><span class="lineNum">     574</span> <span class="tlaGNC">        3487 :   for (const auto&amp; phi : block.phis) coloring.Take(phi.dst, taken);</span></span>
 <span id="L575"><span class="lineNum">     575</span> <span class="tlaGNC">        3487 :   for (const auto&amp; phi : block.phis) {</span></span>
-<span id="L576"><span class="lineNum">     576</span> <span class="tlaGNC">        1366 :     if (reads.Unread(phi.dst)) taken &amp;= ~coloring.Bit(phi.dst);</span></span>
-<span id="L577"><span class="lineNum">     577</span> <span class="tlaGNC">        1366 :   }</span></span>
+<span id="L576"><span class="lineNum">     576</span> <span class="tlaGNC">        1367 :     if (reads.Unread(phi.dst)) taken &amp;= ~coloring.Bit(phi.dst);</span></span>
+<span id="L577"><span class="lineNum">     577</span> <span class="tlaGNC">        1367 :   }</span></span>
 <span id="L578"><span class="lineNum">     578</span>              : </span>
 <span id="L579"><span class="lineNum">     579</span>              :   // A register an instruction reads for the last time frees its colour for</span>
 <span id="L580"><span class="lineNum">     580</span>              :   // the one the instruction writes, as nothing reads it after.</span>
 <span id="L581"><span class="lineNum">     581</span> <span class="tlaGNC">        3487 :   std::int32_t at = 0;</span></span>
-<span id="L582"><span class="lineNum">     582</span> <span class="tlaGNC">       29923 :   for (const auto&amp; inst : block.instructions) {</span></span>
-<span id="L583"><span class="lineNum">     583</span> <span class="tlaGNC">       30076 :     ForEachSourceRegister(inst, [&amp;](Reg reg) {</span></span>
-<span id="L584"><span class="lineNum">     584</span> <span class="tlaGNC">       27387 :       if (reads.DiesAt(reg, at)) taken &amp;= ~coloring.Bit(reg);</span></span>
-<span id="L585"><span class="lineNum">     585</span> <span class="tlaGNC">       27387 :     });</span></span>
-<span id="L586"><span class="lineNum">     586</span> <span class="tlaGNC">       29923 :     if (const Reg* target = TargetRegister(inst)) {</span></span>
-<span id="L587"><span class="lineNum">     587</span> <span class="tlaGNC">       26672 :       coloring.Take(*target, taken);</span></span>
-<span id="L588"><span class="lineNum">     588</span> <span class="tlaGNC">       26672 :       if (reads.Unread(*target)) taken &amp;= ~coloring.Bit(*target);</span></span>
-<span id="L589"><span class="lineNum">     589</span> <span class="tlaGNC">       26672 :     }</span></span>
-<span id="L590"><span class="lineNum">     590</span> <span class="tlaGNC">       29923 :     ++at;</span></span>
-<span id="L591"><span class="lineNum">     591</span> <span class="tlaGNC">       29923 :   }</span></span>
+<span id="L582"><span class="lineNum">     582</span> <span class="tlaGNC">       27207 :   for (const auto&amp; inst : block.instructions) {</span></span>
+<span id="L583"><span class="lineNum">     583</span> <span class="tlaGNC">       27360 :     ForEachSourceRegister(inst, [&amp;](Reg reg) {</span></span>
+<span id="L584"><span class="lineNum">     584</span> <span class="tlaGNC">       24672 :       if (reads.DiesAt(reg, at)) taken &amp;= ~coloring.Bit(reg);</span></span>
+<span id="L585"><span class="lineNum">     585</span> <span class="tlaGNC">       24672 :     });</span></span>
+<span id="L586"><span class="lineNum">     586</span> <span class="tlaGNC">       27207 :     if (const Reg* target = TargetRegister(inst)) {</span></span>
+<span id="L587"><span class="lineNum">     587</span> <span class="tlaGNC">       23957 :       coloring.Take(*target, taken);</span></span>
+<span id="L588"><span class="lineNum">     588</span> <span class="tlaGNC">       23957 :       if (reads.Unread(*target)) taken &amp;= ~coloring.Bit(*target);</span></span>
+<span id="L589"><span class="lineNum">     589</span> <span class="tlaGNC">       23957 :     }</span></span>
+<span id="L590"><span class="lineNum">     590</span> <span class="tlaGNC">       27207 :     ++at;</span></span>
+<span id="L591"><span class="lineNum">     591</span> <span class="tlaGNC">       27207 :   }</span></span>
 <span id="L592"><span class="lineNum">     592</span> <span class="tlaGNC">        3487 : }</span></span>
 <span id="L593"><span class="lineNum">     593</span>              : </span>
 <span id="L594"><span class="lineNum">     594</span>              : }  // namespace</span>
@@ -691,7 +691,7 @@
 <span id="L629"><span class="lineNum">     629</span>              :     // Whatever phi functions tie it to goes with it, because one value under</span>
 <span id="L630"><span class="lineNum">     630</span>              :     // several names is put away once and read back by any of them.</span>
 <span id="L631"><span class="lineNum">     631</span> <span class="tlaGNC">         773 :     const HashSet&lt;Reg&gt; tied = TiedRegisters(ties.value(), *reg_to_spill);</span></span>
-<span id="L632"><span class="lineNum">     632</span> <span class="tlaGNC">        1163 :     for (Reg reg : tied) spilt_regs.Insert(reg);</span></span>
+<span id="L632"><span class="lineNum">     632</span> <span class="tlaGNC">        1161 :     for (Reg reg : tied) spilt_regs.Insert(reg);</span></span>
 <span id="L633"><span class="lineNum">     633</span>              : </span>
 <span id="L634"><span class="lineNum">     634</span> <span class="tlaGNC">         773 :     SpillRegisters(tied, am_cfg, rpo, occurrences.value());</span></span>
 <span id="L635"><span class="lineNum">     635</span>              : </span>
@@ -727,39 +727,39 @@
 <span id="L665"><span class="lineNum">     665</span> <span class="tlaGNC">         603 :   return std::move(coloring).Finalize();</span></span>
 <span id="L666"><span class="lineNum">     666</span> <span class="tlaGNC">         603 : }</span></span>
 <span id="L667"><span class="lineNum">     667</span>              : </span>
-<span id="L668"><span class="lineNum">     668</span> <span class="tlaGNC">       45154 : void UpdateRegister(const RegisterColors&amp; reg_colors, Reg&amp; reg) {</span></span>
-<span id="L669"><span class="lineNum">     669</span> <span class="tlaGNC">       45154 :   const std::optional&lt;int&gt; color = reg_colors.Get(reg);</span></span>
-<span id="L670"><span class="lineNum">     670</span> <span class="tlaGNC">       45154 :   assert(color.has_value());</span></span>
-<span id="L671"><span class="lineNum">     671</span> <span class="tlaGNC">       45154 :   reg.id = *color;</span></span>
-<span id="L672"><span class="lineNum">     672</span> <span class="tlaGNC">       45154 : }</span></span>
+<span id="L668"><span class="lineNum">     668</span> <span class="tlaGNC">       39727 : void UpdateRegister(const RegisterColors&amp; reg_colors, Reg&amp; reg) {</span></span>
+<span id="L669"><span class="lineNum">     669</span> <span class="tlaGNC">       39727 :   const std::optional&lt;int&gt; color = reg_colors.Get(reg);</span></span>
+<span id="L670"><span class="lineNum">     670</span> <span class="tlaGNC">       39727 :   assert(color.has_value());</span></span>
+<span id="L671"><span class="lineNum">     671</span> <span class="tlaGNC">       39727 :   reg.id = *color;</span></span>
+<span id="L672"><span class="lineNum">     672</span> <span class="tlaGNC">       39727 : }</span></span>
 <span id="L673"><span class="lineNum">     673</span>              : </span>
 <span id="L674"><span class="lineNum">     674</span>              : void MergeRegisters(const RegisterColors&amp; reg_colors,</span>
 <span id="L675"><span class="lineNum">     675</span> <span class="tlaGNC">         583 :                     AbstractMachineControlFlowGraph&amp; am_cfg) {</span></span>
 <span id="L676"><span class="lineNum">     676</span> <span class="tlaGNC">         952 :   for (Reg&amp; param : am_cfg.params) UpdateRegister(reg_colors, param);</span></span>
 <span id="L677"><span class="lineNum">     677</span> <span class="tlaGNC">        2782 :   for (auto&amp; block : am_cfg.Blocks()) {</span></span>
-<span id="L678"><span class="lineNum">     678</span> <span class="tlaGNC">       23168 :     for (auto&amp; inst : block.instructions) {</span></span>
-<span id="L679"><span class="lineNum">     679</span> <span class="tlaGNC">       23168 :       ForEachSourceRegister(inst,</span></span>
-<span id="L680"><span class="lineNum">     680</span> <span class="tlaGNC">       23168 :                             [&amp;](Reg&amp; reg) { UpdateRegister(reg_colors, reg); });</span></span>
-<span id="L681"><span class="lineNum">     681</span> <span class="tlaGNC">       23168 :       if (Reg* target = TargetRegister(inst)) {</span></span>
-<span id="L682"><span class="lineNum">     682</span> <span class="tlaGNC">       20209 :         UpdateRegister(reg_colors, *target);</span></span>
-<span id="L683"><span class="lineNum">     683</span> <span class="tlaGNC">       20209 :       }</span></span>
-<span id="L684"><span class="lineNum">     684</span> <span class="tlaGNC">       23168 :     }</span></span>
+<span id="L678"><span class="lineNum">     678</span> <span class="tlaGNC">       20452 :     for (auto&amp; inst : block.instructions) {</span></span>
+<span id="L679"><span class="lineNum">     679</span> <span class="tlaGNC">       20452 :       ForEachSourceRegister(inst,</span></span>
+<span id="L680"><span class="lineNum">     680</span> <span class="tlaGNC">       20452 :                             [&amp;](Reg&amp; reg) { UpdateRegister(reg_colors, reg); });</span></span>
+<span id="L681"><span class="lineNum">     681</span> <span class="tlaGNC">       20452 :       if (Reg* target = TargetRegister(inst)) {</span></span>
+<span id="L682"><span class="lineNum">     682</span> <span class="tlaGNC">       17494 :         UpdateRegister(reg_colors, *target);</span></span>
+<span id="L683"><span class="lineNum">     683</span> <span class="tlaGNC">       17494 :       }</span></span>
+<span id="L684"><span class="lineNum">     684</span> <span class="tlaGNC">       20452 :     }</span></span>
 <span id="L685"><span class="lineNum">     685</span> <span class="tlaGNC">        2782 :     if (auto&amp; cond = block.branch_cond; cond.has_value()) {</span></span>
 <span id="L686"><span class="lineNum">     686</span> <span class="tlaGNC">         695 :       UpdateRegister(reg_colors, *cond);</span></span>
 <span id="L687"><span class="lineNum">     687</span> <span class="tlaGNC">         695 :     }</span></span>
 <span id="L688"><span class="lineNum">     688</span> <span class="tlaGNC">        2782 :     for (auto&amp; phi : block.phis) {</span></span>
-<span id="L689"><span class="lineNum">     689</span> <span class="tlaGNC">        1061 :       UpdateRegister(reg_colors, phi.dst);</span></span>
-<span id="L690"><span class="lineNum">     690</span> <span class="tlaGNC">        1830 :       for (auto&amp; source : phi.srcs) UpdateRegister(reg_colors, source);</span></span>
-<span id="L691"><span class="lineNum">     691</span> <span class="tlaGNC">        1061 :     }</span></span>
+<span id="L689"><span class="lineNum">     689</span> <span class="tlaGNC">        1062 :       UpdateRegister(reg_colors, phi.dst);</span></span>
+<span id="L690"><span class="lineNum">     690</span> <span class="tlaGNC">        1832 :       for (auto&amp; source : phi.srcs) UpdateRegister(reg_colors, source);</span></span>
+<span id="L691"><span class="lineNum">     691</span> <span class="tlaGNC">        1062 :     }</span></span>
 <span id="L692"><span class="lineNum">     692</span>              : </span>
 <span id="L693"><span class="lineNum">     693</span>              :     // A copy whose source took the colour of where it goes copies a register</span>
 <span id="L694"><span class="lineNum">     694</span>              :     // onto itself, and is dropped. That holds at 32 bits as well, where a</span>
 <span id="L695"><span class="lineNum">     695</span>              :     // write clears the upper half of the register: every instruction that</span>
 <span id="L696"><span class="lineNum">     696</span>              :     // leaves a 32-bit value in a register has cleared it already.</span>
-<span id="L697"><span class="lineNum">     697</span> <span class="tlaGNC">       23168 :     std::erase_if(block.instructions, [](const Instruction&amp; inst) {</span></span>
-<span id="L698"><span class="lineNum">     698</span> <span class="tlaGNC">       23168 :       const auto* move = std::get_if&lt;MoveReg&gt;(&amp;inst);</span></span>
-<span id="L699"><span class="lineNum">     699</span> <span class="tlaGNC">       23168 :       return move != nullptr &amp;&amp; move-&gt;src_reg == move-&gt;dst_reg;</span></span>
-<span id="L700"><span class="lineNum">     700</span> <span class="tlaGNC">       23168 :     });</span></span>
+<span id="L697"><span class="lineNum">     697</span> <span class="tlaGNC">       20452 :     std::erase_if(block.instructions, [](const Instruction&amp; inst) {</span></span>
+<span id="L698"><span class="lineNum">     698</span> <span class="tlaGNC">       20452 :       const auto* move = std::get_if&lt;MoveReg&gt;(&amp;inst);</span></span>
+<span id="L699"><span class="lineNum">     699</span> <span class="tlaGNC">       20452 :       return move != nullptr &amp;&amp; move-&gt;src_reg == move-&gt;dst_reg;</span></span>
+<span id="L700"><span class="lineNum">     700</span> <span class="tlaGNC">       20452 :     });</span></span>
 <span id="L701"><span class="lineNum">     701</span> <span class="tlaGNC">        2782 :   }</span></span>
 <span id="L702"><span class="lineNum">     702</span> <span class="tlaGNC">         583 : }</span></span>
 <span id="L703"><span class="lineNum">     703</span>              : </span>

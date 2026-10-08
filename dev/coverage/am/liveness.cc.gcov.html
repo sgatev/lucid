@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 19:54:33</td>
+            <td class="headerValue">2026-10-08 20:23:27</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -101,9 +101,9 @@
 <span id="L39"><span class="lineNum">      39</span>              : }  // namespace</span>
 <span id="L40"><span class="lineNum">      40</span>              : </span>
 <span id="L41"><span class="lineNum">      41</span>              : void AbstractMachineLivenessAnalysis::Transfer(State&amp; state,</span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">       29247 :                                                const Instruction&amp; inst) {</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">       29247 :   TransferLive(state.live_in, inst);</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">       29247 : }</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">       26511 :                                                const Instruction&amp; inst) {</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">       26511 :   TransferLive(state.live_in, inst);</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">       26511 : }</span></span>
 <span id="L45"><span class="lineNum">      45</span>              : </span>
 <span id="L46"><span class="lineNum">      46</span>              : AbstractMachineLivenessAnalysis::AbstractMachineLivenessAnalysis(</span>
 <span id="L47"><span class="lineNum">      47</span>              :     const AbstractMachineControlFlowGraph&amp; am_cfg)</span>
@@ -127,9 +127,9 @@
 <span id="L65"><span class="lineNum">      65</span>              :   // can follow the one that works it out, as the copy a short circuit makes</span>
 <span id="L66"><span class="lineNum">      66</span>              :   // of a value it has already decided on does.</span>
 <span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">        3733 :   if (block.branch_cond.has_value()) state.live_in.Insert(*block.branch_cond);</span></span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">       29252 :   for (const auto&amp; inst : block.instructions | std::views::reverse) {</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">       29247 :     Transfer(state, inst);</span></span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">       29247 :   }</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">       26516 :   for (const auto&amp; inst : block.instructions | std::views::reverse) {</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">       26511 :     Transfer(state, inst);</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">       26511 :   }</span></span>
 <span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">        3733 :   for (const auto&amp; phi : block.phis) state.live_in.Remove(phi.dst);</span></span>
 <span id="L72"><span class="lineNum">      72</span>              : </span>
 <span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">        3733 :   return state;</span></span>

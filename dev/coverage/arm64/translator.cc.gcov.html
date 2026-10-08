@@ -32,17 +32,17 @@
             <td></td>
             <td class="headerItem">Lines:</td>
             <td class="headerCovTableEntryHi">98.4&nbsp;%</td>
+            <td class="headerCovTableEntry">639</td>
             <td class="headerCovTableEntry">629</td>
-            <td class="headerCovTableEntry">619</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 19:54:33</td>
+            <td class="headerValue">2026-10-08 20:23:27</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntryHi">96.6&nbsp;%</td>
-            <td class="headerCovTableEntry">87</td>
-            <td class="headerCovTableEntry">84</td>
+            <td class="headerCovTableEntryHi">96.3&nbsp;%</td>
+            <td class="headerCovTableEntry">82</td>
+            <td class="headerCovTableEntry">79</td>
           </tr>
                   <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
                 </table>
@@ -119,10 +119,10 @@
 <span id="L57"><span class="lineNum">      57</span>              : </span>
 <span id="L58"><span class="lineNum">      58</span>              : // Casts an integer of type `I` to type `O`.</span>
 <span id="L59"><span class="lineNum">      59</span>              : template &lt;typename O, typename I&gt;</span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">        8431 : constexpr O SafeCast(I i) noexcept {</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">        8431 :   assert(std::in_range&lt;O&gt;(i));</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">        8431 :   return static_cast&lt;O&gt;(i);</span></span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">        8431 : }</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">        7074 : constexpr O SafeCast(I i) noexcept {</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">        7074 :   assert(std::in_range&lt;O&gt;(i));</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">        7074 :   return static_cast&lt;O&gt;(i);</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">        7074 : }</span></span>
 <span id="L64"><span class="lineNum">      64</span>              : </span>
 <span id="L65"><span class="lineNum">      65</span>              : // A comparison a branch can decide for itself, rather than read the result of.</span>
 <span id="L66"><span class="lineNum">      66</span>              : struct BranchComparison {</span>
@@ -380,9 +380,9 @@
 <span id="L318"><span class="lineNum">     318</span>              :     // A fused comparison is emitted by the branch below rather than here.</span>
 <span id="L319"><span class="lineNum">     319</span> <span class="tlaGNC">        2448 :     auto instructions_end = block.instructions.end();</span></span>
 <span id="L320"><span class="lineNum">     320</span> <span class="tlaGNC">        2448 :     if (fused.has_value()) --instructions_end;</span></span>
-<span id="L321"><span class="lineNum">     321</span> <span class="tlaGNC">       20709 :     for (auto it = block.instructions.begin(); it != instructions_end; ++it) {</span></span>
-<span id="L322"><span class="lineNum">     322</span> <span class="tlaGNC">       18261 :       Process(block, *it);</span></span>
-<span id="L323"><span class="lineNum">     323</span> <span class="tlaGNC">       18261 :     }</span></span>
+<span id="L321"><span class="lineNum">     321</span> <span class="tlaGNC">       17993 :     for (auto it = block.instructions.begin(); it != instructions_end; ++it) {</span></span>
+<span id="L322"><span class="lineNum">     322</span> <span class="tlaGNC">       15545 :       Process(block, *it);</span></span>
+<span id="L323"><span class="lineNum">     323</span> <span class="tlaGNC">       15545 :     }</span></span>
 <span id="L324"><span class="lineNum">     324</span>              : </span>
 <span id="L325"><span class="lineNum">     325</span> <span class="tlaGNC">        2448 :     if (block.branch_cond.has_value()) {</span></span>
 <span id="L326"><span class="lineNum">     326</span>              :       // The condition holds for the first successor. Control falls through</span>
@@ -431,9 +431,9 @@
 <span id="L369"><span class="lineNum">     369</span> <span class="tlaGNC">         484 :   }</span></span>
 <span id="L370"><span class="lineNum">     370</span>              : </span>
 <span id="L371"><span class="lineNum">     371</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L372"><span class="lineNum">     372</span> <span class="tlaGNC">       18261 :                const Instruction&amp; inst) {</span></span>
-<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">       18261 :     std::visit([&amp;](auto&amp;&amp; inst) { Process(block, inst); }, inst);</span></span>
-<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">       18261 :   }</span></span>
+<span id="L372"><span class="lineNum">     372</span> <span class="tlaGNC">       15545 :                const Instruction&amp; inst) {</span></span>
+<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">       15545 :     std::visit([&amp;](auto&amp;&amp; inst) { Process(block, inst); }, inst);</span></span>
+<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">       15545 :   }</span></span>
 <span id="L375"><span class="lineNum">     375</span>              : </span>
 <span id="L376"><span class="lineNum">     376</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
 <span id="L377"><span class="lineNum">     377</span> <span class="tlaUNC">           0 :                const Nop&amp;) {}</span></span>
@@ -451,18 +451,18 @@
 <span id="L389"><span class="lineNum">     389</span> <span class="tlaGNC">        1352 :   }</span></span>
 <span id="L390"><span class="lineNum">     390</span>              : </span>
 <span id="L391"><span class="lineNum">     391</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L392"><span class="lineNum">     392</span> <span class="tlaGNC">        7710 :                const SetReg&amp; inst) {</span></span>
-<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">        7710 :     switch (inst.dst_reg.size) {</span></span>
-<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">        7666 :       case RegSize32:</span></span>
-<span id="L395"><span class="lineNum">     395</span> <span class="tlaGNC">        7666 :         assembler_.Mov(W(inst.dst_reg.id),</span></span>
-<span id="L396"><span class="lineNum">     396</span> <span class="tlaGNC">        7666 :                        Imm(SafeCast&lt;std::int16_t&gt;(inst.src_val)));</span></span>
-<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">        7666 :         break;</span></span>
+<span id="L392"><span class="lineNum">     392</span> <span class="tlaGNC">        6353 :                const SetReg&amp; inst) {</span></span>
+<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">        6353 :     switch (inst.dst_reg.size) {</span></span>
+<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">        6309 :       case RegSize32:</span></span>
+<span id="L395"><span class="lineNum">     395</span> <span class="tlaGNC">        6309 :         assembler_.Mov(W(inst.dst_reg.id),</span></span>
+<span id="L396"><span class="lineNum">     396</span> <span class="tlaGNC">        6309 :                        Imm(SafeCast&lt;std::int16_t&gt;(inst.src_val)));</span></span>
+<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">        6309 :         break;</span></span>
 <span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC">          44 :       case RegSize64:</span></span>
 <span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">          44 :         assembler_.Mov(X(inst.dst_reg.id),</span></span>
 <span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">          44 :                        Imm(SafeCast&lt;std::int16_t&gt;(inst.src_val)));</span></span>
 <span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">          44 :         break;</span></span>
-<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">        7710 :     }</span></span>
-<span id="L403"><span class="lineNum">     403</span> <span class="tlaGNC">        7710 :   }</span></span>
+<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">        6353 :     }</span></span>
+<span id="L403"><span class="lineNum">     403</span> <span class="tlaGNC">        6353 :   }</span></span>
 <span id="L404"><span class="lineNum">     404</span>              : </span>
 <span id="L405"><span class="lineNum">     405</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
 <span id="L406"><span class="lineNum">     406</span> <span class="tlaGNC">         232 :                const SetInt&amp; inst) {</span></span>
@@ -530,7 +530,7 @@
 <span id="L468"><span class="lineNum">     468</span>              :       // An argument already in the register the phi function settles on is</span>
 <span id="L469"><span class="lineNum">     469</span>              :       // where it needs to be. Left in, it would read as a copy waiting on</span>
 <span id="L470"><span class="lineNum">     470</span>              :       // itself, and go round through the scratch register to stay put.</span>
-<span id="L471"><span class="lineNum">     471</span> <span class="tlaGNC">        1521 :       if (phi.srcs[pred_block_idx] == phi.dst) continue;</span></span>
+<span id="L471"><span class="lineNum">     471</span> <span class="tlaGNC">        1523 :       if (phi.srcs[pred_block_idx] == phi.dst) continue;</span></span>
 <span id="L472"><span class="lineNum">     472</span>              : </span>
 <span id="L473"><span class="lineNum">     473</span> <span class="tlaGNC">         361 :       dst_to_srcs.Insert(phi.dst, phi.srcs[pred_block_idx]);</span></span>
 <span id="L474"><span class="lineNum">     474</span> <span class="tlaGNC">         361 :       ++reads.Emplace(phi.srcs[pred_block_idx].id);</span></span>
@@ -576,18 +576,18 @@
 <span id="L514"><span class="lineNum">     514</span> <span class="tlaGNC">        1980 :   }</span></span>
 <span id="L515"><span class="lineNum">     515</span>              : </span>
 <span id="L516"><span class="lineNum">     516</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L517"><span class="lineNum">     517</span> <span class="tlaGNC">        2134 :                const AddReg&amp; inst) {</span></span>
-<span id="L518"><span class="lineNum">     518</span> <span class="tlaGNC">        2134 :     switch (inst.res_reg.size) {</span></span>
-<span id="L519"><span class="lineNum">     519</span> <span class="tlaGNC">        2128 :       case RegSize32:</span></span>
-<span id="L520"><span class="lineNum">     520</span> <span class="tlaGNC">        2128 :         assembler_.Add(W(inst.res_reg.id), W(inst.lhs_reg.id),</span></span>
-<span id="L521"><span class="lineNum">     521</span> <span class="tlaGNC">        2128 :                        W(inst.rhs_reg.id));</span></span>
-<span id="L522"><span class="lineNum">     522</span> <span class="tlaGNC">        2128 :         break;</span></span>
+<span id="L517"><span class="lineNum">     517</span> <span class="tlaGNC">        1806 :                const AddReg&amp; inst) {</span></span>
+<span id="L518"><span class="lineNum">     518</span> <span class="tlaGNC">        1806 :     switch (inst.res_reg.size) {</span></span>
+<span id="L519"><span class="lineNum">     519</span> <span class="tlaGNC">        1800 :       case RegSize32:</span></span>
+<span id="L520"><span class="lineNum">     520</span> <span class="tlaGNC">        1800 :         assembler_.Add(W(inst.res_reg.id), W(inst.lhs_reg.id),</span></span>
+<span id="L521"><span class="lineNum">     521</span> <span class="tlaGNC">        1800 :                        W(inst.rhs_reg.id));</span></span>
+<span id="L522"><span class="lineNum">     522</span> <span class="tlaGNC">        1800 :         break;</span></span>
 <span id="L523"><span class="lineNum">     523</span> <span class="tlaGNC">           6 :       case RegSize64:</span></span>
 <span id="L524"><span class="lineNum">     524</span> <span class="tlaGNC">           6 :         assembler_.Add(X(inst.res_reg.id), X(inst.lhs_reg.id),</span></span>
 <span id="L525"><span class="lineNum">     525</span> <span class="tlaGNC">           6 :                        X(inst.rhs_reg.id));</span></span>
 <span id="L526"><span class="lineNum">     526</span> <span class="tlaGNC">           6 :         break;</span></span>
-<span id="L527"><span class="lineNum">     527</span> <span class="tlaGNC">        2134 :     }</span></span>
-<span id="L528"><span class="lineNum">     528</span> <span class="tlaGNC">        2134 :   }</span></span>
+<span id="L527"><span class="lineNum">     527</span> <span class="tlaGNC">        1806 :     }</span></span>
+<span id="L528"><span class="lineNum">     528</span> <span class="tlaGNC">        1806 :   }</span></span>
 <span id="L529"><span class="lineNum">     529</span>              : </span>
 <span id="L530"><span class="lineNum">     530</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
 <span id="L531"><span class="lineNum">     531</span> <span class="tlaGNC">         275 :                const SubReg&amp; inst) {</span></span>
@@ -604,18 +604,18 @@
 <span id="L542"><span class="lineNum">     542</span> <span class="tlaGNC">         275 :   }</span></span>
 <span id="L543"><span class="lineNum">     543</span>              : </span>
 <span id="L544"><span class="lineNum">     544</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L545"><span class="lineNum">     545</span> <span class="tlaGNC">        1425 :                const MulReg&amp; inst) {</span></span>
-<span id="L546"><span class="lineNum">     546</span> <span class="tlaGNC">        1425 :     switch (inst.res_reg.size) {</span></span>
-<span id="L547"><span class="lineNum">     547</span> <span class="tlaGNC">        1423 :       case RegSize32:</span></span>
-<span id="L548"><span class="lineNum">     548</span> <span class="tlaGNC">        1423 :         assembler_.Mul(W(inst.res_reg.id), W(inst.lhs_reg.id),</span></span>
-<span id="L549"><span class="lineNum">     549</span> <span class="tlaGNC">        1423 :                        W(inst.rhs_reg.id));</span></span>
-<span id="L550"><span class="lineNum">     550</span> <span class="tlaGNC">        1423 :         break;</span></span>
+<span id="L545"><span class="lineNum">     545</span> <span class="tlaGNC">         396 :                const MulReg&amp; inst) {</span></span>
+<span id="L546"><span class="lineNum">     546</span> <span class="tlaGNC">         396 :     switch (inst.res_reg.size) {</span></span>
+<span id="L547"><span class="lineNum">     547</span> <span class="tlaGNC">         394 :       case RegSize32:</span></span>
+<span id="L548"><span class="lineNum">     548</span> <span class="tlaGNC">         394 :         assembler_.Mul(W(inst.res_reg.id), W(inst.lhs_reg.id),</span></span>
+<span id="L549"><span class="lineNum">     549</span> <span class="tlaGNC">         394 :                        W(inst.rhs_reg.id));</span></span>
+<span id="L550"><span class="lineNum">     550</span> <span class="tlaGNC">         394 :         break;</span></span>
 <span id="L551"><span class="lineNum">     551</span> <span class="tlaGNC">           2 :       case RegSize64:</span></span>
 <span id="L552"><span class="lineNum">     552</span> <span class="tlaGNC">           2 :         assembler_.Mul(X(inst.res_reg.id), X(inst.lhs_reg.id),</span></span>
 <span id="L553"><span class="lineNum">     553</span> <span class="tlaGNC">           2 :                        X(inst.rhs_reg.id));</span></span>
 <span id="L554"><span class="lineNum">     554</span> <span class="tlaGNC">           2 :         break;</span></span>
-<span id="L555"><span class="lineNum">     555</span> <span class="tlaGNC">        1425 :     }</span></span>
-<span id="L556"><span class="lineNum">     556</span> <span class="tlaGNC">        1425 :   }</span></span>
+<span id="L555"><span class="lineNum">     555</span> <span class="tlaGNC">         396 :     }</span></span>
+<span id="L556"><span class="lineNum">     556</span> <span class="tlaGNC">         396 :   }</span></span>
 <span id="L557"><span class="lineNum">     557</span>              : </span>
 <span id="L558"><span class="lineNum">     558</span>              :   // The numbers the language holds are signed, so the division that suits</span>
 <span id="L559"><span class="lineNum">     559</span>              :   // them is the signed one: an unsigned divide reads a negative dividend as</span>
@@ -755,299 +755,333 @@
 <span id="L693"><span class="lineNum">     693</span> <span class="tlaGNC">          36 :   }</span></span>
 <span id="L694"><span class="lineNum">     694</span>              : </span>
 <span id="L695"><span class="lineNum">     695</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L696"><span class="lineNum">     696</span> <span class="tlaGNC">         752 :                const StoreStack&amp; inst) {</span></span>
-<span id="L697"><span class="lineNum">     697</span> <span class="tlaGNC">         752 :     const SlotAddress at = AddressOf(inst.offset, inst.src_reg.size);</span></span>
-<span id="L698"><span class="lineNum">     698</span> <span class="tlaGNC">         752 :     switch (inst.src_reg.size) {</span></span>
-<span id="L699"><span class="lineNum">     699</span> <span class="tlaGNC">         574 :       case RegSize32:</span></span>
-<span id="L700"><span class="lineNum">     700</span> <span class="tlaGNC">         574 :         assembler_.StrUnsignedOffset(W(inst.src_reg.id), at.base, at.offset);</span></span>
-<span id="L701"><span class="lineNum">     701</span> <span class="tlaGNC">         574 :         break;</span></span>
+<span id="L696"><span class="lineNum">     696</span> <span class="tlaGNC">         751 :                const StoreStack&amp; inst) {</span></span>
+<span id="L697"><span class="lineNum">     697</span> <span class="tlaGNC">         751 :     const SlotAddress at = AddressOf(inst.offset, inst.src_reg.size);</span></span>
+<span id="L698"><span class="lineNum">     698</span> <span class="tlaGNC">         751 :     switch (inst.src_reg.size) {</span></span>
+<span id="L699"><span class="lineNum">     699</span> <span class="tlaGNC">         573 :       case RegSize32:</span></span>
+<span id="L700"><span class="lineNum">     700</span> <span class="tlaGNC">         573 :         assembler_.StrUnsignedOffset(W(inst.src_reg.id), at.base, at.offset);</span></span>
+<span id="L701"><span class="lineNum">     701</span> <span class="tlaGNC">         573 :         break;</span></span>
 <span id="L702"><span class="lineNum">     702</span> <span class="tlaGNC">         178 :       case RegSize64:</span></span>
 <span id="L703"><span class="lineNum">     703</span> <span class="tlaGNC">         178 :         assembler_.StrUnsignedOffset(X(inst.src_reg.id), at.base, at.offset);</span></span>
 <span id="L704"><span class="lineNum">     704</span> <span class="tlaGNC">         178 :         break;</span></span>
-<span id="L705"><span class="lineNum">     705</span> <span class="tlaGNC">         752 :     }</span></span>
-<span id="L706"><span class="lineNum">     706</span> <span class="tlaGNC">         752 :   }</span></span>
+<span id="L705"><span class="lineNum">     705</span> <span class="tlaGNC">         751 :     }</span></span>
+<span id="L706"><span class="lineNum">     706</span> <span class="tlaGNC">         751 :   }</span></span>
 <span id="L707"><span class="lineNum">     707</span>              : </span>
 <span id="L708"><span class="lineNum">     708</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
 <span id="L709"><span class="lineNum">     709</span> <span class="tlaGNC">        1175 :                const StoreStackReg&amp; inst) {</span></span>
-<span id="L710"><span class="lineNum">     710</span> <span class="tlaGNC">        1175 :     switch (inst.src_reg.size) {</span></span>
-<span id="L711"><span class="lineNum">     711</span> <span class="tlaGNC">        1173 :       case RegSize32:</span></span>
-<span id="L712"><span class="lineNum">     712</span> <span class="tlaGNC">        1173 :         InCarriableSteps(AdjustedOffset(inst.offset), [&amp;](Imm imm) {</span></span>
-<span id="L713"><span class="lineNum">     713</span> <span class="tlaGNC">        1173 :           assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id), imm);</span></span>
-<span id="L714"><span class="lineNum">     714</span> <span class="tlaGNC">        1173 :         });</span></span>
-<span id="L715"><span class="lineNum">     715</span> <span class="tlaGNC">        1173 :         assembler_.Str(W(inst.src_reg.id), SP, W(inst.offset_reg.id),</span></span>
-<span id="L716"><span class="lineNum">     716</span> <span class="tlaGNC">        1173 :                        Extend::Uxtw, Imm(0));</span></span>
-<span id="L717"><span class="lineNum">     717</span> <span class="tlaGNC">        1173 :         break;</span></span>
-<span id="L718"><span class="lineNum">     718</span> <span class="tlaGNC">           2 :       case RegSize64:</span></span>
-<span id="L719"><span class="lineNum">     719</span> <span class="tlaGNC">           2 :         InCarriableSteps(AdjustedOffset(inst.offset), [&amp;](Imm imm) {</span></span>
-<span id="L720"><span class="lineNum">     720</span> <span class="tlaGNC">           2 :           assembler_.Add(X(inst.offset_reg.id), X(inst.offset_reg.id), imm);</span></span>
-<span id="L721"><span class="lineNum">     721</span> <span class="tlaGNC">           2 :         });</span></span>
-<span id="L722"><span class="lineNum">     722</span> <span class="tlaGNC">           2 :         assembler_.Str(X(inst.src_reg.id), SP, X(inst.offset_reg.id),</span></span>
-<span id="L723"><span class="lineNum">     723</span> <span class="tlaGNC">           2 :                        Extend::Lsl, Imm(0));</span></span>
-<span id="L724"><span class="lineNum">     724</span> <span class="tlaGNC">           2 :         break;</span></span>
-<span id="L725"><span class="lineNum">     725</span> <span class="tlaGNC">        1175 :     }</span></span>
-<span id="L726"><span class="lineNum">     726</span> <span class="tlaGNC">        1175 :   }</span></span>
-<span id="L727"><span class="lineNum">     727</span>              : </span>
-<span id="L728"><span class="lineNum">     728</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L729"><span class="lineNum">     729</span> <span class="tlaGNC">         923 :                const LoadStack&amp; inst) {</span></span>
-<span id="L730"><span class="lineNum">     730</span> <span class="tlaGNC">         923 :     const SlotAddress at = AddressOf(inst.offset, inst.dst_reg.size);</span></span>
-<span id="L731"><span class="lineNum">     731</span> <span class="tlaGNC">         923 :     switch (inst.dst_reg.size) {</span></span>
-<span id="L732"><span class="lineNum">     732</span> <span class="tlaGNC">         653 :       case RegSize32:</span></span>
-<span id="L733"><span class="lineNum">     733</span> <span class="tlaGNC">         653 :         assembler_.LdrUnsignedOffset(W(inst.dst_reg.id), at.base, at.offset);</span></span>
-<span id="L734"><span class="lineNum">     734</span> <span class="tlaGNC">         653 :         break;</span></span>
-<span id="L735"><span class="lineNum">     735</span> <span class="tlaGNC">         270 :       case RegSize64:</span></span>
-<span id="L736"><span class="lineNum">     736</span> <span class="tlaGNC">         270 :         assembler_.LdrUnsignedOffset(X(inst.dst_reg.id), at.base, at.offset);</span></span>
-<span id="L737"><span class="lineNum">     737</span> <span class="tlaGNC">         270 :         break;</span></span>
-<span id="L738"><span class="lineNum">     738</span> <span class="tlaGNC">         923 :     }</span></span>
-<span id="L739"><span class="lineNum">     739</span> <span class="tlaGNC">         923 :   }</span></span>
-<span id="L740"><span class="lineNum">     740</span>              : </span>
-<span id="L741"><span class="lineNum">     741</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L742"><span class="lineNum">     742</span> <span class="tlaGNC">         127 :                const LoadStackReg&amp; inst) {</span></span>
-<span id="L743"><span class="lineNum">     743</span> <span class="tlaGNC">         127 :     switch (inst.dst_reg.size) {</span></span>
-<span id="L744"><span class="lineNum">     744</span> <span class="tlaGNC">         125 :       case RegSize32:</span></span>
-<span id="L745"><span class="lineNum">     745</span> <span class="tlaGNC">         125 :         InCarriableSteps(AdjustedOffset(inst.offset), [&amp;](Imm imm) {</span></span>
-<span id="L746"><span class="lineNum">     746</span> <span class="tlaGNC">         125 :           assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id), imm);</span></span>
-<span id="L747"><span class="lineNum">     747</span> <span class="tlaGNC">         125 :         });</span></span>
-<span id="L748"><span class="lineNum">     748</span> <span class="tlaGNC">         125 :         assembler_.Ldr(W(inst.dst_reg.id), SP, W(inst.offset_reg.id),</span></span>
-<span id="L749"><span class="lineNum">     749</span> <span class="tlaGNC">         125 :                        Extend::Uxtw);</span></span>
-<span id="L750"><span class="lineNum">     750</span> <span class="tlaGNC">         125 :         break;</span></span>
-<span id="L751"><span class="lineNum">     751</span> <span class="tlaGNC">           2 :       case RegSize64:</span></span>
-<span id="L752"><span class="lineNum">     752</span> <span class="tlaGNC">           2 :         InCarriableSteps(AdjustedOffset(inst.offset), [&amp;](Imm imm) {</span></span>
-<span id="L753"><span class="lineNum">     753</span> <span class="tlaGNC">           2 :           assembler_.Add(X(inst.offset_reg.id), X(inst.offset_reg.id), imm);</span></span>
-<span id="L754"><span class="lineNum">     754</span> <span class="tlaGNC">           2 :         });</span></span>
-<span id="L755"><span class="lineNum">     755</span> <span class="tlaGNC">           2 :         assembler_.Ldr(X(inst.dst_reg.id), SP, X(inst.offset_reg.id),</span></span>
-<span id="L756"><span class="lineNum">     756</span> <span class="tlaGNC">           2 :                        Extend::Lsl, Imm(0));</span></span>
-<span id="L757"><span class="lineNum">     757</span> <span class="tlaGNC">           2 :         break;</span></span>
-<span id="L758"><span class="lineNum">     758</span> <span class="tlaGNC">         127 :     }</span></span>
-<span id="L759"><span class="lineNum">     759</span> <span class="tlaGNC">         127 :   }</span></span>
-<span id="L760"><span class="lineNum">     760</span>              : </span>
-<span id="L761"><span class="lineNum">     761</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L762"><span class="lineNum">     762</span> <span class="tlaGNC">         809 :                const FuncCall&amp; inst) {</span></span>
-<span id="L763"><span class="lineNum">     763</span>              :     // Only the arguments there are registers for are passed here. The rest</span>
-<span id="L764"><span class="lineNum">     764</span>              :     // are already at the foot of the frame, which is where the stack pointer</span>
-<span id="L765"><span class="lineNum">     765</span>              :     // stands at the call, put there by a `StoreArg` ahead of it.</span>
-<span id="L766"><span class="lineNum">     766</span> <span class="tlaGNC">        2309 :     for (int i = 0; i &lt; inst.args.size(); ++i) {</span></span>
-<span id="L767"><span class="lineNum">     767</span> <span class="tlaGNC">        1500 :       switch (inst.args[i].reg.size) {</span></span>
-<span id="L768"><span class="lineNum">     768</span> <span class="tlaGNC">         780 :         case RegSize32:</span></span>
-<span id="L769"><span class="lineNum">     769</span> <span class="tlaGNC">         780 :           assembler_.Mov(W(i + 1), W(inst.args[i].reg.id));</span></span>
-<span id="L770"><span class="lineNum">     770</span> <span class="tlaGNC">         780 :           break;</span></span>
-<span id="L771"><span class="lineNum">     771</span> <span class="tlaGNC">         720 :         case RegSize64:</span></span>
-<span id="L772"><span class="lineNum">     772</span> <span class="tlaGNC">         720 :           assembler_.Mov(X(i + 1), X(inst.args[i].reg.id));</span></span>
-<span id="L773"><span class="lineNum">     773</span> <span class="tlaGNC">         720 :           break;</span></span>
-<span id="L774"><span class="lineNum">     774</span> <span class="tlaGNC">        1500 :       }</span></span>
-<span id="L775"><span class="lineNum">     775</span> <span class="tlaGNC">        1500 :     }</span></span>
-<span id="L776"><span class="lineNum">     776</span>              : </span>
-<span id="L777"><span class="lineNum">     777</span> <span class="tlaGNC">         809 :     assembler_.Bl(assembler_.Named(inst.label));</span></span>
-<span id="L778"><span class="lineNum">     778</span>              : </span>
-<span id="L779"><span class="lineNum">     779</span> <span class="tlaGNC">         809 :     if (inst.res.has_value()) {</span></span>
-<span id="L780"><span class="lineNum">     780</span> <span class="tlaGNC">         358 :       switch (inst.res-&gt;reg.size) {</span></span>
-<span id="L781"><span class="lineNum">     781</span> <span class="tlaGNC">         186 :         case RegSize32:</span></span>
-<span id="L782"><span class="lineNum">     782</span> <span class="tlaGNC">         186 :           assembler_.Mov(W(inst.res-&gt;reg.id), W(0));</span></span>
-<span id="L783"><span class="lineNum">     783</span> <span class="tlaGNC">         186 :           break;</span></span>
-<span id="L784"><span class="lineNum">     784</span> <span class="tlaGNC">         172 :         case RegSize64:</span></span>
-<span id="L785"><span class="lineNum">     785</span> <span class="tlaGNC">         172 :           assembler_.Mov(X(inst.res-&gt;reg.id), X(0));</span></span>
-<span id="L786"><span class="lineNum">     786</span> <span class="tlaGNC">         172 :           break;</span></span>
-<span id="L787"><span class="lineNum">     787</span> <span class="tlaGNC">         358 :       }</span></span>
-<span id="L788"><span class="lineNum">     788</span> <span class="tlaGNC">         358 :     }</span></span>
-<span id="L789"><span class="lineNum">     789</span> <span class="tlaGNC">         809 :   }</span></span>
-<span id="L790"><span class="lineNum">     790</span>              : </span>
-<span id="L791"><span class="lineNum">     791</span> <span class="tlaUNC">           0 :   Imm ParseImm(std::string_view sv) {</span></span>
-<span id="L792"><span class="lineNum">     792</span> <span class="tlaUNC">           0 :     std::int16_t res;</span></span>
-<span id="L793"><span class="lineNum">     793</span> <span class="tlaUNC">           0 :     std::from_chars(sv.begin(), sv.end(), res);</span></span>
-<span id="L794"><span class="lineNum">     794</span> <span class="tlaUNC">           0 :     return Imm(res);</span></span>
-<span id="L795"><span class="lineNum">     795</span> <span class="tlaUNC">           0 :   }</span></span>
-<span id="L796"><span class="lineNum">     796</span>              : </span>
-<span id="L797"><span class="lineNum">     797</span>              :   // Where the slot with this index begins, counted from the stack pointer.</span>
-<span id="L798"><span class="lineNum">     798</span>              :   //</span>
-<span id="L799"><span class="lineNum">     799</span>              :   // The arguments the caller left stand above this frame, past the frame</span>
-<span id="L800"><span class="lineNum">     800</span>              :   // record the prologue pushed; the ones this function leaves for its own</span>
-<span id="L801"><span class="lineNum">     801</span>              :   // calls stand at its foot. Everything else stands in the frame proper.</span>
-<span id="L802"><span class="lineNum">     802</span> <span class="tlaGNC">        2977 :   int AdjustedOffset(std::size_t slot) {</span></span>
-<span id="L803"><span class="lineNum">     803</span> <span class="tlaGNC">        2977 :     if (layout_.incoming_args.Holds(slot)) {</span></span>
-<span id="L804"><span class="lineNum">     804</span> <span class="tlaGNC">          68 :       return SafeCast&lt;int&gt;(stack_size_ + kFrameRecordSize +</span></span>
-<span id="L805"><span class="lineNum">     805</span> <span class="tlaGNC">          68 :                            (slot - layout_.incoming_args.first) * kArgSize);</span></span>
-<span id="L806"><span class="lineNum">     806</span> <span class="tlaGNC">          68 :     }</span></span>
-<span id="L807"><span class="lineNum">     807</span> <span class="tlaGNC">        2909 :     if (layout_.outgoing_args.Holds(slot)) {</span></span>
-<span id="L808"><span class="lineNum">     808</span> <span class="tlaGNC">          56 :       return SafeCast&lt;int&gt;((slot - layout_.outgoing_args.first) * kArgSize);</span></span>
-<span id="L809"><span class="lineNum">     809</span> <span class="tlaGNC">          56 :     }</span></span>
-<span id="L810"><span class="lineNum">     810</span> <span class="tlaGNC">        2853 :     return stack_offsets_[kRegistersToPersist.size() + slot];</span></span>
-<span id="L811"><span class="lineNum">     811</span> <span class="tlaGNC">        2909 :   }</span></span>
-<span id="L812"><span class="lineNum">     812</span>              : </span>
-<span id="L813"><span class="lineNum">     813</span>              :   // Whether the slot with this index is the function's own, rather than room</span>
-<span id="L814"><span class="lineNum">     814</span>              :   // for arguments that stands somewhere the frame does not reach.</span>
-<span id="L815"><span class="lineNum">     815</span> <span class="tlaGNC">       13850 :   bool OwnSlot(std::size_t slot) const {</span></span>
-<span id="L816"><span class="lineNum">     816</span> <span class="tlaGNC">       13850 :     return !layout_.incoming_args.Holds(slot) &amp;&amp;</span></span>
-<span id="L817"><span class="lineNum">     817</span> <span class="tlaGNC">       13850 :            !layout_.outgoing_args.Holds(slot);</span></span>
-<span id="L818"><span class="lineNum">     818</span> <span class="tlaGNC">       13850 :   }</span></span>
-<span id="L819"><span class="lineNum">     819</span>              : </span>
-<span id="L820"><span class="lineNum">     820</span>              :   // Where a slot is, as a load or a store reaches it: a register to count</span>
-<span id="L821"><span class="lineNum">     821</span>              :   // from, and how far along it stands.</span>
-<span id="L822"><span class="lineNum">     822</span>              :   struct SlotAddress {</span>
-<span id="L823"><span class="lineNum">     823</span>              :     X base;</span>
-<span id="L824"><span class="lineNum">     824</span>              :     Imm offset;</span>
-<span id="L825"><span class="lineNum">     825</span>              :   };</span>
-<span id="L826"><span class="lineNum">     826</span>              : </span>
-<span id="L827"><span class="lineNum">     827</span>              :   // Returns where the slot with this index is.</span>
-<span id="L828"><span class="lineNum">     828</span>              :   //</span>
-<span id="L829"><span class="lineNum">     829</span>              :   // A load or a store counts from the stack pointer in a field of twelve</span>
-<span id="L830"><span class="lineNum">     830</span>              :   // bits, which counts accesses rather than bytes. A slot further off than</span>
-<span id="L831"><span class="lineNum">     831</span>              :   // that field reaches has its address worked out first, into the register</span>
-<span id="L832"><span class="lineNum">     832</span>              :   // an intra-procedure call would use, which nothing between one instruction</span>
-<span id="L833"><span class="lineNum">     833</span>              :   // and the next here does.</span>
-<span id="L834"><span class="lineNum">     834</span> <span class="tlaGNC">        1675 :   SlotAddress AddressOf(std::size_t slot, RegSize size) {</span></span>
-<span id="L835"><span class="lineNum">     835</span> <span class="tlaGNC">        1675 :     const int offset = AdjustedOffset(slot);</span></span>
-<span id="L836"><span class="lineNum">     836</span> <span class="tlaGNC">        1675 :     const int access_size = size == RegSize32 ? 4 : 8;</span></span>
-<span id="L837"><span class="lineNum">     837</span> <span class="tlaGNC">        1675 :     if (offset / access_size &lt;= 0b111111111111) {</span></span>
-<span id="L838"><span class="lineNum">     838</span> <span class="tlaGNC">        1669 :       return {.base = SP, .offset = Imm(offset)};</span></span>
-<span id="L839"><span class="lineNum">     839</span> <span class="tlaGNC">        1669 :     }</span></span>
+<span id="L710"><span class="lineNum">     710</span> <span class="tlaGNC">        1175 :     const IndexedAddress at = AddressOf(inst.offset, inst.offset_reg,</span></span>
+<span id="L711"><span class="lineNum">     711</span> <span class="tlaGNC">        1175 :                                         inst.offset_scale, inst.src_reg.size);</span></span>
+<span id="L712"><span class="lineNum">     712</span> <span class="tlaGNC">        1175 :     switch (inst.src_reg.size) {</span></span>
+<span id="L713"><span class="lineNum">     713</span> <span class="tlaGNC">        1173 :       case RegSize32:</span></span>
+<span id="L714"><span class="lineNum">     714</span> <span class="tlaGNC">        1173 :         assembler_.Str(W(inst.src_reg.id), at.base, at.index, at.extend,</span></span>
+<span id="L715"><span class="lineNum">     715</span> <span class="tlaGNC">        1173 :                        at.amount);</span></span>
+<span id="L716"><span class="lineNum">     716</span> <span class="tlaGNC">        1173 :         break;</span></span>
+<span id="L717"><span class="lineNum">     717</span> <span class="tlaGNC">           2 :       case RegSize64:</span></span>
+<span id="L718"><span class="lineNum">     718</span> <span class="tlaGNC">           2 :         assembler_.Str(X(inst.src_reg.id), at.base, at.index, at.extend,</span></span>
+<span id="L719"><span class="lineNum">     719</span> <span class="tlaGNC">           2 :                        at.amount);</span></span>
+<span id="L720"><span class="lineNum">     720</span> <span class="tlaGNC">           2 :         break;</span></span>
+<span id="L721"><span class="lineNum">     721</span> <span class="tlaGNC">        1175 :     }</span></span>
+<span id="L722"><span class="lineNum">     722</span> <span class="tlaGNC">        1175 :   }</span></span>
+<span id="L723"><span class="lineNum">     723</span>              : </span>
+<span id="L724"><span class="lineNum">     724</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
+<span id="L725"><span class="lineNum">     725</span> <span class="tlaGNC">         922 :                const LoadStack&amp; inst) {</span></span>
+<span id="L726"><span class="lineNum">     726</span> <span class="tlaGNC">         922 :     const SlotAddress at = AddressOf(inst.offset, inst.dst_reg.size);</span></span>
+<span id="L727"><span class="lineNum">     727</span> <span class="tlaGNC">         922 :     switch (inst.dst_reg.size) {</span></span>
+<span id="L728"><span class="lineNum">     728</span> <span class="tlaGNC">         652 :       case RegSize32:</span></span>
+<span id="L729"><span class="lineNum">     729</span> <span class="tlaGNC">         652 :         assembler_.LdrUnsignedOffset(W(inst.dst_reg.id), at.base, at.offset);</span></span>
+<span id="L730"><span class="lineNum">     730</span> <span class="tlaGNC">         652 :         break;</span></span>
+<span id="L731"><span class="lineNum">     731</span> <span class="tlaGNC">         270 :       case RegSize64:</span></span>
+<span id="L732"><span class="lineNum">     732</span> <span class="tlaGNC">         270 :         assembler_.LdrUnsignedOffset(X(inst.dst_reg.id), at.base, at.offset);</span></span>
+<span id="L733"><span class="lineNum">     733</span> <span class="tlaGNC">         270 :         break;</span></span>
+<span id="L734"><span class="lineNum">     734</span> <span class="tlaGNC">         922 :     }</span></span>
+<span id="L735"><span class="lineNum">     735</span> <span class="tlaGNC">         922 :   }</span></span>
+<span id="L736"><span class="lineNum">     736</span>              : </span>
+<span id="L737"><span class="lineNum">     737</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
+<span id="L738"><span class="lineNum">     738</span> <span class="tlaGNC">         127 :                const LoadStackReg&amp; inst) {</span></span>
+<span id="L739"><span class="lineNum">     739</span> <span class="tlaGNC">         127 :     const IndexedAddress at = AddressOf(inst.offset, inst.offset_reg,</span></span>
+<span id="L740"><span class="lineNum">     740</span> <span class="tlaGNC">         127 :                                         inst.offset_scale, inst.dst_reg.size);</span></span>
+<span id="L741"><span class="lineNum">     741</span> <span class="tlaGNC">         127 :     switch (inst.dst_reg.size) {</span></span>
+<span id="L742"><span class="lineNum">     742</span> <span class="tlaGNC">         125 :       case RegSize32:</span></span>
+<span id="L743"><span class="lineNum">     743</span> <span class="tlaGNC">         125 :         assembler_.Ldr(W(inst.dst_reg.id), at.base, at.index, at.extend,</span></span>
+<span id="L744"><span class="lineNum">     744</span> <span class="tlaGNC">         125 :                        at.amount);</span></span>
+<span id="L745"><span class="lineNum">     745</span> <span class="tlaGNC">         125 :         break;</span></span>
+<span id="L746"><span class="lineNum">     746</span> <span class="tlaGNC">           2 :       case RegSize64:</span></span>
+<span id="L747"><span class="lineNum">     747</span> <span class="tlaGNC">           2 :         assembler_.Ldr(X(inst.dst_reg.id), at.base, at.index, at.extend,</span></span>
+<span id="L748"><span class="lineNum">     748</span> <span class="tlaGNC">           2 :                        at.amount);</span></span>
+<span id="L749"><span class="lineNum">     749</span> <span class="tlaGNC">           2 :         break;</span></span>
+<span id="L750"><span class="lineNum">     750</span> <span class="tlaGNC">         127 :     }</span></span>
+<span id="L751"><span class="lineNum">     751</span> <span class="tlaGNC">         127 :   }</span></span>
+<span id="L752"><span class="lineNum">     752</span>              : </span>
+<span id="L753"><span class="lineNum">     753</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
+<span id="L754"><span class="lineNum">     754</span> <span class="tlaGNC">         809 :                const FuncCall&amp; inst) {</span></span>
+<span id="L755"><span class="lineNum">     755</span>              :     // Only the arguments there are registers for are passed here. The rest</span>
+<span id="L756"><span class="lineNum">     756</span>              :     // are already at the foot of the frame, which is where the stack pointer</span>
+<span id="L757"><span class="lineNum">     757</span>              :     // stands at the call, put there by a `StoreArg` ahead of it.</span>
+<span id="L758"><span class="lineNum">     758</span> <span class="tlaGNC">        2309 :     for (int i = 0; i &lt; inst.args.size(); ++i) {</span></span>
+<span id="L759"><span class="lineNum">     759</span> <span class="tlaGNC">        1500 :       switch (inst.args[i].reg.size) {</span></span>
+<span id="L760"><span class="lineNum">     760</span> <span class="tlaGNC">         780 :         case RegSize32:</span></span>
+<span id="L761"><span class="lineNum">     761</span> <span class="tlaGNC">         780 :           assembler_.Mov(W(i + 1), W(inst.args[i].reg.id));</span></span>
+<span id="L762"><span class="lineNum">     762</span> <span class="tlaGNC">         780 :           break;</span></span>
+<span id="L763"><span class="lineNum">     763</span> <span class="tlaGNC">         720 :         case RegSize64:</span></span>
+<span id="L764"><span class="lineNum">     764</span> <span class="tlaGNC">         720 :           assembler_.Mov(X(i + 1), X(inst.args[i].reg.id));</span></span>
+<span id="L765"><span class="lineNum">     765</span> <span class="tlaGNC">         720 :           break;</span></span>
+<span id="L766"><span class="lineNum">     766</span> <span class="tlaGNC">        1500 :       }</span></span>
+<span id="L767"><span class="lineNum">     767</span> <span class="tlaGNC">        1500 :     }</span></span>
+<span id="L768"><span class="lineNum">     768</span>              : </span>
+<span id="L769"><span class="lineNum">     769</span> <span class="tlaGNC">         809 :     assembler_.Bl(assembler_.Named(inst.label));</span></span>
+<span id="L770"><span class="lineNum">     770</span>              : </span>
+<span id="L771"><span class="lineNum">     771</span> <span class="tlaGNC">         809 :     if (inst.res.has_value()) {</span></span>
+<span id="L772"><span class="lineNum">     772</span> <span class="tlaGNC">         358 :       switch (inst.res-&gt;reg.size) {</span></span>
+<span id="L773"><span class="lineNum">     773</span> <span class="tlaGNC">         186 :         case RegSize32:</span></span>
+<span id="L774"><span class="lineNum">     774</span> <span class="tlaGNC">         186 :           assembler_.Mov(W(inst.res-&gt;reg.id), W(0));</span></span>
+<span id="L775"><span class="lineNum">     775</span> <span class="tlaGNC">         186 :           break;</span></span>
+<span id="L776"><span class="lineNum">     776</span> <span class="tlaGNC">         172 :         case RegSize64:</span></span>
+<span id="L777"><span class="lineNum">     777</span> <span class="tlaGNC">         172 :           assembler_.Mov(X(inst.res-&gt;reg.id), X(0));</span></span>
+<span id="L778"><span class="lineNum">     778</span> <span class="tlaGNC">         172 :           break;</span></span>
+<span id="L779"><span class="lineNum">     779</span> <span class="tlaGNC">         358 :       }</span></span>
+<span id="L780"><span class="lineNum">     780</span> <span class="tlaGNC">         358 :     }</span></span>
+<span id="L781"><span class="lineNum">     781</span> <span class="tlaGNC">         809 :   }</span></span>
+<span id="L782"><span class="lineNum">     782</span>              : </span>
+<span id="L783"><span class="lineNum">     783</span> <span class="tlaUNC">           0 :   Imm ParseImm(std::string_view sv) {</span></span>
+<span id="L784"><span class="lineNum">     784</span> <span class="tlaUNC">           0 :     std::int16_t res;</span></span>
+<span id="L785"><span class="lineNum">     785</span> <span class="tlaUNC">           0 :     std::from_chars(sv.begin(), sv.end(), res);</span></span>
+<span id="L786"><span class="lineNum">     786</span> <span class="tlaUNC">           0 :     return Imm(res);</span></span>
+<span id="L787"><span class="lineNum">     787</span> <span class="tlaUNC">           0 :   }</span></span>
+<span id="L788"><span class="lineNum">     788</span>              : </span>
+<span id="L789"><span class="lineNum">     789</span>              :   // Where the slot with this index begins, counted from the stack pointer.</span>
+<span id="L790"><span class="lineNum">     790</span>              :   //</span>
+<span id="L791"><span class="lineNum">     791</span>              :   // The arguments the caller left stand above this frame, past the frame</span>
+<span id="L792"><span class="lineNum">     792</span>              :   // record the prologue pushed; the ones this function leaves for its own</span>
+<span id="L793"><span class="lineNum">     793</span>              :   // calls stand at its foot. Everything else stands in the frame proper.</span>
+<span id="L794"><span class="lineNum">     794</span> <span class="tlaGNC">        2975 :   int AdjustedOffset(std::size_t slot) {</span></span>
+<span id="L795"><span class="lineNum">     795</span> <span class="tlaGNC">        2975 :     if (layout_.incoming_args.Holds(slot)) {</span></span>
+<span id="L796"><span class="lineNum">     796</span> <span class="tlaGNC">          68 :       return SafeCast&lt;int&gt;(stack_size_ + kFrameRecordSize +</span></span>
+<span id="L797"><span class="lineNum">     797</span> <span class="tlaGNC">          68 :                            (slot - layout_.incoming_args.first) * kArgSize);</span></span>
+<span id="L798"><span class="lineNum">     798</span> <span class="tlaGNC">          68 :     }</span></span>
+<span id="L799"><span class="lineNum">     799</span> <span class="tlaGNC">        2907 :     if (layout_.outgoing_args.Holds(slot)) {</span></span>
+<span id="L800"><span class="lineNum">     800</span> <span class="tlaGNC">          56 :       return SafeCast&lt;int&gt;((slot - layout_.outgoing_args.first) * kArgSize);</span></span>
+<span id="L801"><span class="lineNum">     801</span> <span class="tlaGNC">          56 :     }</span></span>
+<span id="L802"><span class="lineNum">     802</span> <span class="tlaGNC">        2851 :     return stack_offsets_[kRegistersToPersist.size() + slot];</span></span>
+<span id="L803"><span class="lineNum">     803</span> <span class="tlaGNC">        2907 :   }</span></span>
+<span id="L804"><span class="lineNum">     804</span>              : </span>
+<span id="L805"><span class="lineNum">     805</span>              :   // Whether the slot with this index is the function's own, rather than room</span>
+<span id="L806"><span class="lineNum">     806</span>              :   // for arguments that stands somewhere the frame does not reach.</span>
+<span id="L807"><span class="lineNum">     807</span> <span class="tlaGNC">       13850 :   bool OwnSlot(std::size_t slot) const {</span></span>
+<span id="L808"><span class="lineNum">     808</span> <span class="tlaGNC">       13850 :     return !layout_.incoming_args.Holds(slot) &amp;&amp;</span></span>
+<span id="L809"><span class="lineNum">     809</span> <span class="tlaGNC">       13850 :            !layout_.outgoing_args.Holds(slot);</span></span>
+<span id="L810"><span class="lineNum">     810</span> <span class="tlaGNC">       13850 :   }</span></span>
+<span id="L811"><span class="lineNum">     811</span>              : </span>
+<span id="L812"><span class="lineNum">     812</span>              :   // Where a slot is, as a load or a store reaches it: a register to count</span>
+<span id="L813"><span class="lineNum">     813</span>              :   // from, and how far along it stands.</span>
+<span id="L814"><span class="lineNum">     814</span>              :   struct SlotAddress {</span>
+<span id="L815"><span class="lineNum">     815</span>              :     X base;</span>
+<span id="L816"><span class="lineNum">     816</span>              :     Imm offset;</span>
+<span id="L817"><span class="lineNum">     817</span>              :   };</span>
+<span id="L818"><span class="lineNum">     818</span>              : </span>
+<span id="L819"><span class="lineNum">     819</span>              :   // Returns where the slot with this index is.</span>
+<span id="L820"><span class="lineNum">     820</span>              :   //</span>
+<span id="L821"><span class="lineNum">     821</span>              :   // A load or a store counts from the stack pointer in a field of twelve</span>
+<span id="L822"><span class="lineNum">     822</span>              :   // bits, which counts accesses rather than bytes. A slot further off than</span>
+<span id="L823"><span class="lineNum">     823</span>              :   // that field reaches has its address worked out first, into the register</span>
+<span id="L824"><span class="lineNum">     824</span>              :   // an intra-procedure call would use, which nothing between one instruction</span>
+<span id="L825"><span class="lineNum">     825</span>              :   // and the next here does.</span>
+<span id="L826"><span class="lineNum">     826</span> <span class="tlaGNC">        1673 :   SlotAddress AddressOf(std::size_t slot, RegSize size) {</span></span>
+<span id="L827"><span class="lineNum">     827</span> <span class="tlaGNC">        1673 :     const int offset = AdjustedOffset(slot);</span></span>
+<span id="L828"><span class="lineNum">     828</span> <span class="tlaGNC">        1673 :     const int access_size = size == RegSize32 ? 4 : 8;</span></span>
+<span id="L829"><span class="lineNum">     829</span> <span class="tlaGNC">        1673 :     if (offset / access_size &lt;= 0b111111111111) {</span></span>
+<span id="L830"><span class="lineNum">     830</span> <span class="tlaGNC">        1667 :       return {.base = SP, .offset = Imm(offset)};</span></span>
+<span id="L831"><span class="lineNum">     831</span> <span class="tlaGNC">        1667 :     }</span></span>
+<span id="L832"><span class="lineNum">     832</span>              : </span>
+<span id="L833"><span class="lineNum">     833</span> <span class="tlaGNC">           6 :     X from = SP;</span></span>
+<span id="L834"><span class="lineNum">     834</span> <span class="tlaGNC">          12 :     InCarriableSteps(offset, [&amp;](Imm imm) {</span></span>
+<span id="L835"><span class="lineNum">     835</span> <span class="tlaGNC">          12 :       assembler_.Add(X(kAddressScratch), from, imm);</span></span>
+<span id="L836"><span class="lineNum">     836</span> <span class="tlaGNC">          12 :       from = X(kAddressScratch);</span></span>
+<span id="L837"><span class="lineNum">     837</span> <span class="tlaGNC">          12 :     });</span></span>
+<span id="L838"><span class="lineNum">     838</span> <span class="tlaGNC">           6 :     return {.base = X(kAddressScratch), .offset = Imm(0)};</span></span>
+<span id="L839"><span class="lineNum">     839</span> <span class="tlaGNC">        1673 :   }</span></span>
 <span id="L840"><span class="lineNum">     840</span>              : </span>
-<span id="L841"><span class="lineNum">     841</span> <span class="tlaGNC">           6 :     X from = SP;</span></span>
-<span id="L842"><span class="lineNum">     842</span> <span class="tlaGNC">          12 :     InCarriableSteps(offset, [&amp;](Imm imm) {</span></span>
-<span id="L843"><span class="lineNum">     843</span> <span class="tlaGNC">          12 :       assembler_.Add(X(kAddressScratch), from, imm);</span></span>
-<span id="L844"><span class="lineNum">     844</span> <span class="tlaGNC">          12 :       from = X(kAddressScratch);</span></span>
-<span id="L845"><span class="lineNum">     845</span> <span class="tlaGNC">          12 :     });</span></span>
-<span id="L846"><span class="lineNum">     846</span> <span class="tlaGNC">           6 :     return {.base = X(kAddressScratch), .offset = Imm(0)};</span></span>
-<span id="L847"><span class="lineNum">     847</span> <span class="tlaGNC">        1675 :   }</span></span>
-<span id="L848"><span class="lineNum">     848</span>              : </span>
-<span id="L849"><span class="lineNum">     849</span>              :   // Calls `emit` with immediates that add up to `value`.</span>
-<span id="L850"><span class="lineNum">     850</span>              :   //</span>
-<span id="L851"><span class="lineNum">     851</span>              :   // One add or subtract carries a value under 4096, or a whole number of</span>
-<span id="L852"><span class="lineNum">     852</span>              :   // 4096s, and nothing between the two, so anything else takes two of them:</span>
-<span id="L853"><span class="lineNum">     853</span>              :   // the whole 4096s, and then what is left over.</span>
-<span id="L854"><span class="lineNum">     854</span>              :   template &lt;typename EmitT&gt;</span>
-<span id="L855"><span class="lineNum">     855</span> <span class="tlaGNC">        2500 :   static void InCarriableSteps(int value, EmitT emit) {</span></span>
-<span id="L856"><span class="lineNum">     856</span> <span class="tlaGNC">        2500 :     assert(value &gt;= 0);</span></span>
-<span id="L857"><span class="lineNum">     857</span>              : </span>
-<span id="L858"><span class="lineNum">     858</span> <span class="tlaGNC">        2500 :     if (const int pages = value - value % 4096; pages &gt; 0) emit(Imm(pages));</span></span>
-<span id="L859"><span class="lineNum">     859</span> <span class="tlaGNC">        2500 :     if (const int rest = value % 4096; rest &gt; 0) emit(Imm(rest));</span></span>
-<span id="L860"><span class="lineNum">     860</span> <span class="tlaGNC">        2500 :   }</span></span>
-<span id="L861"><span class="lineNum">     861</span>              : </span>
-<span id="L862"><span class="lineNum">     862</span>              :   // Returns `value` carried up to a multiple of `to`.</span>
-<span id="L863"><span class="lineNum">     863</span> <span class="tlaGNC">        8005 :   static int RoundUpTo(int value, int to) {</span></span>
-<span id="L864"><span class="lineNum">     864</span> <span class="tlaGNC">        8005 :     const int over = value % to;</span></span>
-<span id="L865"><span class="lineNum">     865</span> <span class="tlaGNC">        8005 :     return over == 0 ? value : value + to - over;</span></span>
-<span id="L866"><span class="lineNum">     866</span> <span class="tlaGNC">        8005 :   }</span></span>
-<span id="L867"><span class="lineNum">     867</span>              : </span>
-<span id="L868"><span class="lineNum">     868</span>              :   // How much room `count` arguments take on the stack, kept to what the stack</span>
-<span id="L869"><span class="lineNum">     869</span>              :   // pointer has to be a multiple of.</span>
-<span id="L870"><span class="lineNum">     870</span> <span class="tlaGNC">         597 :   static int OutgoingArgsSize(std::size_t count) {</span></span>
-<span id="L871"><span class="lineNum">     871</span> <span class="tlaGNC">         597 :     return RoundUpTo(SafeCast&lt;int&gt;(count) * kArgSize, 16);</span></span>
-<span id="L872"><span class="lineNum">     872</span> <span class="tlaGNC">         597 :   }</span></span>
-<span id="L873"><span class="lineNum">     873</span>              : </span>
-<span id="L874"><span class="lineNum">     874</span>              :   static constexpr int kArgSize = kArm64CallingConvention.stack_arg_size;</span>
-<span id="L875"><span class="lineNum">     875</span>              : </span>
-<span id="L876"><span class="lineNum">     876</span>              :   // What the prologue pushes before the frame itself: the frame pointer and</span>
-<span id="L877"><span class="lineNum">     877</span>              :   // the return address.</span>
-<span id="L878"><span class="lineNum">     878</span>              :   static constexpr int kFrameRecordSize = 16;</span>
-<span id="L879"><span class="lineNum">     879</span>              : </span>
-<span id="L880"><span class="lineNum">     880</span>              :   // The register an address too far for a field of its own is worked out in.</span>
-<span id="L881"><span class="lineNum">     881</span>              :   static constexpr std::uint8_t kAddressScratch = 16;</span>
+<span id="L841"><span class="lineNum">     841</span>              :   // Where a value is, as a load or a store reaches it with a register offset:</span>
+<span id="L842"><span class="lineNum">     842</span>              :   // a register to count from, and a register to add to it, extended and then</span>
+<span id="L843"><span class="lineNum">     843</span>              :   // shifted by the size of the value if `amount` is 1.</span>
+<span id="L844"><span class="lineNum">     844</span>              :   struct IndexedAddress {</span>
+<span id="L845"><span class="lineNum">     845</span>              :     X base;</span>
+<span id="L846"><span class="lineNum">     846</span>              :     arm64::internal::Reg index;</span>
+<span id="L847"><span class="lineNum">     847</span>              :     Extend extend;</span>
+<span id="L848"><span class="lineNum">     848</span>              :     Imm amount;</span>
+<span id="L849"><span class="lineNum">     849</span>              :   };</span>
+<span id="L850"><span class="lineNum">     850</span>              : </span>
+<span id="L851"><span class="lineNum">     851</span>              :   // Returns where the value of `size` that stands `offset_reg` times `scale`</span>
+<span id="L852"><span class="lineNum">     852</span>              :   // bytes into a slot is.</span>
+<span id="L853"><span class="lineNum">     853</span>              :   //</span>
+<span id="L854"><span class="lineNum">     854</span>              :   // The slot's own address is worked out in a scratch register rather than</span>
+<span id="L855"><span class="lineNum">     855</span>              :   // added to `offset_reg`, which can be a variable read again later, such as</span>
+<span id="L856"><span class="lineNum">     856</span>              :   // the index into an array.</span>
+<span id="L857"><span class="lineNum">     857</span>              :   IndexedAddress AddressOf(std::size_t slot, Reg offset_reg, std::size_t scale,</span>
+<span id="L858"><span class="lineNum">     858</span> <span class="tlaGNC">        1302 :                            RegSize size) {</span></span>
+<span id="L859"><span class="lineNum">     859</span>              :     // A load or a store shifts its offset by the size of the value or not at</span>
+<span id="L860"><span class="lineNum">     860</span>              :     // all, so nothing else can be scaled for free.</span>
+<span id="L861"><span class="lineNum">     861</span> <span class="tlaGNC">        1302 :     assert(scale == 1 || scale == (size == RegSize32 ? 4 : 8));</span></span>
+<span id="L862"><span class="lineNum">     862</span>              : </span>
+<span id="L863"><span class="lineNum">     863</span> <span class="tlaGNC">        1302 :     X base = SP;</span></span>
+<span id="L864"><span class="lineNum">     864</span> <span class="tlaGNC">        1302 :     InCarriableSteps(AdjustedOffset(slot), [&amp;](Imm imm) {</span></span>
+<span id="L865"><span class="lineNum">     865</span> <span class="tlaGNC">        1302 :       assembler_.Add(X(kAddressScratch), base, imm);</span></span>
+<span id="L866"><span class="lineNum">     866</span> <span class="tlaGNC">        1302 :       base = X(kAddressScratch);</span></span>
+<span id="L867"><span class="lineNum">     867</span> <span class="tlaGNC">        1302 :     });</span></span>
+<span id="L868"><span class="lineNum">     868</span>              : </span>
+<span id="L869"><span class="lineNum">     869</span>              :     // A 32-bit register reads as the same value zero-extended, and a 64-bit</span>
+<span id="L870"><span class="lineNum">     870</span>              :     // one as it is.</span>
+<span id="L871"><span class="lineNum">     871</span> <span class="tlaGNC">        1302 :     const bool wide = offset_reg.size == RegSize64;</span></span>
+<span id="L872"><span class="lineNum">     872</span> <span class="tlaGNC">        1302 :     const arm64::internal::Reg index =</span></span>
+<span id="L873"><span class="lineNum">     873</span> <span class="tlaGNC">        1302 :         wide ? arm64::internal::Reg(X(offset_reg.id))</span></span>
+<span id="L874"><span class="lineNum">     874</span> <span class="tlaGNC">        1302 :              : arm64::internal::Reg(W(offset_reg.id));</span></span>
+<span id="L875"><span class="lineNum">     875</span> <span class="tlaGNC">        1302 :     return {</span></span>
+<span id="L876"><span class="lineNum">     876</span> <span class="tlaGNC">        1302 :         .base = base,</span></span>
+<span id="L877"><span class="lineNum">     877</span> <span class="tlaGNC">        1302 :         .index = index,</span></span>
+<span id="L878"><span class="lineNum">     878</span> <span class="tlaGNC">        1302 :         .extend = wide ? Extend::Lsl : Extend::Uxtw,</span></span>
+<span id="L879"><span class="lineNum">     879</span> <span class="tlaGNC">        1302 :         .amount = Imm(scale == 1 ? 0 : 1),</span></span>
+<span id="L880"><span class="lineNum">     880</span> <span class="tlaGNC">        1302 :     };</span></span>
+<span id="L881"><span class="lineNum">     881</span> <span class="tlaGNC">        1302 :   }</span></span>
 <span id="L882"><span class="lineNum">     882</span>              : </span>
-<span id="L883"><span class="lineNum">     883</span>              :   // The register a quotient stands in while what is left over is worked out.</span>
-<span id="L884"><span class="lineNum">     884</span>              :   static constexpr std::uint8_t kQuotientScratch = 17;</span>
-<span id="L885"><span class="lineNum">     885</span>              : </span>
-<span id="L886"><span class="lineNum">     886</span>              :   static constexpr std::array&lt;std::uint8_t, 10&gt; kRegistersToPersist = {</span>
-<span id="L887"><span class="lineNum">     887</span>              :       19, 20, 21, 22, 23, 24, 25, 26, 27, 28,</span>
-<span id="L888"><span class="lineNum">     888</span>              :   };</span>
-<span id="L889"><span class="lineNum">     889</span>              : </span>
-<span id="L890"><span class="lineNum">     890</span>              :   std::string_view func_name_;</span>
-<span id="L891"><span class="lineNum">     891</span>              :   const std::vector&lt;int&gt;&amp; stack_slots_;</span>
-<span id="L892"><span class="lineNum">     892</span>              :   const FrameLayout&amp; layout_;</span>
-<span id="L893"><span class="lineNum">     893</span>              :   const AbstractMachineControlFlowGraph&amp; am_cfg_;</span>
-<span id="L894"><span class="lineNum">     894</span>              :   Assembler&amp; assembler_;</span>
-<span id="L895"><span class="lineNum">     895</span>              :   int stack_size_ = 0;</span>
-<span id="L896"><span class="lineNum">     896</span>              :   int outgoing_size_ = 0;</span>
-<span id="L897"><span class="lineNum">     897</span>              :   std::vector&lt;int&gt; stack_offsets_;</span>
-<span id="L898"><span class="lineNum">     898</span>              : </span>
-<span id="L899"><span class="lineNum">     899</span>              :   // The label each block starts at, by the block's ID.</span>
-<span id="L900"><span class="lineNum">     900</span>              :   std::vector&lt;Label&gt; block_labels_;</span>
+<span id="L883"><span class="lineNum">     883</span>              :   // Calls `emit` with immediates that add up to `value`.</span>
+<span id="L884"><span class="lineNum">     884</span>              :   //</span>
+<span id="L885"><span class="lineNum">     885</span>              :   // One add or subtract carries a value under 4096, or a whole number of</span>
+<span id="L886"><span class="lineNum">     886</span>              :   // 4096s, and nothing between the two, so anything else takes two of them:</span>
+<span id="L887"><span class="lineNum">     887</span>              :   // the whole 4096s, and then what is left over.</span>
+<span id="L888"><span class="lineNum">     888</span>              :   template &lt;typename EmitT&gt;</span>
+<span id="L889"><span class="lineNum">     889</span> <span class="tlaGNC">        2500 :   static void InCarriableSteps(int value, EmitT emit) {</span></span>
+<span id="L890"><span class="lineNum">     890</span> <span class="tlaGNC">        2500 :     assert(value &gt;= 0);</span></span>
+<span id="L891"><span class="lineNum">     891</span>              : </span>
+<span id="L892"><span class="lineNum">     892</span> <span class="tlaGNC">        2500 :     if (const int pages = value - value % 4096; pages &gt; 0) emit(Imm(pages));</span></span>
+<span id="L893"><span class="lineNum">     893</span> <span class="tlaGNC">        2500 :     if (const int rest = value % 4096; rest &gt; 0) emit(Imm(rest));</span></span>
+<span id="L894"><span class="lineNum">     894</span> <span class="tlaGNC">        2500 :   }</span></span>
+<span id="L895"><span class="lineNum">     895</span>              : </span>
+<span id="L896"><span class="lineNum">     896</span>              :   // Returns `value` carried up to a multiple of `to`.</span>
+<span id="L897"><span class="lineNum">     897</span> <span class="tlaGNC">        8005 :   static int RoundUpTo(int value, int to) {</span></span>
+<span id="L898"><span class="lineNum">     898</span> <span class="tlaGNC">        8005 :     const int over = value % to;</span></span>
+<span id="L899"><span class="lineNum">     899</span> <span class="tlaGNC">        8005 :     return over == 0 ? value : value + to - over;</span></span>
+<span id="L900"><span class="lineNum">     900</span> <span class="tlaGNC">        8005 :   }</span></span>
 <span id="L901"><span class="lineNum">     901</span>              : </span>
-<span id="L902"><span class="lineNum">     902</span>              :   // Where an edge into a block that only passes control on lands, by the</span>
-<span id="L903"><span class="lineNum">     903</span>              :   // block's ID, and nothing for every other block.</span>
-<span id="L904"><span class="lineNum">     904</span>              :   std::vector&lt;std::optional&lt;Landing&gt;&gt; pass_throughs_;</span>
-<span id="L905"><span class="lineNum">     905</span>              : </span>
-<span id="L906"><span class="lineNum">     906</span>              :   // A taken branch whose edge makes copies before it arrives: the label the</span>
-<span id="L907"><span class="lineNum">     907</span>              :   // branch goes to, and the edge.</span>
-<span id="L908"><span class="lineNum">     908</span>              :   struct CopyingEdge {</span>
-<span id="L909"><span class="lineNum">     909</span>              :     Label label;</span>
-<span id="L910"><span class="lineNum">     910</span>              :     BlockRef to;</span>
-<span id="L911"><span class="lineNum">     911</span>              :     BlockRef from;</span>
-<span id="L912"><span class="lineNum">     912</span>              :   };</span>
-<span id="L913"><span class="lineNum">     913</span>              :   std::vector&lt;CopyingEdge&gt; copying_edges_;</span>
-<span id="L914"><span class="lineNum">     914</span>              : };</span>
-<span id="L915"><span class="lineNum">     915</span>              : </span>
-<span id="L916"><span class="lineNum">     916</span>              : }  // namespace</span>
-<span id="L917"><span class="lineNum">     917</span>              : </span>
-<span id="L918"><span class="lineNum">     918</span> <span class="tlaGNC">         230 : void GenerateArmStartBinary(Assembler&amp; assembler) {</span></span>
-<span id="L919"><span class="lineNum">     919</span> <span class="tlaGNC">         230 :   assembler.Global(&quot;_start&quot;);</span></span>
-<span id="L920"><span class="lineNum">     920</span> <span class="tlaGNC">         230 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
-<span id="L921"><span class="lineNum">     921</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.Named(&quot;main&quot;));</span></span>
-<span id="L922"><span class="lineNum">     922</span> <span class="tlaGNC">         230 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
-<span id="L923"><span class="lineNum">     923</span> <span class="tlaGNC">         230 :   assembler.Ret();</span></span>
-<span id="L924"><span class="lineNum">     924</span>              : </span>
-<span id="L925"><span class="lineNum">     925</span> <span class="tlaGNC">         230 :   assembler.Bind(assembler.Named(&quot;_print_string&quot;));</span></span>
-<span id="L926"><span class="lineNum">     926</span> <span class="tlaGNC">         230 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
-<span id="L927"><span class="lineNum">     927</span> <span class="tlaGNC">         230 :   assembler.Mov(X(0), X(1));</span></span>
-<span id="L928"><span class="lineNum">     928</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.External(&quot;_printf&quot;));</span></span>
-<span id="L929"><span class="lineNum">     929</span> <span class="tlaGNC">         230 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
-<span id="L930"><span class="lineNum">     930</span> <span class="tlaGNC">         230 :   assembler.Ret();</span></span>
-<span id="L931"><span class="lineNum">     931</span>              : </span>
-<span id="L932"><span class="lineNum">     932</span>              :   // Where a division by nothing stops the program. What it printed before is</span>
-<span id="L933"><span class="lineNum">     933</span>              :   // flushed first, so that it comes out ahead of the message rather than</span>
-<span id="L934"><span class="lineNum">     934</span>              :   // after; then the message goes where errors go, and the program leaves.</span>
-<span id="L935"><span class="lineNum">     935</span>              :   //</span>
-<span id="L936"><span class="lineNum">     936</span>              :   // It is reached by a branch from the middle of a function rather than by a</span>
-<span id="L937"><span class="lineNum">     937</span>              :   // call, which is why nothing is saved: nothing comes back here.</span>
-<span id="L938"><span class="lineNum">     938</span> <span class="tlaGNC">         230 :   assembler.Bind(assembler.Named(kDivideByZero));</span></span>
-<span id="L939"><span class="lineNum">     939</span> <span class="tlaGNC">         230 :   assembler.Mov(X(0), Imm(0));</span></span>
-<span id="L940"><span class="lineNum">     940</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.External(&quot;_fflush&quot;));</span></span>
-<span id="L941"><span class="lineNum">     941</span> <span class="tlaGNC">         230 :   assembler.Mov(X(0), Imm(2));</span></span>
-<span id="L942"><span class="lineNum">     942</span> <span class="tlaGNC">         230 :   assembler.Adr(X(1), assembler.Named(kDivideByZeroMessage));</span></span>
-<span id="L943"><span class="lineNum">     943</span> <span class="tlaGNC">         230 :   assembler.Mov(X(2), Imm(kDivideByZeroTextBytes));</span></span>
-<span id="L944"><span class="lineNum">     944</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.External(&quot;_write&quot;));</span></span>
-<span id="L945"><span class="lineNum">     945</span> <span class="tlaGNC">         230 :   assembler.Mov(X(0), Imm(kDivideByZeroStatus));</span></span>
-<span id="L946"><span class="lineNum">     946</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.External(&quot;_exit&quot;));</span></span>
-<span id="L947"><span class="lineNum">     947</span>              : </span>
-<span id="L948"><span class="lineNum">     948</span>              :   // The message stands right after the code that writes it. Nothing runs</span>
-<span id="L949"><span class="lineNum">     949</span>              :   // into it, because the code before it leaves the program.</span>
-<span id="L950"><span class="lineNum">     950</span> <span class="tlaGNC">         230 :   assembler.Bind(assembler.Named(kDivideByZeroMessage));</span></span>
-<span id="L951"><span class="lineNum">     951</span> <span class="tlaGNC">         230 :   assembler.Asciz(kDivideByZeroText);</span></span>
-<span id="L952"><span class="lineNum">     952</span>              : </span>
-<span id="L953"><span class="lineNum">     953</span> <span class="tlaGNC">         230 :   assembler.Bind(assembler.Named(&quot;_sleep&quot;));</span></span>
+<span id="L902"><span class="lineNum">     902</span>              :   // How much room `count` arguments take on the stack, kept to what the stack</span>
+<span id="L903"><span class="lineNum">     903</span>              :   // pointer has to be a multiple of.</span>
+<span id="L904"><span class="lineNum">     904</span> <span class="tlaGNC">         597 :   static int OutgoingArgsSize(std::size_t count) {</span></span>
+<span id="L905"><span class="lineNum">     905</span> <span class="tlaGNC">         597 :     return RoundUpTo(SafeCast&lt;int&gt;(count) * kArgSize, 16);</span></span>
+<span id="L906"><span class="lineNum">     906</span> <span class="tlaGNC">         597 :   }</span></span>
+<span id="L907"><span class="lineNum">     907</span>              : </span>
+<span id="L908"><span class="lineNum">     908</span>              :   static constexpr int kArgSize = kArm64CallingConvention.stack_arg_size;</span>
+<span id="L909"><span class="lineNum">     909</span>              : </span>
+<span id="L910"><span class="lineNum">     910</span>              :   // What the prologue pushes before the frame itself: the frame pointer and</span>
+<span id="L911"><span class="lineNum">     911</span>              :   // the return address.</span>
+<span id="L912"><span class="lineNum">     912</span>              :   static constexpr int kFrameRecordSize = 16;</span>
+<span id="L913"><span class="lineNum">     913</span>              : </span>
+<span id="L914"><span class="lineNum">     914</span>              :   // The register an address too far for a field of its own is worked out in.</span>
+<span id="L915"><span class="lineNum">     915</span>              :   static constexpr std::uint8_t kAddressScratch = 16;</span>
+<span id="L916"><span class="lineNum">     916</span>              : </span>
+<span id="L917"><span class="lineNum">     917</span>              :   // The register a quotient stands in while what is left over is worked out.</span>
+<span id="L918"><span class="lineNum">     918</span>              :   static constexpr std::uint8_t kQuotientScratch = 17;</span>
+<span id="L919"><span class="lineNum">     919</span>              : </span>
+<span id="L920"><span class="lineNum">     920</span>              :   static constexpr std::array&lt;std::uint8_t, 10&gt; kRegistersToPersist = {</span>
+<span id="L921"><span class="lineNum">     921</span>              :       19, 20, 21, 22, 23, 24, 25, 26, 27, 28,</span>
+<span id="L922"><span class="lineNum">     922</span>              :   };</span>
+<span id="L923"><span class="lineNum">     923</span>              : </span>
+<span id="L924"><span class="lineNum">     924</span>              :   std::string_view func_name_;</span>
+<span id="L925"><span class="lineNum">     925</span>              :   const std::vector&lt;int&gt;&amp; stack_slots_;</span>
+<span id="L926"><span class="lineNum">     926</span>              :   const FrameLayout&amp; layout_;</span>
+<span id="L927"><span class="lineNum">     927</span>              :   const AbstractMachineControlFlowGraph&amp; am_cfg_;</span>
+<span id="L928"><span class="lineNum">     928</span>              :   Assembler&amp; assembler_;</span>
+<span id="L929"><span class="lineNum">     929</span>              :   int stack_size_ = 0;</span>
+<span id="L930"><span class="lineNum">     930</span>              :   int outgoing_size_ = 0;</span>
+<span id="L931"><span class="lineNum">     931</span>              :   std::vector&lt;int&gt; stack_offsets_;</span>
+<span id="L932"><span class="lineNum">     932</span>              : </span>
+<span id="L933"><span class="lineNum">     933</span>              :   // The label each block starts at, by the block's ID.</span>
+<span id="L934"><span class="lineNum">     934</span>              :   std::vector&lt;Label&gt; block_labels_;</span>
+<span id="L935"><span class="lineNum">     935</span>              : </span>
+<span id="L936"><span class="lineNum">     936</span>              :   // Where an edge into a block that only passes control on lands, by the</span>
+<span id="L937"><span class="lineNum">     937</span>              :   // block's ID, and nothing for every other block.</span>
+<span id="L938"><span class="lineNum">     938</span>              :   std::vector&lt;std::optional&lt;Landing&gt;&gt; pass_throughs_;</span>
+<span id="L939"><span class="lineNum">     939</span>              : </span>
+<span id="L940"><span class="lineNum">     940</span>              :   // A taken branch whose edge makes copies before it arrives: the label the</span>
+<span id="L941"><span class="lineNum">     941</span>              :   // branch goes to, and the edge.</span>
+<span id="L942"><span class="lineNum">     942</span>              :   struct CopyingEdge {</span>
+<span id="L943"><span class="lineNum">     943</span>              :     Label label;</span>
+<span id="L944"><span class="lineNum">     944</span>              :     BlockRef to;</span>
+<span id="L945"><span class="lineNum">     945</span>              :     BlockRef from;</span>
+<span id="L946"><span class="lineNum">     946</span>              :   };</span>
+<span id="L947"><span class="lineNum">     947</span>              :   std::vector&lt;CopyingEdge&gt; copying_edges_;</span>
+<span id="L948"><span class="lineNum">     948</span>              : };</span>
+<span id="L949"><span class="lineNum">     949</span>              : </span>
+<span id="L950"><span class="lineNum">     950</span>              : }  // namespace</span>
+<span id="L951"><span class="lineNum">     951</span>              : </span>
+<span id="L952"><span class="lineNum">     952</span> <span class="tlaGNC">         230 : void GenerateArmStartBinary(Assembler&amp; assembler) {</span></span>
+<span id="L953"><span class="lineNum">     953</span> <span class="tlaGNC">         230 :   assembler.Global(&quot;_start&quot;);</span></span>
 <span id="L954"><span class="lineNum">     954</span> <span class="tlaGNC">         230 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
-<span id="L955"><span class="lineNum">     955</span> <span class="tlaGNC">         230 :   assembler.Mov(X(2), X(1));</span></span>
-<span id="L956"><span class="lineNum">     956</span> <span class="tlaGNC">         230 :   assembler.Mov(X(3), Imm(0));</span></span>
-<span id="L957"><span class="lineNum">     957</span> <span class="tlaGNC">         230 :   assembler.StpPreIndex(X(2), X(3), SP, Imm(-16));</span></span>
-<span id="L958"><span class="lineNum">     958</span> <span class="tlaGNC">         230 :   assembler.Mov(X(0), SP);</span></span>
-<span id="L959"><span class="lineNum">     959</span> <span class="tlaGNC">         230 :   assembler.Mov(X(1), Imm(0));</span></span>
-<span id="L960"><span class="lineNum">     960</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.External(&quot;_nanosleep&quot;));</span></span>
-<span id="L961"><span class="lineNum">     961</span> <span class="tlaGNC">         230 :   assembler.Add(SP, SP, Imm(16));</span></span>
-<span id="L962"><span class="lineNum">     962</span> <span class="tlaGNC">         230 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
-<span id="L963"><span class="lineNum">     963</span> <span class="tlaGNC">         230 :   assembler.Ret();</span></span>
-<span id="L964"><span class="lineNum">     964</span> <span class="tlaGNC">         230 : }</span></span>
+<span id="L955"><span class="lineNum">     955</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.Named(&quot;main&quot;));</span></span>
+<span id="L956"><span class="lineNum">     956</span> <span class="tlaGNC">         230 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
+<span id="L957"><span class="lineNum">     957</span> <span class="tlaGNC">         230 :   assembler.Ret();</span></span>
+<span id="L958"><span class="lineNum">     958</span>              : </span>
+<span id="L959"><span class="lineNum">     959</span> <span class="tlaGNC">         230 :   assembler.Bind(assembler.Named(&quot;_print_string&quot;));</span></span>
+<span id="L960"><span class="lineNum">     960</span> <span class="tlaGNC">         230 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
+<span id="L961"><span class="lineNum">     961</span> <span class="tlaGNC">         230 :   assembler.Mov(X(0), X(1));</span></span>
+<span id="L962"><span class="lineNum">     962</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.External(&quot;_printf&quot;));</span></span>
+<span id="L963"><span class="lineNum">     963</span> <span class="tlaGNC">         230 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
+<span id="L964"><span class="lineNum">     964</span> <span class="tlaGNC">         230 :   assembler.Ret();</span></span>
 <span id="L965"><span class="lineNum">     965</span>              : </span>
-<span id="L966"><span class="lineNum">     966</span>              : void GenerateArmEndBinary(const SyntaxContext&amp; syn_ctx,</span>
-<span id="L967"><span class="lineNum">     967</span>              :                           const AbstractMachineState&amp; am_state,</span>
-<span id="L968"><span class="lineNum">     968</span> <span class="tlaGNC">         193 :                           Assembler&amp; assmebler) {</span></span>
-<span id="L969"><span class="lineNum">     969</span> <span class="tlaGNC">         568 :   for (std::size_t i = 0; i &lt; am_state.strings.size(); ++i) {</span></span>
-<span id="L970"><span class="lineNum">     970</span> <span class="tlaGNC">         375 :     assmebler.Bind(assmebler.Named(StringLabel(i)));</span></span>
-<span id="L971"><span class="lineNum">     971</span> <span class="tlaGNC">         375 :     assmebler.Asciz(syn_ctx.DerefIdent(am_state.strings[i]));</span></span>
-<span id="L972"><span class="lineNum">     972</span> <span class="tlaGNC">         375 :   }</span></span>
-<span id="L973"><span class="lineNum">     973</span> <span class="tlaGNC">         282 :   for (const auto&amp; v : am_state.ints) {</span></span>
-<span id="L974"><span class="lineNum">     974</span> <span class="tlaGNC">         166 :     assmebler.Bind(assmebler.Named(IntLabel(v)));</span></span>
-<span id="L975"><span class="lineNum">     975</span> <span class="tlaGNC">         166 :     assmebler.Long(v);</span></span>
-<span id="L976"><span class="lineNum">     976</span> <span class="tlaGNC">         166 :   }</span></span>
-<span id="L977"><span class="lineNum">     977</span> <span class="tlaGNC">         193 : }</span></span>
-<span id="L978"><span class="lineNum">     978</span>              : </span>
-<span id="L979"><span class="lineNum">     979</span>              : void GenerateArmAssemblyBinary(std::string_view func_name,</span>
-<span id="L980"><span class="lineNum">     980</span>              :                                const std::vector&lt;int&gt;&amp; stack_slots,</span>
-<span id="L981"><span class="lineNum">     981</span>              :                                const FrameLayout&amp; layout,</span>
-<span id="L982"><span class="lineNum">     982</span>              :                                const AbstractMachineControlFlowGraph&amp; am_cfg,</span>
-<span id="L983"><span class="lineNum">     983</span> <span class="tlaGNC">         597 :                                Assembler&amp; assmebler) {</span></span>
-<span id="L984"><span class="lineNum">     984</span> <span class="tlaGNC">         597 :   Arm64BinaryGenerator(func_name, stack_slots, layout, am_cfg, assmebler)</span></span>
-<span id="L985"><span class="lineNum">     985</span> <span class="tlaGNC">         597 :       .Generate();</span></span>
-<span id="L986"><span class="lineNum">     986</span> <span class="tlaGNC">         597 : }</span></span>
-<span id="L987"><span class="lineNum">     987</span>              : </span>
-<span id="L988"><span class="lineNum">     988</span>              : }  // namespace lucid</span>
+<span id="L966"><span class="lineNum">     966</span>              :   // Where a division by nothing stops the program. What it printed before is</span>
+<span id="L967"><span class="lineNum">     967</span>              :   // flushed first, so that it comes out ahead of the message rather than</span>
+<span id="L968"><span class="lineNum">     968</span>              :   // after; then the message goes where errors go, and the program leaves.</span>
+<span id="L969"><span class="lineNum">     969</span>              :   //</span>
+<span id="L970"><span class="lineNum">     970</span>              :   // It is reached by a branch from the middle of a function rather than by a</span>
+<span id="L971"><span class="lineNum">     971</span>              :   // call, which is why nothing is saved: nothing comes back here.</span>
+<span id="L972"><span class="lineNum">     972</span> <span class="tlaGNC">         230 :   assembler.Bind(assembler.Named(kDivideByZero));</span></span>
+<span id="L973"><span class="lineNum">     973</span> <span class="tlaGNC">         230 :   assembler.Mov(X(0), Imm(0));</span></span>
+<span id="L974"><span class="lineNum">     974</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.External(&quot;_fflush&quot;));</span></span>
+<span id="L975"><span class="lineNum">     975</span> <span class="tlaGNC">         230 :   assembler.Mov(X(0), Imm(2));</span></span>
+<span id="L976"><span class="lineNum">     976</span> <span class="tlaGNC">         230 :   assembler.Adr(X(1), assembler.Named(kDivideByZeroMessage));</span></span>
+<span id="L977"><span class="lineNum">     977</span> <span class="tlaGNC">         230 :   assembler.Mov(X(2), Imm(kDivideByZeroTextBytes));</span></span>
+<span id="L978"><span class="lineNum">     978</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.External(&quot;_write&quot;));</span></span>
+<span id="L979"><span class="lineNum">     979</span> <span class="tlaGNC">         230 :   assembler.Mov(X(0), Imm(kDivideByZeroStatus));</span></span>
+<span id="L980"><span class="lineNum">     980</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.External(&quot;_exit&quot;));</span></span>
+<span id="L981"><span class="lineNum">     981</span>              : </span>
+<span id="L982"><span class="lineNum">     982</span>              :   // The message stands right after the code that writes it. Nothing runs</span>
+<span id="L983"><span class="lineNum">     983</span>              :   // into it, because the code before it leaves the program.</span>
+<span id="L984"><span class="lineNum">     984</span> <span class="tlaGNC">         230 :   assembler.Bind(assembler.Named(kDivideByZeroMessage));</span></span>
+<span id="L985"><span class="lineNum">     985</span> <span class="tlaGNC">         230 :   assembler.Asciz(kDivideByZeroText);</span></span>
+<span id="L986"><span class="lineNum">     986</span>              : </span>
+<span id="L987"><span class="lineNum">     987</span> <span class="tlaGNC">         230 :   assembler.Bind(assembler.Named(&quot;_sleep&quot;));</span></span>
+<span id="L988"><span class="lineNum">     988</span> <span class="tlaGNC">         230 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
+<span id="L989"><span class="lineNum">     989</span> <span class="tlaGNC">         230 :   assembler.Mov(X(2), X(1));</span></span>
+<span id="L990"><span class="lineNum">     990</span> <span class="tlaGNC">         230 :   assembler.Mov(X(3), Imm(0));</span></span>
+<span id="L991"><span class="lineNum">     991</span> <span class="tlaGNC">         230 :   assembler.StpPreIndex(X(2), X(3), SP, Imm(-16));</span></span>
+<span id="L992"><span class="lineNum">     992</span> <span class="tlaGNC">         230 :   assembler.Mov(X(0), SP);</span></span>
+<span id="L993"><span class="lineNum">     993</span> <span class="tlaGNC">         230 :   assembler.Mov(X(1), Imm(0));</span></span>
+<span id="L994"><span class="lineNum">     994</span> <span class="tlaGNC">         230 :   assembler.Bl(assembler.External(&quot;_nanosleep&quot;));</span></span>
+<span id="L995"><span class="lineNum">     995</span> <span class="tlaGNC">         230 :   assembler.Add(SP, SP, Imm(16));</span></span>
+<span id="L996"><span class="lineNum">     996</span> <span class="tlaGNC">         230 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
+<span id="L997"><span class="lineNum">     997</span> <span class="tlaGNC">         230 :   assembler.Ret();</span></span>
+<span id="L998"><span class="lineNum">     998</span> <span class="tlaGNC">         230 : }</span></span>
+<span id="L999"><span class="lineNum">     999</span>              : </span>
+<span id="L1000"><span class="lineNum">    1000</span>              : void GenerateArmEndBinary(const SyntaxContext&amp; syn_ctx,</span>
+<span id="L1001"><span class="lineNum">    1001</span>              :                           const AbstractMachineState&amp; am_state,</span>
+<span id="L1002"><span class="lineNum">    1002</span> <span class="tlaGNC">         193 :                           Assembler&amp; assmebler) {</span></span>
+<span id="L1003"><span class="lineNum">    1003</span> <span class="tlaGNC">         568 :   for (std::size_t i = 0; i &lt; am_state.strings.size(); ++i) {</span></span>
+<span id="L1004"><span class="lineNum">    1004</span> <span class="tlaGNC">         375 :     assmebler.Bind(assmebler.Named(StringLabel(i)));</span></span>
+<span id="L1005"><span class="lineNum">    1005</span> <span class="tlaGNC">         375 :     assmebler.Asciz(syn_ctx.DerefIdent(am_state.strings[i]));</span></span>
+<span id="L1006"><span class="lineNum">    1006</span> <span class="tlaGNC">         375 :   }</span></span>
+<span id="L1007"><span class="lineNum">    1007</span> <span class="tlaGNC">         282 :   for (const auto&amp; v : am_state.ints) {</span></span>
+<span id="L1008"><span class="lineNum">    1008</span> <span class="tlaGNC">         166 :     assmebler.Bind(assmebler.Named(IntLabel(v)));</span></span>
+<span id="L1009"><span class="lineNum">    1009</span> <span class="tlaGNC">         166 :     assmebler.Long(v);</span></span>
+<span id="L1010"><span class="lineNum">    1010</span> <span class="tlaGNC">         166 :   }</span></span>
+<span id="L1011"><span class="lineNum">    1011</span> <span class="tlaGNC">         193 : }</span></span>
+<span id="L1012"><span class="lineNum">    1012</span>              : </span>
+<span id="L1013"><span class="lineNum">    1013</span>              : void GenerateArmAssemblyBinary(std::string_view func_name,</span>
+<span id="L1014"><span class="lineNum">    1014</span>              :                                const std::vector&lt;int&gt;&amp; stack_slots,</span>
+<span id="L1015"><span class="lineNum">    1015</span>              :                                const FrameLayout&amp; layout,</span>
+<span id="L1016"><span class="lineNum">    1016</span>              :                                const AbstractMachineControlFlowGraph&amp; am_cfg,</span>
+<span id="L1017"><span class="lineNum">    1017</span> <span class="tlaGNC">         597 :                                Assembler&amp; assmebler) {</span></span>
+<span id="L1018"><span class="lineNum">    1018</span> <span class="tlaGNC">         597 :   Arm64BinaryGenerator(func_name, stack_slots, layout, am_cfg, assmebler)</span></span>
+<span id="L1019"><span class="lineNum">    1019</span> <span class="tlaGNC">         597 :       .Generate();</span></span>
+<span id="L1020"><span class="lineNum">    1020</span> <span class="tlaGNC">         597 : }</span></span>
+<span id="L1021"><span class="lineNum">    1021</span>              : </span>
+<span id="L1022"><span class="lineNum">    1022</span>              : }  // namespace lucid</span>
         </pre>
               </td>
             </tr>
