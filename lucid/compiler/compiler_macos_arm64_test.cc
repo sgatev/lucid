@@ -577,6 +577,27 @@ TEST(CompilerTest, Int64ArrayElementHoldsAllOfAValue) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
 }
 
+// A literal stored into an element once took the narrowest type it fits,
+// rather than the element's, so `7` went in as an `Int32`: 4 bytes at 4 bytes
+// in, the upper half of `a[0]`, leaving `a[1]` as it was.
+TEST(CompilerTest, LiteralStoredIntoArrayTakesTheElementType) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      mut val a: Int64[2]
+      mut a[0] = 0
+      mut a[1] = 12884901893
+      mut a[1] = 7
+      if a[0] == 0 {
+        if a[1] == 7 {
+          return 1
+        }
+      }
+      return 0
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
+}
+
 // Each comparison held in a variable, which the backend sets with CSET, at
 // the width of an `Int64`. `big` is 2^32, which has nothing in its lower 32
 // bits, so a comparison of only those would find it less than `one` and equal

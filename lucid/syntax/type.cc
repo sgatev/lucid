@@ -169,6 +169,19 @@ class ExprTypeInferenceEngine {
 
   void ProcessPendingStmt(StmtRef stmt_ref, const ArrayAssignStmt& stmt) {
     AddPendingExpr(stmt.index);
+
+    const auto type = ident_from_type_.Get(stmt.name);
+    if (!type.has_value()) {
+      errors_.push_back("no variable '" +
+                        std::string(syn_ctx_.DerefIdent(stmt.name)) + "'");
+      return;
+    }
+    const auto* array_type = std::get_if<ArrayType>(&syn_ctx_.DerefType(*type));
+    if (array_type == nullptr) {
+      errors_.push_back("a value of this type cannot be indexed");
+      return;
+    }
+    RequireTypeForExpr(stmt.expr, array_type->element_type_constraint);
     AddPendingExpr(stmt.expr);
   }
 

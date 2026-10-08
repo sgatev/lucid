@@ -431,6 +431,57 @@ TEST(InferExprTypesTest, ArrayIndex) {
             })));
 }
 
+TEST(InferExprTypesTest, ArrayAssignedExprFromElementType) {
+  const ExprRef value = E(IntLitExpr{.value = 7});
+  auto func = FuncDefStmt{.name = I("foo"),
+                          .result_type = T("Void"),
+                          .stmts = StmtListOf({
+                              S(VarDeclStmt{
+                                  .name = I("a"),
+                                  .type_constraint = T(T("Int64"), 10),
+                                  .is_mutable = true,
+                              }),
+                              S(ArrayAssignStmt{
+                                  .name = I("a"),
+                                  .index = E(IntLitExpr{.value = 2}),
+                                  .expr = value,
+                              }),
+                          })};
+
+  EXPECT_TRUE(InferExprTypes(func).has_value());
+  const Type& type = syn_ctx_.DerefType(GetType(syn_ctx_.DerefExpr(value)));
+  EXPECT_EQ(std::get<BasicType>(type).name, I("Int64"));
+}
+
+TEST(InferExprTypesTest, ErrorInt32AssignedToInt64Array) {
+  auto func = FuncDefStmt{
+      .name = I("foo"),
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = I("x"),
+              .type_constraint = T("Int32"),
+          }),
+      }),
+      .result_type = T("Void"),
+      .stmts = StmtListOf({
+          S(VarDeclStmt{
+              .name = I("a"),
+              .type_constraint = T(T("Int64"), 10),
+              .is_mutable = true,
+          }),
+          S(ArrayAssignStmt{
+              .name = I("a"),
+              .index = E(IntLitExpr{.value = 2}),
+              .expr = E(IdentExpr{.name = I("x")}),
+          }),
+      }),
+  };
+
+  auto res = InferExprTypes(func);
+  ASSERT_TRUE(!res.has_value());
+  EXPECT_EQ(res.error(), TypeError("expected type Int64"));
+}
+
 TEST(InferExprTypesTest, ErrorBoolLitAsInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),
