@@ -92,6 +92,25 @@ std::optional<BranchComparison> AsBranchComparison(const Instruction& inst) {
   return std::nullopt;
 }
 
+// Returns the condition that holds exactly when `cond` does not.
+Cond Inverse(Cond cond) {
+  switch (cond) {
+    case Cond::Eq:
+      return Cond::Ne;
+    case Cond::Ne:
+      return Cond::Eq;
+    case Cond::Ge:
+      return Cond::Lt;
+    case Cond::Lt:
+      return Cond::Ge;
+    case Cond::Gt:
+      return Cond::Le;
+    case Cond::Le:
+      return Cond::Gt;
+  }
+  std::unreachable();
+}
+
 class Arm64BinaryGenerator {
  public:
   explicit Arm64BinaryGenerator(std::string_view func_name,
@@ -162,7 +181,26 @@ class Arm64BinaryGenerator {
       }
       block_labels_[ref.id()] = assembler_.NewLabel();
     }
-    for (const auto& ref : block_refs) Process(am_cfg_.GetBlock(ref));
+
+    // A block that only passes control on is gone through rather than to,
+    // so nothing reaches it and it is not written at all.
+    FindPassThroughs(block_refs);
+    std::erase_if(block_refs, [&](const auto& ref) {
+      return pass_throughs_[ref.id()].has_value();
+    });
+    for (std::size_t i = 0; i < block_refs.size(); ++i) {
+      std::optional<AbstractMachineControlFlowGraph::BlockRef> next;
+      if (i + 1 < block_refs.size()) next = block_refs[i + 1];
+      Process(am_cfg_.GetBlock(block_refs[i]), next);
+    }
+
+    // The edges that make copies before they arrive, which a branch goes to
+    // when it is taken. They stand after every block, so that none of them
+    // comes between a block and the one it falls through to.
+    for (const auto& [label, to, from] : copying_edges_) {
+      assembler_.Bind(label);
+      ProcessEdge(to, from, /*next=*/std::nullopt);
+    }
   }
 
  private:
@@ -197,7 +235,83 @@ class Arm64BinaryGenerator {
     return comparison;
   }
 
-  void Process(const AbstractMachineControlFlowGraph::Block& block) {
+  using BlockRef = AbstractMachineControlFlowGraph::BlockRef;
+
+  // Where an edge arrives, and the block it arrives from, which is what the
+  // phi functions there take their arguments by.
+  struct Landing {
+    BlockRef block;
+    BlockRef pred;
+  };
+
+  // Whether `block` does nothing but pass control on to its one successor:
+  // it holds no instructions, no phi functions and no branch. The first block
+  // is where the function starts, and is never one.
+  bool PassesThrough(
+      const AbstractMachineControlFlowGraph::Block& block) const {
+    return block.ref != am_cfg_.first && block.instructions.empty() &&
+           block.phis.empty() && !block.branch_cond.has_value() &&
+           block.succs.size() == 1;
+  }
+
+  // Works out, for each block that only passes control on, where an edge
+  // into it lands once every such block after it is gone through too.
+  //
+  // A cycle of them is a loop that does nothing, forever. It has nowhere to
+  // land, so its blocks are kept and jump to one another as they are.
+  void FindPassThroughs(const std::vector<BlockRef>& block_refs) {
+    pass_throughs_.assign(block_labels_.size(), std::nullopt);
+    for (const BlockRef ref : block_refs) {
+      if (!PassesThrough(am_cfg_.GetBlock(ref))) continue;
+
+      BlockRef from = ref;
+      BlockRef to = am_cfg_.GetBlock(ref).succs[0];
+      for (std::size_t steps = 0;
+           steps < block_refs.size() && PassesThrough(am_cfg_.GetBlock(to));
+           ++steps) {
+        from = to;
+        to = am_cfg_.GetBlock(to).succs[0];
+      }
+      if (PassesThrough(am_cfg_.GetBlock(to))) continue;
+
+      pass_throughs_[ref.id()] = Landing{.block = to, .pred = from};
+    }
+  }
+
+  // Returns where the edge from `from` into `to` lands.
+  Landing LandingOf(BlockRef to, BlockRef from) const {
+    if (const auto& landing = pass_throughs_[to.id()]; landing.has_value()) {
+      return *landing;
+    }
+    return Landing{.block = to, .pred = from};
+  }
+
+  // Returns whether the edge from `from` into `to` has anything to copy for
+  // the phi functions where it lands.
+  bool CopiesAlong(BlockRef to, BlockRef from) const {
+    const Landing landing = LandingOf(to, from);
+    const auto& block = am_cfg_.GetBlock(landing.block);
+    const auto pred = std::ranges::find(block.preds, landing.pred);
+    const auto pred_idx = pred - block.preds.begin();
+    return std::ranges::any_of(block.phis, [&](const auto& phi) {
+      return phi.srcs[pred_idx] != phi.dst;
+    });
+  }
+
+  // Takes the edge from `from` into `to`: makes the copies the phi functions
+  // where it lands take along it, and jumps there, unless that is `next`,
+  // the block written right after this, which control falls into anyway.
+  void ProcessEdge(BlockRef to, BlockRef from, std::optional<BlockRef> next) {
+    const Landing landing = LandingOf(to, from);
+    ProcessPhiFunctions(am_cfg_.GetBlock(landing.block), landing.pred);
+    if (landing.block != next) {
+      assembler_.B(block_labels_[landing.block.id()]);
+    }
+  }
+
+  // `next` is the block written right after this one, if there is one.
+  void Process(const AbstractMachineControlFlowGraph::Block& block,
+               std::optional<BlockRef> next) {
     assembler_.Bind(block_labels_[block.ref.id()]);
 
     const std::optional<BranchComparison> fused = FusableComparison(block);
@@ -209,33 +323,36 @@ class Arm64BinaryGenerator {
     }
 
     if (block.branch_cond.has_value()) {
-      const Label else_label_phi = assembler_.NewLabel();
-      const Label then_label_phi = assembler_.NewLabel();
-
+      // The condition holds for the first successor. Control falls through
+      // to the second, unless the first is the block written next, in which
+      // case it falls through to that and the branch asks the opposite.
+      Cond cond = Cond::Ne;
       if (fused.has_value()) {
         Compare(fused->lhs, fused->rhs);
-        assembler_.B(fused->cond, then_label_phi);
-        assembler_.B(else_label_phi);
+        cond = fused->cond;
       } else {
         assembler_.Cmp(W(block.branch_cond->id), Imm(0));
-        assembler_.B(Cond::Eq, else_label_phi);
-        assembler_.B(then_label_phi);
       }
 
-      assembler_.Bind(else_label_phi);
-      ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[1]), block.ref);
-      assembler_.B(block_labels_[block.succs[1].id()]);
+      BlockRef taken = block.succs[0];
+      BlockRef not_taken = block.succs[1];
+      if (LandingOf(taken, block.ref).block == next) {
+        std::swap(taken, not_taken);
+        cond = Inverse(cond);
+      }
 
-      assembler_.Bind(then_label_phi);
-      ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[0]), block.ref);
-      assembler_.B(block_labels_[block.succs[0].id()]);
+      // A branch goes straight to where it lands, unless the edge has
+      // copies to make on the way.
+      Label target = block_labels_[LandingOf(taken, block.ref).block.id()];
+      if (CopiesAlong(taken, block.ref)) {
+        target = assembler_.NewLabel();
+        copying_edges_.push_back({target, taken, block.ref});
+      }
+      assembler_.B(cond, target);
+
+      ProcessEdge(not_taken, block.ref, next);
     } else if (block.succs.size() == 1) {
-      const Label phi_label = assembler_.NewLabel();
-      assembler_.B(phi_label);
-
-      assembler_.Bind(phi_label);
-      ProcessPhiFunctions(am_cfg_.GetBlock(block.succs[0]), block.ref);
-      assembler_.B(block_labels_[block.succs[0].id()]);
+      ProcessEdge(block.succs[0], block.ref, next);
     }
   }
 
@@ -781,6 +898,19 @@ class Arm64BinaryGenerator {
 
   // The label each block starts at, by the block's ID.
   std::vector<Label> block_labels_;
+
+  // Where an edge into a block that only passes control on lands, by the
+  // block's ID, and nothing for every other block.
+  std::vector<std::optional<Landing>> pass_throughs_;
+
+  // A taken branch whose edge makes copies before it arrives: the label the
+  // branch goes to, and the edge.
+  struct CopyingEdge {
+    Label label;
+    BlockRef to;
+    BlockRef from;
+  };
+  std::vector<CopyingEdge> copying_edges_;
 };
 
 }  // namespace

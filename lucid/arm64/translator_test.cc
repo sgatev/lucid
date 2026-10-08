@@ -277,6 +277,58 @@ TEST(Test, PhisReadingOneRegisterBothReadItBeforeItIsWritten) {
   EXPECT_TRUE(at(4, 1) < at(1, 2));
 }
 
+// Returns how many unconditional branches `assembler` emitted.
+std::size_t Jumps(const arm64::Assembler& assembler) {
+  return std::ranges::count_if(Words(assembler), [](std::uint32_t word) {
+    return (word & 0xfc000000u) == 0x14000000u;
+  });
+}
+
+// Returns how many conditional branches `assembler` emitted.
+std::size_t ConditionalBranches(const arm64::Assembler& assembler) {
+  return std::ranges::count_if(Words(assembler), [](std::uint32_t word) {
+    return (word & 0xff000010u) == 0x54000000u;
+  });
+}
+
+TEST(Test, BranchFallsThroughToTheBlockWrittenNext) {
+  // Both sides of the branch hold nothing and meet where the function
+  // returns, so both land there, and that is the block written next. One
+  // conditional branch is all it takes, and nothing jumps.
+  AbstractMachineControlFlowGraph am_cfg =
+      ComparingGraph(/*use_result_later=*/false);
+
+  arm64::Assembler assembler;
+  GenerateArmAssemblyBinary("f", {}, {}, am_cfg, assembler);
+
+  EXPECT_EQ(ConditionalBranches(assembler), 1u);
+  EXPECT_EQ(Jumps(assembler), 0u);
+}
+
+TEST(Test, EdgeGoesStraightPastBlocksThatOnlyPassControlOn) {
+  // The two blocks in the middle hold nothing, so control goes from the
+  // first block to the last without a jump through either.
+  AbstractMachineControlFlowGraphBuilder builder;
+  const auto entry = builder.AddBlock();
+  const auto first_empty = builder.AddBlock();
+  const auto second_empty = builder.AddBlock();
+  const auto exit = builder.AddBlock();
+  builder.SetFirst(entry);
+  builder.SetLast(exit);
+  builder.AddEdge(entry, first_empty);
+  builder.AddEdge(first_empty, second_empty);
+  builder.AddEdge(second_empty, exit);
+  builder.AddInstruction(entry,
+                         SetReg{.src_val = 7, .dst_reg = {1, RegSize32}});
+  builder.AddInstruction(exit, Return{.res_reg = {1, RegSize32}});
+  AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
+
+  arm64::Assembler assembler;
+  GenerateArmAssemblyBinary("f", {}, {}, am_cfg, assembler);
+
+  EXPECT_EQ(Jumps(assembler), 0u);
+}
+
 TEST(Test, GenerateArmStartBinaryWorks) {
   arm64::Assembler assembler;
 
