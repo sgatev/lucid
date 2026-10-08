@@ -314,7 +314,8 @@ class AbstractMachineFunctionGenerator {
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(type_ref)};
     am_block.instructions.push_back(LoadStackReg{
         .offset = place.base_offset,
-        .offset_reg = place.offset_reg,
+        .offset_reg = place.offset_reg.value(),
+        .offset_scale = place.offset_scale,
         .dst_reg = reg,
     });
     expr_to_reg_[ref.id()] = reg;
@@ -460,21 +461,10 @@ class AbstractMachineFunctionGenerator {
     auto stmt_offset = var_stack_.Get(stmt.name);
     assert(stmt_offset.has_value());
 
-    Reg size_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-    am_block.instructions.push_back(SetReg{
-        .src_val =
-            static_cast<int>(GetSize(GetType(syn_ctx_.DerefExpr(stmt.expr)))),
-        .dst_reg = size_reg,
-    });
-    Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-    am_block.instructions.push_back(MulReg{
-        .res_reg = offset_reg,
-        .lhs_reg = size_reg,
-        .rhs_reg = expr_to_reg_[stmt.index.id()],
-    });
     am_block.instructions.push_back(StoreStackReg{
         .offset = *stmt_offset,
-        .offset_reg = offset_reg,
+        .offset_reg = expr_to_reg_[stmt.index.id()],
+        .offset_scale = GetSize(GetType(syn_ctx_.DerefExpr(stmt.expr))),
         .src_reg = expr_to_reg_[stmt.expr.id()],
     });
   }
@@ -488,7 +478,8 @@ class AbstractMachineFunctionGenerator {
         am_block);
     am_block.instructions.push_back(StoreStackReg{
         .offset = place.base_offset,
-        .offset_reg = place.offset_reg,
+        .offset_reg = place.offset_reg.value(),
+        .offset_scale = place.offset_scale,
         .src_reg = expr_to_reg_[stmt.expr.id()],
     });
   }
@@ -506,18 +497,64 @@ class AbstractMachineFunctionGenerator {
                AbstractMachineControlFlowGraph::Block& am_block) {}
 
   // Where a value lies on the stack: the slot the variable holding it starts
-  // at, and a register carrying how many bytes into that variable it stands.
+  // at, and how many bytes into that variable it stands, which is a register
+  // times `offset_scale`. A value at the start of its variable has no
+  // register.
+  //
+  // Indexing straight into a variable leaves the index itself as the
+  // register, and the element's size as the scale, which a load or a store
+  // can take as it is.
   struct StackPlace {
     std::size_t base_offset;
-    Reg offset_reg;
+    std::optional<Reg> offset_reg;
+    std::size_t offset_scale = 1;
   };
 
-  // Adds `offset` bytes to where `place` stands.
+  // Turns the bytes `place` stands into its variable into a register of
+  // their own, unless they are one already.
+  void CountInBytes(StackPlace& place,
+                    AbstractMachineControlFlowGraph::Block& am_block) {
+    if (!place.offset_reg.has_value() || place.offset_scale == 1) return;
+
+    Reg scale_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
+    am_block.instructions.push_back(SetReg{
+        .src_val = static_cast<int>(place.offset_scale),
+        .dst_reg = scale_reg,
+    });
+    Reg bytes_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
+    am_block.instructions.push_back(MulReg{
+        .res_reg = bytes_reg,
+        .lhs_reg = scale_reg,
+        .rhs_reg = *place.offset_reg,
+    });
+    place.offset_reg = bytes_reg;
+    place.offset_scale = 1;
+  }
+
+  // Adds the bytes in `step_reg` to where `place` stands.
   //
   // The sum goes in a register of its own rather than back into the one it
   // adds to, as every step does: no register is written more than once, which
   // is what lets the allocator colour registers in the order the dominator
   // tree has them in.
+  void AddToStackPlace(StackPlace& place, Reg step_reg,
+                       AbstractMachineControlFlowGraph::Block& am_block) {
+    CountInBytes(place, am_block);
+    if (!place.offset_reg.has_value()) {
+      place.offset_reg = step_reg;
+      return;
+    }
+
+    Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
+    am_block.instructions.push_back(AddReg{
+        .res_reg = sum_reg,
+        .lhs_reg = *place.offset_reg,
+        .rhs_reg = step_reg,
+    });
+    place.offset_reg = sum_reg;
+  }
+
+  // Adds `offset` bytes to where `place` stands.
   void AddToStackPlace(StackPlace& place, std::size_t offset,
                        AbstractMachineControlFlowGraph::Block& am_block) {
     Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
@@ -525,13 +562,7 @@ class AbstractMachineFunctionGenerator {
         .src_val = static_cast<int>(offset),
         .dst_reg = step_reg,
     });
-    Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-    am_block.instructions.push_back(AddReg{
-        .res_reg = sum_reg,
-        .lhs_reg = place.offset_reg,
-        .rhs_reg = step_reg,
-    });
-    place.offset_reg = sum_reg;
+    AddToStackPlace(place, step_reg, am_block);
   }
 
   // Works out where the value an expression names lies, by walking the
@@ -545,36 +576,31 @@ class AbstractMachineFunctionGenerator {
     if (const auto* ident_expr = std::get_if<IdentExpr>(&expr)) {
       auto pos = var_stack_.Get(ident_expr->name);
       assert(pos.has_value());
-
-      Reg offset_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg{
-          .src_val = 0,
-          .dst_reg = offset_reg,
-      });
-      return {.base_offset = *pos, .offset_reg = offset_reg};
+      return {.base_offset = *pos};
     }
 
     if (const auto* index_expr = std::get_if<IndexExpr>(&expr)) {
       StackPlace place = GetStackPlace(index_expr->base, am_block);
+      const Reg index_reg = expr_to_reg_[index_expr->index.id()];
+      const std::size_t size = GetSize(GetType(expr));
+      if (!place.offset_reg.has_value()) {
+        place.offset_reg = index_reg;
+        place.offset_scale = size;
+        return place;
+      }
 
       Reg size_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(SetReg{
-          .src_val = static_cast<int>(GetSize(GetType(expr))),
+          .src_val = static_cast<int>(size),
           .dst_reg = size_reg,
       });
       Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
       am_block.instructions.push_back(MulReg{
           .res_reg = step_reg,
           .lhs_reg = size_reg,
-          .rhs_reg = expr_to_reg_[index_expr->index.id()],
+          .rhs_reg = index_reg,
       });
-      Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-      am_block.instructions.push_back(AddReg{
-          .res_reg = sum_reg,
-          .lhs_reg = place.offset_reg,
-          .rhs_reg = step_reg,
-      });
-      place.offset_reg = sum_reg;
+      AddToStackPlace(place, step_reg, am_block);
       return place;
     }
 

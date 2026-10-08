@@ -1205,6 +1205,58 @@ TEST(GenerateAbstractMachineFunctionTest, VarDeclInt64Array) {
                                   }));
 }
 
+TEST(GenerateAbstractMachineFunctionTest, IndexGoesToTheLoadAndStoreAsItIs) {
+  // `a[i]` is `i` elements into `a`, which a load or a store reaches by
+  // scaling `i` itself, so nothing works out how many bytes that is first.
+  auto func = FuncDefStmt{
+      .name = I("foo"),
+      .params = ParamListOf({
+          P(FuncParam{
+              .name = I("i"),
+              .type_constraint = T("Int32"),
+          }),
+          P(FuncParam{
+              .name = I("x"),
+              .type_constraint = T("Int64"),
+          }),
+      }),
+      .result_type = T("Int64"),
+      .stmts = StmtListOf({
+          S(VarDeclStmt{
+              .name = I("a"),
+              .type_constraint = T(T("Int64"), 10),
+              .is_mutable = true,
+          }),
+          S(ArrayAssignStmt{
+              .name = I("a"),
+              .index = E(IdentExpr{.name = I("i")}),
+              .expr = E(IdentExpr{.name = I("x")}),
+          }),
+          S(ReturnStmt{
+              .value = E(IndexExpr{
+                  .base = E(IdentExpr{.name = I("a")}),
+                  .index = E(IdentExpr{.name = I("i")}),
+              }),
+          }),
+      }),
+  };
+
+  const std::vector<Instruction> instructions = Generate(func);
+  EXPECT_TRUE(std::ranges::none_of(instructions, [](const auto& inst) {
+    return std::holds_alternative<MulReg>(inst);
+  }));
+  const auto store = std::ranges::find_if(instructions, [](const auto& inst) {
+    return std::holds_alternative<StoreStackReg>(inst);
+  });
+  ASSERT_TRUE(store != instructions.end());
+  EXPECT_EQ(std::get<StoreStackReg>(*store).offset_scale, 8u);
+  const auto load = std::ranges::find_if(instructions, [](const auto& inst) {
+    return std::holds_alternative<LoadStackReg>(inst);
+  });
+  ASSERT_TRUE(load != instructions.end());
+  EXPECT_EQ(std::get<LoadStackReg>(*load).offset_scale, 8u);
+}
+
 TEST(GenerateAbstractMachineFunctionTest, VarAssignInt32) {
   auto func = FuncDefStmt{
       .name = I("foo"),

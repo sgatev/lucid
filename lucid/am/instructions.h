@@ -376,9 +376,13 @@ struct StoreStackReg {
   // Initial offset from the top of the stack.
   std::size_t offset;
 
-  // Register whose value is added to `offset` to reach the destination
-  // address.
+  // Register whose value, times `offset_scale`, is added to `offset` to
+  // reach the destination address.
   Reg offset_reg;
+
+  // How many bytes each step of `offset_reg` stands for: 1, or the size of
+  // the value, when `offset_reg` holds the index of an element.
+  std::size_t offset_scale = 1;
 
   // Source register.
   Reg src_reg;
@@ -388,6 +392,7 @@ struct StoreStackReg {
   friend std::ostream& operator<<(std::ostream& os, const StoreStackReg& inst) {
     return os << "StoreStackReg { .offset=" << inst.offset
               << ", .offset_reg=" << inst.offset_reg
+              << ", .offset_scale=" << inst.offset_scale
               << ", .src_reg=" << inst.src_reg << " }";
   }
 };
@@ -413,9 +418,13 @@ struct LoadStackReg {
   // Initial offset from the top of the stack.
   std::size_t offset;
 
-  // Register whose value is added to `offset` to reach the address of the
-  // value.
+  // Register whose value, times `offset_scale`, is added to `offset` to
+  // reach the address of the value.
   Reg offset_reg;
+
+  // How many bytes each step of `offset_reg` stands for: 1, or the size of
+  // the value, when `offset_reg` holds the index of an element.
+  std::size_t offset_scale = 1;
 
   // Destination register.
   Reg dst_reg;
@@ -425,6 +434,7 @@ struct LoadStackReg {
   friend std::ostream& operator<<(std::ostream& os, const LoadStackReg& inst) {
     return os << "LoadStackReg { .offset=" << inst.offset
               << ", .offset_reg=" << inst.offset_reg
+              << ", .offset_scale=" << inst.offset_scale
               << ", .dst_reg=" << inst.dst_reg << " }";
   }
 };

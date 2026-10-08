@@ -287,7 +287,8 @@ Instruction Interpreter::Interpret(const StoreStackReg& inst) {
   auto offset_val = values_.Get(inst.offset_reg);
   assert(offset_val.has_value());
 
-  Write(SlotOffset(inst.offset) + static_cast<std::size_t>(*offset_val),
+  Write(SlotOffset(inst.offset) +
+            static_cast<std::size_t>(*offset_val) * inst.offset_scale,
         inst.src_reg.size, *src_val);
   return inst;
 }
@@ -302,7 +303,8 @@ Instruction Interpreter::Interpret(const LoadStackReg& inst) {
   assert(offset_val.has_value());
 
   values_.Set(inst.dst_reg, Read(SlotOffset(inst.offset) +
-                                     static_cast<std::size_t>(*offset_val),
+                                     static_cast<std::size_t>(*offset_val) *
+                                         inst.offset_scale,
                                  inst.dst_reg.size));
   return inst;
 }

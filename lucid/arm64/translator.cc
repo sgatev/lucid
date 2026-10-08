@@ -707,20 +707,16 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const StoreStackReg& inst) {
+    const IndexedAddress at = AddressOf(inst.offset, inst.offset_reg,
+                                        inst.offset_scale, inst.src_reg.size);
     switch (inst.src_reg.size) {
       case RegSize32:
-        InCarriableSteps(AdjustedOffset(inst.offset), [&](Imm imm) {
-          assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id), imm);
-        });
-        assembler_.Str(W(inst.src_reg.id), SP, W(inst.offset_reg.id),
-                       Extend::Uxtw, Imm(0));
+        assembler_.Str(W(inst.src_reg.id), at.base, at.index, at.extend,
+                       at.amount);
         break;
       case RegSize64:
-        InCarriableSteps(AdjustedOffset(inst.offset), [&](Imm imm) {
-          assembler_.Add(X(inst.offset_reg.id), X(inst.offset_reg.id), imm);
-        });
-        assembler_.Str(X(inst.src_reg.id), SP, X(inst.offset_reg.id),
-                       Extend::Lsl, Imm(0));
+        assembler_.Str(X(inst.src_reg.id), at.base, at.index, at.extend,
+                       at.amount);
         break;
     }
   }
@@ -740,20 +736,16 @@ class Arm64BinaryGenerator {
 
   void Process(const AbstractMachineControlFlowGraph::Block& block,
                const LoadStackReg& inst) {
+    const IndexedAddress at = AddressOf(inst.offset, inst.offset_reg,
+                                        inst.offset_scale, inst.dst_reg.size);
     switch (inst.dst_reg.size) {
       case RegSize32:
-        InCarriableSteps(AdjustedOffset(inst.offset), [&](Imm imm) {
-          assembler_.Add(W(inst.offset_reg.id), W(inst.offset_reg.id), imm);
-        });
-        assembler_.Ldr(W(inst.dst_reg.id), SP, W(inst.offset_reg.id),
-                       Extend::Uxtw);
+        assembler_.Ldr(W(inst.dst_reg.id), at.base, at.index, at.extend,
+                       at.amount);
         break;
       case RegSize64:
-        InCarriableSteps(AdjustedOffset(inst.offset), [&](Imm imm) {
-          assembler_.Add(X(inst.offset_reg.id), X(inst.offset_reg.id), imm);
-        });
-        assembler_.Ldr(X(inst.dst_reg.id), SP, X(inst.offset_reg.id),
-                       Extend::Lsl, Imm(0));
+        assembler_.Ldr(X(inst.dst_reg.id), at.base, at.index, at.extend,
+                       at.amount);
         break;
     }
   }
@@ -844,6 +836,48 @@ class Arm64BinaryGenerator {
       from = X(kAddressScratch);
     });
     return {.base = X(kAddressScratch), .offset = Imm(0)};
+  }
+
+  // Where a value is, as a load or a store reaches it with a register offset:
+  // a register to count from, and a register to add to it, extended and then
+  // shifted by the size of the value if `amount` is 1.
+  struct IndexedAddress {
+    X base;
+    arm64::internal::Reg index;
+    Extend extend;
+    Imm amount;
+  };
+
+  // Returns where the value of `size` that stands `offset_reg` times `scale`
+  // bytes into a slot is.
+  //
+  // The slot's own address is worked out in a scratch register rather than
+  // added to `offset_reg`, which can be a variable read again later, such as
+  // the index into an array.
+  IndexedAddress AddressOf(std::size_t slot, Reg offset_reg, std::size_t scale,
+                           RegSize size) {
+    // A load or a store shifts its offset by the size of the value or not at
+    // all, so nothing else can be scaled for free.
+    assert(scale == 1 || scale == (size == RegSize32 ? 4 : 8));
+
+    X base = SP;
+    InCarriableSteps(AdjustedOffset(slot), [&](Imm imm) {
+      assembler_.Add(X(kAddressScratch), base, imm);
+      base = X(kAddressScratch);
+    });
+
+    // A 32-bit register reads as the same value zero-extended, and a 64-bit
+    // one as it is.
+    const bool wide = offset_reg.size == RegSize64;
+    const arm64::internal::Reg index =
+        wide ? arm64::internal::Reg(X(offset_reg.id))
+             : arm64::internal::Reg(W(offset_reg.id));
+    return {
+        .base = base,
+        .index = index,
+        .extend = wide ? Extend::Lsl : Extend::Uxtw,
+        .amount = Imm(scale == 1 ? 0 : 1),
+    };
   }
 
   // Calls `emit` with immediates that add up to `value`.
