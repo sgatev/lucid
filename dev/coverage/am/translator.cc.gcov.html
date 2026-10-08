@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 20:23:27</td>
+            <td class="headerValue">2026-10-08 20:26:42</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryMed">89.1&nbsp;%</td>
@@ -376,7 +376,7 @@
 <span id="L314"><span class="lineNum">     314</span> <span class="tlaGNC">         128 :     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(type_ref)};</span></span>
 <span id="L315"><span class="lineNum">     315</span> <span class="tlaGNC">         128 :     am_block.instructions.push_back(LoadStackReg{</span></span>
 <span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">         128 :         .offset = place.base_offset,</span></span>
-<span id="L317"><span class="lineNum">     317</span> <span class="tlaGNC">         128 :         .offset_reg = *place.offset_reg,</span></span>
+<span id="L317"><span class="lineNum">     317</span> <span class="tlaGNC">         128 :         .offset_reg = place.offset_reg.value(),</span></span>
 <span id="L318"><span class="lineNum">     318</span> <span class="tlaGNC">         128 :         .offset_scale = place.offset_scale,</span></span>
 <span id="L319"><span class="lineNum">     319</span> <span class="tlaGNC">         128 :         .dst_reg = reg,</span></span>
 <span id="L320"><span class="lineNum">     320</span> <span class="tlaGNC">         128 :     });</span></span>
@@ -540,7 +540,7 @@
 <span id="L478"><span class="lineNum">     478</span> <span class="tlaGNC">         201 :         am_block);</span></span>
 <span id="L479"><span class="lineNum">     479</span> <span class="tlaGNC">         201 :     am_block.instructions.push_back(StoreStackReg{</span></span>
 <span id="L480"><span class="lineNum">     480</span> <span class="tlaGNC">         201 :         .offset = place.base_offset,</span></span>
-<span id="L481"><span class="lineNum">     481</span> <span class="tlaGNC">         201 :         .offset_reg = *place.offset_reg,</span></span>
+<span id="L481"><span class="lineNum">     481</span> <span class="tlaGNC">         201 :         .offset_reg = place.offset_reg.value(),</span></span>
 <span id="L482"><span class="lineNum">     482</span> <span class="tlaGNC">         201 :         .offset_scale = place.offset_scale,</span></span>
 <span id="L483"><span class="lineNum">     483</span> <span class="tlaGNC">         201 :         .src_reg = expr_to_reg_[stmt.expr.id()],</span></span>
 <span id="L484"><span class="lineNum">     484</span> <span class="tlaGNC">         201 :     });</span></span>
