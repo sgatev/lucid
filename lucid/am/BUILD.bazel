@@ -190,6 +190,7 @@ cc_test(
     deps = [
         ":abi",
         ":cfg",
+        ":cfg_builder",
         ":instructions",
         ":opt",
         ":reg",

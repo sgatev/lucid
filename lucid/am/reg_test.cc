@@ -11,6 +11,7 @@
 
 #include "lucid/am/abi.h"
 #include "lucid/am/cfg.h"
+#include "lucid/am/cfg_builder.h"
 #include "lucid/am/instructions.h"
 #include "lucid/am/liveness.h"
 #include "lucid/am/opt.h"
@@ -287,6 +288,39 @@ TEST(ColoringTest, ColorsParametersThatAreNotRead) {
       return b
     }
   )");
+}
+
+// A copy between two registers that took one colour copies that register
+// onto itself once they are merged, and is dropped. One between registers
+// that took two colours is kept.
+TEST(Test, MergingDropsCopiesOfARegisterOntoItself) {
+  const Reg a{1, RegSize32};
+  const Reg b{2, RegSize32};
+  const Reg c{3, RegSize32};
+
+  AbstractMachineControlFlowGraphBuilder builder;
+  const auto block = builder.AddBlock();
+  builder.SetFirst(block);
+  builder.SetLast(block);
+  builder.AddInstruction(block, SetReg{.src_val = 5, .dst_reg = a});
+  builder.AddInstruction(block, MoveReg{.src_reg = a, .dst_reg = b});
+  builder.AddInstruction(block, MoveReg{.src_reg = b, .dst_reg = c});
+  builder.AddInstruction(block, Return{.res_reg = c});
+  AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
+
+  // `a` and `b` share 19, and `c` has 20.
+  MergeRegisters(RegisterColors({RegisterColors::kNone, 19, 19, 20}), am_cfg);
+
+  const Reg r19{19, RegSize32};
+  const Reg r20{20, RegSize32};
+  const auto& instructions = am_cfg.GetBlock(block).instructions;
+  EXPECT_TRUE(
+      std::vector<Instruction>(instructions.begin(), instructions.end()) ==
+      (std::vector<Instruction>{
+          SetReg{.src_val = 5, .dst_reg = r19},
+          MoveReg{.src_reg = r19, .dst_reg = r20},
+          Return{.res_reg = r20},
+      }));
 }
 
 }  // namespace

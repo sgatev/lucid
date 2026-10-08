@@ -66,6 +66,9 @@ RegisterColors ColorRegisters(const AbstractMachineControlFlowGraph& am_cfg,
                               const AbstractMachineLiveness& liveness,
                               int colors_count);
 
+// Gives every register in `am_cfg` the colour it took in `reg_colors`, which
+// is the machine register it is held in from then on, and drops the copies
+// that leaves copying a register onto itself.
 void MergeRegisters(const RegisterColors& reg_colors,
                     AbstractMachineControlFlowGraph& am_cfg);
 

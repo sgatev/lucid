@@ -12,6 +12,7 @@
 #include <span>
 #include <tuple>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "lucid/am/cfg.h"
@@ -688,6 +689,15 @@ void MergeRegisters(const RegisterColors& reg_colors,
       UpdateRegister(reg_colors, phi.dst);
       for (auto& source : phi.srcs) UpdateRegister(reg_colors, source);
     }
+
+    // A copy whose source took the colour of where it goes copies a register
+    // onto itself, and is dropped. That holds at 32 bits as well, where a
+    // write clears the upper half of the register: every instruction that
+    // leaves a 32-bit value in a register has cleared it already.
+    std::erase_if(block.instructions, [](const Instruction& inst) {
+      const auto* move = std::get_if<MoveReg>(&inst);
+      return move != nullptr && move->src_reg == move->dst_reg;
+    });
   }
 }
 
