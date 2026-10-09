@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 20:26:42</td>
+            <td class="headerValue">2026-10-09 05:39:43</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -79,51 +79,51 @@
 <span id="L17"><span class="lineNum">      17</span>              : // the dominator tree induced by `graph`.</span>
 <span id="L18"><span class="lineNum">      18</span>              : template &lt;Graph GraphT&gt;</span>
 <span id="L19"><span class="lineNum">      19</span>              : std::vector&lt;std::optional&lt;typename GraphT::vertex_type&gt;&gt;</span>
-<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">        1236 : ComputeImmediateDominators(const GraphT&amp; graph) {</span></span>
-<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">        1236 :   const auto compare = CompareReversePostOrder(graph);</span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">        1240 : ComputeImmediateDominators(const GraphT&amp; graph) {</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">        1240 :   const auto compare = CompareReversePostOrder(graph);</span></span>
 <span id="L22"><span class="lineNum">      22</span>              : </span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">        1236 :   std::vector&lt;typename GraphT::vertex_type&gt; vertices = Vertices(graph);</span></span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">        1236 :   std::sort(vertices.begin(), vertices.end(), compare);</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">        1240 :   std::vector&lt;typename GraphT::vertex_type&gt; vertices = Vertices(graph);</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">        1240 :   std::sort(vertices.begin(), vertices.end(), compare);</span></span>
 <span id="L25"><span class="lineNum">      25</span>              : </span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">        1236 :   auto source_vertex = SourceVertex(graph);</span></span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">        1236 :   std::vector&lt;std::optional&lt;typename GraphT::vertex_type&gt;&gt; idoms(</span></span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">        1236 :       VertexCount(graph));</span></span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">        1236 :   idoms[VertexId(graph, source_vertex)] = source_vertex;</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">        1240 :   auto source_vertex = SourceVertex(graph);</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">        1240 :   std::vector&lt;std::optional&lt;typename GraphT::vertex_type&gt;&gt; idoms(</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">        1240 :       VertexCount(graph));</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">        1240 :   idoms[VertexId(graph, source_vertex)] = source_vertex;</span></span>
 <span id="L30"><span class="lineNum">      30</span>              : </span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">        1236 :   bool changed = true;</span></span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">        3633 :   while (changed) {</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">        2397 :     changed = false;</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">        1240 :   bool changed = true;</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">        3645 :   while (changed) {</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">        2405 :     changed = false;</span></span>
 <span id="L34"><span class="lineNum">      34</span>              : </span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">       14268 :     for (auto vertex : vertices) {</span></span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">       14268 :       if (vertex == source_vertex) continue;</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">       14300 :     for (auto vertex : vertices) {</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">       14300 :       if (vertex == source_vertex) continue;</span></span>
 <span id="L37"><span class="lineNum">      37</span>              : </span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">       11871 :       std::optional&lt;typename GraphT::vertex_type&gt; new_idom;</span></span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       15534 :       for (auto prev_vertex : PrevVertices(graph, vertex)) {</span></span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       15534 :         if (!idoms[VertexId(graph, prev_vertex)].has_value()) continue;</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">       11895 :       std::optional&lt;typename GraphT::vertex_type&gt; new_idom;</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       15566 :       for (auto prev_vertex : PrevVertices(graph, vertex)) {</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       15566 :         if (!idoms[VertexId(graph, prev_vertex)].has_value()) continue;</span></span>
 <span id="L41"><span class="lineNum">      41</span>              : </span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">       15296 :         if (!new_idom.has_value()) {</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">       11818 :           new_idom = prev_vertex;</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">       11818 :         } else {</span></span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">        6956 :           while (new_idom != prev_vertex) {</span></span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">        6768 :             while (compare(prev_vertex, new_idom.value())) {</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">        3290 :               new_idom = idoms[VertexId(graph, new_idom.value())];</span></span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">        3290 :             }</span></span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">        6239 :             while (compare(new_idom.value(), prev_vertex)) {</span></span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">        2761 :               prev_vertex = idoms[VertexId(graph, prev_vertex)].value();</span></span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">        2761 :             }</span></span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">        3478 :           }</span></span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">        3478 :         }</span></span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">       15296 :       }</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">       15328 :         if (!new_idom.has_value()) {</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">       11842 :           new_idom = prev_vertex;</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">       11842 :         } else {</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">        6976 :           while (new_idom != prev_vertex) {</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">        6796 :             while (compare(prev_vertex, new_idom.value())) {</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">        3306 :               new_idom = idoms[VertexId(graph, new_idom.value())];</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">        3306 :             }</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">        6255 :             while (compare(new_idom.value(), prev_vertex)) {</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">        2765 :               prev_vertex = idoms[VertexId(graph, prev_vertex)].value();</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">        2765 :             }</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">        3490 :           }</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">        3486 :         }</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">       15328 :       }</span></span>
 <span id="L55"><span class="lineNum">      55</span>              : </span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">       11871 :       if (idoms[VertexId(graph, vertex)] != new_idom) {</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">        5909 :         idoms[VertexId(graph, vertex)] = new_idom;</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">        5909 :         changed = true;</span></span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">        5909 :       }</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">       11871 :     }</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">        2397 :   }</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">       11895 :       if (idoms[VertexId(graph, vertex)] != new_idom) {</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">        5921 :         idoms[VertexId(graph, vertex)] = new_idom;</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">        5921 :         changed = true;</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">        5921 :       }</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">       11895 :     }</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">        2405 :   }</span></span>
 <span id="L62"><span class="lineNum">      62</span>              : </span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">        1236 :   return idoms;</span></span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">        1236 : }</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">        1240 :   return idoms;</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">        1240 : }</span></span>
 <span id="L65"><span class="lineNum">      65</span>              : </span>
 <span id="L66"><span class="lineNum">      66</span>              : // Returns a map from vertices in `graph` to their respective dominance</span>
 <span id="L67"><span class="lineNum">      67</span>              : // frontiers. Only vertices with non-empty dominance frontiers are represented</span>

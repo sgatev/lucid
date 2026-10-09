@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 20:26:42</td>
+            <td class="headerValue">2026-10-09 05:39:43</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -113,128 +113,128 @@
 <span id="L51"><span class="lineNum">      51</span>              : // - The types of `main` must have been inferred, so that its result is not</span>
 <span id="L52"><span class="lineNum">      52</span>              : //   an array or a tuple.</span>
 <span id="L53"><span class="lineNum">      53</span>              : std::expected&lt;void, TypeError&gt; CheckEntryPoint(const SyntaxContext&amp; syn_ctx,</span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         199 :                                                const FuncDefStmt&amp; main) {</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">         199 :   if (main.params.size() != 0) {</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         201 :                                                const FuncDefStmt&amp; main) {</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">         201 :   if (main.params.size() != 0) {</span></span>
 <span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           1 :     return std::unexpected(TypeError(std::format(</span></span>
 <span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           1 :         &quot;function 'main' takes no parameters, not {}&quot;, main.params.size())));</span></span>
 <span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           1 :   }</span></span>
 <span id="L59"><span class="lineNum">      59</span>              : </span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">         198 :   const auto&amp; result = std::get&lt;BasicType&gt;(syn_ctx.DerefType(main.result_type));</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">         198 :   const std::string_view name = syn_ctx.DerefIdent(result.name);</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">         198 :   if (name != &quot;Int32&quot; &amp;&amp; name != &quot;Int64&quot; &amp;&amp; name != &quot;Bool&quot;) {</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">         200 :   const auto&amp; result = std::get&lt;BasicType&gt;(syn_ctx.DerefType(main.result_type));</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">         200 :   const std::string_view name = syn_ctx.DerefIdent(result.name);</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">         200 :   if (name != &quot;Int32&quot; &amp;&amp; name != &quot;Int64&quot; &amp;&amp; name != &quot;Bool&quot;) {</span></span>
 <span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           2 :     return std::unexpected(TypeError(std::format(</span></span>
 <span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           2 :         &quot;function 'main' returns Int32, Int64 or Bool, not {}&quot;, name)));</span></span>
 <span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">           2 :   }</span></span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">         196 :   return {};</span></span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">         198 : }</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">         198 :   return {};</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">         200 : }</span></span>
 <span id="L68"><span class="lineNum">      68</span>              : </span>
 <span id="L69"><span class="lineNum">      69</span>              : // Checks that a function with a result returns one wherever it ends. A path</span>
 <span id="L70"><span class="lineNum">      70</span>              : // that runs off the closing brace would leave the caller with whatever was</span>
 <span id="L71"><span class="lineNum">      71</span>              : // last where a result goes, which is never what was meant.</span>
 <span id="L72"><span class="lineNum">      72</span>              : std::expected&lt;void, TypeError&gt; CheckEveryPathReturns(</span>
 <span id="L73"><span class="lineNum">      73</span>              :     const SyntaxContext&amp; syn_ctx, const FuncDefStmt&amp; func_def,</span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         589 :     const SyntaxControlFlowGraph&amp; syn_cfg) {</span></span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">         589 :   const auto&amp; result =</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">         589 :       std::get&lt;BasicType&gt;(syn_ctx.DerefType(func_def.result_type));</span></span>
-<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">         589 :   if (syn_ctx.DerefIdent(result.name) == &quot;Void&quot;) return {};</span></span>
-<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">         589 :   if (!CanEndWithoutReturning(syn_ctx, syn_cfg)) return {};</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         591 :     const SyntaxControlFlowGraph&amp; syn_cfg) {</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">         591 :   const auto&amp; result =</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">         591 :       std::get&lt;BasicType&gt;(syn_ctx.DerefType(func_def.result_type));</span></span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">         591 :   if (syn_ctx.DerefIdent(result.name) == &quot;Void&quot;) return {};</span></span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">         591 :   if (!CanEndWithoutReturning(syn_ctx, syn_cfg)) return {};</span></span>
 <span id="L79"><span class="lineNum">      79</span>              : </span>
 <span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">           1 :   return std::unexpected(</span></span>
 <span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">           1 :       TypeError(std::format(&quot;function '{}' can end without returning a value&quot;,</span></span>
 <span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">           1 :                             syn_ctx.DerefIdent(func_def.name))));</span></span>
-<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">         589 : }</span></span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">         591 : }</span></span>
 <span id="L84"><span class="lineNum">      84</span>              : </span>
 <span id="L85"><span class="lineNum">      85</span>              : }  // namespace</span>
 <span id="L86"><span class="lineNum">      86</span>              : </span>
 <span id="L87"><span class="lineNum">      87</span>              : std::expected&lt;void, CompileError&gt; CompileSource(std::string_view src,</span>
-<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">         229 :                                                 std::ostream&amp; out) {</span></span>
-<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">         229 :   SyntaxContext syn_ctx;</span></span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">         231 :                                                 std::ostream&amp; out) {</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">         231 :   SyntaxContext syn_ctx;</span></span>
 <span id="L90"><span class="lineNum">      90</span>              : </span>
-<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">         229 :   std::list&lt;Def&gt; defs;</span></span>
-<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">         229 :   BufferedLexer&lt;Lexer&gt; lexer(Lexer{src});</span></span>
-<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">         229 :   Parser parser(syn_ctx, src, lexer);</span></span>
+<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">         231 :   std::list&lt;Def&gt; defs;</span></span>
+<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">         231 :   BufferedLexer&lt;Lexer&gt; lexer(Lexer{src});</span></span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">         231 :   Parser parser(syn_ctx, src, lexer);</span></span>
 <span id="L94"><span class="lineNum">      94</span>              : </span>
-<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">         229 :   AbstractMachineState am_state;</span></span>
-<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">         229 :   HashMap&lt;std::string_view, AbstractMachineControlFlowGraph&gt; am_cfgs;</span></span>
-<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">         229 :   arm64::Assembler assembler;</span></span>
-<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">         229 :   GenerateArmStartBinary(assembler);</span></span>
-<span id="L99"><span class="lineNum">      99</span> <span class="tlaGNC">         885 :   while (true) {</span></span>
-<span id="L100"><span class="lineNum">     100</span> <span class="tlaGNC">         885 :     std::expected&lt;std::optional&lt;Def&gt;, ParserError&gt; def_or_error =</span></span>
-<span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">         885 :         parser.Parse();</span></span>
-<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC">         885 :     if (!def_or_error.has_value()) return std::unexpected(def_or_error.error());</span></span>
+<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">         231 :   AbstractMachineState am_state;</span></span>
+<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">         231 :   HashMap&lt;std::string_view, AbstractMachineControlFlowGraph&gt; am_cfgs;</span></span>
+<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">         231 :   arm64::Assembler assembler;</span></span>
+<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">         231 :   GenerateArmStartBinary(assembler);</span></span>
+<span id="L99"><span class="lineNum">      99</span> <span class="tlaGNC">         889 :   while (true) {</span></span>
+<span id="L100"><span class="lineNum">     100</span> <span class="tlaGNC">         889 :     std::expected&lt;std::optional&lt;Def&gt;, ParserError&gt; def_or_error =</span></span>
+<span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">         889 :         parser.Parse();</span></span>
+<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC">         889 :     if (!def_or_error.has_value()) return std::unexpected(def_or_error.error());</span></span>
 <span id="L103"><span class="lineNum">     103</span>              : </span>
-<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">         882 :     std::optional&lt;Def&gt; maybe_def = std::move(def_or_error).value();</span></span>
-<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">         882 :     if (!maybe_def.has_value()) break;</span></span>
+<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">         886 :     std::optional&lt;Def&gt; maybe_def = std::move(def_or_error).value();</span></span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">         886 :     if (!maybe_def.has_value()) break;</span></span>
 <span id="L106"><span class="lineNum">     106</span>              : </span>
-<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">         689 :     defs.push_back(std::move(maybe_def).value());</span></span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">         691 :     defs.push_back(std::move(maybe_def).value());</span></span>
 <span id="L108"><span class="lineNum">     108</span>              : </span>
-<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">         689 :     if (auto* func_def = std::get_if&lt;FuncDefStmt&gt;(&amp;defs.back())) {</span></span>
-<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">         615 :       syn_ctx.AddFuncDef(*func_def);</span></span>
+<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">         691 :     if (auto* func_def = std::get_if&lt;FuncDefStmt&gt;(&amp;defs.back())) {</span></span>
+<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">         617 :       syn_ctx.AddFuncDef(*func_def);</span></span>
 <span id="L111"><span class="lineNum">     111</span>              : </span>
-<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">         615 :       if (auto res = ResolveNames(syn_ctx, *func_def); !res.has_value()) {</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">         617 :       if (auto res = ResolveNames(syn_ctx, *func_def); !res.has_value()) {</span></span>
 <span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">          13 :         return std::unexpected(res.error());</span></span>
 <span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">          13 :       }</span></span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">         602 :       if (auto res = InferExprTypes(syn_ctx, *func_def); !res.has_value()) {</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">         604 :       if (auto res = InferExprTypes(syn_ctx, *func_def); !res.has_value()) {</span></span>
 <span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">          10 :         return std::unexpected(res.error());</span></span>
 <span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          10 :       }</span></span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">         592 :       if (syn_ctx.DerefIdent(func_def-&gt;name) == &quot;main&quot;) {</span></span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">         199 :         if (auto res = CheckEntryPoint(syn_ctx, *func_def); !res.has_value()) {</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">         594 :       if (syn_ctx.DerefIdent(func_def-&gt;name) == &quot;main&quot;) {</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">         201 :         if (auto res = CheckEntryPoint(syn_ctx, *func_def); !res.has_value()) {</span></span>
 <span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">           3 :           return std::unexpected(res.error());</span></span>
 <span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">           3 :         }</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">         199 :       }</span></span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">         589 :       if (auto res = CheckComp(syn_ctx, *func_def); !res.has_value()) {</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">         201 :       }</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">         591 :       if (auto res = CheckComp(syn_ctx, *func_def); !res.has_value()) {</span></span>
 <span id="L124"><span class="lineNum">     124</span> <span class="tlaUNC">           0 :         return std::unexpected(res.error());</span></span>
 <span id="L125"><span class="lineNum">     125</span> <span class="tlaUNC">           0 :       }</span></span>
-<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">         589 :       SyntaxControlFlowGraph syn_cfg =</span></span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">         589 :           BuildControlFlowGraph(syn_ctx, *func_def);</span></span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">         589 :       if (auto res = CheckEveryPathReturns(syn_ctx, *func_def, syn_cfg);</span></span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">         589 :           !res.has_value()) {</span></span>
+<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">         591 :       SyntaxControlFlowGraph syn_cfg =</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">         591 :           BuildControlFlowGraph(syn_ctx, *func_def);</span></span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">         591 :       if (auto res = CheckEveryPathReturns(syn_ctx, *func_def, syn_cfg);</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">         591 :           !res.has_value()) {</span></span>
 <span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">           1 :         return std::unexpected(res.error());</span></span>
 <span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">           1 :       }</span></span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">         588 :       ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);</span></span>
-<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">         588 :       auto am_cfg_or_error =</span></span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">         588 :           GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);</span></span>
-<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">         588 :       if (!am_cfg_or_error.has_value()) {</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">         590 :       ConvertToStaticSingleAssignment(syn_ctx, syn_cfg);</span></span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">         590 :       auto am_cfg_or_error =</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">         590 :           GenerateAbstractMachineFunction(am_cfgs, syn_ctx, syn_cfg, am_state);</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">         590 :       if (!am_cfg_or_error.has_value()) {</span></span>
 <span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">           6 :         return std::unexpected(am_cfg_or_error.error());</span></span>
 <span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">           6 :       }</span></span>
 <span id="L138"><span class="lineNum">     138</span>              : </span>
-<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">         582 :       AbstractMachineControlFlowGraph am_cfg =</span></span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">         582 :           std::move(am_cfg_or_error).value();</span></span>
-<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">         582 :       OptimizeAbstractMachineFunction(am_cfg);</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">         584 :       AbstractMachineControlFlowGraph am_cfg =</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">         584 :           std::move(am_cfg_or_error).value();</span></span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">         584 :       OptimizeAbstractMachineFunction(am_cfg);</span></span>
 <span id="L142"><span class="lineNum">     142</span>              : </span>
 <span id="L143"><span class="lineNum">     143</span>              :       // What compile-time evaluation runs is the function as the abstract</span>
 <span id="L144"><span class="lineNum">     144</span>              :       // machine has it, before anything about a particular machine's</span>
 <span id="L145"><span class="lineNum">     145</span>              :       // registers has been put on it. It can only call a comp function, so</span>
 <span id="L146"><span class="lineNum">     146</span>              :       // no other is kept: keeping every one copied each graph only to free</span>
 <span id="L147"><span class="lineNum">     147</span>              :       // it at the end.</span>
-<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">         582 :       if (func_def-&gt;is_comp) {</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">         584 :       if (func_def-&gt;is_comp) {</span></span>
 <span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">         150 :         am_cfgs.Insert(syn_ctx.DerefIdent(func_def-&gt;name), am_cfg);</span></span>
 <span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">         150 :       }</span></span>
 <span id="L151"><span class="lineNum">     151</span>              : </span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">         582 :       const FrameLayout layout =</span></span>
-<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">         582 :           LowerCallingConvention(am_cfg, kArm64CallingConvention);</span></span>
-<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">         582 :       static constexpr int kArmRegistersCount = 10;</span></span>
-<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">         582 :       const AbstractMachineLiveness liveness =</span></span>
-<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">         582 :           SpillRegisters(am_cfg, am_state, kArmRegistersCount);</span></span>
-<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">         582 :       const RegisterColors colors =</span></span>
-<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">         582 :           ColorRegisters(am_cfg, liveness, kArmRegistersCount);</span></span>
-<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">         582 :       MergeRegisters(colors, am_cfg);</span></span>
-<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">         582 :       GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func_def-&gt;name),</span></span>
-<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">         582 :                                 am_cfg.stack_slots, layout, am_cfg, assembler);</span></span>
-<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">         582 :     } else if (const auto* type_def = std::get_if&lt;TypeDefStmt&gt;(&amp;defs.back())) {</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">         584 :       const FrameLayout layout =</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">         584 :           LowerCallingConvention(am_cfg, kArm64CallingConvention);</span></span>
+<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">         584 :       static constexpr int kArmRegistersCount = 10;</span></span>
+<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">         584 :       const AbstractMachineLiveness liveness =</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">         584 :           SpillRegisters(am_cfg, am_state, kArmRegistersCount);</span></span>
+<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">         584 :       const RegisterColors colors =</span></span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">         584 :           ColorRegisters(am_cfg, liveness, kArmRegistersCount);</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">         584 :       MergeRegisters(colors, am_cfg);</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">         584 :       GenerateArmAssemblyBinary(syn_ctx.DerefIdent(func_def-&gt;name),</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">         584 :                                 am_cfg.stack_slots, layout, am_cfg, assembler);</span></span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">         584 :     } else if (const auto* type_def = std::get_if&lt;TypeDefStmt&gt;(&amp;defs.back())) {</span></span>
 <span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">          74 :       syn_ctx.RegisterType(type_def-&gt;name, type_def-&gt;type);</span></span>
 <span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">          74 :     }</span></span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">         689 :   }</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">         691 :   }</span></span>
 <span id="L166"><span class="lineNum">     166</span>              :   // The start of the program calls `main`, so there is nothing to write</span>
 <span id="L167"><span class="lineNum">     167</span>              :   // without one.</span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         193 :   if (syn_ctx.FindFuncDef(syn_ctx.AddIdent(&quot;main&quot;)) == nullptr) {</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         195 :   if (syn_ctx.FindFuncDef(syn_ctx.AddIdent(&quot;main&quot;)) == nullptr) {</span></span>
 <span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">           3 :     return std::unexpected(TypeError(&quot;no function 'main' to start from&quot;));</span></span>
 <span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">           3 :   }</span></span>
 <span id="L171"><span class="lineNum">     171</span>              : </span>
-<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">         190 :   GenerateArmEndBinary(syn_ctx, am_state, assembler);</span></span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">         190 :   WriteCompiledMachObject(assembler, out);</span></span>
-<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">         190 :   return {};</span></span>
-<span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">         193 : }</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">         192 :   GenerateArmEndBinary(syn_ctx, am_state, assembler);</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">         192 :   WriteCompiledMachObject(assembler, out);</span></span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">         192 :   return {};</span></span>
+<span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">         195 : }</span></span>
 <span id="L176"><span class="lineNum">     176</span>              : </span>
 <span id="L177"><span class="lineNum">     177</span>              : std::expected&lt;std::vector&lt;Def&gt;, ParserError&gt; ParseDefs(std::string_view src,</span>
 <span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">          11 :                                                        SyntaxContext&amp; ctx) {</span></span>
@@ -254,29 +254,29 @@
 <span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">          11 :   return defs;</span></span>
 <span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          11 : }</span></span>
 <span id="L194"><span class="lineNum">     194</span>              : </span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">         230 : std::expected&lt;void, CompileError&gt; CompileCode(const CompileConfig&amp; config) {</span></span>
-<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">         230 :   std::expected&lt;std::string, ReadFileError&gt; src =</span></span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">         230 :       ReadFile(config.src_path, /*with_trailing_zero=*/true);</span></span>
-<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">         230 :   if (!src) return std::unexpected(src.error());</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">         232 : std::expected&lt;void, CompileError&gt; CompileCode(const CompileConfig&amp; config) {</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">         232 :   std::expected&lt;std::string, ReadFileError&gt; src =</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">         232 :       ReadFile(config.src_path, /*with_trailing_zero=*/true);</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">         232 :   if (!src) return std::unexpected(src.error());</span></span>
 <span id="L199"><span class="lineNum">     199</span>              : </span>
-<span id="L200"><span class="lineNum">     200</span> <span class="tlaGNC">         229 :   std::ofstream out(config.out_path, std::ios::out | std::ios::binary);</span></span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">         229 :   return CompileSource(*src, out);</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">         230 : }</span></span>
+<span id="L200"><span class="lineNum">     200</span> <span class="tlaGNC">         231 :   std::ofstream out(config.out_path, std::ios::out | std::ios::binary);</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">         231 :   return CompileSource(*src, out);</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">         232 : }</span></span>
 <span id="L203"><span class="lineNum">     203</span>              : </span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">         180 : std::expected&lt;void, BuildError&gt; BuildCode(BuildConfig cfg) {</span></span>
-<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">         180 :   std::filesystem::path obj_path = cfg.out_path;</span></span>
-<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">         180 :   obj_path.replace_extension(&quot;o&quot;);</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">         182 : std::expected&lt;void, BuildError&gt; BuildCode(BuildConfig cfg) {</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">         182 :   std::filesystem::path obj_path = cfg.out_path;</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">         182 :   obj_path.replace_extension(&quot;o&quot;);</span></span>
 <span id="L207"><span class="lineNum">     207</span>              : </span>
-<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">         180 :   return CompileCode({.src_path = cfg.src_path, .out_path = obj_path})</span></span>
-<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">         180 :       .and_then([&amp;] -&gt; std::expected&lt;void, BuildError&gt; {</span></span>
+<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">         182 :   return CompileCode({.src_path = cfg.src_path, .out_path = obj_path})</span></span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">         182 :       .and_then([&amp;] -&gt; std::expected&lt;void, BuildError&gt; {</span></span>
 <span id="L210"><span class="lineNum">     210</span>              :         // NOLINTNEXTLINE(bugprone-command-processor): the shell finds the SDK.</span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">         176 :         std::system(std::format(&quot;ld -o {} {} -lSystem -syslibroot `xcrun -sdk &quot;</span></span>
-<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">         176 :                                 &quot;macosx --show-sdk-path` -e _start -arch arm64&quot;,</span></span>
-<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">         176 :                                 cfg.out_path.c_str(), obj_path.c_str())</span></span>
-<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">         176 :                         .data());</span></span>
-<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">         176 :         return {};</span></span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">         176 :       });</span></span>
-<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">         180 : }</span></span>
+<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">         178 :         std::system(std::format(&quot;ld -o {} {} -lSystem -syslibroot `xcrun -sdk &quot;</span></span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">         178 :                                 &quot;macosx --show-sdk-path` -e _start -arch arm64&quot;,</span></span>
+<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">         178 :                                 cfg.out_path.c_str(), obj_path.c_str())</span></span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">         178 :                         .data());</span></span>
+<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">         178 :         return {};</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">         178 :       });</span></span>
+<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">         182 : }</span></span>
 <span id="L218"><span class="lineNum">     218</span>              : </span>
 <span id="L219"><span class="lineNum">     219</span>              : }  // namespace lucid</span>
         </pre>

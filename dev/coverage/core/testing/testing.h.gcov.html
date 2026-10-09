@@ -37,12 +37,12 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 20:26:42</td>
+            <td class="headerValue">2026-10-09 05:39:43</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">99.7&nbsp;%</td>
-            <td class="headerCovTableEntry">976</td>
-            <td class="headerCovTableEntry">973</td>
+            <td class="headerCovTableEntry">981</td>
+            <td class="headerCovTableEntry">978</td>
           </tr>
                   <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
                 </table>
@@ -93,16 +93,16 @@
 <span id="L31"><span class="lineNum">      31</span>              : namespace lucid {</span>
 <span id="L32"><span class="lineNum">      32</span>              : </span>
 <span id="L33"><span class="lineNum">      33</span>              : template &lt;typename T, class... Types&gt;</span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         156 : inline bool operator==(const T&amp; t, const std::variant&lt;Types...&gt;&amp; v) {</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">         156 :   const T* c = std::get_if&lt;T&gt;(&amp;v);</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         138 : inline bool operator==(const T&amp; t, const std::variant&lt;Types...&gt;&amp; v) {</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">         138 :   const T* c = std::get_if&lt;T&gt;(&amp;v);</span></span>
 <span id="L36"><span class="lineNum">      36</span>              : </span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         156 :   return c &amp;&amp; *c == t;</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">         156 : }</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         138 :   return c &amp;&amp; *c == t;</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">         138 : }</span></span>
 <span id="L39"><span class="lineNum">      39</span>              : </span>
 <span id="L40"><span class="lineNum">      40</span>              : template &lt;typename T, class... Types&gt;</span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">         156 : inline bool operator==(const std::variant&lt;Types...&gt;&amp; v, const T&amp; t) {</span></span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">         156 :   return t == v;</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">         156 : }</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">         138 : inline bool operator==(const std::variant&lt;Types...&gt;&amp; v, const T&amp; t) {</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">         138 :   return t == v;</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">         138 : }</span></span>
 <span id="L44"><span class="lineNum">      44</span>              : </span>
 <span id="L45"><span class="lineNum">      45</span>              : // The base class of a test.</span>
 <span id="L46"><span class="lineNum">      46</span>              : class Test {</span>
@@ -129,7 +129,7 @@
 <span id="L67"><span class="lineNum">      67</span>              :   virtual void Run() = 0;</span>
 <span id="L68"><span class="lineNum">      68</span>              : </span>
 <span id="L69"><span class="lineNum">      69</span>              :   // Returns the path to the temporary directory created for this test run.</span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">         970 :   std::filesystem::path TempDir() const { return temp_dir_; }</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">         978 :   std::filesystem::path TempDir() const { return temp_dir_; }</span></span>
 <span id="L71"><span class="lineNum">      71</span>              : </span>
 <span id="L72"><span class="lineNum">      72</span>              :  private:</span>
 <span id="L73"><span class="lineNum">      73</span>              :   bool failed_ = false;</span>
@@ -148,7 +148,7 @@
 <span id="L86"><span class="lineNum">      86</span>              :   /* NOLINTNEXTLINE */                                                    \</span>
 <span id="L87"><span class="lineNum">      87</span>              :   class LUCID_CONCAT(name, Test) : public base {                          \</span>
 <span id="L88"><span class="lineNum">      88</span>              :    public:                                                                \</span>
-<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">        1290 :     std::string_view Name() const final { return LUCID_STRINGIFY(name); } \</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">        1300 :     std::string_view Name() const final { return LUCID_STRINGIFY(name); } \</span></span>
 <span id="L90"><span class="lineNum">      90</span>              :     void Run() final;                                                     \</span>
 <span id="L91"><span class="lineNum">      91</span>              :   };                                                                      \</span>
 <span id="L92"><span class="lineNum">      92</span>              :   /* NOLINTNEXTLINE */                                                    \</span>
@@ -163,9 +163,9 @@
 <span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">          66 : }</span></span>
 <span id="L102"><span class="lineNum">     102</span>              : </span>
 <span id="L103"><span class="lineNum">     103</span>              : // Matches a value that is true.</span>
-<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">     1503256 : inline internal::BooleanMatcher IsTrue() {</span></span>
-<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">     1503256 :   return internal::BooleanMatcher(true);</span></span>
-<span id="L106"><span class="lineNum">     106</span> <span class="tlaGNC">     1503256 : }</span></span>
+<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">     1235358 : inline internal::BooleanMatcher IsTrue() {</span></span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">     1235358 :   return internal::BooleanMatcher(true);</span></span>
+<span id="L106"><span class="lineNum">     106</span> <span class="tlaGNC">     1235358 : }</span></span>
 <span id="L107"><span class="lineNum">     107</span>              : </span>
 <span id="L108"><span class="lineNum">     108</span>              : // Matches a value that is false.</span>
 <span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">       44993 : inline internal::BooleanMatcher IsFalse() {</span></span>
@@ -174,15 +174,15 @@
 <span id="L112"><span class="lineNum">     112</span>              : </span>
 <span id="L113"><span class="lineNum">     113</span>              : // Matches a value that is equal to `expected_value`.</span>
 <span id="L114"><span class="lineNum">     114</span>              : template &lt;typename E&gt;</span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">       30075 : inline internal::EqualityMatcher&lt;E&gt; Equals(E expected_value) {</span></span>
-<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">       30075 :   return internal::EqualityMatcher&lt;E&gt;(std::forward&lt;E&gt;(expected_value), true);</span></span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">       30075 : }</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">       30063 : inline internal::EqualityMatcher&lt;E&gt; Equals(E expected_value) {</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">       30063 :   return internal::EqualityMatcher&lt;E&gt;(std::forward&lt;E&gt;(expected_value), true);</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">       30063 : }</span></span>
 <span id="L118"><span class="lineNum">     118</span>              : </span>
 <span id="L119"><span class="lineNum">     119</span>              : // Matches a value that is not equal to `expected_value`.</span>
 <span id="L120"><span class="lineNum">     120</span>              : template &lt;typename E&gt;</span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">      237916 : inline internal::EqualityMatcher&lt;E&gt; NotEquals(E expected_value) {</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">      237916 :   return internal::EqualityMatcher&lt;E&gt;(std::move(expected_value), false);</span></span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">      237916 : }</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">      193265 : inline internal::EqualityMatcher&lt;E&gt; NotEquals(E expected_value) {</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">      193265 :   return internal::EqualityMatcher&lt;E&gt;(std::move(expected_value), false);</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">      193265 : }</span></span>
 <span id="L124"><span class="lineNum">     124</span>              : </span>
 <span id="L125"><span class="lineNum">     125</span>              : // Matches a value whose size is `expected_size`.</span>
 <span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">          29 : inline internal::SizeMatcher SizeIs(std::size_t expected_size) {</span></span>
@@ -224,10 +224,10 @@
 <span id="L162"><span class="lineNum">     162</span>              : </span>
 <span id="L163"><span class="lineNum">     163</span>              : // Matches a value that has a field accepted by `field_matcher`.</span>
 <span id="L164"><span class="lineNum">     164</span>              : template &lt;typename F, internal::Matcher M&gt;</span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">         343 : internal::FieldMatcher&lt;F, M&gt; Field(F field, M field_matcher) {</span></span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">         343 :   return internal::FieldMatcher&lt;F, M&gt;(std::move(field),</span></span>
-<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">         343 :                                       std::move(field_matcher));</span></span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         343 : }</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">         345 : internal::FieldMatcher&lt;F, M&gt; Field(F field, M field_matcher) {</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">         345 :   return internal::FieldMatcher&lt;F, M&gt;(std::move(field),</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">         345 :                                       std::move(field_matcher));</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         345 : }</span></span>
 <span id="L169"><span class="lineNum">     169</span>              : </span>
 <span id="L170"><span class="lineNum">     170</span>              : // Matches an optional that contains a value accepted by `value_matcher`.</span>
 <span id="L171"><span class="lineNum">     171</span>              : template &lt;internal::Matcher M&gt;</span>
@@ -285,33 +285,33 @@
 <span id="L223"><span class="lineNum">     223</span>              : // a second time. Wrapping the whole thing in a loop makes an invocation a</span>
 <span id="L224"><span class="lineNum">     224</span>              : // single statement, so it can be used as the body of an unbraced `if`.</span>
 <span id="L225"><span class="lineNum">     225</span>              : #define LUCID_MATCH_OR_FAIL(actual, matcher, on_mismatch)                  \</span>
-<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">     1816109 :   do {                                                                     \</span></span>
-<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">     1816109 :     auto&amp;&amp; LUCID_UNIQUE_VAR(value) = (actual);                             \</span></span>
-<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">     1816109 :     auto&amp;&amp; LUCID_UNIQUE_VAR(m) = (matcher);                                \</span></span>
-<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">     1816109 :     if (!LUCID_UNIQUE_VAR(m).Matches(LUCID_UNIQUE_VAR(value))) {           \</span></span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">     1503566 :   do {                                                                     \</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">     1503566 :     auto&amp;&amp; LUCID_UNIQUE_VAR(value) = (actual);                             \</span></span>
+<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">     1503566 :     auto&amp;&amp; LUCID_UNIQUE_VAR(m) = (matcher);                                \</span></span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">     1503566 :     if (!LUCID_UNIQUE_VAR(m).Matches(LUCID_UNIQUE_VAR(value))) {           \</span></span>
 <span id="L230"><span class="lineNum">     230</span> <span class="tlaUNC">           0 :       Fail(std::format(                                                    \</span></span>
 <span id="L231"><span class="lineNum">     231</span> <span class="tlaUNC">           0 :           &quot;Expected {}\n to be {}\n but was found {}.&quot;,                    \</span></span>
 <span id="L232"><span class="lineNum">     232</span> <span class="tlaUNC">           0 :           LUCID_STRINGIFY(actual), LUCID_UNIQUE_VAR(m).DescribeExpected(), \</span></span>
 <span id="L233"><span class="lineNum">     233</span> <span class="tlaUNC">           0 :           LUCID_UNIQUE_VAR(m).DescribeActual(LUCID_UNIQUE_VAR(value))));   \</span></span>
 <span id="L234"><span class="lineNum">     234</span> <span class="tlaUNC">           0 :       on_mismatch;                                                         \</span></span>
 <span id="L235"><span class="lineNum">     235</span> <span class="tlaUNC">           0 :     }                                                                      \</span></span>
-<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">     1816109 :   } while (false)</span></span>
+<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">     1503566 :   } while (false)</span></span>
 <span id="L237"><span class="lineNum">     237</span>              : </span>
 <span id="L238"><span class="lineNum">     238</span>              : #define ASSERT_THAT(actual, matcher) \</span>
-<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">       16544 :   LUCID_MATCH_OR_FAIL(actual, matcher, return)</span></span>
+<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">       16549 :   LUCID_MATCH_OR_FAIL(actual, matcher, return)</span></span>
 <span id="L240"><span class="lineNum">     240</span>              : </span>
-<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">        8382 : #define ASSERT_TRUE(actual) ASSERT_THAT(actual, IsTrue())</span></span>
+<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">        8385 : #define ASSERT_TRUE(actual) ASSERT_THAT(actual, IsTrue())</span></span>
 <span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">          89 : #define ASSERT_FALSE(actual) ASSERT_THAT(actual, IsFalse())</span></span>
-<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">        8037 : #define ASSERT_EQ(actual, expected) ASSERT_THAT(actual, Equals(expected))</span></span>
+<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">        8039 : #define ASSERT_EQ(actual, expected) ASSERT_THAT(actual, Equals(expected))</span></span>
 <span id="L244"><span class="lineNum">     244</span>              : #define ASSERT_NE(actual, expected) ASSERT_THAT(actual, NotEquals(expected))</span>
 <span id="L245"><span class="lineNum">     245</span>              : </span>
 <span id="L246"><span class="lineNum">     246</span>              : #define EXPECT_THAT(actual, matcher) \</span>
-<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">     1799565 :   LUCID_MATCH_OR_FAIL(actual, matcher, (void)0)</span></span>
+<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">     1487017 :   LUCID_MATCH_OR_FAIL(actual, matcher, (void)0)</span></span>
 <span id="L248"><span class="lineNum">     248</span>              : </span>
-<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">     1489665 : #define EXPECT_TRUE(actual) EXPECT_THAT(actual, IsTrue())</span></span>
+<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">     1221764 : #define EXPECT_TRUE(actual) EXPECT_THAT(actual, IsTrue())</span></span>
 <span id="L250"><span class="lineNum">     250</span> <span class="tlaGNC">         349 : #define EXPECT_FALSE(actual) EXPECT_THAT(actual, IsFalse())</span></span>
-<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC">        1075 : #define EXPECT_EQ(actual, expected) EXPECT_THAT(actual, Equals(expected))</span></span>
-<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">      282800 : #define EXPECT_NE(actual, expected) EXPECT_THAT(actual, NotEquals(expected))</span></span>
+<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC">        1077 : #define EXPECT_EQ(actual, expected) EXPECT_THAT(actual, Equals(expected))</span></span>
+<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">      227364 : #define EXPECT_NE(actual, expected) EXPECT_THAT(actual, NotEquals(expected))</span></span>
 <span id="L253"><span class="lineNum">     253</span>              : </span>
 <span id="L254"><span class="lineNum">     254</span>              : }  // namespace lucid</span>
         </pre>

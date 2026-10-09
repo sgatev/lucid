@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 20:26:42</td>
+            <td class="headerValue">2026-10-09 05:39:43</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryLo">72.2&nbsp;%</td>
@@ -124,7 +124,7 @@
 <span id="L62"><span class="lineNum">      62</span>              : // object.</span>
 <span id="L63"><span class="lineNum">      63</span>              : using ExprRef = Arena&lt;Expr&gt;::Ref;</span>
 <span id="L64"><span class="lineNum">      64</span>              : </span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">       98902 : inline std::size_t Hash(const lucid::ExprRef&amp; ref) { return Hash(ref.id()); }</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">      100024 : inline std::size_t Hash(const lucid::ExprRef&amp; ref) { return Hash(ref.id()); }</span></span>
 <span id="L66"><span class="lineNum">      66</span>              : </span>
 <span id="L67"><span class="lineNum">      67</span>              : // A reference to a type that can be dereferenced using an `Arena&lt;Type&gt;` object.</span>
 <span id="L68"><span class="lineNum">      68</span>              : using TypeRef = Arena&lt;Type&gt;::Ref;</span>
@@ -487,14 +487,14 @@
 <span id="L425"><span class="lineNum">     425</span>              : };</span>
 <span id="L426"><span class="lineNum">     426</span>              : </span>
 <span id="L427"><span class="lineNum">     427</span>              : // Returns the type of `expr`.</span>
-<span id="L428"><span class="lineNum">     428</span> <span class="tlaGNC">        2984 : inline TypeRef GetType(const Expr&amp; expr) {</span></span>
-<span id="L429"><span class="lineNum">     429</span> <span class="tlaGNC">        2984 :   return std::visit([](const auto&amp; expr) { return expr.type; }, expr);</span></span>
-<span id="L430"><span class="lineNum">     430</span> <span class="tlaGNC">        2984 : }</span></span>
+<span id="L428"><span class="lineNum">     428</span> <span class="tlaGNC">        2992 : inline TypeRef GetType(const Expr&amp; expr) {</span></span>
+<span id="L429"><span class="lineNum">     429</span> <span class="tlaGNC">        2992 :   return std::visit([](const auto&amp; expr) { return expr.type; }, expr);</span></span>
+<span id="L430"><span class="lineNum">     430</span> <span class="tlaGNC">        2992 : }</span></span>
 <span id="L431"><span class="lineNum">     431</span>              : </span>
 <span id="L432"><span class="lineNum">     432</span>              : // Sets `type` as the type of `expr`.</span>
-<span id="L433"><span class="lineNum">     433</span> <span class="tlaGNC">       19097 : inline void SetType(Expr&amp; expr, TypeRef type) {</span></span>
-<span id="L434"><span class="lineNum">     434</span> <span class="tlaGNC">       19097 :   std::visit([type](auto&amp; expr) { expr.type = type; }, expr);</span></span>
-<span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">       19097 : }</span></span>
+<span id="L433"><span class="lineNum">     433</span> <span class="tlaGNC">       19132 : inline void SetType(Expr&amp; expr, TypeRef type) {</span></span>
+<span id="L434"><span class="lineNum">     434</span> <span class="tlaGNC">       19132 :   std::visit([type](auto&amp; expr) { expr.type = type; }, expr);</span></span>
+<span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">       19132 : }</span></span>
 <span id="L436"><span class="lineNum">     436</span>              : </span>
 <span id="L437"><span class="lineNum">     437</span>              : }  // namespace lucid</span>
         </pre>

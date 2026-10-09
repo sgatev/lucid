@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 20:26:42</td>
+            <td class="headerValue">2026-10-09 05:39:43</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -84,15 +84,15 @@
 <span id="L22"><span class="lineNum">      22</span>              : </span>
 <span id="L23"><span class="lineNum">      23</span>              :   // Returns the value that is mapped to `key`, if present, or the missing</span>
 <span id="L24"><span class="lineNum">      24</span>              :   // object provided on construction of the map.</span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">        8211 :   [[nodiscard]] constexpr ValueT operator[](const KeyT&amp; key) const {</span></span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">        8211 :     const auto it =</span></span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">        8211 :         std::find_if(std::begin(entries_), std::end(entries_),</span></span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">       35630 :                      [&amp;key](const auto&amp; p) { return p.first == key; });</span></span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">        8211 :     if (it == std::end(entries_)) [[unlikely]] {</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">        8227 :   [[nodiscard]] constexpr ValueT operator[](const KeyT&amp; key) const {</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">        8227 :     const auto it =</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">        8227 :         std::find_if(std::begin(entries_), std::end(entries_),</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">       35699 :                      [&amp;key](const auto&amp; p) { return p.first == key; });</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">        8227 :     if (it == std::end(entries_)) [[unlikely]] {</span></span>
 <span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">           3 :       return missing_;</span></span>
 <span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           3 :     }</span></span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">        8208 :     return it-&gt;second;</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">        8211 :   }</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">        8224 :     return it-&gt;second;</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">        8227 :   }</span></span>
 <span id="L34"><span class="lineNum">      34</span>              : </span>
 <span id="L35"><span class="lineNum">      35</span>              :  private:</span>
 <span id="L36"><span class="lineNum">      36</span>              :   std::array&lt;std::pair&lt;KeyT, ValueT&gt;, kSize&gt; entries_;</span>

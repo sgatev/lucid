@@ -37,12 +37,12 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 20:26:42</td>
+            <td class="headerValue">2026-10-09 05:39:43</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntryLo">38.6&nbsp;%</td>
-            <td class="headerCovTableEntry">734</td>
-            <td class="headerCovTableEntry">283</td>
+            <td class="headerCovTableEntryLo">38.8&nbsp;%</td>
+            <td class="headerCovTableEntry">704</td>
+            <td class="headerCovTableEntry">273</td>
           </tr>
                   <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
                 </table>
@@ -128,10 +128,10 @@
 <span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">         217 :     if (actual_elements.size() != sizeof...(Ms)) return false;</span></span>
 <span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">         217 :     auto it = std::begin(actual_elements);</span></span>
 <span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">         217 :     bool equal = true;</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">         464 :     StaticFor&lt;0, sizeof...(Ms)&gt;([&amp;]&lt;int I&gt;() {</span></span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">         464 :       equal = equal &amp;&amp; std::get&lt;I&gt;(element_matchers_).Matches(*it);</span></span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">         464 :       ++it;</span></span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">         464 :     });</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">         446 :     StaticFor&lt;0, sizeof...(Ms)&gt;([&amp;]&lt;int I&gt;() {</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">         446 :       equal = equal &amp;&amp; std::get&lt;I&gt;(element_matchers_).Matches(*it);</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">         446 :       ++it;</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">         446 :     });</span></span>
 <span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">         217 :     return equal;</span></span>
 <span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         217 :   }</span></span>
 <span id="L75"><span class="lineNum">      75</span>              : </span>

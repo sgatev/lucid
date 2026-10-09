@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-08 20:26:42</td>
+            <td class="headerValue">2026-10-09 05:39:43</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -81,25 +81,25 @@
 <span id="L19"><span class="lineNum">      19</span>              :   // being one of them, so where `buffer` opens with one the source starts</span>
 <span id="L20"><span class="lineNum">      20</span>              :   // after it.</span>
 <span id="L21"><span class="lineNum">      21</span>              :   explicit Lexer(std::string_view buffer)</span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">         399 :       : buffer_(reinterpret_cast&lt;const unsigned char*&gt;(buffer.data())),</span></span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">         399 :         size_(buffer.size()),</span></span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">         399 :         pos_(buffer.starts_with(kByteOrderMark) ? kByteOrderMark.size() : 0) {</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">         399 :     assert(size_ &gt; 0);</span></span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">         399 :     assert(buffer_[size_ - 1] == '\0');</span></span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">         399 :   }</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">         401 :       : buffer_(reinterpret_cast&lt;const unsigned char*&gt;(buffer.data())),</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">         401 :         size_(buffer.size()),</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">         401 :         pos_(buffer.starts_with(kByteOrderMark) ? kByteOrderMark.size() : 0) {</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">         401 :     assert(size_ &gt; 0);</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">         401 :     assert(buffer_[size_ - 1] == '\0');</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">         401 :   }</span></span>
 <span id="L28"><span class="lineNum">      28</span>              : </span>
 <span id="L29"><span class="lineNum">      29</span>              :   // Returns the next token in the buffer.</span>
 <span id="L30"><span class="lineNum">      30</span>              :   //</span>
 <span id="L31"><span class="lineNum">      31</span>              :   // Requires:</span>
 <span id="L32"><span class="lineNum">      32</span>              :   // - Must not be called after it returns a `Kind::End` or `Kind::Error` token.</span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">      110669 :   inline Token next() {</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">      110669 :     const unsigned char sym = buffer_[pos_];</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">      110669 :     const std::uint8_t sym_class = kClassMap[sym];</span></span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">      110669 :     const std::uint32_t start_pos = pos_++;</span></span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">      110669 :     if (sym_class &lt; kOtherClass) {</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">      110859 :   inline Token next() {</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">      110859 :     const unsigned char sym = buffer_[pos_];</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">      110859 :     const std::uint8_t sym_class = kClassMap[sym];</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">      110859 :     const std::uint32_t start_pos = pos_++;</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">      110859 :     if (sym_class &lt; kOtherClass) {</span></span>
 <span id="L38"><span class="lineNum">      38</span>              :       // Ident, number, or whitespace.</span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">      183340 :       while ((sym_class | kClassMap[buffer_[pos_]]) == sym_class) ++pos_;</span></span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       81871 :     } else if (sym == '&quot;') {</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">      183695 :       while ((sym_class | kClassMap[buffer_[pos_]]) == sym_class) ++pos_;</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       82006 :     } else if (sym == '&quot;') {</span></span>
 <span id="L41"><span class="lineNum">      41</span>              :       // String.</span>
 <span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">        1509 :       while (pos_ != size_ &amp;&amp; buffer_[pos_] != '&quot;') ++pos_;</span></span>
 <span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">         385 :       if (pos_ == size_) {</span></span>
@@ -110,16 +110,16 @@
 <span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">           2 :         };</span></span>
 <span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">           2 :       }</span></span>
 <span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">         383 :       ++pos_;</span></span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">       28418 :     } else if (sym == '#') {</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">       28473 :     } else if (sym == '#') {</span></span>
 <span id="L52"><span class="lineNum">      52</span>              :       // Comment.</span>
 <span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">         542 :       while (pos_ != size_ &amp;&amp; buffer_[pos_] != '\n') ++pos_;</span></span>
 <span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">          16 :     }</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">      110667 :     return {</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">      110667 :         .kind = kTokenKindMap[sym],</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">      110667 :         .start_pos = start_pos,</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">      110667 :         .end_pos = pos_,</span></span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">      110667 :     };</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">      110669 :   }</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">      110857 :     return {</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">      110857 :         .kind = kTokenKindMap[sym],</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">      110857 :         .start_pos = start_pos,</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">      110857 :         .end_pos = pos_,</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">      110857 :     };</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">      110859 :   }</span></span>
 <span id="L61"><span class="lineNum">      61</span>              : </span>
 <span id="L62"><span class="lineNum">      62</span>              :  private:</span>
 <span id="L63"><span class="lineNum">      63</span>              :   static constexpr std::uint8_t kNumClass = 0b1;</span>
