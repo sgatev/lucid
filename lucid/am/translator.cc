@@ -169,11 +169,15 @@ class AbstractMachineFunctionGenerator {
     for (const auto& seq : block.sequences) {
       for (ExprRef expr_ref : seq.expressions) {
         const Expr& expr = syn_ctx_.DerefExpr(expr_ref);
+        const std::size_t emitted = am_block.instructions.size();
         Process(expr_ref, expr, am_block);
 
+        // What an expression comes to is worked out by running the
+        // instruction it ends in. One that ends in none, such as a read of a
+        // variable, is in a register that holds it already.
         bool is_comp =
             std::visit([](const auto& expr) { return expr.is_comp; }, expr);
-        if (is_comp) {
+        if (is_comp && am_block.instructions.size() > emitted) {
           std::expected<Instruction, CompError> res =
               vm_.Interpret(am_block.instructions.back());
           if (!res.has_value()) return std::unexpected(res.error());
@@ -283,12 +287,10 @@ class AbstractMachineFunctionGenerator {
         std::holds_alternative<TupleType>(syn_ctx_.DerefType(expr.type))) {
       return;
     }
-    Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
-    am_block.instructions.push_back(MoveReg{
-        .src_reg = GetVarReg(expr.name, expr.type),
-        .dst_reg = reg,
-    });
-    expr_to_reg_[ref.id()] = reg;
+    // Read where the variable is, rather than from a copy. In single
+    // assignment form a write to a variable starts a new one, so what is read
+    // here never changes under the reader.
+    expr_to_reg_[ref.id()] = GetVarReg(expr.name, expr.type);
   }
 
   void ProcessExpr(ExprRef ref, const IndexExpr& expr,
@@ -424,7 +426,20 @@ class AbstractMachineFunctionGenerator {
     if (am_block.ref.id() >= returned_regs_.size()) {
       returned_regs_.resize(am_block.ref.id() + 1);
     }
-    returned_regs_[am_block.ref.id()] = expr_to_reg_[stmt.value.id()];
+    // What is returned goes to the phi function where the returns meet. A
+    // variable given there as it is would be tied to every other value
+    // returned, and spilling puts all of those in one slot while two of them
+    // can be live at once, so a variable goes in a copy of its own.
+    Reg value = expr_to_reg_[stmt.value.id()];
+    if (std::holds_alternative<IdentExpr>(syn_ctx_.DerefExpr(stmt.value))) {
+      const Reg copy = {am_cfg_.next_free_reg_id++, value.size};
+      am_block.instructions.push_back(MoveReg{
+          .src_reg = value,
+          .dst_reg = copy,
+      });
+      value = copy;
+    }
+    returned_regs_[am_block.ref.id()] = value;
   }
 
   void Process(StmtRef ref, const DoStmt& stmt,

@@ -598,6 +598,24 @@ TEST(CompilerTest, LiteralStoredIntoArrayTakesTheElementType) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(1));
 }
 
+// A read of a variable is no instruction of its own, as the variable's
+// register already holds it. Worked out at compile time, it once had the
+// instruction before it run in its place: here the copy into `c`, of a value
+// loaded from the frame, which compile time knows nothing of.
+TEST(CompilerTest, CompExpressionReadingACompVariable) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val a: Int32 = comp (5)
+      mut val xs: Int32[1]
+      mut xs[0] = 3
+      val c: Int32 = xs[0]
+      val b: Int32 = comp (a)
+      return b + c
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(8));
+}
+
 // Each comparison held in a variable, which the backend sets with CSET, at
 // the width of an `Int64`. `big` is 2^32, which has nothing in its lower 32
 // bits, so a comparison of only those would find it less than `one` and equal
