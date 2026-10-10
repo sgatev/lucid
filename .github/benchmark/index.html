@@ -412,8 +412,9 @@
         <dl>
           <dt>Each point</dt>
           <dd>
-            One commit on <code>main</code>, oldest on the left. Click a point
-            to open that commit on GitHub.
+            One commit on <code>main</code>, oldest on the left, over the last
+            30 commits. Click a point to open that commit on GitHub. The
+            download below has every commit measured.
           </dd>
           <dt>The value</dt>
           <dd>
@@ -603,8 +604,13 @@
           return lines.toFixed(0) + " lines/s";
         }
 
-        // Turns the recorded entries into one series per benchmark, keeping
-        // the points in the order they were measured.
+        // How many of the newest commits the page shows. The data keeps
+        // every one, so the download still has them all.
+        const SHOWN_COMMITS = 30;
+
+        // Turns the recorded entries of the newest commits into one series
+        // per benchmark, keeping the points in the order they were measured.
+        // A benchmark none of those commits measured has no series.
         //
         // A benchmark is named for the binary that declares it and then for
         // itself, so what comes before the last separator is the group it
@@ -615,7 +621,7 @@
           for (const suite of Object.keys(data.entries)) {
             const pointsByName = new Map();
 
-            for (const entry of data.entries[suite]) {
+            for (const entry of data.entries[suite].slice(-SHOWN_COMMITS)) {
               for (const bench of entry.benches) {
                 let points = pointsByName.get(bench.name);
                 if (points === undefined) {
