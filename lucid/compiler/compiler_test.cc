@@ -264,9 +264,6 @@ TEST(CompilerTest, ReportsCompilationDividingByZero) {
   }
 }
 
-// A file written with a carriage return before each newline, or opening with
-// a byte order mark, as some editors write them, compiles the same as one
-// written without.
 // A function with a result has to return one wherever it ends. Running off
 // the closing brace on any way control can take is reported, rather than
 // leaving the caller whatever was last where a result goes.
@@ -318,6 +315,9 @@ TEST(CompilerTest, AcceptsFunctionsThatReturnWhereverTheyEnd) {
   EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}), ReturnsCode(0));
 }
 
+// A file written with a carriage return before each newline, or opening with
+// a byte order mark, as some editors write them, compiles the same as one
+// written without.
 TEST(CompilerTest, CompilesCarriageReturnsAndAByteOrderMark) {
   for (const std::string_view prefix : {"", "\xef\xbb\xbf"}) {
     ASSERT_TRUE(CreateFile(
