@@ -1,0 +1,48 @@
+# Finds the number below a million whose Collatz sequence takes the most steps
+# to reach 1, and returns it and its steps combined modulo 251. collatz.cc is
+# the same program in C++, statement for statement, and the comparison in
+# lucid/benchmarks/comparison.h times the two against each other.
+#
+# Nearly all of the time goes on the steps, 130 million of them, each halving
+# a number or tripling it and adding one, so this measures what dividing and
+# taking a remainder by a constant cost. A sequence from below a million climbs
+# past what 32 bits hold, which is why every number is 64 bits wide.
+
+fun main(): Int64 {
+  val limit: Int64 = 1000000
+
+  mut val best_start: Int64 = 1
+  mut val best_steps: Int64 = 0
+
+  mut val start: Int64 = 1
+  loop {
+    if start == limit {
+      break
+    }
+
+    mut val n: Int64 = start
+    mut val steps: Int64 = 0
+    loop {
+      if n == 1 {
+        break
+      }
+      if n % 2 == 0 {
+        mut n = n / 2
+      } else {
+        mut n = 3 * n + 1
+      }
+      mut steps = steps + 1
+    }
+
+    if steps > best_steps {
+      mut best_steps = steps
+      mut best_start = start
+    }
+
+    mut start = start + 1
+  }
+
+  # The exit status is the lowest byte. The steps are weighed in, so that a run
+  # that found the right number but counted its steps wrong comes to another.
+  return (best_start * 31 + best_steps) % 251
+}
