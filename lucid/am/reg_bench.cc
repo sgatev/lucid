@@ -99,6 +99,8 @@ void BenchmarkColoring(BenchmarkState& state, std::string_view snippet) {
 
   state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
                           std::int64_t(snippet.size()));
+  state.SetLinesProcessed(std::int64_t(state.MaxIterations()) *
+                          CountLines(snippet));
 }
 
 // Measures allocation whole: spilling, colouring and the rewrite.
@@ -125,6 +127,8 @@ void BenchmarkAllocation(BenchmarkState& state, std::string_view snippet) {
 
   state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
                           std::int64_t(snippet.size()));
+  state.SetLinesProcessed(std::int64_t(state.MaxIterations()) *
+                          CountLines(snippet));
 }
 
 // Colouring over a chain of values, few of them live at once, at three sizes.

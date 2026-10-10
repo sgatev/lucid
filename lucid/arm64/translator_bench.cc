@@ -153,6 +153,8 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet,
 
   state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
                           std::int64_t(snippet.size()));
+  state.SetLinesProcessed(std::int64_t(state.MaxIterations()) *
+                          CountLines(snippet));
 }
 
 // Emission over one block, at two sizes.

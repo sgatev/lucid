@@ -96,6 +96,16 @@ class BenchmarkState {
   // benchmark does not count them.
   std::int64_t BytesProcessed() const { return bytes_processed_; }
 
+  // Records how many lines of source the measured iterations processed
+  // altogether, counted as `CountLines` counts them.
+  void SetLinesProcessed(std::int64_t lines_processed) {
+    lines_processed_ = lines_processed;
+  }
+
+  // Returns how many lines the measured iterations processed, or zero if the
+  // benchmark does not count them.
+  std::int64_t LinesProcessed() const { return lines_processed_; }
+
  private:
   // Stops the clock. Called once, as the loop ends.
   void Stop() {
@@ -106,7 +116,28 @@ class BenchmarkState {
   std::chrono::steady_clock::time_point start_time_;
   std::chrono::nanoseconds elapsed_time_{0};
   std::int64_t bytes_processed_ = 0;
+  std::int64_t lines_processed_ = 0;
 };
+
+// Returns how many lines of `source` hold something other than whitespace.
+//
+// An empty line is no code, and the sources the benchmarks read are put
+// together with empty lines between their functions, more or fewer of them
+// depending on how they were put together.
+inline std::int64_t CountLines(std::string_view source) {
+  std::int64_t lines = 0;
+  bool blank = true;
+  for (const char c : source) {
+    if (c == '\n') {
+      if (!blank) ++lines;
+      blank = true;
+    } else if (c != ' ' && c != '\t' && c != '\r' && c != '\0') {
+      blank = false;
+    }
+  }
+  if (!blank) ++lines;
+  return lines;
+}
 
 // Keeps the computation that produced `value` from being optimized away.
 //

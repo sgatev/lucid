@@ -55,7 +55,7 @@ genrule(
     # Mask measurements, which vary from run to run.
     cmd = """
     $(location //lucid/core/benchmarking/testdata:example_benchmarks) --iterations=1000 --format=json |
-      sed -E 's|"value": [0-9.]+|"value": <value>|; s|, [0-9.]+MB/s|, <throughput>MB/s|' > $@
+      sed -E 's|"value": [0-9.]+|"value": <value>|; s|, [0-9.]+MB/s|, <throughput>MB/s|; s|, [0-9]+ lines/s|, <lines> lines/s|' > $@
     """,
     tools = ["//lucid/core/benchmarking/testdata:example_benchmarks"],
 )

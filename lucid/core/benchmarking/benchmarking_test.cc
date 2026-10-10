@@ -62,6 +62,20 @@ TEST(Test, BenchmarkStateMeasuresNeitherSetupNorTeardown) {
   EXPECT_TRUE(state.ElapsedTime() < kSleepTime);
 }
 
+TEST(Test, CountLinesSkipsLinesWithNothingOnThem) {
+  EXPECT_EQ(CountLines(""), 0);
+  EXPECT_EQ(CountLines("\n\n"), 0);
+  EXPECT_EQ(CountLines(" \t \r\n"), 0);
+  EXPECT_EQ(CountLines("a\n\nb\n"), 2);
+  EXPECT_EQ(CountLines("  # a comment\n"), 1);
+}
+
+TEST(Test, CountLinesCountsALastLineWithoutANewline) {
+  EXPECT_EQ(CountLines("a\nb"), 2);
+  // The sources the compiler reads end in a NUL, which is not code.
+  EXPECT_EQ(CountLines(std::string("a\n\0", 3)), 1);
+}
+
 TEST(Test, DoNotOptimizeAcceptsValuesOfAnySize) {
   bool small = true;
   std::string large = "a string that does not fit in a register";

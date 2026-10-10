@@ -260,7 +260,7 @@
         margin: 0;
         padding: 0;
         display: grid;
-        grid-template-columns: max-content max-content 1fr;
+        grid-template-columns: max-content max-content max-content 1fr;
         align-items: center;
         gap: 6px 12px;
       }
@@ -269,11 +269,16 @@
         font-size: 0.8125rem;
       }
 
-      .stages .rate {
+      .stages .rate,
+      .stages .lines {
         font-size: 0.8125rem;
         font-variant-numeric: tabular-nums;
         text-align: right;
         white-space: nowrap;
+      }
+
+      .stages .lines {
+        color: var(--text-dim);
       }
 
       .stages .bar {
@@ -407,11 +412,14 @@
           </dd>
           <dt>Throughput</dt>
           <dd>
-            Megabytes of source a second, beside the name of every benchmark
-            that counts the bytes it reads, and gathered at the top of the
-            page for each stage of the pipeline and for the compiler as a
-            whole. A time cannot be compared between two benchmarks that read
-            different amounts, which is what a rate is for.
+            Megabytes of source a second, and lines of it, beside the name of
+            every benchmark that counts what it reads, and gathered at the top
+            of the page for each stage of the pipeline and for the compiler as
+            a whole. A line is one with anything other than whitespace on it,
+            so the empty lines between functions are not counted. A time
+            cannot be compared between two benchmarks that read different
+            amounts, which is what a rate is for. Commits measured before lines
+            were counted have megabytes alone.
           </dd>
           <dt>Lucid against C++</dt>
           <dd>
@@ -537,6 +545,22 @@
 
         function formatRate(rate) {
           return (rate >= 100 ? rate.toFixed(0) : rate.toFixed(1)) + " MB/s";
+        }
+
+        // How many lines of source a benchmark got through a second, which
+        // the runner writes after the megabytes. Commits measured before it
+        // counted lines have none.
+        function linesOf(bench) {
+          const found = /([0-9]+) lines\/s/.exec(bench.extra || "");
+          return found === null ? null : Number(found[1]);
+        }
+
+        function formatLines(lines) {
+          const scaled = (value, suffix) =>
+            (value >= 100 ? value.toFixed(0) : value.toFixed(1)) + suffix;
+          if (lines >= 1e6) return scaled(lines / 1e6, "M lines/s");
+          if (lines >= 1e3) return scaled(lines / 1e3, "k lines/s");
+          return lines.toFixed(0) + " lines/s";
         }
 
         // Turns the recorded entries into one series per benchmark, keeping
@@ -847,7 +871,12 @@
               const rate = rateOf(newest.bench);
               if (rate === null) continue;
               if (slowest === null || rate < slowest.rate) {
-                slowest = { rate, label: series.label, id: series.id };
+                slowest = {
+                  rate,
+                  lines: linesOf(newest.bench),
+                  label: series.label,
+                  id: series.id,
+                };
               }
             }
             if (slowest !== null) rows.push({ name, ...slowest });
@@ -882,6 +911,13 @@
             rate.className = "rate";
             rate.textContent = formatRate(row.rate);
             list.appendChild(rate);
+
+            // Empty where the newest commit counted no lines, so that the
+            // bar stays in its column.
+            const lines = document.createElement("span");
+            lines.className = "lines";
+            if (row.lines !== null) lines.textContent = formatLines(row.lines);
+            list.appendChild(lines);
 
             const track = document.createElement("div");
             const bar = document.createElement("div");
@@ -945,6 +981,10 @@
                 const badge = document.createElement("span");
                 badge.className = "rate";
                 badge.textContent = formatRate(rate);
+                const lines = linesOf(newest.bench);
+                if (lines !== null) {
+                  badge.textContent += " · " + formatLines(lines);
+                }
                 heading.appendChild(badge);
               }
               card.appendChild(heading);

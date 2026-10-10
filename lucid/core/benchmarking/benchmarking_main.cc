@@ -56,6 +56,7 @@ struct BenchmarkResult {
   std::size_t iterations;
   std::chrono::nanoseconds elapsed_time;
   std::int64_t bytes_processed;
+  std::int64_t lines_processed;
 };
 
 // Runs `benchmark` over `iterations` iterations and reports what they
@@ -68,6 +69,7 @@ BenchmarkResult Measure(Benchmark& benchmark, std::size_t iterations) {
       .iterations = iterations,
       .elapsed_time = state.ElapsedTime(),
       .bytes_processed = state.BytesProcessed(),
+      .lines_processed = state.LinesProcessed(),
   };
 }
 
@@ -137,6 +139,19 @@ std::optional<double> MegabytesPerSecond(
          kBytesPerMegabyte / elapsed_seconds;
 }
 
+// Returns how many lines of source `benchmark_result` got through a second, or
+// nothing at all for a benchmark that does not count them.
+std::optional<double> LinesPerSecond(const BenchmarkResult& benchmark_result) {
+  if (benchmark_result.lines_processed <= 0) return std::nullopt;
+
+  const double elapsed_seconds =
+      std::chrono::duration<double>(benchmark_result.elapsed_time).count();
+  if (elapsed_seconds <= 0) return std::nullopt;
+
+  return static_cast<double>(benchmark_result.lines_processed) /
+         elapsed_seconds;
+}
+
 // Returns how long one iteration of `benchmark_result` took.
 //
 // The time per iteration is what one run says about the code; the total and
@@ -147,14 +162,25 @@ double ElapsedNanosPerIteration(const BenchmarkResult& benchmark_result) {
          static_cast<double>(benchmark_result.iterations);
 }
 
-// Returns the throughput of `benchmark_result` as the report writes it, or an
-// empty string for a benchmark that does not count its bytes.
+// Returns the throughput of `benchmark_result` as the report writes it, each
+// rate after a comma, or an empty string for a benchmark that counts neither
+// its bytes nor its lines.
+//
+// The lines come after the bytes, so that what reads the bytes out of a report
+// written before there were lines finds them where it always did.
 std::string Throughput(const BenchmarkResult& benchmark_result) {
-  const std::optional<double> megabytes_per_second =
-      MegabytesPerSecond(benchmark_result);
-  if (!megabytes_per_second.has_value()) return "";
-
-  return std::format(", {:.1f}MB/s", *megabytes_per_second);
+  std::string throughput;
+  if (const std::optional<double> megabytes_per_second =
+          MegabytesPerSecond(benchmark_result);
+      megabytes_per_second.has_value()) {
+    throughput += std::format(", {:.1f}MB/s", *megabytes_per_second);
+  }
+  if (const std::optional<double> lines_per_second =
+          LinesPerSecond(benchmark_result);
+      lines_per_second.has_value()) {
+    throughput += std::format(", {:.0f} lines/s", *lines_per_second);
+  }
+  return throughput;
 }
 
 // How the results of a run are reported.
@@ -193,13 +219,9 @@ void PrintJsonReport(std::ostream& out,
   for (std::size_t i = 0; i < benchmark_results.size(); ++i) {
     const BenchmarkResult& benchmark_result = benchmark_results[i];
 
-    std::string extra =
-        std::format("{} iterations", benchmark_result.iterations);
-    if (const std::optional<double> megabytes_per_second =
-            MegabytesPerSecond(benchmark_result);
-        megabytes_per_second.has_value()) {
-      extra += std::format(", {:.1f}MB/s", *megabytes_per_second);
-    }
+    const std::string extra =
+        std::format("{} iterations{}", benchmark_result.iterations,
+                    Throughput(benchmark_result));
 
     out << std::format(
         R"(  {{"name": "{}", "unit": "ns/iter", "value": {:.3f}, "extra": "{}"}}{})"

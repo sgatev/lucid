@@ -81,9 +81,11 @@ void Compile(std::string_view src, std::ostream& out) {
 BENCHMARK(Examples) {
   std::vector<std::string> sources;
   std::int64_t bytes = 0;
+  std::int64_t lines = 0;
   for (Example& example : ReadExamples()) {
     sources.push_back(std::move(example.source) + "\0"s);
     bytes += static_cast<std::int64_t>(sources.back().size());
+    lines += CountLines(sources.back());
   }
 
   DiscardingStream out;
@@ -91,6 +93,7 @@ BENCHMARK(Examples) {
     for (const std::string& source : sources) Compile(source, out);
   }
   state.SetBytesProcessed(std::int64_t(state.MaxIterations()) * bytes);
+  state.SetLinesProcessed(std::int64_t(state.MaxIterations()) * lines);
 }
 
 // The functions the compiler stands in for itself, which a program defines
@@ -192,6 +195,8 @@ BENCHMARK(ExampleFunctions) {
   for (auto _ : state) Compile(source, out);
   state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
                           std::int64_t(source.size()));
+  state.SetLinesProcessed(std::int64_t(state.MaxIterations()) *
+                          CountLines(source));
 }
 
 }  // namespace

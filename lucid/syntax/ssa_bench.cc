@@ -138,6 +138,7 @@ void BenchmarkFunctions(BenchmarkState& state, MakeFunctionT make_function) {
   }
 
   state.SetBytesProcessed(std::int64_t(code.size() - 1));
+  state.SetLinesProcessed(CountLines(code));
 }
 
 // Each of these hands every iteration a function of its own, so the sizes are

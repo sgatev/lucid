@@ -76,6 +76,8 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
 
   state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
                           std::int64_t(code.size()));
+  state.SetLinesProcessed(std::int64_t(state.MaxIterations()) *
+                          CountLines(code));
 }
 
 // A function of a few lines, named apart from the others by `index`.
@@ -140,6 +142,8 @@ void BenchmarkLastFunction(BenchmarkState& state, int count) {
 
   state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
                           std::int64_t(NumberedFunction(count - 1).size()));
+  state.SetLinesProcessed(std::int64_t(state.MaxIterations()) *
+                          CountLines(NumberedFunction(count - 1)));
 }
 
 BENCHMARK(LastOf10Functions) { BenchmarkLastFunction(state, 10); }

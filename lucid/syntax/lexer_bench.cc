@@ -35,6 +35,8 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
 
   state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
                           std::int64_t(code.size()));
+  state.SetLinesProcessed(std::int64_t(state.MaxIterations()) *
+                          CountLines(code));
 }
 
 BENCHMARK(Function) {
