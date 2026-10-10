@@ -15,14 +15,13 @@
 comp fun gcd(mut a: Int32, mut b: Int32): Int32 {
   loop {
     if a == b {
-      break
+      return a
     } else if a > b {
       mut a = a - b
     } else {
       mut b = b - a
     }
   }
-  return a
 }
 
 fun main(): Int32 {
