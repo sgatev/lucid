@@ -51,6 +51,18 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "ast_printer_test",
+    srcs = ["ast_printer_test.cc"],
+    deps = [
+        ":ast",
+        ":ast_fixture",
+        ":ast_printer",
+        "//lucid/core/cli:format",
+        "//lucid/core/testing",
+    ],
+)
+
 cc_library(
     name = "buffered_lexer",
     srcs = ["buffered_lexer.h"],

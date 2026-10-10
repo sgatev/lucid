@@ -164,8 +164,12 @@ int HandleParseCommand(CommandContext ctx) {
 int HandlePrintAstCommand(CommandContext ctx) {
   std::optional<std::string_view> src_file = ctx.TakeArg();
   if (!src_file) {
-    ctx.Err() << "'print-ast' command requires either 1 or 2 arguments\n";
-    return 1;
+    ctx.Out() << "Usage: " << ctx.CurrentCommand() << " <path> (<identifier>)\n"
+              << "\n"
+              << "Examples:\n"
+              << "  print-ast //my/source/file.lu\n"
+              << "  print-ast //my/source/file.lu S2\n";
+    return 0;
   }
 
   std::optional<std::string_view> id = ctx.TakeArg();
@@ -220,9 +224,11 @@ int HandlePrintAstCommand(CommandContext ctx) {
       PrintExpr(syn_ctx, index, ctx.Out());
     }
   } else {
-    for (const auto& def : defs) {
+    for (bool has_printed_def = false; const auto& def : defs) {
+      if (has_printed_def) ctx.Out() << "\n";
       std::visit([&](const auto& stmt) { Print(syn_ctx, stmt, ctx.Out()); },
                  def);
+      has_printed_def = true;
     }
   }
 

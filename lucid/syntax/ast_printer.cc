@@ -74,7 +74,7 @@ class AstPrinter {
   void PrintStmt(StmtRef ref) {
     std::visit(
         [&](const auto& stmt) {
-          Out() << SetColor(Color::Blue) << Indent(indent_) << "S" << ref
+          Out() << Indent(indent_) << SetColor(Color::Blue) << "S" << ref
                 << ": " << ResetColor;
           Print(stmt);
         },
@@ -84,7 +84,7 @@ class AstPrinter {
   void PrintExpr(ExprRef ref) {
     std::visit(
         [&](const auto& expr) {
-          Out() << SetColor(Color::Blue) << Indent(indent_) << "E" << ref
+          Out() << Indent(indent_) << SetColor(Color::Blue) << "E" << ref
                 << ": " << ResetColor;
           Print(expr);
         },

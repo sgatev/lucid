@@ -523,6 +523,25 @@ TEST(CompilerTest, PrintAst) {
 )"))));
 }
 
+TEST(CompilerTest, PrintAstWithoutPathPrintsUsage) {
+  ASSERT_THAT(RunCompiler({"print-ast"}),
+              AllOf(ReturnsCode(0),
+                    Output(StartsWith("Usage: lucid print-ast <path>"))));
+}
+
+// One blank line between definitions, the same as the graphs are printed with.
+TEST(CompilerTest, PrintAstSeparatesDefinitions) {
+  ASSERT_TRUE(CreateFile("two.lu", R"(
+    val Point: Type = (x: Int32, y: Int32)
+
+    fun one(): Int32 {
+      return 1
+    }
+  )"));
+  ASSERT_THAT(RunCompiler({"print-ast", FullPath("two.lu")}),
+              AllOf(ReturnsCode(0), Output(Contains("}\n\nFuncDefStmt {"))));
+}
+
 TEST(CompilerTest, PrintAstTypeDef) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     val Point: Type = (x: Int32, y: Int32)
