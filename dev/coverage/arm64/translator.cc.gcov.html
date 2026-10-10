@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-10 10:45:12</td>
+            <td class="headerValue">2026-10-10 10:50:59</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">96.4&nbsp;%</td>
@@ -218,7 +218,7 @@
 <span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">         600 :     InCarriableSteps(stack_size_,</span></span>
 <span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">         601 :                      [&amp;](Imm imm) { assembler_.Sub(SP, SP, imm); });</span></span>
 <span id="L158"><span class="lineNum">     158</span>              : </span>
-<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">        2895 :     for (int i = persisted_.size() - 1; i &gt;= 0; --i) {</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">        2895 :     for (int i = static_cast&lt;int&gt;(persisted_.size()) - 1; i &gt;= 0; --i) {</span></span>
 <span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">        2295 :       assembler_.StrUnsignedOffset(X(persisted_[i]), SP,</span></span>
 <span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">        2295 :                                    Imm(stack_offsets_[i]));</span></span>
 <span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">        2295 :     }</span></span>
@@ -497,7 +497,7 @@
 <span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">          78 :         break;</span></span>
 <span id="L436"><span class="lineNum">     436</span> <span class="tlaGNC">         598 :     }</span></span>
 <span id="L437"><span class="lineNum">     437</span>              : </span>
-<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">        2891 :     for (int i = persisted_.size() - 1; i &gt;= 0; --i) {</span></span>
+<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">        2891 :     for (int i = static_cast&lt;int&gt;(persisted_.size()) - 1; i &gt;= 0; --i) {</span></span>
 <span id="L439"><span class="lineNum">     439</span> <span class="tlaGNC">        2293 :       assembler_.LdrUnsignedOffset(X(persisted_[i]), SP,</span></span>
 <span id="L440"><span class="lineNum">     440</span> <span class="tlaGNC">        2293 :                                    Imm(stack_offsets_[i]));</span></span>
 <span id="L441"><span class="lineNum">     441</span> <span class="tlaGNC">        2293 :     }</span></span>
