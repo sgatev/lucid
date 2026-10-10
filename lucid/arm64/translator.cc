@@ -133,20 +133,21 @@ class Arm64BinaryGenerator {
     // its own slots. What its own caller left for it stands above all of
     // that, past the frame record, and takes no room here.
     outgoing_size_ = OutgoingArgsSize(layout_.outgoing_args.count);
+    persisted_ = RegistersToPersist();
 
     // Where each of them begins, which is where everything before it ends,
     // carried past whatever the one it begins on has to be a multiple of. A
     // slot that stands somewhere the frame does not reach ends where it
     // began, because it takes none of the frame up.
-    stack_offsets_.resize(stack_slots_.size() + kRegistersToPersist.size());
+    stack_offsets_.resize(stack_slots_.size() + persisted_.size());
     int at = outgoing_size_;
-    for (int i = 0; i < kRegistersToPersist.size(); ++i) {
+    for (int i = 0; i < persisted_.size(); ++i) {
       stack_offsets_[i] = at;
       at += 8;
     }
     for (int i = 0; i < stack_slots_.size(); ++i) {
       if (OwnSlot(i)) at = RoundUpTo(at, stack_slots_[i]);
-      stack_offsets_[kRegistersToPersist.size() + i] = at;
+      stack_offsets_[persisted_.size() + i] = at;
       if (OwnSlot(i)) at += stack_slots_[i];
     }
 
@@ -155,8 +156,8 @@ class Arm64BinaryGenerator {
     InCarriableSteps(stack_size_,
                      [&](Imm imm) { assembler_.Sub(SP, SP, imm); });
 
-    for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
-      assembler_.StrUnsignedOffset(X(kRegistersToPersist[i]), SP,
+    for (int i = persisted_.size() - 1; i >= 0; --i) {
+      assembler_.StrUnsignedOffset(X(persisted_[i]), SP,
                                    Imm(stack_offsets_[i]));
     }
 
@@ -434,8 +435,8 @@ class Arm64BinaryGenerator {
         break;
     }
 
-    for (int i = kRegistersToPersist.size() - 1; i >= 0; --i) {
-      assembler_.LdrUnsignedOffset(X(kRegistersToPersist[i]), SP,
+    for (int i = persisted_.size() - 1; i >= 0; --i) {
+      assembler_.LdrUnsignedOffset(X(persisted_[i]), SP,
                                    Imm(stack_offsets_[i]));
     }
 
@@ -799,7 +800,7 @@ class Arm64BinaryGenerator {
     if (layout_.outgoing_args.Holds(slot)) {
       return SafeCast<int>((slot - layout_.outgoing_args.first) * kArgSize);
     }
-    return stack_offsets_[kRegistersToPersist.size() + slot];
+    return stack_offsets_[persisted_.size() + slot];
   }
 
   // Whether the slot with this index is the function's own, rather than room
@@ -917,9 +918,37 @@ class Arm64BinaryGenerator {
   // The register a quotient stands in while what is left over is worked out.
   static constexpr std::uint8_t kQuotientScratch = 17;
 
+  // The registers a function hands back to its caller as it found them.
   static constexpr std::array<std::uint8_t, 10> kRegistersToPersist = {
       19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
   };
+
+  // Returns those of the registers above that this function writes, in the
+  // order they are listed in.
+  //
+  // One it never writes holds what the caller left in it all along, so it
+  // needs no saving: a parameter is written as it is moved in, a phi function
+  // as its arguments are, and anything else by the instruction that sets it.
+  std::vector<std::uint8_t> RegistersToPersist() const {
+    std::array<bool, 32> written = {};
+    const auto write = [&](Reg reg) {
+      if (reg.id >= 0 && reg.id < written.size()) written[reg.id] = true;
+    };
+    for (const Reg param : am_cfg_.params) write(param);
+    for (const auto& ref : Vertices(am_cfg_)) {
+      const auto& block = am_cfg_.GetBlock(ref);
+      for (const auto& phi : block.phis) write(phi.dst);
+      for (const auto& inst : block.instructions) {
+        if (const Reg* reg = TargetRegister(inst)) write(*reg);
+      }
+    }
+
+    std::vector<std::uint8_t> persisted;
+    for (const std::uint8_t id : kRegistersToPersist) {
+      if (written[id]) persisted.push_back(id);
+    }
+    return persisted;
+  }
 
   std::string_view func_name_;
   const std::vector<int>& stack_slots_;
@@ -929,6 +958,9 @@ class Arm64BinaryGenerator {
   int stack_size_ = 0;
   int outgoing_size_ = 0;
   std::vector<int> stack_offsets_;
+
+  // The registers the prologue saves and every return restores.
+  std::vector<std::uint8_t> persisted_;
 
   // The label each block starts at, by the block's ID.
   std::vector<Label> block_labels_;

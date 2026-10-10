@@ -329,6 +329,43 @@ TEST(Test, EdgeGoesStraightPastBlocksThatOnlyPassControlOn) {
   EXPECT_EQ(Jumps(assembler), 0u);
 }
 
+TEST(Test, FunctionSavesOnlyTheRegistersItWrites) {
+  // The parameter is moved into `x19` and the sum is written to `x21`, so
+  // those two are saved, below everything else in the frame. `x20` is only
+  // read, and holds what the caller left in it throughout.
+  AbstractMachineControlFlowGraphBuilder builder;
+  const auto block = builder.AddBlock();
+  builder.SetFirst(block);
+  builder.SetLast(block);
+  builder.AddParam({19, RegSize32});
+  builder.AddInstruction(block, AddReg{.res_reg = {21, RegSize32},
+                                       .lhs_reg = {19, RegSize32},
+                                       .rhs_reg = {20, RegSize32}});
+  builder.AddInstruction(block, Return{.res_reg = {21, RegSize32}});
+  AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
+
+  arm64::Assembler assembler;
+  GenerateArmAssemblyBinary("f", {}, {}, am_cfg, assembler);
+
+  const auto stored = [&](std::uint8_t reg, int offset) {
+    return Emitted(assembler, Instruction([&](arm64::Assembler& a) {
+                     a.StrUnsignedOffset(arm64::X(reg), arm64::SP,
+                                         arm64::Imm(offset));
+                   }));
+  };
+  EXPECT_TRUE(Emitted(assembler, Instruction([](arm64::Assembler& a) {
+                        a.Sub(arm64::SP, arm64::SP, arm64::Imm(16));
+                      })));
+  EXPECT_TRUE(stored(19, 0));
+  EXPECT_TRUE(stored(21, 8));
+  for (std::uint8_t reg = 20; reg <= 28; ++reg) {
+    if (reg == 21) continue;
+    for (int offset = 0; offset < 80; offset += 8) {
+      EXPECT_FALSE(stored(reg, offset));
+    }
+  }
+}
+
 TEST(Test, GenerateArmStartBinaryWorks) {
   arm64::Assembler assembler;
 
