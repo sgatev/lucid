@@ -123,22 +123,41 @@
         align-items: start;
       }
 
+      /* A hidden menu folds to a strip that keeps only the button that
+         brings it back, where the button was */
+      .layout.menu-hidden {
+        /* The button and the padding either side of it */
+        grid-template-columns: 58px minmax(0, 1fr);
+      }
+
       /* Menu */
 
       nav {
         position: sticky;
         top: 0;
-        max-height: 100vh;
+        /* As tall as the screen whatever it holds, so that a short list, or
+           none at all, still reads as the side of the page */
+        height: 100vh;
         overflow-y: auto;
         border-right: 1px solid var(--border);
         padding: 16px 12px 32px;
         background: var(--surface);
       }
 
-      nav input {
-        width: 100%;
-        padding: 6px 10px;
+      .nav-top {
+        display: flex;
+        gap: 8px;
         margin-bottom: 12px;
+      }
+
+      .layout.menu-hidden .nav-top {
+        margin-bottom: 0;
+      }
+
+      nav input {
+        flex: 1;
+        min-width: 0;
+        padding: 6px 10px;
         border: 1px solid var(--border);
         border-radius: 6px;
         background: var(--background);
@@ -148,6 +167,31 @@
       }
 
       nav input:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: -1px;
+      }
+
+      #menu-toggle {
+        flex: none;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--background);
+        color: var(--text-dim);
+        font: inherit;
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      #menu-toggle:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      #menu-toggle:focus-visible {
         outline: 2px solid var(--accent);
         outline-offset: -1px;
       }
@@ -376,13 +420,18 @@
       /* Narrow screens put the menu above the charts rather than beside them */
 
       @media (max-width: 800px) {
-        .layout {
+        .layout,
+        .layout.menu-hidden {
           grid-template-columns: minmax(0, 1fr);
+        }
+
+        .layout.menu-hidden nav {
+          padding-bottom: 16px;
         }
 
         nav {
           position: static;
-          max-height: none;
+          height: auto;
           border-right: none;
           border-bottom: 1px solid var(--border);
         }
@@ -471,14 +520,26 @@
     </header>
 
     <div class="layout">
-      <nav>
-        <input
-          id="filter"
-          type="search"
-          placeholder="Filter benchmarks"
-          aria-label="Filter benchmarks"
-          autocomplete="off"
-        />
+      <nav id="menu">
+        <div class="nav-top">
+          <input
+            id="filter"
+            type="search"
+            placeholder="Filter benchmarks"
+            aria-label="Filter benchmarks"
+            autocomplete="off"
+          />
+          <button
+            id="menu-toggle"
+            type="button"
+            aria-controls="filter nav-groups"
+            aria-expanded="true"
+            aria-label="Hide menu"
+            title="Hide menu"
+          >
+            «
+          </button>
+        </div>
         <div id="nav-groups"></div>
       </nav>
 
@@ -1183,6 +1244,45 @@
           });
         }
 
+        // Shows or hides the menu with the button in the header, and
+        // remembers which for the next visit from this browser.
+        function menuToggle() {
+          const KEY = "benchmarks-menu-hidden";
+          const button = document.getElementById("menu-toggle");
+          const layout = document.querySelector(".layout");
+          const filter = document.getElementById("filter");
+          const navGroups = document.getElementById("nav-groups");
+
+          const show = (hidden) => {
+            layout.classList.toggle("menu-hidden", hidden);
+            filter.hidden = hidden;
+            navGroups.hidden = hidden;
+            const label = hidden ? "Show menu" : "Hide menu";
+            button.setAttribute("aria-expanded", String(!hidden));
+            button.setAttribute("aria-label", label);
+            button.title = label;
+            button.textContent = hidden ? "»" : "«";
+          };
+
+          let hidden = false;
+          try {
+            hidden = window.localStorage.getItem(KEY) === "1";
+          } catch (_error) {
+            // Storage can be unavailable, and the menu is then shown.
+          }
+          show(hidden);
+
+          button.addEventListener("click", () => {
+            hidden = !hidden;
+            show(hidden);
+            try {
+              window.localStorage.setItem(KEY, hidden ? "1" : "0");
+            } catch (_error) {
+              // Not remembered, which only costs the next visit a click.
+            }
+          });
+        }
+
         function renderHeader(seriesCount) {
           document.getElementById("last-update").textContent =
             "Updated " + new Date(data.lastUpdate).toLocaleString();
@@ -1205,6 +1305,7 @@
 
         const series = collectSeries();
         renderHeader(series.length);
+        menuToggle();
 
         const groups = groupSeries(series);
         renderComparisons(groups);
