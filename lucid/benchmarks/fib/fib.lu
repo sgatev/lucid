@@ -1,0 +1,32 @@
+# Sums the Fibonacci numbers from the 25th to the 35th, each worked out by the
+# recursion that calls itself twice, and returns the sum modulo 251. fib.cc is
+# the same program in C++, statement for statement, and the comparison in
+# lucid/benchmarks/comparison.h times the two against each other.
+#
+# Nearly all of the time goes on calls, 48 million of them, each doing almost
+# nothing besides, so this measures what a call costs.
+
+fun fib(n: Int32): Int32 {
+  if n < 2 {
+    return n
+  }
+  return fib(n - 1) + fib(n - 2)
+}
+
+fun main(): Int32 {
+  mut val total: Int32 = 0
+
+  # Bounded by a loop rather than written out, so that neither compiler is
+  # handed a call it could work out while compiling.
+  mut val n: Int32 = 25
+  loop {
+    if n > 35 {
+      break
+    }
+    mut total = total + fib(n)
+    mut n = n + 1
+  }
+
+  # The exit status is the lowest byte.
+  return total % 251
+}

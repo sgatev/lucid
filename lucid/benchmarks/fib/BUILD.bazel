@@ -1,3 +1,3 @@
 load("//lucid/benchmarks:comparison.bzl", "lucid_cpp_comparison")
 
-lucid_cpp_comparison(name = "quicksort")
+lucid_cpp_comparison(name = "fib")

@@ -1,0 +1,19 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+exports_files(["comparison_bench.cc.tpl"])
+
+cc_library(
+    name = "comparison",
+    testonly = True,
+    srcs = ["comparison.cc"],
+    hdrs = ["comparison.h"],
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+    visibility = ["//lucid/benchmarks:__subpackages__"],
+    deps = [
+        "//lucid/compiler",
+        "//lucid/core/benchmarking:benchmarking_library",
+    ],
+)

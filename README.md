@@ -71,7 +71,7 @@ bazel test ...
 
 Continuous integration also runs every test optimized and under the address and
 undefined behavior sanitizers, which is worth doing before pushing a change to code
-that manages memory:
+that manages memory.
 
 ```
 bazel test -c opt ...
