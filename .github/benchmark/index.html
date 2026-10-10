@@ -17,6 +17,8 @@
         --accent-soft: #3273dc1a;
         --other: #bc4c00;
         --grid: #e1e4e8;
+        --better: #1a7f37;
+        --worse: #cf222e;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -30,6 +32,8 @@
           --accent-soft: #58a6ff26;
           --other: #f0883e;
           --grid: #21262d;
+          --better: #3fb950;
+          --worse: #f85149;
         }
       }
 
@@ -216,6 +220,14 @@
         padding: 12px;
         background: var(--surface);
         scroll-margin-top: 16px;
+      }
+
+      .chart.better {
+        border-color: var(--better);
+      }
+
+      .chart.worse {
+        border-color: var(--worse);
       }
 
       .chart h3 {
@@ -429,6 +441,12 @@
             lines share one chart, in milliseconds, and the ratio is of the
             newest commit.
           </dd>
+          <dt>A green or red border</dt>
+          <dd>
+            The newest commit took at least 10% less or more time than the
+            commit before it. A smaller change than that is left uncoloured,
+            since it is as likely to be the machine as the code.
+          </dd>
           <dt>Hovering</dt>
           <dd>
             Shows the commit that was measured and its message, how many
@@ -547,6 +565,22 @@
         function rateOf(bench) {
           const found = /([0-9.]+)MB\/s/.exec(bench.extra || "");
           return found === null ? null : Number(found[1]);
+        }
+
+        // How far the newest value has to move from the one before it, as a
+        // fraction of that one, for the card to say it got better or worse.
+        const CHANGE_THRESHOLD = 0.1;
+
+        // Whether the newest commit made the benchmark faster, slower, or
+        // neither by more than the noise of a run.
+        function trendOf(series) {
+          const { points } = series;
+          if (points.length < 2) return null;
+          const previous = points[points.length - 2].bench.value;
+          const newest = points[points.length - 1].bench.value;
+          if (newest <= previous * (1 - CHANGE_THRESHOLD)) return "better";
+          if (newest >= previous * (1 + CHANGE_THRESHOLD)) return "worse";
+          return null;
         }
 
         function formatRate(rate) {
@@ -974,6 +1008,8 @@
               const card = document.createElement("div");
               card.className = "chart";
               card.id = series.id;
+              const trend = trendOf(series);
+              if (trend !== null) card.classList.add(trend);
               charts.appendChild(card);
 
               const heading = document.createElement("h3");
