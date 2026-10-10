@@ -156,7 +156,7 @@ class Arm64BinaryGenerator {
     InCarriableSteps(stack_size_,
                      [&](Imm imm) { assembler_.Sub(SP, SP, imm); });
 
-    for (int i = persisted_.size() - 1; i >= 0; --i) {
+    for (int i = static_cast<int>(persisted_.size()) - 1; i >= 0; --i) {
       assembler_.StrUnsignedOffset(X(persisted_[i]), SP,
                                    Imm(stack_offsets_[i]));
     }
@@ -435,7 +435,7 @@ class Arm64BinaryGenerator {
         break;
     }
 
-    for (int i = persisted_.size() - 1; i >= 0; --i) {
+    for (int i = static_cast<int>(persisted_.size()) - 1; i >= 0; --i) {
       assembler_.LdrUnsignedOffset(X(persisted_[i]), SP,
                                    Imm(stack_offsets_[i]));
     }
