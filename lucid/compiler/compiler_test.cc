@@ -21,8 +21,7 @@ TEST(CompilerTest, PrintAstStatement) {
   )"));
 
   EXPECT_THAT(RunCompiler({"print-ast", FullPath("main.lu"), "S0"}),
-              AllOf(ReturnsCode(0),
-                    Output(StartsWith("\033[34mS0: \033[mReturnStmt"))));
+              AllOf(ReturnsCode(0), Output(StartsWith("S0: ReturnStmt"))));
 }
 
 TEST(CompilerTest, PrintAstRejectsMalformedNode) {
@@ -512,14 +511,35 @@ TEST(CompilerTest, PrintAst) {
               AllOf(ReturnsCode(0), Output(Equals(R"(FuncDefStmt {
   .name = "main"
   .stmts = [
-[34m    S0: [mReturnStmt {
+    S0: ReturnStmt {
       .value = {
-[34m        E0: [mIntLitExpr {
+        E0: IntLitExpr {
           .value = 0
         }
       }
     }
   ]
+}
+)"))));
+}
+
+TEST(CompilerTest, PrintAstTypeDef) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val Point: Type = (x: Int32, y: Int32)
+  )"));
+  ASSERT_THAT(RunCompiler({"print-ast", FullPath("main.lu")}),
+              AllOf(ReturnsCode(0), Output(Equals(R"(TypeDefStmt {
+  .name = "Point"
+  .type = tuple {
+    .fields = [
+      FuncParam {
+        .name = "x"
+      }
+      FuncParam {
+        .name = "y"
+      }
+    ]
+  }
 }
 )"))));
 }
@@ -531,7 +551,7 @@ TEST(CompilerTest, PrintAstExpression) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-ast", FullPath("main.lu"), "E0"}),
-              AllOf(ReturnsCode(0), Output(Equals(R"([34mE0: [mIntLitExpr {
+              AllOf(ReturnsCode(0), Output(Equals(R"(E0: IntLitExpr {
   .value = 0
 }
 )"))));
@@ -566,63 +586,63 @@ TEST(CompilerTest, PrintCfg) {
     }
   )"));
   ASSERT_THAT(RunCompiler({"print-syntax-cfg", FullPath("max.lu")}),
-              AllOf(ReturnsCode(0), Output(Equals(R"([34mmax($0, $1)[m {
-  [34mB0:[m {
+              AllOf(ReturnsCode(0), Output(Equals(R"(max($0, $1) {
+  B0: {
     .sequences = [
-      [34mE0: [mIntLitExpr { .value = 0 }
-      [34mS2: [mVarDeclStmt { .name = '$2', .init = E0 }
-      [34mE1: [mIdentExpr { .name = '$0' }
-      [34mE2: [mIdentExpr { .name = '$1' }
-      [34mE3: [mBinaryOpExpr { .op = Gt, .lhs = E1, .rhs = E2 }
+      E0: IntLitExpr { .value = 0 }
+      S2: VarDeclStmt { .name = '$2', .init = E0 }
+      E1: IdentExpr { .name = '$0' }
+      E2: IdentExpr { .name = '$1' }
+      E3: BinaryOpExpr { .op = Gt, .lhs = E1, .rhs = E2 }
     ]
     .next = [
-      [34mB3[m
-      [34mB4[m
+      B3
+      B4
     ]
   }
-  [34mB1:[m {
+  B1: {
     .preds = [
-      [34mB2[m
+      B2
     ]
   }
-  [34mB2:[m {
+  B2: {
     .phis = [
       $5 = φ($4, $3)
     ]
     .sequences = [
-      [34mE6: [mIdentExpr { .name = '$5' }
-      [34mS4: [mReturnStmt { .value = E6 }
+      E6: IdentExpr { .name = '$5' }
+      S4: ReturnStmt { .value = E6 }
     ]
     .next = [
-      [34mB1[m
+      B1
     ]
     .preds = [
-      [34mB3[m
-      [34mB4[m
+      B3
+      B4
     ]
   }
-  [34mB3:[m {
+  B3: {
     .sequences = [
-      [34mE4: [mIdentExpr { .name = '$0' }
-      [34mS6: [mVarDeclStmt { .name = '$4', .init = E4 }
+      E4: IdentExpr { .name = '$0' }
+      S6: VarDeclStmt { .name = '$4', .init = E4 }
     ]
     .next = [
-      [34mB2[m
+      B2
     ]
     .preds = [
-      [34mB0[m
+      B0
     ]
   }
-  [34mB4:[m {
+  B4: {
     .sequences = [
-      [34mE5: [mIdentExpr { .name = '$1' }
-      [34mS5: [mVarDeclStmt { .name = '$3', .init = E5 }
+      E5: IdentExpr { .name = '$1' }
+      S5: VarDeclStmt { .name = '$3', .init = E5 }
     ]
     .next = [
-      [34mB2[m
+      B2
     ]
     .preds = [
-      [34mB0[m
+      B0
     ]
   }
 }

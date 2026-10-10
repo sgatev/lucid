@@ -1,5 +1,7 @@
 #include "lucid/core/cli/cli.h"
 
+#include <unistd.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <initializer_list>
@@ -63,6 +65,8 @@ std::ostream& CommandContext::Err() {
 }
 
 CommandContext StandardRootCommandContext(std::span<std::string_view> args) {
+  EnableColor(std::cout, isatty(STDOUT_FILENO) != 0);
+  EnableColor(std::cerr, isatty(STDERR_FILENO) != 0);
   return CommandContext({}, args, {}, std::cout, std::cerr);
 }
 

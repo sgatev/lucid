@@ -365,7 +365,7 @@ class AstPrinter {
 
   std::ostream& Out() { return out_; }
 
-  const SyntaxContext syn_ctx_;
+  const SyntaxContext& syn_ctx_;
   std::ostream& out_;
   int indent_ = 0;
 };
@@ -373,6 +373,11 @@ class AstPrinter {
 }  // namespace
 
 void Print(const SyntaxContext& ctx, const FuncDefStmt& stmt,
+           std::ostream& out) {
+  AstPrinter(ctx, out).Print(stmt);
+}
+
+void Print(const SyntaxContext& ctx, const TypeDefStmt& stmt,
            std::ostream& out) {
   AstPrinter(ctx, out).Print(stmt);
 }

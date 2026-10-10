@@ -9,6 +9,7 @@ namespace {
 
 TEST(Test, SetColorWorks) {
   std::stringstream ss;
+  EnableColor(ss);
   ss << SetColor(Color::Blue) << "foo";
   ss << "bar";
   ss << SetColor(Color::Green);
@@ -19,12 +20,23 @@ TEST(Test, SetColorWorks) {
 
 TEST(Test, ResetColorWorks) {
   std::stringstream ss;
+  EnableColor(ss);
   ss << "foo" << ResetColor;
   ss << "bar";
   ss << ResetColor;
   ss << "baz";
 
   EXPECT_EQ(ss.str(), "foo\33[mbar\33[mbaz");
+}
+
+TEST(Test, ColorIsOffUnlessEnabled) {
+  std::stringstream ss;
+  ss << SetColor(Color::Blue) << "foo" << ResetColor;
+  EnableColor(ss);
+  EnableColor(ss, false);
+  ss << SetColor(Color::Blue) << "bar" << ResetColor;
+
+  EXPECT_EQ(ss.str(), "foobar");
 }
 
 TEST(Test, IndentWorks) {

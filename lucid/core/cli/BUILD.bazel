@@ -18,6 +18,7 @@ cc_test(
     srcs = ["cli_test.cc"],
     deps = [
         ":cli",
+        ":format",
         "//lucid/core/container:hash_map",
         "//lucid/core/testing",
     ],

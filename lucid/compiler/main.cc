@@ -221,9 +221,8 @@ int HandlePrintAstCommand(CommandContext ctx) {
     }
   } else {
     for (const auto& def : defs) {
-      if (const auto* func_def = std::get_if<FuncDefStmt>(&def)) {
-        Print(syn_ctx, *func_def, ctx.Out());
-      }
+      std::visit([&](const auto& stmt) { Print(syn_ctx, stmt, ctx.Out()); },
+                 def);
     }
   }
 

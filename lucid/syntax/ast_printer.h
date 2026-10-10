@@ -15,6 +15,14 @@ namespace lucid {
 void Print(const SyntaxContext& ctx, const FuncDefStmt& stmt,
            std::ostream& out);
 
+// Prints a text representation of the abstract syntax tree statement `stmt` to
+// `out`.
+//
+// Requires:
+// - `stmt` must be constructed in `ctx`.
+void Print(const SyntaxContext& ctx, const TypeDefStmt& stmt,
+           std::ostream& out);
+
 // Prints a text representation of the abstract syntax tree statement
 // referenced by `ref` to `out`.
 //

@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "lucid/core/cli/format.h"
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/testing/testing.h"
 
@@ -109,8 +110,7 @@ TEST(Test, RunCommandUnknownCommand) {
                 CommandContext({"test"}, args, {}, out, err)),
             1);
   EXPECT_EQ(out.str(), "");
-  EXPECT_EQ(std::string(err.str()),
-            "\33[31mERROR:\33[m unknown command 'foo'\n");
+  EXPECT_EQ(std::string(err.str()), "ERROR: unknown command 'foo'\n");
 }
 
 TEST(Test, RunCommandFlagWithoutValue) {
@@ -164,8 +164,7 @@ TEST(Test, RunCommandUnknownFlag) {
             1);
   EXPECT_THAT(has_run, IsFalse());
   EXPECT_EQ(out.str(), "");
-  EXPECT_EQ(std::string(err.str()),
-            "\33[31mERROR:\33[m unknown flag '--baz_flag'\n");
+  EXPECT_EQ(std::string(err.str()), "ERROR: unknown flag '--baz_flag'\n");
 }
 
 TEST(Test, RunCommandFlagNotDeclaredByCommandWithNoFlags) {
@@ -183,8 +182,7 @@ TEST(Test, RunCommandFlagNotDeclaredByCommandWithNoFlags) {
                 },
                 CommandContext({"test"}, args, {}, out, err)),
             1);
-  EXPECT_EQ(std::string(err.str()),
-            "\33[31mERROR:\33[m unknown flag '--any_flag'\n");
+  EXPECT_EQ(std::string(err.str()), "ERROR: unknown flag '--any_flag'\n");
 }
 
 TEST(Test, RunCommandOutput) {
@@ -232,6 +230,30 @@ TEST(Test, RunCommandError) {
                 CommandContext({"test"}, args, {}, out, err)),
             0);
   EXPECT_EQ(out.str(), "");
+  EXPECT_EQ(err.str(), "ERROR: foo");
+}
+
+TEST(Test, RunCommandErrorInColor) {
+  std::vector<std::string_view> args = {
+      "foo",
+  };
+
+  auto foo = [&](CommandContext ctx) {
+    ctx.Err() << "foo";
+    return 0;
+  };
+
+  std::stringstream out, err;
+  EnableColor(err);
+  EXPECT_EQ(RunCommand(
+                {
+                    {
+                        .name = "foo",
+                        .handler = foo,
+                    },
+                },
+                CommandContext({"test"}, args, {}, out, err)),
+            0);
   EXPECT_EQ(err.str(), "\33[31mERROR:\33[m foo");
 }
 
