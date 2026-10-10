@@ -300,12 +300,14 @@
         margin-bottom: 24px;
       }
 
-      .stages h2 {
+      .stages h2,
+      .comparisons > h2 {
         margin: 0 0 4px;
         font-size: 0.9375rem;
       }
 
-      .stages p {
+      .stages p,
+      .comparisons > p {
         margin: 0 0 12px;
         color: var(--text-dim);
         font-size: 0.8125rem;
@@ -344,15 +346,9 @@
         min-width: 2px;
       }
 
-      /* Lucid against C++, the same program in each */
-      .comparison + .comparison {
-        margin-top: 16px;
-      }
-
-      .comparison h3 {
-        margin: 0 0 8px;
-        font-size: 0.875rem;
-        font-weight: 600;
+      /* Lucid against C++, the same program in each, a card apiece */
+      .comparisons {
+        margin-bottom: 24px;
       }
 
       .comparison .summary {
@@ -544,7 +540,7 @@
       </nav>
 
       <main id="main">
-        <div id="comparisons" class="stages" hidden></div>
+        <div id="comparisons" class="comparisons" hidden></div>
         <div id="stages" class="stages" hidden></div>
       </main>
     </div>
@@ -616,6 +612,12 @@
           {
             name: "Fibonacci",
             group: "lucid/benchmarks/fib/fib_bench",
+            lucid: "Lucid",
+            cpp: "Cpp",
+          },
+          {
+            name: "Collatz",
+            group: "lucid/benchmarks/collatz/collatz_bench",
             lucid: "Lucid",
             cpp: "Cpp",
           },
@@ -909,10 +911,14 @@
             "commit and over the commits before it. Lower is better.";
           section.appendChild(note);
 
+          const cards = document.createElement("div");
+          cards.className = "charts";
+          section.appendChild(cards);
+
           for (const { name, lucid, cpp } of rows) {
             const block = document.createElement("div");
-            block.className = "comparison";
-            section.appendChild(block);
+            block.className = "chart comparison";
+            cards.appendChild(block);
 
             const heading = document.createElement("h3");
             heading.textContent = name;
