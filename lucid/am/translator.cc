@@ -51,14 +51,14 @@ class AbstractMachineFunctionGenerator {
       am_cfg_.first = first_block.ref;
       am_cfg_.last = first_block.ref;
 
-      first_block.instructions.push_back(FuncCall{
+      first_block.instructions.emplace_back(FuncCall{
           .label = "_print_string",
       });
-      first_block.instructions.push_back(SetReg{
+      first_block.instructions.emplace_back(SetReg{
           .src_val = 0,
           .dst_reg = result_reg_,
       });
-      first_block.instructions.push_back(Return{
+      first_block.instructions.emplace_back(Return{
           .res_reg = result_reg_,
       });
       return std::move(am_cfg_);
@@ -67,14 +67,14 @@ class AbstractMachineFunctionGenerator {
       am_cfg_.first = first_block.ref;
       am_cfg_.last = first_block.ref;
 
-      first_block.instructions.push_back(FuncCall{
+      first_block.instructions.emplace_back(FuncCall{
           .label = "_sleep",
       });
-      first_block.instructions.push_back(SetReg{
+      first_block.instructions.emplace_back(SetReg{
           .src_val = 0,
           .dst_reg = result_reg_,
       });
-      first_block.instructions.push_back(Return{
+      first_block.instructions.emplace_back(Return{
           .res_reg = result_reg_,
       });
       return std::move(am_cfg_);
@@ -147,14 +147,14 @@ class AbstractMachineFunctionGenerator {
           }
           const Reg placeholder = {am_cfg_.next_free_reg_id++,
                                    result_reg_.size};
-          am_cfg_.GetBlock(pred).instructions.push_back(SetReg{
+          am_cfg_.GetBlock(pred).instructions.emplace_back(SetReg{
               .src_val = 0,
               .dst_reg = placeholder,
           });
           result_phi.srcs.push_back(placeholder);
         }
       }
-      last_block.instructions.push_back(Return{
+      last_block.instructions.emplace_back(Return{
           .res_reg = result_reg_,
       });
     }
@@ -233,7 +233,7 @@ class AbstractMachineFunctionGenerator {
   void ProcessExpr(ExprRef ref, const BoolLitExpr& expr,
                    AbstractMachineControlFlowGraph::Block& am_block) {
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
-    am_block.instructions.push_back(SetReg{
+    am_block.instructions.emplace_back(SetReg{
         .src_val = expr.value ? 1 : 0,
         .dst_reg = reg,
     });
@@ -256,7 +256,7 @@ class AbstractMachineFunctionGenerator {
     std::uint32_t string_id = AddString(expr.value);
 
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
-    am_block.instructions.push_back(SetStr{
+    am_block.instructions.emplace_back(SetStr{
         .src_val = string_id,
         .dst_reg = reg,
     });
@@ -277,7 +277,7 @@ class AbstractMachineFunctionGenerator {
     func_call.res = {
         .reg = reg,
     };
-    am_block.instructions.push_back(std::move(func_call));
+    am_block.instructions.emplace_back(std::move(func_call));
     expr_to_reg_[ref.id()] = reg;
   }
 
@@ -314,7 +314,7 @@ class AbstractMachineFunctionGenerator {
 
     const StackPlace place = GetStackPlace(ref, am_block);
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(type_ref)};
-    am_block.instructions.push_back(LoadStackReg{
+    am_block.instructions.emplace_back(LoadStackReg{
         .offset = place.base_offset,
         .offset_reg = place.offset_reg.value(),
         .offset_scale = place.offset_scale,
@@ -328,77 +328,77 @@ class AbstractMachineFunctionGenerator {
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
     switch (expr.op) {
       case BinaryOp::Add:
-        am_block.instructions.push_back(AddReg{
+        am_block.instructions.emplace_back(AddReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Sub:
-        am_block.instructions.push_back(SubReg{
+        am_block.instructions.emplace_back(SubReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Mul:
-        am_block.instructions.push_back(MulReg{
+        am_block.instructions.emplace_back(MulReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Div:
-        am_block.instructions.push_back(DivReg{
+        am_block.instructions.emplace_back(DivReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Mod:
-        am_block.instructions.push_back(ModReg{
+        am_block.instructions.emplace_back(ModReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Gt:
-        am_block.instructions.push_back(GtReg{
+        am_block.instructions.emplace_back(GtReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Lt:
-        am_block.instructions.push_back(LtReg{
+        am_block.instructions.emplace_back(LtReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Ge:
-        am_block.instructions.push_back(GeReg{
+        am_block.instructions.emplace_back(GeReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Le:
-        am_block.instructions.push_back(LeReg{
+        am_block.instructions.emplace_back(LeReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::Eq:
-        am_block.instructions.push_back(EqReg{
+        am_block.instructions.emplace_back(EqReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
         });
         break;
       case BinaryOp::NotEq:
-        am_block.instructions.push_back(NotEqReg{
+        am_block.instructions.emplace_back(NotEqReg{
             .res_reg = reg,
             .lhs_reg = expr_to_reg_[expr.lhs.id()],
             .rhs_reg = expr_to_reg_[expr.rhs.id()],
@@ -433,7 +433,7 @@ class AbstractMachineFunctionGenerator {
     Reg value = expr_to_reg_[stmt.value.id()];
     if (std::holds_alternative<IdentExpr>(syn_ctx_.DerefExpr(stmt.value))) {
       const Reg copy = {am_cfg_.next_free_reg_id++, value.size};
-      am_block.instructions.push_back(MoveReg{
+      am_block.instructions.emplace_back(MoveReg{
           .src_reg = value,
           .dst_reg = copy,
       });
@@ -450,7 +450,7 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef ref, const VarAssignStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
     auto expr_type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));
-    am_block.instructions.push_back(MoveReg{
+    am_block.instructions.emplace_back(MoveReg{
         .src_reg = expr_to_reg_[stmt.expr.id()],
         .dst_reg = GetVarReg(stmt.name, expr_type_ref),
     });
@@ -463,7 +463,7 @@ class AbstractMachineFunctionGenerator {
       PushStackSlots(stmt.type_constraint);
     } else {
       if (stmt.init.has_value()) {
-        am_block.instructions.push_back(MoveReg{
+        am_block.instructions.emplace_back(MoveReg{
             .src_reg = expr_to_reg_[stmt.init->id()],
             .dst_reg = GetVarReg(stmt.name, stmt.type_constraint),
         });
@@ -476,7 +476,7 @@ class AbstractMachineFunctionGenerator {
     auto stmt_offset = var_stack_.Get(stmt.name);
     assert(stmt_offset.has_value());
 
-    am_block.instructions.push_back(StoreStackReg{
+    am_block.instructions.emplace_back(StoreStackReg{
         .offset = *stmt_offset,
         .offset_reg = expr_to_reg_[stmt.index.id()],
         .offset_scale = GetSize(GetType(syn_ctx_.DerefExpr(stmt.expr))),
@@ -491,7 +491,7 @@ class AbstractMachineFunctionGenerator {
         place,
         GetFieldOffset(GetType(syn_ctx_.DerefExpr(stmt.base)), stmt.field_name),
         am_block);
-    am_block.instructions.push_back(StoreStackReg{
+    am_block.instructions.emplace_back(StoreStackReg{
         .offset = place.base_offset,
         .offset_reg = place.offset_reg.value(),
         .offset_scale = place.offset_scale,
@@ -532,12 +532,12 @@ class AbstractMachineFunctionGenerator {
     if (!place.offset_reg.has_value() || place.offset_scale == 1) return;
 
     Reg scale_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-    am_block.instructions.push_back(SetReg{
+    am_block.instructions.emplace_back(SetReg{
         .src_val = static_cast<int>(place.offset_scale),
         .dst_reg = scale_reg,
     });
     Reg bytes_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-    am_block.instructions.push_back(MulReg{
+    am_block.instructions.emplace_back(MulReg{
         .res_reg = bytes_reg,
         .lhs_reg = scale_reg,
         .rhs_reg = *place.offset_reg,
@@ -561,7 +561,7 @@ class AbstractMachineFunctionGenerator {
     }
 
     Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-    am_block.instructions.push_back(AddReg{
+    am_block.instructions.emplace_back(AddReg{
         .res_reg = sum_reg,
         .lhs_reg = *place.offset_reg,
         .rhs_reg = step_reg,
@@ -573,7 +573,7 @@ class AbstractMachineFunctionGenerator {
   void AddToStackPlace(StackPlace& place, std::size_t offset,
                        AbstractMachineControlFlowGraph::Block& am_block) {
     Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-    am_block.instructions.push_back(SetReg{
+    am_block.instructions.emplace_back(SetReg{
         .src_val = static_cast<int>(offset),
         .dst_reg = step_reg,
     });
@@ -605,12 +605,12 @@ class AbstractMachineFunctionGenerator {
       }
 
       Reg size_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-      am_block.instructions.push_back(SetReg{
+      am_block.instructions.emplace_back(SetReg{
           .src_val = static_cast<int>(size),
           .dst_reg = size_reg,
       });
       Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};
-      am_block.instructions.push_back(MulReg{
+      am_block.instructions.emplace_back(MulReg{
           .res_reg = step_reg,
           .lhs_reg = size_reg,
           .rhs_reg = index_reg,

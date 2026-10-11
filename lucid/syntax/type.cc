@@ -178,7 +178,7 @@ class ExprTypeInferenceEngine {
     }
     const auto* array_type = std::get_if<ArrayType>(&syn_ctx_.DerefType(*type));
     if (array_type == nullptr) {
-      errors_.push_back("a value of this type cannot be indexed");
+      errors_.emplace_back("a value of this type cannot be indexed");
       return;
     }
     RequireTypeForExpr(stmt.expr, array_type->element_type_constraint);
@@ -291,7 +291,7 @@ class ExprTypeInferenceEngine {
     if (auto it = expr_from_type_.Get(expr_ref);
         it.has_value() && !TypesEqual(*it, type_ref)) {
       if (std::holds_alternative<ArrayType>(syn_ctx_.DerefType(*it))) {
-        errors_.push_back(std::string("expected array type"));
+        errors_.emplace_back("expected array type");
       } else {
         const auto& it_type = std::get<BasicType>(syn_ctx_.DerefType(*it));
         errors_.push_back(std::string("expected type ") +
@@ -373,7 +373,7 @@ class ExprTypeInferenceEngine {
         const auto* array_type =
             std::get_if<ArrayType>(&syn_ctx_.DerefType(*it));
         if (array_type == nullptr) {
-          errors_.push_back("a value of this type cannot be indexed");
+          errors_.emplace_back("a value of this type cannot be indexed");
           continue;
         }
         expr_from_type_.Set(element, array_type->element_type_constraint);
@@ -387,7 +387,7 @@ class ExprTypeInferenceEngine {
         const auto* tuple_type =
             std::get_if<TupleType>(&syn_ctx_.DerefType(*it));
         if (tuple_type == nullptr) {
-          errors_.push_back("a value of this type has no fields");
+          errors_.emplace_back("a value of this type has no fields");
           continue;
         }
 

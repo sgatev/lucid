@@ -87,7 +87,7 @@ void LoadAtEveryUse(AbstractMachineControlFlowGraph& am_cfg, Reg reg,
           Reg fresh = reg;
           fresh.id = am_cfg.next_free_reg_id++;
           am_cfg.GetBlock(block.preds[arg])
-              .instructions.push_back(LoadStack{
+              .instructions.emplace_back(LoadStack{
                   .offset = slot,
                   .dst_reg = fresh,
               });

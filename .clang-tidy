@@ -5,6 +5,7 @@ bugprone-*,
 -bugprone-exception-escape,
 -bugprone-easily-swappable-parameters,
 performance-*,
+modernize-use-emplace,
 '
 CheckOptions:
   # A positive literal is never the operand that goes wrong.
