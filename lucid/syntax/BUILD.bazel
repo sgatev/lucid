@@ -64,25 +64,6 @@ cc_test(
 )
 
 cc_library(
-    name = "buffered_lexer",
-    srcs = ["buffered_lexer.h"],
-    visibility = ["//lucid:__subpackages__"],
-    deps = [
-        ":token",
-    ],
-)
-
-cc_test(
-    name = "buffered_lexer_test",
-    srcs = ["buffered_lexer_test.cc"],
-    deps = [
-        ":buffered_lexer",
-        ":lexer",
-        "//lucid/core/testing",
-    ],
-)
-
-cc_library(
     name = "cfg",
     srcs = ["cfg.cc"],
     hdrs = ["cfg.h"],
@@ -262,7 +243,6 @@ cc_binary(
         "//examples:example_sources",
     ],
     deps = [
-        ":buffered_lexer",
         ":context",
         ":lexer",
         ":parser",

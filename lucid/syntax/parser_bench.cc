@@ -11,7 +11,6 @@
 #include "lucid/core/benchmarking/benchmarking.h"
 #include "lucid/core/io/file.h"
 #include "lucid/syntax/ast.h"
-#include "lucid/syntax/buffered_lexer.h"
 #include "lucid/syntax/context.h"
 #include "lucid/syntax/lexer.h"
 #include "lucid/syntax/parser.h"
@@ -30,16 +29,12 @@ void BenchmarkSnippet(BenchmarkState& state, std::string_view snippet) {
   for (std::size_t i = 0; i < repetitions; ++i) code.append(snippet);
   code.append("\0"s);
 
-  BufferedLexer<Lexer> lexer(Lexer{code});
-
   for (auto _ : state) {
-    lexer.Reset();
-
     // A context of its own per iteration. Parsing appends to it, so one shared
     // across the run would grow without bound, and every iteration would be
     // measured against a larger arena than the one before it.
     SyntaxContext ctx;
-    Parser parser(ctx, code, lexer);
+    Parser parser(ctx, code, Lexer{code});
     std::size_t count = 0;
     while (true) {
       std::expected<std::optional<Def>, ParserError> def_or_error =

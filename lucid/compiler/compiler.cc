@@ -28,7 +28,6 @@
 #include "lucid/core/container/hash_map.h"
 #include "lucid/core/io/file.h"
 #include "lucid/syntax/ast.h"
-#include "lucid/syntax/buffered_lexer.h"
 #include "lucid/syntax/cfg.h"
 #include "lucid/syntax/comp.h"
 #include "lucid/syntax/context.h"
@@ -89,8 +88,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
   SyntaxContext syn_ctx;
 
   std::list<Def> defs;
-  BufferedLexer<Lexer> lexer(Lexer{src});
-  Parser parser(syn_ctx, src, lexer);
+  Parser parser(syn_ctx, src, Lexer{src});
 
   AbstractMachineState am_state;
   HashMap<std::string_view, AbstractMachineControlFlowGraph> am_cfgs;
@@ -177,8 +175,7 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
 std::expected<std::vector<Def>, ParserError> ParseDefs(std::string_view src,
                                                        SyntaxContext& ctx) {
   std::vector<Def> defs;
-  BufferedLexer<Lexer> lexer(Lexer{src});
-  Parser parser(ctx, src, lexer);
+  Parser parser(ctx, src, Lexer{src});
   while (true) {
     std::expected<std::optional<Def>, ParserError> def_or_error =
         parser.Parse();
