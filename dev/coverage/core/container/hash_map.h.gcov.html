@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-11 08:40:59</td>
+            <td class="headerValue">2026-10-11 09:58:28</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -82,10 +82,10 @@
 <span id="L20"><span class="lineNum">      20</span>              : </span>
 <span id="L21"><span class="lineNum">      21</span>              :   // Returns a reference to the value that corresponds to the given `key` if the</span>
 <span id="L22"><span class="lineNum">      22</span>              :   // table contains it. Otherwise returns nullopt.</span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">    15318868 :   inline std::optional&lt;V&amp;&gt; Get(const K&amp; key) {</span></span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">    15318868 :     if (auto it = table_.Find(key); it != end()) return it-&gt;second;</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">       48664 :     return std::nullopt;</span></span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">    15318868 :   }</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">    15318866 :   inline std::optional&lt;V&amp;&gt; Get(const K&amp; key) {</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">    15318866 :     if (auto it = table_.Find(key); it != end()) return it-&gt;second;</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">       48662 :     return std::nullopt;</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">    15318866 :   }</span></span>
 <span id="L27"><span class="lineNum">      27</span>              : </span>
 <span id="L28"><span class="lineNum">      28</span>              :   // Returns a const reference to the value that corresponds to the given `key`</span>
 <span id="L29"><span class="lineNum">      29</span>              :   // if the table contains it. Otherwise returns nullopt.</span>
@@ -135,7 +135,7 @@
 <span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">        6587 :   inline auto begin(this auto&amp;&amp; self) { return self.table_.begin(); }</span></span>
 <span id="L74"><span class="lineNum">      74</span>              : </span>
 <span id="L75"><span class="lineNum">      75</span>              :   // Returns an iterator past the last key-value pair in the map.</span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">    22110398 :   inline auto end(this auto&amp;&amp; self) { return self.table_.end(); }</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">    22110396 :   inline auto end(this auto&amp;&amp; self) { return self.table_.end(); }</span></span>
 <span id="L77"><span class="lineNum">      77</span>              : </span>
 <span id="L78"><span class="lineNum">      78</span>              :  private:</span>
 <span id="L79"><span class="lineNum">      79</span>              :   HashTableT table_;</span>
