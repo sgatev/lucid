@@ -88,6 +88,7 @@ class Interpreter {
 
  private:
   std::expected<Instruction, CompError> Interpret(const FuncCall& inst);
+  Instruction Interpret(const Nop& inst);
   Instruction Interpret(const MoveReg& inst);
   Instruction Interpret(const GtReg& inst);
   Instruction Interpret(const LtReg& inst);

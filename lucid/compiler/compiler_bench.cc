@@ -96,6 +96,77 @@ BENCHMARK(Examples) {
   state.SetLinesProcessed(std::int64_t(state.MaxIterations()) * lines);
 }
 
+// Compiles `src` many times over, as `Examples` does a program of them.
+void CompileRepeatedly(BenchmarkState& state, std::string_view src) {
+  DiscardingStream out;
+  for (auto _ : state) Compile(src, out);
+  state.SetBytesProcessed(std::int64_t(state.MaxIterations()) *
+                          std::int64_t(src.size()));
+  state.SetLinesProcessed(std::int64_t(state.MaxIterations()) *
+                          CountLines(src));
+}
+
+// A program that spends its compilation in loops run during it, which is
+// what the interpreter does instruction by instruction. The sieve keeps its
+// numbers in an array, so the frame is worked as well as the registers.
+BENCHMARK(CompLoop) {
+  const std::string source = R"(comp fun countPrimes(limit: Int32): Int32 {
+  mut val composite: Int32[2000]
+  mut val i: Int32 = 0
+  loop {
+    if i == limit {
+      break
+    }
+    mut composite[i] = 0
+    mut i = i + 1
+  }
+
+  mut val count: Int32 = 0
+  mut val n: Int32 = 2
+  loop {
+    if n == limit {
+      break
+    }
+    if composite[n] == 0 {
+      mut count = count + 1
+      mut val m: Int32 = n * n
+      loop {
+        if m >= limit {
+          break
+        }
+        mut composite[m] = 1
+        mut m = m + n
+      }
+    }
+    mut n = n + 1
+  }
+  return count
+}
+
+fun main(): Int32 {
+  return comp countPrimes(2000)
+}
+)"s + "\0"s;
+  CompileRepeatedly(state, source);
+}
+
+// A program that spends its compilation in calls made during it, each of
+// which the interpreter sets up and takes down again.
+BENCHMARK(CompCalls) {
+  const std::string source = R"(comp fun fib(n: Int32): Int32 {
+  if n < 2 {
+    return n
+  }
+  return fib(n - 1) + fib(n - 2)
+}
+
+fun main(): Int32 {
+  return comp fib(18)
+}
+)"s + "\0"s;
+  CompileRepeatedly(state, source);
+}
+
 // The functions the compiler stands in for itself, which a program defines
 // once whatever else it does.
 constexpr std::string_view kBuiltins[] = {"printString", "sleep"};

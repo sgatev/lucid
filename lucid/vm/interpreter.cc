@@ -196,53 +196,11 @@ void Interpreter::Set(Reg reg, std::int64_t value) {
 
 std::expected<Instruction, CompError> Interpreter::Interpret(
     const Instruction& inst) {
-  if (const auto* func_call = std::get_if<FuncCall>(&inst)) {
-    return Interpret(*func_call);
-  } else if (const auto* mov_reg = std::get_if<MoveReg>(&inst)) {
-    return Interpret(*mov_reg);
-  } else if (const auto* set_reg = std::get_if<SetReg>(&inst)) {
-    return Interpret(*set_reg);
-  } else if (const auto* set_int = std::get_if<SetInt>(&inst)) {
-    return Interpret(*set_int);
-  } else if (const auto* set_str = std::get_if<SetStr>(&inst)) {
-    return Interpret(*set_str);
-  } else if (std::holds_alternative<Nop>(inst)) {
-    return inst;
-  } else if (const auto* gt_reg = std::get_if<GtReg>(&inst)) {
-    return Interpret(*gt_reg);
-  } else if (const auto* lt_reg = std::get_if<LtReg>(&inst)) {
-    return Interpret(*lt_reg);
-  } else if (const auto* ge_reg = std::get_if<GeReg>(&inst)) {
-    return Interpret(*ge_reg);
-  } else if (const auto* le_reg = std::get_if<LeReg>(&inst)) {
-    return Interpret(*le_reg);
-  } else if (const auto* eq_reg = std::get_if<EqReg>(&inst)) {
-    return Interpret(*eq_reg);
-  } else if (const auto* not_eq_reg = std::get_if<NotEqReg>(&inst)) {
-    return Interpret(*not_eq_reg);
-  } else if (const auto* ret = std::get_if<Return>(&inst)) {
-    return Interpret(*ret);
-  } else if (const auto* add_reg = std::get_if<AddReg>(&inst)) {
-    return Interpret(*add_reg);
-  } else if (const auto* sub_reg = std::get_if<SubReg>(&inst)) {
-    return Interpret(*sub_reg);
-  } else if (const auto* mul_reg = std::get_if<MulReg>(&inst)) {
-    return Interpret(*mul_reg);
-  } else if (const auto* div_reg = std::get_if<DivReg>(&inst)) {
-    return Interpret(*div_reg);
-  } else if (const auto* mod_reg = std::get_if<ModReg>(&inst)) {
-    return Interpret(*mod_reg);
-  } else if (const auto* store_stack = std::get_if<StoreStack>(&inst)) {
-    return Interpret(*store_stack);
-  } else if (const auto* store_stack_reg = std::get_if<StoreStackReg>(&inst)) {
-    return Interpret(*store_stack_reg);
-  } else if (const auto* load_stack = std::get_if<LoadStack>(&inst)) {
-    return Interpret(*load_stack);
-  } else if (const auto* load_stack_reg = std::get_if<LoadStackReg>(&inst)) {
-    return Interpret(*load_stack_reg);
-  }
-  assert(false);
-  return inst;
+  return std::visit(
+      [this](const auto& inst) -> std::expected<Instruction, CompError> {
+        return Interpret(inst);
+      },
+      inst);
 }
 
 std::size_t Interpreter::SlotOffset(std::size_t slot) const {
@@ -351,6 +309,8 @@ std::expected<Instruction, CompError> Interpreter::Interpret(
       };
   }
 }
+
+Instruction Interpreter::Interpret(const Nop& inst) { return inst; }
 
 // A string is held by where it stands among the strings the program carries,
 // which is what the register is set to.
