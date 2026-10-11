@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-11 09:58:28</td>
+            <td class="headerValue">2026-10-11 15:23:45</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -149,7 +149,7 @@
 <span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC">          13 :           Reg fresh = reg;</span></span>
 <span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">          13 :           fresh.id = am_cfg.next_free_reg_id++;</span></span>
 <span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">          13 :           am_cfg.GetBlock(block.preds[arg])</span></span>
-<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">          13 :               .instructions.push_back(LoadStack{</span></span>
+<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">          13 :               .instructions.emplace_back(LoadStack{</span></span>
 <span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">          13 :                   .offset = slot,</span></span>
 <span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">          13 :                   .dst_reg = fresh,</span></span>
 <span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">          13 :               });</span></span>
