@@ -58,6 +58,10 @@ class Interpreter {
  public:
   // `stack_slots` says how wide each slot of the frame is, in the order they
   // lie, and has to outlive the interpreter.
+  // `reg_count` is how many registers the function uses, which is room for a
+  // value for each of them up front. A register past it still takes a value,
+  // as one made after the interpreter was: the function generator works out
+  // what it can while it is still making the function's registers.
   // `depth` is how many calls compilation followed to reach the function
   // being interpreted, and `steps` is how much it has worked through so far.
   // Both are what a call made from here is measured against, and `steps` is
@@ -67,7 +71,7 @@ class Interpreter {
   explicit Interpreter(
       const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
       AbstractMachineState& am_state, const std::vector<int>& stack_slots,
-      int depth, std::int64_t& steps);
+      std::size_t reg_count, int depth, std::int64_t& steps);
 
   std::int64_t Result() const;
 
@@ -117,7 +121,11 @@ class Interpreter {
 
   const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs_;
   AbstractMachineState& am_state_;
-  HashMap<Reg, std::int64_t> values_;
+  // The value of each register, by its ID, or nothing for one not set yet.
+  // A register is told apart by its ID alone: before registers are given to a
+  // machine, which is all the interpreter runs, no two of different sizes
+  // share one.
+  std::vector<std::optional<std::int64_t>> values_;
 
   // The frame that arrays and tuples live in, as bytes, beside the widths
   // that say where one slot of it ends and the next begins.

@@ -90,7 +90,9 @@ std::expected<std::int64_t, CompError> InterpretFunction(
                                      " calls into the program and gave up"));
   }
 
-  Interpreter vm(am_cfgs, am_state, am_cfg.stack_slots, depth, steps);
+  Interpreter vm(am_cfgs, am_state, am_cfg.stack_slots,
+                 static_cast<std::size_t>(am_cfg.next_free_reg_id), depth,
+                 steps);
 
   for (std::size_t i = 0; i < args.size() && i < am_cfg.params.size(); ++i) {
     vm.Set(am_cfg.params[i], args[i]);
@@ -168,9 +170,10 @@ std::expected<std::int64_t, CompError> InterpretAbstractMachineFunction(
 Interpreter::Interpreter(
     const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
     AbstractMachineState& am_state, const std::vector<int>& stack_slots,
-    int depth, std::int64_t& steps)
+    std::size_t reg_count, int depth, std::int64_t& steps)
     : am_cfgs_(am_cfgs),
       am_state_(am_state),
+      values_(reg_count),
       stack_slots_(stack_slots),
       depth_(depth),
       steps_(steps) {}
@@ -178,10 +181,18 @@ Interpreter::Interpreter(
 std::int64_t Interpreter::Result() const { return result_; }
 
 std::optional<const std::int64_t&> Interpreter::Get(Reg reg) const {
-  return values_.Get(reg);
+  const auto id = static_cast<std::size_t>(reg.id);
+  if (id >= values_.size()) return std::nullopt;
+  const std::optional<std::int64_t>& value = values_[id];
+  if (!value.has_value()) return std::nullopt;
+  return *value;
 }
 
-void Interpreter::Set(Reg reg, std::int64_t value) { values_.Set(reg, value); }
+void Interpreter::Set(Reg reg, std::int64_t value) {
+  const auto id = static_cast<std::size_t>(reg.id);
+  if (id >= values_.size()) values_.resize(id + 1);
+  values_[id] = value;
+}
 
 std::expected<Instruction, CompError> Interpreter::Interpret(
     const Instruction& inst) {
@@ -274,7 +285,7 @@ void Interpreter::Write(std::size_t offset, RegSize size, std::int64_t value) {
 }
 
 Instruction Interpreter::Interpret(const StoreStack& inst) {
-  auto src_val = values_.Get(inst.src_reg);
+  auto src_val = Get(inst.src_reg);
   assert(src_val.has_value());
 
   Write(SlotOffset(inst.offset), inst.src_reg.size, *src_val);
@@ -282,9 +293,9 @@ Instruction Interpreter::Interpret(const StoreStack& inst) {
 }
 
 Instruction Interpreter::Interpret(const StoreStackReg& inst) {
-  auto src_val = values_.Get(inst.src_reg);
+  auto src_val = Get(inst.src_reg);
   assert(src_val.has_value());
-  auto offset_val = values_.Get(inst.offset_reg);
+  auto offset_val = Get(inst.offset_reg);
   assert(offset_val.has_value());
 
   Write(SlotOffset(inst.offset) +
@@ -294,18 +305,18 @@ Instruction Interpreter::Interpret(const StoreStackReg& inst) {
 }
 
 Instruction Interpreter::Interpret(const LoadStack& inst) {
-  values_.Set(inst.dst_reg, Read(SlotOffset(inst.offset), inst.dst_reg.size));
+  Set(inst.dst_reg, Read(SlotOffset(inst.offset), inst.dst_reg.size));
   return inst;
 }
 
 Instruction Interpreter::Interpret(const LoadStackReg& inst) {
-  auto offset_val = values_.Get(inst.offset_reg);
+  auto offset_val = Get(inst.offset_reg);
   assert(offset_val.has_value());
 
-  values_.Set(inst.dst_reg, Read(SlotOffset(inst.offset) +
-                                     static_cast<std::size_t>(*offset_val) *
-                                         inst.offset_scale,
-                                 inst.dst_reg.size));
+  Set(inst.dst_reg,
+      Read(SlotOffset(inst.offset) +
+               static_cast<std::size_t>(*offset_val) * inst.offset_scale,
+           inst.dst_reg.size));
   return inst;
 }
 
@@ -316,7 +327,7 @@ std::expected<Instruction, CompError> Interpreter::Interpret(
 
   std::vector<std::int64_t> args;
   for (const auto& arg : inst.args) {
-    auto arg_val = values_.Get(arg.reg);
+    auto arg_val = Get(arg.reg);
     assert(arg_val.has_value());
     args.push_back(*arg_val);
   }
@@ -326,7 +337,7 @@ std::expected<Instruction, CompError> Interpreter::Interpret(
 
   assert(inst.res.has_value());
 
-  values_.Set(inst.res->reg, *result);
+  Set(inst.res->reg, *result);
 
   // The call is replaced by what it evaluated to, as an instruction that
   // sets a value of the kind the function returns.
@@ -344,86 +355,86 @@ std::expected<Instruction, CompError> Interpreter::Interpret(
 // A string is held by where it stands among the strings the program carries,
 // which is what the register is set to.
 Instruction Interpreter::Interpret(const SetStr& inst) {
-  values_.Set(inst.dst_reg, inst.src_val);
+  Set(inst.dst_reg, inst.src_val);
   return inst;
 }
 
 Instruction Interpreter::Interpret(const MoveReg& inst) {
-  auto src_val = values_.Get(inst.src_reg);
+  auto src_val = Get(inst.src_reg);
   assert(src_val.has_value());
 
-  values_.Set(inst.dst_reg, *src_val);
+  Set(inst.dst_reg, *src_val);
   return inst;
 }
 
 Instruction Interpreter::Interpret(const GtReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, *lhs_val > *rhs_val);
+  Set(inst.res_reg, *lhs_val > *rhs_val);
   return inst;
 }
 
 Instruction Interpreter::Interpret(const LtReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, *lhs_val < *rhs_val);
+  Set(inst.res_reg, *lhs_val < *rhs_val);
   return inst;
 }
 
 Instruction Interpreter::Interpret(const GeReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, *lhs_val >= *rhs_val);
+  Set(inst.res_reg, *lhs_val >= *rhs_val);
   return inst;
 }
 
 Instruction Interpreter::Interpret(const LeReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, *lhs_val <= *rhs_val);
+  Set(inst.res_reg, *lhs_val <= *rhs_val);
   return inst;
 }
 
 Instruction Interpreter::Interpret(const EqReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, *lhs_val == *rhs_val);
+  Set(inst.res_reg, *lhs_val == *rhs_val);
   return inst;
 }
 
 Instruction Interpreter::Interpret(const NotEqReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, *lhs_val != *rhs_val);
+  Set(inst.res_reg, *lhs_val != *rhs_val);
   return inst;
 }
 
 Instruction Interpreter::Interpret(const Return& inst) {
-  auto res_val = values_.Get(inst.res_reg);
+  auto res_val = Get(inst.res_reg);
   assert(res_val.has_value());
 
   result_ = *res_val;
@@ -431,71 +442,71 @@ Instruction Interpreter::Interpret(const Return& inst) {
 }
 
 Instruction Interpreter::Interpret(const SetReg& inst) {
-  values_.Set(inst.dst_reg, inst.src_val);
+  Set(inst.dst_reg, inst.src_val);
   return inst;
 }
 
 Instruction Interpreter::Interpret(const SetInt& inst) {
-  values_.Set(inst.dst_reg, inst.src_val);
+  Set(inst.dst_reg, inst.src_val);
   return inst;
 }
 
 Instruction Interpreter::Interpret(const AddReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, Wrap(Add(*lhs_val, *rhs_val), inst.res_reg.size));
+  Set(inst.res_reg, Wrap(Add(*lhs_val, *rhs_val), inst.res_reg.size));
   return inst;
 }
 
 Instruction Interpreter::Interpret(const SubReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, Wrap(Sub(*lhs_val, *rhs_val), inst.res_reg.size));
+  Set(inst.res_reg, Wrap(Sub(*lhs_val, *rhs_val), inst.res_reg.size));
   return inst;
 }
 
 Instruction Interpreter::Interpret(const MulReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
 
-  values_.Set(inst.res_reg, Wrap(Mul(*lhs_val, *rhs_val), inst.res_reg.size));
+  Set(inst.res_reg, Wrap(Mul(*lhs_val, *rhs_val), inst.res_reg.size));
   return inst;
 }
 
 std::expected<Instruction, CompError> Interpreter::Interpret(
     const DivReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
   if (*rhs_val == 0) return std::unexpected(DivideByZero());
 
-  values_.Set(inst.res_reg, Wrap(Div(*lhs_val, *rhs_val), inst.res_reg.size));
+  Set(inst.res_reg, Wrap(Div(*lhs_val, *rhs_val), inst.res_reg.size));
   return inst;
 }
 
 std::expected<Instruction, CompError> Interpreter::Interpret(
     const ModReg& inst) {
-  auto lhs_val = values_.Get(inst.lhs_reg);
+  auto lhs_val = Get(inst.lhs_reg);
   assert(lhs_val.has_value());
 
-  auto rhs_val = values_.Get(inst.rhs_reg);
+  auto rhs_val = Get(inst.rhs_reg);
   assert(rhs_val.has_value());
   if (*rhs_val == 0) return std::unexpected(DivideByZero());
 
-  values_.Set(inst.res_reg, Wrap(Mod(*lhs_val, *rhs_val), inst.res_reg.size));
+  Set(inst.res_reg, Wrap(Mod(*lhs_val, *rhs_val), inst.res_reg.size));
   return inst;
 }
 

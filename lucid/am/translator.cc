@@ -36,7 +36,8 @@ class AbstractMachineFunctionGenerator {
       : syn_ctx_(syn_ctx),
         syn_cfg_(syn_cfg),
         am_state_(am_state),
-        vm_(am_cfgs, am_state, am_cfg_.stack_slots, /*depth=*/0, comp_steps_),
+        vm_(am_cfgs, am_state, am_cfg_.stack_slots, /*reg_count=*/0,
+            /*depth=*/0, comp_steps_),
         expr_to_reg_(am_state.expr_regs) {
     expr_to_reg_.resize(syn_ctx_.Size());
   }
