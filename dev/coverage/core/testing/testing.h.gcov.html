@@ -37,12 +37,12 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-10 16:58:36</td>
+            <td class="headerValue">2026-10-11 08:40:59</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">99.7&nbsp;%</td>
-            <td class="headerCovTableEntry">985</td>
-            <td class="headerCovTableEntry">982</td>
+            <td class="headerCovTableEntry">991</td>
+            <td class="headerCovTableEntry">988</td>
           </tr>
                   <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
                 </table>
@@ -129,7 +129,7 @@
 <span id="L67"><span class="lineNum">      67</span>              :   virtual void Run() = 0;</span>
 <span id="L68"><span class="lineNum">      68</span>              : </span>
 <span id="L69"><span class="lineNum">      69</span>              :   // Returns the path to the temporary directory created for this test run.</span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">         978 :   std::filesystem::path TempDir() const { return temp_dir_; }</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">         988 :   std::filesystem::path TempDir() const { return temp_dir_; }</span></span>
 <span id="L71"><span class="lineNum">      71</span>              : </span>
 <span id="L72"><span class="lineNum">      72</span>              :  private:</span>
 <span id="L73"><span class="lineNum">      73</span>              :   bool failed_ = false;</span>
@@ -148,7 +148,7 @@
 <span id="L86"><span class="lineNum">      86</span>              :   /* NOLINTNEXTLINE */                                                    \</span>
 <span id="L87"><span class="lineNum">      87</span>              :   class LUCID_CONCAT(name, Test) : public base {                          \</span>
 <span id="L88"><span class="lineNum">      88</span>              :    public:                                                                \</span>
-<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">        1306 :     std::string_view Name() const final { return LUCID_STRINGIFY(name); } \</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">        1318 :     std::string_view Name() const final { return LUCID_STRINGIFY(name); } \</span></span>
 <span id="L90"><span class="lineNum">      90</span>              :     void Run() final;                                                     \</span>
 <span id="L91"><span class="lineNum">      91</span>              :   };                                                                      \</span>
 <span id="L92"><span class="lineNum">      92</span>              :   /* NOLINTNEXTLINE */                                                    \</span>
@@ -163,9 +163,9 @@
 <span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">          66 : }</span></span>
 <span id="L102"><span class="lineNum">     102</span>              : </span>
 <span id="L103"><span class="lineNum">     103</span>              : // Matches a value that is true.</span>
-<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">     1235361 : inline internal::BooleanMatcher IsTrue() {</span></span>
-<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">     1235361 :   return internal::BooleanMatcher(true);</span></span>
-<span id="L106"><span class="lineNum">     106</span> <span class="tlaGNC">     1235361 : }</span></span>
+<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">     1235363 : inline internal::BooleanMatcher IsTrue() {</span></span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">     1235363 :   return internal::BooleanMatcher(true);</span></span>
+<span id="L106"><span class="lineNum">     106</span> <span class="tlaGNC">     1235363 : }</span></span>
 <span id="L107"><span class="lineNum">     107</span>              : </span>
 <span id="L108"><span class="lineNum">     108</span>              : // Matches a value that is false.</span>
 <span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">       45073 : inline internal::BooleanMatcher IsFalse() {</span></span>
@@ -174,9 +174,9 @@
 <span id="L112"><span class="lineNum">     112</span>              : </span>
 <span id="L113"><span class="lineNum">     113</span>              : // Matches a value that is equal to `expected_value`.</span>
 <span id="L114"><span class="lineNum">     114</span>              : template &lt;typename E&gt;</span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">       30070 : inline internal::EqualityMatcher&lt;E&gt; Equals(E expected_value) {</span></span>
-<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">       30070 :   return internal::EqualityMatcher&lt;E&gt;(std::forward&lt;E&gt;(expected_value), true);</span></span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">       30070 : }</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">       30078 : inline internal::EqualityMatcher&lt;E&gt; Equals(E expected_value) {</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">       30078 :   return internal::EqualityMatcher&lt;E&gt;(std::forward&lt;E&gt;(expected_value), true);</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">       30078 : }</span></span>
 <span id="L118"><span class="lineNum">     118</span>              : </span>
 <span id="L119"><span class="lineNum">     119</span>              : // Matches a value that is not equal to `expected_value`.</span>
 <span id="L120"><span class="lineNum">     120</span>              : template &lt;typename E&gt;</span>
@@ -224,10 +224,10 @@
 <span id="L162"><span class="lineNum">     162</span>              : </span>
 <span id="L163"><span class="lineNum">     163</span>              : // Matches a value that has a field accepted by `field_matcher`.</span>
 <span id="L164"><span class="lineNum">     164</span>              : template &lt;typename F, internal::Matcher M&gt;</span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">         345 : internal::FieldMatcher&lt;F, M&gt; Field(F field, M field_matcher) {</span></span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">         345 :   return internal::FieldMatcher&lt;F, M&gt;(std::move(field),</span></span>
-<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">         345 :                                       std::move(field_matcher));</span></span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         345 : }</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">         351 : internal::FieldMatcher&lt;F, M&gt; Field(F field, M field_matcher) {</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">         351 :   return internal::FieldMatcher&lt;F, M&gt;(std::move(field),</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">         351 :                                       std::move(field_matcher));</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         351 : }</span></span>
 <span id="L169"><span class="lineNum">     169</span>              : </span>
 <span id="L170"><span class="lineNum">     170</span>              : // Matches an optional that contains a value accepted by `value_matcher`.</span>
 <span id="L171"><span class="lineNum">     171</span>              : template &lt;internal::Matcher M&gt;</span>
@@ -252,9 +252,9 @@
 <span id="L190"><span class="lineNum">     190</span>              : </span>
 <span id="L191"><span class="lineNum">     191</span>              : // Matches a value that is accepted by all `matchers`.</span>
 <span id="L192"><span class="lineNum">     192</span>              : template &lt;internal::Matcher... Ms&gt;</span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          65 : internal::AllMatcher&lt;Ms...&gt; AllOf(Ms... matchers) {</span></span>
-<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">          65 :   return internal::AllMatcher&lt;Ms...&gt;(std::move(matchers)...);</span></span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">          65 : }</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          68 : internal::AllMatcher&lt;Ms...&gt; AllOf(Ms... matchers) {</span></span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">          68 :   return internal::AllMatcher&lt;Ms...&gt;(std::move(matchers)...);</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">          68 : }</span></span>
 <span id="L196"><span class="lineNum">     196</span>              : </span>
 <span id="L197"><span class="lineNum">     197</span>              : // Matches a value not accepted by `matcher`.</span>
 <span id="L198"><span class="lineNum">     198</span>              : template &lt;internal::Matcher M&gt;</span>
@@ -263,9 +263,9 @@
 <span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">           1 : }</span></span>
 <span id="L202"><span class="lineNum">     202</span>              : </span>
 <span id="L203"><span class="lineNum">     203</span>              : // Matches a string that starts with `prefix`.</span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">           2 : inline internal::PrefixMatcher StartsWith(std::string_view prefix) {</span></span>
-<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">           2 :   return internal::PrefixMatcher(prefix);</span></span>
-<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">           2 : }</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">           3 : inline internal::PrefixMatcher StartsWith(std::string_view prefix) {</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">           3 :   return internal::PrefixMatcher(prefix);</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">           3 : }</span></span>
 <span id="L207"><span class="lineNum">     207</span>              : </span>
 <span id="L208"><span class="lineNum">     208</span>              : // Matches a string that ends with `suffix`.</span>
 <span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">           1 : inline internal::SuffixMatcher EndsWith(std::string_view suffix) {</span></span>
@@ -273,9 +273,9 @@
 <span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">           1 : }</span></span>
 <span id="L212"><span class="lineNum">     212</span>              : </span>
 <span id="L213"><span class="lineNum">     213</span>              : // Matches a string that contains `substring`.</span>
-<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">          49 : inline internal::SubstringMatcher Contains(std::string_view substring) {</span></span>
-<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">          49 :   return internal::SubstringMatcher(substring);</span></span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">          49 : }</span></span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">          50 : inline internal::SubstringMatcher Contains(std::string_view substring) {</span></span>
+<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">          50 :   return internal::SubstringMatcher(substring);</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">          50 : }</span></span>
 <span id="L217"><span class="lineNum">     217</span>              : </span>
 <span id="L218"><span class="lineNum">     218</span>              : // Checks `actual` against `matcher`, and on a mismatch fails the test with a</span>
 <span id="L219"><span class="lineNum">     219</span>              : // description of the difference and then runs `on_mismatch`.</span>
@@ -285,32 +285,32 @@
 <span id="L223"><span class="lineNum">     223</span>              : // a second time. Wrapping the whole thing in a loop makes an invocation a</span>
 <span id="L224"><span class="lineNum">     224</span>              : // single statement, so it can be used as the body of an unbraced `if`.</span>
 <span id="L225"><span class="lineNum">     225</span>              : #define LUCID_MATCH_OR_FAIL(actual, matcher, on_mismatch)                  \</span>
-<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">     1503656 :   do {                                                                     \</span></span>
-<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">     1503656 :     auto&amp;&amp; LUCID_UNIQUE_VAR(value) = (actual);                             \</span></span>
-<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">     1503656 :     auto&amp;&amp; LUCID_UNIQUE_VAR(m) = (matcher);                                \</span></span>
-<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">     1503656 :     if (!LUCID_UNIQUE_VAR(m).Matches(LUCID_UNIQUE_VAR(value))) {           \</span></span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">     1503665 :   do {                                                                     \</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">     1503665 :     auto&amp;&amp; LUCID_UNIQUE_VAR(value) = (actual);                             \</span></span>
+<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">     1503665 :     auto&amp;&amp; LUCID_UNIQUE_VAR(m) = (matcher);                                \</span></span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">     1503665 :     if (!LUCID_UNIQUE_VAR(m).Matches(LUCID_UNIQUE_VAR(value))) {           \</span></span>
 <span id="L230"><span class="lineNum">     230</span> <span class="tlaUNC">           0 :       Fail(std::format(                                                    \</span></span>
 <span id="L231"><span class="lineNum">     231</span> <span class="tlaUNC">           0 :           &quot;Expected {}\n to be {}\n but was found {}.&quot;,                    \</span></span>
 <span id="L232"><span class="lineNum">     232</span> <span class="tlaUNC">           0 :           LUCID_STRINGIFY(actual), LUCID_UNIQUE_VAR(m).DescribeExpected(), \</span></span>
 <span id="L233"><span class="lineNum">     233</span> <span class="tlaUNC">           0 :           LUCID_UNIQUE_VAR(m).DescribeActual(LUCID_UNIQUE_VAR(value))));   \</span></span>
 <span id="L234"><span class="lineNum">     234</span> <span class="tlaUNC">           0 :       on_mismatch;                                                         \</span></span>
 <span id="L235"><span class="lineNum">     235</span> <span class="tlaUNC">           0 :     }                                                                      \</span></span>
-<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">     1503656 :   } while (false)</span></span>
+<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">     1503665 :   } while (false)</span></span>
 <span id="L237"><span class="lineNum">     237</span>              : </span>
 <span id="L238"><span class="lineNum">     238</span>              : #define ASSERT_THAT(actual, matcher) \</span>
-<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">       16549 :   LUCID_MATCH_OR_FAIL(actual, matcher, return)</span></span>
+<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">       16554 :   LUCID_MATCH_OR_FAIL(actual, matcher, return)</span></span>
 <span id="L240"><span class="lineNum">     240</span>              : </span>
-<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">        8385 : #define ASSERT_TRUE(actual) ASSERT_THAT(actual, IsTrue())</span></span>
+<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">        8387 : #define ASSERT_TRUE(actual) ASSERT_THAT(actual, IsTrue())</span></span>
 <span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">          89 : #define ASSERT_FALSE(actual) ASSERT_THAT(actual, IsFalse())</span></span>
 <span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">        8039 : #define ASSERT_EQ(actual, expected) ASSERT_THAT(actual, Equals(expected))</span></span>
 <span id="L244"><span class="lineNum">     244</span>              : #define ASSERT_NE(actual, expected) ASSERT_THAT(actual, NotEquals(expected))</span>
 <span id="L245"><span class="lineNum">     245</span>              : </span>
 <span id="L246"><span class="lineNum">     246</span>              : #define EXPECT_THAT(actual, matcher) \</span>
-<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">     1487107 :   LUCID_MATCH_OR_FAIL(actual, matcher, (void)0)</span></span>
+<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">     1487111 :   LUCID_MATCH_OR_FAIL(actual, matcher, (void)0)</span></span>
 <span id="L248"><span class="lineNum">     248</span>              : </span>
 <span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">     1221767 : #define EXPECT_TRUE(actual) EXPECT_THAT(actual, IsTrue())</span></span>
 <span id="L250"><span class="lineNum">     250</span> <span class="tlaGNC">         429 : #define EXPECT_FALSE(actual) EXPECT_THAT(actual, IsFalse())</span></span>
-<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC">        1084 : #define EXPECT_EQ(actual, expected) EXPECT_THAT(actual, Equals(expected))</span></span>
+<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC">        1088 : #define EXPECT_EQ(actual, expected) EXPECT_THAT(actual, Equals(expected))</span></span>
 <span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">      227364 : #define EXPECT_NE(actual, expected) EXPECT_THAT(actual, NotEquals(expected))</span></span>
 <span id="L253"><span class="lineNum">     253</span>              : </span>
 <span id="L254"><span class="lineNum">     254</span>              : }  // namespace lucid</span>

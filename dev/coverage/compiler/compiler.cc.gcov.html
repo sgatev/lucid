@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-10 16:58:36</td>
+            <td class="headerValue">2026-10-11 08:40:59</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -237,22 +237,22 @@
 <span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">         195 : }</span></span>
 <span id="L176"><span class="lineNum">     176</span>              : </span>
 <span id="L177"><span class="lineNum">     177</span>              : std::expected&lt;std::vector&lt;Def&gt;, ParserError&gt; ParseDefs(std::string_view src,</span>
-<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">          11 :                                                        SyntaxContext&amp; ctx) {</span></span>
-<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">          11 :   std::vector&lt;Def&gt; defs;</span></span>
-<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">          11 :   BufferedLexer&lt;Lexer&gt; lexer(Lexer{src});</span></span>
-<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">          11 :   Parser parser(ctx, src, lexer);</span></span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">          23 :   while (true) {</span></span>
-<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">          23 :     std::expected&lt;std::optional&lt;Def&gt;, ParserError&gt; def_or_error =</span></span>
-<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          23 :         parser.Parse();</span></span>
-<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">          23 :     if (!def_or_error.has_value()) return std::unexpected(def_or_error.error());</span></span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">          13 :                                                        SyntaxContext&amp; ctx) {</span></span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">          13 :   std::vector&lt;Def&gt; defs;</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">          13 :   BufferedLexer&lt;Lexer&gt; lexer(Lexer{src});</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">          13 :   Parser parser(ctx, src, lexer);</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">          28 :   while (true) {</span></span>
+<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">          28 :     std::expected&lt;std::optional&lt;Def&gt;, ParserError&gt; def_or_error =</span></span>
+<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          28 :         parser.Parse();</span></span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">          28 :     if (!def_or_error.has_value()) return std::unexpected(def_or_error.error());</span></span>
 <span id="L186"><span class="lineNum">     186</span>              : </span>
-<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">          23 :     std::optional&lt;Def&gt; maybe_def = std::move(def_or_error).value();</span></span>
-<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">          23 :     if (!maybe_def.has_value()) break;</span></span>
+<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">          28 :     std::optional&lt;Def&gt; maybe_def = std::move(def_or_error).value();</span></span>
+<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">          28 :     if (!maybe_def.has_value()) break;</span></span>
 <span id="L189"><span class="lineNum">     189</span>              : </span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">          12 :     defs.push_back(std::move(maybe_def).value());</span></span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">          12 :   }</span></span>
-<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">          11 :   return defs;</span></span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          11 : }</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">          15 :     defs.push_back(std::move(maybe_def).value());</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">          15 :   }</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">          13 :   return defs;</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          13 : }</span></span>
 <span id="L194"><span class="lineNum">     194</span>              : </span>
 <span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">         232 : std::expected&lt;void, CompileError&gt; CompileCode(const CompileConfig&amp; config) {</span></span>
 <span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">         232 :   std::expected&lt;std::string, ReadFileError&gt; src =</span></span>
