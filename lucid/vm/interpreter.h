@@ -79,36 +79,35 @@ class Interpreter {
 
   void Set(Reg reg, std::int64_t value);
 
-  // Interprets one instruction and returns what it comes to, which is an
-  // instruction that sets the same value without doing the work again.
-  //
-  // A call can fail by standing too deep or running too long, and a division
-  // or a remainder by dividing by nothing.
-  std::expected<Instruction, CompError> Interpret(const Instruction& inst);
+  // Interprets `inst`.
+  std::expected<void, CompError> Interpret(const Instruction& inst);
+
+  // Interprets `inst` and replaces it with what it evaluates to.
+  std::expected<void, CompError> Fold(Instruction& inst);
 
  private:
-  std::expected<Instruction, CompError> Interpret(const FuncCall& inst);
-  Instruction Interpret(const Nop& inst);
-  Instruction Interpret(const MoveReg& inst);
-  Instruction Interpret(const GtReg& inst);
-  Instruction Interpret(const LtReg& inst);
-  Instruction Interpret(const GeReg& inst);
-  Instruction Interpret(const LeReg& inst);
-  Instruction Interpret(const EqReg& inst);
-  Instruction Interpret(const NotEqReg& inst);
-  Instruction Interpret(const Return& inst);
-  Instruction Interpret(const SetReg& inst);
-  Instruction Interpret(const SetInt& inst);
-  Instruction Interpret(const SetStr& inst);
-  Instruction Interpret(const AddReg& inst);
-  Instruction Interpret(const SubReg& inst);
-  Instruction Interpret(const MulReg& inst);
-  std::expected<Instruction, CompError> Interpret(const DivReg& inst);
-  std::expected<Instruction, CompError> Interpret(const ModReg& inst);
-  Instruction Interpret(const StoreStack& inst);
-  Instruction Interpret(const StoreStackReg& inst);
-  Instruction Interpret(const LoadStack& inst);
-  Instruction Interpret(const LoadStackReg& inst);
+  std::expected<void, CompError> Interpret(const FuncCall& inst);
+  void Interpret(const Nop& inst);
+  void Interpret(const MoveReg& inst);
+  void Interpret(const GtReg& inst);
+  void Interpret(const LtReg& inst);
+  void Interpret(const GeReg& inst);
+  void Interpret(const LeReg& inst);
+  void Interpret(const EqReg& inst);
+  void Interpret(const NotEqReg& inst);
+  void Interpret(const Return& inst);
+  void Interpret(const SetReg& inst);
+  void Interpret(const SetInt& inst);
+  void Interpret(const SetStr& inst);
+  void Interpret(const AddReg& inst);
+  void Interpret(const SubReg& inst);
+  void Interpret(const MulReg& inst);
+  std::expected<void, CompError> Interpret(const DivReg& inst);
+  std::expected<void, CompError> Interpret(const ModReg& inst);
+  void Interpret(const StoreStack& inst);
+  void Interpret(const StoreStackReg& inst);
+  void Interpret(const LoadStack& inst);
+  void Interpret(const LoadStackReg& inst);
 
   // Where the slot with this index begins, in bytes, which is where all the
   // slots before it end.

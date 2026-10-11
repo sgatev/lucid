@@ -179,11 +179,9 @@ class AbstractMachineFunctionGenerator {
         bool is_comp =
             std::visit([](const auto& expr) { return expr.is_comp; }, expr);
         if (is_comp && am_block.instructions.size() > emitted) {
-          std::expected<Instruction, CompError> res =
-              vm_.Interpret(am_block.instructions.back());
+          std::expected<void, CompError> res =
+              vm_.Fold(am_block.instructions.back());
           if (!res.has_value()) return std::unexpected(res.error());
-
-          am_block.instructions.back() = std::move(*res);
         }
       }
       if (const auto& stmt_ref = seq.stmt; stmt_ref.has_value()) {
@@ -195,11 +193,9 @@ class AbstractMachineFunctionGenerator {
           is_comp = var_decl_stmt->is_comp;
         }
         if (is_comp) {
-          std::expected<Instruction, CompError> res =
-              vm_.Interpret(am_block.instructions.back());
+          std::expected<void, CompError> res =
+              vm_.Fold(am_block.instructions.back());
           if (!res.has_value()) return std::unexpected(res.error());
-
-          am_block.instructions.back() = std::move(*res);
         }
       }
     }
