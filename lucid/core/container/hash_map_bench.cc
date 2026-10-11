@@ -24,6 +24,16 @@ BENCHMARK(InsertUnique) {
   for (int i = 0; auto _ : state) map.Insert(i++, 0);
 }
 
+// Every map starts with no slots, so each insert is the one that gives a map
+// its first.
+BENCHMARK(InsertIntoEmpty) {
+  for (int i = 0; auto _ : state) {
+    HashMap<int, int> map;
+    map.Insert(i++, 0);
+    DoNotOptimize(map);
+  }
+}
+
 BENCHMARK(InsertDuplicate) {
   static constexpr int kCount = 1'000'000;
   HashMap<int, int> map;
