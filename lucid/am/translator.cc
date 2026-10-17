@@ -43,8 +43,19 @@ class AbstractMachineFunctionGenerator {
   }
 
   std::expected<AbstractMachineControlFlowGraph, CompError> Generate() && {
-    result_reg_ = {am_cfg_.next_free_reg_id++,
-                   GetRegSize(syn_cfg_.func_result_type)};
+    // A result that lies in the frame is left in slots of its own, which
+    // every return copies what it returns into. The register still stands
+    // for the result where the function ends, with nothing in it.
+    if (IsOnStack(syn_cfg_.func_result_type)) {
+      am_cfg_.result_slot = am_cfg_.stack_slots.size();
+      PushStackSlots(syn_cfg_.func_result_type);
+      am_cfg_.result_slot_count =
+          am_cfg_.stack_slots.size() - am_cfg_.result_slot;
+      result_reg_ = {am_cfg_.next_free_reg_id++, RegSize32};
+    } else {
+      result_reg_ = {am_cfg_.next_free_reg_id++,
+                     GetRegSize(syn_cfg_.func_result_type)};
+    }
     am_cfg_.result_kind = KindOf(syn_cfg_.func_result_type);
 
     if (syn_ctx_.DerefIdent(syn_cfg_.func_name) == "printString") {
@@ -179,8 +190,7 @@ class AbstractMachineFunctionGenerator {
         bool is_comp =
             std::visit([](const auto& expr) { return expr.is_comp; }, expr);
         if (is_comp && am_block.instructions.size() > emitted) {
-          std::expected<void, CompError> res =
-              vm_.Fold(am_block.instructions.back());
+          std::expected<void, CompError> res = FoldLast(am_block);
           if (!res.has_value()) return std::unexpected(res.error());
         }
       }
@@ -188,9 +198,13 @@ class AbstractMachineFunctionGenerator {
         const auto& stmt = syn_ctx_.DerefStmt(*stmt_ref);
         Process(*stmt_ref, stmt, am_block);
 
+        // A variable on the stack is written by nothing of its own: an array
+        // a call returns is already where the variable is, and was worked
+        // out with the call.
         bool is_comp = false;
         if (const auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
-          is_comp = var_decl_stmt->is_comp;
+          is_comp = var_decl_stmt->is_comp &&
+                    !IsOnStack(var_decl_stmt->type_constraint);
         }
         if (is_comp) {
           std::expected<void, CompError> res =
@@ -211,6 +225,41 @@ class AbstractMachineFunctionGenerator {
       auto am_cfg_pred = graph_map_.Get(pred);
       if (!am_cfg_pred.has_value()) continue;
       am_block.preds.push_back(*am_cfg_pred);
+    }
+    return {};
+  }
+
+  // Works out the instruction `am_block` ends in during compilation, and puts
+  // what it comes to in its place.
+  std::expected<void, CompError> FoldLast(
+      AbstractMachineControlFlowGraph::Block& am_block) {
+    const auto* func_call =
+        std::get_if<FuncCall>(&am_block.instructions.back());
+    if (func_call == nullptr || func_call->res_slot == FuncCall::kNoResSlot) {
+      return vm_.Fold(am_block.instructions.back());
+    }
+
+    // A call whose result lies in the frame comes to what each slot of it
+    // holds, which is set slot by slot in place of the call.
+    std::expected<void, CompError> res =
+        vm_.Interpret(am_block.instructions.back());
+    if (!res.has_value()) return res;
+
+    const std::size_t first = func_call->res_slot;
+    const auto slots = call_slots_.Get(first);
+    assert(slots.has_value());
+    am_block.instructions.pop_back();
+    std::size_t bytes = 0;
+    for (std::size_t slot = first; slot < first + *slots; ++slot) {
+      const Reg reg = {am_cfg_.next_free_reg_id++, SlotRegSize(slot)};
+      am_block.instructions.push_back(
+          SetValue(vm_.ReadSlot(slot), reg, am_state_));
+      am_block.instructions.emplace_back(StoreStackReg{
+          .offset = first,
+          .offset_reg = BytesReg(bytes, am_block),
+          .src_reg = reg,
+      });
+      bytes += static_cast<std::size_t>(am_cfg_.stack_slots[slot]);
     }
     return {};
   }
@@ -270,6 +319,17 @@ class AbstractMachineFunctionGenerator {
           .reg = expr_to_reg_[arg.id()],
       });
     }
+
+    if (IsOnStack(expr.type)) {
+      const std::size_t first = am_cfg_.stack_slots.size();
+      PushStackSlots(expr.type);
+      call_slots_.Set(first, am_cfg_.stack_slots.size() - first);
+      expr_slot_.Set(ref, first);
+      func_call.res_slot = static_cast<std::uint32_t>(first);
+      am_block.instructions.emplace_back(std::move(func_call));
+      return;
+    }
+
     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};
     func_call.res = {
         .reg = reg,
@@ -420,6 +480,29 @@ class AbstractMachineFunctionGenerator {
   // straight from the register the value was worked out in.
   void Process(StmtRef ref, const ReturnStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
+    if (am_cfg_.result_slot_count > 0) {
+      const StackPlace place = GetStackPlace(stmt.value, am_block);
+      assert(!place.offset_reg.has_value());
+      std::size_t bytes = 0;
+      for (std::size_t i = 0; i < am_cfg_.result_slot_count; ++i) {
+        const std::size_t slot = am_cfg_.result_slot + i;
+        const Reg bytes_reg = BytesReg(bytes, am_block);
+        const Reg reg = {am_cfg_.next_free_reg_id++, SlotRegSize(slot)};
+        am_block.instructions.emplace_back(LoadStackReg{
+            .offset = place.base_offset,
+            .offset_reg = bytes_reg,
+            .dst_reg = reg,
+        });
+        am_block.instructions.emplace_back(StoreStackReg{
+            .offset = am_cfg_.result_slot,
+            .offset_reg = bytes_reg,
+            .src_reg = reg,
+        });
+        bytes += static_cast<std::size_t>(am_cfg_.stack_slots[slot]);
+      }
+      return;
+    }
+
     if (am_block.ref.id() >= returned_regs_.size()) {
       returned_regs_.resize(am_block.ref.id() + 1);
     }
@@ -456,6 +539,14 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef ref, const VarDeclStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
     if (IsOnStack(stmt.type_constraint)) {
+      // An array a call returns already lies in slots of its own, which the
+      // variable takes over rather than being copied into.
+      if (stmt.init.has_value()) {
+        if (auto slot = expr_slot_.Get(*stmt.init); slot.has_value()) {
+          var_stack_.Set(stmt.name, *slot);
+          return;
+        }
+      }
       var_stack_.Set(stmt.name, am_cfg_.stack_slots.size());
       PushStackSlots(stmt.type_constraint);
     } else {
@@ -591,6 +682,12 @@ class AbstractMachineFunctionGenerator {
       return {.base_offset = *pos};
     }
 
+    if (std::holds_alternative<FuncCallExpr>(expr)) {
+      auto pos = expr_slot_.Get(expr_ref);
+      assert(pos.has_value());
+      return {.base_offset = *pos};
+    }
+
     if (const auto* index_expr = std::get_if<IndexExpr>(&expr)) {
       StackPlace place = GetStackPlace(index_expr->base, am_block);
       const Reg index_reg = expr_to_reg_[index_expr->index.id()];
@@ -644,6 +741,23 @@ class AbstractMachineFunctionGenerator {
       default:
         std::unreachable();
     }
+  }
+
+  // Returns a register set to `bytes`, for reaching that far into an array
+  // or a tuple.
+  Reg BytesReg(std::size_t bytes,
+               AbstractMachineControlFlowGraph::Block& am_block) {
+    const Reg reg = {am_cfg_.next_free_reg_id++, RegSize32};
+    am_block.instructions.emplace_back(SetReg{
+        .src_val = static_cast<int>(bytes),
+        .dst_reg = reg,
+    });
+    return reg;
+  }
+
+  // The size of the register that what a stack slot holds is moved through.
+  RegSize SlotRegSize(std::size_t slot) const {
+    return am_cfg_.stack_slots[slot] == 4 ? RegSize32 : RegSize64;
   }
 
   // The bytes a value of this type takes: what its elements take altogether
@@ -737,6 +851,8 @@ class AbstractMachineFunctionGenerator {
   std::vector<std::optional<Reg>> returned_regs_;
   HashMap<StringIndex::Ref, Reg> var_to_reg_;
   HashMap<StringIndex::Ref, std::size_t> var_stack_;
+  HashMap<ExprRef, std::size_t> expr_slot_;
+  HashMap<std::size_t, std::size_t> call_slots_;
   HashMap<SyntaxControlFlowGraph::BlockRef,
           AbstractMachineControlFlowGraph::BlockRef>
       graph_map_;

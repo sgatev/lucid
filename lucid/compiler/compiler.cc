@@ -48,7 +48,7 @@ namespace {
 //
 // Requires:
 // - The types of `main` must have been inferred, so that its result is not
-//   an array or a tuple.
+//   a tuple, or an array unless `main` is a comp function.
 std::expected<void, TypeError> CheckEntryPoint(const SyntaxContext& syn_ctx,
                                                const FuncDefStmt& main) {
   if (main.params.size() != 0) {
@@ -56,8 +56,14 @@ std::expected<void, TypeError> CheckEntryPoint(const SyntaxContext& syn_ctx,
         "function 'main' takes no parameters, not {}", main.params.size())));
   }
 
-  const auto& result = std::get<BasicType>(syn_ctx.DerefType(main.result_type));
-  const std::string_view name = syn_ctx.DerefIdent(result.name);
+  const auto* result =
+      std::get_if<BasicType>(&syn_ctx.DerefType(main.result_type));
+  if (result == nullptr) {
+    return std::unexpected(
+        TypeError("function 'main' returns Int32, Int64 or Bool, not an "
+                  "array"));
+  }
+  const std::string_view name = syn_ctx.DerefIdent(result->name);
   if (name != "Int32" && name != "Int64" && name != "Bool") {
     return std::unexpected(TypeError(std::format(
         "function 'main' returns Int32, Int64 or Bool, not {}", name)));
@@ -71,9 +77,11 @@ std::expected<void, TypeError> CheckEntryPoint(const SyntaxContext& syn_ctx,
 std::expected<void, TypeError> CheckEveryPathReturns(
     const SyntaxContext& syn_ctx, const FuncDefStmt& func_def,
     const SyntaxControlFlowGraph& syn_cfg) {
-  const auto& result =
-      std::get<BasicType>(syn_ctx.DerefType(func_def.result_type));
-  if (syn_ctx.DerefIdent(result.name) == "Void") return {};
+  const auto* result =
+      std::get_if<BasicType>(&syn_ctx.DerefType(func_def.result_type));
+  if (result != nullptr && syn_ctx.DerefIdent(result->name) == "Void") {
+    return {};
+  }
   if (!CanEndWithoutReturning(syn_ctx, syn_cfg)) return {};
 
   return std::unexpected(
@@ -146,6 +154,9 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       if (func_def->is_comp) {
         am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), am_cfg);
       }
+      // A function returning an array is only ever called during
+      // compilation, so there is no machine code to make for it.
+      if (am_cfg.result_slot_count > 0) continue;
 
       const FrameLayout layout =
           LowerCallingConvention(am_cfg, kArm64CallingConvention);

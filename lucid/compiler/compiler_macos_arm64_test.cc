@@ -905,6 +905,156 @@ TEST(CompilerTest, CompFunctionUsingATuple) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(21));
 }
 
+// An array a comp function returns is worked out during compilation and put
+// in the variable it initialises, where it can be read while the program
+// runs and in other comp expressions alike.
+TEST(CompilerTest, CompArrayResult) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun multiples(n: Int32): Int32[8] {
+      mut val a: Int32[8]
+      mut val i: Int32 = 0
+      loop {
+        if i == 8 {
+          break
+        }
+        mut a[i] = i * n
+        mut i = i + 1
+      }
+      return a
+    }
+
+    fun main(): Int32 {
+      val t: Int32[8] = comp multiples(3)
+      val i: Int32 = 5
+      return t[i] + comp t[7]
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(36));
+}
+
+// A function returning an array runs only during compilation, so the calls
+// it makes need no `comp` of their own: they can pass its parameters along,
+// recurse, and return what they give back as it is.
+TEST(CompilerTest, CompArrayResultFromCallsMadeWhileWorkingItOut) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun fill(n: Int32, k: Int32): Int32[4] {
+      mut val a: Int32[4]
+      mut val i: Int32 = 0
+      loop {
+        if i == 4 {
+          break
+        }
+        mut a[i] = n * 10 + i * k
+        mut i = i + 1
+      }
+      return a
+    }
+
+    comp fun pick(n: Int32): Int32[4] {
+      if n > 2 {
+        return fill(n, 2)
+      }
+      val b: Int32[4] = fill(n, 3)
+      return b
+    }
+
+    comp fun countDown(n: Int32): Int32[4] {
+      if n == 0 {
+        return fill(0, 0)
+      }
+      mut val a: Int32[4] = countDown(n - 1)
+      mut a[0] = a[0] + 1
+      return a
+    }
+
+    fun main(): Int32 {
+      val x: Int32[4] = comp pick(3)
+      val y: Int32[4] = comp pick(1)
+      val z: Int32[4] = comp countDown(5)
+      return x[3] + y[3] + z[0]
+    }
+  )"));
+  // 36 from `fill(3, 2)`, 19 from `fill(1, 3)` and 5 from counting down.
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(60));
+}
+
+// An element of a tuple that holds values of both widths is put where
+// indexing looks for it. A machine aligns a wide value further along than
+// the narrow one before it ends, which an element set by its slot rather than
+// by the bytes before it once missed.
+TEST(CompilerTest, CompArrayResultOfTuplesOfEitherWidth) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val P: Type = (x: Int32, y: Int64)
+
+    comp fun points(): P[3] {
+      mut val a: P[3]
+      mut val i: Int32 = 0
+      loop {
+        if i == 3 {
+          break
+        }
+        mut a[i].x = i + 1
+        mut a[i].y = 10000000000
+        mut i = i + 1
+      }
+      return a
+    }
+
+    fun main(): Int32 {
+      val p: P[3] = comp points()
+      val j: Int32 = 2
+      if p[j].y == 10000000000 {
+        return p[j].x + p[0].x
+      }
+      return 99
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
+}
+
+// An array a call returns can be indexed where it stands, and one held in a
+// variable that a write can reach is written to as any other array is.
+TEST(CompilerTest, CompArrayResultIndexedAndWritten) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun pair(): Int32[2] {
+      mut val a: Int32[2]
+      mut a[0] = 4
+      mut a[1] = 6
+      return a
+    }
+
+    fun main(): Int32 {
+      mut val t: Int32[2] = comp pair()
+      mut t[0] = 20
+      return t[0] + t[1] + comp pair()[0]
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(30));
+}
+
+// A comp function that returns a number can use an array worked out during
+// compilation, whether it is itself called then or while the program runs.
+TEST(CompilerTest, CompArrayResultInACompFunction) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun pair(): Int32[2] {
+      mut val a: Int32[2]
+      mut a[0] = 3
+      mut a[1] = 4
+      return a
+    }
+
+    comp fun sum(n: Int32): Int32 {
+      val t: Int32[2] = comp pair()
+      return t[0] + t[1] + n
+    }
+
+    fun main(): Int32 {
+      return sum(1) + comp sum(2)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(17));
+}
+
 // A `break` leaves the loop standing closest over it. An unconditional one
 // in an inner loop once took the answer the inner body gave for the outer
 // sequence as well, which cut the outer loop's own back edge and left it

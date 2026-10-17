@@ -1,5 +1,6 @@
 #include "lucid/vm/interpreter.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -80,11 +81,15 @@ CompError DivideByZero() { return CompError("compilation divided by zero"); }
 
 // Interprets `am_cfg`, spending from the `steps` the whole compilation
 // shares. The function every call made from here reaches in turn.
+//
+// A result that lies in the frame, such as an array, is put in
+// `frame_result` as the bytes it is made of, where one is given.
 std::expected<std::int64_t, CompError> InterpretFunction(
     const HashMap<std::string_view, AbstractMachineControlFlowGraph>& am_cfgs,
     const AbstractMachineControlFlowGraph& am_cfg,
     const std::vector<std::int64_t>& args, AbstractMachineState& am_state,
-    int depth, std::int64_t& steps) {
+    int depth, std::int64_t& steps,
+    std::vector<std::uint8_t>* frame_result = nullptr) {
   if (depth > kMaxCompCallDepth) {
     return std::unexpected(CompError("compilation followed more than " +
                                      std::to_string(kMaxCompCallDepth) +
@@ -155,6 +160,9 @@ std::expected<std::int64_t, CompError> InterpretFunction(
       assert(curr_block.ref == am_cfg.last);
       break;
     }
+  }
+  if (frame_result != nullptr) {
+    *frame_result = vm.SlotBytes(am_cfg.result_slot, am_cfg.result_slot_count);
   }
   return vm.Result();
 }
@@ -243,6 +251,20 @@ std::expected<void, CompError> Interpreter::Fold(Instruction& inst) {
   return {};
 }
 
+std::int64_t Interpreter::ReadSlot(std::size_t slot) {
+  return Read(SlotOffset(slot),
+              stack_slots_[slot] == 4 ? RegSize32 : RegSize64);
+}
+
+std::vector<std::uint8_t> Interpreter::SlotBytes(std::size_t first,
+                                                 std::size_t count) {
+  const std::size_t begin = SlotOffset(first);
+  const std::size_t end = SlotOffset(first + count);
+  if (stack_.size() < end) stack_.resize(end, 0);
+  return {stack_.begin() + static_cast<std::ptrdiff_t>(begin),
+          stack_.begin() + static_cast<std::ptrdiff_t>(end)};
+}
+
 std::size_t Interpreter::SlotOffset(std::size_t slot) const {
   std::size_t offset = 0;
   for (std::size_t i = 0; i < slot && i < stack_slots_.size(); ++i) {
@@ -324,6 +346,23 @@ std::expected<void, CompError> Interpreter::Interpret(const FuncCall& inst) {
     assert(arg_val.has_value());
     args.push_back(*arg_val);
   }
+  // An array the function returns comes back as its bytes, which go in the
+  // slots the call set aside for it.
+  if (inst.res_slot != FuncCall::kNoResSlot) {
+    std::vector<std::uint8_t> bytes;
+    std::expected<std::int64_t, CompError> result = InterpretFunction(
+        am_cfgs_, *am_cfg, args, am_state_, depth_ + 1, steps_, &bytes);
+    if (!result.has_value()) return std::unexpected(result.error());
+
+    const std::size_t offset = SlotOffset(inst.res_slot);
+    if (stack_.size() < offset + bytes.size()) {
+      stack_.resize(offset + bytes.size(), 0);
+    }
+    std::ranges::copy(bytes,
+                      stack_.begin() + static_cast<std::ptrdiff_t>(offset));
+    return {};
+  }
+
   std::expected<std::int64_t, CompError> result =
       InterpretFunction(am_cfgs_, *am_cfg, args, am_state_, depth_ + 1, steps_);
   if (!result.has_value()) return std::unexpected(result.error());

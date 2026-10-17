@@ -107,6 +107,13 @@ class AbstractMachineControlFlowGraph {
   // Abstract machine stack slots.
   std::vector<int> stack_slots;
 
+  // Where the function leaves a result that lies in the frame rather than in
+  // a register, such as an array. The first of the stack slots holding it,
+  // and how many there are. A function whose result is in a register has
+  // none.
+  std::size_t result_slot = 0;
+  std::size_t result_slot_count = 0;
+
   // Next free register ID.
   //
   // Every register the graph holds has an ID below this one, which is what

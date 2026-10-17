@@ -4,6 +4,7 @@
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <optional>
 #include <ostream>
 #include <string_view>
@@ -460,6 +461,13 @@ struct FuncCall {
   // Result from the function.
   std::optional<Slot> res;
 
+  // The first of the stack slots that a result lying in the frame rather than
+  // in a register, such as an array, is put in, or `kNoResSlot` for a call
+  // without one.
+  static constexpr std::uint32_t kNoResSlot =
+      std::numeric_limits<std::uint32_t>::max();
+  std::uint32_t res_slot = kNoResSlot;
+
   bool operator==(const FuncCall&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const FuncCall& inst) {
@@ -471,6 +479,7 @@ struct FuncCall {
     }
     os << "]";
     if (inst.res.has_value()) os << " .res=" << inst.res->reg;
+    if (inst.res_slot != kNoResSlot) os << " .res_slot=" << inst.res_slot;
     os << " }";
     return os;
   }

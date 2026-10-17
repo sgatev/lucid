@@ -79,6 +79,12 @@ class Interpreter {
 
   void Set(Reg reg, std::int64_t value);
 
+  // Returns what the stack slot `slot` holds, as wide as the slot.
+  std::int64_t ReadSlot(std::size_t slot);
+
+  // Returns the bytes of `count` stack slots, starting with `first`.
+  std::vector<std::uint8_t> SlotBytes(std::size_t first, std::size_t count);
+
   // Interprets `inst`.
   std::expected<void, CompError> Interpret(const Instruction& inst);
 

@@ -183,6 +183,137 @@ std::expected<void, CompError> CheckCompVars(
   return {};
 }
 
+// Whether the function `expr` calls returns an array.
+bool ReturnsArray(const SyntaxContext& syn_ctx, const FuncCallExpr& expr) {
+  const FuncDefStmt* func_def = syn_ctx.FindFuncDef(expr.func_name);
+  return func_def != nullptr && std::holds_alternative<ArrayType>(
+                                    syn_ctx.DerefType(func_def->result_type));
+}
+
+// Checks the calls in an expression that return an array.
+//
+// Such a call leaves its array in slots of the caller's frame, and only a few
+// places have somewhere to take it from there: the variable it initialises,
+// the return it is the value of, and the index into it. `may_be_array` says
+// whether the expression stands in one of those. `runs_in_compilation` says
+// that the function the expression is in is only ever run by compilation,
+// where a call needs no `comp` of its own to be made there.
+std::expected<void, CompError> CheckArrayCalls(const SyntaxContext& syn_ctx,
+                                               ExprRef expr_ref,
+                                               bool may_be_array,
+                                               bool runs_in_compilation) {
+  const Expr& expr = syn_ctx.DerefExpr(expr_ref);
+  if (const auto* func_call_expr = std::get_if<FuncCallExpr>(&expr)) {
+    if (ReturnsArray(syn_ctx, *func_call_expr)) {
+      if (!may_be_array) {
+        return std::unexpected(
+            CompError("an array a call returns can only initialize a "
+                      "variable, be returned or be indexed"));
+      }
+      if (!func_call_expr->is_comp && !runs_in_compilation) {
+        return std::unexpected(CompError(
+            "a call that returns an array has to be made during compilation"));
+      }
+    }
+    for (const auto& arg : func_call_expr->args) {
+      std::expected<void, CompError> res = CheckArrayCalls(
+          syn_ctx, arg, /*may_be_array=*/false, runs_in_compilation);
+      if (!res.has_value()) return res;
+    }
+  } else if (const auto* index_expr = std::get_if<IndexExpr>(&expr)) {
+    return CheckArrayCalls(syn_ctx, index_expr->base, /*may_be_array=*/true,
+                           runs_in_compilation)
+        .and_then([&] {
+          return CheckArrayCalls(syn_ctx, index_expr->index,
+                                 /*may_be_array=*/false, runs_in_compilation);
+        });
+  } else if (const auto* field_access_expr =
+                 std::get_if<FieldAccessExpr>(&expr)) {
+    return CheckArrayCalls(syn_ctx, field_access_expr->base,
+                           /*may_be_array=*/false, runs_in_compilation);
+  } else if (const auto* binary_op_expr = std::get_if<BinaryOpExpr>(&expr)) {
+    return CheckArrayCalls(syn_ctx, binary_op_expr->lhs,
+                           /*may_be_array=*/false, runs_in_compilation)
+        .and_then([&] {
+          return CheckArrayCalls(syn_ctx, binary_op_expr->rhs,
+                                 /*may_be_array=*/false, runs_in_compilation);
+        });
+  }
+  return {};
+}
+
+std::expected<void, CompError> CheckArrayCalls(const SyntaxContext& syn_ctx,
+                                               const FuncDefStmt& func_def,
+                                               SuccessiveList<StmtRef> stmts);
+
+std::expected<void, CompError> CheckArrayCalls(const SyntaxContext& syn_ctx,
+                                               const FuncDefStmt& func_def,
+                                               StmtRef stmt_ref) {
+  const bool returns_array = std::holds_alternative<ArrayType>(
+      syn_ctx.DerefType(func_def.result_type));
+  const auto check = [&](ExprRef expr_ref, bool may_be_array) {
+    return CheckArrayCalls(syn_ctx, expr_ref, may_be_array,
+                           /*runs_in_compilation=*/returns_array);
+  };
+
+  const Stmt& stmt = syn_ctx.DerefStmt(stmt_ref);
+  if (const auto* if_stmt = std::get_if<IfStmt>(&stmt)) {
+    return check(if_stmt->cond, /*may_be_array=*/false)
+        .and_then([&] {
+          return CheckArrayCalls(syn_ctx, func_def, if_stmt->then_stmts);
+        })
+        .and_then([&] {
+          return CheckArrayCalls(syn_ctx, func_def, if_stmt->else_stmts);
+        });
+  } else if (const auto* loop_stmt = std::get_if<LoopStmt>(&stmt)) {
+    return CheckArrayCalls(syn_ctx, func_def, loop_stmt->stmts);
+  } else if (const auto* var_decl_stmt = std::get_if<VarDeclStmt>(&stmt)) {
+    if (var_decl_stmt->init.has_value()) {
+      return check(*var_decl_stmt->init, /*may_be_array=*/true);
+    }
+  } else if (const auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
+    return check(var_assign_stmt->expr, /*may_be_array=*/false);
+  } else if (const auto* array_assign_stmt =
+                 std::get_if<ArrayAssignStmt>(&stmt)) {
+    return check(array_assign_stmt->index, /*may_be_array=*/false)
+        .and_then([&] {
+          return check(array_assign_stmt->expr, /*may_be_array=*/false);
+        });
+  } else if (const auto* field_assign_stmt =
+                 std::get_if<FieldAssignStmt>(&stmt)) {
+    return check(field_assign_stmt->base, /*may_be_array=*/false).and_then([&] {
+      return check(field_assign_stmt->expr, /*may_be_array=*/false);
+    });
+  } else if (const auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
+    // The array is copied out of where it lies whole, so it has to lie
+    // somewhere of its own: in a variable, or in what a call put it in.
+    if (returns_array) {
+      const Expr& value = syn_ctx.DerefExpr(return_stmt->value);
+      if (!std::holds_alternative<IdentExpr>(value) &&
+          !std::holds_alternative<FuncCallExpr>(value)) {
+        return std::unexpected(
+            CompError("an array can only be returned from a variable or a "
+                      "call"));
+      }
+    }
+    return check(return_stmt->value, /*may_be_array=*/true);
+  } else if (const auto* do_stmt = std::get_if<DoStmt>(&stmt)) {
+    return check(do_stmt->expr, /*may_be_array=*/false);
+  }
+  return {};
+}
+
+std::expected<void, CompError> CheckArrayCalls(const SyntaxContext& syn_ctx,
+                                               const FuncDefStmt& func_def,
+                                               SuccessiveList<StmtRef> stmts) {
+  for (StmtRef stmt_ref : stmts) {
+    std::expected<void, CompError> res =
+        CheckArrayCalls(syn_ctx, func_def, stmt_ref);
+    if (!res.has_value()) return res;
+  }
+  return {};
+}
+
 }  // namespace
 
 std::expected<void, CompError> CheckComp(SyntaxContext& syn_ctx,
@@ -193,6 +324,9 @@ std::expected<void, CompError> CheckComp(SyntaxContext& syn_ctx,
   if (res.has_value() && stmt.is_comp) {
     res = CheckCompFunc(syn_ctx, stmt.stmts);
   }
+  // Which calls are made during compilation is settled above, by the `comp`
+  // each expression is marked with.
+  if (res.has_value()) res = CheckArrayCalls(syn_ctx, stmt, stmt.stmts);
   return res;
 }
 

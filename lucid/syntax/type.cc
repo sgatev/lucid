@@ -36,9 +36,19 @@ class ExprTypeInferenceEngine {
             TypeError("a parameter cannot be an array or a tuple"));
       }
     }
+    // An array a comp function returns is the exception. Such a function is
+    // only ever called during compilation, where the interpreter hands its
+    // result over as the bytes it is made of rather than across a call.
     if (LivesOnStack(func_def_.result_type)) {
-      return std::unexpected(
-          TypeError("a result cannot be an array or a tuple"));
+      const bool is_array = std::holds_alternative<ArrayType>(
+          syn_ctx_.DerefType(func_def_.result_type));
+      if (!is_array) {
+        return std::unexpected(TypeError("a result cannot be a tuple"));
+      }
+      if (!func_def_.is_comp) {
+        return std::unexpected(
+            TypeError("only a comp function can return an array"));
+      }
     }
 
     for (const auto& param_ref : func_def_.params) {
@@ -337,6 +347,9 @@ class ExprTypeInferenceEngine {
                         rhs.element_type_constraint) &&
              lhs.size.value == rhs.size.value;
     }
+    // A tuple is the type its name was given, and a name always resolves to
+    // the one definition.
+    if (std::holds_alternative<TupleType>(lhs_type)) return lhs_ref == rhs_ref;
 
     const auto& lhs = std::get<BasicType>(lhs_type);
     const auto& rhs = std::get<BasicType>(rhs_type);

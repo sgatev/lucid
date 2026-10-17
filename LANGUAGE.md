@@ -309,6 +309,32 @@ A `comp fun` may not contain a `do` statement, since its body has to be evaluabl
 nothing to have an effect on. It is a capability rather than an obligation: a `comp fun`
 called without a `comp` on the call is called while the program runs, like any other.
 
+**A `comp fun` can return an array**, which is how a table is worked out during
+compilation rather than written out by hand:
+
+```
+comp fun squares(): Int32[16] {
+  mut val a: Int32[16]
+  mut val i: Int32 = 0
+  loop {
+    if i == 16 {
+      break
+    }
+    mut a[i] = i * i
+    mut i = i + 1
+  }
+  return a
+}
+
+fun main(): Int32 {
+  val t: Int32[16] = comp squares()
+  return t[5]
+}
+```
+
+Such a function is only ever called during compilation, and no machine code is made for
+it. A call to it therefore needs a `comp`, except inside another `comp` function.
+
 **Compilation gives up on work that does not end, and reports where.** Two limits say
 when:
 
@@ -349,6 +375,8 @@ worth the name.
   instructions here reserves. The stack a program is given runs out well before that.
 - **An array or a tuple cannot be a parameter or a result.** Both live on the stack, and
   nothing lays one out on either side of a call. This is reported rather than attempted.
+  The one exception is an array returned by a `comp fun`, which only compilation calls;
+  see [Compile-time evaluation](#compile-time-evaluation).
 - **An assignment cannot end in an index into something reached through.** `mut r.v[0] = 1`
   is rejected where `mut r.v = …` would not be, because the statement that assigns through
   an index names its array rather than holding an expression for it.

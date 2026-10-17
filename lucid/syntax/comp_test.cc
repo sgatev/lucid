@@ -1,6 +1,5 @@
 #include "lucid/syntax/comp.h"
 
-#include <cassert>
 #include <expected>
 #include <list>
 #include <optional>
@@ -38,7 +37,10 @@ class CompCheckTest : public Test, public AstFixture {
       if (!maybe_def.has_value()) break;
 
       Def def = std::move(maybe_def).value();
-      assert(std::holds_alternative<FuncDefStmt>(def));
+      if (const auto* type_def = std::get_if<TypeDefStmt>(&def)) {
+        syn_ctx_.RegisterType(type_def->name, type_def->type);
+        continue;
+      }
 
       auto& func_def = std::get<FuncDefStmt>(def);
       func_defs.push_back(func_def);
@@ -317,6 +319,106 @@ TEST(CompCheckTest, CompExprCallingNonCompFunc) {
   )";
 
   EXPECT_FALSE(CheckComp(src).has_value());
+}
+
+// Nothing lays an array out across a call made while the program runs, so a
+// call returning one has to be made during compilation.
+TEST(CompCheckTest, ArrayResultCalledWithoutComp) {
+  std::string_view src = R"(
+    comp fun foo(): Int32[2] {
+      mut val a: Int32[2]
+      return a
+    }
+
+    fun test(): Int32 {
+      val t: Int32[2] = foo()
+      return t[0]
+    }
+  )";
+
+  EXPECT_EQ(CheckComp(src),
+            std::unexpected(
+                CompError("a call that returns an array has to be made during "
+                          "compilation")));
+}
+
+TEST(CompCheckTest, ArrayResultInitializingAVariable) {
+  std::string_view src = R"(
+    comp fun foo(): Int32[2] {
+      mut val a: Int32[2]
+      return a
+    }
+
+    fun test(): Int32 {
+      val t: Int32[2] = comp foo()
+      return t[0] + comp foo()[1]
+    }
+  )";
+
+  EXPECT_TRUE(CheckComp(src).has_value());
+}
+
+// The array a call leaves in the frame is taken from there only by what it
+// initialises, by a return and by an index.
+TEST(CompCheckTest, ArrayResultAsAnArgument) {
+  std::string_view src = R"(
+    comp fun foo(): Int32[2] {
+      mut val a: Int32[2]
+      return a
+    }
+
+    comp fun bar(n: Int32): Int32 {
+      return n
+    }
+
+    fun test(): Int32 {
+      return comp bar(foo())
+    }
+  )";
+
+  EXPECT_EQ(CheckComp(src),
+            std::unexpected(CompError(
+                "an array a call returns can only initialize a variable, be "
+                "returned or be indexed")));
+}
+
+// A function that returns an array is only ever run by compilation, so a
+// call it makes is made during compilation without a `comp` of its own.
+TEST(CompCheckTest, ArrayResultCalledByAFunctionReturningAnArray) {
+  std::string_view src = R"(
+    comp fun foo(n: Int32): Int32[2] {
+      mut val a: Int32[2]
+      mut a[0] = n
+      return a
+    }
+
+    comp fun test(n: Int32): Int32[2] {
+      if n > 0 {
+        return foo(n)
+      }
+      val t: Int32[2] = foo(0)
+      return t
+    }
+  )";
+
+  EXPECT_TRUE(CheckComp(src).has_value());
+}
+
+// An array is copied out whole from where it lies, so what is returned has
+// to lie somewhere of its own.
+TEST(CompCheckTest, ArrayReturnedFromAField) {
+  std::string_view src = R"(
+    val Row: Type = (v: Int32[2])
+
+    comp fun test(): Int32[2] {
+      mut val r: Row
+      return r.v
+    }
+  )";
+
+  EXPECT_EQ(CheckComp(src),
+            std::unexpected(CompError(
+                "an array can only be returned from a variable or a call")));
 }
 
 }  // namespace
