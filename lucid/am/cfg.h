@@ -115,9 +115,20 @@ class AbstractMachineControlFlowGraph {
   std::size_t result_slot = 0;
   std::size_t result_slot_count = 0;
 
+  // Where the parameters that lie in the frame rather than in a register,
+  // such as arrays, are, one after another in the order they are declared.
+  // The first of the stack slots holding them, and how many there are.
+  // Such parameters have no register among `params`.
+  std::size_t frame_params_slot = 0;
+  std::size_t frame_params_slot_count = 0;
+
   // How many stack slots the result of each call that leaves one in the
   // frame takes, by the first of them, which is the call's `res_slot`.
   HashMap<std::uint32_t, std::uint32_t> call_result_slot_counts;
+
+  // How many stack slots the arguments lying in the frame that each call
+  // passes take, by the first of them, which is the call's `frame_args_slot`.
+  HashMap<std::uint32_t, std::uint32_t> call_frame_args_slot_counts;
 
   // Next free register ID.
   //

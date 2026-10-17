@@ -807,12 +807,33 @@ class Arm64BinaryGenerator {
                            layout_.incoming_args.count * kArgSize +
                            BytesBefore(result.first, slot));
     }
-    for (const OutgoingResult& result : layout_.outgoing_results) {
-      if (result.slots.Holds(slot)) {
-        return SafeCast<int>(result.at + BytesBefore(result.slots.first, slot));
-      }
+    // So are the parameters that lie in the frame, past the result.
+    if (const SlotRange& params = layout_.incoming_frame_params;
+        params.Holds(slot)) {
+      const SlotRange& result = layout_.incoming_result;
+      return SafeCast<int>(
+          stack_size_ + kFrameRecordSize +
+          layout_.incoming_args.count * kArgSize +
+          BytesBefore(result.first, result.first + result.count) +
+          BytesBefore(params.first, slot));
+    }
+    if (const OutgoingSlots* run = OutgoingRunHolding(slot); run != nullptr) {
+      return SafeCast<int>(run->at + BytesBefore(run->slots.first, slot));
     }
     return stack_offsets_[persisted_.size() + slot];
+  }
+
+  // The run of slots at the foot of the frame that a call leaves its result
+  // in, or takes its arguments that lie in the frame from, which holds the
+  // slot with this index, or null where none does.
+  const OutgoingSlots* OutgoingRunHolding(std::size_t slot) const {
+    for (const auto* runs :
+         {&layout_.outgoing_results, &layout_.outgoing_frame_args}) {
+      for (const OutgoingSlots& run : *runs) {
+        if (run.slots.Holds(slot)) return &run;
+      }
+    }
+    return nullptr;
   }
 
   // Whether the slot with this index is the function's own, rather than room
@@ -821,10 +842,8 @@ class Arm64BinaryGenerator {
     return !layout_.incoming_args.Holds(slot) &&
            !layout_.outgoing_args.Holds(slot) &&
            !layout_.incoming_result.Holds(slot) &&
-           std::ranges::none_of(layout_.outgoing_results,
-                                [&](const OutgoingResult& result) {
-                                  return result.slots.Holds(slot);
-                                });
+           !layout_.incoming_frame_params.Holds(slot) &&
+           OutgoingRunHolding(slot) == nullptr;
   }
 
   // How many bytes the slots from `first` up to `slot` take.
@@ -836,15 +855,18 @@ class Arm64BinaryGenerator {
 
   // How much room the foot of the frame takes, kept to what the stack pointer
   // has to be a multiple of: the arguments the widest call leaves there, or
-  // the result a call leaves past its own arguments, if that reaches further.
+  // the result or the arguments lying in the frame a call leaves past its
+  // own arguments, if those reach further.
   int OutgoingSize() const {
     std::size_t size =
         static_cast<std::size_t>(layout_.outgoing_args.count) * kArgSize;
-    for (const OutgoingResult& result : layout_.outgoing_results) {
-      size = std::max<std::size_t>(
-          size,
-          result.at + BytesBefore(result.slots.first,
-                                  result.slots.first + result.slots.count));
+    for (const auto* runs :
+         {&layout_.outgoing_results, &layout_.outgoing_frame_args}) {
+      for (const OutgoingSlots& run : *runs) {
+        size = std::max<std::size_t>(
+            size, run.at + BytesBefore(run.slots.first,
+                                       run.slots.first + run.slots.count));
+      }
     }
     return RoundUpTo(SafeCast<int>(size), 16);
   }

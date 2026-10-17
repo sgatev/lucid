@@ -120,10 +120,20 @@ what allows a write to one is the `mut` on the variable holding the tuple. `comp
 function means it may be called while the program is being compiled; see
 [Compile-time evaluation](#compile-time-evaluation).
 
-**A function can return an array or a tuple**, which the caller receives as a copy. The
-call can be assigned or returned, or be indexed or have a field read where it stands,
-and nothing else: `val t: Int32[4] = f()`, `mut a[i] = g()`, `return f()`, `f()[2]` and
-`g().x` are accepted, and `h(f())` is not.
+**A function can take and return an array or a tuple**, and either is passed as a copy:
+a write the function makes to a `mut` parameter holding one is no more seen by the caller
+than a write to an `Int32` is, and the caller receives a copy of what is returned.
+
+```
+fun sum(a: Int32[4]): Int32 {
+  return a[0] + a[1] + a[2] + a[3]
+}
+```
+
+A call returning one can be assigned, returned or passed to a parameter of its type, or
+be indexed or have a field read where it stands, and nothing else:
+`val t: Int32[4] = f()`, `mut a[i] = g()`, `return f()`, `sum(f())`, `f()[2]` and
+`g().x` are accepted, and `do f()` is not.
 
 Commas between parameters are optional. `fun f(a: Int32 b: Int32)` parses exactly as the
 version with a comma, which is a looseness in the parser rather than a style to rely on.
@@ -391,9 +401,6 @@ worth the name.
   not there at all, which is true of the compiler's view of it and not of the program's.
 - **A function's frame may not be more than 16MB**, which is the largest a sequence of
   instructions here reserves. The stack a program is given runs out well before that.
-- **An array or a tuple cannot be a parameter.** Both live on the stack, and nothing
-  lays one out for a call to pass. This is reported rather than attempted. Either can be
-  a result; see [Definitions](#definitions).
 - **An assignment cannot end in an index into something reached through.** `mut r.v[0] = 1`
   is rejected where `mut r.v = …` would not be, because the statement that assigns through
   an index names its array rather than holding an expression for it.

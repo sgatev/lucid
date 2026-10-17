@@ -441,22 +441,6 @@ TEST(CompilerTest, ReportsTheWrongNumberOfArguments) {
             ErrorOutput(Contains("function 'f' takes 1 argument, not 2"))));
 }
 
-// An array or a tuple lives on the stack and nothing lays one out for a call
-// to pass it, which is said rather than fallen over.
-TEST(CompilerTest, RejectsCompositeParams) {
-  ASSERT_TRUE(CreateFile("param.lu", R"(
-    val Point: Type = (x: Int32)
-
-    fun f(p: Point): Int32 {
-      return 0
-    }
-  )"));
-  EXPECT_THAT(
-      RunCompiler({"compile", FullPath("param.lu")}),
-      AllOf(ReturnsCode(1), ErrorOutput(Contains(
-                                "a parameter cannot be an array or a tuple"))));
-}
-
 TEST(CompilerTest, PrintAstRejectsNodeThatIsNotThere) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     fun main(): Int32 {

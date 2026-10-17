@@ -413,7 +413,7 @@ TEST(CompCheckTest, ArrayResultAsAnArgument) {
   EXPECT_EQ(CheckComp(src),
             std::unexpected(CompError(
                 "an array or a tuple a call returns can only be assigned, be "
-                "returned, be indexed or have a field read")));
+                "returned, be passed, be indexed or have a field read")));
 }
 
 TEST(CompCheckTest, TupleResultAsAnArgument) {
@@ -437,7 +437,27 @@ TEST(CompCheckTest, TupleResultAsAnArgument) {
   EXPECT_EQ(CheckComp(src),
             std::unexpected(CompError(
                 "an array or a tuple a call returns can only be assigned, be "
-                "returned, be indexed or have a field read")));
+                "returned, be passed, be indexed or have a field read")));
+}
+
+// An array a call returns can be passed where the parameter is an array.
+TEST(CompCheckTest, ArrayResultAsAnArrayArgument) {
+  std::string_view src = R"(
+    fun foo(): Int32[2] {
+      mut val a: Int32[2]
+      return a
+    }
+
+    fun bar(a: Int32[2]): Int32 {
+      return a[0]
+    }
+
+    fun test(): Int32 {
+      return bar(foo())
+    }
+  )";
+
+  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 TEST(CompCheckTest, TupleResultFieldRead) {

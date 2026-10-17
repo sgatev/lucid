@@ -38,10 +38,10 @@ struct SlotRange {
   }
 };
 
-// A run of slots at the foot of a frame that a call leaves its result in,
-// when the result lies in the frame, and how many bytes past the stack
-// pointer it begins.
-struct OutgoingResult {
+// A run of slots at the foot of a frame that a call leaves its result in, or
+// takes its arguments from, when they lie in the frame, and how many bytes
+// past the stack pointer it begins.
+struct OutgoingSlots {
   SlotRange slots;
   std::uint32_t at = 0;
 };
@@ -52,7 +52,9 @@ struct OutgoingResult {
 //
 // A result that lies in the frame, such as an array, is left by the called
 // function in its caller's frame, right past the arguments the call left on
-// the stack, where both sides can find it from the stack pointer.
+// the stack, where both sides can find it from the stack pointer. The
+// arguments that lie in the frame stand right past that result, or past the
+// arguments on the stack where there is none, one after another.
 struct FrameLayout {
   // The slots the caller left the parameters it had no register to pass. They
   // stand above this function's frame rather than in it, because the caller
@@ -73,7 +75,16 @@ struct FrameLayout {
   // The slots each call this function makes leaves such a result in, which
   // stand at the foot of the frame and are copied out of as soon as the call
   // is back, because the next call leaves its own there.
-  std::vector<OutgoingResult> outgoing_results;
+  std::vector<OutgoingSlots> outgoing_results;
+
+  // The slots the caller left the parameters that lie in the frame in. Like
+  // the result, they stand above this function's frame, past the result.
+  SlotRange incoming_frame_params;
+
+  // The slots each call this function makes takes the arguments that lie in
+  // the frame from, which stand at the foot of the frame and are filled right
+  // before the call, because every call fills its own there.
+  std::vector<OutgoingSlots> outgoing_frame_args;
 };
 
 // Rewrites `am_cfg` to pass and to take its arguments the way `convention`

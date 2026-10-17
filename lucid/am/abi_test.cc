@@ -284,6 +284,116 @@ TEST(Test, LowerCallingConventionTakesTheResultSlotsAsTheCallers) {
   EXPECT_THAT(am_cfg.stack_slots, ElementsEqual(4, 4, 4));
 }
 
+// A call passing arguments that lie in the frame gets room for them past the
+// arguments it leaves on the stack and past its result, and they are copied
+// there right before it, value by value, by how many bytes into them each
+// stands.
+TEST(Test, LowerCallingConventionCopiesFrameArgumentsInPastTheResult) {
+  AbstractMachineControlFlowGraphBuilder builder;
+  auto block = builder.AddBlock();
+  builder.SetFirst(block);
+  builder.SetLast(block);
+  builder.AddInstruction(block, FuncCall{
+                                    .label = "f",
+                                    .args = {{R(1)}, {R(2)}, {R(3)}},
+                                    .res_slot = 0,
+                                    .frame_args_slot = 2,
+                                });
+
+  AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
+  am_cfg.stack_slots = {4, 8, 4, 8};
+  am_cfg.call_result_slot_counts.Set(0, 2);
+  am_cfg.call_frame_args_slot_counts.Set(2, 2);
+  const FrameLayout layout = LowerCallingConvention(am_cfg, kConvention);
+
+  EXPECT_EQ(layout.outgoing_args.first, 4);
+  EXPECT_EQ(layout.outgoing_args.count, 1);
+  ASSERT_EQ(layout.outgoing_frame_args.size(), 1);
+  EXPECT_EQ(layout.outgoing_frame_args[0].slots.first, 5);
+  EXPECT_EQ(layout.outgoing_frame_args[0].slots.count, 2);
+  EXPECT_EQ(layout.outgoing_frame_args[0].at, 20);
+  ASSERT_EQ(layout.outgoing_results.size(), 1);
+  EXPECT_EQ(layout.outgoing_results[0].slots.first, 7);
+  EXPECT_EQ(layout.outgoing_results[0].at, 8);
+  EXPECT_THAT(am_cfg.stack_slots, ElementsEqual(4, 8, 4, 8, 8, 4, 8, 4, 8));
+
+  const Reg wide = Reg(7, RegSize64);
+  const Reg wide_result = Reg(11, RegSize64);
+  EXPECT_THAT(am_cfg.GetBlock(block).instructions,
+              ElementsEqual(SetReg{.src_val = 0, .dst_reg = R(4)},
+                            LoadStackReg{
+                                .offset = 2,
+                                .offset_reg = R(4),
+                                .dst_reg = R(5),
+                            },
+                            StoreStackReg{
+                                .offset = 5,
+                                .offset_reg = R(4),
+                                .src_reg = R(5),
+                            },
+                            SetReg{.src_val = 4, .dst_reg = R(6)},
+                            LoadStackReg{
+                                .offset = 2,
+                                .offset_reg = R(6),
+                                .dst_reg = wide,
+                            },
+                            StoreStackReg{
+                                .offset = 5,
+                                .offset_reg = R(6),
+                                .src_reg = wide,
+                            },
+                            StoreStack{
+                                .offset = 4,
+                                .src_reg = R(3),
+                            },
+                            FuncCall{
+                                .label = "f",
+                                .args = {{R(1)}, {R(2)}},
+                                .res_slot = 0,
+                            },
+                            SetReg{.src_val = 0, .dst_reg = R(8)},
+                            LoadStackReg{
+                                .offset = 7,
+                                .offset_reg = R(8),
+                                .dst_reg = R(9),
+                            },
+                            StoreStackReg{
+                                .offset = 0,
+                                .offset_reg = R(8),
+                                .src_reg = R(9),
+                            },
+                            SetReg{.src_val = 4, .dst_reg = R(10)},
+                            LoadStackReg{
+                                .offset = 7,
+                                .offset_reg = R(10),
+                                .dst_reg = wide_result,
+                            },
+                            StoreStackReg{
+                                .offset = 0,
+                                .offset_reg = R(10),
+                                .src_reg = wide_result,
+                            }));
+}
+
+// A function taking parameters that lie in the frame takes them in its
+// caller's, so the slots it takes them in are not its own.
+TEST(Test, LowerCallingConventionTakesTheFrameParametersAsTheCallers) {
+  AbstractMachineControlFlowGraphBuilder builder;
+  auto block = builder.AddBlock();
+  builder.SetFirst(block);
+  builder.SetLast(block);
+
+  AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
+  am_cfg.stack_slots = {4, 4, 8};
+  am_cfg.frame_params_slot = 1;
+  am_cfg.frame_params_slot_count = 2;
+  const FrameLayout layout = LowerCallingConvention(am_cfg, kConvention);
+
+  EXPECT_EQ(layout.incoming_frame_params.first, 1);
+  EXPECT_EQ(layout.incoming_frame_params.count, 2);
+  EXPECT_THAT(am_cfg.stack_slots, ElementsEqual(4, 4, 8));
+}
+
 TEST(Test, LowerCallingConventionLoadsAParameterOnTheStackForAPhiFunction) {
   AbstractMachineControlFlowGraphBuilder builder;
   auto entry = builder.AddBlock();

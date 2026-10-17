@@ -120,7 +120,7 @@ void TakeResultSlots(AbstractMachineControlFlowGraph& am_cfg,
   const std::size_t on_stack = call.args.size() > c.max_register_args
                                    ? call.args.size() - c.max_register_args
                                    : 0;
-  const OutgoingResult result = {
+  const OutgoingSlots result = {
       .slots =
           {
               .first = static_cast<std::uint32_t>(am_cfg.stack_slots.size()),
@@ -157,6 +157,81 @@ void TakeResultSlots(AbstractMachineControlFlowGraph& am_cfg,
   }
 }
 
+// How many bytes the `count` slots from `first` on take.
+std::uint32_t BytesOf(const AbstractMachineControlFlowGraph& am_cfg,
+                      std::uint32_t first, std::uint32_t count) {
+  std::uint32_t bytes = 0;
+  for (std::uint32_t i = 0; i < count; ++i) {
+    bytes += static_cast<std::uint32_t>(am_cfg.stack_slots[first + i]);
+  }
+  return bytes;
+}
+
+// Gives `call`, which passes arguments lying in the frame, slots at the foot
+// of the frame for them, and copies the arguments into them right before
+// `call`, which stands at `at` in `instructions`. The call holds none of them
+// afterwards.
+//
+// They lie past the arguments the call leaves on the stack and past its
+// result, if that lies in the frame too, which is where the called function,
+// knowing how many of the one it takes and how big the other is, looks for
+// them.
+void PassFrameArgs(AbstractMachineControlFlowGraph& am_cfg,
+                   const CallingConvention& c, FrameLayout& layout,
+                   std::list<Instruction>& instructions,
+                   std::list<Instruction>::iterator at, FuncCall& call) {
+  const std::uint32_t first = call.frame_args_slot;
+  const auto count = am_cfg.call_frame_args_slot_counts.Get(first);
+  assert(count.has_value());
+
+  const std::size_t on_stack = call.args.size() > c.max_register_args
+                                   ? call.args.size() - c.max_register_args
+                                   : 0;
+  std::uint32_t result_bytes = 0;
+  if (call.res_slot != FuncCall::kNoResSlot) {
+    const auto result_count = am_cfg.call_result_slot_counts.Get(call.res_slot);
+    assert(result_count.has_value());
+    result_bytes = BytesOf(am_cfg, call.res_slot, *result_count);
+  }
+
+  const OutgoingSlots passed = {
+      .slots =
+          {
+              .first = static_cast<std::uint32_t>(am_cfg.stack_slots.size()),
+              .count = *count,
+          },
+      .at = static_cast<std::uint32_t>(on_stack * c.stack_arg_size) +
+            result_bytes,
+  };
+  for (std::uint32_t i = 0; i < *count; ++i) {
+    am_cfg.stack_slots.push_back(am_cfg.stack_slots[first + i]);
+  }
+  layout.outgoing_frame_args.push_back(passed);
+
+  // What the arguments hold is reached by how many bytes into them each
+  // value stands, as indexing reaches it, rather than slot by slot.
+  int bytes = 0;
+  for (std::uint32_t i = 0; i < *count; ++i) {
+    const int width = am_cfg.stack_slots[first + i];
+    const Reg bytes_reg = {am_cfg.next_free_reg_id++, RegSize32};
+    const Reg value = {am_cfg.next_free_reg_id++,
+                       width == 4 ? RegSize32 : RegSize64};
+    instructions.insert(at, SetReg{.src_val = bytes, .dst_reg = bytes_reg});
+    instructions.insert(at, LoadStackReg{
+                                .offset = first,
+                                .offset_reg = bytes_reg,
+                                .dst_reg = value,
+                            });
+    instructions.insert(at, StoreStackReg{
+                                .offset = passed.slots.first,
+                                .offset_reg = bytes_reg,
+                                .src_reg = value,
+                            });
+    bytes += width;
+  }
+  call.frame_args_slot = FuncCall::kNoFrameArgsSlot;
+}
+
 }  // namespace
 
 FrameLayout LowerCallingConvention(AbstractMachineControlFlowGraph& am_cfg,
@@ -185,6 +260,13 @@ FrameLayout LowerCallingConvention(AbstractMachineControlFlowGraph& am_cfg,
     };
   }
 
+  if (am_cfg.frame_params_slot_count > 0) {
+    layout.incoming_frame_params = {
+        .first = static_cast<std::uint32_t>(am_cfg.frame_params_slot),
+        .count = static_cast<std::uint32_t>(am_cfg.frame_params_slot_count),
+    };
+  }
+
   // One run of slots for every call, because only one call is being made at
   // a time and each fills what it needs of them.
   if (const std::size_t widest = WidestStackCall(am_cfg, convention);
@@ -198,6 +280,9 @@ FrameLayout LowerCallingConvention(AbstractMachineControlFlowGraph& am_cfg,
       auto* call = std::get_if<FuncCall>(&*i);
       if (call == nullptr) continue;
 
+      if (call->frame_args_slot != FuncCall::kNoFrameArgsSlot) {
+        PassFrameArgs(am_cfg, convention, layout, block.instructions, i, *call);
+      }
       if (call->res_slot != FuncCall::kNoResSlot) {
         TakeResultSlots(am_cfg, convention, layout, block.instructions, i,
                         *call);

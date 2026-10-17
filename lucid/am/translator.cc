@@ -109,12 +109,21 @@ class AbstractMachineFunctionGenerator {
       am_cfg_.last = graph_map_.Get(syn_cfg_.last).value();
     }
 
-    {
-      for (const auto& param_ref : syn_cfg_.func_params) {
-        const auto& param = syn_ctx_.DerefParam(param_ref);
-        am_cfg_.params.push_back(GetVarReg(param.name, param.type_constraint));
+    // A parameter that lies in the frame is handed over in slots of its own,
+    // which the caller fills, and is read from there as any variable on the
+    // stack is. The rest arrive in registers.
+    am_cfg_.frame_params_slot = am_cfg_.stack_slots.size();
+    for (const auto& param_ref : syn_cfg_.func_params) {
+      const auto& param = syn_ctx_.DerefParam(param_ref);
+      if (IsOnStack(param.type_constraint)) {
+        var_stack_.Set(param.name, am_cfg_.stack_slots.size());
+        PushStackSlots(param.type_constraint);
+        continue;
       }
+      am_cfg_.params.push_back(GetVarReg(param.name, param.type_constraint));
     }
+    am_cfg_.frame_params_slot_count =
+        am_cfg_.stack_slots.size() - am_cfg_.frame_params_slot;
 
     for (const auto& block : syn_cfg_.blocks()) {
       auto am_cfg_block_ref = graph_map_.Get(block.ref);
@@ -327,10 +336,18 @@ class AbstractMachineFunctionGenerator {
     FuncCall func_call = {
         .label = syn_ctx_.DerefIdent(expr.func_name),
     };
+    std::vector<ExprRef> frame_args;
     for (ExprRef arg : expr.args) {
+      if (IsOnStack(GetType(syn_ctx_.DerefExpr(arg)))) {
+        frame_args.push_back(arg);
+        continue;
+      }
       func_call.args.push_back(FuncCall::Slot{
           .reg = expr_to_reg_[arg.id()],
       });
+    }
+    if (!frame_args.empty()) {
+      PassFrameArgs(func_call, frame_args, am_block);
     }
 
     if (IsOnStack(expr.type)) {
@@ -351,6 +368,48 @@ class AbstractMachineFunctionGenerator {
     };
     am_block.instructions.emplace_back(std::move(func_call));
     expr_to_reg_[ref.id()] = reg;
+  }
+
+  // Gives `func_call` the run of slots it passes `frame_args` from, which
+  // lie in the frame, one after another.
+  //
+  // One argument that starts a variable, or is what another call left, is
+  // passed from where it lies. Any others are copied into a run of slots of
+  // their own first. Either way the call copies them on, so the called
+  // function never writes to what the caller holds.
+  void PassFrameArgs(FuncCall& func_call, const std::vector<ExprRef>& args,
+                     AbstractMachineControlFlowGraph::Block& am_block) {
+    std::vector<StackPlace> places;
+    places.reserve(args.size());
+    for (const ExprRef arg : args) {
+      places.push_back(GetStackPlace(arg, am_block));
+    }
+
+    // The run is reached by how many bytes into it each argument stands, as
+    // the call reaches it, rather than by the slot the argument starts at:
+    // the frame can leave room between slots that the run does not have.
+    std::size_t first = places.front().base_offset;
+    if (places.size() > 1 || places.front().offset_reg.has_value()) {
+      first = am_cfg_.stack_slots.size();
+      std::size_t bytes = 0;
+      for (std::size_t i = 0; i < args.size(); ++i) {
+        const TypeRef type_ref = GetType(syn_ctx_.DerefExpr(args[i]));
+        PushStackSlots(type_ref);
+        CopyStackValue(
+            {.base_offset = first, .offset_reg = BytesReg(bytes, am_block)},
+            places[i], type_ref, am_block);
+        bytes += GetSize(type_ref);
+      }
+    }
+
+    std::vector<int> sizes;
+    for (const ExprRef arg : args) {
+      AppendSizes(GetType(syn_ctx_.DerefExpr(arg)), sizes);
+    }
+    func_call.frame_args_slot = static_cast<std::uint32_t>(first);
+    am_cfg_.call_frame_args_slot_counts.Set(
+        static_cast<std::uint32_t>(first),
+        static_cast<std::uint32_t>(sizes.size()));
   }
 
   void ProcessExpr(ExprRef ref, const IdentExpr& expr,

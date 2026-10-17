@@ -1402,6 +1402,183 @@ TEST(CompilerTest, CompStackValuesAreCopiedWhole) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(38));
 }
 
+// An array or a tuple is passed by copy, so a write the called function makes
+// to its parameter is not seen by the caller. It is passed from wherever it
+// lies: a variable, an element, a field, what a call returned, or a parameter
+// of the caller's own.
+TEST(CompilerTest, ArraysAndTuplesArePassedByCopy) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val P: Type = (x: Int32, y: Int32)
+    val Q: Type = (p: P, n: Int32)
+
+    fun bump(mut a: Int32[2]): Int32 {
+      mut a[0] = a[0] + 100
+      return a[0]
+    }
+
+    fun digits(p: P): Int32 {
+      return p.x * 10 + p.y
+    }
+
+    fun make(x: Int32): P {
+      mut val p: P
+      mut p.x = x
+      mut p.y = 1
+      return p
+    }
+
+    fun forward(p: P): Int32 {
+      return digits(p)
+    }
+
+    fun main(): Int32 {
+      mut val a: Int32[2]
+      mut a[0] = 1
+      if bump(a) + a[0] != 102 {
+        return 1
+      }
+
+      mut val ps: P[3]
+      mut ps[2].x = 4
+      mut ps[2].y = 2
+      mut val q: Q
+      mut q.p.x = 1
+      mut q.p.y = 3
+      val i: Int32 = 2
+      return digits(ps[i]) + digits(q.p) + digits(make(5)) + forward(ps[2]) -
+             100
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(48));
+}
+
+// Arguments lying in the frame stand past the ones left on the stack and past
+// a result lying in the frame, all of which a call can have at once.
+TEST(CompilerTest, PassesArraysBesideArgumentsOnTheStackAndAResultInTheFrame) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val P: Type = (x: Int64)
+
+    fun f(a: Int32, b: Int32, c: Int32, d: Int32, e: Int32, f: Int32,
+          g: Int32, h: Int32, i: Int32, j: Int64, v: Int32[3], p: P,
+          k: Int32): Int32[3] {
+      mut val r: Int32[3]
+      mut r[0] = a + b + c + d + e + f + g + h + i + k
+      mut r[1] = v[1] * 10
+      mut r[2] = v[2]
+      if j != p.x {
+        mut r[2] = 0
+      }
+      return r
+    }
+
+    fun main(): Int32 {
+      mut val v: Int32[3]
+      mut v[1] = 3
+      mut v[2] = 5
+      mut val p: P
+      mut p.x = 10000000000
+      val r: Int32[3] = f(1, 2, 3, 4, 5, 6, 7, 8, 9, 10000000000, v, p, 10)
+      return r[0] + r[1] + r[2]
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(90));
+}
+
+// A call made to work out an argument fills the same foot of the frame the
+// call it is an argument to fills, which happens only once it is back.
+TEST(CompilerTest, PassesWhatACallPassingAnArrayReturns) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun twice(a: Int32[2]): Int32[2] {
+      mut val r: Int32[2]
+      mut r[0] = a[0] * 2
+      mut r[1] = a[1] * 2
+      return r
+    }
+
+    fun digits(a: Int32[2], b: Int32[2]): Int32 {
+      return a[0] * 1000 + a[1] * 100 + b[0] * 10 + b[1]
+    }
+
+    fun main(): Int32 {
+      mut val a: Int32[2]
+      mut a[0] = 1
+      mut a[1] = 2
+      return digits(a, twice(twice(a))) - 1200
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(48));
+}
+
+TEST(CompilerTest, RecursesPassingAnArray) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun sum(a: Int32[10], i: Int32): Int32 {
+      if i == 10 {
+        return 0
+      }
+      return a[i] + sum(a, i + 1)
+    }
+
+    fun main(): Int32 {
+      mut val a: Int32[10]
+      mut val i: Int32 = 0
+      loop {
+        if i == 10 {
+          break
+        }
+        mut a[i] = i
+        mut i = i + 1
+      }
+      return sum(a, 0)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(45));
+}
+
+// A comp function taking an array comes to the same during compilation as it
+// does while the program runs.
+TEST(CompilerTest, CompFunctionTakingAnArray) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun squares(): Int32[8] {
+      mut val a: Int32[8]
+      mut val i: Int32 = 0
+      loop {
+        if i == 8 {
+          break
+        }
+        mut a[i] = i * i
+        mut i = i + 1
+      }
+      return a
+    }
+
+    comp fun total(a: Int32[8]): Int32 {
+      mut val s: Int32 = 0
+      mut val i: Int32 = 0
+      loop {
+        if i == 8 {
+          break
+        }
+        mut s = s + a[i]
+        mut i = i + 1
+      }
+      return s
+    }
+
+    fun main(): Int32 {
+      val t: Int32[8] = comp squares()
+      val c: Int32 = comp total(t)
+      if c != total(t) {
+        return 1
+      }
+      if c != comp total(squares()) {
+        return 2
+      }
+      return c
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(140));
+}
+
 TEST(CompilerTest, CompFieldReadOfAnElementACallReturns) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     val P: Type = (x: Int32, y: Int64)

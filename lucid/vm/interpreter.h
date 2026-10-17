@@ -85,6 +85,9 @@ class Interpreter {
   // Returns the bytes of `count` stack slots, starting with `first`.
   std::vector<std::uint8_t> SlotBytes(std::size_t first, std::size_t count);
 
+  // Puts `bytes` in the stack slots starting with `first`.
+  void SetSlotBytes(std::size_t first, const std::vector<std::uint8_t>& bytes);
+
   // Interprets `inst`.
   std::expected<void, CompError> Interpret(const Instruction& inst);
 

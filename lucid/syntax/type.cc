@@ -30,18 +30,6 @@ class ExprTypeInferenceEngine {
         string_(syn_ctx.AddIdent("String")) {}
 
   std::expected<void, TypeError> InferTypes() {
-    // An array or a tuple lives on the stack and has no register to travel
-    // in, and nothing lays one out for a call to pass it, though a function
-    // can return one into its caller's frame. Said here, where there is
-    // somewhere to say it, rather than left to the backend to fall over on.
-    for (const auto& param_ref : func_def_.params) {
-      const auto& param = syn_ctx_.DerefParam(param_ref);
-      if (LivesOnStack(param.type_constraint)) {
-        return std::unexpected(
-            TypeError("a parameter cannot be an array or a tuple"));
-      }
-    }
-
     for (const auto& param_ref : func_def_.params) {
       const auto& param = syn_ctx_.DerefParam(param_ref);
       SetIdentType(param.name, param.type_constraint);
@@ -403,13 +391,6 @@ class ExprTypeInferenceEngine {
       return std::string(syn_ctx_.DerefIdent(*name));
     }
     return "a tuple";
-  }
-
-  // Whether a value of this type lies on the stack rather than in a register.
-  bool LivesOnStack(TypeRef type_ref) {
-    const Type& type = syn_ctx_.DerefType(type_ref);
-    return std::holds_alternative<ArrayType>(type) ||
-           std::holds_alternative<TupleType>(type);
   }
 
   bool TypesEqual(TypeRef lhs_ref, TypeRef rhs_ref) {

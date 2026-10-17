@@ -1,5 +1,6 @@
 #include "lucid/syntax/comp.h"
 
+#include <cstdint>
 #include <expected>
 #include <variant>
 
@@ -206,7 +207,8 @@ bool ReturnsInFrame(const SyntaxContext& syn_ctx, const FuncCallExpr& expr) {
 // Such a call leaves its result in slots of the caller's frame, and only a
 // few places have somewhere to take it from there: the variable it
 // initialises or is assigned to, the element or the field it is assigned to,
-// the return it is the value of, and the index or the field read out of it.
+// the return it is the value of, the argument it is to a parameter that is
+// an array or a tuple, and the index or the field read out of it.
 // `may_lie_in_frame` says whether the expression stands in one of those.
 std::expected<void, CompError> CheckFrameResultCalls(
     const SyntaxContext& syn_ctx, ExprRef expr_ref, bool may_lie_in_frame) {
@@ -215,11 +217,20 @@ std::expected<void, CompError> CheckFrameResultCalls(
     if (ReturnsInFrame(syn_ctx, *func_call_expr) && !may_lie_in_frame) {
       return std::unexpected(
           CompError("an array or a tuple a call returns can only be assigned, "
-                    "be returned, be indexed or have a field read"));
+                    "be returned, be passed, be indexed or have a field "
+                    "read"));
     }
-    for (const auto& arg : func_call_expr->args) {
-      std::expected<void, CompError> res =
-          CheckFrameResultCalls(syn_ctx, arg, /*may_lie_in_frame=*/false);
+    // An argument lies in the frame where the parameter it is passed to
+    // does, which is told by the parameter rather than the argument.
+    const FuncDefStmt* func_def =
+        syn_ctx.FindFuncDef(func_call_expr->func_name);
+    for (std::uint32_t i = 0; i < func_call_expr->args.size(); ++i) {
+      const bool is_frame_param =
+          func_def != nullptr && i < func_def->params.size() &&
+          LiesInFrame(syn_ctx,
+                      syn_ctx.DerefParam(func_def->params[i]).type_constraint);
+      std::expected<void, CompError> res = CheckFrameResultCalls(
+          syn_ctx, func_call_expr->args[i], is_frame_param);
       if (!res.has_value()) return res;
     }
   } else if (const auto* index_expr = std::get_if<IndexExpr>(&expr)) {

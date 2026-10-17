@@ -468,6 +468,19 @@ struct FuncCall {
       std::numeric_limits<std::uint32_t>::max();
   std::uint32_t res_slot = kNoResSlot;
 
+  // The first of the stack slots holding the arguments that lie in the frame
+  // rather than in a register, such as arrays, one after another in the
+  // order of the parameters that take them, or `kNoFrameArgsSlot` for a call
+  // without any. They are passed apart from `args`, which holds only the
+  // ones in registers.
+  //
+  // A call that has been lowered onto a calling convention holds none of
+  // them; they are copied to where the called function looks for them before
+  // it.
+  static constexpr std::uint32_t kNoFrameArgsSlot =
+      std::numeric_limits<std::uint32_t>::max();
+  std::uint32_t frame_args_slot = kNoFrameArgsSlot;
+
   bool operator==(const FuncCall&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const FuncCall& inst) {
@@ -480,6 +493,9 @@ struct FuncCall {
     os << "]";
     if (inst.res.has_value()) os << " .res=" << inst.res->reg;
     if (inst.res_slot != kNoResSlot) os << " .res_slot=" << inst.res_slot;
+    if (inst.frame_args_slot != kNoFrameArgsSlot) {
+      os << " .frame_args_slot=" << inst.frame_args_slot;
+    }
     os << " }";
     return os;
   }
