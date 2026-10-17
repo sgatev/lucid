@@ -321,6 +321,42 @@ TEST(CompCheckTest, CompExprCallingNonCompFunc) {
   EXPECT_FALSE(CheckComp(src).has_value());
 }
 
+// A `comp` on a field read reaches what the field is read from as well.
+TEST(CompCheckTest, CompFieldReadOfNonCompVariable) {
+  std::string_view src = R"(
+    val P: Type = (x: Int32)
+
+    fun test(): Int32 {
+      mut val p: P
+      mut p.x = 1
+      return comp p.x
+    }
+  )";
+
+  EXPECT_EQ(CheckComp(src),
+            std::unexpected(
+                CompError("non-comp identifier not allowed in comp context")));
+}
+
+TEST(CompCheckTest, CompFieldReadOfCallToNonCompFunc) {
+  std::string_view src = R"(
+    val P: Type = (x: Int32)
+
+    fun foo(): P {
+      mut val p: P
+      return p
+    }
+
+    fun test(): Int32 {
+      return comp foo().x
+    }
+  )";
+
+  EXPECT_EQ(CheckComp(src),
+            std::unexpected(CompError(
+                "calling non-comp function not allowed in comp context")));
+}
+
 // An array is left in the caller's frame however the call is made, so a call
 // returning one needs no `comp`.
 TEST(CompCheckTest, ArrayResultCalledWhileTheProgramRuns) {
@@ -357,7 +393,7 @@ TEST(CompCheckTest, ArrayResultInitializingAVariable) {
 }
 
 // The array a call leaves in the frame is taken from there only by what it
-// initialises, by a return and by an index.
+// initialises, by a return, by an index and by a field read.
 TEST(CompCheckTest, ArrayResultAsAnArgument) {
   std::string_view src = R"(
     comp fun foo(): Int32[2] {
@@ -376,8 +412,50 @@ TEST(CompCheckTest, ArrayResultAsAnArgument) {
 
   EXPECT_EQ(CheckComp(src),
             std::unexpected(CompError(
-                "an array a call returns can only initialize a variable, be "
-                "returned or be indexed")));
+                "an array or a tuple a call returns can only initialize a "
+                "variable, be returned, be indexed or have a field read")));
+}
+
+TEST(CompCheckTest, TupleResultAsAnArgument) {
+  std::string_view src = R"(
+    val P: Type = (x: Int32)
+
+    fun foo(): P {
+      mut val p: P
+      return p
+    }
+
+    fun bar(n: Int32): Int32 {
+      return n
+    }
+
+    fun test(): Int32 {
+      return bar(foo())
+    }
+  )";
+
+  EXPECT_EQ(CheckComp(src),
+            std::unexpected(CompError(
+                "an array or a tuple a call returns can only initialize a "
+                "variable, be returned, be indexed or have a field read")));
+}
+
+TEST(CompCheckTest, TupleResultFieldRead) {
+  std::string_view src = R"(
+    val P: Type = (x: Int32, v: Int32[2])
+
+    fun foo(): P {
+      mut val p: P
+      return p
+    }
+
+    fun test(): Int32 {
+      val p: P = foo()
+      return p.x + foo().x + foo().v[1]
+    }
+  )";
+
+  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 // An array is copied out whole from where it lies, so what is returned has
@@ -394,7 +472,8 @@ TEST(CompCheckTest, ArrayReturnedFromAField) {
 
   EXPECT_EQ(CheckComp(src),
             std::unexpected(CompError(
-                "an array can only be returned from a variable or a call")));
+                "an array or a tuple can only be returned from a variable or "
+                "a call")));
 }
 
 }  // namespace

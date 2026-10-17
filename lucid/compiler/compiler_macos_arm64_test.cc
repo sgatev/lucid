@@ -1228,6 +1228,93 @@ TEST(CompilerTest, CompArrayResultCalledWhileTheProgramRuns) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(50));
 }
 
+// A tuple is returned as an array is, into its caller's frame, and a field
+// can be read from a call where it stands.
+TEST(CompilerTest, TupleResult) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val P: Type = (x: Int32, y: Int64, z: Int32)
+
+    fun make(a: Int32): P {
+      mut val p: P
+      mut p.x = a
+      mut p.y = 10000000000
+      mut p.z = a * 2
+      return p
+    }
+
+    fun pass(a: Int32): P {
+      return make(a + 1)
+    }
+
+    fun main(): Int32 {
+      val p: P = make(3)
+      val q: P = pass(4)
+      if p.y == 10000000000 {
+        if q.y == make(1).y {
+          return p.x + p.z + q.z + make(7).x
+        }
+      }
+      return 99
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(26));
+}
+
+TEST(CompilerTest, CompTupleResult) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val P: Type = (x: Int32, y: Int64)
+
+    comp fun make(a: Int32): P {
+      mut val p: P
+      mut p.x = a * a
+      mut p.y = 10000000000
+      return p
+    }
+
+    comp fun twice(a: Int32): Int32 {
+      val p: P = make(a)
+      return p.x + make(a).x
+    }
+
+    fun main(): Int32 {
+      val p: P = comp make(5)
+      if p.y == 10000000000 {
+        return p.x + comp make(2).x + comp twice(3)
+      }
+      return 99
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(47));
+}
+
+// A field read worked out during compilation works out where the field
+// stands along with it, including how far into an array its element is.
+TEST(CompilerTest, CompFieldReadOfAnElementACallReturns) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val P: Type = (x: Int32, y: Int64)
+
+    comp fun points(): P[3] {
+      mut val a: P[3]
+      mut val i: Int32 = 0
+      loop {
+        if i == 3 {
+          break
+        }
+        mut a[i].x = i + 1
+        mut a[i].y = 10000000000
+        mut i = i + 1
+      }
+      return a
+    }
+
+    fun main(): Int32 {
+      val p: P[3] = comp points()
+      return comp points()[1].x + comp points()[2].x + comp p[2].x
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(8));
+}
+
 // A `break` leaves the loop standing closest over it. An unconditional one
 // in an inner loop once took the answer the inner body gave for the outer
 // sequence as well, which cut the outer loop's own back edge and left it

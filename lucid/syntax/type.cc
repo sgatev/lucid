@@ -26,22 +26,15 @@ class ExprTypeInferenceEngine {
 
   std::expected<void, TypeError> InferTypes() {
     // An array or a tuple lives on the stack and has no register to travel
-    // in, and nothing lays one out on either side of a call. Said here,
-    // where there is somewhere to say it, rather than left to the backend to
-    // fall over on.
+    // in, and nothing lays one out for a call to pass it, though a function
+    // can return one into its caller's frame. Said here, where there is
+    // somewhere to say it, rather than left to the backend to fall over on.
     for (const auto& param_ref : func_def_.params) {
       const auto& param = syn_ctx_.DerefParam(param_ref);
       if (LivesOnStack(param.type_constraint)) {
         return std::unexpected(
             TypeError("a parameter cannot be an array or a tuple"));
       }
-    }
-    // An array a function returns is the exception, which the function
-    // leaves in its caller's frame.
-    if (LivesOnStack(func_def_.result_type) &&
-        !std::holds_alternative<ArrayType>(
-            syn_ctx_.DerefType(func_def_.result_type))) {
-      return std::unexpected(TypeError("a result cannot be a tuple"));
     }
 
     for (const auto& param_ref : func_def_.params) {

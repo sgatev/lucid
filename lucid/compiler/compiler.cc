@@ -47,8 +47,7 @@ namespace {
 // held, and `Void` with whatever was last left where a result goes.
 //
 // Requires:
-// - The types of `main` must have been inferred, so that its result is not
-//   a tuple.
+// - The types of `main` must have been inferred.
 std::expected<void, TypeError> CheckEntryPoint(const SyntaxContext& syn_ctx,
                                                const FuncDefStmt& main) {
   if (main.params.size() != 0) {
@@ -61,7 +60,7 @@ std::expected<void, TypeError> CheckEntryPoint(const SyntaxContext& syn_ctx,
   if (result == nullptr) {
     return std::unexpected(
         TypeError("function 'main' returns Int32, Int64 or Bool, not an "
-                  "array"));
+                  "array or a tuple"));
   }
   const std::string_view name = syn_ctx.DerefIdent(result->name);
   if (name != "Int32" && name != "Int64" && name != "Bool") {

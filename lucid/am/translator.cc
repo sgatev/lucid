@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <expected>
+#include <iterator>
 #include <optional>
 #include <string_view>
 #include <utility>
@@ -182,14 +183,26 @@ class AbstractMachineFunctionGenerator {
       for (ExprRef expr_ref : seq.expressions) {
         const Expr& expr = syn_ctx_.DerefExpr(expr_ref);
         const std::size_t emitted = am_block.instructions.size();
+        // The last instruction before the expression's own, for finding the
+        // first of them once they are there: a list keeps no index.
+        const auto before = emitted == 0
+                                ? am_block.instructions.end()
+                                : std::prev(am_block.instructions.end());
         Process(expr_ref, expr, am_block);
 
         // What an expression comes to is worked out by running the
         // instruction it ends in. One that ends in none, such as a read of a
-        // variable, is in a register that holds it already.
+        // variable, is in a register that holds it already. Those before it
+        // work out where a field or an element stands, which it reads.
         bool is_comp =
             std::visit([](const auto& expr) { return expr.is_comp; }, expr);
         if (is_comp && am_block.instructions.size() > emitted) {
+          for (auto it = emitted == 0 ? am_block.instructions.begin()
+                                      : std::next(before);
+               it != std::prev(am_block.instructions.end()); ++it) {
+            std::expected<void, CompError> res = vm_.Interpret(*it);
+            if (!res.has_value()) return std::unexpected(res.error());
+          }
           std::expected<void, CompError> res = FoldLast(am_block);
           if (!res.has_value()) return std::unexpected(res.error());
         }
