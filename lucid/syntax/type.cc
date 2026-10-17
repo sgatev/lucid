@@ -22,7 +22,12 @@ namespace {
 class ExprTypeInferenceEngine {
  public:
   ExprTypeInferenceEngine(SyntaxContext& syn_ctx, FuncDefStmt& func_def)
-      : syn_ctx_(syn_ctx), func_def_(func_def) {}
+      : syn_ctx_(syn_ctx),
+        func_def_(func_def),
+        bool_(syn_ctx.AddIdent("Bool")),
+        int32_(syn_ctx.AddIdent("Int32")),
+        int64_(syn_ctx.AddIdent("Int64")),
+        string_(syn_ctx.AddIdent("String")) {}
 
   std::expected<void, TypeError> InferTypes() {
     // An array or a tuple lives on the stack and has no register to travel
@@ -76,8 +81,7 @@ class ExprTypeInferenceEngine {
           expr.value >= std::numeric_limits<std::int32_t>::min() &&
           expr.value <= std::numeric_limits<std::int32_t>::max();
       expr_from_type_.Set(int_lit_expr,
-                          syn_ctx_.ResolveType(syn_ctx_.AddIdent(
-                              fits_in_int32 ? "Int32" : "Int64")));
+                          BuiltinType(fits_in_int32 ? int32_ : int64_));
     }
 
     // Solved again, because the defaulting above is the first type anything
@@ -88,6 +92,25 @@ class ExprTypeInferenceEngine {
 
     for (auto int_lit_expr : int_lit_exprs_) {
       RequireLiteralFitsItsType(int_lit_expr);
+    }
+    // What each operation and each index works on is known only once every
+    // type is, so it is checked once they all are.
+    for (const ExprRef expr_ref : binary_op_exprs_) {
+      RequireOperandsFit(expr_ref);
+    }
+    for (const ExprRef index : index_exprs_) {
+      if (const auto type = expr_from_type_.Get(index);
+          type.has_value() && !IsInteger(*type)) {
+        errors_.push_back("an index is an Int32 or an Int64, not " +
+                          TypeName(*type));
+      }
+    }
+    for (const ExprRef int_lit_expr : int_lit_exprs_) {
+      if (const auto type = expr_from_type_.Get(int_lit_expr);
+          type.has_value() && !IsInteger(*type)) {
+        errors_.push_back("an integer literal is an Int32 or an Int64, not " +
+                          TypeName(*type));
+      }
     }
 
     if (auto error = GetError(); error.has_value()) {
@@ -130,8 +153,7 @@ class ExprTypeInferenceEngine {
   void ProcessPendingStmt(StmtRef stmt_ref, const IfStmt& stmt) {
     AddPendingStmts(std::ranges::reverse_view(stmt.else_stmts));
     AddPendingStmts(std::ranges::reverse_view(stmt.then_stmts));
-    RequireTypeForExpr(stmt.cond,
-                       syn_ctx_.ResolveType(syn_ctx_.AddIdent("Bool")));
+    RequireTypeForExpr(stmt.cond, BuiltinType(bool_));
     AddPendingExpr(stmt.cond);
   }
 
@@ -164,6 +186,7 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingStmt(StmtRef stmt_ref, const ArrayAssignStmt& stmt) {
+    index_exprs_.push_back(stmt.index);
     AddPendingExpr(stmt.index);
 
     const auto type = ident_from_type_.Get(stmt.name);
@@ -194,6 +217,8 @@ class ExprTypeInferenceEngine {
       ProcessPendingExpr(expr_ref, *bool_lit_expr);
     } else if (auto* int_lit_expr = std::get_if<IntLitExpr>(&expr)) {
       ProcessPendingExpr(expr_ref, *int_lit_expr);
+    } else if (std::holds_alternative<StringLitExpr>(expr)) {
+      RequireTypeForExpr(expr_ref, BuiltinType(string_));
     } else if (auto* ident_expr = std::get_if<IdentExpr>(&expr)) {
       ProcessPendingExpr(expr_ref, *ident_expr);
     } else if (auto* index_expr = std::get_if<IndexExpr>(&expr)) {
@@ -236,8 +261,7 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BoolLitExpr& expr) {
-    RequireTypeForExpr(expr_ref,
-                       syn_ctx_.ResolveType(syn_ctx_.AddIdent("Bool")));
+    RequireTypeForExpr(expr_ref, BuiltinType(bool_));
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const IntLitExpr& expr) {
@@ -255,6 +279,7 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const IndexExpr& expr) {
+    index_exprs_.push_back(expr.index);
     AddPendingExpr(expr.base);
     RequireArrayElementTypeForExpr(expr_ref, expr.base);
     AddPendingExpr(expr.index);
@@ -266,13 +291,15 @@ class ExprTypeInferenceEngine {
   }
 
   void ProcessPendingExpr(ExprRef expr_ref, const BinaryOpExpr& expr) {
-    if (expr.op == BinaryOp::Eq || expr.op == BinaryOp::Lt ||
-        expr.op == BinaryOp::Gt || expr.op == BinaryOp::NotEq ||
-        expr.op == BinaryOp::Ge || expr.op == BinaryOp::Le) {
+    binary_op_exprs_.push_back(expr_ref);
+    if (expr.op == BinaryOp::And || expr.op == BinaryOp::Or) {
+      RequireTypeForExpr(expr.lhs, BuiltinType(bool_));
+      RequireTypeForExpr(expr.rhs, BuiltinType(bool_));
+      RequireTypeForExpr(expr_ref, BuiltinType(bool_));
+    } else if (IsComparison(expr.op)) {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr.lhs, expr.rhs);
-      RequireTypeForExpr(expr_ref,
-                         syn_ctx_.ResolveType(syn_ctx_.AddIdent("Bool")));
+      RequireTypeForExpr(expr_ref, BuiltinType(bool_));
     } else {
       RequireSameTypesForExprs(expr.rhs, expr.lhs);
       RequireSameTypesForExprs(expr_ref, expr.rhs);
@@ -283,16 +310,16 @@ class ExprTypeInferenceEngine {
     AddPendingExpr(expr.lhs);
   }
 
+  // Gives `expr_ref` the type `type_ref`, which is every way an expression
+  // is given one, and reports it where the expression already has another:
+  // one value cannot be of two types.
   void RequireTypeForExpr(ExprRef expr_ref, TypeRef type_ref) {
-    if (auto it = expr_from_type_.Get(expr_ref);
-        it.has_value() && !TypesEqual(*it, type_ref)) {
-      if (std::holds_alternative<ArrayType>(syn_ctx_.DerefType(*it))) {
-        errors_.emplace_back("expected array type");
-      } else {
-        const auto& it_type = std::get<BasicType>(syn_ctx_.DerefType(*it));
-        errors_.push_back(std::string("expected type ") +
-                          std::string(syn_ctx_.DerefIdent(it_type.name)));
+    if (auto it = expr_from_type_.Get(expr_ref); it.has_value()) {
+      if (!TypesEqual(*it, type_ref)) {
+        errors_.push_back("expected type " + TypeName(*it) + ", not " +
+                          TypeName(type_ref));
       }
+      return;
     }
     expr_from_type_.Set(expr_ref, type_ref);
   }
@@ -312,6 +339,70 @@ class ExprTypeInferenceEngine {
 
   void SetIdentType(StringIndex::Ref ident, TypeRef type_ref) {
     ident_from_type_.Set(ident, type_ref);
+  }
+
+  // Reports an operation on values it does not work on: arithmetic and
+  // ordering work on numbers, and equality on the types whose values can be
+  // told apart by what they hold. An array or a tuple cannot, being
+  // compared as nothing, and a `String` can, every one being written out
+  // once wherever it stands in the program.
+  void RequireOperandsFit(ExprRef expr_ref) {
+    const auto& expr = std::get<BinaryOpExpr>(syn_ctx_.DerefExpr(expr_ref));
+    if (expr.op == BinaryOp::And || expr.op == BinaryOp::Or) return;
+
+    const auto type = expr_from_type_.Get(expr.lhs);
+    if (!type.has_value()) return;
+
+    if (expr.op == BinaryOp::Eq || expr.op == BinaryOp::NotEq) {
+      if (!IsInteger(*type) && !IsBuiltin(*type, bool_) &&
+          !IsBuiltin(*type, string_)) {
+        errors_.push_back(
+            "only an Int32, an Int64, a Bool or a String can be compared, "
+            "not " +
+            TypeName(*type));
+      }
+    } else if (IsComparison(expr.op)) {
+      if (!IsInteger(*type)) {
+        errors_.push_back("only an Int32 or an Int64 can be ordered, not " +
+                          TypeName(*type));
+      }
+    } else if (!IsInteger(*type)) {
+      errors_.push_back("arithmetic works on an Int32 or an Int64, not " +
+                        TypeName(*type));
+    }
+  }
+
+  static bool IsComparison(BinaryOp op) {
+    return op == BinaryOp::Eq || op == BinaryOp::NotEq || op == BinaryOp::Lt ||
+           op == BinaryOp::Gt || op == BinaryOp::Le || op == BinaryOp::Ge;
+  }
+
+  // Whether `type_ref` is the built-in type called `name`.
+  bool IsBuiltin(TypeRef type_ref, StringIndex::Ref name) const {
+    const auto* type = std::get_if<BasicType>(&syn_ctx_.DerefType(type_ref));
+    return type != nullptr && type->name == name;
+  }
+
+  bool IsInteger(TypeRef type_ref) const {
+    return IsBuiltin(type_ref, int32_) || IsBuiltin(type_ref, int64_);
+  }
+
+  TypeRef BuiltinType(StringIndex::Ref name) const {
+    return syn_ctx_.ResolveType(name);
+  }
+
+  // How a type is written: a built-in type and a tuple by name, and an array
+  // as its element type and its length.
+  std::string TypeName(TypeRef type_ref) {
+    const Type& type = syn_ctx_.DerefType(type_ref);
+    if (const auto* array_type = std::get_if<ArrayType>(&type)) {
+      return TypeName(array_type->element_type_constraint) + "[" +
+             std::to_string(array_type->size.value) + "]";
+    }
+    if (const auto name = syn_ctx_.FindTypeName(type_ref); name.has_value()) {
+      return std::string(syn_ctx_.DerefIdent(*name));
+    }
+    return "a tuple";
   }
 
   // Whether a value of this type lies on the stack rather than in a register.
@@ -375,7 +466,7 @@ class ExprTypeInferenceEngine {
           errors_.emplace_back("a value of this type cannot be indexed");
           continue;
         }
-        expr_from_type_.Set(element, array_type->element_type_constraint);
+        RequireTypeForExpr(element, array_type->element_type_constraint);
       }
 
       for (auto [element, base_field] : expr_from_field_) {
@@ -395,7 +486,7 @@ class ExprTypeInferenceEngine {
           const auto& field = syn_ctx_.DerefParam(field_ref);
           if (field.name != field_name) continue;
 
-          expr_from_type_.Set(element, field.type_constraint);
+          RequireTypeForExpr(element, field.type_constraint);
           found = true;
         }
         if (!found) {
@@ -407,7 +498,7 @@ class ExprTypeInferenceEngine {
       std::vector<std::pair<ExprRef, ExprRef>> next_expr_from_expr;
       for (auto [lhs, rhs] : expr_from_expr_) {
         if (auto it = expr_from_type_.Get(rhs); it.has_value()) {
-          expr_from_type_.Set(lhs, *it);
+          RequireTypeForExpr(lhs, *it);
         } else {
           next_expr_from_expr.emplace_back(lhs, rhs);
         }
@@ -444,6 +535,12 @@ class ExprTypeInferenceEngine {
   SyntaxContext& syn_ctx_;
   FuncDefStmt& func_def_;
 
+  // The names of the built-in types the rules mention, looked up once.
+  const StringIndex::Ref bool_;
+  const StringIndex::Ref int32_;
+  const StringIndex::Ref int64_;
+  const StringIndex::Ref string_;
+
   // What each expression takes its type from, held as pairs rather than as a
   // map from the one to the other.
   //
@@ -461,6 +558,9 @@ class ExprTypeInferenceEngine {
   std::vector<StmtRef> pending_stmts_;
   std::vector<ExprRef> pending_exprs_;
   std::vector<ExprRef> int_lit_exprs_;
+  std::vector<ExprRef> binary_op_exprs_;
+  // What each index is, whether into an expression or by an assignment.
+  std::vector<ExprRef> index_exprs_;
 
   std::vector<std::string> errors_;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 
 #include "lucid/core/container/arena.h"
 #include "lucid/core/container/hash_map.h"
@@ -26,6 +27,9 @@ class TypeRepository {
   // Returns a reference to the type that `name` resolves to.
   TypeRef Resolve(StringIndex::Ref name) const;
 
+  // Returns the name `ref` was registered with, if it was.
+  std::optional<StringIndex::Ref> NameOf(TypeRef ref) const;
+
   // Returns the number of types in the repository.
   std::size_t Size() const;
 
@@ -33,6 +37,7 @@ class TypeRepository {
   StringIndex& idents_;
   Arena<Type> types_;
   HashMap<StringIndex::Ref, TypeRef> name_to_type_;
+  HashMap<TypeRef, StringIndex::Ref> type_to_name_;
 };
 
 }  // namespace lucid

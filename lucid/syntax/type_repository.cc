@@ -1,6 +1,7 @@
 #include "lucid/syntax/type_repository.h"
 
 #include <cstddef>
+#include <optional>
 #include <string_view>
 #include <variant>
 
@@ -32,10 +33,15 @@ const Type& TypeRepository::Deref(TypeRef ref) const { return types_.Get(ref); }
 
 void TypeRepository::Register(StringIndex::Ref name, TypeRef ref) {
   name_to_type_.Insert(name, ref);
+  type_to_name_.Insert(ref, name);
 }
 
 TypeRef TypeRepository::Resolve(StringIndex::Ref name) const {
   return name_to_type_.Get(name).value_or(Arena<Type>::kNullRef);
+}
+
+std::optional<StringIndex::Ref> TypeRepository::NameOf(TypeRef ref) const {
+  return type_to_name_.Get(ref);
 }
 
 std::size_t TypeRepository::Size() const { return types_.Size(); }

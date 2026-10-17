@@ -265,16 +265,26 @@ position requires — a `return` requires the function's result type, an `if` re
 `Bool`, an argument requires its parameter's type, both sides of a binary operator
 require each other — and then solves them together.
 
+Each expression gets one type. Two positions that require different types of the same
+expression are an error rather than one overriding the other, so `a + b` with an `Int32`
+and an `Int64` is rejected; there are no implicit conversions anywhere in the language.
+
 The consequences worth knowing:
 
-- **An integer literal has no type of its own.** It takes the type the position requires,
-  and the only check is that its value fits: a literal outside the 32-bit range is
-  rejected where a type smaller than eight bytes is required. A literal required to be
-  nothing in particular becomes `Int32`, or `Int64` if it does not fit. This is why
-  `val b: Bool = 1` is accepted.
-- **Comparisons yield `Bool`** and require their two sides to have the same type.
-- **Arithmetic** requires both sides and the result to have one type. There are no
-  implicit conversions anywhere in the language.
+- **An integer literal is an `Int32` or an `Int64`.** It takes whichever of the two its
+  position requires, and has to fit: a literal outside the 32-bit range is rejected where
+  an `Int32` is required. A literal required to be nothing in particular becomes `Int32`,
+  or `Int64` if it does not fit. A literal where anything else is required is an error,
+  so `val b: Bool = 1` and `if 1 { … }` are rejected: a `Bool` is `true` or `false`.
+- **Arithmetic works on `Int32` and `Int64`**, and requires both sides and the result to
+  have one type.
+- **Comparisons yield `Bool`** and require their two sides to have the same type. `<`,
+  `>`, `<=` and `>=` order an `Int32` or an `Int64`. `==` and `!=` also compare a `Bool`
+  or a `String`; an array or a tuple cannot be compared. Two strings are equal when they
+  hold the same bytes, which comes down to the same address, since every string in a
+  program is a literal and each is written out once.
+- **`and`, `or` and `!` work on `Bool`** and yield one.
+- **An index is an `Int32` or an `Int64`.**
 
 ## Compile-time evaluation
 
@@ -390,5 +400,5 @@ worth the name.
 - **Characters outside the token set are skipped silently.** A stray `@` in a function
   body is ignored as though it were a comment.
 - `Double` has a name and a size and nothing else. No literal produces one.
-- **A `return` of the wrong shape is caught only by the type rules above,** which let
-  `return 0` stand in a function whose result is `Void`.
+- **A `Void` function cannot return early.** `return` always takes a value, and no value
+  is a `Void`, so such a function ends only at its closing brace.

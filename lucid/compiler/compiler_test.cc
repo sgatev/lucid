@@ -693,9 +693,111 @@ TEST(CompilerTest, TypeError) {
       return true
     }
   )"));
-  ASSERT_THAT(
-      RunCompiler({"build", "main", FullPath("main.lu")}),
-      AllOf(ReturnsCode(1), ErrorOutput(Contains("expected type Int32\n"))));
+  ASSERT_THAT(RunCompiler({"build", "main", FullPath("main.lu")}),
+              AllOf(ReturnsCode(1),
+                    ErrorOutput(Contains("expected type Int32, not Bool\n"))));
+}
+
+// A value has one type, which every operation on it has to agree with. Each
+// of these once compiled, into a program that computed something other than
+// what it said, or into a compiler that fell over.
+TEST(CompilerTest, RejectsValuesOfTheWrongType) {
+  const struct {
+    std::string_view source;
+    std::string_view message;
+  } kCases[] = {
+      {R"(fun main(): Int64 {
+            val a: Int32 = 1
+            val b: Int64 = 4294967296
+            return a + b
+          })",
+       "expected type Int64, not Int32"},
+      {R"(fun main(): Bool {
+            val a: Int32 = 1
+            val b: Int64 = 1
+            return a == b
+          })",
+       "expected type Int64, not Int32"},
+      {R"(fun main(): Int32 {
+            val a: Int32 = 1
+            val b: Bool = true
+            return a + b
+          })",
+       "expected type Bool, not Int32"},
+      {"fun main(): Bool { return true + true }",
+       "arithmetic works on an Int32 or an Int64, not Bool"},
+      {R"(fun main(): Int32 {
+            val s: String = "a" + "b"
+            return 0
+          })",
+       "arithmetic works on an Int32 or an Int64, not String"},
+      {R"(fun main(): Bool {
+            val a: Int32 = 1
+            val b: Int32 = 2
+            return a and b
+          })",
+       "expected type Bool, not Int32"},
+      {R"(fun main(): Bool {
+            val a: Int32 = 5
+            return !a
+          })",
+       "expected type Bool, not Int32"},
+      {"fun main(): Bool { return false < true }",
+       "only an Int32 or an Int64 can be ordered, not Bool"},
+      {R"(fun main(): Bool { return "a" < "b" })",
+       "only an Int32 or an Int64 can be ordered, not String"},
+      {R"(fun main(): Bool {
+            val a: Int32[2]
+            val b: Int32[2]
+            return a == b
+          })",
+       "only an Int32, an Int64, a Bool or a String can be compared, not "
+       "Int32[2]"},
+      {R"(val P: Type = (x: Int32)
+          fun main(): Bool {
+            val p: P
+            val q: P
+            return p == q
+          })",
+       "only an Int32, an Int64, a Bool or a String can be compared, not P"},
+      {R"(val P: Type = (x: Int32)
+          val Q: Type = (x: Int32)
+          fun main(): Int32 {
+            val p: P
+            val q: Q = p
+            return q.x
+          })",
+       "expected type Q, not P"},
+      {"fun main(): Bool { return 7 }",
+       "an integer literal is an Int32 or an Int64, not Bool"},
+      {R"(fun main(): Int32 {
+            if 1 {
+              return 1
+            }
+            return 0
+          })",
+       "an integer literal is an Int32 or an Int64, not Bool"},
+      {R"(fun f(): Void {
+            return 0
+          }
+          fun main(): Int32 {
+            do f()
+            return 0
+          })",
+       "an integer literal is an Int32 or an Int64, not Void"},
+      {R"(fun main(): Int32 {
+            mut val a: Int32[3]
+            mut a[true] = 4
+            return a[1]
+          })",
+       "an index is an Int32 or an Int64, not Bool"},
+  };
+
+  for (const auto& [source, message] : kCases) {
+    ASSERT_TRUE(CreateFile("main.lu", source));
+    EXPECT_THAT(RunCompiler({"compile", FullPath("main.lu")}),
+                AllOf(ReturnsCode(1), ErrorOutput(Contains(message))));
+  }
 }
 
 }  // namespace

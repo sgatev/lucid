@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <list>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -70,6 +71,12 @@ class SyntaxContext {
 
   // Returns the type that `ref` refers to.
   const Type& DerefType(TypeRef ref) const { return types_.Deref(ref); }
+
+  // Returns the name the type that `ref` refers to was registered with, if
+  // it was.
+  std::optional<StringIndex::Ref> FindTypeName(TypeRef ref) const {
+    return types_.NameOf(ref);
+  }
 
   // Returns the parameter that `ref` refers to.
   auto& DerefParam(this auto&& self, ParamRef ref) {

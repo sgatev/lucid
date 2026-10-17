@@ -479,7 +479,7 @@ TEST(InferExprTypesTest, ErrorInt32AssignedToInt64Array) {
 
   auto res = InferExprTypes(func);
   ASSERT_TRUE(!res.has_value());
-  EXPECT_EQ(res.error(), TypeError("expected type Int64"));
+  EXPECT_EQ(res.error(), TypeError("expected type Int64, not Int32"));
 }
 
 TEST(InferExprTypesTest, ErrorBoolLitAsInt32) {
@@ -499,7 +499,7 @@ TEST(InferExprTypesTest, ErrorBoolLitAsInt32) {
 
   auto res = InferExprTypes(func);
   ASSERT_TRUE(!res.has_value());
-  EXPECT_EQ(res.error(), TypeError("expected type Int32"));
+  EXPECT_EQ(res.error(), TypeError("expected type Int32, not Bool"));
 }
 
 TEST(InferExprTypesTest, ErrorInt64FromInt32) {
@@ -526,7 +526,7 @@ TEST(InferExprTypesTest, ErrorInt64FromInt32) {
 
   auto res = InferExprTypes(func);
   ASSERT_TRUE(!res.has_value());
-  EXPECT_EQ(res.error(), TypeError("expected type Int64"));
+  EXPECT_EQ(res.error(), TypeError("expected type Int64, not Int32"));
 }
 
 }  // namespace

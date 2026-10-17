@@ -1289,6 +1289,24 @@ TEST(CompilerTest, CompTupleResult) {
 
 // A field read worked out during compilation works out where the field
 // stands along with it, including how far into an array its element is.
+// A string literal is a `String` wherever it stands, and two of them can be
+// compared with each other with nothing else to say what they are.
+TEST(CompilerTest, ComparesStringLiterals) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun main(): Int32 {
+      val s: String = "a"
+      if "a" == "b" or "a" != "a" {
+        return 1
+      }
+      if s == "a" {
+        return 2
+      }
+      return 3
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(2));
+}
+
 // An array or a tuple is copied whole wherever it is assigned, initialises
 // a declaration or is returned, into a variable, an element or a field, and
 // from wherever it lies. These once compiled without copying anything.
