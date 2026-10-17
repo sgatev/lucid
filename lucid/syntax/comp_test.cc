@@ -321,25 +321,23 @@ TEST(CompCheckTest, CompExprCallingNonCompFunc) {
   EXPECT_FALSE(CheckComp(src).has_value());
 }
 
-// Nothing lays an array out across a call made while the program runs, so a
-// call returning one has to be made during compilation.
-TEST(CompCheckTest, ArrayResultCalledWithoutComp) {
+// An array is left in the caller's frame however the call is made, so a call
+// returning one needs no `comp`.
+TEST(CompCheckTest, ArrayResultCalledWhileTheProgramRuns) {
   std::string_view src = R"(
-    comp fun foo(): Int32[2] {
+    fun foo(n: Int32): Int32[2] {
       mut val a: Int32[2]
+      mut a[0] = n
       return a
     }
 
-    fun test(): Int32 {
-      val t: Int32[2] = foo()
-      return t[0]
+    fun test(n: Int32): Int32 {
+      val t: Int32[2] = foo(n)
+      return t[0] + foo(n)[1]
     }
   )";
 
-  EXPECT_EQ(CheckComp(src),
-            std::unexpected(
-                CompError("a call that returns an array has to be made during "
-                          "compilation")));
+  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 TEST(CompCheckTest, ArrayResultInitializingAVariable) {
@@ -380,28 +378,6 @@ TEST(CompCheckTest, ArrayResultAsAnArgument) {
             std::unexpected(CompError(
                 "an array a call returns can only initialize a variable, be "
                 "returned or be indexed")));
-}
-
-// A function that returns an array is only ever run by compilation, so a
-// call it makes is made during compilation without a `comp` of its own.
-TEST(CompCheckTest, ArrayResultCalledByAFunctionReturningAnArray) {
-  std::string_view src = R"(
-    comp fun foo(n: Int32): Int32[2] {
-      mut val a: Int32[2]
-      mut a[0] = n
-      return a
-    }
-
-    comp fun test(n: Int32): Int32[2] {
-      if n > 0 {
-        return foo(n)
-      }
-      val t: Int32[2] = foo(0)
-      return t
-    }
-  )";
-
-  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 // An array is copied out whole from where it lies, so what is returned has

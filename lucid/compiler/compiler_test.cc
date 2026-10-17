@@ -467,19 +467,6 @@ TEST(CompilerTest, RejectsCompositeParamsAndResults) {
   EXPECT_THAT(RunCompiler({"compile", FullPath("result.lu")}),
               AllOf(ReturnsCode(1),
                     ErrorOutput(Contains("a result cannot be a tuple"))));
-
-  // An array is returned only by a comp function, which is only ever called
-  // during compilation.
-  ASSERT_TRUE(CreateFile("array_result.lu", R"(
-    fun f(): Int32[2] {
-      mut val a: Int32[2]
-      return a
-    }
-  )"));
-  EXPECT_THAT(
-      RunCompiler({"compile", FullPath("array_result.lu")}),
-      AllOf(ReturnsCode(1),
-            ErrorOutput(Contains("only a comp function can return an array"))));
 }
 
 TEST(CompilerTest, PrintAstRejectsNodeThatIsNotThere) {

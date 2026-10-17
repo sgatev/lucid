@@ -1,8 +1,10 @@
 #include "lucid/am/abi.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <list>
 #include <optional>
 #include <variant>
@@ -99,6 +101,62 @@ void LoadAtEveryUse(AbstractMachineControlFlowGraph& am_cfg, Reg reg,
   }
 }
 
+// Gives `call`, which leaves its result in the frame, slots at the foot of
+// the frame for it, and copies the result out of them into the call's own
+// slots right after `call`, which stands at `at` in `instructions`.
+//
+// The result lies where the call's arguments on the stack end, which is
+// where the called function, knowing only how many of those it takes, looks
+// for it.
+void TakeResultSlots(AbstractMachineControlFlowGraph& am_cfg,
+                     const CallingConvention& c, FrameLayout& layout,
+                     std::list<Instruction>& instructions,
+                     std::list<Instruction>::iterator at,
+                     const FuncCall& call) {
+  const std::uint32_t first = call.res_slot;
+  const auto count = am_cfg.call_result_slot_counts.Get(first);
+  assert(count.has_value());
+
+  const std::size_t on_stack = call.args.size() > c.max_register_args
+                                   ? call.args.size() - c.max_register_args
+                                   : 0;
+  const OutgoingResult result = {
+      .slots =
+          {
+              .first = static_cast<std::uint32_t>(am_cfg.stack_slots.size()),
+              .count = *count,
+          },
+      .at = static_cast<std::uint32_t>(on_stack * c.stack_arg_size),
+  };
+  for (std::uint32_t i = 0; i < *count; ++i) {
+    am_cfg.stack_slots.push_back(am_cfg.stack_slots[first + i]);
+  }
+  layout.outgoing_results.push_back(result);
+
+  // What the result holds is reached by how many bytes into it each value
+  // stands, as indexing it reaches it, rather than slot by slot.
+  const auto next = std::next(at);
+  int bytes = 0;
+  for (std::uint32_t i = 0; i < *count; ++i) {
+    const int width = am_cfg.stack_slots[first + i];
+    const Reg bytes_reg = {am_cfg.next_free_reg_id++, RegSize32};
+    const Reg value = {am_cfg.next_free_reg_id++,
+                       width == 4 ? RegSize32 : RegSize64};
+    instructions.insert(next, SetReg{.src_val = bytes, .dst_reg = bytes_reg});
+    instructions.insert(next, LoadStackReg{
+                                  .offset = result.slots.first,
+                                  .offset_reg = bytes_reg,
+                                  .dst_reg = value,
+                              });
+    instructions.insert(next, StoreStackReg{
+                                  .offset = first,
+                                  .offset_reg = bytes_reg,
+                                  .src_reg = value,
+                              });
+    bytes += width;
+  }
+}
+
 }  // namespace
 
 FrameLayout LowerCallingConvention(AbstractMachineControlFlowGraph& am_cfg,
@@ -120,21 +178,31 @@ FrameLayout LowerCallingConvention(AbstractMachineControlFlowGraph& am_cfg,
     am_cfg.params.resize(convention.max_register_args);
   }
 
-  const std::size_t widest = WidestStackCall(am_cfg, convention);
-  if (widest == 0) return layout;
+  if (am_cfg.result_slot_count > 0) {
+    layout.incoming_result = {
+        .first = static_cast<std::uint32_t>(am_cfg.result_slot),
+        .count = static_cast<std::uint32_t>(am_cfg.result_slot_count),
+    };
+  }
 
   // One run of slots for every call, because only one call is being made at
   // a time and each fills what it needs of them.
-  layout.outgoing_args = TakeArgSlots(am_cfg, convention, widest);
+  if (const std::size_t widest = WidestStackCall(am_cfg, convention);
+      widest > 0) {
+    layout.outgoing_args = TakeArgSlots(am_cfg, convention, widest);
+  }
 
   for (auto& block : am_cfg.Blocks()) {
     for (auto i = block.instructions.begin(); i != block.instructions.end();
          ++i) {
       auto* call = std::get_if<FuncCall>(&*i);
-      if (call == nullptr ||
-          call->args.size() <= convention.max_register_args) {
-        continue;
+      if (call == nullptr) continue;
+
+      if (call->res_slot != FuncCall::kNoResSlot) {
+        TakeResultSlots(am_cfg, convention, layout, block.instructions, i,
+                        *call);
       }
+      if (call->args.size() <= convention.max_register_args) continue;
 
       // Put the arguments there is no register for where the call will look
       // for them, and take them off the call, so that nothing has to hold

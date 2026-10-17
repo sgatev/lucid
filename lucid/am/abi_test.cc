@@ -201,6 +201,89 @@ TEST(Test, LowerCallingConventionTakesTheRoomForArgumentsAfterTheOwnSlots) {
   EXPECT_THAT(am_cfg.stack_slots, ElementsEqual(4, 8, 8));
 }
 
+// A call leaving its result in the frame gets room for it past the arguments
+// it leaves on the stack, and the result is copied out of there into the
+// call's own slots, value by value, by how many bytes into it each stands.
+TEST(Test, LowerCallingConventionCopiesAResultInTheFrameOutPastTheArguments) {
+  AbstractMachineControlFlowGraphBuilder builder;
+  auto block = builder.AddBlock();
+  builder.SetFirst(block);
+  builder.SetLast(block);
+  builder.AddInstruction(block, FuncCall{
+                                    .label = "f",
+                                    .args = {{R(1)}, {R(2)}, {R(3)}},
+                                    .res_slot = 0,
+                                });
+
+  AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
+  am_cfg.stack_slots = {4, 8};
+  am_cfg.call_result_slot_counts.Set(0, 2);
+  const FrameLayout layout = LowerCallingConvention(am_cfg, kConvention);
+
+  EXPECT_EQ(layout.outgoing_args.first, 2);
+  EXPECT_EQ(layout.outgoing_args.count, 1);
+  ASSERT_EQ(layout.outgoing_results.size(), 1);
+  EXPECT_EQ(layout.outgoing_results[0].slots.first, 3);
+  EXPECT_EQ(layout.outgoing_results[0].slots.count, 2);
+  EXPECT_EQ(layout.outgoing_results[0].at, 8);
+  EXPECT_THAT(am_cfg.stack_slots, ElementsEqual(4, 8, 8, 4, 8));
+
+  const Reg wide = Reg(7, RegSize64);
+  EXPECT_THAT(am_cfg.GetBlock(block).instructions,
+              ElementsEqual(
+                  StoreStack{
+                      .offset = 2,
+                      .src_reg = R(3),
+                  },
+                  FuncCall{
+                      .label = "f",
+                      .args = {{R(1)}, {R(2)}},
+                      .res_slot = 0,
+                  },
+                  SetReg{.src_val = 0, .dst_reg = R(4)},
+                  LoadStackReg{
+                      .offset = 3,
+                      .offset_reg = R(4),
+                      .dst_reg = R(5),
+                  },
+                  StoreStackReg{
+                      .offset = 0,
+                      .offset_reg = R(4),
+                      .src_reg = R(5),
+                  },
+                  SetReg{.src_val = 4, .dst_reg = R(6)},
+                  LoadStackReg{
+                      .offset = 3,
+                      .offset_reg = R(6),
+                      .dst_reg = wide,
+                  },
+                  StoreStackReg{
+                      .offset = 0,
+                      .offset_reg = R(6),
+                      .src_reg = wide,
+                  }));
+}
+
+// A function leaving its result in the frame leaves it in its caller's, so
+// the slots it returns it in are not its own.
+TEST(Test, LowerCallingConventionTakesTheResultSlotsAsTheCallers) {
+  AbstractMachineControlFlowGraphBuilder builder;
+  auto block = builder.AddBlock();
+  builder.SetFirst(block);
+  builder.SetLast(block);
+  builder.AddParam(R(1));
+
+  AbstractMachineControlFlowGraph am_cfg = std::move(builder).Build();
+  am_cfg.stack_slots = {4, 4, 4};
+  am_cfg.result_slot = 1;
+  am_cfg.result_slot_count = 2;
+  const FrameLayout layout = LowerCallingConvention(am_cfg, kConvention);
+
+  EXPECT_EQ(layout.incoming_result.first, 1);
+  EXPECT_EQ(layout.incoming_result.count, 2);
+  EXPECT_THAT(am_cfg.stack_slots, ElementsEqual(4, 4, 4));
+}
+
 TEST(Test, LowerCallingConventionLoadsAParameterOnTheStackForAPhiFunction) {
   AbstractMachineControlFlowGraphBuilder builder;
   auto entry = builder.AddBlock();

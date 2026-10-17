@@ -932,9 +932,9 @@ TEST(CompilerTest, CompArrayResult) {
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(36));
 }
 
-// A function returning an array runs only during compilation, so the calls
-// it makes need no `comp` of their own: they can pass its parameters along,
-// recurse, and return what they give back as it is.
+// The calls a comp function returning an array makes need no `comp` of their
+// own to be made during compilation along with it: they can pass its
+// parameters along, recurse, and return what they give back as it is.
 TEST(CompilerTest, CompArrayResultFromCallsMadeWhileWorkingItOut) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     comp fun fill(n: Int32, k: Int32): Int32[4] {
@@ -1053,6 +1053,179 @@ TEST(CompilerTest, CompArrayResultInACompFunction) {
     }
   )"));
   EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(17));
+}
+
+// A function returning an array called while the program runs leaves it in
+// its caller's frame, which the caller copies out of before the next call
+// leaves its own there.
+TEST(CompilerTest, ArrayResult) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun multiples(n: Int32): Int32[8] {
+      mut val a: Int32[8]
+      mut val i: Int32 = 0
+      loop {
+        if i == 8 {
+          break
+        }
+        mut a[i] = i * n
+        mut i = i + 1
+      }
+      return a
+    }
+
+    fun main(): Int32 {
+      val n: Int32 = 3
+      val t: Int32[8] = multiples(n)
+      val u: Int32[8] = multiples(n + 1)
+      val i: Int32 = 5
+      return t[i] + u[7] + multiples(2)[1]
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(45));
+}
+
+TEST(CompilerTest, ArrayResultOfTuplesOfEitherWidth) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val P: Type = (x: Int32, y: Int64)
+
+    fun points(k: Int32): P[3] {
+      mut val a: P[3]
+      mut val i: Int32 = 0
+      loop {
+        if i == 3 {
+          break
+        }
+        mut a[i].x = i + k
+        mut a[i].y = 10000000000
+        mut i = i + 1
+      }
+      return a
+    }
+
+    fun main(): Int32 {
+      val p: P[3] = points(1)
+      val j: Int32 = 2
+      if p[j].y == 10000000000 {
+        if p[1].y == 10000000000 {
+          return p[j].x + p[0].x
+        }
+      }
+      return 99
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(4));
+}
+
+// The result lies past the arguments the call leaves on the stack, where the
+// called function finds it by how many of those it takes.
+TEST(CompilerTest, ArrayResultPastArgumentsOnTheStack) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun spread(a: Int32, b: Int32, c: Int32, d: Int32, e: Int32, f: Int32,
+               g: Int32, h: Int32, i: Int32, j: Int32, k: Int32,
+               l: Int32): Int32[3] {
+      mut val r: Int32[3]
+      mut r[0] = a + k
+      mut r[1] = l
+      mut r[2] = j
+      return r
+    }
+
+    fun main(): Int32 {
+      val r: Int32[3] = spread(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+      return r[0] + r[1] * 2 + r[2] * 3
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(66));
+}
+
+TEST(CompilerTest, ArrayResultFromRecursiveAndPassedOnCalls) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun countDown(n: Int32): Int32[4] {
+      if n == 0 {
+        mut val z: Int32[4]
+        mut z[0] = 0
+        mut z[1] = 0
+        mut z[2] = 0
+        mut z[3] = 0
+        return z
+      }
+      mut val a: Int32[4] = countDown(n - 1)
+      mut a[0] = a[0] + 1
+      mut a[3] = a[3] + n
+      return a
+    }
+
+    fun pass(n: Int32): Int32[4] {
+      return countDown(n)
+    }
+
+    fun main(): Int32 {
+      val a: Int32[4] = pass(5)
+      return a[0] * 10 + a[3]
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(65));
+}
+
+// A result further from the stack pointer than a load or a store reaches on
+// its own is reached all the same.
+TEST(CompilerTest, ArrayResultWiderThanAnOffsetReaches) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    fun fill(k: Int64): Int64[1200] {
+      mut val a: Int64[1200]
+      mut val i: Int32 = 0
+      loop {
+        if i == 1200 {
+          break
+        }
+        mut a[i] = k
+        mut i = i + 1
+      }
+      mut a[1199] = k + 7
+      return a
+    }
+
+    fun main(): Int32 {
+      val a: Int64[1200] = fill(3)
+      val b: Int64[1200] = fill(5)
+      if a[1199] + b[0] == 15 {
+        return 42
+      }
+      return 1
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(42));
+}
+
+// A comp function returning an array is also made into machine code, so a
+// call to it made while the program runs needs no `comp`.
+TEST(CompilerTest, CompArrayResultCalledWhileTheProgramRuns) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    comp fun squares(n: Int32): Int32[4] {
+      mut val a: Int32[4]
+      mut val i: Int32 = 0
+      loop {
+        if i == 4 {
+          break
+        }
+        mut a[i] = (i + n) * (i + n)
+        mut i = i + 1
+      }
+      return a
+    }
+
+    comp fun third(n: Int32): Int32 {
+      val s: Int32[4] = squares(n)
+      return s[3]
+    }
+
+    fun main(): Int32 {
+      val m: Int32 = 1
+      val a: Int32[4] = squares(m)
+      return a[2] + third(m) + comp third(2)
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(50));
 }
 
 // A `break` leaves the loop standing closest over it. An unconditional one

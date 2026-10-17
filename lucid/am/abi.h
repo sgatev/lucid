@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 #include "lucid/am/cfg.h"
 
@@ -37,9 +38,21 @@ struct SlotRange {
   }
 };
 
+// A run of slots at the foot of a frame that a call leaves its result in,
+// when the result lies in the frame, and how many bytes past the stack
+// pointer it begins.
+struct OutgoingResult {
+  SlotRange slots;
+  std::uint32_t at = 0;
+};
+
 // Where the arguments a function was handed and the arguments it hands on
 // stand among its stack slots, which is what lowering a calling convention
 // settles and what laying out a frame needs to know.
+//
+// A result that lies in the frame, such as an array, is left by the called
+// function in its caller's frame, right past the arguments the call left on
+// the stack, where both sides can find it from the stack pointer.
 struct FrameLayout {
   // The slots the caller left the parameters it had no register to pass. They
   // stand above this function's frame rather than in it, because the caller
@@ -51,6 +64,16 @@ struct FrameLayout {
   // when a call is made and so where the called function looks for them. As
   // many as the widest call the function makes needs.
   SlotRange outgoing_args;
+
+  // The slots this function leaves a result lying in the frame in. Like the
+  // parameters on the stack, they stand above this function's frame, past
+  // those parameters, because they are the caller's.
+  SlotRange incoming_result;
+
+  // The slots each call this function makes leaves such a result in, which
+  // stand at the foot of the frame and are copied out of as soon as the call
+  // is back, because the next call leaves its own there.
+  std::vector<OutgoingResult> outgoing_results;
 };
 
 // Rewrites `am_cfg` to pass and to take its arguments the way `convention`

@@ -48,7 +48,7 @@ namespace {
 //
 // Requires:
 // - The types of `main` must have been inferred, so that its result is not
-//   a tuple, or an array unless `main` is a comp function.
+//   a tuple.
 std::expected<void, TypeError> CheckEntryPoint(const SyntaxContext& syn_ctx,
                                                const FuncDefStmt& main) {
   if (main.params.size() != 0) {
@@ -154,10 +154,6 @@ std::expected<void, CompileError> CompileSource(std::string_view src,
       if (func_def->is_comp) {
         am_cfgs.Insert(syn_ctx.DerefIdent(func_def->name), am_cfg);
       }
-      // A function returning an array is only ever called during
-      // compilation, so there is no machine code to make for it.
-      if (am_cfg.result_slot_count > 0) continue;
-
       const FrameLayout layout =
           LowerCallingConvention(am_cfg, kArm64CallingConvention);
       static constexpr int kArmRegistersCount = 10;

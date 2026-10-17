@@ -132,7 +132,7 @@ class Arm64BinaryGenerator {
     // calls it makes, then the registers it hands back as it found them, then
     // its own slots. What its own caller left for it stands above all of
     // that, past the frame record, and takes no room here.
-    outgoing_size_ = OutgoingArgsSize(layout_.outgoing_args.count);
+    outgoing_size_ = OutgoingSize();
     persisted_ = RegistersToPersist();
 
     // Where each of them begins, which is where everything before it ends,
@@ -800,14 +800,53 @@ class Arm64BinaryGenerator {
     if (layout_.outgoing_args.Holds(slot)) {
       return SafeCast<int>((slot - layout_.outgoing_args.first) * kArgSize);
     }
+    // A result in the frame is reached by how many bytes into it a value
+    // stands, so its slots lie one right after another.
+    if (const SlotRange& result = layout_.incoming_result; result.Holds(slot)) {
+      return SafeCast<int>(stack_size_ + kFrameRecordSize +
+                           layout_.incoming_args.count * kArgSize +
+                           BytesBefore(result.first, slot));
+    }
+    for (const OutgoingResult& result : layout_.outgoing_results) {
+      if (result.slots.Holds(slot)) {
+        return SafeCast<int>(result.at + BytesBefore(result.slots.first, slot));
+      }
+    }
     return stack_offsets_[persisted_.size() + slot];
   }
 
   // Whether the slot with this index is the function's own, rather than room
-  // for arguments that stands somewhere the frame does not reach.
+  // for arguments or a result that stands somewhere the frame does not reach.
   bool OwnSlot(std::size_t slot) const {
     return !layout_.incoming_args.Holds(slot) &&
-           !layout_.outgoing_args.Holds(slot);
+           !layout_.outgoing_args.Holds(slot) &&
+           !layout_.incoming_result.Holds(slot) &&
+           std::ranges::none_of(layout_.outgoing_results,
+                                [&](const OutgoingResult& result) {
+                                  return result.slots.Holds(slot);
+                                });
+  }
+
+  // How many bytes the slots from `first` up to `slot` take.
+  std::size_t BytesBefore(std::size_t first, std::size_t slot) const {
+    std::size_t bytes = 0;
+    for (std::size_t i = first; i < slot; ++i) bytes += stack_slots_[i];
+    return bytes;
+  }
+
+  // How much room the foot of the frame takes, kept to what the stack pointer
+  // has to be a multiple of: the arguments the widest call leaves there, or
+  // the result a call leaves past its own arguments, if that reaches further.
+  int OutgoingSize() const {
+    std::size_t size =
+        static_cast<std::size_t>(layout_.outgoing_args.count) * kArgSize;
+    for (const OutgoingResult& result : layout_.outgoing_results) {
+      size = std::max<std::size_t>(
+          size,
+          result.at + BytesBefore(result.slots.first,
+                                  result.slots.first + result.slots.count));
+    }
+    return RoundUpTo(SafeCast<int>(size), 16);
   }
 
   // Where a slot is, as a load or a store reaches it: a register to count
@@ -898,12 +937,6 @@ class Arm64BinaryGenerator {
   static int RoundUpTo(int value, int to) {
     const int over = value % to;
     return over == 0 ? value : value + to - over;
-  }
-
-  // How much room `count` arguments take on the stack, kept to what the stack
-  // pointer has to be a multiple of.
-  static int OutgoingArgsSize(std::size_t count) {
-    return RoundUpTo(SafeCast<int>(count) * kArgSize, 16);
   }
 
   static constexpr int kArgSize = kArm64CallingConvention.stack_arg_size;

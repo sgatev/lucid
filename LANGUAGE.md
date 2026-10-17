@@ -120,6 +120,11 @@ what allows a write to one is the `mut` on the variable holding the tuple. `comp
 function means it may be called while the program is being compiled; see
 [Compile-time evaluation](#compile-time-evaluation).
 
+**A function can return an array**, which the caller receives as a copy. The call can
+initialise a variable, be returned, or be indexed where it stands, and nothing else:
+`val t: Int32[4] = f()`, `return f()` and `f()[2]` are accepted, and `g(f())` is not. A
+returned array has to be a variable or a call, so `return r.v` is rejected.
+
 Commas between parameters are optional. `fun f(a: Int32 b: Int32)` parses exactly as the
 version with a comma, which is a looseness in the parser rather than a style to rely on.
 
@@ -309,8 +314,8 @@ A `comp fun` may not contain a `do` statement, since its body has to be evaluabl
 nothing to have an effect on. It is a capability rather than an obligation: a `comp fun`
 called without a `comp` on the call is called while the program runs, like any other.
 
-**A `comp fun` can return an array**, which is how a table is worked out during
-compilation rather than written out by hand:
+**An array a `comp fun` returns can be worked out during compilation**, which is how a
+table is made rather than written out by hand:
 
 ```
 comp fun squares(): Int32[16] {
@@ -332,8 +337,7 @@ fun main(): Int32 {
 }
 ```
 
-Such a function is only ever called during compilation, and no machine code is made for
-it. A call to it therefore needs a `comp`, except inside another `comp` function.
+The program then holds the sixteen values rather than the loop that made them.
 
 **Compilation gives up on work that does not end, and reports where.** Two limits say
 when:
@@ -373,10 +377,9 @@ worth the name.
   not there at all, which is true of the compiler's view of it and not of the program's.
 - **A function's frame may not be more than 16MB**, which is the largest a sequence of
   instructions here reserves. The stack a program is given runs out well before that.
-- **An array or a tuple cannot be a parameter or a result.** Both live on the stack, and
-  nothing lays one out on either side of a call. This is reported rather than attempted.
-  The one exception is an array returned by a `comp fun`, which only compilation calls;
-  see [Compile-time evaluation](#compile-time-evaluation).
+- **An array or a tuple cannot be a parameter, and a tuple cannot be a result.** Both
+  live on the stack, and nothing lays one out on that side of a call. This is reported
+  rather than attempted. An array can be a result; see [Definitions](#definitions).
 - **An assignment cannot end in an index into something reached through.** `mut r.v[0] = 1`
   is rejected where `mut r.v = …` would not be, because the statement that assigns through
   an index names its array rather than holding an expression for it.

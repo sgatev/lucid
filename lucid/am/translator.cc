@@ -246,7 +246,7 @@ class AbstractMachineFunctionGenerator {
     if (!res.has_value()) return res;
 
     const std::size_t first = func_call->res_slot;
-    const auto slots = call_slots_.Get(first);
+    const auto slots = am_cfg_.call_result_slot_counts.Get(func_call->res_slot);
     assert(slots.has_value());
     am_block.instructions.pop_back();
     std::size_t bytes = 0;
@@ -323,7 +323,9 @@ class AbstractMachineFunctionGenerator {
     if (IsOnStack(expr.type)) {
       const std::size_t first = am_cfg_.stack_slots.size();
       PushStackSlots(expr.type);
-      call_slots_.Set(first, am_cfg_.stack_slots.size() - first);
+      am_cfg_.call_result_slot_counts.Set(
+          static_cast<std::uint32_t>(first),
+          static_cast<std::uint32_t>(am_cfg_.stack_slots.size() - first));
       expr_slot_.Set(ref, first);
       func_call.res_slot = static_cast<std::uint32_t>(first);
       am_block.instructions.emplace_back(std::move(func_call));
@@ -852,7 +854,6 @@ class AbstractMachineFunctionGenerator {
   HashMap<StringIndex::Ref, Reg> var_to_reg_;
   HashMap<StringIndex::Ref, std::size_t> var_stack_;
   HashMap<ExprRef, std::size_t> expr_slot_;
-  HashMap<std::size_t, std::size_t> call_slots_;
   HashMap<SyntaxControlFlowGraph::BlockRef,
           AbstractMachineControlFlowGraph::BlockRef>
       graph_map_;

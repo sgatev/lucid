@@ -9,6 +9,7 @@
 
 #include "lucid/am/instructions.h"
 #include "lucid/core/container/arena.h"
+#include "lucid/core/container/hash_map.h"
 
 namespace lucid {
 
@@ -113,6 +114,10 @@ class AbstractMachineControlFlowGraph {
   // none.
   std::size_t result_slot = 0;
   std::size_t result_slot_count = 0;
+
+  // How many stack slots the result of each call that leaves one in the
+  // frame takes, by the first of them, which is the call's `res_slot`.
+  HashMap<std::uint32_t, std::uint32_t> call_result_slot_counts;
 
   // Next free register ID.
   //

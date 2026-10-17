@@ -36,19 +36,12 @@ class ExprTypeInferenceEngine {
             TypeError("a parameter cannot be an array or a tuple"));
       }
     }
-    // An array a comp function returns is the exception. Such a function is
-    // only ever called during compilation, where the interpreter hands its
-    // result over as the bytes it is made of rather than across a call.
-    if (LivesOnStack(func_def_.result_type)) {
-      const bool is_array = std::holds_alternative<ArrayType>(
-          syn_ctx_.DerefType(func_def_.result_type));
-      if (!is_array) {
-        return std::unexpected(TypeError("a result cannot be a tuple"));
-      }
-      if (!func_def_.is_comp) {
-        return std::unexpected(
-            TypeError("only a comp function can return an array"));
-      }
+    // An array a function returns is the exception, which the function
+    // leaves in its caller's frame.
+    if (LivesOnStack(func_def_.result_type) &&
+        !std::holds_alternative<ArrayType>(
+            syn_ctx_.DerefType(func_def_.result_type))) {
+      return std::unexpected(TypeError("a result cannot be a tuple"));
     }
 
     for (const auto& param_ref : func_def_.params) {
