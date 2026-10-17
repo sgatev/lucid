@@ -1289,6 +1289,101 @@ TEST(CompilerTest, CompTupleResult) {
 
 // A field read worked out during compilation works out where the field
 // stands along with it, including how far into an array its element is.
+// An array or a tuple is copied whole wherever it is assigned, initialises
+// a declaration or is returned, into a variable, an element or a field, and
+// from wherever it lies. These once compiled without copying anything.
+TEST(CompilerTest, StackValuesAreCopiedWhole) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val P: Type = (x: Int32, y: Int64)
+    val Q: Type = (a: Int32, v: Int32[3], p: P)
+
+    fun mk(n: Int32): P {
+      mut val p: P
+      mut p.x = n
+      mut p.y = 10000000000
+      return p
+    }
+
+    fun row(q: Int32): Int32[3] {
+      mut val v: Int32[3]
+      mut v[0] = q
+      mut v[1] = q + 1
+      mut v[2] = q + 2
+      mut val h: Q
+      mut h.v = v
+      return h.v
+    }
+
+    fun main(): Int32 {
+      mut val p: P = mk(5)
+      val kept: P = p
+      mut p.x = 9
+
+      mut val qs: Q[2]
+      val i: Int32 = 1
+      mut qs[i].p = p
+      mut qs[i].v = row(11)
+      mut qs[0] = qs[i]
+      mut qs[i].a = 2
+      val q: Q = qs[0]
+
+      mut val u: Int32[3]
+      mut u = q.v
+      mut val r: P = mk(1)
+      mut r = mk(3)
+
+      if q.p.y == 10000000000 {
+        return kept.x * 1000 + q.p.x * 100 + u[2] + r.x + qs[i].a
+      }
+      return 99
+    }
+  )"));
+  // 5000 + 900 + 13 + 3 + 2, which leaves 5918, of which the status keeps
+  // the low byte.
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}),
+              ReturnsCode(5918 % 256));
+}
+
+TEST(CompilerTest, CompStackValuesAreCopiedWhole) {
+  ASSERT_TRUE(CreateFile("main.lu", R"(
+    val P: Type = (x: Int32, y: Int64)
+    val Q: Type = (a: Int32, v: Int32[3], p: P)
+
+    comp fun build(n: Int32): Q {
+      mut val v: Int32[3]
+      mut v[0] = n
+      mut v[1] = n + 1
+      mut v[2] = n + 2
+      mut val p: P
+      mut p.x = n * 2
+      mut p.y = 10000000000
+      mut val q: Q
+      mut q.v = v
+      mut q.p = p
+      mut val ps: P[2]
+      mut ps[1] = q.p
+      mut q.a = ps[1].x
+      val r: Q = q
+      return r
+    }
+
+    comp fun rows(): Int32[3] {
+      val q: Q = build(4)
+      return q.v
+    }
+
+    fun main(): Int32 {
+      val q: Q = comp build(10)
+      val t: Int32[3] = comp rows()
+      if q.p.y == 10000000000 {
+        return q.a + q.v[2] + t[0] + comp build(1).p.x
+      }
+      return 99
+    }
+  )"));
+  EXPECT_THAT(RunCompiler({"run", FullPath("main.lu")}), ReturnsCode(38));
+}
+
 TEST(CompilerTest, CompFieldReadOfAnElementACallReturns) {
   ASSERT_TRUE(CreateFile("main.lu", R"(
     val P: Type = (x: Int32, y: Int64)

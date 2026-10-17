@@ -496,25 +496,9 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef ref, const ReturnStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
     if (am_cfg_.result_slot_count > 0) {
-      const StackPlace place = GetStackPlace(stmt.value, am_block);
-      assert(!place.offset_reg.has_value());
-      std::size_t bytes = 0;
-      for (std::size_t i = 0; i < am_cfg_.result_slot_count; ++i) {
-        const std::size_t slot = am_cfg_.result_slot + i;
-        const Reg bytes_reg = BytesReg(bytes, am_block);
-        const Reg reg = {am_cfg_.next_free_reg_id++, SlotRegSize(slot)};
-        am_block.instructions.emplace_back(LoadStackReg{
-            .offset = place.base_offset,
-            .offset_reg = bytes_reg,
-            .dst_reg = reg,
-        });
-        am_block.instructions.emplace_back(StoreStackReg{
-            .offset = am_cfg_.result_slot,
-            .offset_reg = bytes_reg,
-            .src_reg = reg,
-        });
-        bytes += static_cast<std::size_t>(am_cfg_.stack_slots[slot]);
-      }
+      CopyStackValue({.base_offset = am_cfg_.result_slot},
+                     GetStackPlace(stmt.value, am_block),
+                     syn_cfg_.func_result_type, am_block);
       return;
     }
 
@@ -545,6 +529,13 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef ref, const VarAssignStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
     auto expr_type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));
+    if (IsOnStack(expr_type_ref)) {
+      auto slot = var_stack_.Get(stmt.name);
+      assert(slot.has_value());
+      CopyStackValue({.base_offset = *slot}, GetStackPlace(stmt.expr, am_block),
+                     expr_type_ref, am_block);
+      return;
+    }
     am_block.instructions.emplace_back(MoveReg{
         .src_reg = expr_to_reg_[stmt.expr.id()],
         .dst_reg = GetVarReg(stmt.name, expr_type_ref),
@@ -554,16 +545,22 @@ class AbstractMachineFunctionGenerator {
   void Process(StmtRef ref, const VarDeclStmt& stmt,
                AbstractMachineControlFlowGraph::Block& am_block) {
     if (IsOnStack(stmt.type_constraint)) {
-      // An array a call returns already lies in slots of its own, which the
-      // variable takes over rather than being copied into.
+      // An array or a tuple a call returns already lies in slots of its own,
+      // which the variable takes over rather than being copied into.
       if (stmt.init.has_value()) {
         if (auto slot = expr_slot_.Get(*stmt.init); slot.has_value()) {
           var_stack_.Set(stmt.name, *slot);
           return;
         }
       }
-      var_stack_.Set(stmt.name, am_cfg_.stack_slots.size());
+      const std::size_t slot = am_cfg_.stack_slots.size();
+      var_stack_.Set(stmt.name, slot);
       PushStackSlots(stmt.type_constraint);
+      if (stmt.init.has_value()) {
+        CopyStackValue({.base_offset = slot},
+                       GetStackPlace(*stmt.init, am_block),
+                       stmt.type_constraint, am_block);
+      }
     } else {
       if (stmt.init.has_value()) {
         am_block.instructions.emplace_back(MoveReg{
@@ -579,10 +576,21 @@ class AbstractMachineFunctionGenerator {
     auto stmt_offset = var_stack_.Get(stmt.name);
     assert(stmt_offset.has_value());
 
-    am_block.instructions.emplace_back(StoreStackReg{
-        .offset = *stmt_offset,
+    const TypeRef type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));
+    const StackPlace place = {
+        .base_offset = *stmt_offset,
         .offset_reg = expr_to_reg_[stmt.index.id()],
-        .offset_scale = GetSize(GetType(syn_ctx_.DerefExpr(stmt.expr))),
+        .offset_scale = GetSize(type_ref),
+    };
+    if (IsOnStack(type_ref)) {
+      CopyStackValue(place, GetStackPlace(stmt.expr, am_block), type_ref,
+                     am_block);
+      return;
+    }
+    am_block.instructions.emplace_back(StoreStackReg{
+        .offset = place.base_offset,
+        .offset_reg = *place.offset_reg,
+        .offset_scale = place.offset_scale,
         .src_reg = expr_to_reg_[stmt.expr.id()],
     });
   }
@@ -594,6 +602,12 @@ class AbstractMachineFunctionGenerator {
         place,
         GetFieldOffset(GetType(syn_ctx_.DerefExpr(stmt.base)), stmt.field_name),
         am_block);
+    if (const TypeRef type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));
+        IsOnStack(type_ref)) {
+      CopyStackValue(place, GetStackPlace(stmt.expr, am_block), type_ref,
+                     am_block);
+      return;
+    }
     am_block.instructions.emplace_back(StoreStackReg{
         .offset = place.base_offset,
         .offset_reg = place.offset_reg.value(),
@@ -681,6 +695,50 @@ class AbstractMachineFunctionGenerator {
         .dst_reg = step_reg,
     });
     AddToStackPlace(place, step_reg, am_block);
+  }
+
+  // Copies the value of this type that lies at `src` to `dst`, one value of
+  // a built-in type at a time, each reached by how many bytes into the whole
+  // it stands.
+  void CopyStackValue(StackPlace dst, StackPlace src, TypeRef type_ref,
+                      AbstractMachineControlFlowGraph::Block& am_block) {
+    CountInBytes(dst, am_block);
+    CountInBytes(src, am_block);
+
+    std::vector<int> sizes;
+    AppendSizes(type_ref, sizes);
+    std::size_t bytes = 0;
+    for (const int size : sizes) {
+      const Reg bytes_reg = BytesReg(bytes, am_block);
+      const Reg reg = {am_cfg_.next_free_reg_id++,
+                       size == 4 ? RegSize32 : RegSize64};
+      am_block.instructions.emplace_back(LoadStackReg{
+          .offset = src.base_offset,
+          .offset_reg = Along(src, bytes_reg, am_block),
+          .dst_reg = reg,
+      });
+      am_block.instructions.emplace_back(StoreStackReg{
+          .offset = dst.base_offset,
+          .offset_reg = Along(dst, bytes_reg, am_block),
+          .src_reg = reg,
+      });
+      bytes += static_cast<std::size_t>(size);
+    }
+  }
+
+  // Returns a register holding how many bytes into its variable a value
+  // `bytes_reg` bytes past `place` stands, which `place` counts in bytes.
+  Reg Along(const StackPlace& place, Reg bytes_reg,
+            AbstractMachineControlFlowGraph::Block& am_block) {
+    if (!place.offset_reg.has_value()) return bytes_reg;
+
+    const Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize32};
+    am_block.instructions.emplace_back(AddReg{
+        .res_reg = sum_reg,
+        .lhs_reg = *place.offset_reg,
+        .rhs_reg = bytes_reg,
+    });
+    return sum_reg;
   }
 
   // Works out where the value an expression names lies, by walking the
@@ -798,22 +856,27 @@ class AbstractMachineFunctionGenerator {
   // Puts a stack slot behind every value of a built in type that a value of
   // this type holds, in the order they lie one after another.
   void PushStackSlots(TypeRef type_ref) {
+    AppendSizes(type_ref, am_cfg_.stack_slots);
+  }
+
+  // Appends the size of every value of a built in type that a value of this
+  // type holds to `sizes`, in the order they lie one after another.
+  void AppendSizes(TypeRef type_ref, std::vector<int>& sizes) {
     const Type& type = syn_ctx_.DerefType(type_ref);
 
     if (const auto* array_type = std::get_if<ArrayType>(&type)) {
       for (std::int64_t i = 0; i < array_type->size.value; ++i) {
-        PushStackSlots(array_type->element_type_constraint);
+        AppendSizes(array_type->element_type_constraint, sizes);
       }
       return;
     }
     if (const auto* tuple_type = std::get_if<TupleType>(&type)) {
       for (const auto& field_ref : tuple_type->fields) {
-        PushStackSlots(syn_ctx_.DerefParam(field_ref).type_constraint);
+        AppendSizes(syn_ctx_.DerefParam(field_ref).type_constraint, sizes);
       }
       return;
     }
-    am_cfg_.stack_slots.push_back(
-        static_cast<int>(std::get<BasicType>(type).size));
+    sizes.push_back(static_cast<int>(std::get<BasicType>(type).size));
   }
 
   // How many bytes into a tuple the field called `field_name` stands.

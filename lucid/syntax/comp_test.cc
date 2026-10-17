@@ -412,8 +412,8 @@ TEST(CompCheckTest, ArrayResultAsAnArgument) {
 
   EXPECT_EQ(CheckComp(src),
             std::unexpected(CompError(
-                "an array or a tuple a call returns can only initialize a "
-                "variable, be returned, be indexed or have a field read")));
+                "an array or a tuple a call returns can only be assigned, be "
+                "returned, be indexed or have a field read")));
 }
 
 TEST(CompCheckTest, TupleResultAsAnArgument) {
@@ -436,8 +436,8 @@ TEST(CompCheckTest, TupleResultAsAnArgument) {
 
   EXPECT_EQ(CheckComp(src),
             std::unexpected(CompError(
-                "an array or a tuple a call returns can only initialize a "
-                "variable, be returned, be indexed or have a field read")));
+                "an array or a tuple a call returns can only be assigned, be "
+                "returned, be indexed or have a field read")));
 }
 
 TEST(CompCheckTest, TupleResultFieldRead) {
@@ -458,8 +458,8 @@ TEST(CompCheckTest, TupleResultFieldRead) {
   EXPECT_TRUE(CheckComp(src).has_value());
 }
 
-// An array is copied out whole from where it lies, so what is returned has
-// to lie somewhere of its own.
+// What is returned is copied out of wherever it lies, which can be inside
+// another value.
 TEST(CompCheckTest, ArrayReturnedFromAField) {
   std::string_view src = R"(
     val Row: Type = (v: Int32[2])
@@ -470,10 +470,32 @@ TEST(CompCheckTest, ArrayReturnedFromAField) {
     }
   )";
 
-  EXPECT_EQ(CheckComp(src),
-            std::unexpected(CompError(
-                "an array or a tuple can only be returned from a variable or "
-                "a call")));
+  EXPECT_TRUE(CheckComp(src).has_value());
+}
+
+// A call's result is copied into what it is assigned to like any other value.
+TEST(CompCheckTest, FrameResultAssigned) {
+  std::string_view src = R"(
+    val P: Type = (x: Int32)
+    val Q: Type = (p: P)
+
+    fun foo(): P {
+      mut val p: P
+      return p
+    }
+
+    fun test(): Int32 {
+      mut val p: P
+      mut p = foo()
+      mut val a: P[2]
+      mut a[1] = foo()
+      mut val q: Q
+      mut q.p = foo()
+      return p.x
+    }
+  )";
+
+  EXPECT_TRUE(CheckComp(src).has_value());
 }
 
 }  // namespace

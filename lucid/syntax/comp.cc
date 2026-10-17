@@ -205,17 +205,17 @@ bool ReturnsInFrame(const SyntaxContext& syn_ctx, const FuncCallExpr& expr) {
 //
 // Such a call leaves its result in slots of the caller's frame, and only a
 // few places have somewhere to take it from there: the variable it
-// initialises, the return it is the value of, and the index or the field read
-// out of it. `may_lie_in_frame` says whether the expression stands in one of
-// those.
+// initialises or is assigned to, the element or the field it is assigned to,
+// the return it is the value of, and the index or the field read out of it.
+// `may_lie_in_frame` says whether the expression stands in one of those.
 std::expected<void, CompError> CheckFrameResultCalls(
     const SyntaxContext& syn_ctx, ExprRef expr_ref, bool may_lie_in_frame) {
   const Expr& expr = syn_ctx.DerefExpr(expr_ref);
   if (const auto* func_call_expr = std::get_if<FuncCallExpr>(&expr)) {
     if (ReturnsInFrame(syn_ctx, *func_call_expr) && !may_lie_in_frame) {
       return std::unexpected(
-          CompError("an array or a tuple a call returns can only initialize a "
-                    "variable, be returned, be indexed or have a field read"));
+          CompError("an array or a tuple a call returns can only be assigned, "
+                    "be returned, be indexed or have a field read"));
     }
     for (const auto& arg : func_call_expr->args) {
       std::expected<void, CompError> res =
@@ -251,7 +251,6 @@ std::expected<void, CompError> CheckFrameResultCalls(
 std::expected<void, CompError> CheckFrameResultCalls(
     const SyntaxContext& syn_ctx, const FuncDefStmt& func_def,
     StmtRef stmt_ref) {
-  const bool returns_in_frame = LiesInFrame(syn_ctx, func_def.result_type);
   const auto check = [&](ExprRef expr_ref, bool may_lie_in_frame) {
     return CheckFrameResultCalls(syn_ctx, expr_ref, may_lie_in_frame);
   };
@@ -272,31 +271,20 @@ std::expected<void, CompError> CheckFrameResultCalls(
       return check(*var_decl_stmt->init, /*may_lie_in_frame=*/true);
     }
   } else if (const auto* var_assign_stmt = std::get_if<VarAssignStmt>(&stmt)) {
-    return check(var_assign_stmt->expr, /*may_lie_in_frame=*/false);
+    return check(var_assign_stmt->expr, /*may_lie_in_frame=*/true);
   } else if (const auto* array_assign_stmt =
                  std::get_if<ArrayAssignStmt>(&stmt)) {
     return check(array_assign_stmt->index, /*may_lie_in_frame=*/false)
         .and_then([&] {
-          return check(array_assign_stmt->expr, /*may_lie_in_frame=*/false);
+          return check(array_assign_stmt->expr, /*may_lie_in_frame=*/true);
         });
   } else if (const auto* field_assign_stmt =
                  std::get_if<FieldAssignStmt>(&stmt)) {
     return check(field_assign_stmt->base, /*may_lie_in_frame=*/false)
         .and_then([&] {
-          return check(field_assign_stmt->expr, /*may_lie_in_frame=*/false);
+          return check(field_assign_stmt->expr, /*may_lie_in_frame=*/true);
         });
   } else if (const auto* return_stmt = std::get_if<ReturnStmt>(&stmt)) {
-    // The result is copied out of where it lies whole, so it has to lie
-    // somewhere of its own: in a variable, or in what a call put it in.
-    if (returns_in_frame) {
-      const Expr& value = syn_ctx.DerefExpr(return_stmt->value);
-      if (!std::holds_alternative<IdentExpr>(value) &&
-          !std::holds_alternative<FuncCallExpr>(value)) {
-        return std::unexpected(
-            CompError("an array or a tuple can only be returned from a "
-                      "variable or a call"));
-      }
-    }
     return check(return_stmt->value, /*may_lie_in_frame=*/true);
   } else if (const auto* do_stmt = std::get_if<DoStmt>(&stmt)) {
     return check(do_stmt->expr, /*may_lie_in_frame=*/false);

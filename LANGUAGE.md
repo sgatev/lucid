@@ -121,10 +121,9 @@ function means it may be called while the program is being compiled; see
 [Compile-time evaluation](#compile-time-evaluation).
 
 **A function can return an array or a tuple**, which the caller receives as a copy. The
-call can initialise a variable, be returned, or be indexed or have a field read where it
-stands, and nothing else: `val t: Int32[4] = f()`, `return f()`, `f()[2]` and `g().x`
-are accepted, and `h(f())` is not. What is returned has to be a variable or a call, so
-`return r.v` is rejected.
+call can be assigned or returned, or be indexed or have a field read where it stands,
+and nothing else: `val t: Int32[4] = f()`, `mut a[i] = g()`, `return f()`, `f()[2]` and
+`g().x` are accepted, and `h(f())` is not.
 
 Commas between parameters are optional. `fun f(a: Int32 b: Int32)` parses exactly as the
 version with a comma, which is a looseness in the parser rather than a style to rely on.
@@ -173,6 +172,10 @@ field rather than an index:
 mut ps[i].x = 3
 mut q.p.x = 5
 ```
+
+**An array or a tuple is copied whole** wherever it is assigned, initialises a
+declaration or is returned, so a later write to one copy is not seen in the other:
+`mut q.v = v`, `val r: P = ps[i]` and `mut ps[i] = ps[j]` all copy.
 
 What the write reaches is the variable at the foot of the target, and that is the
 declaration whose `mut` allows it: `mut ps[i].x = 3` needs `mut val ps`.
