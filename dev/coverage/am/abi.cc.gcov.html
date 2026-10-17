@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-17 12:41:11</td>
+            <td class="headerValue">2026-10-17 12:54:47</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -95,18 +95,18 @@
 <span id="L33"><span class="lineNum">      33</span>              : // How many arguments `am_cfg` leaves on the stack for the widest call it</span>
 <span id="L34"><span class="lineNum">      34</span>              : // makes.</span>
 <span id="L35"><span class="lineNum">      35</span>              : std::size_t WidestStackCall(const AbstractMachineControlFlowGraph&amp; am_cfg,</span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">         648 :                             const CallingConvention&amp; c) {</span></span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         648 :   std::size_t widest = 0;</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">        3626 :   for (const auto&amp; block : am_cfg.Blocks()) {</span></span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       24155 :     for (const auto&amp; inst : block.instructions) {</span></span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       24155 :       const auto* call = std::get_if&lt;FuncCall&gt;(&amp;inst);</span></span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">       24155 :       if (call == nullptr || call-&gt;args.size() &lt;= c.max_register_args) continue;</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">         654 :                             const CallingConvention&amp; c) {</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         654 :   std::size_t widest = 0;</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">        3642 :   for (const auto&amp; block : am_cfg.Blocks()) {</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       24553 :     for (const auto&amp; inst : block.instructions) {</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       24553 :       const auto* call = std::get_if&lt;FuncCall&gt;(&amp;inst);</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">       24553 :       if (call == nullptr || call-&gt;args.size() &lt;= c.max_register_args) continue;</span></span>
 <span id="L42"><span class="lineNum">      42</span>              : </span>
 <span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">          30 :       widest = std::max(widest, call-&gt;args.size() - c.max_register_args);</span></span>
 <span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">          30 :     }</span></span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">        3626 :   }</span></span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">         648 :   return widest;</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">         648 : }</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">        3642 :   }</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">         654 :   return widest;</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">         654 : }</span></span>
 <span id="L48"><span class="lineNum">      48</span>              : </span>
 <span id="L49"><span class="lineNum">      49</span>              : // Leaves every read of `reg` reading a register of its own, loaded from</span>
 <span id="L50"><span class="lineNum">      50</span>              : // `slot` where the read stands.</span>
@@ -174,58 +174,58 @@
 <span id="L112"><span class="lineNum">     112</span>              :                      const CallingConvention&amp; c, FrameLayout&amp; layout,</span>
 <span id="L113"><span class="lineNum">     113</span>              :                      std::list&lt;Instruction&gt;&amp; instructions,</span>
 <span id="L114"><span class="lineNum">     114</span>              :                      std::list&lt;Instruction&gt;::iterator at,</span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">          24 :                      const FuncCall&amp; call) {</span></span>
-<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">          24 :   const std::uint32_t first = call.res_slot;</span></span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          24 :   const auto count = am_cfg.call_result_slot_counts.Get(first);</span></span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">          24 :   assert(count.has_value());</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">          29 :                      const FuncCall&amp; call) {</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">          29 :   const std::uint32_t first = call.res_slot;</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          29 :   const auto count = am_cfg.call_result_slot_counts.Get(first);</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">          29 :   assert(count.has_value());</span></span>
 <span id="L119"><span class="lineNum">     119</span>              : </span>
-<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">          24 :   const std::size_t on_stack = call.args.size() &gt; c.max_register_args</span></span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">          24 :                                    ? call.args.size() - c.max_register_args</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">          24 :                                    : 0;</span></span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">          24 :   const OutgoingResult result = {</span></span>
-<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">          24 :       .slots =</span></span>
-<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">          24 :           {</span></span>
-<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">          24 :               .first = static_cast&lt;std::uint32_t&gt;(am_cfg.stack_slots.size()),</span></span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">          24 :               .count = *count,</span></span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">          24 :           },</span></span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">          24 :       .at = static_cast&lt;std::uint32_t&gt;(on_stack * c.stack_arg_size),</span></span>
-<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">          24 :   };</span></span>
-<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">        2514 :   for (std::uint32_t i = 0; i &lt; *count; ++i) {</span></span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">        2490 :     am_cfg.stack_slots.push_back(am_cfg.stack_slots[first + i]);</span></span>
-<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">        2490 :   }</span></span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">          24 :   layout.outgoing_results.push_back(result);</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">          29 :   const std::size_t on_stack = call.args.size() &gt; c.max_register_args</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">          29 :                                    ? call.args.size() - c.max_register_args</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">          29 :                                    : 0;</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">          29 :   const OutgoingResult result = {</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">          29 :       .slots =</span></span>
+<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">          29 :           {</span></span>
+<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">          29 :               .first = static_cast&lt;std::uint32_t&gt;(am_cfg.stack_slots.size()),</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">          29 :               .count = *count,</span></span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">          29 :           },</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">          29 :       .at = static_cast&lt;std::uint32_t&gt;(on_stack * c.stack_arg_size),</span></span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">          29 :   };</span></span>
+<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">        2534 :   for (std::uint32_t i = 0; i &lt; *count; ++i) {</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">        2505 :     am_cfg.stack_slots.push_back(am_cfg.stack_slots[first + i]);</span></span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">        2505 :   }</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">          29 :   layout.outgoing_results.push_back(result);</span></span>
 <span id="L135"><span class="lineNum">     135</span>              : </span>
 <span id="L136"><span class="lineNum">     136</span>              :   // What the result holds is reached by how many bytes into it each value</span>
 <span id="L137"><span class="lineNum">     137</span>              :   // stands, as indexing it reaches it, rather than slot by slot.</span>
-<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">          24 :   const auto next = std::next(at);</span></span>
-<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">          24 :   int bytes = 0;</span></span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">        2514 :   for (std::uint32_t i = 0; i &lt; *count; ++i) {</span></span>
-<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">        2490 :     const int width = am_cfg.stack_slots[first + i];</span></span>
-<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">        2490 :     const Reg bytes_reg = {am_cfg.next_free_reg_id++, RegSize32};</span></span>
-<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">        2490 :     const Reg value = {am_cfg.next_free_reg_id++,</span></span>
-<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">        2490 :                        width == 4 ? RegSize32 : RegSize64};</span></span>
-<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">        2490 :     instructions.insert(next, SetReg{.src_val = bytes, .dst_reg = bytes_reg});</span></span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">        2490 :     instructions.insert(next, LoadStackReg{</span></span>
-<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">        2490 :                                   .offset = result.slots.first,</span></span>
-<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">        2490 :                                   .offset_reg = bytes_reg,</span></span>
-<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">        2490 :                                   .dst_reg = value,</span></span>
-<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">        2490 :                               });</span></span>
-<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">        2490 :     instructions.insert(next, StoreStackReg{</span></span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">        2490 :                                   .offset = first,</span></span>
-<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">        2490 :                                   .offset_reg = bytes_reg,</span></span>
-<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">        2490 :                                   .src_reg = value,</span></span>
-<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">        2490 :                               });</span></span>
-<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">        2490 :     bytes += width;</span></span>
-<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">        2490 :   }</span></span>
-<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">          24 : }</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">          29 :   const auto next = std::next(at);</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">          29 :   int bytes = 0;</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">        2534 :   for (std::uint32_t i = 0; i &lt; *count; ++i) {</span></span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">        2505 :     const int width = am_cfg.stack_slots[first + i];</span></span>
+<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">        2505 :     const Reg bytes_reg = {am_cfg.next_free_reg_id++, RegSize32};</span></span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">        2505 :     const Reg value = {am_cfg.next_free_reg_id++,</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">        2505 :                        width == 4 ? RegSize32 : RegSize64};</span></span>
+<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">        2505 :     instructions.insert(next, SetReg{.src_val = bytes, .dst_reg = bytes_reg});</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">        2505 :     instructions.insert(next, LoadStackReg{</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">        2505 :                                   .offset = result.slots.first,</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">        2505 :                                   .offset_reg = bytes_reg,</span></span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">        2505 :                                   .dst_reg = value,</span></span>
+<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">        2505 :                               });</span></span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">        2505 :     instructions.insert(next, StoreStackReg{</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">        2505 :                                   .offset = first,</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">        2505 :                                   .offset_reg = bytes_reg,</span></span>
+<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">        2505 :                                   .src_reg = value,</span></span>
+<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">        2505 :                               });</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">        2505 :     bytes += width;</span></span>
+<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">        2505 :   }</span></span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">          29 : }</span></span>
 <span id="L159"><span class="lineNum">     159</span>              : </span>
 <span id="L160"><span class="lineNum">     160</span>              : }  // namespace</span>
 <span id="L161"><span class="lineNum">     161</span>              : </span>
 <span id="L162"><span class="lineNum">     162</span>              : FrameLayout LowerCallingConvention(AbstractMachineControlFlowGraph&amp; am_cfg,</span>
-<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">         648 :                                    const CallingConvention&amp; convention) {</span></span>
-<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">         648 :   FrameLayout layout;</span></span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">         654 :                                    const CallingConvention&amp; convention) {</span></span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">         654 :   FrameLayout layout;</span></span>
 <span id="L165"><span class="lineNum">     165</span>              : </span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">         648 :   if (am_cfg.params.size() &gt; convention.max_register_args) {</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">         654 :   if (am_cfg.params.size() &gt; convention.max_register_args) {</span></span>
 <span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">          31 :     const std::size_t on_stack =</span></span>
 <span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">          31 :         am_cfg.params.size() - convention.max_register_args;</span></span>
 <span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">          31 :     layout.incoming_args = TakeArgSlots(am_cfg, convention, on_stack);</span></span>
@@ -240,31 +240,31 @@
 <span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">          31 :     am_cfg.params.resize(convention.max_register_args);</span></span>
 <span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">          31 :   }</span></span>
 <span id="L180"><span class="lineNum">     180</span>              : </span>
-<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">         648 :   if (am_cfg.result_slot_count &gt; 0) {</span></span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">          19 :     layout.incoming_result = {</span></span>
-<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">          19 :         .first = static_cast&lt;std::uint32_t&gt;(am_cfg.result_slot),</span></span>
-<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          19 :         .count = static_cast&lt;std::uint32_t&gt;(am_cfg.result_slot_count),</span></span>
-<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">          19 :     };</span></span>
-<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">          19 :   }</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">         654 :   if (am_cfg.result_slot_count &gt; 0) {</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">          23 :     layout.incoming_result = {</span></span>
+<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">          23 :         .first = static_cast&lt;std::uint32_t&gt;(am_cfg.result_slot),</span></span>
+<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          23 :         .count = static_cast&lt;std::uint32_t&gt;(am_cfg.result_slot_count),</span></span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">          23 :     };</span></span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">          23 :   }</span></span>
 <span id="L187"><span class="lineNum">     187</span>              : </span>
 <span id="L188"><span class="lineNum">     188</span>              :   // One run of slots for every call, because only one call is being made at</span>
 <span id="L189"><span class="lineNum">     189</span>              :   // a time and each fills what it needs of them.</span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">         648 :   if (const std::size_t widest = WidestStackCall(am_cfg, convention);</span></span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">         648 :       widest &gt; 0) {</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">         654 :   if (const std::size_t widest = WidestStackCall(am_cfg, convention);</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">         654 :       widest &gt; 0) {</span></span>
 <span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">          29 :     layout.outgoing_args = TakeArgSlots(am_cfg, convention, widest);</span></span>
 <span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          29 :   }</span></span>
 <span id="L194"><span class="lineNum">     194</span>              : </span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">        3626 :   for (auto&amp; block : am_cfg.Blocks()) {</span></span>
-<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">       35251 :     for (auto i = block.instructions.begin(); i != block.instructions.end();</span></span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">       31625 :          ++i) {</span></span>
-<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">       31625 :       auto* call = std::get_if&lt;FuncCall&gt;(&amp;*i);</span></span>
-<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">       31625 :       if (call == nullptr) continue;</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">        3642 :   for (auto&amp; block : am_cfg.Blocks()) {</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">       35710 :     for (auto i = block.instructions.begin(); i != block.instructions.end();</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">       32068 :          ++i) {</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">       32068 :       auto* call = std::get_if&lt;FuncCall&gt;(&amp;*i);</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">       32068 :       if (call == nullptr) continue;</span></span>
 <span id="L200"><span class="lineNum">     200</span>              : </span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">         839 :       if (call-&gt;res_slot != FuncCall::kNoResSlot) {</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">          24 :         TakeResultSlots(am_cfg, convention, layout, block.instructions, i,</span></span>
-<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">          24 :                         *call);</span></span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">          24 :       }</span></span>
-<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">         839 :       if (call-&gt;args.size() &lt;= convention.max_register_args) continue;</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">         844 :       if (call-&gt;res_slot != FuncCall::kNoResSlot) {</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">          29 :         TakeResultSlots(am_cfg, convention, layout, block.instructions, i,</span></span>
+<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">          29 :                         *call);</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">          29 :       }</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">         844 :       if (call-&gt;args.size() &lt;= convention.max_register_args) continue;</span></span>
 <span id="L206"><span class="lineNum">     206</span>              : </span>
 <span id="L207"><span class="lineNum">     207</span>              :       // Put the arguments there is no register for where the call will look</span>
 <span id="L208"><span class="lineNum">     208</span>              :       // for them, and take them off the call, so that nothing has to hold</span>
@@ -281,9 +281,9 @@
 <span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          66 :       }</span></span>
 <span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">          30 :       call-&gt;args.resize(convention.max_register_args);</span></span>
 <span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          30 :     }</span></span>
-<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">        3626 :   }</span></span>
-<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">         648 :   return layout;</span></span>
-<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">         648 : }</span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">        3642 :   }</span></span>
+<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">         654 :   return layout;</span></span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">         654 : }</span></span>
 <span id="L225"><span class="lineNum">     225</span>              : </span>
 <span id="L226"><span class="lineNum">     226</span>              : }  // namespace lucid</span>
         </pre>

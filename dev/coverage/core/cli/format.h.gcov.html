@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-17 12:41:11</td>
+            <td class="headerValue">2026-10-17 12:54:47</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
@@ -79,10 +79,10 @@
 <span id="L17"><span class="lineNum">      17</span>              : namespace internal {</span>
 <span id="L18"><span class="lineNum">      18</span>              : </span>
 <span id="L19"><span class="lineNum">      19</span>              : // Returns the slot in a stream's storage that records whether it shows color.</span>
-<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">         838 : inline int ColorSlot() {</span></span>
-<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">         838 :   static const int slot = std::ios_base::xalloc();</span></span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">         838 :   return slot;</span></span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">         838 : }</span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC">         842 : inline int ColorSlot() {</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">         842 :   static const int slot = std::ios_base::xalloc();</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">         842 :   return slot;</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC">         842 : }</span></span>
 <span id="L24"><span class="lineNum">      24</span>              : </span>
 <span id="L25"><span class="lineNum">      25</span>              : }  // namespace internal</span>
 <span id="L26"><span class="lineNum">      26</span>              : </span>
@@ -91,9 +91,9 @@
 <span id="L29"><span class="lineNum">      29</span>              : // A stream shows no color until this enables it, so that text written</span>
 <span id="L30"><span class="lineNum">      30</span>              : // somewhere other than a terminal, such as a file or a pipe, carries no</span>
 <span id="L31"><span class="lineNum">      31</span>              : // escape sequences.</span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">         624 : inline void EnableColor(std::ostream&amp; o, bool enable = true) {</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">         624 :   o.iword(internal::ColorSlot()) = enable ? 1 : 0;</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         624 : }</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">         628 : inline void EnableColor(std::ostream&amp; o, bool enable = true) {</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">         628 :   o.iword(internal::ColorSlot()) = enable ? 1 : 0;</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         628 : }</span></span>
 <span id="L35"><span class="lineNum">      35</span>              : </span>
 <span id="L36"><span class="lineNum">      36</span>              : // Changes the color of new text printed to `o`.</span>
 <span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         107 : inline auto SetColor(Color c) {</span></span>

@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-17 12:41:11</td>
+            <td class="headerValue">2026-10-17 12:54:47</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryLo">54.7&nbsp;%</td>
@@ -93,7 +93,7 @@
 <span id="L31"><span class="lineNum">      31</span>              :   std::int32_t id;</span>
 <span id="L32"><span class="lineNum">      32</span>              :   RegSize size;</span>
 <span id="L33"><span class="lineNum">      33</span>              : </span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">      356691 :   bool operator==(const Reg&amp;) const = default;</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">      356725 :   bool operator==(const Reg&amp;) const = default;</span></span>
 <span id="L35"><span class="lineNum">      35</span>              : </span>
 <span id="L36"><span class="lineNum">      36</span> <span class="tlaUNC">           0 :   friend std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const Reg&amp; reg) {</span></span>
 <span id="L37"><span class="lineNum">      37</span> <span class="tlaUNC">           0 :     os &lt;&lt; reg.id &lt;&lt; &quot;(&quot;;</span></span>
@@ -569,62 +569,62 @@
 <span id="L507"><span class="lineNum">     507</span>              : // the reads of a register without listing the instructions itself, and so</span>
 <span id="L508"><span class="lineNum">     508</span>              : // without a new kind of instruction going unnoticed by it.</span>
 <span id="L509"><span class="lineNum">     509</span>              : template &lt;InstructionLike InstT, typename VisitT&gt;</span>
-<span id="L510"><span class="lineNum">     510</span> <span class="tlaGNC">      277163 : inline void ForEachSourceRegister(InstT&amp;&amp; inst, VisitT visit) {</span></span>
-<span id="L511"><span class="lineNum">     511</span> <span class="tlaGNC">      277163 :   if (std::holds_alternative&lt;SetReg&gt;(inst) ||</span></span>
-<span id="L512"><span class="lineNum">     512</span> <span class="tlaGNC">      277163 :       std::holds_alternative&lt;SetInt&gt;(inst) ||</span></span>
-<span id="L513"><span class="lineNum">     513</span> <span class="tlaGNC">      277163 :       std::holds_alternative&lt;SetStr&gt;(inst) ||</span></span>
-<span id="L514"><span class="lineNum">     514</span> <span class="tlaGNC">      277163 :       std::holds_alternative&lt;LoadStack&gt;(inst)) {</span></span>
-<span id="L515"><span class="lineNum">     515</span> <span class="tlaGNC">      106392 :     return;</span></span>
-<span id="L516"><span class="lineNum">     516</span> <span class="tlaGNC">      170775 :   } else if (auto* cinst = std::get_if&lt;MoveReg&gt;(&amp;inst)) {</span></span>
-<span id="L517"><span class="lineNum">     517</span> <span class="tlaGNC">       39917 :     visit(cinst-&gt;src_reg);</span></span>
-<span id="L518"><span class="lineNum">     518</span> <span class="tlaGNC">      130864 :   } else if (auto* cinst = std::get_if&lt;AddReg&gt;(&amp;inst)) {</span></span>
-<span id="L519"><span class="lineNum">     519</span> <span class="tlaGNC">       30855 :     visit(cinst-&gt;lhs_reg);</span></span>
-<span id="L520"><span class="lineNum">     520</span> <span class="tlaGNC">       30855 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L521"><span class="lineNum">     521</span> <span class="tlaGNC">      106911 :   } else if (auto* cinst = std::get_if&lt;SubReg&gt;(&amp;inst)) {</span></span>
+<span id="L510"><span class="lineNum">     510</span> <span class="tlaGNC">      280219 : inline void ForEachSourceRegister(InstT&amp;&amp; inst, VisitT visit) {</span></span>
+<span id="L511"><span class="lineNum">     511</span> <span class="tlaGNC">      280219 :   if (std::holds_alternative&lt;SetReg&gt;(inst) ||</span></span>
+<span id="L512"><span class="lineNum">     512</span> <span class="tlaGNC">      280219 :       std::holds_alternative&lt;SetInt&gt;(inst) ||</span></span>
+<span id="L513"><span class="lineNum">     513</span> <span class="tlaGNC">      280219 :       std::holds_alternative&lt;SetStr&gt;(inst) ||</span></span>
+<span id="L514"><span class="lineNum">     514</span> <span class="tlaGNC">      280219 :       std::holds_alternative&lt;LoadStack&gt;(inst)) {</span></span>
+<span id="L515"><span class="lineNum">     515</span> <span class="tlaGNC">      107616 :     return;</span></span>
+<span id="L516"><span class="lineNum">     516</span> <span class="tlaGNC">      172607 :   } else if (auto* cinst = std::get_if&lt;MoveReg&gt;(&amp;inst)) {</span></span>
+<span id="L517"><span class="lineNum">     517</span> <span class="tlaGNC">       39924 :     visit(cinst-&gt;src_reg);</span></span>
+<span id="L518"><span class="lineNum">     518</span> <span class="tlaGNC">      132689 :   } else if (auto* cinst = std::get_if&lt;AddReg&gt;(&amp;inst)) {</span></span>
+<span id="L519"><span class="lineNum">     519</span> <span class="tlaGNC">       31310 :     visit(cinst-&gt;lhs_reg);</span></span>
+<span id="L520"><span class="lineNum">     520</span> <span class="tlaGNC">       31310 :     visit(cinst-&gt;rhs_reg);</span></span>
+<span id="L521"><span class="lineNum">     521</span> <span class="tlaGNC">      108281 :   } else if (auto* cinst = std::get_if&lt;SubReg&gt;(&amp;inst)) {</span></span>
 <span id="L522"><span class="lineNum">     522</span> <span class="tlaGNC">        4960 :     visit(cinst-&gt;lhs_reg);</span></span>
 <span id="L523"><span class="lineNum">     523</span> <span class="tlaGNC">        4960 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L524"><span class="lineNum">     524</span> <span class="tlaGNC">       95039 :   } else if (auto* cinst = std::get_if&lt;MulReg&gt;(&amp;inst)) {</span></span>
-<span id="L525"><span class="lineNum">     525</span> <span class="tlaGNC">        3569 :     visit(cinst-&gt;lhs_reg);</span></span>
-<span id="L526"><span class="lineNum">     526</span> <span class="tlaGNC">        3569 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L527"><span class="lineNum">     527</span> <span class="tlaGNC">       91470 :   } else if (auto* cinst = std::get_if&lt;DivReg&gt;(&amp;inst)) {</span></span>
+<span id="L524"><span class="lineNum">     524</span> <span class="tlaGNC">       96409 :   } else if (auto* cinst = std::get_if&lt;MulReg&gt;(&amp;inst)) {</span></span>
+<span id="L525"><span class="lineNum">     525</span> <span class="tlaGNC">        3660 :     visit(cinst-&gt;lhs_reg);</span></span>
+<span id="L526"><span class="lineNum">     526</span> <span class="tlaGNC">        3660 :     visit(cinst-&gt;rhs_reg);</span></span>
+<span id="L527"><span class="lineNum">     527</span> <span class="tlaGNC">       92749 :   } else if (auto* cinst = std::get_if&lt;DivReg&gt;(&amp;inst)) {</span></span>
 <span id="L528"><span class="lineNum">     528</span> <span class="tlaGNC">        1103 :     visit(cinst-&gt;lhs_reg);</span></span>
 <span id="L529"><span class="lineNum">     529</span> <span class="tlaGNC">        1103 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L530"><span class="lineNum">     530</span> <span class="tlaGNC">       90367 :   } else if (auto* cinst = std::get_if&lt;ModReg&gt;(&amp;inst)) {</span></span>
+<span id="L530"><span class="lineNum">     530</span> <span class="tlaGNC">       91646 :   } else if (auto* cinst = std::get_if&lt;ModReg&gt;(&amp;inst)) {</span></span>
 <span id="L531"><span class="lineNum">     531</span> <span class="tlaGNC">         304 :     visit(cinst-&gt;lhs_reg);</span></span>
 <span id="L532"><span class="lineNum">     532</span> <span class="tlaGNC">         304 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L533"><span class="lineNum">     533</span> <span class="tlaGNC">       90063 :   } else if (auto* cinst = std::get_if&lt;GtReg&gt;(&amp;inst)) {</span></span>
+<span id="L533"><span class="lineNum">     533</span> <span class="tlaGNC">       91342 :   } else if (auto* cinst = std::get_if&lt;GtReg&gt;(&amp;inst)) {</span></span>
 <span id="L534"><span class="lineNum">     534</span> <span class="tlaGNC">        3031 :     visit(cinst-&gt;lhs_reg);</span></span>
 <span id="L535"><span class="lineNum">     535</span> <span class="tlaGNC">        3031 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L536"><span class="lineNum">     536</span> <span class="tlaGNC">       87032 :   } else if (auto* cinst = std::get_if&lt;LtReg&gt;(&amp;inst)) {</span></span>
+<span id="L536"><span class="lineNum">     536</span> <span class="tlaGNC">       88311 :   } else if (auto* cinst = std::get_if&lt;LtReg&gt;(&amp;inst)) {</span></span>
 <span id="L537"><span class="lineNum">     537</span> <span class="tlaGNC">         488 :     visit(cinst-&gt;lhs_reg);</span></span>
 <span id="L538"><span class="lineNum">     538</span> <span class="tlaGNC">         488 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L539"><span class="lineNum">     539</span> <span class="tlaGNC">       86544 :   } else if (auto* cinst = std::get_if&lt;GeReg&gt;(&amp;inst)) {</span></span>
+<span id="L539"><span class="lineNum">     539</span> <span class="tlaGNC">       87823 :   } else if (auto* cinst = std::get_if&lt;GeReg&gt;(&amp;inst)) {</span></span>
 <span id="L540"><span class="lineNum">     540</span> <span class="tlaGNC">        1789 :     visit(cinst-&gt;lhs_reg);</span></span>
 <span id="L541"><span class="lineNum">     541</span> <span class="tlaGNC">        1789 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L542"><span class="lineNum">     542</span> <span class="tlaGNC">       84755 :   } else if (auto* cinst = std::get_if&lt;LeReg&gt;(&amp;inst)) {</span></span>
+<span id="L542"><span class="lineNum">     542</span> <span class="tlaGNC">       86034 :   } else if (auto* cinst = std::get_if&lt;LeReg&gt;(&amp;inst)) {</span></span>
 <span id="L543"><span class="lineNum">     543</span> <span class="tlaGNC">         609 :     visit(cinst-&gt;lhs_reg);</span></span>
 <span id="L544"><span class="lineNum">     544</span> <span class="tlaGNC">         609 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L545"><span class="lineNum">     545</span> <span class="tlaGNC">       84146 :   } else if (auto* cinst = std::get_if&lt;EqReg&gt;(&amp;inst)) {</span></span>
-<span id="L546"><span class="lineNum">     546</span> <span class="tlaGNC">        1470 :     visit(cinst-&gt;lhs_reg);</span></span>
-<span id="L547"><span class="lineNum">     547</span> <span class="tlaGNC">        1470 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L548"><span class="lineNum">     548</span> <span class="tlaGNC">       82676 :   } else if (auto* cinst = std::get_if&lt;NotEqReg&gt;(&amp;inst)) {</span></span>
+<span id="L545"><span class="lineNum">     545</span> <span class="tlaGNC">       85425 :   } else if (auto* cinst = std::get_if&lt;EqReg&gt;(&amp;inst)) {</span></span>
+<span id="L546"><span class="lineNum">     546</span> <span class="tlaGNC">        1484 :     visit(cinst-&gt;lhs_reg);</span></span>
+<span id="L547"><span class="lineNum">     547</span> <span class="tlaGNC">        1484 :     visit(cinst-&gt;rhs_reg);</span></span>
+<span id="L548"><span class="lineNum">     548</span> <span class="tlaGNC">       83941 :   } else if (auto* cinst = std::get_if&lt;NotEqReg&gt;(&amp;inst)) {</span></span>
 <span id="L549"><span class="lineNum">     549</span> <span class="tlaGNC">         490 :     visit(cinst-&gt;lhs_reg);</span></span>
 <span id="L550"><span class="lineNum">     550</span> <span class="tlaGNC">         490 :     visit(cinst-&gt;rhs_reg);</span></span>
-<span id="L551"><span class="lineNum">     551</span> <span class="tlaGNC">       82186 :   } else if (auto* cinst = std::get_if&lt;StoreStack&gt;(&amp;inst)) {</span></span>
+<span id="L551"><span class="lineNum">     551</span> <span class="tlaGNC">       83451 :   } else if (auto* cinst = std::get_if&lt;StoreStack&gt;(&amp;inst)) {</span></span>
 <span id="L552"><span class="lineNum">     552</span> <span class="tlaGNC">        5547 :     visit(cinst-&gt;src_reg);</span></span>
-<span id="L553"><span class="lineNum">     553</span> <span class="tlaGNC">       77970 :   } else if (auto* cinst = std::get_if&lt;StoreStackReg&gt;(&amp;inst)) {</span></span>
-<span id="L554"><span class="lineNum">     554</span> <span class="tlaGNC">       34254 :     visit(cinst-&gt;src_reg);</span></span>
-<span id="L555"><span class="lineNum">     555</span> <span class="tlaGNC">       34254 :     visit(cinst-&gt;offset_reg);</span></span>
-<span id="L556"><span class="lineNum">     556</span> <span class="tlaGNC">       42385 :   } else if (auto* cinst = std::get_if&lt;LoadStackReg&gt;(&amp;inst)) {</span></span>
-<span id="L557"><span class="lineNum">     557</span> <span class="tlaGNC">       25364 :     visit(cinst-&gt;offset_reg);</span></span>
-<span id="L558"><span class="lineNum">     558</span> <span class="tlaGNC">       38790 :   } else if (auto* cinst = std::get_if&lt;FuncCall&gt;(&amp;inst)) {</span></span>
-<span id="L559"><span class="lineNum">     559</span> <span class="tlaGNC">       26076 :     for (auto&amp; arg : cinst-&gt;args) visit(arg.reg);</span></span>
-<span id="L560"><span class="lineNum">     560</span> <span class="tlaGNC">       13272 :   } else if (auto* cinst = std::get_if&lt;Return&gt;(&amp;inst)) {</span></span>
-<span id="L561"><span class="lineNum">     561</span> <span class="tlaGNC">        4725 :     visit(cinst-&gt;res_reg);</span></span>
-<span id="L562"><span class="lineNum">     562</span> <span class="tlaGNC">        4725 :   } else {</span></span>
+<span id="L553"><span class="lineNum">     553</span> <span class="tlaGNC">       79235 :   } else if (auto* cinst = std::get_if&lt;StoreStackReg&gt;(&amp;inst)) {</span></span>
+<span id="L554"><span class="lineNum">     554</span> <span class="tlaGNC">       34904 :     visit(cinst-&gt;src_reg);</span></span>
+<span id="L555"><span class="lineNum">     555</span> <span class="tlaGNC">       34904 :     visit(cinst-&gt;offset_reg);</span></span>
+<span id="L556"><span class="lineNum">     556</span> <span class="tlaGNC">       43000 :   } else if (auto* cinst = std::get_if&lt;LoadStackReg&gt;(&amp;inst)) {</span></span>
+<span id="L557"><span class="lineNum">     557</span> <span class="tlaGNC">       25902 :     visit(cinst-&gt;offset_reg);</span></span>
+<span id="L558"><span class="lineNum">     558</span> <span class="tlaGNC">       39328 :   } else if (auto* cinst = std::get_if&lt;FuncCall&gt;(&amp;inst)) {</span></span>
+<span id="L559"><span class="lineNum">     559</span> <span class="tlaGNC">       26111 :     for (auto&amp; arg : cinst-&gt;args) visit(arg.reg);</span></span>
+<span id="L560"><span class="lineNum">     560</span> <span class="tlaGNC">       13314 :   } else if (auto* cinst = std::get_if&lt;Return&gt;(&amp;inst)) {</span></span>
+<span id="L561"><span class="lineNum">     561</span> <span class="tlaGNC">        4767 :     visit(cinst-&gt;res_reg);</span></span>
+<span id="L562"><span class="lineNum">     562</span> <span class="tlaGNC">        4767 :   } else {</span></span>
 <span id="L563"><span class="lineNum">     563</span> <span class="tlaUNC">           0 :     assert(false &amp;&amp; &quot;unhandled instruction type&quot;);</span></span>
 <span id="L564"><span class="lineNum">     564</span> <span class="tlaUNC">           0 :   }</span></span>
-<span id="L565"><span class="lineNum">     565</span> <span class="tlaGNC">      277163 : }</span></span>
+<span id="L565"><span class="lineNum">     565</span> <span class="tlaGNC">      280219 : }</span></span>
 <span id="L566"><span class="lineNum">     566</span>              : </span>
 <span id="L567"><span class="lineNum">     567</span>              : // Returns the source registers used by the given instruction, if any.</span>
 <span id="L568"><span class="lineNum">     568</span> <span class="tlaUNC">           0 : inline std::vector&lt;Reg&gt; GetSourceRegisters(const Instruction&amp; inst) {</span></span>
@@ -639,65 +639,65 @@
 <span id="L577"><span class="lineNum">     577</span>              : // It is reached where it is held, as a source register is, so a walk over an</span>
 <span id="L578"><span class="lineNum">     578</span>              : // instruction that is not const can write through it.</span>
 <span id="L579"><span class="lineNum">     579</span>              : template &lt;InstructionLike InstT&gt;</span>
-<span id="L580"><span class="lineNum">     580</span> <span class="tlaGNC">      253566 : inline auto* TargetRegister(InstT&amp;&amp; inst) {</span></span>
+<span id="L580"><span class="lineNum">     580</span> <span class="tlaGNC">      256623 : inline auto* TargetRegister(InstT&amp;&amp; inst) {</span></span>
 <span id="L581"><span class="lineNum">     581</span> <span class="tlaUNC">           0 :   // A register as this instruction holds it, which is const where the</span></span>
 <span id="L582"><span class="lineNum">     582</span> <span class="tlaUNC">           0 :   // instruction is.</span></span>
-<span id="L583"><span class="lineNum">     583</span> <span class="tlaGNC">      253566 :   using RegT =</span></span>
-<span id="L584"><span class="lineNum">     584</span> <span class="tlaGNC">      253566 :       std::conditional_t&lt;std::is_const_v&lt;std::remove_reference_t&lt;InstT&gt;&gt;,</span></span>
-<span id="L585"><span class="lineNum">     585</span> <span class="tlaGNC">      253566 :                          const Reg, Reg&gt;;</span></span>
+<span id="L583"><span class="lineNum">     583</span> <span class="tlaGNC">      256623 :   using RegT =</span></span>
+<span id="L584"><span class="lineNum">     584</span> <span class="tlaGNC">      256623 :       std::conditional_t&lt;std::is_const_v&lt;std::remove_reference_t&lt;InstT&gt;&gt;,</span></span>
+<span id="L585"><span class="lineNum">     585</span> <span class="tlaGNC">      256623 :                          const Reg, Reg&gt;;</span></span>
 <span id="L586"><span class="lineNum">     586</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L587"><span class="lineNum">     587</span> <span class="tlaGNC">      253566 :   if (std::holds_alternative&lt;StoreStack&gt;(inst) ||</span></span>
-<span id="L588"><span class="lineNum">     588</span> <span class="tlaGNC">      253566 :       std::holds_alternative&lt;StoreStackReg&gt;(inst) ||</span></span>
-<span id="L589"><span class="lineNum">     589</span> <span class="tlaGNC">      253566 :       std::holds_alternative&lt;Return&gt;(inst)) {</span></span>
-<span id="L590"><span class="lineNum">     590</span> <span class="tlaGNC">       43625 :     return static_cast&lt;RegT*&gt;(nullptr);</span></span>
-<span id="L591"><span class="lineNum">     591</span> <span class="tlaGNC">      209945 :   } else if (auto* cinst = std::get_if&lt;MoveReg&gt;(&amp;inst)) {</span></span>
-<span id="L592"><span class="lineNum">     592</span> <span class="tlaGNC">       33023 :     return &amp;cinst-&gt;dst_reg;</span></span>
-<span id="L593"><span class="lineNum">     593</span> <span class="tlaGNC">      176918 :   } else if (auto* cinst = std::get_if&lt;SetReg&gt;(&amp;inst)) {</span></span>
-<span id="L594"><span class="lineNum">     594</span> <span class="tlaGNC">       85101 :     return &amp;cinst-&gt;dst_reg;</span></span>
-<span id="L595"><span class="lineNum">     595</span> <span class="tlaGNC">       94484 :   } else if (auto* cinst = std::get_if&lt;SetInt&gt;(&amp;inst)) {</span></span>
-<span id="L596"><span class="lineNum">     596</span> <span class="tlaGNC">        2003 :     return &amp;cinst-&gt;dst_reg;</span></span>
-<span id="L597"><span class="lineNum">     597</span> <span class="tlaGNC">       89814 :   } else if (auto* cinst = std::get_if&lt;SetStr&gt;(&amp;inst)) {</span></span>
+<span id="L587"><span class="lineNum">     587</span> <span class="tlaGNC">      256623 :   if (std::holds_alternative&lt;StoreStack&gt;(inst) ||</span></span>
+<span id="L588"><span class="lineNum">     588</span> <span class="tlaGNC">      256623 :       std::holds_alternative&lt;StoreStackReg&gt;(inst) ||</span></span>
+<span id="L589"><span class="lineNum">     589</span> <span class="tlaGNC">      256623 :       std::holds_alternative&lt;Return&gt;(inst)) {</span></span>
+<span id="L590"><span class="lineNum">     590</span> <span class="tlaGNC">       44317 :     return static_cast&lt;RegT*&gt;(nullptr);</span></span>
+<span id="L591"><span class="lineNum">     591</span> <span class="tlaGNC">      212310 :   } else if (auto* cinst = std::get_if&lt;MoveReg&gt;(&amp;inst)) {</span></span>
+<span id="L592"><span class="lineNum">     592</span> <span class="tlaGNC">       33029 :     return &amp;cinst-&gt;dst_reg;</span></span>
+<span id="L593"><span class="lineNum">     593</span> <span class="tlaGNC">      179277 :   } else if (auto* cinst = std::get_if&lt;SetReg&gt;(&amp;inst)) {</span></span>
+<span id="L594"><span class="lineNum">     594</span> <span class="tlaGNC">       86283 :     return &amp;cinst-&gt;dst_reg;</span></span>
+<span id="L595"><span class="lineNum">     595</span> <span class="tlaGNC">       95666 :   } else if (auto* cinst = std::get_if&lt;SetInt&gt;(&amp;inst)) {</span></span>
+<span id="L596"><span class="lineNum">     596</span> <span class="tlaGNC">        2045 :     return &amp;cinst-&gt;dst_reg;</span></span>
+<span id="L597"><span class="lineNum">     597</span> <span class="tlaGNC">       90949 :   } else if (auto* cinst = std::get_if&lt;SetStr&gt;(&amp;inst)) {</span></span>
 <span id="L598"><span class="lineNum">     598</span> <span class="tlaGNC">        2926 :     return &amp;cinst-&gt;dst_reg;</span></span>
-<span id="L599"><span class="lineNum">     599</span> <span class="tlaGNC">       86888 :   } else if (auto* cinst = std::get_if&lt;AddReg&gt;(&amp;inst)) {</span></span>
-<span id="L600"><span class="lineNum">     600</span> <span class="tlaGNC">       25444 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L601"><span class="lineNum">     601</span> <span class="tlaGNC">       63684 :   } else if (auto* cinst = std::get_if&lt;SubReg&gt;(&amp;inst)) {</span></span>
+<span id="L599"><span class="lineNum">     599</span> <span class="tlaGNC">       88023 :   } else if (auto* cinst = std::get_if&lt;AddReg&gt;(&amp;inst)) {</span></span>
+<span id="L600"><span class="lineNum">     600</span> <span class="tlaGNC">       25899 :     return &amp;cinst-&gt;res_reg;</span></span>
+<span id="L601"><span class="lineNum">     601</span> <span class="tlaGNC">       64364 :   } else if (auto* cinst = std::get_if&lt;SubReg&gt;(&amp;inst)) {</span></span>
 <span id="L602"><span class="lineNum">     602</span> <span class="tlaGNC">        4740 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L603"><span class="lineNum">     603</span> <span class="tlaGNC">       56706 :   } else if (auto* cinst = std::get_if&lt;MulReg&gt;(&amp;inst)) {</span></span>
-<span id="L604"><span class="lineNum">     604</span> <span class="tlaGNC">        3366 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L605"><span class="lineNum">     605</span> <span class="tlaGNC">       53338 :   } else if (auto* cinst = std::get_if&lt;DivReg&gt;(&amp;inst)) {</span></span>
+<span id="L603"><span class="lineNum">     603</span> <span class="tlaGNC">       57386 :   } else if (auto* cinst = std::get_if&lt;MulReg&gt;(&amp;inst)) {</span></span>
+<span id="L604"><span class="lineNum">     604</span> <span class="tlaGNC">        3457 :     return &amp;cinst-&gt;res_reg;</span></span>
+<span id="L605"><span class="lineNum">     605</span> <span class="tlaGNC">       53927 :   } else if (auto* cinst = std::get_if&lt;DivReg&gt;(&amp;inst)) {</span></span>
 <span id="L606"><span class="lineNum">     606</span> <span class="tlaGNC">         980 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L607"><span class="lineNum">     607</span> <span class="tlaGNC">       52358 :   } else if (auto* cinst = std::get_if&lt;ModReg&gt;(&amp;inst)) {</span></span>
+<span id="L607"><span class="lineNum">     607</span> <span class="tlaGNC">       52947 :   } else if (auto* cinst = std::get_if&lt;ModReg&gt;(&amp;inst)) {</span></span>
 <span id="L608"><span class="lineNum">     608</span> <span class="tlaGNC">         287 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L609"><span class="lineNum">     609</span> <span class="tlaGNC">       52071 :   } else if (auto* cinst = std::get_if&lt;GtReg&gt;(&amp;inst)) {</span></span>
+<span id="L609"><span class="lineNum">     609</span> <span class="tlaGNC">       52660 :   } else if (auto* cinst = std::get_if&lt;GtReg&gt;(&amp;inst)) {</span></span>
 <span id="L610"><span class="lineNum">     610</span> <span class="tlaGNC">        3155 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L611"><span class="lineNum">     611</span> <span class="tlaGNC">       48920 :   } else if (auto* cinst = std::get_if&lt;LtReg&gt;(&amp;inst)) {</span></span>
+<span id="L611"><span class="lineNum">     611</span> <span class="tlaGNC">       49509 :   } else if (auto* cinst = std::get_if&lt;LtReg&gt;(&amp;inst)) {</span></span>
 <span id="L612"><span class="lineNum">     612</span> <span class="tlaGNC">         483 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L613"><span class="lineNum">     613</span> <span class="tlaGNC">       48433 :   } else if (auto* cinst = std::get_if&lt;GeReg&gt;(&amp;inst)) {</span></span>
+<span id="L613"><span class="lineNum">     613</span> <span class="tlaGNC">       49022 :   } else if (auto* cinst = std::get_if&lt;GeReg&gt;(&amp;inst)) {</span></span>
 <span id="L614"><span class="lineNum">     614</span> <span class="tlaGNC">        1824 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L615"><span class="lineNum">     615</span> <span class="tlaGNC">       46609 :   } else if (auto* cinst = std::get_if&lt;LeReg&gt;(&amp;inst)) {</span></span>
+<span id="L615"><span class="lineNum">     615</span> <span class="tlaGNC">       47198 :   } else if (auto* cinst = std::get_if&lt;LeReg&gt;(&amp;inst)) {</span></span>
 <span id="L616"><span class="lineNum">     616</span> <span class="tlaGNC">         605 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L617"><span class="lineNum">     617</span> <span class="tlaGNC">       46004 :   } else if (auto* cinst = std::get_if&lt;EqReg&gt;(&amp;inst)) {</span></span>
-<span id="L618"><span class="lineNum">     618</span> <span class="tlaGNC">        1526 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L619"><span class="lineNum">     619</span> <span class="tlaGNC">       44478 :   } else if (auto* cinst = std::get_if&lt;NotEqReg&gt;(&amp;inst)) {</span></span>
+<span id="L617"><span class="lineNum">     617</span> <span class="tlaGNC">       46593 :   } else if (auto* cinst = std::get_if&lt;EqReg&gt;(&amp;inst)) {</span></span>
+<span id="L618"><span class="lineNum">     618</span> <span class="tlaGNC">        1542 :     return &amp;cinst-&gt;res_reg;</span></span>
+<span id="L619"><span class="lineNum">     619</span> <span class="tlaGNC">       45051 :   } else if (auto* cinst = std::get_if&lt;NotEqReg&gt;(&amp;inst)) {</span></span>
 <span id="L620"><span class="lineNum">     620</span> <span class="tlaGNC">         473 :     return &amp;cinst-&gt;res_reg;</span></span>
-<span id="L621"><span class="lineNum">     621</span> <span class="tlaGNC">       44007 :   } else if (auto* cinst = std::get_if&lt;LoadStack&gt;(&amp;inst)) {</span></span>
+<span id="L621"><span class="lineNum">     621</span> <span class="tlaGNC">       44580 :   } else if (auto* cinst = std::get_if&lt;LoadStack&gt;(&amp;inst)) {</span></span>
 <span id="L622"><span class="lineNum">     622</span> <span class="tlaGNC">        9379 :     return &amp;cinst-&gt;dst_reg;</span></span>
-<span id="L623"><span class="lineNum">     623</span> <span class="tlaGNC">       37801 :   } else if (auto* cinst = std::get_if&lt;LoadStackReg&gt;(&amp;inst)) {</span></span>
-<span id="L624"><span class="lineNum">     624</span> <span class="tlaGNC">       25289 :     return &amp;cinst-&gt;dst_reg;</span></span>
-<span id="L625"><span class="lineNum">     625</span> <span class="tlaGNC">       32754 :   } else if (auto* cinst = std::get_if&lt;FuncCall&gt;(&amp;inst)) {</span></span>
-<span id="L626"><span class="lineNum">     626</span> <span class="tlaGNC">        9337 :     if (cinst-&gt;res.has_value()) return &amp;cinst-&gt;res-&gt;reg;</span></span>
-<span id="L627"><span class="lineNum">     627</span> <span class="tlaGNC">        5312 :     return static_cast&lt;RegT*&gt;(nullptr);</span></span>
-<span id="L628"><span class="lineNum">     628</span> <span class="tlaGNC">        9337 :   } else {</span></span>
+<span id="L623"><span class="lineNum">     623</span> <span class="tlaGNC">       38374 :   } else if (auto* cinst = std::get_if&lt;LoadStackReg&gt;(&amp;inst)) {</span></span>
+<span id="L624"><span class="lineNum">     624</span> <span class="tlaGNC">       25827 :     return &amp;cinst-&gt;dst_reg;</span></span>
+<span id="L625"><span class="lineNum">     625</span> <span class="tlaGNC">       33292 :   } else if (auto* cinst = std::get_if&lt;FuncCall&gt;(&amp;inst)) {</span></span>
+<span id="L626"><span class="lineNum">     626</span> <span class="tlaGNC">        9372 :     if (cinst-&gt;res.has_value()) return &amp;cinst-&gt;res-&gt;reg;</span></span>
+<span id="L627"><span class="lineNum">     627</span> <span class="tlaGNC">        5347 :     return static_cast&lt;RegT*&gt;(nullptr);</span></span>
+<span id="L628"><span class="lineNum">     628</span> <span class="tlaGNC">        9372 :   } else {</span></span>
 <span id="L629"><span class="lineNum">     629</span> <span class="tlaUNC">           0 :     assert(false &amp;&amp; &quot;unhandled instruction type&quot;);</span></span>
 <span id="L630"><span class="lineNum">     630</span> <span class="tlaUNC">           0 :   }</span></span>
 <span id="L631"><span class="lineNum">     631</span> <span class="tlaUNC">           0 :   return static_cast&lt;RegT*&gt;(nullptr);</span></span>
-<span id="L632"><span class="lineNum">     632</span> <span class="tlaGNC">      253566 : }</span></span>
+<span id="L632"><span class="lineNum">     632</span> <span class="tlaGNC">      256623 : }</span></span>
 <span id="L633"><span class="lineNum">     633</span>              : </span>
 <span id="L634"><span class="lineNum">     634</span>              : // Returns the target register used by the given instruction, if any.</span>
-<span id="L635"><span class="lineNum">     635</span> <span class="tlaGNC">      149417 : inline std::optional&lt;Reg&gt; GetTargetRegister(const Instruction&amp; inst) {</span></span>
-<span id="L636"><span class="lineNum">     636</span> <span class="tlaGNC">      149417 :   if (const Reg* reg = TargetRegister(inst)) return *reg;</span></span>
-<span id="L637"><span class="lineNum">     637</span> <span class="tlaGNC">       26591 :   return std::nullopt;</span></span>
-<span id="L638"><span class="lineNum">     638</span> <span class="tlaGNC">      149417 : }</span></span>
+<span id="L635"><span class="lineNum">     635</span> <span class="tlaGNC">      151146 : inline std::optional&lt;Reg&gt; GetTargetRegister(const Instruction&amp; inst) {</span></span>
+<span id="L636"><span class="lineNum">     636</span> <span class="tlaGNC">      151146 :   if (const Reg* reg = TargetRegister(inst)) return *reg;</span></span>
+<span id="L637"><span class="lineNum">     637</span> <span class="tlaGNC">       27000 :   return std::nullopt;</span></span>
+<span id="L638"><span class="lineNum">     638</span> <span class="tlaGNC">      151146 : }</span></span>
 <span id="L639"><span class="lineNum">     639</span>              : </span>
 <span id="L640"><span class="lineNum">     640</span>              : }  // namespace lucid</span>
         </pre>
