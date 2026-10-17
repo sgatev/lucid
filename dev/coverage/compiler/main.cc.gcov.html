@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-17 13:39:46</td>
+            <td class="headerValue">2026-10-17 14:38:48</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryLo">60.0&nbsp;%</td>
@@ -110,34 +110,34 @@
 <span id="L48"><span class="lineNum">      48</span>              : // which Bazel passes on in `BUILD_WORKING_DIRECTORY` because it starts the</span>
 <span id="L49"><span class="lineNum">      49</span>              : // compiler elsewhere, among the files it was built with. Anywhere else it is</span>
 <span id="L50"><span class="lineNum">      50</span>              : // the current directory. A path that is already absolute is left as it is.</span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">         347 : std::filesystem::path FromWorkingDirectory(std::string_view path) {</span></span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">         347 :   const char* bazel_working_directory = std::getenv(&quot;BUILD_WORKING_DIRECTORY&quot;);</span></span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">         347 :   const std::filesystem::path base =</span></span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         347 :       bazel_working_directory != nullptr</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">         347 :           ? std::filesystem::path(bazel_working_directory)</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">         347 :           : std::filesystem::current_path();</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">         347 :   return base / path;</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">         347 : }</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">         350 : std::filesystem::path FromWorkingDirectory(std::string_view path) {</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">         350 :   const char* bazel_working_directory = std::getenv(&quot;BUILD_WORKING_DIRECTORY&quot;);</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">         350 :   const std::filesystem::path base =</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         350 :       bazel_working_directory != nullptr</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">         350 :           ? std::filesystem::path(bazel_working_directory)</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">         350 :           : std::filesystem::current_path();</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">         350 :   return base / path;</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">         350 : }</span></span>
 <span id="L59"><span class="lineNum">      59</span>              : </span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">          65 : int HandleCompileCommand(CommandContext ctx) {</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">          65 :   std::optional&lt;std::string_view&gt; src_file = ctx.TakeArg();</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">          65 :   if (!src_file) {</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">          64 : int HandleCompileCommand(CommandContext ctx) {</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">          64 :   std::optional&lt;std::string_view&gt; src_file = ctx.TakeArg();</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">          64 :   if (!src_file) {</span></span>
 <span id="L63"><span class="lineNum">      63</span> <span class="tlaUNC">           0 :     ctx.Err() &lt;&lt; &quot;'compile' command requires exactly 1 argument\n&quot;;</span></span>
 <span id="L64"><span class="lineNum">      64</span> <span class="tlaUNC">           0 :     return 1;</span></span>
 <span id="L65"><span class="lineNum">      65</span> <span class="tlaUNC">           0 :   }</span></span>
 <span id="L66"><span class="lineNum">      66</span>              : </span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">          65 :   auto src_path = FromWorkingDirectory(*src_file);</span></span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">          65 :   auto out_path = FromWorkingDirectory(src_path.filename().string());</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          65 :   out_path.replace_extension(&quot;o&quot;);</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">          64 :   auto src_path = FromWorkingDirectory(*src_file);</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">          64 :   auto out_path = FromWorkingDirectory(src_path.filename().string());</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          64 :   out_path.replace_extension(&quot;o&quot;);</span></span>
 <span id="L70"><span class="lineNum">      70</span>              : </span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">          65 :   return CompileCode({.src_path = src_path, .out_path = out_path})</span></span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">          65 :       .and_then([] -&gt; std::expected&lt;int, CompileError&gt; { return 0; })</span></span>
-<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">          65 :       .or_else([&amp;](CompileError err) -&gt; std::expected&lt;int, CompileError&gt; {</span></span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">          51 :         std::visit([&amp;](const auto&amp; err) { ctx.Err() &lt;&lt; err &lt;&lt; &quot;\n&quot;; }, err);</span></span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">          51 :         return 1;</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">          51 :       })</span></span>
-<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">          65 :       .value();</span></span>
-<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">          65 : }</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">          64 :   return CompileCode({.src_path = src_path, .out_path = out_path})</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">          64 :       .and_then([] -&gt; std::expected&lt;int, CompileError&gt; { return 0; })</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">          64 :       .or_else([&amp;](CompileError err) -&gt; std::expected&lt;int, CompileError&gt; {</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">          50 :         std::visit([&amp;](const auto&amp; err) { ctx.Err() &lt;&lt; err &lt;&lt; &quot;\n&quot;; }, err);</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">          50 :         return 1;</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">          50 :       })</span></span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">          64 :       .value();</span></span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">          64 : }</span></span>
 <span id="L79"><span class="lineNum">      79</span>              : </span>
 <span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">           6 : int HandleBuildCommand(CommandContext ctx) {</span></span>
 <span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">           6 :   std::optional&lt;std::string_view&gt; bin_path = ctx.TakeArg();</span></span>
@@ -159,9 +159,9 @@
 <span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">           5 :       .value();</span></span>
 <span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">           6 : }</span></span>
 <span id="L99"><span class="lineNum">      99</span>              : </span>
-<span id="L100"><span class="lineNum">     100</span> <span class="tlaGNC">         194 : int HandleRunCommand(CommandContext ctx) {</span></span>
-<span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">         194 :   std::optional&lt;std::string_view&gt; src_file = ctx.TakeArg();</span></span>
-<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC">         194 :   if (!src_file) {</span></span>
+<span id="L100"><span class="lineNum">     100</span> <span class="tlaGNC">         199 : int HandleRunCommand(CommandContext ctx) {</span></span>
+<span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">         199 :   std::optional&lt;std::string_view&gt; src_file = ctx.TakeArg();</span></span>
+<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC">         199 :   if (!src_file) {</span></span>
 <span id="L103"><span class="lineNum">     103</span> <span class="tlaUNC">           0 :     ctx.Err() &lt;&lt; &quot;'run' command requires exactly 1 argument\n&quot;;</span></span>
 <span id="L104"><span class="lineNum">     104</span> <span class="tlaUNC">           0 :     return 1;</span></span>
 <span id="L105"><span class="lineNum">     105</span> <span class="tlaUNC">           0 :   }</span></span>
@@ -169,22 +169,22 @@
 <span id="L107"><span class="lineNum">     107</span>              :   // Somewhere to put the binary that no other run of the compiler is using.</span>
 <span id="L108"><span class="lineNum">     108</span>              :   // The name of the source is not enough on its own: two sources of the same</span>
 <span id="L109"><span class="lineNum">     109</span>              :   // name, built at the same time, would each run what the other built.</span>
-<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">         194 :   auto src_path = FromWorkingDirectory(*src_file);</span></span>
-<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">         194 :   auto bin_path = std::filesystem::temp_directory_path() /</span></span>
-<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">         194 :                   std::format(&quot;{}-{}&quot;, src_path.stem().string(), getpid());</span></span>
+<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">         199 :   auto src_path = FromWorkingDirectory(*src_file);</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">         199 :   auto bin_path = std::filesystem::temp_directory_path() /</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">         199 :                   std::format(&quot;{}-{}&quot;, src_path.stem().string(), getpid());</span></span>
 <span id="L113"><span class="lineNum">     113</span>              : </span>
-<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">         194 :   return BuildCode({.src_path = src_path, .out_path = bin_path})</span></span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">         194 :       .and_then([&amp;]() -&gt; std::expected&lt;int, BuildError&gt; {</span></span>
+<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">         199 :   return BuildCode({.src_path = src_path, .out_path = bin_path})</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">         199 :       .and_then([&amp;]() -&gt; std::expected&lt;int, BuildError&gt; {</span></span>
 <span id="L116"><span class="lineNum">     116</span>              :         // NOLINTNEXTLINE(bugprone-command-processor): runs what was just built.</span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">         194 :         int status = std::system(bin_path.c_str());</span></span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">         194 :         return WEXITSTATUS(status);</span></span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">         194 :       })</span></span>
-<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">         194 :       .or_else([&amp;](BuildError err) -&gt; std::expected&lt;int, BuildError&gt; {</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">         199 :         int status = std::system(bin_path.c_str());</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">         199 :         return WEXITSTATUS(status);</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">         199 :       })</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">         199 :       .or_else([&amp;](BuildError err) -&gt; std::expected&lt;int, BuildError&gt; {</span></span>
 <span id="L121"><span class="lineNum">     121</span> <span class="tlaUNC">           0 :         std::visit([&amp;](const auto&amp; err) { ctx.Err() &lt;&lt; err &lt;&lt; &quot;\n&quot;; }, err);</span></span>
 <span id="L122"><span class="lineNum">     122</span> <span class="tlaUNC">           0 :         return 1;</span></span>
 <span id="L123"><span class="lineNum">     123</span> <span class="tlaUNC">           0 :       })</span></span>
-<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">         194 :       .value();</span></span>
-<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">         194 : }</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">         199 :       .value();</span></span>
+<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">         199 : }</span></span>
 <span id="L126"><span class="lineNum">     126</span>              : </span>
 <span id="L127"><span class="lineNum">     127</span> <span class="tlaUNC">           0 : int HandleParseCommand(CommandContext ctx) {</span></span>
 <span id="L128"><span class="lineNum">     128</span> <span class="tlaUNC">           0 :   std::optional&lt;std::string_view&gt; src_file = ctx.TakeArg();</span></span>
@@ -445,72 +445,72 @@
 <span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">           1 :   return 0;</span></span>
 <span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">           1 : }</span></span>
 <span id="L385"><span class="lineNum">     385</span>              : </span>
-<span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">         282 : int HandleRoot(CommandContext ctx) {</span></span>
-<span id="L387"><span class="lineNum">     387</span> <span class="tlaGNC">         282 :   return RunCommand(</span></span>
-<span id="L388"><span class="lineNum">     388</span> <span class="tlaGNC">         282 :       {</span></span>
-<span id="L389"><span class="lineNum">     389</span> <span class="tlaGNC">         282 :           {</span></span>
-<span id="L390"><span class="lineNum">     390</span> <span class="tlaGNC">         282 :               .name = &quot;build&quot;,</span></span>
-<span id="L391"><span class="lineNum">     391</span> <span class="tlaGNC">         282 :               .help = &quot;Compiles the specified target and builds a binary.&quot;,</span></span>
-<span id="L392"><span class="lineNum">     392</span> <span class="tlaGNC">         282 :               .handler = HandleBuildCommand,</span></span>
-<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">         282 :           },</span></span>
-<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">         282 :           {</span></span>
-<span id="L395"><span class="lineNum">     395</span> <span class="tlaGNC">         282 :               .name = &quot;compile&quot;,</span></span>
-<span id="L396"><span class="lineNum">     396</span> <span class="tlaGNC">         282 :               .help = &quot;Compiles the specified target.&quot;,</span></span>
-<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">         282 :               .handler = HandleCompileCommand,</span></span>
-<span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC">         282 :           },</span></span>
-<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">         282 :           {</span></span>
-<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">         282 :               .name = &quot;run&quot;,</span></span>
-<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">         282 :               .help = &quot;Compiles the specified target, builds a binary, and &quot;</span></span>
-<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">         282 :                       &quot;runs it.&quot;,</span></span>
-<span id="L403"><span class="lineNum">     403</span> <span class="tlaGNC">         282 :               .handler = HandleRunCommand,</span></span>
-<span id="L404"><span class="lineNum">     404</span> <span class="tlaGNC">         282 :           },</span></span>
-<span id="L405"><span class="lineNum">     405</span> <span class="tlaGNC">         282 :           {</span></span>
-<span id="L406"><span class="lineNum">     406</span> <span class="tlaGNC">         282 :               .name = &quot;parse&quot;,</span></span>
-<span id="L407"><span class="lineNum">     407</span> <span class="tlaGNC">         282 :               .help = &quot;Parses the specified target.&quot;,</span></span>
-<span id="L408"><span class="lineNum">     408</span> <span class="tlaGNC">         282 :               .handler = HandleParseCommand,</span></span>
-<span id="L409"><span class="lineNum">     409</span> <span class="tlaGNC">         282 :           },</span></span>
-<span id="L410"><span class="lineNum">     410</span> <span class="tlaGNC">         282 :           {</span></span>
-<span id="L411"><span class="lineNum">     411</span> <span class="tlaGNC">         282 :               .name = &quot;print-ast&quot;,</span></span>
-<span id="L412"><span class="lineNum">     412</span> <span class="tlaGNC">         282 :               .help = &quot;Parses the specified target and prints the AST.&quot;,</span></span>
-<span id="L413"><span class="lineNum">     413</span> <span class="tlaGNC">         282 :               .handler = HandlePrintAstCommand,</span></span>
-<span id="L414"><span class="lineNum">     414</span> <span class="tlaGNC">         282 :           },</span></span>
-<span id="L415"><span class="lineNum">     415</span> <span class="tlaGNC">         282 :           {</span></span>
-<span id="L416"><span class="lineNum">     416</span> <span class="tlaGNC">         282 :               .name = &quot;print-syntax-cfg&quot;,</span></span>
-<span id="L417"><span class="lineNum">     417</span> <span class="tlaGNC">         282 :               .help = &quot;Parses the specified target and prints the syntax CFG.&quot;,</span></span>
-<span id="L418"><span class="lineNum">     418</span> <span class="tlaGNC">         282 :               .handler = HandlePrintSyntaxCfgCommand,</span></span>
-<span id="L419"><span class="lineNum">     419</span> <span class="tlaGNC">         282 :           },</span></span>
-<span id="L420"><span class="lineNum">     420</span> <span class="tlaGNC">         282 :           {</span></span>
-<span id="L421"><span class="lineNum">     421</span> <span class="tlaGNC">         282 :               .name = &quot;print-am-cfg&quot;,</span></span>
-<span id="L422"><span class="lineNum">     422</span> <span class="tlaGNC">         282 :               .help = &quot;Parses the specified target and prints the abstract &quot;</span></span>
-<span id="L423"><span class="lineNum">     423</span> <span class="tlaGNC">         282 :                       &quot;machine CFG.&quot;,</span></span>
-<span id="L424"><span class="lineNum">     424</span> <span class="tlaGNC">         282 :               .flags = {{</span></span>
-<span id="L425"><span class="lineNum">     425</span> <span class="tlaGNC">         282 :                   .name = &quot;regs&quot;,</span></span>
-<span id="L426"><span class="lineNum">     426</span> <span class="tlaGNC">         282 :                   .help = &quot;How far to take the registers: 'abi' to settle &quot;</span></span>
-<span id="L427"><span class="lineNum">     427</span> <span class="tlaGNC">         282 :                           &quot;which parameters and arguments get one, 'spill' to &quot;</span></span>
-<span id="L428"><span class="lineNum">     428</span> <span class="tlaGNC">         282 :                           &quot;go on and put the rest in memory, 'merge' to go on &quot;</span></span>
-<span id="L429"><span class="lineNum">     429</span> <span class="tlaGNC">         282 :                           &quot;and colour what is left.&quot;,</span></span>
-<span id="L430"><span class="lineNum">     430</span> <span class="tlaGNC">         282 :               }},</span></span>
-<span id="L431"><span class="lineNum">     431</span> <span class="tlaGNC">         282 :               .handler = HandlePrintAmCfgCommand,</span></span>
-<span id="L432"><span class="lineNum">     432</span> <span class="tlaGNC">         282 :           },</span></span>
-<span id="L433"><span class="lineNum">     433</span> <span class="tlaGNC">         282 :           {</span></span>
-<span id="L434"><span class="lineNum">     434</span> <span class="tlaGNC">         282 :               .name = &quot;version&quot;,</span></span>
-<span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">         282 :               .help = &quot;Prints version information for lucid.&quot;,</span></span>
-<span id="L436"><span class="lineNum">     436</span> <span class="tlaGNC">         282 :               .handler = HandleVersionCommand,</span></span>
-<span id="L437"><span class="lineNum">     437</span> <span class="tlaGNC">         282 :           },</span></span>
-<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">         282 :       },</span></span>
-<span id="L439"><span class="lineNum">     439</span> <span class="tlaGNC">         282 :       std::move(ctx));</span></span>
-<span id="L440"><span class="lineNum">     440</span> <span class="tlaGNC">         282 : }</span></span>
+<span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">         286 : int HandleRoot(CommandContext ctx) {</span></span>
+<span id="L387"><span class="lineNum">     387</span> <span class="tlaGNC">         286 :   return RunCommand(</span></span>
+<span id="L388"><span class="lineNum">     388</span> <span class="tlaGNC">         286 :       {</span></span>
+<span id="L389"><span class="lineNum">     389</span> <span class="tlaGNC">         286 :           {</span></span>
+<span id="L390"><span class="lineNum">     390</span> <span class="tlaGNC">         286 :               .name = &quot;build&quot;,</span></span>
+<span id="L391"><span class="lineNum">     391</span> <span class="tlaGNC">         286 :               .help = &quot;Compiles the specified target and builds a binary.&quot;,</span></span>
+<span id="L392"><span class="lineNum">     392</span> <span class="tlaGNC">         286 :               .handler = HandleBuildCommand,</span></span>
+<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">         286 :           },</span></span>
+<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">         286 :           {</span></span>
+<span id="L395"><span class="lineNum">     395</span> <span class="tlaGNC">         286 :               .name = &quot;compile&quot;,</span></span>
+<span id="L396"><span class="lineNum">     396</span> <span class="tlaGNC">         286 :               .help = &quot;Compiles the specified target.&quot;,</span></span>
+<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">         286 :               .handler = HandleCompileCommand,</span></span>
+<span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC">         286 :           },</span></span>
+<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">         286 :           {</span></span>
+<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">         286 :               .name = &quot;run&quot;,</span></span>
+<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">         286 :               .help = &quot;Compiles the specified target, builds a binary, and &quot;</span></span>
+<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">         286 :                       &quot;runs it.&quot;,</span></span>
+<span id="L403"><span class="lineNum">     403</span> <span class="tlaGNC">         286 :               .handler = HandleRunCommand,</span></span>
+<span id="L404"><span class="lineNum">     404</span> <span class="tlaGNC">         286 :           },</span></span>
+<span id="L405"><span class="lineNum">     405</span> <span class="tlaGNC">         286 :           {</span></span>
+<span id="L406"><span class="lineNum">     406</span> <span class="tlaGNC">         286 :               .name = &quot;parse&quot;,</span></span>
+<span id="L407"><span class="lineNum">     407</span> <span class="tlaGNC">         286 :               .help = &quot;Parses the specified target.&quot;,</span></span>
+<span id="L408"><span class="lineNum">     408</span> <span class="tlaGNC">         286 :               .handler = HandleParseCommand,</span></span>
+<span id="L409"><span class="lineNum">     409</span> <span class="tlaGNC">         286 :           },</span></span>
+<span id="L410"><span class="lineNum">     410</span> <span class="tlaGNC">         286 :           {</span></span>
+<span id="L411"><span class="lineNum">     411</span> <span class="tlaGNC">         286 :               .name = &quot;print-ast&quot;,</span></span>
+<span id="L412"><span class="lineNum">     412</span> <span class="tlaGNC">         286 :               .help = &quot;Parses the specified target and prints the AST.&quot;,</span></span>
+<span id="L413"><span class="lineNum">     413</span> <span class="tlaGNC">         286 :               .handler = HandlePrintAstCommand,</span></span>
+<span id="L414"><span class="lineNum">     414</span> <span class="tlaGNC">         286 :           },</span></span>
+<span id="L415"><span class="lineNum">     415</span> <span class="tlaGNC">         286 :           {</span></span>
+<span id="L416"><span class="lineNum">     416</span> <span class="tlaGNC">         286 :               .name = &quot;print-syntax-cfg&quot;,</span></span>
+<span id="L417"><span class="lineNum">     417</span> <span class="tlaGNC">         286 :               .help = &quot;Parses the specified target and prints the syntax CFG.&quot;,</span></span>
+<span id="L418"><span class="lineNum">     418</span> <span class="tlaGNC">         286 :               .handler = HandlePrintSyntaxCfgCommand,</span></span>
+<span id="L419"><span class="lineNum">     419</span> <span class="tlaGNC">         286 :           },</span></span>
+<span id="L420"><span class="lineNum">     420</span> <span class="tlaGNC">         286 :           {</span></span>
+<span id="L421"><span class="lineNum">     421</span> <span class="tlaGNC">         286 :               .name = &quot;print-am-cfg&quot;,</span></span>
+<span id="L422"><span class="lineNum">     422</span> <span class="tlaGNC">         286 :               .help = &quot;Parses the specified target and prints the abstract &quot;</span></span>
+<span id="L423"><span class="lineNum">     423</span> <span class="tlaGNC">         286 :                       &quot;machine CFG.&quot;,</span></span>
+<span id="L424"><span class="lineNum">     424</span> <span class="tlaGNC">         286 :               .flags = {{</span></span>
+<span id="L425"><span class="lineNum">     425</span> <span class="tlaGNC">         286 :                   .name = &quot;regs&quot;,</span></span>
+<span id="L426"><span class="lineNum">     426</span> <span class="tlaGNC">         286 :                   .help = &quot;How far to take the registers: 'abi' to settle &quot;</span></span>
+<span id="L427"><span class="lineNum">     427</span> <span class="tlaGNC">         286 :                           &quot;which parameters and arguments get one, 'spill' to &quot;</span></span>
+<span id="L428"><span class="lineNum">     428</span> <span class="tlaGNC">         286 :                           &quot;go on and put the rest in memory, 'merge' to go on &quot;</span></span>
+<span id="L429"><span class="lineNum">     429</span> <span class="tlaGNC">         286 :                           &quot;and colour what is left.&quot;,</span></span>
+<span id="L430"><span class="lineNum">     430</span> <span class="tlaGNC">         286 :               }},</span></span>
+<span id="L431"><span class="lineNum">     431</span> <span class="tlaGNC">         286 :               .handler = HandlePrintAmCfgCommand,</span></span>
+<span id="L432"><span class="lineNum">     432</span> <span class="tlaGNC">         286 :           },</span></span>
+<span id="L433"><span class="lineNum">     433</span> <span class="tlaGNC">         286 :           {</span></span>
+<span id="L434"><span class="lineNum">     434</span> <span class="tlaGNC">         286 :               .name = &quot;version&quot;,</span></span>
+<span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">         286 :               .help = &quot;Prints version information for lucid.&quot;,</span></span>
+<span id="L436"><span class="lineNum">     436</span> <span class="tlaGNC">         286 :               .handler = HandleVersionCommand,</span></span>
+<span id="L437"><span class="lineNum">     437</span> <span class="tlaGNC">         286 :           },</span></span>
+<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">         286 :       },</span></span>
+<span id="L439"><span class="lineNum">     439</span> <span class="tlaGNC">         286 :       std::move(ctx));</span></span>
+<span id="L440"><span class="lineNum">     440</span> <span class="tlaGNC">         286 : }</span></span>
 <span id="L441"><span class="lineNum">     441</span>              : </span>
 <span id="L442"><span class="lineNum">     442</span>              : }  // namespace</span>
 <span id="L443"><span class="lineNum">     443</span>              : </span>
-<span id="L444"><span class="lineNum">     444</span> <span class="tlaGNC">         282 : int Run(std::vector&lt;std::string_view&gt; args) {</span></span>
-<span id="L445"><span class="lineNum">     445</span> <span class="tlaGNC">         282 :   return RunProgram({.name = &quot;lucid&quot;, .handler = HandleRoot},</span></span>
-<span id="L446"><span class="lineNum">     446</span> <span class="tlaGNC">         282 :                     StandardRootCommandContext(args));</span></span>
-<span id="L447"><span class="lineNum">     447</span> <span class="tlaGNC">         282 : }</span></span>
+<span id="L444"><span class="lineNum">     444</span> <span class="tlaGNC">         286 : int Run(std::vector&lt;std::string_view&gt; args) {</span></span>
+<span id="L445"><span class="lineNum">     445</span> <span class="tlaGNC">         286 :   return RunProgram({.name = &quot;lucid&quot;, .handler = HandleRoot},</span></span>
+<span id="L446"><span class="lineNum">     446</span> <span class="tlaGNC">         286 :                     StandardRootCommandContext(args));</span></span>
+<span id="L447"><span class="lineNum">     447</span> <span class="tlaGNC">         286 : }</span></span>
 <span id="L448"><span class="lineNum">     448</span>              : </span>
 <span id="L449"><span class="lineNum">     449</span>              : }  // namespace lucid</span>
 <span id="L450"><span class="lineNum">     450</span>              : </span>
-<span id="L451"><span class="lineNum">     451</span> <span class="tlaGNC">         285 : int main(int argc, char* argv[]) { return lucid::Run({argv, argv + argc}); }</span></span>
+<span id="L451"><span class="lineNum">     451</span> <span class="tlaGNC">         289 : int main(int argc, char* argv[]) { return lucid::Run({argv, argv + argc}); }</span></span>
         </pre>
               </td>
             </tr>

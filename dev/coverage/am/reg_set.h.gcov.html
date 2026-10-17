@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-17 13:39:46</td>
+            <td class="headerValue">2026-10-17 14:38:48</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">96.3&nbsp;%</td>
@@ -78,45 +78,45 @@
 <span id="L16"><span class="lineNum">      16</span>              : // A dense set of registers.</span>
 <span id="L17"><span class="lineNum">      17</span>              : class RegSet {</span>
 <span id="L18"><span class="lineNum">      18</span>              :  public:</span>
-<span id="L19"><span class="lineNum">      19</span> <span class="tlaGNC">        1421 :   explicit RegSet(std::size_t reg_count) : indices_(reg_count, kAbsent) {}</span></span>
+<span id="L19"><span class="lineNum">      19</span> <span class="tlaGNC">        1441 :   explicit RegSet(std::size_t reg_count) : indices_(reg_count, kAbsent) {}</span></span>
 <span id="L20"><span class="lineNum">      20</span>              : </span>
 <span id="L21"><span class="lineNum">      21</span>              :   // Returns whether `reg` is in the set.</span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">       74432 :   bool Contains(Reg reg) const { return indices_[reg.id] != kAbsent; }</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">       75204 :   bool Contains(Reg reg) const { return indices_[reg.id] != kAbsent; }</span></span>
 <span id="L23"><span class="lineNum">      23</span>              : </span>
 <span id="L24"><span class="lineNum">      24</span>              :   // Inserts `reg` in the set.</span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">       70418 :   void Insert(Reg reg) {</span></span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">       70418 :     if (Contains(reg)) return;</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">       71190 :   void Insert(Reg reg) {</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">       71190 :     if (Contains(reg)) return;</span></span>
 <span id="L27"><span class="lineNum">      27</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">       60442 :     indices_[reg.id] = static_cast&lt;std::uint32_t&gt;(regs_.size());</span></span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">       60442 :     regs_.push_back(reg);</span></span>
-<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">       60442 :   }</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">       61073 :     indices_[reg.id] = static_cast&lt;std::uint32_t&gt;(regs_.size());</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">       61073 :     regs_.push_back(reg);</span></span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">       61073 :   }</span></span>
 <span id="L31"><span class="lineNum">      31</span>              : </span>
 <span id="L32"><span class="lineNum">      32</span>              :   // Removes `reg` from the set.</span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">       42463 :   void Remove(Reg reg) {</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">       42463 :     const std::uint32_t reg_idx = indices_[reg.id];</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">       42463 :     if (reg_idx == kAbsent) return;</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">       42998 :   void Remove(Reg reg) {</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">       42998 :     const std::uint32_t reg_idx = indices_[reg.id];</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">       42998 :     if (reg_idx == kAbsent) return;</span></span>
 <span id="L36"><span class="lineNum">      36</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">       39247 :     regs_[reg_idx] = regs_.back();</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">       39247 :     indices_[regs_[reg_idx].id] = reg_idx;</span></span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       39247 :     regs_.pop_back();</span></span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       39247 :     indices_[reg.id] = kAbsent;</span></span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">       39247 :   }</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">       39782 :     regs_[reg_idx] = regs_.back();</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">       39782 :     indices_[regs_[reg_idx].id] = reg_idx;</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">       39782 :     regs_.pop_back();</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">       39782 :     indices_[reg.id] = kAbsent;</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">       39782 :   }</span></span>
 <span id="L42"><span class="lineNum">      42</span>              : </span>
 <span id="L43"><span class="lineNum">      43</span>              :   // Empties the set.</span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">        4406 :   void Clear() {</span></span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">       10715 :     for (Reg reg : regs_) indices_[reg.id] = kAbsent;</span></span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">        4406 :     regs_.clear();</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">        4406 :   }</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">        4463 :   void Clear() {</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">       10772 :     for (Reg reg : regs_) indices_[reg.id] = kAbsent;</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">        4463 :     regs_.clear();</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">        4463 :   }</span></span>
 <span id="L48"><span class="lineNum">      48</span>              : </span>
 <span id="L49"><span class="lineNum">      49</span>              :   // Returns the number of unique registers inserted so far.</span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">       58548 :   std::size_t size() const { return regs_.size(); }</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">       59337 :   std::size_t size() const { return regs_.size(); }</span></span>
 <span id="L51"><span class="lineNum">      51</span>              : </span>
 <span id="L52"><span class="lineNum">      52</span>              :   // Returns an iterator referring to the first register in the set or `end()`,</span>
 <span id="L53"><span class="lineNum">      53</span>              :   // if there isn't one.</span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         775 :   auto begin() const { return regs_.begin(); }</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         780 :   auto begin() const { return regs_.begin(); }</span></span>
 <span id="L55"><span class="lineNum">      55</span>              : </span>
 <span id="L56"><span class="lineNum">      56</span>              :   // Returns an iterator past the last register in the set.</span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">         775 :   auto end() const { return regs_.end(); }</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">         780 :   auto end() const { return regs_.end(); }</span></span>
 <span id="L58"><span class="lineNum">      58</span>              : </span>
 <span id="L59"><span class="lineNum">      59</span>              :  private:</span>
 <span id="L60"><span class="lineNum">      60</span>              :   static constexpr std::uint32_t kAbsent =</span>
@@ -145,7 +145,7 @@
 <span id="L83"><span class="lineNum">      83</span>              :  private:</span>
 <span id="L84"><span class="lineNum">      84</span>              :   // The registers of 64 consecutive IDs, starting from `index` times 64.</span>
 <span id="L85"><span class="lineNum">      85</span>              :   struct Word {</span>
-<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">        1469 :     bool operator==(const Word&amp;) const = default;</span></span>
+<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">        1493 :     bool operator==(const Word&amp;) const = default;</span></span>
 <span id="L87"><span class="lineNum">      87</span>              : </span>
 <span id="L88"><span class="lineNum">      88</span>              :     std::uint32_t index;</span>
 <span id="L89"><span class="lineNum">      89</span>              :     // Set for the registers held. Never zero for a word that is kept.</span>
@@ -166,23 +166,23 @@
 <span id="L104"><span class="lineNum">     104</span>              : </span>
 <span id="L105"><span class="lineNum">     105</span>              :     Iterator() = default;</span>
 <span id="L106"><span class="lineNum">     106</span>              : </span>
-<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">      290899 :     Reg operator*() const {</span></span>
-<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">      290899 :       const Word&amp; word = (*words_)[word_];</span></span>
-<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">      290899 :       const auto bit = static_cast&lt;unsigned&gt;(std::countr_zero(bits_));</span></span>
-<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">      290899 :       const bool wide = (word.wide &amp; (std::uint64_t{1} &lt;&lt; bit)) != 0;</span></span>
-<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">      290899 :       return Reg{</span></span>
-<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">      290899 :           .id = static_cast&lt;std::int32_t&gt;(word.index * kWordBits + bit),</span></span>
-<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">      290899 :           .size = wide ? RegSize64 : RegSize32,</span></span>
-<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">      290899 :       };</span></span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">      290899 :     }</span></span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">      290994 :     Reg operator*() const {</span></span>
+<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">      290994 :       const Word&amp; word = (*words_)[word_];</span></span>
+<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">      290994 :       const auto bit = static_cast&lt;unsigned&gt;(std::countr_zero(bits_));</span></span>
+<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">      290994 :       const bool wide = (word.wide &amp; (std::uint64_t{1} &lt;&lt; bit)) != 0;</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">      290994 :       return Reg{</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">      290994 :           .id = static_cast&lt;std::int32_t&gt;(word.index * kWordBits + bit),</span></span>
+<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">      290994 :           .size = wide ? RegSize64 : RegSize32,</span></span>
+<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">      290994 :       };</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">      290994 :     }</span></span>
 <span id="L116"><span class="lineNum">     116</span>              : </span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">      290903 :     Iterator&amp; operator++() {</span></span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">      290903 :       bits_ &amp;= bits_ - 1;</span></span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">      290903 :       if (bits_ == 0 &amp;&amp; ++word_ &lt; words_-&gt;size()) {</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">      290998 :     Iterator&amp; operator++() {</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">      290998 :       bits_ &amp;= bits_ - 1;</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">      290998 :       if (bits_ == 0 &amp;&amp; ++word_ &lt; words_-&gt;size()) {</span></span>
 <span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">      107133 :         bits_ = (*words_)[word_].present;</span></span>
 <span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">      107133 :       }</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">      290903 :       return *this;</span></span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">      290903 :     }</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">      290998 :       return *this;</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">      290998 :     }</span></span>
 <span id="L124"><span class="lineNum">     124</span>              : </span>
 <span id="L125"><span class="lineNum">     125</span> <span class="tlaUNC">           0 :     Iterator operator++(int) {</span></span>
 <span id="L126"><span class="lineNum">     126</span> <span class="tlaUNC">           0 :       Iterator before = *this;</span></span>
@@ -190,17 +190,17 @@
 <span id="L128"><span class="lineNum">     128</span> <span class="tlaUNC">           0 :       return before;</span></span>
 <span id="L129"><span class="lineNum">     129</span> <span class="tlaUNC">           0 :     }</span></span>
 <span id="L130"><span class="lineNum">     130</span>              : </span>
-<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">      342716 :     bool operator==(const Iterator&amp; other) const {</span></span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">      342716 :       return word_ == other.word_ &amp;&amp; bits_ == other.bits_;</span></span>
-<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">      342716 :     }</span></span>
+<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">      342972 :     bool operator==(const Iterator&amp; other) const {</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">      342972 :       return word_ == other.word_ &amp;&amp; bits_ == other.bits_;</span></span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">      342972 :     }</span></span>
 <span id="L134"><span class="lineNum">     134</span>              : </span>
 <span id="L135"><span class="lineNum">     135</span>              :    private:</span>
 <span id="L136"><span class="lineNum">     136</span>              :     friend class RegBitSet;</span>
 <span id="L137"><span class="lineNum">     137</span>              : </span>
 <span id="L138"><span class="lineNum">     138</span>              :     Iterator(const std::vector&lt;Word&gt;&amp; words, std::size_t word)</span>
-<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">      103663 :         : words_(&amp;words),</span></span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">      103663 :           word_(word),</span></span>
-<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">      103663 :           bits_(word &lt; words.size() ? words[word].present : 0) {}</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">      103985 :         : words_(&amp;words),</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">      103985 :           word_(word),</span></span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">      103985 :           bits_(word &lt; words.size() ? words[word].present : 0) {}</span></span>
 <span id="L142"><span class="lineNum">     142</span>              : </span>
 <span id="L143"><span class="lineNum">     143</span>              :     const std::vector&lt;Word&gt;* words_ = nullptr;</span>
 <span id="L144"><span class="lineNum">     144</span>              :     std::size_t word_ = 0;</span>
@@ -210,7 +210,7 @@
 <span id="L148"><span class="lineNum">     148</span>              : </span>
 <span id="L149"><span class="lineNum">     149</span>              :   // A word is kept only while it holds a register, so two sets holding the</span>
 <span id="L150"><span class="lineNum">     150</span>              :   // same registers keep the same words.</span>
-<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">         399 :   bool operator==(const RegBitSet&amp; other) const = default;</span></span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">         411 :   bool operator==(const RegBitSet&amp; other) const = default;</span></span>
 <span id="L152"><span class="lineNum">     152</span>              : </span>
 <span id="L153"><span class="lineNum">     153</span>              :   // Returns whether `reg` is in the set.</span>
 <span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">        4005 :   bool Contains(Reg reg) const {</span></span>
@@ -220,75 +220,75 @@
 <span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">        4005 :   }</span></span>
 <span id="L159"><span class="lineNum">     159</span>              : </span>
 <span id="L160"><span class="lineNum">     160</span>              :   // Inserts `reg` in the set.</span>
-<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">       42949 :   void Insert(Reg reg) {</span></span>
-<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">       42949 :     auto it = Find(IndexOf(reg));</span></span>
-<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">       42949 :     if (it == words_.end() || it-&gt;index != IndexOf(reg)) {</span></span>
-<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">       11871 :       it = words_.insert(it,</span></span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">       11871 :                          Word{.index = IndexOf(reg), .present = 0, .wide = 0});</span></span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">       11871 :     }</span></span>
-<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">       42949 :     it-&gt;present |= BitOf(reg);</span></span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">       42949 :     if (reg.size == RegSize64) {</span></span>
-<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">        5221 :       it-&gt;wide |= BitOf(reg);</span></span>
-<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">       37728 :     } else {</span></span>
-<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">       37728 :       it-&gt;wide &amp;= ~BitOf(reg);</span></span>
-<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">       37728 :     }</span></span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">       42949 :   }</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">       43560 :   void Insert(Reg reg) {</span></span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">       43560 :     auto it = Find(IndexOf(reg));</span></span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">       43560 :     if (it == words_.end() || it-&gt;index != IndexOf(reg)) {</span></span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">       12028 :       it = words_.insert(it,</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">       12028 :                          Word{.index = IndexOf(reg), .present = 0, .wide = 0});</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">       12028 :     }</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">       43560 :     it-&gt;present |= BitOf(reg);</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">       43560 :     if (reg.size == RegSize64) {</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">        5227 :       it-&gt;wide |= BitOf(reg);</span></span>
+<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">       38333 :     } else {</span></span>
+<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">       38333 :       it-&gt;wide &amp;= ~BitOf(reg);</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">       38333 :     }</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">       43560 :   }</span></span>
 <span id="L174"><span class="lineNum">     174</span>              : </span>
 <span id="L175"><span class="lineNum">     175</span>              :   // Removes `reg` from the set.</span>
-<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">       58307 :   void Remove(Reg reg) {</span></span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">       58307 :     const auto it = Find(IndexOf(reg));</span></span>
-<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">       58307 :     if (it == words_.end() || it-&gt;index != IndexOf(reg)) return;</span></span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">       58810 :   void Remove(Reg reg) {</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">       58810 :     const auto it = Find(IndexOf(reg));</span></span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">       58810 :     if (it == words_.end() || it-&gt;index != IndexOf(reg)) return;</span></span>
 <span id="L179"><span class="lineNum">     179</span>              : </span>
-<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">       48303 :     it-&gt;present &amp;= ~BitOf(reg);</span></span>
-<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">       48303 :     it-&gt;wide &amp;= ~BitOf(reg);</span></span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">       48303 :     if (it-&gt;present == 0) words_.erase(it);</span></span>
-<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">       48303 :   }</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">       48785 :     it-&gt;present &amp;= ~BitOf(reg);</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">       48785 :     it-&gt;wide &amp;= ~BitOf(reg);</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">       48785 :     if (it-&gt;present == 0) words_.erase(it);</span></span>
+<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">       48785 :   }</span></span>
 <span id="L184"><span class="lineNum">     184</span>              : </span>
 <span id="L185"><span class="lineNum">     185</span>              :   // Inserts every register in `other`.</span>
-<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">        4193 :   void InsertAll(const RegBitSet&amp; other) {</span></span>
-<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">        4193 :     if (words_.empty()) {</span></span>
-<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">        3230 :       words_ = other.words_;</span></span>
-<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">        3230 :       return;</span></span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">        3230 :     }</span></span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">        4244 :   void InsertAll(const RegBitSet&amp; other) {</span></span>
+<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">        4244 :     if (words_.empty()) {</span></span>
+<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">        3279 :       words_ = other.words_;</span></span>
+<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">        3279 :       return;</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">        3279 :     }</span></span>
 <span id="L191"><span class="lineNum">     191</span>              : </span>
 <span id="L192"><span class="lineNum">     192</span>              :     // How many words the two have between them, so that they can be merged</span>
 <span id="L193"><span class="lineNum">     193</span>              :     // in place, from the back, into room made for all of them at once.</span>
-<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">         963 :     std::size_t merged = words_.size() + other.words_.size();</span></span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">         963 :     for (std::size_t i = 0, j = 0;</span></span>
-<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">        3024 :          i &lt; words_.size() &amp;&amp; j &lt; other.words_.size();) {</span></span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">        2061 :       if (words_[i].index &lt; other.words_[j].index) {</span></span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">         965 :     std::size_t merged = words_.size() + other.words_.size();</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">         965 :     for (std::size_t i = 0, j = 0;</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">        3028 :          i &lt; words_.size() &amp;&amp; j &lt; other.words_.size();) {</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">        2063 :       if (words_[i].index &lt; other.words_[j].index) {</span></span>
 <span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">          52 :         ++i;</span></span>
-<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">        2009 :       } else if (other.words_[j].index &lt; words_[i].index) {</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">        2011 :       } else if (other.words_[j].index &lt; words_[i].index) {</span></span>
 <span id="L200"><span class="lineNum">     200</span> <span class="tlaGNC">           3 :         ++j;</span></span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">        2006 :       } else {</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">        2006 :         --merged;</span></span>
-<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">        2006 :         ++i;</span></span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">        2006 :         ++j;</span></span>
-<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">        2006 :       }</span></span>
-<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">        2061 :     }</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">        2008 :       } else {</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">        2008 :         --merged;</span></span>
+<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">        2008 :         ++i;</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">        2008 :         ++j;</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">        2008 :       }</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">        2063 :     }</span></span>
 <span id="L207"><span class="lineNum">     207</span>              : </span>
-<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">         963 :     std::size_t i = words_.size();</span></span>
-<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">         963 :     std::size_t j = other.words_.size();</span></span>
-<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">         963 :     std::size_t k = merged;</span></span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">         963 :     words_.resize(merged);</span></span>
+<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">         965 :     std::size_t i = words_.size();</span></span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">         965 :     std::size_t j = other.words_.size();</span></span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">         965 :     std::size_t k = merged;</span></span>
+<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">         965 :     words_.resize(merged);</span></span>
 <span id="L212"><span class="lineNum">     212</span>              :     // Once `other` has run out, what is left of this set is already where it</span>
 <span id="L213"><span class="lineNum">     213</span>              :     // belongs.</span>
-<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">        2985 :     while (j &gt; 0) {</span></span>
-<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">        2022 :       const Word&amp; theirs = other.words_[j - 1];</span></span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">        2022 :       if (i &gt; 0 &amp;&amp; words_[i - 1].index &gt; theirs.index) {</span></span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">        2989 :     while (j &gt; 0) {</span></span>
+<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">        2024 :       const Word&amp; theirs = other.words_[j - 1];</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">        2024 :       if (i &gt; 0 &amp;&amp; words_[i - 1].index &gt; theirs.index) {</span></span>
 <span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">           5 :         words_[--k] = words_[--i];</span></span>
-<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">        2017 :       } else if (i &gt; 0 &amp;&amp; words_[i - 1].index == theirs.index) {</span></span>
-<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">        2006 :         Word word = words_[--i];</span></span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">        2006 :         word.present |= theirs.present;</span></span>
-<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">        2006 :         word.wide |= theirs.wide;</span></span>
-<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">        2006 :         words_[--k] = word;</span></span>
-<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">        2006 :         --j;</span></span>
-<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">        2008 :       } else {</span></span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">        2019 :       } else if (i &gt; 0 &amp;&amp; words_[i - 1].index == theirs.index) {</span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">        2008 :         Word word = words_[--i];</span></span>
+<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">        2008 :         word.present |= theirs.present;</span></span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">        2008 :         word.wide |= theirs.wide;</span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">        2008 :         words_[--k] = word;</span></span>
+<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">        2008 :         --j;</span></span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">        2010 :       } else {</span></span>
 <span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">          11 :         words_[--k] = theirs;</span></span>
 <span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">          11 :         --j;</span></span>
 <span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">          11 :       }</span></span>
-<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">        2022 :     }</span></span>
-<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">         963 :   }</span></span>
+<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">        2024 :     }</span></span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">         965 :   }</span></span>
 <span id="L230"><span class="lineNum">     230</span>              : </span>
 <span id="L231"><span class="lineNum">     231</span>              :   // Returns the number of registers in the set.</span>
 <span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">        4023 :   std::size_t size() const {</span></span>
@@ -300,26 +300,26 @@
 <span id="L238"><span class="lineNum">     238</span>              :   // Returns whether the set holds no register.</span>
 <span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">          24 :   bool empty() const { return words_.empty(); }</span></span>
 <span id="L240"><span class="lineNum">     240</span>              : </span>
-<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">       51834 :   Iterator begin() const { return Iterator(words_, 0); }</span></span>
+<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">       51995 :   Iterator begin() const { return Iterator(words_, 0); }</span></span>
 <span id="L242"><span class="lineNum">     242</span>              : </span>
-<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">       51829 :   Iterator end() const { return Iterator(words_, words_.size()); }</span></span>
+<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">       51990 :   Iterator end() const { return Iterator(words_, words_.size()); }</span></span>
 <span id="L244"><span class="lineNum">     244</span>              : </span>
 <span id="L245"><span class="lineNum">     245</span>              :  private:</span>
 <span id="L246"><span class="lineNum">     246</span>              :   static constexpr std::size_t kWordBits = 64;</span>
 <span id="L247"><span class="lineNum">     247</span>              : </span>
-<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">      204412 :   static std::uint32_t IndexOf(Reg reg) {</span></span>
-<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">      204412 :     assert(reg.id &gt;= 0);</span></span>
-<span id="L250"><span class="lineNum">     250</span> <span class="tlaGNC">      204412 :     return static_cast&lt;std::uint32_t&gt;(reg.id) / kWordBits;</span></span>
-<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC">      204412 :   }</span></span>
+<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">      206619 :   static std::uint32_t IndexOf(Reg reg) {</span></span>
+<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">      206619 :     assert(reg.id &gt;= 0);</span></span>
+<span id="L250"><span class="lineNum">     250</span> <span class="tlaGNC">      206619 :     return static_cast&lt;std::uint32_t&gt;(reg.id) / kWordBits;</span></span>
+<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC">      206619 :   }</span></span>
 <span id="L252"><span class="lineNum">     252</span>              : </span>
-<span id="L253"><span class="lineNum">     253</span> <span class="tlaGNC">      186504 :   static std::uint64_t BitOf(Reg reg) {</span></span>
-<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">      186504 :     return std::uint64_t{1} &lt;&lt; (static_cast&lt;std::uint32_t&gt;(reg.id) % kWordBits);</span></span>
-<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">      186504 :   }</span></span>
+<span id="L253"><span class="lineNum">     253</span> <span class="tlaGNC">      188690 :   static std::uint64_t BitOf(Reg reg) {</span></span>
+<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">      188690 :     return std::uint64_t{1} &lt;&lt; (static_cast&lt;std::uint32_t&gt;(reg.id) % kWordBits);</span></span>
+<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">      188690 :   }</span></span>
 <span id="L256"><span class="lineNum">     256</span>              : </span>
 <span id="L257"><span class="lineNum">     257</span>              :   // Returns the first word that covers IDs from `index` times 64 on.</span>
-<span id="L258"><span class="lineNum">     258</span> <span class="tlaGNC">      101256 :   std::vector&lt;Word&gt;::iterator Find(std::uint32_t index) {</span></span>
-<span id="L259"><span class="lineNum">     259</span> <span class="tlaGNC">      101256 :     return std::ranges::lower_bound(words_, index, {}, &amp;Word::index);</span></span>
-<span id="L260"><span class="lineNum">     260</span> <span class="tlaGNC">      101256 :   }</span></span>
+<span id="L258"><span class="lineNum">     258</span> <span class="tlaGNC">      102370 :   std::vector&lt;Word&gt;::iterator Find(std::uint32_t index) {</span></span>
+<span id="L259"><span class="lineNum">     259</span> <span class="tlaGNC">      102370 :     return std::ranges::lower_bound(words_, index, {}, &amp;Word::index);</span></span>
+<span id="L260"><span class="lineNum">     260</span> <span class="tlaGNC">      102370 :   }</span></span>
 <span id="L261"><span class="lineNum">     261</span>              : </span>
 <span id="L262"><span class="lineNum">     262</span> <span class="tlaGNC">        4005 :   std::vector&lt;Word&gt;::const_iterator Find(std::uint32_t index) const {</span></span>
 <span id="L263"><span class="lineNum">     263</span> <span class="tlaGNC">        4005 :     return std::ranges::lower_bound(words_, index, {}, &amp;Word::index);</span></span>

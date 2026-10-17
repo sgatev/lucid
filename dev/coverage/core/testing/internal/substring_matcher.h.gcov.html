@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-17 13:39:46</td>
+            <td class="headerValue">2026-10-17 14:38:48</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryLo">50.0&nbsp;%</td>
@@ -73,7 +73,7 @@
 <span id="L11"><span class="lineNum">      11</span>              : class SubstringMatcher {</span>
 <span id="L12"><span class="lineNum">      12</span>              :  public:</span>
 <span id="L13"><span class="lineNum">      13</span>              :   explicit SubstringMatcher(std::string_view expected_substring)</span>
-<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">          65 :       : expected_substring_(expected_substring) {}</span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">          64 :       : expected_substring_(expected_substring) {}</span></span>
 <span id="L15"><span class="lineNum">      15</span>              : </span>
 <span id="L16"><span class="lineNum">      16</span> <span class="tlaUNC">           0 :   std::string DescribeExpected() {</span></span>
 <span id="L17"><span class="lineNum">      17</span> <span class="tlaUNC">           0 :     return &quot;a string containing &quot; +</span></span>
@@ -86,9 +86,9 @@
 <span id="L24"><span class="lineNum">      24</span> <span class="tlaUNC">           0 :   }</span></span>
 <span id="L25"><span class="lineNum">      25</span>              : </span>
 <span id="L26"><span class="lineNum">      26</span>              :   template &lt;StringLike A&gt;</span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">          65 :   bool Matches(const A&amp; actual_value) const {</span></span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">          65 :     return std::string_view(actual_value).contains(expected_substring_);</span></span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">          65 :   }</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">          64 :   bool Matches(const A&amp; actual_value) const {</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">          64 :     return std::string_view(actual_value).contains(expected_substring_);</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">          64 :   }</span></span>
 <span id="L30"><span class="lineNum">      30</span>              : </span>
 <span id="L31"><span class="lineNum">      31</span>              :  private:</span>
 <span id="L32"><span class="lineNum">      32</span>              :   std::string expected_substring_;</span>
