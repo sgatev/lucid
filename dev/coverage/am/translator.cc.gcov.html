@@ -32,12 +32,12 @@
             <td></td>
             <td class="headerItem">Lines:</td>
             <td class="headerCovTableEntryHi">95.8&nbsp;%</td>
-            <td class="headerCovTableEntry">719</td>
-            <td class="headerCovTableEntry">689</td>
+            <td class="headerCovTableEntry">720</td>
+            <td class="headerCovTableEntry">690</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-17 14:38:48</td>
+            <td class="headerValue">2026-10-17 14:48:40</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">90.1&nbsp;%</td>
@@ -442,632 +442,633 @@
 <span id="L380"><span class="lineNum">     380</span>              :   void PassFrameArgs(FuncCall&amp; func_call, const std::vector&lt;ExprRef&gt;&amp; args,</span>
 <span id="L381"><span class="lineNum">     381</span> <span class="tlaGNC">          15 :                      AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
 <span id="L382"><span class="lineNum">     382</span> <span class="tlaGNC">          15 :     std::vector&lt;StackPlace&gt; places;</span></span>
-<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">          17 :     for (const ExprRef arg : args) {</span></span>
-<span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">          17 :       places.push_back(GetStackPlace(arg, am_block));</span></span>
-<span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">          17 :     }</span></span>
-<span id="L386"><span class="lineNum">     386</span>              : </span>
-<span id="L387"><span class="lineNum">     387</span>              :     // The run is reached by how many bytes into it each argument stands, as</span>
-<span id="L388"><span class="lineNum">     388</span>              :     // the call reaches it, rather than by the slot the argument starts at:</span>
-<span id="L389"><span class="lineNum">     389</span>              :     // the frame can leave room between slots that the run does not have.</span>
-<span id="L390"><span class="lineNum">     390</span> <span class="tlaGNC">          15 :     std::size_t first = places.front().base_offset;</span></span>
-<span id="L391"><span class="lineNum">     391</span> <span class="tlaGNC">          15 :     if (places.size() &gt; 1 || places.front().offset_reg.has_value()) {</span></span>
-<span id="L392"><span class="lineNum">     392</span> <span class="tlaGNC">           5 :       first = am_cfg_.stack_slots.size();</span></span>
-<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">           5 :       std::size_t bytes = 0;</span></span>
-<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">          12 :       for (std::size_t i = 0; i &lt; args.size(); ++i) {</span></span>
-<span id="L395"><span class="lineNum">     395</span> <span class="tlaGNC">           7 :         const TypeRef type_ref = GetType(syn_ctx_.DerefExpr(args[i]));</span></span>
-<span id="L396"><span class="lineNum">     396</span> <span class="tlaGNC">           7 :         PushStackSlots(type_ref);</span></span>
-<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">           7 :         CopyStackValue(</span></span>
-<span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC">           7 :             {.base_offset = first, .offset_reg = BytesReg(bytes, am_block)},</span></span>
-<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">           7 :             places[i], type_ref, am_block);</span></span>
-<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">           7 :         bytes += GetSize(type_ref);</span></span>
-<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">           7 :       }</span></span>
-<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">           5 :     }</span></span>
-<span id="L403"><span class="lineNum">     403</span>              : </span>
-<span id="L404"><span class="lineNum">     404</span> <span class="tlaGNC">          15 :     std::vector&lt;int&gt; sizes;</span></span>
-<span id="L405"><span class="lineNum">     405</span> <span class="tlaGNC">          17 :     for (const ExprRef arg : args) {</span></span>
-<span id="L406"><span class="lineNum">     406</span> <span class="tlaGNC">          17 :       AppendSizes(GetType(syn_ctx_.DerefExpr(arg)), sizes);</span></span>
-<span id="L407"><span class="lineNum">     407</span> <span class="tlaGNC">          17 :     }</span></span>
-<span id="L408"><span class="lineNum">     408</span> <span class="tlaGNC">          15 :     func_call.frame_args_slot = static_cast&lt;std::uint32_t&gt;(first);</span></span>
-<span id="L409"><span class="lineNum">     409</span> <span class="tlaGNC">          15 :     am_cfg_.call_frame_args_slot_counts.Set(</span></span>
-<span id="L410"><span class="lineNum">     410</span> <span class="tlaGNC">          15 :         static_cast&lt;std::uint32_t&gt;(first),</span></span>
-<span id="L411"><span class="lineNum">     411</span> <span class="tlaGNC">          15 :         static_cast&lt;std::uint32_t&gt;(sizes.size()));</span></span>
-<span id="L412"><span class="lineNum">     412</span> <span class="tlaGNC">          15 :   }</span></span>
-<span id="L413"><span class="lineNum">     413</span>              : </span>
-<span id="L414"><span class="lineNum">     414</span>              :   void ProcessExpr(ExprRef ref, const IdentExpr&amp; expr,</span>
-<span id="L415"><span class="lineNum">     415</span> <span class="tlaGNC">        6455 :                    AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L416"><span class="lineNum">     416</span> <span class="tlaGNC">        6455 :     if (std::holds_alternative&lt;ArrayType&gt;(syn_ctx_.DerefType(expr.type)) ||</span></span>
-<span id="L417"><span class="lineNum">     417</span> <span class="tlaGNC">        6455 :         std::holds_alternative&lt;TupleType&gt;(syn_ctx_.DerefType(expr.type))) {</span></span>
-<span id="L418"><span class="lineNum">     418</span> <span class="tlaGNC">         479 :       return;</span></span>
-<span id="L419"><span class="lineNum">     419</span> <span class="tlaGNC">         479 :     }</span></span>
-<span id="L420"><span class="lineNum">     420</span>              :     // Read where the variable is, rather than from a copy. In single</span>
-<span id="L421"><span class="lineNum">     421</span>              :     // assignment form a write to a variable starts a new one, so what is read</span>
-<span id="L422"><span class="lineNum">     422</span>              :     // here never changes under the reader.</span>
-<span id="L423"><span class="lineNum">     423</span> <span class="tlaGNC">        5976 :     expr_to_reg_[ref.id()] = GetVarReg(expr.name, expr.type);</span></span>
-<span id="L424"><span class="lineNum">     424</span> <span class="tlaGNC">        5976 :   }</span></span>
-<span id="L425"><span class="lineNum">     425</span>              : </span>
-<span id="L426"><span class="lineNum">     426</span>              :   void ProcessExpr(ExprRef ref, const IndexExpr&amp; expr,</span>
-<span id="L427"><span class="lineNum">     427</span> <span class="tlaGNC">         385 :                    AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L428"><span class="lineNum">     428</span> <span class="tlaGNC">         385 :     LoadFromStack(ref, expr.type, am_block);</span></span>
-<span id="L429"><span class="lineNum">     429</span> <span class="tlaGNC">         385 :   }</span></span>
-<span id="L430"><span class="lineNum">     430</span>              : </span>
-<span id="L431"><span class="lineNum">     431</span>              :   void ProcessExpr(ExprRef ref, const FieldAccessExpr&amp; expr,</span>
-<span id="L432"><span class="lineNum">     432</span> <span class="tlaGNC">         120 :                    AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L433"><span class="lineNum">     433</span> <span class="tlaGNC">         120 :     LoadFromStack(ref, expr.type, am_block);</span></span>
-<span id="L434"><span class="lineNum">     434</span> <span class="tlaGNC">         120 :   }</span></span>
-<span id="L435"><span class="lineNum">     435</span>              : </span>
-<span id="L436"><span class="lineNum">     436</span>              :   // Loads what an expression names off the stack into a register.</span>
-<span id="L437"><span class="lineNum">     437</span>              :   //</span>
-<span id="L438"><span class="lineNum">     438</span>              :   // An expression whose value is itself an array or a tuple is not loaded at</span>
-<span id="L439"><span class="lineNum">     439</span>              :   // all: it has no register to go in, and what it is a step towards works out</span>
-<span id="L440"><span class="lineNum">     440</span>              :   // where it lies for itself.</span>
-<span id="L441"><span class="lineNum">     441</span>              :   void LoadFromStack(ExprRef ref, TypeRef type_ref,</span>
-<span id="L442"><span class="lineNum">     442</span> <span class="tlaGNC">         505 :                      AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L443"><span class="lineNum">     443</span> <span class="tlaGNC">         505 :     if (IsOnStack(type_ref)) return;</span></span>
-<span id="L444"><span class="lineNum">     444</span>              : </span>
-<span id="L445"><span class="lineNum">     445</span> <span class="tlaGNC">         209 :     const StackPlace place = GetStackPlace(ref, am_block);</span></span>
-<span id="L446"><span class="lineNum">     446</span> <span class="tlaGNC">         209 :     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(type_ref)};</span></span>
-<span id="L447"><span class="lineNum">     447</span> <span class="tlaGNC">         209 :     am_block.instructions.emplace_back(LoadStackReg{</span></span>
-<span id="L448"><span class="lineNum">     448</span> <span class="tlaGNC">         209 :         .offset = place.base_offset,</span></span>
-<span id="L449"><span class="lineNum">     449</span> <span class="tlaGNC">         209 :         .offset_reg = place.offset_reg.value(),</span></span>
-<span id="L450"><span class="lineNum">     450</span> <span class="tlaGNC">         209 :         .offset_scale = place.offset_scale,</span></span>
-<span id="L451"><span class="lineNum">     451</span> <span class="tlaGNC">         209 :         .dst_reg = reg,</span></span>
-<span id="L452"><span class="lineNum">     452</span> <span class="tlaGNC">         209 :     });</span></span>
-<span id="L453"><span class="lineNum">     453</span> <span class="tlaGNC">         209 :     expr_to_reg_[ref.id()] = reg;</span></span>
-<span id="L454"><span class="lineNum">     454</span> <span class="tlaGNC">         209 :   }</span></span>
-<span id="L455"><span class="lineNum">     455</span>              : </span>
-<span id="L456"><span class="lineNum">     456</span>              :   void ProcessExpr(ExprRef ref, const BinaryOpExpr&amp; expr,</span>
-<span id="L457"><span class="lineNum">     457</span> <span class="tlaGNC">        4432 :                    AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L458"><span class="lineNum">     458</span> <span class="tlaGNC">        4432 :     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};</span></span>
-<span id="L459"><span class="lineNum">     459</span> <span class="tlaGNC">        4432 :     switch (expr.op) {</span></span>
-<span id="L460"><span class="lineNum">     460</span> <span class="tlaGNC">        2551 :       case BinaryOp::Add:</span></span>
-<span id="L461"><span class="lineNum">     461</span> <span class="tlaGNC">        2551 :         am_block.instructions.emplace_back(AddReg{</span></span>
-<span id="L462"><span class="lineNum">     462</span> <span class="tlaGNC">        2551 :             .res_reg = reg,</span></span>
-<span id="L463"><span class="lineNum">     463</span> <span class="tlaGNC">        2551 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L464"><span class="lineNum">     464</span> <span class="tlaGNC">        2551 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L465"><span class="lineNum">     465</span> <span class="tlaGNC">        2551 :         });</span></span>
-<span id="L466"><span class="lineNum">     466</span> <span class="tlaGNC">        2551 :         break;</span></span>
-<span id="L467"><span class="lineNum">     467</span> <span class="tlaGNC">         595 :       case BinaryOp::Sub:</span></span>
-<span id="L468"><span class="lineNum">     468</span> <span class="tlaGNC">         595 :         am_block.instructions.emplace_back(SubReg{</span></span>
-<span id="L469"><span class="lineNum">     469</span> <span class="tlaGNC">         595 :             .res_reg = reg,</span></span>
-<span id="L470"><span class="lineNum">     470</span> <span class="tlaGNC">         595 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L471"><span class="lineNum">     471</span> <span class="tlaGNC">         595 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L472"><span class="lineNum">     472</span> <span class="tlaGNC">         595 :         });</span></span>
-<span id="L473"><span class="lineNum">     473</span> <span class="tlaGNC">         595 :         break;</span></span>
-<span id="L474"><span class="lineNum">     474</span> <span class="tlaGNC">         166 :       case BinaryOp::Mul:</span></span>
-<span id="L475"><span class="lineNum">     475</span> <span class="tlaGNC">         166 :         am_block.instructions.emplace_back(MulReg{</span></span>
-<span id="L476"><span class="lineNum">     476</span> <span class="tlaGNC">         166 :             .res_reg = reg,</span></span>
-<span id="L477"><span class="lineNum">     477</span> <span class="tlaGNC">         166 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L478"><span class="lineNum">     478</span> <span class="tlaGNC">         166 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L479"><span class="lineNum">     479</span> <span class="tlaGNC">         166 :         });</span></span>
-<span id="L480"><span class="lineNum">     480</span> <span class="tlaGNC">         166 :         break;</span></span>
-<span id="L481"><span class="lineNum">     481</span> <span class="tlaGNC">         114 :       case BinaryOp::Div:</span></span>
-<span id="L482"><span class="lineNum">     482</span> <span class="tlaGNC">         114 :         am_block.instructions.emplace_back(DivReg{</span></span>
-<span id="L483"><span class="lineNum">     483</span> <span class="tlaGNC">         114 :             .res_reg = reg,</span></span>
-<span id="L484"><span class="lineNum">     484</span> <span class="tlaGNC">         114 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L485"><span class="lineNum">     485</span> <span class="tlaGNC">         114 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L486"><span class="lineNum">     486</span> <span class="tlaGNC">         114 :         });</span></span>
-<span id="L487"><span class="lineNum">     487</span> <span class="tlaGNC">         114 :         break;</span></span>
-<span id="L488"><span class="lineNum">     488</span> <span class="tlaGNC">          39 :       case BinaryOp::Mod:</span></span>
-<span id="L489"><span class="lineNum">     489</span> <span class="tlaGNC">          39 :         am_block.instructions.emplace_back(ModReg{</span></span>
-<span id="L490"><span class="lineNum">     490</span> <span class="tlaGNC">          39 :             .res_reg = reg,</span></span>
-<span id="L491"><span class="lineNum">     491</span> <span class="tlaGNC">          39 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L492"><span class="lineNum">     492</span> <span class="tlaGNC">          39 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L493"><span class="lineNum">     493</span> <span class="tlaGNC">          39 :         });</span></span>
-<span id="L494"><span class="lineNum">     494</span> <span class="tlaGNC">          39 :         break;</span></span>
-<span id="L495"><span class="lineNum">     495</span> <span class="tlaGNC">         394 :       case BinaryOp::Gt:</span></span>
-<span id="L496"><span class="lineNum">     496</span> <span class="tlaGNC">         394 :         am_block.instructions.emplace_back(GtReg{</span></span>
-<span id="L497"><span class="lineNum">     497</span> <span class="tlaGNC">         394 :             .res_reg = reg,</span></span>
-<span id="L498"><span class="lineNum">     498</span> <span class="tlaGNC">         394 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L499"><span class="lineNum">     499</span> <span class="tlaGNC">         394 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L500"><span class="lineNum">     500</span> <span class="tlaGNC">         394 :         });</span></span>
-<span id="L501"><span class="lineNum">     501</span> <span class="tlaGNC">         394 :         break;</span></span>
-<span id="L502"><span class="lineNum">     502</span> <span class="tlaGNC">          60 :       case BinaryOp::Lt:</span></span>
-<span id="L503"><span class="lineNum">     503</span> <span class="tlaGNC">          60 :         am_block.instructions.emplace_back(LtReg{</span></span>
-<span id="L504"><span class="lineNum">     504</span> <span class="tlaGNC">          60 :             .res_reg = reg,</span></span>
-<span id="L505"><span class="lineNum">     505</span> <span class="tlaGNC">          60 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L506"><span class="lineNum">     506</span> <span class="tlaGNC">          60 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L507"><span class="lineNum">     507</span> <span class="tlaGNC">          60 :         });</span></span>
-<span id="L508"><span class="lineNum">     508</span> <span class="tlaGNC">          60 :         break;</span></span>
-<span id="L509"><span class="lineNum">     509</span> <span class="tlaGNC">         189 :       case BinaryOp::Ge:</span></span>
-<span id="L510"><span class="lineNum">     510</span> <span class="tlaGNC">         189 :         am_block.instructions.emplace_back(GeReg{</span></span>
-<span id="L511"><span class="lineNum">     511</span> <span class="tlaGNC">         189 :             .res_reg = reg,</span></span>
-<span id="L512"><span class="lineNum">     512</span> <span class="tlaGNC">         189 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L513"><span class="lineNum">     513</span> <span class="tlaGNC">         189 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L514"><span class="lineNum">     514</span> <span class="tlaGNC">         189 :         });</span></span>
-<span id="L515"><span class="lineNum">     515</span> <span class="tlaGNC">         189 :         break;</span></span>
-<span id="L516"><span class="lineNum">     516</span> <span class="tlaGNC">          71 :       case BinaryOp::Le:</span></span>
-<span id="L517"><span class="lineNum">     517</span> <span class="tlaGNC">          71 :         am_block.instructions.emplace_back(LeReg{</span></span>
-<span id="L518"><span class="lineNum">     518</span> <span class="tlaGNC">          71 :             .res_reg = reg,</span></span>
-<span id="L519"><span class="lineNum">     519</span> <span class="tlaGNC">          71 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L520"><span class="lineNum">     520</span> <span class="tlaGNC">          71 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L521"><span class="lineNum">     521</span> <span class="tlaGNC">          71 :         });</span></span>
-<span id="L522"><span class="lineNum">     522</span> <span class="tlaGNC">          71 :         break;</span></span>
-<span id="L523"><span class="lineNum">     523</span> <span class="tlaGNC">         192 :       case BinaryOp::Eq:</span></span>
-<span id="L524"><span class="lineNum">     524</span> <span class="tlaGNC">         192 :         am_block.instructions.emplace_back(EqReg{</span></span>
-<span id="L525"><span class="lineNum">     525</span> <span class="tlaGNC">         192 :             .res_reg = reg,</span></span>
-<span id="L526"><span class="lineNum">     526</span> <span class="tlaGNC">         192 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L527"><span class="lineNum">     527</span> <span class="tlaGNC">         192 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L528"><span class="lineNum">     528</span> <span class="tlaGNC">         192 :         });</span></span>
-<span id="L529"><span class="lineNum">     529</span> <span class="tlaGNC">         192 :         break;</span></span>
-<span id="L530"><span class="lineNum">     530</span> <span class="tlaGNC">          61 :       case BinaryOp::NotEq:</span></span>
-<span id="L531"><span class="lineNum">     531</span> <span class="tlaGNC">          61 :         am_block.instructions.emplace_back(NotEqReg{</span></span>
-<span id="L532"><span class="lineNum">     532</span> <span class="tlaGNC">          61 :             .res_reg = reg,</span></span>
-<span id="L533"><span class="lineNum">     533</span> <span class="tlaGNC">          61 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
-<span id="L534"><span class="lineNum">     534</span> <span class="tlaGNC">          61 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
-<span id="L535"><span class="lineNum">     535</span> <span class="tlaGNC">          61 :         });</span></span>
-<span id="L536"><span class="lineNum">     536</span> <span class="tlaGNC">          61 :         break;</span></span>
-<span id="L537"><span class="lineNum">     537</span> <span class="tlaUNC">           0 :       case BinaryOp::And:</span></span>
-<span id="L538"><span class="lineNum">     538</span> <span class="tlaUNC">           0 :       case BinaryOp::Or:</span></span>
-<span id="L539"><span class="lineNum">     539</span>              :         // Each of these is a branch over a variable of its own by the time</span>
-<span id="L540"><span class="lineNum">     540</span>              :         // anything here sees the function, and so never one of these.</span>
-<span id="L541"><span class="lineNum">     541</span> <span class="tlaUNC">           0 :         assert(false &amp;&amp; &quot;short circuit operator reached the abstract machine&quot;);</span></span>
-<span id="L542"><span class="lineNum">     542</span> <span class="tlaUNC">           0 :         break;</span></span>
-<span id="L543"><span class="lineNum">     543</span> <span class="tlaGNC">        4432 :     }</span></span>
-<span id="L544"><span class="lineNum">     544</span> <span class="tlaGNC">        4432 :     expr_to_reg_[ref.id()] = reg;</span></span>
-<span id="L545"><span class="lineNum">     545</span> <span class="tlaGNC">        4432 :   }</span></span>
-<span id="L546"><span class="lineNum">     546</span>              : </span>
-<span id="L547"><span class="lineNum">     547</span>              :   void Process(StmtRef ref, const Stmt&amp; stmt,</span>
-<span id="L548"><span class="lineNum">     548</span> <span class="tlaGNC">        6530 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L549"><span class="lineNum">     549</span> <span class="tlaGNC">        6530 :     std::visit([&amp;](const auto&amp; stmt) { Process(ref, stmt, am_block); }, stmt);</span></span>
-<span id="L550"><span class="lineNum">     550</span> <span class="tlaGNC">        6530 :   }</span></span>
-<span id="L551"><span class="lineNum">     551</span>              : </span>
-<span id="L552"><span class="lineNum">     552</span>              :   // What is returned is taken in by the phi function where the function ends,</span>
-<span id="L553"><span class="lineNum">     553</span>              :   // straight from the register the value was worked out in.</span>
-<span id="L554"><span class="lineNum">     554</span>              :   void Process(StmtRef ref, const ReturnStmt&amp; stmt,</span>
-<span id="L555"><span class="lineNum">     555</span> <span class="tlaGNC">         861 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L556"><span class="lineNum">     556</span> <span class="tlaGNC">         861 :     if (am_cfg_.result_slot_count &gt; 0) {</span></span>
-<span id="L557"><span class="lineNum">     557</span> <span class="tlaGNC">          29 :       CopyStackValue({.base_offset = am_cfg_.result_slot},</span></span>
-<span id="L558"><span class="lineNum">     558</span> <span class="tlaGNC">          29 :                      GetStackPlace(stmt.value, am_block),</span></span>
-<span id="L559"><span class="lineNum">     559</span> <span class="tlaGNC">          29 :                      syn_cfg_.func_result_type, am_block);</span></span>
-<span id="L560"><span class="lineNum">     560</span> <span class="tlaGNC">          29 :       return;</span></span>
-<span id="L561"><span class="lineNum">     561</span> <span class="tlaGNC">          29 :     }</span></span>
-<span id="L562"><span class="lineNum">     562</span>              : </span>
-<span id="L563"><span class="lineNum">     563</span> <span class="tlaGNC">         832 :     if (am_block.ref.id() &gt;= returned_regs_.size()) {</span></span>
-<span id="L564"><span class="lineNum">     564</span> <span class="tlaGNC">         832 :       returned_regs_.resize(am_block.ref.id() + 1);</span></span>
-<span id="L565"><span class="lineNum">     565</span> <span class="tlaGNC">         832 :     }</span></span>
-<span id="L566"><span class="lineNum">     566</span>              :     // What is returned goes to the phi function where the returns meet. A</span>
-<span id="L567"><span class="lineNum">     567</span>              :     // variable given there as it is would be tied to every other value</span>
-<span id="L568"><span class="lineNum">     568</span>              :     // returned, and spilling puts all of those in one slot while two of them</span>
-<span id="L569"><span class="lineNum">     569</span>              :     // can be live at once, so a variable goes in a copy of its own.</span>
-<span id="L570"><span class="lineNum">     570</span> <span class="tlaGNC">         832 :     Reg value = expr_to_reg_[stmt.value.id()];</span></span>
-<span id="L571"><span class="lineNum">     571</span> <span class="tlaGNC">         832 :     if (std::holds_alternative&lt;IdentExpr&gt;(syn_ctx_.DerefExpr(stmt.value))) {</span></span>
-<span id="L572"><span class="lineNum">     572</span> <span class="tlaGNC">         382 :       const Reg copy = {am_cfg_.next_free_reg_id++, value.size};</span></span>
-<span id="L573"><span class="lineNum">     573</span> <span class="tlaGNC">         382 :       am_block.instructions.emplace_back(MoveReg{</span></span>
-<span id="L574"><span class="lineNum">     574</span> <span class="tlaGNC">         382 :           .src_reg = value,</span></span>
-<span id="L575"><span class="lineNum">     575</span> <span class="tlaGNC">         382 :           .dst_reg = copy,</span></span>
-<span id="L576"><span class="lineNum">     576</span> <span class="tlaGNC">         382 :       });</span></span>
-<span id="L577"><span class="lineNum">     577</span> <span class="tlaGNC">         382 :       value = copy;</span></span>
-<span id="L578"><span class="lineNum">     578</span> <span class="tlaGNC">         382 :     }</span></span>
-<span id="L579"><span class="lineNum">     579</span> <span class="tlaGNC">         832 :     returned_regs_[am_block.ref.id()] = value;</span></span>
-<span id="L580"><span class="lineNum">     580</span> <span class="tlaGNC">         832 :   }</span></span>
-<span id="L581"><span class="lineNum">     581</span>              : </span>
-<span id="L582"><span class="lineNum">     582</span>              :   void Process(StmtRef ref, const DoStmt&amp; stmt,</span>
-<span id="L583"><span class="lineNum">     583</span> <span class="tlaGNC">         379 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L584"><span class="lineNum">     584</span> <span class="tlaGNC">         379 :     std::get&lt;FuncCall&gt;(am_block.instructions.back()).res.reset();</span></span>
-<span id="L585"><span class="lineNum">     585</span> <span class="tlaGNC">         379 :   }</span></span>
-<span id="L586"><span class="lineNum">     586</span>              : </span>
-<span id="L587"><span class="lineNum">     587</span>              :   void Process(StmtRef ref, const VarAssignStmt&amp; stmt,</span>
-<span id="L588"><span class="lineNum">     588</span> <span class="tlaGNC">           3 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L589"><span class="lineNum">     589</span> <span class="tlaGNC">           3 :     auto expr_type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));</span></span>
-<span id="L590"><span class="lineNum">     590</span> <span class="tlaGNC">           3 :     if (IsOnStack(expr_type_ref)) {</span></span>
-<span id="L591"><span class="lineNum">     591</span> <span class="tlaUNC">           0 :       auto slot = var_stack_.Get(stmt.name);</span></span>
-<span id="L592"><span class="lineNum">     592</span> <span class="tlaUNC">           0 :       assert(slot.has_value());</span></span>
-<span id="L593"><span class="lineNum">     593</span> <span class="tlaUNC">           0 :       CopyStackValue({.base_offset = *slot}, GetStackPlace(stmt.expr, am_block),</span></span>
-<span id="L594"><span class="lineNum">     594</span> <span class="tlaUNC">           0 :                      expr_type_ref, am_block);</span></span>
-<span id="L595"><span class="lineNum">     595</span> <span class="tlaUNC">           0 :       return;</span></span>
-<span id="L596"><span class="lineNum">     596</span> <span class="tlaUNC">           0 :     }</span></span>
-<span id="L597"><span class="lineNum">     597</span> <span class="tlaGNC">           3 :     am_block.instructions.emplace_back(MoveReg{</span></span>
-<span id="L598"><span class="lineNum">     598</span> <span class="tlaGNC">           3 :         .src_reg = expr_to_reg_[stmt.expr.id()],</span></span>
-<span id="L599"><span class="lineNum">     599</span> <span class="tlaGNC">           3 :         .dst_reg = GetVarReg(stmt.name, expr_type_ref),</span></span>
-<span id="L600"><span class="lineNum">     600</span> <span class="tlaGNC">           3 :     });</span></span>
-<span id="L601"><span class="lineNum">     601</span> <span class="tlaGNC">           3 :   }</span></span>
-<span id="L602"><span class="lineNum">     602</span>              : </span>
-<span id="L603"><span class="lineNum">     603</span>              :   void Process(StmtRef ref, const VarDeclStmt&amp; stmt,</span>
-<span id="L604"><span class="lineNum">     604</span> <span class="tlaGNC">        3915 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L605"><span class="lineNum">     605</span> <span class="tlaGNC">        3915 :     if (IsOnStack(stmt.type_constraint)) {</span></span>
-<span id="L606"><span class="lineNum">     606</span>              :       // An array or a tuple a call returns already lies in slots of its own,</span>
-<span id="L607"><span class="lineNum">     607</span>              :       // which the variable takes over rather than being copied into.</span>
-<span id="L608"><span class="lineNum">     608</span> <span class="tlaGNC">         164 :       if (stmt.init.has_value()) {</span></span>
-<span id="L609"><span class="lineNum">     609</span> <span class="tlaGNC">          36 :         if (auto slot = expr_slot_.Get(*stmt.init); slot.has_value()) {</span></span>
-<span id="L610"><span class="lineNum">     610</span> <span class="tlaGNC">          32 :           var_stack_.Set(stmt.name, *slot);</span></span>
-<span id="L611"><span class="lineNum">     611</span> <span class="tlaGNC">          32 :           return;</span></span>
-<span id="L612"><span class="lineNum">     612</span> <span class="tlaGNC">          32 :         }</span></span>
-<span id="L613"><span class="lineNum">     613</span> <span class="tlaGNC">          36 :       }</span></span>
-<span id="L614"><span class="lineNum">     614</span> <span class="tlaGNC">         132 :       const std::size_t slot = am_cfg_.stack_slots.size();</span></span>
-<span id="L615"><span class="lineNum">     615</span> <span class="tlaGNC">         132 :       var_stack_.Set(stmt.name, slot);</span></span>
-<span id="L616"><span class="lineNum">     616</span> <span class="tlaGNC">         132 :       PushStackSlots(stmt.type_constraint);</span></span>
-<span id="L617"><span class="lineNum">     617</span> <span class="tlaGNC">         132 :       if (stmt.init.has_value()) {</span></span>
-<span id="L618"><span class="lineNum">     618</span> <span class="tlaGNC">           4 :         CopyStackValue({.base_offset = slot},</span></span>
-<span id="L619"><span class="lineNum">     619</span> <span class="tlaGNC">           4 :                        GetStackPlace(*stmt.init, am_block),</span></span>
-<span id="L620"><span class="lineNum">     620</span> <span class="tlaGNC">           4 :                        stmt.type_constraint, am_block);</span></span>
-<span id="L621"><span class="lineNum">     621</span> <span class="tlaGNC">           4 :       }</span></span>
-<span id="L622"><span class="lineNum">     622</span> <span class="tlaGNC">        3751 :     } else {</span></span>
-<span id="L623"><span class="lineNum">     623</span> <span class="tlaGNC">        3751 :       if (stmt.init.has_value()) {</span></span>
-<span id="L624"><span class="lineNum">     624</span> <span class="tlaGNC">        3751 :         am_block.instructions.emplace_back(MoveReg{</span></span>
-<span id="L625"><span class="lineNum">     625</span> <span class="tlaGNC">        3751 :             .src_reg = expr_to_reg_[stmt.init-&gt;id()],</span></span>
-<span id="L626"><span class="lineNum">     626</span> <span class="tlaGNC">        3751 :             .dst_reg = GetVarReg(stmt.name, stmt.type_constraint),</span></span>
-<span id="L627"><span class="lineNum">     627</span> <span class="tlaGNC">        3751 :         });</span></span>
-<span id="L628"><span class="lineNum">     628</span> <span class="tlaGNC">        3751 :       }</span></span>
-<span id="L629"><span class="lineNum">     629</span> <span class="tlaGNC">        3751 :     }</span></span>
-<span id="L630"><span class="lineNum">     630</span> <span class="tlaGNC">        3915 :   }</span></span>
-<span id="L631"><span class="lineNum">     631</span>              : </span>
-<span id="L632"><span class="lineNum">     632</span>              :   void Process(StmtRef ref, const ArrayAssignStmt&amp; stmt,</span>
-<span id="L633"><span class="lineNum">     633</span> <span class="tlaGNC">        1022 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L634"><span class="lineNum">     634</span> <span class="tlaGNC">        1022 :     auto stmt_offset = var_stack_.Get(stmt.name);</span></span>
-<span id="L635"><span class="lineNum">     635</span> <span class="tlaGNC">        1022 :     assert(stmt_offset.has_value());</span></span>
-<span id="L636"><span class="lineNum">     636</span>              : </span>
-<span id="L637"><span class="lineNum">     637</span> <span class="tlaGNC">        1022 :     const TypeRef type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));</span></span>
-<span id="L638"><span class="lineNum">     638</span> <span class="tlaGNC">        1022 :     const StackPlace place = {</span></span>
-<span id="L639"><span class="lineNum">     639</span> <span class="tlaGNC">        1022 :         .base_offset = *stmt_offset,</span></span>
-<span id="L640"><span class="lineNum">     640</span> <span class="tlaGNC">        1022 :         .offset_reg = expr_to_reg_[stmt.index.id()],</span></span>
-<span id="L641"><span class="lineNum">     641</span> <span class="tlaGNC">        1022 :         .offset_scale = GetSize(type_ref),</span></span>
-<span id="L642"><span class="lineNum">     642</span> <span class="tlaGNC">        1022 :     };</span></span>
-<span id="L643"><span class="lineNum">     643</span> <span class="tlaGNC">        1022 :     if (IsOnStack(type_ref)) {</span></span>
-<span id="L644"><span class="lineNum">     644</span> <span class="tlaGNC">           2 :       CopyStackValue(place, GetStackPlace(stmt.expr, am_block), type_ref,</span></span>
-<span id="L645"><span class="lineNum">     645</span> <span class="tlaGNC">           2 :                      am_block);</span></span>
-<span id="L646"><span class="lineNum">     646</span> <span class="tlaGNC">           2 :       return;</span></span>
-<span id="L647"><span class="lineNum">     647</span> <span class="tlaGNC">           2 :     }</span></span>
-<span id="L648"><span class="lineNum">     648</span> <span class="tlaGNC">        1020 :     am_block.instructions.emplace_back(StoreStackReg{</span></span>
-<span id="L649"><span class="lineNum">     649</span> <span class="tlaGNC">        1020 :         .offset = place.base_offset,</span></span>
-<span id="L650"><span class="lineNum">     650</span> <span class="tlaGNC">        1020 :         .offset_reg = *place.offset_reg,</span></span>
-<span id="L651"><span class="lineNum">     651</span> <span class="tlaGNC">        1020 :         .offset_scale = place.offset_scale,</span></span>
-<span id="L652"><span class="lineNum">     652</span> <span class="tlaGNC">        1020 :         .src_reg = expr_to_reg_[stmt.expr.id()],</span></span>
-<span id="L653"><span class="lineNum">     653</span> <span class="tlaGNC">        1020 :     });</span></span>
-<span id="L654"><span class="lineNum">     654</span> <span class="tlaGNC">        1020 :   }</span></span>
-<span id="L655"><span class="lineNum">     655</span>              : </span>
-<span id="L656"><span class="lineNum">     656</span>              :   void Process(StmtRef ref, const FieldAssignStmt&amp; stmt,</span>
-<span id="L657"><span class="lineNum">     657</span> <span class="tlaGNC">         231 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L658"><span class="lineNum">     658</span> <span class="tlaGNC">         231 :     StackPlace place = GetStackPlace(stmt.base, am_block);</span></span>
-<span id="L659"><span class="lineNum">     659</span> <span class="tlaGNC">         231 :     AddToStackPlace(</span></span>
-<span id="L660"><span class="lineNum">     660</span> <span class="tlaGNC">         231 :         place,</span></span>
-<span id="L661"><span class="lineNum">     661</span> <span class="tlaGNC">         231 :         GetFieldOffset(GetType(syn_ctx_.DerefExpr(stmt.base)), stmt.field_name),</span></span>
-<span id="L662"><span class="lineNum">     662</span> <span class="tlaGNC">         231 :         am_block);</span></span>
-<span id="L663"><span class="lineNum">     663</span> <span class="tlaGNC">         231 :     if (const TypeRef type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));</span></span>
-<span id="L664"><span class="lineNum">     664</span> <span class="tlaGNC">         231 :         IsOnStack(type_ref)) {</span></span>
-<span id="L665"><span class="lineNum">     665</span> <span class="tlaGNC">           5 :       CopyStackValue(place, GetStackPlace(stmt.expr, am_block), type_ref,</span></span>
-<span id="L666"><span class="lineNum">     666</span> <span class="tlaGNC">           5 :                      am_block);</span></span>
-<span id="L667"><span class="lineNum">     667</span> <span class="tlaGNC">           5 :       return;</span></span>
-<span id="L668"><span class="lineNum">     668</span> <span class="tlaGNC">           5 :     }</span></span>
-<span id="L669"><span class="lineNum">     669</span> <span class="tlaGNC">         226 :     am_block.instructions.emplace_back(StoreStackReg{</span></span>
-<span id="L670"><span class="lineNum">     670</span> <span class="tlaGNC">         226 :         .offset = place.base_offset,</span></span>
-<span id="L671"><span class="lineNum">     671</span> <span class="tlaGNC">         226 :         .offset_reg = place.offset_reg.value(),</span></span>
-<span id="L672"><span class="lineNum">     672</span> <span class="tlaGNC">         226 :         .offset_scale = place.offset_scale,</span></span>
-<span id="L673"><span class="lineNum">     673</span> <span class="tlaGNC">         226 :         .src_reg = expr_to_reg_[stmt.expr.id()],</span></span>
-<span id="L674"><span class="lineNum">     674</span> <span class="tlaGNC">         226 :     });</span></span>
-<span id="L675"><span class="lineNum">     675</span> <span class="tlaGNC">         226 :   }</span></span>
-<span id="L676"><span class="lineNum">     676</span>              : </span>
-<span id="L677"><span class="lineNum">     677</span>              :   void Process(StmtRef ref, const FuncDefStmt&amp; stmt,</span>
-<span id="L678"><span class="lineNum">     678</span> <span class="tlaUNC">           0 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {}</span></span>
-<span id="L679"><span class="lineNum">     679</span>              : </span>
-<span id="L680"><span class="lineNum">     680</span>              :   void Process(StmtRef ref, const IfStmt&amp; stmt,</span>
-<span id="L681"><span class="lineNum">     681</span> <span class="tlaUNC">           0 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {}</span></span>
-<span id="L682"><span class="lineNum">     682</span>              : </span>
-<span id="L683"><span class="lineNum">     683</span>              :   void Process(StmtRef ref, const LoopStmt&amp; stmt,</span>
-<span id="L684"><span class="lineNum">     684</span> <span class="tlaUNC">           0 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {}</span></span>
-<span id="L685"><span class="lineNum">     685</span>              : </span>
-<span id="L686"><span class="lineNum">     686</span>              :   void Process(StmtRef ref, const BreakStmt&amp; stmt,</span>
-<span id="L687"><span class="lineNum">     687</span> <span class="tlaGNC">         119 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {}</span></span>
-<span id="L688"><span class="lineNum">     688</span>              : </span>
-<span id="L689"><span class="lineNum">     689</span>              :   // Where a value lies on the stack: the slot the variable holding it starts</span>
-<span id="L690"><span class="lineNum">     690</span>              :   // at, and how many bytes into that variable it stands, which is a register</span>
-<span id="L691"><span class="lineNum">     691</span>              :   // times `offset_scale`. A value at the start of its variable has no</span>
-<span id="L692"><span class="lineNum">     692</span>              :   // register.</span>
-<span id="L693"><span class="lineNum">     693</span>              :   //</span>
-<span id="L694"><span class="lineNum">     694</span>              :   // Indexing straight into a variable leaves the index itself as the</span>
-<span id="L695"><span class="lineNum">     695</span>              :   // register, and the element's size as the scale, which a load or a store</span>
-<span id="L696"><span class="lineNum">     696</span>              :   // can take as it is.</span>
-<span id="L697"><span class="lineNum">     697</span>              :   struct StackPlace {</span>
-<span id="L698"><span class="lineNum">     698</span>              :     std::size_t base_offset;</span>
-<span id="L699"><span class="lineNum">     699</span>              :     std::optional&lt;Reg&gt; offset_reg;</span>
-<span id="L700"><span class="lineNum">     700</span>              :     std::size_t offset_scale = 1;</span>
-<span id="L701"><span class="lineNum">     701</span>              :   };</span>
-<span id="L702"><span class="lineNum">     702</span>              : </span>
-<span id="L703"><span class="lineNum">     703</span>              :   // Turns the bytes `place` stands into its variable into a register of</span>
-<span id="L704"><span class="lineNum">     704</span>              :   // their own, unless they are one already.</span>
-<span id="L705"><span class="lineNum">     705</span>              :   void CountInBytes(StackPlace&amp; place,</span>
-<span id="L706"><span class="lineNum">     706</span> <span class="tlaGNC">         448 :                     AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L707"><span class="lineNum">     707</span> <span class="tlaGNC">         448 :     if (!place.offset_reg.has_value() || place.offset_scale == 1) return;</span></span>
-<span id="L708"><span class="lineNum">     708</span>              : </span>
-<span id="L709"><span class="lineNum">     709</span> <span class="tlaGNC">         282 :     Reg scale_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
-<span id="L710"><span class="lineNum">     710</span> <span class="tlaGNC">         282 :     am_block.instructions.emplace_back(SetReg{</span></span>
-<span id="L711"><span class="lineNum">     711</span> <span class="tlaGNC">         282 :         .src_val = static_cast&lt;int&gt;(place.offset_scale),</span></span>
-<span id="L712"><span class="lineNum">     712</span> <span class="tlaGNC">         282 :         .dst_reg = scale_reg,</span></span>
-<span id="L713"><span class="lineNum">     713</span> <span class="tlaGNC">         282 :     });</span></span>
-<span id="L714"><span class="lineNum">     714</span> <span class="tlaGNC">         282 :     Reg bytes_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
-<span id="L715"><span class="lineNum">     715</span> <span class="tlaGNC">         282 :     am_block.instructions.emplace_back(MulReg{</span></span>
-<span id="L716"><span class="lineNum">     716</span> <span class="tlaGNC">         282 :         .res_reg = bytes_reg,</span></span>
-<span id="L717"><span class="lineNum">     717</span> <span class="tlaGNC">         282 :         .lhs_reg = scale_reg,</span></span>
-<span id="L718"><span class="lineNum">     718</span> <span class="tlaGNC">         282 :         .rhs_reg = *place.offset_reg,</span></span>
-<span id="L719"><span class="lineNum">     719</span> <span class="tlaGNC">         282 :     });</span></span>
-<span id="L720"><span class="lineNum">     720</span> <span class="tlaGNC">         282 :     place.offset_reg = bytes_reg;</span></span>
-<span id="L721"><span class="lineNum">     721</span> <span class="tlaGNC">         282 :     place.offset_scale = 1;</span></span>
-<span id="L722"><span class="lineNum">     722</span> <span class="tlaGNC">         282 :   }</span></span>
-<span id="L723"><span class="lineNum">     723</span>              : </span>
-<span id="L724"><span class="lineNum">     724</span>              :   // Adds the bytes in `step_reg` to where `place` stands.</span>
-<span id="L725"><span class="lineNum">     725</span>              :   //</span>
-<span id="L726"><span class="lineNum">     726</span>              :   // The sum goes in a register of its own rather than back into the one it</span>
-<span id="L727"><span class="lineNum">     727</span>              :   // adds to, as every step does: no register is written more than once, which</span>
-<span id="L728"><span class="lineNum">     728</span>              :   // is what lets the allocator colour registers in the order the dominator</span>
-<span id="L729"><span class="lineNum">     729</span>              :   // tree has them in.</span>
-<span id="L730"><span class="lineNum">     730</span>              :   void AddToStackPlace(StackPlace&amp; place, Reg step_reg,</span>
-<span id="L731"><span class="lineNum">     731</span> <span class="tlaGNC">         354 :                        AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L732"><span class="lineNum">     732</span> <span class="tlaGNC">         354 :     CountInBytes(place, am_block);</span></span>
-<span id="L733"><span class="lineNum">     733</span> <span class="tlaGNC">         354 :     if (!place.offset_reg.has_value()) {</span></span>
-<span id="L734"><span class="lineNum">     734</span> <span class="tlaGNC">          67 :       place.offset_reg = step_reg;</span></span>
-<span id="L735"><span class="lineNum">     735</span> <span class="tlaGNC">          67 :       return;</span></span>
-<span id="L736"><span class="lineNum">     736</span> <span class="tlaGNC">          67 :     }</span></span>
-<span id="L737"><span class="lineNum">     737</span>              : </span>
-<span id="L738"><span class="lineNum">     738</span> <span class="tlaGNC">         287 :     Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
-<span id="L739"><span class="lineNum">     739</span> <span class="tlaGNC">         287 :     am_block.instructions.emplace_back(AddReg{</span></span>
-<span id="L740"><span class="lineNum">     740</span> <span class="tlaGNC">         287 :         .res_reg = sum_reg,</span></span>
-<span id="L741"><span class="lineNum">     741</span> <span class="tlaGNC">         287 :         .lhs_reg = *place.offset_reg,</span></span>
-<span id="L742"><span class="lineNum">     742</span> <span class="tlaGNC">         287 :         .rhs_reg = step_reg,</span></span>
-<span id="L743"><span class="lineNum">     743</span> <span class="tlaGNC">         287 :     });</span></span>
-<span id="L744"><span class="lineNum">     744</span> <span class="tlaGNC">         287 :     place.offset_reg = sum_reg;</span></span>
-<span id="L745"><span class="lineNum">     745</span> <span class="tlaGNC">         287 :   }</span></span>
-<span id="L746"><span class="lineNum">     746</span>              : </span>
-<span id="L747"><span class="lineNum">     747</span>              :   // Adds `offset` bytes to where `place` stands.</span>
-<span id="L748"><span class="lineNum">     748</span>              :   void AddToStackPlace(StackPlace&amp; place, std::size_t offset,</span>
-<span id="L749"><span class="lineNum">     749</span> <span class="tlaGNC">         351 :                        AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L750"><span class="lineNum">     750</span> <span class="tlaGNC">         351 :     Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
-<span id="L751"><span class="lineNum">     751</span> <span class="tlaGNC">         351 :     am_block.instructions.emplace_back(SetReg{</span></span>
-<span id="L752"><span class="lineNum">     752</span> <span class="tlaGNC">         351 :         .src_val = static_cast&lt;int&gt;(offset),</span></span>
-<span id="L753"><span class="lineNum">     753</span> <span class="tlaGNC">         351 :         .dst_reg = step_reg,</span></span>
-<span id="L754"><span class="lineNum">     754</span> <span class="tlaGNC">         351 :     });</span></span>
-<span id="L755"><span class="lineNum">     755</span> <span class="tlaGNC">         351 :     AddToStackPlace(place, step_reg, am_block);</span></span>
-<span id="L756"><span class="lineNum">     756</span> <span class="tlaGNC">         351 :   }</span></span>
-<span id="L757"><span class="lineNum">     757</span>              : </span>
-<span id="L758"><span class="lineNum">     758</span>              :   // Copies the value of this type that lies at `src` to `dst`, one value of</span>
-<span id="L759"><span class="lineNum">     759</span>              :   // a built-in type at a time, each reached by how many bytes into the whole</span>
-<span id="L760"><span class="lineNum">     760</span>              :   // it stands.</span>
-<span id="L761"><span class="lineNum">     761</span>              :   void CopyStackValue(StackPlace dst, StackPlace src, TypeRef type_ref,</span>
-<span id="L762"><span class="lineNum">     762</span> <span class="tlaGNC">          47 :                       AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L763"><span class="lineNum">     763</span> <span class="tlaGNC">          47 :     CountInBytes(dst, am_block);</span></span>
-<span id="L764"><span class="lineNum">     764</span> <span class="tlaGNC">          47 :     CountInBytes(src, am_block);</span></span>
-<span id="L765"><span class="lineNum">     765</span>              : </span>
-<span id="L766"><span class="lineNum">     766</span> <span class="tlaGNC">          47 :     std::vector&lt;int&gt; sizes;</span></span>
-<span id="L767"><span class="lineNum">     767</span> <span class="tlaGNC">          47 :     AppendSizes(type_ref, sizes);</span></span>
-<span id="L768"><span class="lineNum">     768</span> <span class="tlaGNC">          47 :     std::size_t bytes = 0;</span></span>
-<span id="L769"><span class="lineNum">     769</span> <span class="tlaGNC">        1366 :     for (const int size : sizes) {</span></span>
-<span id="L770"><span class="lineNum">     770</span> <span class="tlaGNC">        1366 :       const Reg bytes_reg = BytesReg(bytes, am_block);</span></span>
-<span id="L771"><span class="lineNum">     771</span> <span class="tlaGNC">        1366 :       const Reg reg = {am_cfg_.next_free_reg_id++,</span></span>
-<span id="L772"><span class="lineNum">     772</span> <span class="tlaGNC">        1366 :                        size == 4 ? RegSize32 : RegSize64};</span></span>
-<span id="L773"><span class="lineNum">     773</span> <span class="tlaGNC">        1366 :       am_block.instructions.emplace_back(LoadStackReg{</span></span>
-<span id="L774"><span class="lineNum">     774</span> <span class="tlaGNC">        1366 :           .offset = src.base_offset,</span></span>
-<span id="L775"><span class="lineNum">     775</span> <span class="tlaGNC">        1366 :           .offset_reg = Along(src, bytes_reg, am_block),</span></span>
-<span id="L776"><span class="lineNum">     776</span> <span class="tlaGNC">        1366 :           .dst_reg = reg,</span></span>
-<span id="L777"><span class="lineNum">     777</span> <span class="tlaGNC">        1366 :       });</span></span>
-<span id="L778"><span class="lineNum">     778</span> <span class="tlaGNC">        1366 :       am_block.instructions.emplace_back(StoreStackReg{</span></span>
-<span id="L779"><span class="lineNum">     779</span> <span class="tlaGNC">        1366 :           .offset = dst.base_offset,</span></span>
-<span id="L780"><span class="lineNum">     780</span> <span class="tlaGNC">        1366 :           .offset_reg = Along(dst, bytes_reg, am_block),</span></span>
-<span id="L781"><span class="lineNum">     781</span> <span class="tlaGNC">        1366 :           .src_reg = reg,</span></span>
-<span id="L782"><span class="lineNum">     782</span> <span class="tlaGNC">        1366 :       });</span></span>
-<span id="L783"><span class="lineNum">     783</span> <span class="tlaGNC">        1366 :       bytes += static_cast&lt;std::size_t&gt;(size);</span></span>
-<span id="L784"><span class="lineNum">     784</span> <span class="tlaGNC">        1366 :     }</span></span>
-<span id="L785"><span class="lineNum">     785</span> <span class="tlaGNC">          47 :   }</span></span>
-<span id="L786"><span class="lineNum">     786</span>              : </span>
-<span id="L787"><span class="lineNum">     787</span>              :   // Returns a register holding how many bytes into its variable a value</span>
-<span id="L788"><span class="lineNum">     788</span>              :   // `bytes_reg` bytes past `place` stands, which `place` counts in bytes.</span>
-<span id="L789"><span class="lineNum">     789</span>              :   Reg Along(const StackPlace&amp; place, Reg bytes_reg,</span>
-<span id="L790"><span class="lineNum">     790</span> <span class="tlaGNC">        2732 :             AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L791"><span class="lineNum">     791</span> <span class="tlaGNC">        2732 :     if (!place.offset_reg.has_value()) return bytes_reg;</span></span>
-<span id="L792"><span class="lineNum">     792</span>              : </span>
-<span id="L793"><span class="lineNum">     793</span> <span class="tlaGNC">          64 :     const Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize32};</span></span>
-<span id="L794"><span class="lineNum">     794</span> <span class="tlaGNC">          64 :     am_block.instructions.emplace_back(AddReg{</span></span>
-<span id="L795"><span class="lineNum">     795</span> <span class="tlaGNC">          64 :         .res_reg = sum_reg,</span></span>
-<span id="L796"><span class="lineNum">     796</span> <span class="tlaGNC">          64 :         .lhs_reg = *place.offset_reg,</span></span>
-<span id="L797"><span class="lineNum">     797</span> <span class="tlaGNC">          64 :         .rhs_reg = bytes_reg,</span></span>
-<span id="L798"><span class="lineNum">     798</span> <span class="tlaGNC">          64 :     });</span></span>
-<span id="L799"><span class="lineNum">     799</span> <span class="tlaGNC">          64 :     return sum_reg;</span></span>
-<span id="L800"><span class="lineNum">     800</span> <span class="tlaGNC">        2732 :   }</span></span>
-<span id="L801"><span class="lineNum">     801</span>              : </span>
-<span id="L802"><span class="lineNum">     802</span>              :   // Works out where the value an expression names lies, by walking the</span>
-<span id="L803"><span class="lineNum">     803</span>              :   // expression from the variable outwards and adding what each step into it</span>
-<span id="L804"><span class="lineNum">     804</span>              :   // costs: an index costs the element's size times the index, and a field</span>
-<span id="L805"><span class="lineNum">     805</span>              :   // costs however much of the tuple stands before it.</span>
-<span id="L806"><span class="lineNum">     806</span>              :   StackPlace GetStackPlace(ExprRef expr_ref,</span>
-<span id="L807"><span class="lineNum">     807</span> <span class="tlaGNC">        1002 :                            AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L808"><span class="lineNum">     808</span> <span class="tlaGNC">        1002 :     const Expr&amp; expr = syn_ctx_.DerefExpr(expr_ref);</span></span>
-<span id="L809"><span class="lineNum">     809</span>              : </span>
-<span id="L810"><span class="lineNum">     810</span> <span class="tlaGNC">        1002 :     if (const auto* ident_expr = std::get_if&lt;IdentExpr&gt;(&amp;expr)) {</span></span>
-<span id="L811"><span class="lineNum">     811</span> <span class="tlaGNC">         479 :       auto pos = var_stack_.Get(ident_expr-&gt;name);</span></span>
-<span id="L812"><span class="lineNum">     812</span> <span class="tlaGNC">         479 :       assert(pos.has_value());</span></span>
-<span id="L813"><span class="lineNum">     813</span> <span class="tlaGNC">         479 :       return {.base_offset = *pos};</span></span>
-<span id="L814"><span class="lineNum">     814</span> <span class="tlaGNC">         479 :     }</span></span>
-<span id="L815"><span class="lineNum">     815</span>              : </span>
-<span id="L816"><span class="lineNum">     816</span> <span class="tlaGNC">         523 :     if (std::holds_alternative&lt;FuncCallExpr&gt;(expr)) {</span></span>
-<span id="L817"><span class="lineNum">     817</span> <span class="tlaGNC">          18 :       auto pos = expr_slot_.Get(expr_ref);</span></span>
-<span id="L818"><span class="lineNum">     818</span> <span class="tlaGNC">          18 :       assert(pos.has_value());</span></span>
-<span id="L819"><span class="lineNum">     819</span> <span class="tlaGNC">          18 :       return {.base_offset = *pos};</span></span>
-<span id="L820"><span class="lineNum">     820</span> <span class="tlaGNC">          18 :     }</span></span>
-<span id="L821"><span class="lineNum">     821</span>              : </span>
-<span id="L822"><span class="lineNum">     822</span> <span class="tlaGNC">         505 :     if (const auto* index_expr = std::get_if&lt;IndexExpr&gt;(&amp;expr)) {</span></span>
-<span id="L823"><span class="lineNum">     823</span> <span class="tlaGNC">         385 :       StackPlace place = GetStackPlace(index_expr-&gt;base, am_block);</span></span>
-<span id="L824"><span class="lineNum">     824</span> <span class="tlaGNC">         385 :       const Reg index_reg = expr_to_reg_[index_expr-&gt;index.id()];</span></span>
-<span id="L825"><span class="lineNum">     825</span> <span class="tlaGNC">         385 :       const std::size_t size = GetSize(GetType(expr));</span></span>
-<span id="L826"><span class="lineNum">     826</span> <span class="tlaGNC">         385 :       if (!place.offset_reg.has_value()) {</span></span>
-<span id="L827"><span class="lineNum">     827</span> <span class="tlaGNC">         382 :         place.offset_reg = index_reg;</span></span>
-<span id="L828"><span class="lineNum">     828</span> <span class="tlaGNC">         382 :         place.offset_scale = size;</span></span>
-<span id="L829"><span class="lineNum">     829</span> <span class="tlaGNC">         382 :         return place;</span></span>
-<span id="L830"><span class="lineNum">     830</span> <span class="tlaGNC">         382 :       }</span></span>
-<span id="L831"><span class="lineNum">     831</span>              : </span>
-<span id="L832"><span class="lineNum">     832</span> <span class="tlaGNC">           3 :       Reg size_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
-<span id="L833"><span class="lineNum">     833</span> <span class="tlaGNC">           3 :       am_block.instructions.emplace_back(SetReg{</span></span>
-<span id="L834"><span class="lineNum">     834</span> <span class="tlaGNC">           3 :           .src_val = static_cast&lt;int&gt;(size),</span></span>
-<span id="L835"><span class="lineNum">     835</span> <span class="tlaGNC">           3 :           .dst_reg = size_reg,</span></span>
-<span id="L836"><span class="lineNum">     836</span> <span class="tlaGNC">           3 :       });</span></span>
-<span id="L837"><span class="lineNum">     837</span> <span class="tlaGNC">           3 :       Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
-<span id="L838"><span class="lineNum">     838</span> <span class="tlaGNC">           3 :       am_block.instructions.emplace_back(MulReg{</span></span>
-<span id="L839"><span class="lineNum">     839</span> <span class="tlaGNC">           3 :           .res_reg = step_reg,</span></span>
-<span id="L840"><span class="lineNum">     840</span> <span class="tlaGNC">           3 :           .lhs_reg = size_reg,</span></span>
-<span id="L841"><span class="lineNum">     841</span> <span class="tlaGNC">           3 :           .rhs_reg = index_reg,</span></span>
-<span id="L842"><span class="lineNum">     842</span> <span class="tlaGNC">           3 :       });</span></span>
-<span id="L843"><span class="lineNum">     843</span> <span class="tlaGNC">           3 :       AddToStackPlace(place, step_reg, am_block);</span></span>
-<span id="L844"><span class="lineNum">     844</span> <span class="tlaGNC">           3 :       return place;</span></span>
-<span id="L845"><span class="lineNum">     845</span> <span class="tlaGNC">         385 :     }</span></span>
-<span id="L846"><span class="lineNum">     846</span>              : </span>
-<span id="L847"><span class="lineNum">     847</span> <span class="tlaGNC">         120 :     const auto&amp; field_expr = std::get&lt;FieldAccessExpr&gt;(expr);</span></span>
-<span id="L848"><span class="lineNum">     848</span> <span class="tlaGNC">         120 :     StackPlace place = GetStackPlace(field_expr.base, am_block);</span></span>
-<span id="L849"><span class="lineNum">     849</span> <span class="tlaGNC">         120 :     AddToStackPlace(place,</span></span>
-<span id="L850"><span class="lineNum">     850</span> <span class="tlaGNC">         120 :                     GetFieldOffset(GetType(syn_ctx_.DerefExpr(field_expr.base)),</span></span>
-<span id="L851"><span class="lineNum">     851</span> <span class="tlaGNC">         120 :                                    field_expr.field_name),</span></span>
-<span id="L852"><span class="lineNum">     852</span> <span class="tlaGNC">         120 :                     am_block);</span></span>
-<span id="L853"><span class="lineNum">     853</span> <span class="tlaGNC">         120 :     return place;</span></span>
-<span id="L854"><span class="lineNum">     854</span> <span class="tlaGNC">         505 :   }</span></span>
-<span id="L855"><span class="lineNum">     855</span>              : </span>
-<span id="L856"><span class="lineNum">     856</span> <span class="tlaGNC">       13927 :   Reg GetVarReg(StringIndex::Ref var_name, TypeRef var_type) {</span></span>
-<span id="L857"><span class="lineNum">     857</span> <span class="tlaGNC">       13927 :     auto it = var_to_reg_.Get(var_name);</span></span>
-<span id="L858"><span class="lineNum">     858</span> <span class="tlaGNC">       13927 :     if (it.has_value()) return *it;</span></span>
-<span id="L859"><span class="lineNum">     859</span>              : </span>
-<span id="L860"><span class="lineNum">     860</span> <span class="tlaGNC">        5858 :     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(var_type)};</span></span>
-<span id="L861"><span class="lineNum">     861</span> <span class="tlaGNC">        5858 :     var_to_reg_.Insert(var_name, reg);</span></span>
-<span id="L862"><span class="lineNum">     862</span> <span class="tlaGNC">        5858 :     return reg;</span></span>
-<span id="L863"><span class="lineNum">     863</span> <span class="tlaGNC">       13927 :   }</span></span>
-<span id="L864"><span class="lineNum">     864</span>              : </span>
-<span id="L865"><span class="lineNum">     865</span> <span class="tlaGNC">       19636 :   RegSize GetRegSize(TypeRef type_ref) {</span></span>
-<span id="L866"><span class="lineNum">     866</span> <span class="tlaGNC">       19636 :     auto expr_type = std::get&lt;BasicType&gt;(syn_ctx_.DerefType(type_ref));</span></span>
-<span id="L867"><span class="lineNum">     867</span> <span class="tlaGNC">       19636 :     switch (expr_type.size) {</span></span>
-<span id="L868"><span class="lineNum">     868</span> <span class="tlaGNC">       18364 :       case 4:</span></span>
-<span id="L869"><span class="lineNum">     869</span> <span class="tlaGNC">       18364 :         return RegSize32;</span></span>
-<span id="L870"><span class="lineNum">     870</span> <span class="tlaGNC">        1272 :       case 8:</span></span>
-<span id="L871"><span class="lineNum">     871</span> <span class="tlaGNC">        1272 :         return RegSize64;</span></span>
-<span id="L872"><span class="lineNum">     872</span> <span class="tlaUNC">           0 :       default:</span></span>
-<span id="L873"><span class="lineNum">     873</span> <span class="tlaUNC">           0 :         std::unreachable();</span></span>
-<span id="L874"><span class="lineNum">     874</span> <span class="tlaGNC">       19636 :     }</span></span>
-<span id="L875"><span class="lineNum">     875</span> <span class="tlaGNC">       19636 :   }</span></span>
-<span id="L876"><span class="lineNum">     876</span>              : </span>
-<span id="L877"><span class="lineNum">     877</span>              :   // Returns a register set to `bytes`, for reaching that far into an array</span>
-<span id="L878"><span class="lineNum">     878</span>              :   // or a tuple.</span>
-<span id="L879"><span class="lineNum">     879</span>              :   Reg BytesReg(std::size_t bytes,</span>
-<span id="L880"><span class="lineNum">     880</span> <span class="tlaGNC">        1458 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
-<span id="L881"><span class="lineNum">     881</span> <span class="tlaGNC">        1458 :     const Reg reg = {am_cfg_.next_free_reg_id++, RegSize32};</span></span>
-<span id="L882"><span class="lineNum">     882</span> <span class="tlaGNC">        1458 :     am_block.instructions.emplace_back(SetReg{</span></span>
-<span id="L883"><span class="lineNum">     883</span> <span class="tlaGNC">        1458 :         .src_val = static_cast&lt;int&gt;(bytes),</span></span>
-<span id="L884"><span class="lineNum">     884</span> <span class="tlaGNC">        1458 :         .dst_reg = reg,</span></span>
-<span id="L885"><span class="lineNum">     885</span> <span class="tlaGNC">        1458 :     });</span></span>
-<span id="L886"><span class="lineNum">     886</span> <span class="tlaGNC">        1458 :     return reg;</span></span>
-<span id="L887"><span class="lineNum">     887</span> <span class="tlaGNC">        1458 :   }</span></span>
-<span id="L888"><span class="lineNum">     888</span>              : </span>
-<span id="L889"><span class="lineNum">     889</span>              :   // The size of the register that what a stack slot holds is moved through.</span>
-<span id="L890"><span class="lineNum">     890</span> <span class="tlaGNC">          85 :   RegSize SlotRegSize(std::size_t slot) const {</span></span>
-<span id="L891"><span class="lineNum">     891</span> <span class="tlaGNC">          85 :     return am_cfg_.stack_slots[slot] == 4 ? RegSize32 : RegSize64;</span></span>
-<span id="L892"><span class="lineNum">     892</span> <span class="tlaGNC">          85 :   }</span></span>
-<span id="L893"><span class="lineNum">     893</span>              : </span>
-<span id="L894"><span class="lineNum">     894</span>              :   // The bytes a value of this type takes: what its elements take altogether</span>
-<span id="L895"><span class="lineNum">     895</span>              :   // for an array, what its fields take for a tuple, and its own size for one</span>
-<span id="L896"><span class="lineNum">     896</span>              :   // of the types the language has built in.</span>
-<span id="L897"><span class="lineNum">     897</span> <span class="tlaGNC">        2208 :   std::size_t GetSize(TypeRef type_ref) {</span></span>
-<span id="L898"><span class="lineNum">     898</span> <span class="tlaGNC">        2208 :     const Type&amp; type = syn_ctx_.DerefType(type_ref);</span></span>
-<span id="L899"><span class="lineNum">     899</span>              : </span>
-<span id="L900"><span class="lineNum">     900</span> <span class="tlaGNC">        2208 :     if (const auto* array_type = std::get_if&lt;ArrayType&gt;(&amp;type)) {</span></span>
-<span id="L901"><span class="lineNum">     901</span> <span class="tlaGNC">          19 :       return static_cast&lt;std::size_t&gt;(array_type-&gt;size.value) *</span></span>
-<span id="L902"><span class="lineNum">     902</span> <span class="tlaGNC">          19 :              GetSize(array_type-&gt;element_type_constraint);</span></span>
-<span id="L903"><span class="lineNum">     903</span> <span class="tlaGNC">          19 :     }</span></span>
-<span id="L904"><span class="lineNum">     904</span> <span class="tlaGNC">        2189 :     if (const auto* tuple_type = std::get_if&lt;TupleType&gt;(&amp;type)) {</span></span>
-<span id="L905"><span class="lineNum">     905</span> <span class="tlaGNC">         295 :       std::size_t size = 0;</span></span>
-<span id="L906"><span class="lineNum">     906</span> <span class="tlaGNC">         594 :       for (const auto&amp; field_ref : tuple_type-&gt;fields) {</span></span>
-<span id="L907"><span class="lineNum">     907</span> <span class="tlaGNC">         594 :         size += GetSize(syn_ctx_.DerefParam(field_ref).type_constraint);</span></span>
-<span id="L908"><span class="lineNum">     908</span> <span class="tlaGNC">         594 :       }</span></span>
-<span id="L909"><span class="lineNum">     909</span> <span class="tlaGNC">         295 :       return size;</span></span>
-<span id="L910"><span class="lineNum">     910</span> <span class="tlaGNC">         295 :     }</span></span>
-<span id="L911"><span class="lineNum">     911</span> <span class="tlaGNC">        1894 :     return std::get&lt;BasicType&gt;(type).size;</span></span>
-<span id="L912"><span class="lineNum">     912</span> <span class="tlaGNC">        2189 :   }</span></span>
-<span id="L913"><span class="lineNum">     913</span>              : </span>
-<span id="L914"><span class="lineNum">     914</span>              :   // Puts a stack slot behind every value of a built in type that a value of</span>
-<span id="L915"><span class="lineNum">     915</span>              :   // this type holds, in the order they lie one after another.</span>
-<span id="L916"><span class="lineNum">     916</span> <span class="tlaGNC">         225 :   void PushStackSlots(TypeRef type_ref) {</span></span>
-<span id="L917"><span class="lineNum">     917</span> <span class="tlaGNC">         225 :     AppendSizes(type_ref, am_cfg_.stack_slots);</span></span>
-<span id="L918"><span class="lineNum">     918</span> <span class="tlaGNC">         225 :   }</span></span>
-<span id="L919"><span class="lineNum">     919</span>              : </span>
-<span id="L920"><span class="lineNum">     920</span>              :   // Appends the size of every value of a built in type that a value of this</span>
-<span id="L921"><span class="lineNum">     921</span>              :   // type holds to `sizes`, in the order they lie one after another.</span>
-<span id="L922"><span class="lineNum">     922</span> <span class="tlaGNC">       13461 :   void AppendSizes(TypeRef type_ref, std::vector&lt;int&gt;&amp; sizes) {</span></span>
-<span id="L923"><span class="lineNum">     923</span> <span class="tlaGNC">       13461 :     const Type&amp; type = syn_ctx_.DerefType(type_ref);</span></span>
-<span id="L924"><span class="lineNum">     924</span>              : </span>
-<span id="L925"><span class="lineNum">     925</span> <span class="tlaGNC">       13461 :     if (const auto* array_type = std::get_if&lt;ArrayType&gt;(&amp;type)) {</span></span>
-<span id="L926"><span class="lineNum">     926</span> <span class="tlaGNC">       12918 :       for (std::int64_t i = 0; i &lt; array_type-&gt;size.value; ++i) {</span></span>
-<span id="L927"><span class="lineNum">     927</span> <span class="tlaGNC">       12684 :         AppendSizes(array_type-&gt;element_type_constraint, sizes);</span></span>
-<span id="L928"><span class="lineNum">     928</span> <span class="tlaGNC">       12684 :       }</span></span>
-<span id="L929"><span class="lineNum">     929</span> <span class="tlaGNC">         234 :       return;</span></span>
-<span id="L930"><span class="lineNum">     930</span> <span class="tlaGNC">         234 :     }</span></span>
-<span id="L931"><span class="lineNum">     931</span> <span class="tlaGNC">       13227 :     if (const auto* tuple_type = std::get_if&lt;TupleType&gt;(&amp;type)) {</span></span>
-<span id="L932"><span class="lineNum">     932</span> <span class="tlaGNC">         488 :       for (const auto&amp; field_ref : tuple_type-&gt;fields) {</span></span>
-<span id="L933"><span class="lineNum">     933</span> <span class="tlaGNC">         488 :         AppendSizes(syn_ctx_.DerefParam(field_ref).type_constraint, sizes);</span></span>
-<span id="L934"><span class="lineNum">     934</span> <span class="tlaGNC">         488 :       }</span></span>
-<span id="L935"><span class="lineNum">     935</span> <span class="tlaGNC">         235 :       return;</span></span>
-<span id="L936"><span class="lineNum">     936</span> <span class="tlaGNC">         235 :     }</span></span>
-<span id="L937"><span class="lineNum">     937</span> <span class="tlaGNC">       12992 :     sizes.push_back(static_cast&lt;int&gt;(std::get&lt;BasicType&gt;(type).size));</span></span>
-<span id="L938"><span class="lineNum">     938</span> <span class="tlaGNC">       12992 :   }</span></span>
-<span id="L939"><span class="lineNum">     939</span>              : </span>
-<span id="L940"><span class="lineNum">     940</span>              :   // How many bytes into a tuple the field called `field_name` stands.</span>
-<span id="L941"><span class="lineNum">     941</span>              :   std::size_t GetFieldOffset(TypeRef tuple_type_ref,</span>
-<span id="L942"><span class="lineNum">     942</span> <span class="tlaGNC">         351 :                              StringIndex::Ref field_name) {</span></span>
-<span id="L943"><span class="lineNum">     943</span> <span class="tlaGNC">         351 :     std::size_t offset = 0;</span></span>
-<span id="L944"><span class="lineNum">     944</span> <span class="tlaGNC">         351 :     const auto&amp; tuple_type =</span></span>
-<span id="L945"><span class="lineNum">     945</span> <span class="tlaGNC">         351 :         std::get&lt;TupleType&gt;(syn_ctx_.DerefType(tuple_type_ref));</span></span>
-<span id="L946"><span class="lineNum">     946</span> <span class="tlaGNC">         532 :     for (const auto&amp; field_ref : tuple_type.fields) {</span></span>
-<span id="L947"><span class="lineNum">     947</span> <span class="tlaGNC">         532 :       const auto&amp; field = syn_ctx_.DerefParam(field_ref);</span></span>
-<span id="L948"><span class="lineNum">     948</span> <span class="tlaGNC">         532 :       if (field.name == field_name) break;</span></span>
-<span id="L949"><span class="lineNum">     949</span>              : </span>
-<span id="L950"><span class="lineNum">     950</span> <span class="tlaGNC">         181 :       offset += GetSize(field.type_constraint);</span></span>
-<span id="L951"><span class="lineNum">     951</span> <span class="tlaGNC">         181 :     }</span></span>
-<span id="L952"><span class="lineNum">     952</span> <span class="tlaGNC">         351 :     return offset;</span></span>
-<span id="L953"><span class="lineNum">     953</span> <span class="tlaGNC">         351 :   }</span></span>
-<span id="L954"><span class="lineNum">     954</span>              : </span>
-<span id="L955"><span class="lineNum">     955</span>              :   // What a value of this type is, where its size does not say.</span>
-<span id="L956"><span class="lineNum">     956</span> <span class="tlaGNC">         706 :   ValueKind KindOf(TypeRef type_ref) const {</span></span>
-<span id="L957"><span class="lineNum">     957</span> <span class="tlaGNC">         706 :     const auto* basic_type =</span></span>
-<span id="L958"><span class="lineNum">     958</span> <span class="tlaGNC">         706 :         std::get_if&lt;BasicType&gt;(&amp;syn_ctx_.DerefType(type_ref));</span></span>
-<span id="L959"><span class="lineNum">     959</span> <span class="tlaGNC">         706 :     if (basic_type != nullptr &amp;&amp;</span></span>
-<span id="L960"><span class="lineNum">     960</span> <span class="tlaGNC">         706 :         syn_ctx_.DerefIdent(basic_type-&gt;name) == &quot;String&quot;) {</span></span>
-<span id="L961"><span class="lineNum">     961</span> <span class="tlaGNC">          62 :       return ValueKind::String;</span></span>
-<span id="L962"><span class="lineNum">     962</span> <span class="tlaGNC">          62 :     }</span></span>
-<span id="L963"><span class="lineNum">     963</span> <span class="tlaGNC">         644 :     return ValueKind::Number;</span></span>
-<span id="L964"><span class="lineNum">     964</span> <span class="tlaGNC">         706 :   }</span></span>
-<span id="L965"><span class="lineNum">     965</span>              : </span>
-<span id="L966"><span class="lineNum">     966</span>              :   // Whether a value of this type lies on the stack rather than in a register,</span>
-<span id="L967"><span class="lineNum">     967</span>              :   // which is what an array or a tuple does however small it is.</span>
-<span id="L968"><span class="lineNum">     968</span> <span class="tlaGNC">       10261 :   bool IsOnStack(TypeRef type_ref) {</span></span>
-<span id="L969"><span class="lineNum">     969</span> <span class="tlaGNC">       10261 :     const Type&amp; type = syn_ctx_.DerefType(type_ref);</span></span>
-<span id="L970"><span class="lineNum">     970</span> <span class="tlaGNC">       10261 :     return std::holds_alternative&lt;ArrayType&gt;(type) ||</span></span>
-<span id="L971"><span class="lineNum">     971</span> <span class="tlaGNC">       10261 :            std::holds_alternative&lt;TupleType&gt;(type);</span></span>
-<span id="L972"><span class="lineNum">     972</span> <span class="tlaGNC">       10261 :   }</span></span>
-<span id="L973"><span class="lineNum">     973</span>              : </span>
-<span id="L974"><span class="lineNum">     974</span>              :   const SyntaxContext&amp; syn_ctx_;</span>
-<span id="L975"><span class="lineNum">     975</span>              :   const SyntaxControlFlowGraph&amp; syn_cfg_;</span>
-<span id="L976"><span class="lineNum">     976</span>              :   AbstractMachineState&amp; am_state_;</span>
-<span id="L977"><span class="lineNum">     977</span>              :   AbstractMachineControlFlowGraph am_cfg_;</span>
-<span id="L978"><span class="lineNum">     978</span>              : </span>
-<span id="L979"><span class="lineNum">     979</span>              :   // What the work this function asks to have done during compilation has</span>
-<span id="L980"><span class="lineNum">     980</span>              :   // spent so far, which the interpreter counts against what compilation will</span>
-<span id="L981"><span class="lineNum">     981</span>              :   // spend altogether.</span>
-<span id="L982"><span class="lineNum">     982</span>              :   std::int64_t comp_steps_ = 0;</span>
-<span id="L983"><span class="lineNum">     983</span>              : </span>
-<span id="L984"><span class="lineNum">     984</span>              :   Interpreter vm_;</span>
-<span id="L985"><span class="lineNum">     985</span>              :   Reg result_reg_;</span>
-<span id="L986"><span class="lineNum">     986</span>              :   // The register holding the value each block returns, by the block's ID.</span>
-<span id="L987"><span class="lineNum">     987</span>              :   std::vector&lt;std::optional&lt;Reg&gt;&gt; returned_regs_;</span>
-<span id="L988"><span class="lineNum">     988</span>              :   HashMap&lt;StringIndex::Ref, Reg&gt; var_to_reg_;</span>
-<span id="L989"><span class="lineNum">     989</span>              :   HashMap&lt;StringIndex::Ref, std::size_t&gt; var_stack_;</span>
-<span id="L990"><span class="lineNum">     990</span>              :   HashMap&lt;ExprRef, std::size_t&gt; expr_slot_;</span>
-<span id="L991"><span class="lineNum">     991</span>              :   HashMap&lt;SyntaxControlFlowGraph::BlockRef,</span>
-<span id="L992"><span class="lineNum">     992</span>              :           AbstractMachineControlFlowGraph::BlockRef&gt;</span>
-<span id="L993"><span class="lineNum">     993</span>              :       graph_map_;</span>
-<span id="L994"><span class="lineNum">     994</span>              :   std::vector&lt;Reg&gt;&amp; expr_to_reg_;</span>
-<span id="L995"><span class="lineNum">     995</span>              : };</span>
-<span id="L996"><span class="lineNum">     996</span>              : </span>
-<span id="L997"><span class="lineNum">     997</span>              : }  // namespace</span>
-<span id="L998"><span class="lineNum">     998</span>              : </span>
-<span id="L999"><span class="lineNum">     999</span>              : std::expected&lt;AbstractMachineControlFlowGraph, CompError&gt;</span>
-<span id="L1000"><span class="lineNum">    1000</span>              : GenerateAbstractMachineFunction(</span>
-<span id="L1001"><span class="lineNum">    1001</span>              :     const HashMap&lt;std::string_view, AbstractMachineControlFlowGraph&gt;&amp; am_cfgs,</span>
-<span id="L1002"><span class="lineNum">    1002</span>              :     const SyntaxContext&amp; syn_ctx, const SyntaxControlFlowGraph&amp; syn_cfg,</span>
-<span id="L1003"><span class="lineNum">    1003</span> <span class="tlaGNC">         706 :     AbstractMachineState&amp; am_state) {</span></span>
-<span id="L1004"><span class="lineNum">    1004</span> <span class="tlaGNC">         706 :   return AbstractMachineFunctionGenerator(am_cfgs, syn_ctx, syn_cfg, am_state)</span></span>
-<span id="L1005"><span class="lineNum">    1005</span> <span class="tlaGNC">         706 :       .Generate();</span></span>
-<span id="L1006"><span class="lineNum">    1006</span> <span class="tlaGNC">         706 : }</span></span>
-<span id="L1007"><span class="lineNum">    1007</span>              : </span>
-<span id="L1008"><span class="lineNum">    1008</span>              : }  // namespace lucid</span>
+<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">          15 :     places.reserve(args.size());</span></span>
+<span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">          17 :     for (const ExprRef arg : args) {</span></span>
+<span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">          17 :       places.push_back(GetStackPlace(arg, am_block));</span></span>
+<span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">          17 :     }</span></span>
+<span id="L387"><span class="lineNum">     387</span>              : </span>
+<span id="L388"><span class="lineNum">     388</span>              :     // The run is reached by how many bytes into it each argument stands, as</span>
+<span id="L389"><span class="lineNum">     389</span>              :     // the call reaches it, rather than by the slot the argument starts at:</span>
+<span id="L390"><span class="lineNum">     390</span>              :     // the frame can leave room between slots that the run does not have.</span>
+<span id="L391"><span class="lineNum">     391</span> <span class="tlaGNC">          15 :     std::size_t first = places.front().base_offset;</span></span>
+<span id="L392"><span class="lineNum">     392</span> <span class="tlaGNC">          15 :     if (places.size() &gt; 1 || places.front().offset_reg.has_value()) {</span></span>
+<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">           5 :       first = am_cfg_.stack_slots.size();</span></span>
+<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">           5 :       std::size_t bytes = 0;</span></span>
+<span id="L395"><span class="lineNum">     395</span> <span class="tlaGNC">          12 :       for (std::size_t i = 0; i &lt; args.size(); ++i) {</span></span>
+<span id="L396"><span class="lineNum">     396</span> <span class="tlaGNC">           7 :         const TypeRef type_ref = GetType(syn_ctx_.DerefExpr(args[i]));</span></span>
+<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">           7 :         PushStackSlots(type_ref);</span></span>
+<span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC">           7 :         CopyStackValue(</span></span>
+<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">           7 :             {.base_offset = first, .offset_reg = BytesReg(bytes, am_block)},</span></span>
+<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">           7 :             places[i], type_ref, am_block);</span></span>
+<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">           7 :         bytes += GetSize(type_ref);</span></span>
+<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">           7 :       }</span></span>
+<span id="L403"><span class="lineNum">     403</span> <span class="tlaGNC">           5 :     }</span></span>
+<span id="L404"><span class="lineNum">     404</span>              : </span>
+<span id="L405"><span class="lineNum">     405</span> <span class="tlaGNC">          15 :     std::vector&lt;int&gt; sizes;</span></span>
+<span id="L406"><span class="lineNum">     406</span> <span class="tlaGNC">          17 :     for (const ExprRef arg : args) {</span></span>
+<span id="L407"><span class="lineNum">     407</span> <span class="tlaGNC">          17 :       AppendSizes(GetType(syn_ctx_.DerefExpr(arg)), sizes);</span></span>
+<span id="L408"><span class="lineNum">     408</span> <span class="tlaGNC">          17 :     }</span></span>
+<span id="L409"><span class="lineNum">     409</span> <span class="tlaGNC">          15 :     func_call.frame_args_slot = static_cast&lt;std::uint32_t&gt;(first);</span></span>
+<span id="L410"><span class="lineNum">     410</span> <span class="tlaGNC">          15 :     am_cfg_.call_frame_args_slot_counts.Set(</span></span>
+<span id="L411"><span class="lineNum">     411</span> <span class="tlaGNC">          15 :         static_cast&lt;std::uint32_t&gt;(first),</span></span>
+<span id="L412"><span class="lineNum">     412</span> <span class="tlaGNC">          15 :         static_cast&lt;std::uint32_t&gt;(sizes.size()));</span></span>
+<span id="L413"><span class="lineNum">     413</span> <span class="tlaGNC">          15 :   }</span></span>
+<span id="L414"><span class="lineNum">     414</span>              : </span>
+<span id="L415"><span class="lineNum">     415</span>              :   void ProcessExpr(ExprRef ref, const IdentExpr&amp; expr,</span>
+<span id="L416"><span class="lineNum">     416</span> <span class="tlaGNC">        6455 :                    AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L417"><span class="lineNum">     417</span> <span class="tlaGNC">        6455 :     if (std::holds_alternative&lt;ArrayType&gt;(syn_ctx_.DerefType(expr.type)) ||</span></span>
+<span id="L418"><span class="lineNum">     418</span> <span class="tlaGNC">        6455 :         std::holds_alternative&lt;TupleType&gt;(syn_ctx_.DerefType(expr.type))) {</span></span>
+<span id="L419"><span class="lineNum">     419</span> <span class="tlaGNC">         479 :       return;</span></span>
+<span id="L420"><span class="lineNum">     420</span> <span class="tlaGNC">         479 :     }</span></span>
+<span id="L421"><span class="lineNum">     421</span>              :     // Read where the variable is, rather than from a copy. In single</span>
+<span id="L422"><span class="lineNum">     422</span>              :     // assignment form a write to a variable starts a new one, so what is read</span>
+<span id="L423"><span class="lineNum">     423</span>              :     // here never changes under the reader.</span>
+<span id="L424"><span class="lineNum">     424</span> <span class="tlaGNC">        5976 :     expr_to_reg_[ref.id()] = GetVarReg(expr.name, expr.type);</span></span>
+<span id="L425"><span class="lineNum">     425</span> <span class="tlaGNC">        5976 :   }</span></span>
+<span id="L426"><span class="lineNum">     426</span>              : </span>
+<span id="L427"><span class="lineNum">     427</span>              :   void ProcessExpr(ExprRef ref, const IndexExpr&amp; expr,</span>
+<span id="L428"><span class="lineNum">     428</span> <span class="tlaGNC">         385 :                    AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L429"><span class="lineNum">     429</span> <span class="tlaGNC">         385 :     LoadFromStack(ref, expr.type, am_block);</span></span>
+<span id="L430"><span class="lineNum">     430</span> <span class="tlaGNC">         385 :   }</span></span>
+<span id="L431"><span class="lineNum">     431</span>              : </span>
+<span id="L432"><span class="lineNum">     432</span>              :   void ProcessExpr(ExprRef ref, const FieldAccessExpr&amp; expr,</span>
+<span id="L433"><span class="lineNum">     433</span> <span class="tlaGNC">         120 :                    AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L434"><span class="lineNum">     434</span> <span class="tlaGNC">         120 :     LoadFromStack(ref, expr.type, am_block);</span></span>
+<span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">         120 :   }</span></span>
+<span id="L436"><span class="lineNum">     436</span>              : </span>
+<span id="L437"><span class="lineNum">     437</span>              :   // Loads what an expression names off the stack into a register.</span>
+<span id="L438"><span class="lineNum">     438</span>              :   //</span>
+<span id="L439"><span class="lineNum">     439</span>              :   // An expression whose value is itself an array or a tuple is not loaded at</span>
+<span id="L440"><span class="lineNum">     440</span>              :   // all: it has no register to go in, and what it is a step towards works out</span>
+<span id="L441"><span class="lineNum">     441</span>              :   // where it lies for itself.</span>
+<span id="L442"><span class="lineNum">     442</span>              :   void LoadFromStack(ExprRef ref, TypeRef type_ref,</span>
+<span id="L443"><span class="lineNum">     443</span> <span class="tlaGNC">         505 :                      AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L444"><span class="lineNum">     444</span> <span class="tlaGNC">         505 :     if (IsOnStack(type_ref)) return;</span></span>
+<span id="L445"><span class="lineNum">     445</span>              : </span>
+<span id="L446"><span class="lineNum">     446</span> <span class="tlaGNC">         209 :     const StackPlace place = GetStackPlace(ref, am_block);</span></span>
+<span id="L447"><span class="lineNum">     447</span> <span class="tlaGNC">         209 :     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(type_ref)};</span></span>
+<span id="L448"><span class="lineNum">     448</span> <span class="tlaGNC">         209 :     am_block.instructions.emplace_back(LoadStackReg{</span></span>
+<span id="L449"><span class="lineNum">     449</span> <span class="tlaGNC">         209 :         .offset = place.base_offset,</span></span>
+<span id="L450"><span class="lineNum">     450</span> <span class="tlaGNC">         209 :         .offset_reg = place.offset_reg.value(),</span></span>
+<span id="L451"><span class="lineNum">     451</span> <span class="tlaGNC">         209 :         .offset_scale = place.offset_scale,</span></span>
+<span id="L452"><span class="lineNum">     452</span> <span class="tlaGNC">         209 :         .dst_reg = reg,</span></span>
+<span id="L453"><span class="lineNum">     453</span> <span class="tlaGNC">         209 :     });</span></span>
+<span id="L454"><span class="lineNum">     454</span> <span class="tlaGNC">         209 :     expr_to_reg_[ref.id()] = reg;</span></span>
+<span id="L455"><span class="lineNum">     455</span> <span class="tlaGNC">         209 :   }</span></span>
+<span id="L456"><span class="lineNum">     456</span>              : </span>
+<span id="L457"><span class="lineNum">     457</span>              :   void ProcessExpr(ExprRef ref, const BinaryOpExpr&amp; expr,</span>
+<span id="L458"><span class="lineNum">     458</span> <span class="tlaGNC">        4432 :                    AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L459"><span class="lineNum">     459</span> <span class="tlaGNC">        4432 :     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(expr.type)};</span></span>
+<span id="L460"><span class="lineNum">     460</span> <span class="tlaGNC">        4432 :     switch (expr.op) {</span></span>
+<span id="L461"><span class="lineNum">     461</span> <span class="tlaGNC">        2551 :       case BinaryOp::Add:</span></span>
+<span id="L462"><span class="lineNum">     462</span> <span class="tlaGNC">        2551 :         am_block.instructions.emplace_back(AddReg{</span></span>
+<span id="L463"><span class="lineNum">     463</span> <span class="tlaGNC">        2551 :             .res_reg = reg,</span></span>
+<span id="L464"><span class="lineNum">     464</span> <span class="tlaGNC">        2551 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L465"><span class="lineNum">     465</span> <span class="tlaGNC">        2551 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L466"><span class="lineNum">     466</span> <span class="tlaGNC">        2551 :         });</span></span>
+<span id="L467"><span class="lineNum">     467</span> <span class="tlaGNC">        2551 :         break;</span></span>
+<span id="L468"><span class="lineNum">     468</span> <span class="tlaGNC">         595 :       case BinaryOp::Sub:</span></span>
+<span id="L469"><span class="lineNum">     469</span> <span class="tlaGNC">         595 :         am_block.instructions.emplace_back(SubReg{</span></span>
+<span id="L470"><span class="lineNum">     470</span> <span class="tlaGNC">         595 :             .res_reg = reg,</span></span>
+<span id="L471"><span class="lineNum">     471</span> <span class="tlaGNC">         595 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L472"><span class="lineNum">     472</span> <span class="tlaGNC">         595 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L473"><span class="lineNum">     473</span> <span class="tlaGNC">         595 :         });</span></span>
+<span id="L474"><span class="lineNum">     474</span> <span class="tlaGNC">         595 :         break;</span></span>
+<span id="L475"><span class="lineNum">     475</span> <span class="tlaGNC">         166 :       case BinaryOp::Mul:</span></span>
+<span id="L476"><span class="lineNum">     476</span> <span class="tlaGNC">         166 :         am_block.instructions.emplace_back(MulReg{</span></span>
+<span id="L477"><span class="lineNum">     477</span> <span class="tlaGNC">         166 :             .res_reg = reg,</span></span>
+<span id="L478"><span class="lineNum">     478</span> <span class="tlaGNC">         166 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L479"><span class="lineNum">     479</span> <span class="tlaGNC">         166 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L480"><span class="lineNum">     480</span> <span class="tlaGNC">         166 :         });</span></span>
+<span id="L481"><span class="lineNum">     481</span> <span class="tlaGNC">         166 :         break;</span></span>
+<span id="L482"><span class="lineNum">     482</span> <span class="tlaGNC">         114 :       case BinaryOp::Div:</span></span>
+<span id="L483"><span class="lineNum">     483</span> <span class="tlaGNC">         114 :         am_block.instructions.emplace_back(DivReg{</span></span>
+<span id="L484"><span class="lineNum">     484</span> <span class="tlaGNC">         114 :             .res_reg = reg,</span></span>
+<span id="L485"><span class="lineNum">     485</span> <span class="tlaGNC">         114 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L486"><span class="lineNum">     486</span> <span class="tlaGNC">         114 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L487"><span class="lineNum">     487</span> <span class="tlaGNC">         114 :         });</span></span>
+<span id="L488"><span class="lineNum">     488</span> <span class="tlaGNC">         114 :         break;</span></span>
+<span id="L489"><span class="lineNum">     489</span> <span class="tlaGNC">          39 :       case BinaryOp::Mod:</span></span>
+<span id="L490"><span class="lineNum">     490</span> <span class="tlaGNC">          39 :         am_block.instructions.emplace_back(ModReg{</span></span>
+<span id="L491"><span class="lineNum">     491</span> <span class="tlaGNC">          39 :             .res_reg = reg,</span></span>
+<span id="L492"><span class="lineNum">     492</span> <span class="tlaGNC">          39 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L493"><span class="lineNum">     493</span> <span class="tlaGNC">          39 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L494"><span class="lineNum">     494</span> <span class="tlaGNC">          39 :         });</span></span>
+<span id="L495"><span class="lineNum">     495</span> <span class="tlaGNC">          39 :         break;</span></span>
+<span id="L496"><span class="lineNum">     496</span> <span class="tlaGNC">         394 :       case BinaryOp::Gt:</span></span>
+<span id="L497"><span class="lineNum">     497</span> <span class="tlaGNC">         394 :         am_block.instructions.emplace_back(GtReg{</span></span>
+<span id="L498"><span class="lineNum">     498</span> <span class="tlaGNC">         394 :             .res_reg = reg,</span></span>
+<span id="L499"><span class="lineNum">     499</span> <span class="tlaGNC">         394 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L500"><span class="lineNum">     500</span> <span class="tlaGNC">         394 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L501"><span class="lineNum">     501</span> <span class="tlaGNC">         394 :         });</span></span>
+<span id="L502"><span class="lineNum">     502</span> <span class="tlaGNC">         394 :         break;</span></span>
+<span id="L503"><span class="lineNum">     503</span> <span class="tlaGNC">          60 :       case BinaryOp::Lt:</span></span>
+<span id="L504"><span class="lineNum">     504</span> <span class="tlaGNC">          60 :         am_block.instructions.emplace_back(LtReg{</span></span>
+<span id="L505"><span class="lineNum">     505</span> <span class="tlaGNC">          60 :             .res_reg = reg,</span></span>
+<span id="L506"><span class="lineNum">     506</span> <span class="tlaGNC">          60 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L507"><span class="lineNum">     507</span> <span class="tlaGNC">          60 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L508"><span class="lineNum">     508</span> <span class="tlaGNC">          60 :         });</span></span>
+<span id="L509"><span class="lineNum">     509</span> <span class="tlaGNC">          60 :         break;</span></span>
+<span id="L510"><span class="lineNum">     510</span> <span class="tlaGNC">         189 :       case BinaryOp::Ge:</span></span>
+<span id="L511"><span class="lineNum">     511</span> <span class="tlaGNC">         189 :         am_block.instructions.emplace_back(GeReg{</span></span>
+<span id="L512"><span class="lineNum">     512</span> <span class="tlaGNC">         189 :             .res_reg = reg,</span></span>
+<span id="L513"><span class="lineNum">     513</span> <span class="tlaGNC">         189 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L514"><span class="lineNum">     514</span> <span class="tlaGNC">         189 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L515"><span class="lineNum">     515</span> <span class="tlaGNC">         189 :         });</span></span>
+<span id="L516"><span class="lineNum">     516</span> <span class="tlaGNC">         189 :         break;</span></span>
+<span id="L517"><span class="lineNum">     517</span> <span class="tlaGNC">          71 :       case BinaryOp::Le:</span></span>
+<span id="L518"><span class="lineNum">     518</span> <span class="tlaGNC">          71 :         am_block.instructions.emplace_back(LeReg{</span></span>
+<span id="L519"><span class="lineNum">     519</span> <span class="tlaGNC">          71 :             .res_reg = reg,</span></span>
+<span id="L520"><span class="lineNum">     520</span> <span class="tlaGNC">          71 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L521"><span class="lineNum">     521</span> <span class="tlaGNC">          71 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L522"><span class="lineNum">     522</span> <span class="tlaGNC">          71 :         });</span></span>
+<span id="L523"><span class="lineNum">     523</span> <span class="tlaGNC">          71 :         break;</span></span>
+<span id="L524"><span class="lineNum">     524</span> <span class="tlaGNC">         192 :       case BinaryOp::Eq:</span></span>
+<span id="L525"><span class="lineNum">     525</span> <span class="tlaGNC">         192 :         am_block.instructions.emplace_back(EqReg{</span></span>
+<span id="L526"><span class="lineNum">     526</span> <span class="tlaGNC">         192 :             .res_reg = reg,</span></span>
+<span id="L527"><span class="lineNum">     527</span> <span class="tlaGNC">         192 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L528"><span class="lineNum">     528</span> <span class="tlaGNC">         192 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L529"><span class="lineNum">     529</span> <span class="tlaGNC">         192 :         });</span></span>
+<span id="L530"><span class="lineNum">     530</span> <span class="tlaGNC">         192 :         break;</span></span>
+<span id="L531"><span class="lineNum">     531</span> <span class="tlaGNC">          61 :       case BinaryOp::NotEq:</span></span>
+<span id="L532"><span class="lineNum">     532</span> <span class="tlaGNC">          61 :         am_block.instructions.emplace_back(NotEqReg{</span></span>
+<span id="L533"><span class="lineNum">     533</span> <span class="tlaGNC">          61 :             .res_reg = reg,</span></span>
+<span id="L534"><span class="lineNum">     534</span> <span class="tlaGNC">          61 :             .lhs_reg = expr_to_reg_[expr.lhs.id()],</span></span>
+<span id="L535"><span class="lineNum">     535</span> <span class="tlaGNC">          61 :             .rhs_reg = expr_to_reg_[expr.rhs.id()],</span></span>
+<span id="L536"><span class="lineNum">     536</span> <span class="tlaGNC">          61 :         });</span></span>
+<span id="L537"><span class="lineNum">     537</span> <span class="tlaGNC">          61 :         break;</span></span>
+<span id="L538"><span class="lineNum">     538</span> <span class="tlaUNC">           0 :       case BinaryOp::And:</span></span>
+<span id="L539"><span class="lineNum">     539</span> <span class="tlaUNC">           0 :       case BinaryOp::Or:</span></span>
+<span id="L540"><span class="lineNum">     540</span>              :         // Each of these is a branch over a variable of its own by the time</span>
+<span id="L541"><span class="lineNum">     541</span>              :         // anything here sees the function, and so never one of these.</span>
+<span id="L542"><span class="lineNum">     542</span> <span class="tlaUNC">           0 :         assert(false &amp;&amp; &quot;short circuit operator reached the abstract machine&quot;);</span></span>
+<span id="L543"><span class="lineNum">     543</span> <span class="tlaUNC">           0 :         break;</span></span>
+<span id="L544"><span class="lineNum">     544</span> <span class="tlaGNC">        4432 :     }</span></span>
+<span id="L545"><span class="lineNum">     545</span> <span class="tlaGNC">        4432 :     expr_to_reg_[ref.id()] = reg;</span></span>
+<span id="L546"><span class="lineNum">     546</span> <span class="tlaGNC">        4432 :   }</span></span>
+<span id="L547"><span class="lineNum">     547</span>              : </span>
+<span id="L548"><span class="lineNum">     548</span>              :   void Process(StmtRef ref, const Stmt&amp; stmt,</span>
+<span id="L549"><span class="lineNum">     549</span> <span class="tlaGNC">        6530 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L550"><span class="lineNum">     550</span> <span class="tlaGNC">        6530 :     std::visit([&amp;](const auto&amp; stmt) { Process(ref, stmt, am_block); }, stmt);</span></span>
+<span id="L551"><span class="lineNum">     551</span> <span class="tlaGNC">        6530 :   }</span></span>
+<span id="L552"><span class="lineNum">     552</span>              : </span>
+<span id="L553"><span class="lineNum">     553</span>              :   // What is returned is taken in by the phi function where the function ends,</span>
+<span id="L554"><span class="lineNum">     554</span>              :   // straight from the register the value was worked out in.</span>
+<span id="L555"><span class="lineNum">     555</span>              :   void Process(StmtRef ref, const ReturnStmt&amp; stmt,</span>
+<span id="L556"><span class="lineNum">     556</span> <span class="tlaGNC">         861 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L557"><span class="lineNum">     557</span> <span class="tlaGNC">         861 :     if (am_cfg_.result_slot_count &gt; 0) {</span></span>
+<span id="L558"><span class="lineNum">     558</span> <span class="tlaGNC">          29 :       CopyStackValue({.base_offset = am_cfg_.result_slot},</span></span>
+<span id="L559"><span class="lineNum">     559</span> <span class="tlaGNC">          29 :                      GetStackPlace(stmt.value, am_block),</span></span>
+<span id="L560"><span class="lineNum">     560</span> <span class="tlaGNC">          29 :                      syn_cfg_.func_result_type, am_block);</span></span>
+<span id="L561"><span class="lineNum">     561</span> <span class="tlaGNC">          29 :       return;</span></span>
+<span id="L562"><span class="lineNum">     562</span> <span class="tlaGNC">          29 :     }</span></span>
+<span id="L563"><span class="lineNum">     563</span>              : </span>
+<span id="L564"><span class="lineNum">     564</span> <span class="tlaGNC">         832 :     if (am_block.ref.id() &gt;= returned_regs_.size()) {</span></span>
+<span id="L565"><span class="lineNum">     565</span> <span class="tlaGNC">         832 :       returned_regs_.resize(am_block.ref.id() + 1);</span></span>
+<span id="L566"><span class="lineNum">     566</span> <span class="tlaGNC">         832 :     }</span></span>
+<span id="L567"><span class="lineNum">     567</span>              :     // What is returned goes to the phi function where the returns meet. A</span>
+<span id="L568"><span class="lineNum">     568</span>              :     // variable given there as it is would be tied to every other value</span>
+<span id="L569"><span class="lineNum">     569</span>              :     // returned, and spilling puts all of those in one slot while two of them</span>
+<span id="L570"><span class="lineNum">     570</span>              :     // can be live at once, so a variable goes in a copy of its own.</span>
+<span id="L571"><span class="lineNum">     571</span> <span class="tlaGNC">         832 :     Reg value = expr_to_reg_[stmt.value.id()];</span></span>
+<span id="L572"><span class="lineNum">     572</span> <span class="tlaGNC">         832 :     if (std::holds_alternative&lt;IdentExpr&gt;(syn_ctx_.DerefExpr(stmt.value))) {</span></span>
+<span id="L573"><span class="lineNum">     573</span> <span class="tlaGNC">         382 :       const Reg copy = {am_cfg_.next_free_reg_id++, value.size};</span></span>
+<span id="L574"><span class="lineNum">     574</span> <span class="tlaGNC">         382 :       am_block.instructions.emplace_back(MoveReg{</span></span>
+<span id="L575"><span class="lineNum">     575</span> <span class="tlaGNC">         382 :           .src_reg = value,</span></span>
+<span id="L576"><span class="lineNum">     576</span> <span class="tlaGNC">         382 :           .dst_reg = copy,</span></span>
+<span id="L577"><span class="lineNum">     577</span> <span class="tlaGNC">         382 :       });</span></span>
+<span id="L578"><span class="lineNum">     578</span> <span class="tlaGNC">         382 :       value = copy;</span></span>
+<span id="L579"><span class="lineNum">     579</span> <span class="tlaGNC">         382 :     }</span></span>
+<span id="L580"><span class="lineNum">     580</span> <span class="tlaGNC">         832 :     returned_regs_[am_block.ref.id()] = value;</span></span>
+<span id="L581"><span class="lineNum">     581</span> <span class="tlaGNC">         832 :   }</span></span>
+<span id="L582"><span class="lineNum">     582</span>              : </span>
+<span id="L583"><span class="lineNum">     583</span>              :   void Process(StmtRef ref, const DoStmt&amp; stmt,</span>
+<span id="L584"><span class="lineNum">     584</span> <span class="tlaGNC">         379 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L585"><span class="lineNum">     585</span> <span class="tlaGNC">         379 :     std::get&lt;FuncCall&gt;(am_block.instructions.back()).res.reset();</span></span>
+<span id="L586"><span class="lineNum">     586</span> <span class="tlaGNC">         379 :   }</span></span>
+<span id="L587"><span class="lineNum">     587</span>              : </span>
+<span id="L588"><span class="lineNum">     588</span>              :   void Process(StmtRef ref, const VarAssignStmt&amp; stmt,</span>
+<span id="L589"><span class="lineNum">     589</span> <span class="tlaGNC">           3 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L590"><span class="lineNum">     590</span> <span class="tlaGNC">           3 :     auto expr_type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));</span></span>
+<span id="L591"><span class="lineNum">     591</span> <span class="tlaGNC">           3 :     if (IsOnStack(expr_type_ref)) {</span></span>
+<span id="L592"><span class="lineNum">     592</span> <span class="tlaUNC">           0 :       auto slot = var_stack_.Get(stmt.name);</span></span>
+<span id="L593"><span class="lineNum">     593</span> <span class="tlaUNC">           0 :       assert(slot.has_value());</span></span>
+<span id="L594"><span class="lineNum">     594</span> <span class="tlaUNC">           0 :       CopyStackValue({.base_offset = *slot}, GetStackPlace(stmt.expr, am_block),</span></span>
+<span id="L595"><span class="lineNum">     595</span> <span class="tlaUNC">           0 :                      expr_type_ref, am_block);</span></span>
+<span id="L596"><span class="lineNum">     596</span> <span class="tlaUNC">           0 :       return;</span></span>
+<span id="L597"><span class="lineNum">     597</span> <span class="tlaUNC">           0 :     }</span></span>
+<span id="L598"><span class="lineNum">     598</span> <span class="tlaGNC">           3 :     am_block.instructions.emplace_back(MoveReg{</span></span>
+<span id="L599"><span class="lineNum">     599</span> <span class="tlaGNC">           3 :         .src_reg = expr_to_reg_[stmt.expr.id()],</span></span>
+<span id="L600"><span class="lineNum">     600</span> <span class="tlaGNC">           3 :         .dst_reg = GetVarReg(stmt.name, expr_type_ref),</span></span>
+<span id="L601"><span class="lineNum">     601</span> <span class="tlaGNC">           3 :     });</span></span>
+<span id="L602"><span class="lineNum">     602</span> <span class="tlaGNC">           3 :   }</span></span>
+<span id="L603"><span class="lineNum">     603</span>              : </span>
+<span id="L604"><span class="lineNum">     604</span>              :   void Process(StmtRef ref, const VarDeclStmt&amp; stmt,</span>
+<span id="L605"><span class="lineNum">     605</span> <span class="tlaGNC">        3915 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L606"><span class="lineNum">     606</span> <span class="tlaGNC">        3915 :     if (IsOnStack(stmt.type_constraint)) {</span></span>
+<span id="L607"><span class="lineNum">     607</span>              :       // An array or a tuple a call returns already lies in slots of its own,</span>
+<span id="L608"><span class="lineNum">     608</span>              :       // which the variable takes over rather than being copied into.</span>
+<span id="L609"><span class="lineNum">     609</span> <span class="tlaGNC">         164 :       if (stmt.init.has_value()) {</span></span>
+<span id="L610"><span class="lineNum">     610</span> <span class="tlaGNC">          36 :         if (auto slot = expr_slot_.Get(*stmt.init); slot.has_value()) {</span></span>
+<span id="L611"><span class="lineNum">     611</span> <span class="tlaGNC">          32 :           var_stack_.Set(stmt.name, *slot);</span></span>
+<span id="L612"><span class="lineNum">     612</span> <span class="tlaGNC">          32 :           return;</span></span>
+<span id="L613"><span class="lineNum">     613</span> <span class="tlaGNC">          32 :         }</span></span>
+<span id="L614"><span class="lineNum">     614</span> <span class="tlaGNC">          36 :       }</span></span>
+<span id="L615"><span class="lineNum">     615</span> <span class="tlaGNC">         132 :       const std::size_t slot = am_cfg_.stack_slots.size();</span></span>
+<span id="L616"><span class="lineNum">     616</span> <span class="tlaGNC">         132 :       var_stack_.Set(stmt.name, slot);</span></span>
+<span id="L617"><span class="lineNum">     617</span> <span class="tlaGNC">         132 :       PushStackSlots(stmt.type_constraint);</span></span>
+<span id="L618"><span class="lineNum">     618</span> <span class="tlaGNC">         132 :       if (stmt.init.has_value()) {</span></span>
+<span id="L619"><span class="lineNum">     619</span> <span class="tlaGNC">           4 :         CopyStackValue({.base_offset = slot},</span></span>
+<span id="L620"><span class="lineNum">     620</span> <span class="tlaGNC">           4 :                        GetStackPlace(*stmt.init, am_block),</span></span>
+<span id="L621"><span class="lineNum">     621</span> <span class="tlaGNC">           4 :                        stmt.type_constraint, am_block);</span></span>
+<span id="L622"><span class="lineNum">     622</span> <span class="tlaGNC">           4 :       }</span></span>
+<span id="L623"><span class="lineNum">     623</span> <span class="tlaGNC">        3751 :     } else {</span></span>
+<span id="L624"><span class="lineNum">     624</span> <span class="tlaGNC">        3751 :       if (stmt.init.has_value()) {</span></span>
+<span id="L625"><span class="lineNum">     625</span> <span class="tlaGNC">        3751 :         am_block.instructions.emplace_back(MoveReg{</span></span>
+<span id="L626"><span class="lineNum">     626</span> <span class="tlaGNC">        3751 :             .src_reg = expr_to_reg_[stmt.init-&gt;id()],</span></span>
+<span id="L627"><span class="lineNum">     627</span> <span class="tlaGNC">        3751 :             .dst_reg = GetVarReg(stmt.name, stmt.type_constraint),</span></span>
+<span id="L628"><span class="lineNum">     628</span> <span class="tlaGNC">        3751 :         });</span></span>
+<span id="L629"><span class="lineNum">     629</span> <span class="tlaGNC">        3751 :       }</span></span>
+<span id="L630"><span class="lineNum">     630</span> <span class="tlaGNC">        3751 :     }</span></span>
+<span id="L631"><span class="lineNum">     631</span> <span class="tlaGNC">        3915 :   }</span></span>
+<span id="L632"><span class="lineNum">     632</span>              : </span>
+<span id="L633"><span class="lineNum">     633</span>              :   void Process(StmtRef ref, const ArrayAssignStmt&amp; stmt,</span>
+<span id="L634"><span class="lineNum">     634</span> <span class="tlaGNC">        1022 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L635"><span class="lineNum">     635</span> <span class="tlaGNC">        1022 :     auto stmt_offset = var_stack_.Get(stmt.name);</span></span>
+<span id="L636"><span class="lineNum">     636</span> <span class="tlaGNC">        1022 :     assert(stmt_offset.has_value());</span></span>
+<span id="L637"><span class="lineNum">     637</span>              : </span>
+<span id="L638"><span class="lineNum">     638</span> <span class="tlaGNC">        1022 :     const TypeRef type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));</span></span>
+<span id="L639"><span class="lineNum">     639</span> <span class="tlaGNC">        1022 :     const StackPlace place = {</span></span>
+<span id="L640"><span class="lineNum">     640</span> <span class="tlaGNC">        1022 :         .base_offset = *stmt_offset,</span></span>
+<span id="L641"><span class="lineNum">     641</span> <span class="tlaGNC">        1022 :         .offset_reg = expr_to_reg_[stmt.index.id()],</span></span>
+<span id="L642"><span class="lineNum">     642</span> <span class="tlaGNC">        1022 :         .offset_scale = GetSize(type_ref),</span></span>
+<span id="L643"><span class="lineNum">     643</span> <span class="tlaGNC">        1022 :     };</span></span>
+<span id="L644"><span class="lineNum">     644</span> <span class="tlaGNC">        1022 :     if (IsOnStack(type_ref)) {</span></span>
+<span id="L645"><span class="lineNum">     645</span> <span class="tlaGNC">           2 :       CopyStackValue(place, GetStackPlace(stmt.expr, am_block), type_ref,</span></span>
+<span id="L646"><span class="lineNum">     646</span> <span class="tlaGNC">           2 :                      am_block);</span></span>
+<span id="L647"><span class="lineNum">     647</span> <span class="tlaGNC">           2 :       return;</span></span>
+<span id="L648"><span class="lineNum">     648</span> <span class="tlaGNC">           2 :     }</span></span>
+<span id="L649"><span class="lineNum">     649</span> <span class="tlaGNC">        1020 :     am_block.instructions.emplace_back(StoreStackReg{</span></span>
+<span id="L650"><span class="lineNum">     650</span> <span class="tlaGNC">        1020 :         .offset = place.base_offset,</span></span>
+<span id="L651"><span class="lineNum">     651</span> <span class="tlaGNC">        1020 :         .offset_reg = *place.offset_reg,</span></span>
+<span id="L652"><span class="lineNum">     652</span> <span class="tlaGNC">        1020 :         .offset_scale = place.offset_scale,</span></span>
+<span id="L653"><span class="lineNum">     653</span> <span class="tlaGNC">        1020 :         .src_reg = expr_to_reg_[stmt.expr.id()],</span></span>
+<span id="L654"><span class="lineNum">     654</span> <span class="tlaGNC">        1020 :     });</span></span>
+<span id="L655"><span class="lineNum">     655</span> <span class="tlaGNC">        1020 :   }</span></span>
+<span id="L656"><span class="lineNum">     656</span>              : </span>
+<span id="L657"><span class="lineNum">     657</span>              :   void Process(StmtRef ref, const FieldAssignStmt&amp; stmt,</span>
+<span id="L658"><span class="lineNum">     658</span> <span class="tlaGNC">         231 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L659"><span class="lineNum">     659</span> <span class="tlaGNC">         231 :     StackPlace place = GetStackPlace(stmt.base, am_block);</span></span>
+<span id="L660"><span class="lineNum">     660</span> <span class="tlaGNC">         231 :     AddToStackPlace(</span></span>
+<span id="L661"><span class="lineNum">     661</span> <span class="tlaGNC">         231 :         place,</span></span>
+<span id="L662"><span class="lineNum">     662</span> <span class="tlaGNC">         231 :         GetFieldOffset(GetType(syn_ctx_.DerefExpr(stmt.base)), stmt.field_name),</span></span>
+<span id="L663"><span class="lineNum">     663</span> <span class="tlaGNC">         231 :         am_block);</span></span>
+<span id="L664"><span class="lineNum">     664</span> <span class="tlaGNC">         231 :     if (const TypeRef type_ref = GetType(syn_ctx_.DerefExpr(stmt.expr));</span></span>
+<span id="L665"><span class="lineNum">     665</span> <span class="tlaGNC">         231 :         IsOnStack(type_ref)) {</span></span>
+<span id="L666"><span class="lineNum">     666</span> <span class="tlaGNC">           5 :       CopyStackValue(place, GetStackPlace(stmt.expr, am_block), type_ref,</span></span>
+<span id="L667"><span class="lineNum">     667</span> <span class="tlaGNC">           5 :                      am_block);</span></span>
+<span id="L668"><span class="lineNum">     668</span> <span class="tlaGNC">           5 :       return;</span></span>
+<span id="L669"><span class="lineNum">     669</span> <span class="tlaGNC">           5 :     }</span></span>
+<span id="L670"><span class="lineNum">     670</span> <span class="tlaGNC">         226 :     am_block.instructions.emplace_back(StoreStackReg{</span></span>
+<span id="L671"><span class="lineNum">     671</span> <span class="tlaGNC">         226 :         .offset = place.base_offset,</span></span>
+<span id="L672"><span class="lineNum">     672</span> <span class="tlaGNC">         226 :         .offset_reg = place.offset_reg.value(),</span></span>
+<span id="L673"><span class="lineNum">     673</span> <span class="tlaGNC">         226 :         .offset_scale = place.offset_scale,</span></span>
+<span id="L674"><span class="lineNum">     674</span> <span class="tlaGNC">         226 :         .src_reg = expr_to_reg_[stmt.expr.id()],</span></span>
+<span id="L675"><span class="lineNum">     675</span> <span class="tlaGNC">         226 :     });</span></span>
+<span id="L676"><span class="lineNum">     676</span> <span class="tlaGNC">         226 :   }</span></span>
+<span id="L677"><span class="lineNum">     677</span>              : </span>
+<span id="L678"><span class="lineNum">     678</span>              :   void Process(StmtRef ref, const FuncDefStmt&amp; stmt,</span>
+<span id="L679"><span class="lineNum">     679</span> <span class="tlaUNC">           0 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {}</span></span>
+<span id="L680"><span class="lineNum">     680</span>              : </span>
+<span id="L681"><span class="lineNum">     681</span>              :   void Process(StmtRef ref, const IfStmt&amp; stmt,</span>
+<span id="L682"><span class="lineNum">     682</span> <span class="tlaUNC">           0 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {}</span></span>
+<span id="L683"><span class="lineNum">     683</span>              : </span>
+<span id="L684"><span class="lineNum">     684</span>              :   void Process(StmtRef ref, const LoopStmt&amp; stmt,</span>
+<span id="L685"><span class="lineNum">     685</span> <span class="tlaUNC">           0 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {}</span></span>
+<span id="L686"><span class="lineNum">     686</span>              : </span>
+<span id="L687"><span class="lineNum">     687</span>              :   void Process(StmtRef ref, const BreakStmt&amp; stmt,</span>
+<span id="L688"><span class="lineNum">     688</span> <span class="tlaGNC">         119 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {}</span></span>
+<span id="L689"><span class="lineNum">     689</span>              : </span>
+<span id="L690"><span class="lineNum">     690</span>              :   // Where a value lies on the stack: the slot the variable holding it starts</span>
+<span id="L691"><span class="lineNum">     691</span>              :   // at, and how many bytes into that variable it stands, which is a register</span>
+<span id="L692"><span class="lineNum">     692</span>              :   // times `offset_scale`. A value at the start of its variable has no</span>
+<span id="L693"><span class="lineNum">     693</span>              :   // register.</span>
+<span id="L694"><span class="lineNum">     694</span>              :   //</span>
+<span id="L695"><span class="lineNum">     695</span>              :   // Indexing straight into a variable leaves the index itself as the</span>
+<span id="L696"><span class="lineNum">     696</span>              :   // register, and the element's size as the scale, which a load or a store</span>
+<span id="L697"><span class="lineNum">     697</span>              :   // can take as it is.</span>
+<span id="L698"><span class="lineNum">     698</span>              :   struct StackPlace {</span>
+<span id="L699"><span class="lineNum">     699</span>              :     std::size_t base_offset;</span>
+<span id="L700"><span class="lineNum">     700</span>              :     std::optional&lt;Reg&gt; offset_reg;</span>
+<span id="L701"><span class="lineNum">     701</span>              :     std::size_t offset_scale = 1;</span>
+<span id="L702"><span class="lineNum">     702</span>              :   };</span>
+<span id="L703"><span class="lineNum">     703</span>              : </span>
+<span id="L704"><span class="lineNum">     704</span>              :   // Turns the bytes `place` stands into its variable into a register of</span>
+<span id="L705"><span class="lineNum">     705</span>              :   // their own, unless they are one already.</span>
+<span id="L706"><span class="lineNum">     706</span>              :   void CountInBytes(StackPlace&amp; place,</span>
+<span id="L707"><span class="lineNum">     707</span> <span class="tlaGNC">         448 :                     AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L708"><span class="lineNum">     708</span> <span class="tlaGNC">         448 :     if (!place.offset_reg.has_value() || place.offset_scale == 1) return;</span></span>
+<span id="L709"><span class="lineNum">     709</span>              : </span>
+<span id="L710"><span class="lineNum">     710</span> <span class="tlaGNC">         282 :     Reg scale_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
+<span id="L711"><span class="lineNum">     711</span> <span class="tlaGNC">         282 :     am_block.instructions.emplace_back(SetReg{</span></span>
+<span id="L712"><span class="lineNum">     712</span> <span class="tlaGNC">         282 :         .src_val = static_cast&lt;int&gt;(place.offset_scale),</span></span>
+<span id="L713"><span class="lineNum">     713</span> <span class="tlaGNC">         282 :         .dst_reg = scale_reg,</span></span>
+<span id="L714"><span class="lineNum">     714</span> <span class="tlaGNC">         282 :     });</span></span>
+<span id="L715"><span class="lineNum">     715</span> <span class="tlaGNC">         282 :     Reg bytes_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
+<span id="L716"><span class="lineNum">     716</span> <span class="tlaGNC">         282 :     am_block.instructions.emplace_back(MulReg{</span></span>
+<span id="L717"><span class="lineNum">     717</span> <span class="tlaGNC">         282 :         .res_reg = bytes_reg,</span></span>
+<span id="L718"><span class="lineNum">     718</span> <span class="tlaGNC">         282 :         .lhs_reg = scale_reg,</span></span>
+<span id="L719"><span class="lineNum">     719</span> <span class="tlaGNC">         282 :         .rhs_reg = *place.offset_reg,</span></span>
+<span id="L720"><span class="lineNum">     720</span> <span class="tlaGNC">         282 :     });</span></span>
+<span id="L721"><span class="lineNum">     721</span> <span class="tlaGNC">         282 :     place.offset_reg = bytes_reg;</span></span>
+<span id="L722"><span class="lineNum">     722</span> <span class="tlaGNC">         282 :     place.offset_scale = 1;</span></span>
+<span id="L723"><span class="lineNum">     723</span> <span class="tlaGNC">         282 :   }</span></span>
+<span id="L724"><span class="lineNum">     724</span>              : </span>
+<span id="L725"><span class="lineNum">     725</span>              :   // Adds the bytes in `step_reg` to where `place` stands.</span>
+<span id="L726"><span class="lineNum">     726</span>              :   //</span>
+<span id="L727"><span class="lineNum">     727</span>              :   // The sum goes in a register of its own rather than back into the one it</span>
+<span id="L728"><span class="lineNum">     728</span>              :   // adds to, as every step does: no register is written more than once, which</span>
+<span id="L729"><span class="lineNum">     729</span>              :   // is what lets the allocator colour registers in the order the dominator</span>
+<span id="L730"><span class="lineNum">     730</span>              :   // tree has them in.</span>
+<span id="L731"><span class="lineNum">     731</span>              :   void AddToStackPlace(StackPlace&amp; place, Reg step_reg,</span>
+<span id="L732"><span class="lineNum">     732</span> <span class="tlaGNC">         354 :                        AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L733"><span class="lineNum">     733</span> <span class="tlaGNC">         354 :     CountInBytes(place, am_block);</span></span>
+<span id="L734"><span class="lineNum">     734</span> <span class="tlaGNC">         354 :     if (!place.offset_reg.has_value()) {</span></span>
+<span id="L735"><span class="lineNum">     735</span> <span class="tlaGNC">          67 :       place.offset_reg = step_reg;</span></span>
+<span id="L736"><span class="lineNum">     736</span> <span class="tlaGNC">          67 :       return;</span></span>
+<span id="L737"><span class="lineNum">     737</span> <span class="tlaGNC">          67 :     }</span></span>
+<span id="L738"><span class="lineNum">     738</span>              : </span>
+<span id="L739"><span class="lineNum">     739</span> <span class="tlaGNC">         287 :     Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
+<span id="L740"><span class="lineNum">     740</span> <span class="tlaGNC">         287 :     am_block.instructions.emplace_back(AddReg{</span></span>
+<span id="L741"><span class="lineNum">     741</span> <span class="tlaGNC">         287 :         .res_reg = sum_reg,</span></span>
+<span id="L742"><span class="lineNum">     742</span> <span class="tlaGNC">         287 :         .lhs_reg = *place.offset_reg,</span></span>
+<span id="L743"><span class="lineNum">     743</span> <span class="tlaGNC">         287 :         .rhs_reg = step_reg,</span></span>
+<span id="L744"><span class="lineNum">     744</span> <span class="tlaGNC">         287 :     });</span></span>
+<span id="L745"><span class="lineNum">     745</span> <span class="tlaGNC">         287 :     place.offset_reg = sum_reg;</span></span>
+<span id="L746"><span class="lineNum">     746</span> <span class="tlaGNC">         287 :   }</span></span>
+<span id="L747"><span class="lineNum">     747</span>              : </span>
+<span id="L748"><span class="lineNum">     748</span>              :   // Adds `offset` bytes to where `place` stands.</span>
+<span id="L749"><span class="lineNum">     749</span>              :   void AddToStackPlace(StackPlace&amp; place, std::size_t offset,</span>
+<span id="L750"><span class="lineNum">     750</span> <span class="tlaGNC">         351 :                        AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L751"><span class="lineNum">     751</span> <span class="tlaGNC">         351 :     Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
+<span id="L752"><span class="lineNum">     752</span> <span class="tlaGNC">         351 :     am_block.instructions.emplace_back(SetReg{</span></span>
+<span id="L753"><span class="lineNum">     753</span> <span class="tlaGNC">         351 :         .src_val = static_cast&lt;int&gt;(offset),</span></span>
+<span id="L754"><span class="lineNum">     754</span> <span class="tlaGNC">         351 :         .dst_reg = step_reg,</span></span>
+<span id="L755"><span class="lineNum">     755</span> <span class="tlaGNC">         351 :     });</span></span>
+<span id="L756"><span class="lineNum">     756</span> <span class="tlaGNC">         351 :     AddToStackPlace(place, step_reg, am_block);</span></span>
+<span id="L757"><span class="lineNum">     757</span> <span class="tlaGNC">         351 :   }</span></span>
+<span id="L758"><span class="lineNum">     758</span>              : </span>
+<span id="L759"><span class="lineNum">     759</span>              :   // Copies the value of this type that lies at `src` to `dst`, one value of</span>
+<span id="L760"><span class="lineNum">     760</span>              :   // a built-in type at a time, each reached by how many bytes into the whole</span>
+<span id="L761"><span class="lineNum">     761</span>              :   // it stands.</span>
+<span id="L762"><span class="lineNum">     762</span>              :   void CopyStackValue(StackPlace dst, StackPlace src, TypeRef type_ref,</span>
+<span id="L763"><span class="lineNum">     763</span> <span class="tlaGNC">          47 :                       AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L764"><span class="lineNum">     764</span> <span class="tlaGNC">          47 :     CountInBytes(dst, am_block);</span></span>
+<span id="L765"><span class="lineNum">     765</span> <span class="tlaGNC">          47 :     CountInBytes(src, am_block);</span></span>
+<span id="L766"><span class="lineNum">     766</span>              : </span>
+<span id="L767"><span class="lineNum">     767</span> <span class="tlaGNC">          47 :     std::vector&lt;int&gt; sizes;</span></span>
+<span id="L768"><span class="lineNum">     768</span> <span class="tlaGNC">          47 :     AppendSizes(type_ref, sizes);</span></span>
+<span id="L769"><span class="lineNum">     769</span> <span class="tlaGNC">          47 :     std::size_t bytes = 0;</span></span>
+<span id="L770"><span class="lineNum">     770</span> <span class="tlaGNC">        1366 :     for (const int size : sizes) {</span></span>
+<span id="L771"><span class="lineNum">     771</span> <span class="tlaGNC">        1366 :       const Reg bytes_reg = BytesReg(bytes, am_block);</span></span>
+<span id="L772"><span class="lineNum">     772</span> <span class="tlaGNC">        1366 :       const Reg reg = {am_cfg_.next_free_reg_id++,</span></span>
+<span id="L773"><span class="lineNum">     773</span> <span class="tlaGNC">        1366 :                        size == 4 ? RegSize32 : RegSize64};</span></span>
+<span id="L774"><span class="lineNum">     774</span> <span class="tlaGNC">        1366 :       am_block.instructions.emplace_back(LoadStackReg{</span></span>
+<span id="L775"><span class="lineNum">     775</span> <span class="tlaGNC">        1366 :           .offset = src.base_offset,</span></span>
+<span id="L776"><span class="lineNum">     776</span> <span class="tlaGNC">        1366 :           .offset_reg = Along(src, bytes_reg, am_block),</span></span>
+<span id="L777"><span class="lineNum">     777</span> <span class="tlaGNC">        1366 :           .dst_reg = reg,</span></span>
+<span id="L778"><span class="lineNum">     778</span> <span class="tlaGNC">        1366 :       });</span></span>
+<span id="L779"><span class="lineNum">     779</span> <span class="tlaGNC">        1366 :       am_block.instructions.emplace_back(StoreStackReg{</span></span>
+<span id="L780"><span class="lineNum">     780</span> <span class="tlaGNC">        1366 :           .offset = dst.base_offset,</span></span>
+<span id="L781"><span class="lineNum">     781</span> <span class="tlaGNC">        1366 :           .offset_reg = Along(dst, bytes_reg, am_block),</span></span>
+<span id="L782"><span class="lineNum">     782</span> <span class="tlaGNC">        1366 :           .src_reg = reg,</span></span>
+<span id="L783"><span class="lineNum">     783</span> <span class="tlaGNC">        1366 :       });</span></span>
+<span id="L784"><span class="lineNum">     784</span> <span class="tlaGNC">        1366 :       bytes += static_cast&lt;std::size_t&gt;(size);</span></span>
+<span id="L785"><span class="lineNum">     785</span> <span class="tlaGNC">        1366 :     }</span></span>
+<span id="L786"><span class="lineNum">     786</span> <span class="tlaGNC">          47 :   }</span></span>
+<span id="L787"><span class="lineNum">     787</span>              : </span>
+<span id="L788"><span class="lineNum">     788</span>              :   // Returns a register holding how many bytes into its variable a value</span>
+<span id="L789"><span class="lineNum">     789</span>              :   // `bytes_reg` bytes past `place` stands, which `place` counts in bytes.</span>
+<span id="L790"><span class="lineNum">     790</span>              :   Reg Along(const StackPlace&amp; place, Reg bytes_reg,</span>
+<span id="L791"><span class="lineNum">     791</span> <span class="tlaGNC">        2732 :             AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L792"><span class="lineNum">     792</span> <span class="tlaGNC">        2732 :     if (!place.offset_reg.has_value()) return bytes_reg;</span></span>
+<span id="L793"><span class="lineNum">     793</span>              : </span>
+<span id="L794"><span class="lineNum">     794</span> <span class="tlaGNC">          64 :     const Reg sum_reg = {am_cfg_.next_free_reg_id++, RegSize32};</span></span>
+<span id="L795"><span class="lineNum">     795</span> <span class="tlaGNC">          64 :     am_block.instructions.emplace_back(AddReg{</span></span>
+<span id="L796"><span class="lineNum">     796</span> <span class="tlaGNC">          64 :         .res_reg = sum_reg,</span></span>
+<span id="L797"><span class="lineNum">     797</span> <span class="tlaGNC">          64 :         .lhs_reg = *place.offset_reg,</span></span>
+<span id="L798"><span class="lineNum">     798</span> <span class="tlaGNC">          64 :         .rhs_reg = bytes_reg,</span></span>
+<span id="L799"><span class="lineNum">     799</span> <span class="tlaGNC">          64 :     });</span></span>
+<span id="L800"><span class="lineNum">     800</span> <span class="tlaGNC">          64 :     return sum_reg;</span></span>
+<span id="L801"><span class="lineNum">     801</span> <span class="tlaGNC">        2732 :   }</span></span>
+<span id="L802"><span class="lineNum">     802</span>              : </span>
+<span id="L803"><span class="lineNum">     803</span>              :   // Works out where the value an expression names lies, by walking the</span>
+<span id="L804"><span class="lineNum">     804</span>              :   // expression from the variable outwards and adding what each step into it</span>
+<span id="L805"><span class="lineNum">     805</span>              :   // costs: an index costs the element's size times the index, and a field</span>
+<span id="L806"><span class="lineNum">     806</span>              :   // costs however much of the tuple stands before it.</span>
+<span id="L807"><span class="lineNum">     807</span>              :   StackPlace GetStackPlace(ExprRef expr_ref,</span>
+<span id="L808"><span class="lineNum">     808</span> <span class="tlaGNC">        1002 :                            AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L809"><span class="lineNum">     809</span> <span class="tlaGNC">        1002 :     const Expr&amp; expr = syn_ctx_.DerefExpr(expr_ref);</span></span>
+<span id="L810"><span class="lineNum">     810</span>              : </span>
+<span id="L811"><span class="lineNum">     811</span> <span class="tlaGNC">        1002 :     if (const auto* ident_expr = std::get_if&lt;IdentExpr&gt;(&amp;expr)) {</span></span>
+<span id="L812"><span class="lineNum">     812</span> <span class="tlaGNC">         479 :       auto pos = var_stack_.Get(ident_expr-&gt;name);</span></span>
+<span id="L813"><span class="lineNum">     813</span> <span class="tlaGNC">         479 :       assert(pos.has_value());</span></span>
+<span id="L814"><span class="lineNum">     814</span> <span class="tlaGNC">         479 :       return {.base_offset = *pos};</span></span>
+<span id="L815"><span class="lineNum">     815</span> <span class="tlaGNC">         479 :     }</span></span>
+<span id="L816"><span class="lineNum">     816</span>              : </span>
+<span id="L817"><span class="lineNum">     817</span> <span class="tlaGNC">         523 :     if (std::holds_alternative&lt;FuncCallExpr&gt;(expr)) {</span></span>
+<span id="L818"><span class="lineNum">     818</span> <span class="tlaGNC">          18 :       auto pos = expr_slot_.Get(expr_ref);</span></span>
+<span id="L819"><span class="lineNum">     819</span> <span class="tlaGNC">          18 :       assert(pos.has_value());</span></span>
+<span id="L820"><span class="lineNum">     820</span> <span class="tlaGNC">          18 :       return {.base_offset = *pos};</span></span>
+<span id="L821"><span class="lineNum">     821</span> <span class="tlaGNC">          18 :     }</span></span>
+<span id="L822"><span class="lineNum">     822</span>              : </span>
+<span id="L823"><span class="lineNum">     823</span> <span class="tlaGNC">         505 :     if (const auto* index_expr = std::get_if&lt;IndexExpr&gt;(&amp;expr)) {</span></span>
+<span id="L824"><span class="lineNum">     824</span> <span class="tlaGNC">         385 :       StackPlace place = GetStackPlace(index_expr-&gt;base, am_block);</span></span>
+<span id="L825"><span class="lineNum">     825</span> <span class="tlaGNC">         385 :       const Reg index_reg = expr_to_reg_[index_expr-&gt;index.id()];</span></span>
+<span id="L826"><span class="lineNum">     826</span> <span class="tlaGNC">         385 :       const std::size_t size = GetSize(GetType(expr));</span></span>
+<span id="L827"><span class="lineNum">     827</span> <span class="tlaGNC">         385 :       if (!place.offset_reg.has_value()) {</span></span>
+<span id="L828"><span class="lineNum">     828</span> <span class="tlaGNC">         382 :         place.offset_reg = index_reg;</span></span>
+<span id="L829"><span class="lineNum">     829</span> <span class="tlaGNC">         382 :         place.offset_scale = size;</span></span>
+<span id="L830"><span class="lineNum">     830</span> <span class="tlaGNC">         382 :         return place;</span></span>
+<span id="L831"><span class="lineNum">     831</span> <span class="tlaGNC">         382 :       }</span></span>
+<span id="L832"><span class="lineNum">     832</span>              : </span>
+<span id="L833"><span class="lineNum">     833</span> <span class="tlaGNC">           3 :       Reg size_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
+<span id="L834"><span class="lineNum">     834</span> <span class="tlaGNC">           3 :       am_block.instructions.emplace_back(SetReg{</span></span>
+<span id="L835"><span class="lineNum">     835</span> <span class="tlaGNC">           3 :           .src_val = static_cast&lt;int&gt;(size),</span></span>
+<span id="L836"><span class="lineNum">     836</span> <span class="tlaGNC">           3 :           .dst_reg = size_reg,</span></span>
+<span id="L837"><span class="lineNum">     837</span> <span class="tlaGNC">           3 :       });</span></span>
+<span id="L838"><span class="lineNum">     838</span> <span class="tlaGNC">           3 :       Reg step_reg = {am_cfg_.next_free_reg_id++, RegSize::RegSize32};</span></span>
+<span id="L839"><span class="lineNum">     839</span> <span class="tlaGNC">           3 :       am_block.instructions.emplace_back(MulReg{</span></span>
+<span id="L840"><span class="lineNum">     840</span> <span class="tlaGNC">           3 :           .res_reg = step_reg,</span></span>
+<span id="L841"><span class="lineNum">     841</span> <span class="tlaGNC">           3 :           .lhs_reg = size_reg,</span></span>
+<span id="L842"><span class="lineNum">     842</span> <span class="tlaGNC">           3 :           .rhs_reg = index_reg,</span></span>
+<span id="L843"><span class="lineNum">     843</span> <span class="tlaGNC">           3 :       });</span></span>
+<span id="L844"><span class="lineNum">     844</span> <span class="tlaGNC">           3 :       AddToStackPlace(place, step_reg, am_block);</span></span>
+<span id="L845"><span class="lineNum">     845</span> <span class="tlaGNC">           3 :       return place;</span></span>
+<span id="L846"><span class="lineNum">     846</span> <span class="tlaGNC">         385 :     }</span></span>
+<span id="L847"><span class="lineNum">     847</span>              : </span>
+<span id="L848"><span class="lineNum">     848</span> <span class="tlaGNC">         120 :     const auto&amp; field_expr = std::get&lt;FieldAccessExpr&gt;(expr);</span></span>
+<span id="L849"><span class="lineNum">     849</span> <span class="tlaGNC">         120 :     StackPlace place = GetStackPlace(field_expr.base, am_block);</span></span>
+<span id="L850"><span class="lineNum">     850</span> <span class="tlaGNC">         120 :     AddToStackPlace(place,</span></span>
+<span id="L851"><span class="lineNum">     851</span> <span class="tlaGNC">         120 :                     GetFieldOffset(GetType(syn_ctx_.DerefExpr(field_expr.base)),</span></span>
+<span id="L852"><span class="lineNum">     852</span> <span class="tlaGNC">         120 :                                    field_expr.field_name),</span></span>
+<span id="L853"><span class="lineNum">     853</span> <span class="tlaGNC">         120 :                     am_block);</span></span>
+<span id="L854"><span class="lineNum">     854</span> <span class="tlaGNC">         120 :     return place;</span></span>
+<span id="L855"><span class="lineNum">     855</span> <span class="tlaGNC">         505 :   }</span></span>
+<span id="L856"><span class="lineNum">     856</span>              : </span>
+<span id="L857"><span class="lineNum">     857</span> <span class="tlaGNC">       13927 :   Reg GetVarReg(StringIndex::Ref var_name, TypeRef var_type) {</span></span>
+<span id="L858"><span class="lineNum">     858</span> <span class="tlaGNC">       13927 :     auto it = var_to_reg_.Get(var_name);</span></span>
+<span id="L859"><span class="lineNum">     859</span> <span class="tlaGNC">       13927 :     if (it.has_value()) return *it;</span></span>
+<span id="L860"><span class="lineNum">     860</span>              : </span>
+<span id="L861"><span class="lineNum">     861</span> <span class="tlaGNC">        5858 :     Reg reg = {am_cfg_.next_free_reg_id++, GetRegSize(var_type)};</span></span>
+<span id="L862"><span class="lineNum">     862</span> <span class="tlaGNC">        5858 :     var_to_reg_.Insert(var_name, reg);</span></span>
+<span id="L863"><span class="lineNum">     863</span> <span class="tlaGNC">        5858 :     return reg;</span></span>
+<span id="L864"><span class="lineNum">     864</span> <span class="tlaGNC">       13927 :   }</span></span>
+<span id="L865"><span class="lineNum">     865</span>              : </span>
+<span id="L866"><span class="lineNum">     866</span> <span class="tlaGNC">       19636 :   RegSize GetRegSize(TypeRef type_ref) {</span></span>
+<span id="L867"><span class="lineNum">     867</span> <span class="tlaGNC">       19636 :     auto expr_type = std::get&lt;BasicType&gt;(syn_ctx_.DerefType(type_ref));</span></span>
+<span id="L868"><span class="lineNum">     868</span> <span class="tlaGNC">       19636 :     switch (expr_type.size) {</span></span>
+<span id="L869"><span class="lineNum">     869</span> <span class="tlaGNC">       18364 :       case 4:</span></span>
+<span id="L870"><span class="lineNum">     870</span> <span class="tlaGNC">       18364 :         return RegSize32;</span></span>
+<span id="L871"><span class="lineNum">     871</span> <span class="tlaGNC">        1272 :       case 8:</span></span>
+<span id="L872"><span class="lineNum">     872</span> <span class="tlaGNC">        1272 :         return RegSize64;</span></span>
+<span id="L873"><span class="lineNum">     873</span> <span class="tlaUNC">           0 :       default:</span></span>
+<span id="L874"><span class="lineNum">     874</span> <span class="tlaUNC">           0 :         std::unreachable();</span></span>
+<span id="L875"><span class="lineNum">     875</span> <span class="tlaGNC">       19636 :     }</span></span>
+<span id="L876"><span class="lineNum">     876</span> <span class="tlaGNC">       19636 :   }</span></span>
+<span id="L877"><span class="lineNum">     877</span>              : </span>
+<span id="L878"><span class="lineNum">     878</span>              :   // Returns a register set to `bytes`, for reaching that far into an array</span>
+<span id="L879"><span class="lineNum">     879</span>              :   // or a tuple.</span>
+<span id="L880"><span class="lineNum">     880</span>              :   Reg BytesReg(std::size_t bytes,</span>
+<span id="L881"><span class="lineNum">     881</span> <span class="tlaGNC">        1458 :                AbstractMachineControlFlowGraph::Block&amp; am_block) {</span></span>
+<span id="L882"><span class="lineNum">     882</span> <span class="tlaGNC">        1458 :     const Reg reg = {am_cfg_.next_free_reg_id++, RegSize32};</span></span>
+<span id="L883"><span class="lineNum">     883</span> <span class="tlaGNC">        1458 :     am_block.instructions.emplace_back(SetReg{</span></span>
+<span id="L884"><span class="lineNum">     884</span> <span class="tlaGNC">        1458 :         .src_val = static_cast&lt;int&gt;(bytes),</span></span>
+<span id="L885"><span class="lineNum">     885</span> <span class="tlaGNC">        1458 :         .dst_reg = reg,</span></span>
+<span id="L886"><span class="lineNum">     886</span> <span class="tlaGNC">        1458 :     });</span></span>
+<span id="L887"><span class="lineNum">     887</span> <span class="tlaGNC">        1458 :     return reg;</span></span>
+<span id="L888"><span class="lineNum">     888</span> <span class="tlaGNC">        1458 :   }</span></span>
+<span id="L889"><span class="lineNum">     889</span>              : </span>
+<span id="L890"><span class="lineNum">     890</span>              :   // The size of the register that what a stack slot holds is moved through.</span>
+<span id="L891"><span class="lineNum">     891</span> <span class="tlaGNC">          85 :   RegSize SlotRegSize(std::size_t slot) const {</span></span>
+<span id="L892"><span class="lineNum">     892</span> <span class="tlaGNC">          85 :     return am_cfg_.stack_slots[slot] == 4 ? RegSize32 : RegSize64;</span></span>
+<span id="L893"><span class="lineNum">     893</span> <span class="tlaGNC">          85 :   }</span></span>
+<span id="L894"><span class="lineNum">     894</span>              : </span>
+<span id="L895"><span class="lineNum">     895</span>              :   // The bytes a value of this type takes: what its elements take altogether</span>
+<span id="L896"><span class="lineNum">     896</span>              :   // for an array, what its fields take for a tuple, and its own size for one</span>
+<span id="L897"><span class="lineNum">     897</span>              :   // of the types the language has built in.</span>
+<span id="L898"><span class="lineNum">     898</span> <span class="tlaGNC">        2208 :   std::size_t GetSize(TypeRef type_ref) {</span></span>
+<span id="L899"><span class="lineNum">     899</span> <span class="tlaGNC">        2208 :     const Type&amp; type = syn_ctx_.DerefType(type_ref);</span></span>
+<span id="L900"><span class="lineNum">     900</span>              : </span>
+<span id="L901"><span class="lineNum">     901</span> <span class="tlaGNC">        2208 :     if (const auto* array_type = std::get_if&lt;ArrayType&gt;(&amp;type)) {</span></span>
+<span id="L902"><span class="lineNum">     902</span> <span class="tlaGNC">          19 :       return static_cast&lt;std::size_t&gt;(array_type-&gt;size.value) *</span></span>
+<span id="L903"><span class="lineNum">     903</span> <span class="tlaGNC">          19 :              GetSize(array_type-&gt;element_type_constraint);</span></span>
+<span id="L904"><span class="lineNum">     904</span> <span class="tlaGNC">          19 :     }</span></span>
+<span id="L905"><span class="lineNum">     905</span> <span class="tlaGNC">        2189 :     if (const auto* tuple_type = std::get_if&lt;TupleType&gt;(&amp;type)) {</span></span>
+<span id="L906"><span class="lineNum">     906</span> <span class="tlaGNC">         295 :       std::size_t size = 0;</span></span>
+<span id="L907"><span class="lineNum">     907</span> <span class="tlaGNC">         594 :       for (const auto&amp; field_ref : tuple_type-&gt;fields) {</span></span>
+<span id="L908"><span class="lineNum">     908</span> <span class="tlaGNC">         594 :         size += GetSize(syn_ctx_.DerefParam(field_ref).type_constraint);</span></span>
+<span id="L909"><span class="lineNum">     909</span> <span class="tlaGNC">         594 :       }</span></span>
+<span id="L910"><span class="lineNum">     910</span> <span class="tlaGNC">         295 :       return size;</span></span>
+<span id="L911"><span class="lineNum">     911</span> <span class="tlaGNC">         295 :     }</span></span>
+<span id="L912"><span class="lineNum">     912</span> <span class="tlaGNC">        1894 :     return std::get&lt;BasicType&gt;(type).size;</span></span>
+<span id="L913"><span class="lineNum">     913</span> <span class="tlaGNC">        2189 :   }</span></span>
+<span id="L914"><span class="lineNum">     914</span>              : </span>
+<span id="L915"><span class="lineNum">     915</span>              :   // Puts a stack slot behind every value of a built in type that a value of</span>
+<span id="L916"><span class="lineNum">     916</span>              :   // this type holds, in the order they lie one after another.</span>
+<span id="L917"><span class="lineNum">     917</span> <span class="tlaGNC">         225 :   void PushStackSlots(TypeRef type_ref) {</span></span>
+<span id="L918"><span class="lineNum">     918</span> <span class="tlaGNC">         225 :     AppendSizes(type_ref, am_cfg_.stack_slots);</span></span>
+<span id="L919"><span class="lineNum">     919</span> <span class="tlaGNC">         225 :   }</span></span>
+<span id="L920"><span class="lineNum">     920</span>              : </span>
+<span id="L921"><span class="lineNum">     921</span>              :   // Appends the size of every value of a built in type that a value of this</span>
+<span id="L922"><span class="lineNum">     922</span>              :   // type holds to `sizes`, in the order they lie one after another.</span>
+<span id="L923"><span class="lineNum">     923</span> <span class="tlaGNC">       13461 :   void AppendSizes(TypeRef type_ref, std::vector&lt;int&gt;&amp; sizes) {</span></span>
+<span id="L924"><span class="lineNum">     924</span> <span class="tlaGNC">       13461 :     const Type&amp; type = syn_ctx_.DerefType(type_ref);</span></span>
+<span id="L925"><span class="lineNum">     925</span>              : </span>
+<span id="L926"><span class="lineNum">     926</span> <span class="tlaGNC">       13461 :     if (const auto* array_type = std::get_if&lt;ArrayType&gt;(&amp;type)) {</span></span>
+<span id="L927"><span class="lineNum">     927</span> <span class="tlaGNC">       12918 :       for (std::int64_t i = 0; i &lt; array_type-&gt;size.value; ++i) {</span></span>
+<span id="L928"><span class="lineNum">     928</span> <span class="tlaGNC">       12684 :         AppendSizes(array_type-&gt;element_type_constraint, sizes);</span></span>
+<span id="L929"><span class="lineNum">     929</span> <span class="tlaGNC">       12684 :       }</span></span>
+<span id="L930"><span class="lineNum">     930</span> <span class="tlaGNC">         234 :       return;</span></span>
+<span id="L931"><span class="lineNum">     931</span> <span class="tlaGNC">         234 :     }</span></span>
+<span id="L932"><span class="lineNum">     932</span> <span class="tlaGNC">       13227 :     if (const auto* tuple_type = std::get_if&lt;TupleType&gt;(&amp;type)) {</span></span>
+<span id="L933"><span class="lineNum">     933</span> <span class="tlaGNC">         488 :       for (const auto&amp; field_ref : tuple_type-&gt;fields) {</span></span>
+<span id="L934"><span class="lineNum">     934</span> <span class="tlaGNC">         488 :         AppendSizes(syn_ctx_.DerefParam(field_ref).type_constraint, sizes);</span></span>
+<span id="L935"><span class="lineNum">     935</span> <span class="tlaGNC">         488 :       }</span></span>
+<span id="L936"><span class="lineNum">     936</span> <span class="tlaGNC">         235 :       return;</span></span>
+<span id="L937"><span class="lineNum">     937</span> <span class="tlaGNC">         235 :     }</span></span>
+<span id="L938"><span class="lineNum">     938</span> <span class="tlaGNC">       12992 :     sizes.push_back(static_cast&lt;int&gt;(std::get&lt;BasicType&gt;(type).size));</span></span>
+<span id="L939"><span class="lineNum">     939</span> <span class="tlaGNC">       12992 :   }</span></span>
+<span id="L940"><span class="lineNum">     940</span>              : </span>
+<span id="L941"><span class="lineNum">     941</span>              :   // How many bytes into a tuple the field called `field_name` stands.</span>
+<span id="L942"><span class="lineNum">     942</span>              :   std::size_t GetFieldOffset(TypeRef tuple_type_ref,</span>
+<span id="L943"><span class="lineNum">     943</span> <span class="tlaGNC">         351 :                              StringIndex::Ref field_name) {</span></span>
+<span id="L944"><span class="lineNum">     944</span> <span class="tlaGNC">         351 :     std::size_t offset = 0;</span></span>
+<span id="L945"><span class="lineNum">     945</span> <span class="tlaGNC">         351 :     const auto&amp; tuple_type =</span></span>
+<span id="L946"><span class="lineNum">     946</span> <span class="tlaGNC">         351 :         std::get&lt;TupleType&gt;(syn_ctx_.DerefType(tuple_type_ref));</span></span>
+<span id="L947"><span class="lineNum">     947</span> <span class="tlaGNC">         532 :     for (const auto&amp; field_ref : tuple_type.fields) {</span></span>
+<span id="L948"><span class="lineNum">     948</span> <span class="tlaGNC">         532 :       const auto&amp; field = syn_ctx_.DerefParam(field_ref);</span></span>
+<span id="L949"><span class="lineNum">     949</span> <span class="tlaGNC">         532 :       if (field.name == field_name) break;</span></span>
+<span id="L950"><span class="lineNum">     950</span>              : </span>
+<span id="L951"><span class="lineNum">     951</span> <span class="tlaGNC">         181 :       offset += GetSize(field.type_constraint);</span></span>
+<span id="L952"><span class="lineNum">     952</span> <span class="tlaGNC">         181 :     }</span></span>
+<span id="L953"><span class="lineNum">     953</span> <span class="tlaGNC">         351 :     return offset;</span></span>
+<span id="L954"><span class="lineNum">     954</span> <span class="tlaGNC">         351 :   }</span></span>
+<span id="L955"><span class="lineNum">     955</span>              : </span>
+<span id="L956"><span class="lineNum">     956</span>              :   // What a value of this type is, where its size does not say.</span>
+<span id="L957"><span class="lineNum">     957</span> <span class="tlaGNC">         706 :   ValueKind KindOf(TypeRef type_ref) const {</span></span>
+<span id="L958"><span class="lineNum">     958</span> <span class="tlaGNC">         706 :     const auto* basic_type =</span></span>
+<span id="L959"><span class="lineNum">     959</span> <span class="tlaGNC">         706 :         std::get_if&lt;BasicType&gt;(&amp;syn_ctx_.DerefType(type_ref));</span></span>
+<span id="L960"><span class="lineNum">     960</span> <span class="tlaGNC">         706 :     if (basic_type != nullptr &amp;&amp;</span></span>
+<span id="L961"><span class="lineNum">     961</span> <span class="tlaGNC">         706 :         syn_ctx_.DerefIdent(basic_type-&gt;name) == &quot;String&quot;) {</span></span>
+<span id="L962"><span class="lineNum">     962</span> <span class="tlaGNC">          62 :       return ValueKind::String;</span></span>
+<span id="L963"><span class="lineNum">     963</span> <span class="tlaGNC">          62 :     }</span></span>
+<span id="L964"><span class="lineNum">     964</span> <span class="tlaGNC">         644 :     return ValueKind::Number;</span></span>
+<span id="L965"><span class="lineNum">     965</span> <span class="tlaGNC">         706 :   }</span></span>
+<span id="L966"><span class="lineNum">     966</span>              : </span>
+<span id="L967"><span class="lineNum">     967</span>              :   // Whether a value of this type lies on the stack rather than in a register,</span>
+<span id="L968"><span class="lineNum">     968</span>              :   // which is what an array or a tuple does however small it is.</span>
+<span id="L969"><span class="lineNum">     969</span> <span class="tlaGNC">       10261 :   bool IsOnStack(TypeRef type_ref) {</span></span>
+<span id="L970"><span class="lineNum">     970</span> <span class="tlaGNC">       10261 :     const Type&amp; type = syn_ctx_.DerefType(type_ref);</span></span>
+<span id="L971"><span class="lineNum">     971</span> <span class="tlaGNC">       10261 :     return std::holds_alternative&lt;ArrayType&gt;(type) ||</span></span>
+<span id="L972"><span class="lineNum">     972</span> <span class="tlaGNC">       10261 :            std::holds_alternative&lt;TupleType&gt;(type);</span></span>
+<span id="L973"><span class="lineNum">     973</span> <span class="tlaGNC">       10261 :   }</span></span>
+<span id="L974"><span class="lineNum">     974</span>              : </span>
+<span id="L975"><span class="lineNum">     975</span>              :   const SyntaxContext&amp; syn_ctx_;</span>
+<span id="L976"><span class="lineNum">     976</span>              :   const SyntaxControlFlowGraph&amp; syn_cfg_;</span>
+<span id="L977"><span class="lineNum">     977</span>              :   AbstractMachineState&amp; am_state_;</span>
+<span id="L978"><span class="lineNum">     978</span>              :   AbstractMachineControlFlowGraph am_cfg_;</span>
+<span id="L979"><span class="lineNum">     979</span>              : </span>
+<span id="L980"><span class="lineNum">     980</span>              :   // What the work this function asks to have done during compilation has</span>
+<span id="L981"><span class="lineNum">     981</span>              :   // spent so far, which the interpreter counts against what compilation will</span>
+<span id="L982"><span class="lineNum">     982</span>              :   // spend altogether.</span>
+<span id="L983"><span class="lineNum">     983</span>              :   std::int64_t comp_steps_ = 0;</span>
+<span id="L984"><span class="lineNum">     984</span>              : </span>
+<span id="L985"><span class="lineNum">     985</span>              :   Interpreter vm_;</span>
+<span id="L986"><span class="lineNum">     986</span>              :   Reg result_reg_;</span>
+<span id="L987"><span class="lineNum">     987</span>              :   // The register holding the value each block returns, by the block's ID.</span>
+<span id="L988"><span class="lineNum">     988</span>              :   std::vector&lt;std::optional&lt;Reg&gt;&gt; returned_regs_;</span>
+<span id="L989"><span class="lineNum">     989</span>              :   HashMap&lt;StringIndex::Ref, Reg&gt; var_to_reg_;</span>
+<span id="L990"><span class="lineNum">     990</span>              :   HashMap&lt;StringIndex::Ref, std::size_t&gt; var_stack_;</span>
+<span id="L991"><span class="lineNum">     991</span>              :   HashMap&lt;ExprRef, std::size_t&gt; expr_slot_;</span>
+<span id="L992"><span class="lineNum">     992</span>              :   HashMap&lt;SyntaxControlFlowGraph::BlockRef,</span>
+<span id="L993"><span class="lineNum">     993</span>              :           AbstractMachineControlFlowGraph::BlockRef&gt;</span>
+<span id="L994"><span class="lineNum">     994</span>              :       graph_map_;</span>
+<span id="L995"><span class="lineNum">     995</span>              :   std::vector&lt;Reg&gt;&amp; expr_to_reg_;</span>
+<span id="L996"><span class="lineNum">     996</span>              : };</span>
+<span id="L997"><span class="lineNum">     997</span>              : </span>
+<span id="L998"><span class="lineNum">     998</span>              : }  // namespace</span>
+<span id="L999"><span class="lineNum">     999</span>              : </span>
+<span id="L1000"><span class="lineNum">    1000</span>              : std::expected&lt;AbstractMachineControlFlowGraph, CompError&gt;</span>
+<span id="L1001"><span class="lineNum">    1001</span>              : GenerateAbstractMachineFunction(</span>
+<span id="L1002"><span class="lineNum">    1002</span>              :     const HashMap&lt;std::string_view, AbstractMachineControlFlowGraph&gt;&amp; am_cfgs,</span>
+<span id="L1003"><span class="lineNum">    1003</span>              :     const SyntaxContext&amp; syn_ctx, const SyntaxControlFlowGraph&amp; syn_cfg,</span>
+<span id="L1004"><span class="lineNum">    1004</span> <span class="tlaGNC">         706 :     AbstractMachineState&amp; am_state) {</span></span>
+<span id="L1005"><span class="lineNum">    1005</span> <span class="tlaGNC">         706 :   return AbstractMachineFunctionGenerator(am_cfgs, syn_ctx, syn_cfg, am_state)</span></span>
+<span id="L1006"><span class="lineNum">    1006</span> <span class="tlaGNC">         706 :       .Generate();</span></span>
+<span id="L1007"><span class="lineNum">    1007</span> <span class="tlaGNC">         706 : }</span></span>
+<span id="L1008"><span class="lineNum">    1008</span>              : </span>
+<span id="L1009"><span class="lineNum">    1009</span>              : }  // namespace lucid</span>
         </pre>
               </td>
             </tr>
