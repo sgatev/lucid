@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-17 12:54:47</td>
+            <td class="headerValue">2026-10-17 13:39:46</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">96.5&nbsp;%</td>
@@ -108,9 +108,9 @@
 <span id="L46"><span class="lineNum">      46</span>              : //</span>
 <span id="L47"><span class="lineNum">      47</span>              : // It and the one below hold a character no identifier can, so that no function</span>
 <span id="L48"><span class="lineNum">      48</span>              : // can be named the same.</span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">         751 : std::string StringLabel(std::size_t index) {</span></span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">         751 :   return std::format(&quot;.str{}&quot;, index);</span></span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">         751 : }</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">         759 : std::string StringLabel(std::size_t index) {</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">         759 :   return std::format(&quot;.str{}&quot;, index);</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">         759 : }</span></span>
 <span id="L52"><span class="lineNum">      52</span>              : </span>
 <span id="L53"><span class="lineNum">      53</span>              : // Returns the name of the label the integer `value` is placed at.</span>
 <span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         437 : std::string IntLabel(std::int64_t value) {</span></span>
@@ -119,10 +119,10 @@
 <span id="L57"><span class="lineNum">      57</span>              : </span>
 <span id="L58"><span class="lineNum">      58</span>              : // Casts an integer of type `I` to type `O`.</span>
 <span id="L59"><span class="lineNum">      59</span>              : template &lt;typename O, typename I&gt;</span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">       15193 : constexpr O SafeCast(I i) noexcept {</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">       15193 :   assert(std::in_range&lt;O&gt;(i));</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">       15193 :   return static_cast&lt;O&gt;(i);</span></span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">       15193 : }</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">       15197 : constexpr O SafeCast(I i) noexcept {</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">       15197 :   assert(std::in_range&lt;O&gt;(i));</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">       15197 :   return static_cast&lt;O&gt;(i);</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">       15197 : }</span></span>
 <span id="L64"><span class="lineNum">      64</span>              : </span>
 <span id="L65"><span class="lineNum">      65</span>              : // A comparison a branch can decide for itself, rather than read the result of.</span>
 <span id="L66"><span class="lineNum">      66</span>              : struct BranchComparison {</span>
@@ -132,27 +132,27 @@
 <span id="L70"><span class="lineNum">      70</span>              : };</span>
 <span id="L71"><span class="lineNum">      71</span>              : </span>
 <span id="L72"><span class="lineNum">      72</span>              : // Returns what `inst` compares, if a branch can carry the comparison.</span>
-<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">         657 : std::optional&lt;BranchComparison&gt; AsBranchComparison(const Instruction&amp; inst) {</span></span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         657 :   if (const auto* cinst = std::get_if&lt;GtReg&gt;(&amp;inst)) {</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">         659 : std::optional&lt;BranchComparison&gt; AsBranchComparison(const Instruction&amp; inst) {</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">         659 :   if (const auto* cinst = std::get_if&lt;GtReg&gt;(&amp;inst)) {</span></span>
 <span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">         155 :     return BranchComparison{Cond::Gt, cinst-&gt;lhs_reg, cinst-&gt;rhs_reg};</span></span>
 <span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">         155 :   }</span></span>
-<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">         502 :   if (const auto* cinst = std::get_if&lt;LtReg&gt;(&amp;inst)) {</span></span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">         504 :   if (const auto* cinst = std::get_if&lt;LtReg&gt;(&amp;inst)) {</span></span>
 <span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">          21 :     return BranchComparison{Cond::Lt, cinst-&gt;lhs_reg, cinst-&gt;rhs_reg};</span></span>
 <span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">          21 :   }</span></span>
-<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">         481 :   if (const auto* cinst = std::get_if&lt;GeReg&gt;(&amp;inst)) {</span></span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">         483 :   if (const auto* cinst = std::get_if&lt;GeReg&gt;(&amp;inst)) {</span></span>
 <span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">         163 :     return BranchComparison{Cond::Ge, cinst-&gt;lhs_reg, cinst-&gt;rhs_reg};</span></span>
 <span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">         163 :   }</span></span>
-<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">         318 :   if (const auto* cinst = std::get_if&lt;LeReg&gt;(&amp;inst)) {</span></span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">         320 :   if (const auto* cinst = std::get_if&lt;LeReg&gt;(&amp;inst)) {</span></span>
 <span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">          30 :     return BranchComparison{Cond::Le, cinst-&gt;lhs_reg, cinst-&gt;rhs_reg};</span></span>
 <span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">          30 :   }</span></span>
-<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">         288 :   if (const auto* cinst = std::get_if&lt;EqReg&gt;(&amp;inst)) {</span></span>
-<span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC">         120 :     return BranchComparison{Cond::Eq, cinst-&gt;lhs_reg, cinst-&gt;rhs_reg};</span></span>
-<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">         120 :   }</span></span>
-<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">         168 :   if (const auto* cinst = std::get_if&lt;NotEqReg&gt;(&amp;inst)) {</span></span>
+<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">         290 :   if (const auto* cinst = std::get_if&lt;EqReg&gt;(&amp;inst)) {</span></span>
+<span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC">         121 :     return BranchComparison{Cond::Eq, cinst-&gt;lhs_reg, cinst-&gt;rhs_reg};</span></span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">         121 :   }</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">         169 :   if (const auto* cinst = std::get_if&lt;NotEqReg&gt;(&amp;inst)) {</span></span>
 <span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">          19 :     return BranchComparison{Cond::Ne, cinst-&gt;lhs_reg, cinst-&gt;rhs_reg};</span></span>
 <span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">          19 :   }</span></span>
-<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">         149 :   return std::nullopt;</span></span>
-<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">         168 : }</span></span>
+<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">         150 :   return std::nullopt;</span></span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">         169 : }</span></span>
 <span id="L94"><span class="lineNum">      94</span>              : </span>
 <span id="L95"><span class="lineNum">      95</span>              : // Returns the condition that holds exactly when `cond` does not.</span>
 <span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">         247 : Cond Inverse(Cond cond) {</span></span>
@@ -180,50 +180,50 @@
 <span id="L118"><span class="lineNum">     118</span>              :                                 const FrameLayout&amp; layout,</span>
 <span id="L119"><span class="lineNum">     119</span>              :                                 const AbstractMachineControlFlowGraph&amp; am_cfg,</span>
 <span id="L120"><span class="lineNum">     120</span>              :                                 Assembler&amp; assmebler)</span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">         641 :       : func_name_(func_name),</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">         641 :         stack_slots_(stack_slots),</span></span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">         641 :         layout_(layout),</span></span>
-<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">         641 :         am_cfg_(am_cfg),</span></span>
-<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">         641 :         assembler_(assmebler) {}</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">         642 :       : func_name_(func_name),</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">         642 :         stack_slots_(stack_slots),</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">         642 :         layout_(layout),</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">         642 :         am_cfg_(am_cfg),</span></span>
+<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">         642 :         assembler_(assmebler) {}</span></span>
 <span id="L126"><span class="lineNum">     126</span>              : </span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">         641 :   void Generate() &amp;&amp; {</span></span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">         641 :     assembler_.Bind(assembler_.Named(func_name_));</span></span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">         641 :     assembler_.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">         642 :   void Generate() &amp;&amp; {</span></span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">         642 :     assembler_.Bind(assembler_.Named(func_name_));</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">         642 :     assembler_.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
 <span id="L130"><span class="lineNum">     130</span>              : </span>
 <span id="L131"><span class="lineNum">     131</span>              :     // The frame, from the stack pointer up: what this function leaves for the</span>
 <span id="L132"><span class="lineNum">     132</span>              :     // calls it makes, then the registers it hands back as it found them, then</span>
 <span id="L133"><span class="lineNum">     133</span>              :     // its own slots. What its own caller left for it stands above all of</span>
 <span id="L134"><span class="lineNum">     134</span>              :     // that, past the frame record, and takes no room here.</span>
-<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">         641 :     outgoing_size_ = OutgoingSize();</span></span>
-<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">         641 :     persisted_ = RegistersToPersist();</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">         642 :     outgoing_size_ = OutgoingSize();</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">         642 :     persisted_ = RegistersToPersist();</span></span>
 <span id="L137"><span class="lineNum">     137</span>              : </span>
 <span id="L138"><span class="lineNum">     138</span>              :     // Where each of them begins, which is where everything before it ends,</span>
 <span id="L139"><span class="lineNum">     139</span>              :     // carried past whatever the one it begins on has to be a multiple of. A</span>
 <span id="L140"><span class="lineNum">     140</span>              :     // slot that stands somewhere the frame does not reach ends where it</span>
 <span id="L141"><span class="lineNum">     141</span>              :     // began, because it takes none of the frame up.</span>
-<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">         641 :     stack_offsets_.resize(stack_slots_.size() + persisted_.size());</span></span>
-<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">         641 :     int at = outgoing_size_;</span></span>
-<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">        3075 :     for (int i = 0; i &lt; persisted_.size(); ++i) {</span></span>
-<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">        2434 :       stack_offsets_[i] = at;</span></span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">        2434 :       at += 8;</span></span>
-<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">        2434 :     }</span></span>
-<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">       15246 :     for (int i = 0; i &lt; stack_slots_.size(); ++i) {</span></span>
+<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">         642 :     stack_offsets_.resize(stack_slots_.size() + persisted_.size());</span></span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">         642 :     int at = outgoing_size_;</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">        3079 :     for (int i = 0; i &lt; persisted_.size(); ++i) {</span></span>
+<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">        2437 :       stack_offsets_[i] = at;</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">        2437 :       at += 8;</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">        2437 :     }</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">       15247 :     for (int i = 0; i &lt; stack_slots_.size(); ++i) {</span></span>
 <span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">       14605 :       if (OwnSlot(i)) at = RoundUpTo(at, stack_slots_[i]);</span></span>
 <span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">       14605 :       stack_offsets_[persisted_.size() + i] = at;</span></span>
 <span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">       14605 :       if (OwnSlot(i)) at += stack_slots_[i];</span></span>
 <span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">       14605 :     }</span></span>
 <span id="L153"><span class="lineNum">     153</span>              : </span>
-<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">         641 :     stack_size_ = RoundUpTo(at, 16);</span></span>
+<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">         642 :     stack_size_ = RoundUpTo(at, 16);</span></span>
 <span id="L155"><span class="lineNum">     155</span>              : </span>
-<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">         641 :     InCarriableSteps(stack_size_,</span></span>
-<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">         644 :                      [&amp;](Imm imm) { assembler_.Sub(SP, SP, imm); });</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">         642 :     InCarriableSteps(stack_size_,</span></span>
+<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">         645 :                      [&amp;](Imm imm) { assembler_.Sub(SP, SP, imm); });</span></span>
 <span id="L158"><span class="lineNum">     158</span>              : </span>
-<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">        3075 :     for (int i = static_cast&lt;int&gt;(persisted_.size()) - 1; i &gt;= 0; --i) {</span></span>
-<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">        2434 :       assembler_.StrUnsignedOffset(X(persisted_[i]), SP,</span></span>
-<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">        2434 :                                    Imm(stack_offsets_[i]));</span></span>
-<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">        2434 :     }</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">        3079 :     for (int i = static_cast&lt;int&gt;(persisted_.size()) - 1; i &gt;= 0; --i) {</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">        2437 :       assembler_.StrUnsignedOffset(X(persisted_[i]), SP,</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">        2437 :                                    Imm(stack_offsets_[i]));</span></span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">        2437 :     }</span></span>
 <span id="L163"><span class="lineNum">     163</span>              : </span>
-<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">        1010 :     for (int param_idx = 1; const Reg param : am_cfg_.params) {</span></span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">        1011 :     for (int param_idx = 1; const Reg param : am_cfg_.params) {</span></span>
 <span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">         912 :       switch (param.size) {</span></span>
 <span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">         787 :         case RegSize32:</span></span>
 <span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">         787 :           assembler_.Mov(W(param.id), W(param_idx++));</span></span>
@@ -234,37 +234,37 @@
 <span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">         912 :       }</span></span>
 <span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">         912 :     }</span></span>
 <span id="L174"><span class="lineNum">     174</span>              : </span>
-<span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">         641 :     std::vector&lt;AbstractMachineControlFlowGraph::BlockRef&gt; block_refs =</span></span>
-<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">         641 :         Vertices(am_cfg_);</span></span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">         641 :     std::sort(block_refs.begin(), block_refs.end(),</span></span>
-<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">         641 :               CompareReversePostOrder(am_cfg_));</span></span>
-<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">        2959 :     for (const auto&amp; ref : block_refs) {</span></span>
-<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">        2959 :       if (ref.id() &gt;= block_labels_.size()) {</span></span>
-<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">        2119 :         block_labels_.resize(ref.id() + 1, Label(0));</span></span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">        2119 :       }</span></span>
-<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">        2959 :       block_labels_[ref.id()] = assembler_.NewLabel();</span></span>
-<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">        2959 :     }</span></span>
+<span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">         642 :     std::vector&lt;AbstractMachineControlFlowGraph::BlockRef&gt; block_refs =</span></span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">         642 :         Vertices(am_cfg_);</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">         642 :     std::sort(block_refs.begin(), block_refs.end(),</span></span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">         642 :               CompareReversePostOrder(am_cfg_));</span></span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">        2967 :     for (const auto&amp; ref : block_refs) {</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">        2967 :       if (ref.id() &gt;= block_labels_.size()) {</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">        2125 :         block_labels_.resize(ref.id() + 1, Label(0));</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">        2125 :       }</span></span>
+<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">        2967 :       block_labels_[ref.id()] = assembler_.NewLabel();</span></span>
+<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">        2967 :     }</span></span>
 <span id="L185"><span class="lineNum">     185</span>              : </span>
 <span id="L186"><span class="lineNum">     186</span>              :     // A block that only passes control on is gone through rather than to,</span>
 <span id="L187"><span class="lineNum">     187</span>              :     // so nothing reaches it and it is not written at all.</span>
-<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">         641 :     FindPassThroughs(block_refs);</span></span>
-<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">        2959 :     std::erase_if(block_refs, [&amp;](const auto&amp; ref) {</span></span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">        2959 :       return pass_throughs_[ref.id()].has_value();</span></span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">        2959 :     });</span></span>
-<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">        3225 :     for (std::size_t i = 0; i &lt; block_refs.size(); ++i) {</span></span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">        2584 :       std::optional&lt;AbstractMachineControlFlowGraph::BlockRef&gt; next;</span></span>
-<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">        2584 :       if (i + 1 &lt; block_refs.size()) next = block_refs[i + 1];</span></span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">        2584 :       Process(am_cfg_.GetBlock(block_refs[i]), next);</span></span>
-<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">        2584 :     }</span></span>
+<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">         642 :     FindPassThroughs(block_refs);</span></span>
+<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">        2967 :     std::erase_if(block_refs, [&amp;](const auto&amp; ref) {</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">        2967 :       return pass_throughs_[ref.id()].has_value();</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">        2967 :     });</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">        3234 :     for (std::size_t i = 0; i &lt; block_refs.size(); ++i) {</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">        2592 :       std::optional&lt;AbstractMachineControlFlowGraph::BlockRef&gt; next;</span></span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">        2592 :       if (i + 1 &lt; block_refs.size()) next = block_refs[i + 1];</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">        2592 :       Process(am_cfg_.GetBlock(block_refs[i]), next);</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">        2592 :     }</span></span>
 <span id="L197"><span class="lineNum">     197</span>              : </span>
 <span id="L198"><span class="lineNum">     198</span>              :     // The edges that make copies before they arrive, which a branch goes to</span>
 <span id="L199"><span class="lineNum">     199</span>              :     // when it is taken. They stand after every block, so that none of them</span>
 <span id="L200"><span class="lineNum">     200</span>              :     // comes between a block and the one it falls through to.</span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">         641 :     for (const auto&amp; [label, to, from] : copying_edges_) {</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">         122 :       assembler_.Bind(label);</span></span>
-<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">         122 :       ProcessEdge(to, from, /*next=*/std::nullopt);</span></span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">         122 :     }</span></span>
-<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">         641 :   }</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">         642 :     for (const auto&amp; [label, to, from] : copying_edges_) {</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">         123 :       assembler_.Bind(label);</span></span>
+<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">         123 :       ProcessEdge(to, from, /*next=*/std::nullopt);</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">         123 :     }</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">         642 :   }</span></span>
 <span id="L206"><span class="lineNum">     206</span>              : </span>
 <span id="L207"><span class="lineNum">     207</span>              :  private:</span>
 <span id="L208"><span class="lineNum">     208</span>              :   // Returns the comparison the branch at the end of `block` can decide for</span>
@@ -275,17 +275,17 @@
 <span id="L213"><span class="lineNum">     213</span>              :   // computed into a register, because something other than the branch reads</span>
 <span id="L214"><span class="lineNum">     214</span>              :   // it.</span>
 <span id="L215"><span class="lineNum">     215</span>              :   std::optional&lt;BranchComparison&gt; FusableComparison(</span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">        2584 :       const AbstractMachineControlFlowGraph::Block&amp; block) const {</span></span>
-<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">        2584 :     if (!block.branch_cond.has_value()) return std::nullopt;</span></span>
-<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">         720 :     if (block.instructions.empty()) return std::nullopt;</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">        2592 :       const AbstractMachineControlFlowGraph::Block&amp; block) const {</span></span>
+<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">        2592 :     if (!block.branch_cond.has_value()) return std::nullopt;</span></span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">         723 :     if (block.instructions.empty()) return std::nullopt;</span></span>
 <span id="L219"><span class="lineNum">     219</span>              : </span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">         657 :     const std::optional&lt;BranchComparison&gt; comparison =</span></span>
-<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">         657 :         AsBranchComparison(block.instructions.back());</span></span>
-<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">         657 :     if (!comparison.has_value()) return std::nullopt;</span></span>
+<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">         659 :     const std::optional&lt;BranchComparison&gt; comparison =</span></span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">         659 :         AsBranchComparison(block.instructions.back());</span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">         659 :     if (!comparison.has_value()) return std::nullopt;</span></span>
 <span id="L223"><span class="lineNum">     223</span>              : </span>
-<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">         508 :     const std::optional&lt;Reg&gt; result =</span></span>
-<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">         508 :         GetTargetRegister(block.instructions.back());</span></span>
-<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">         508 :     if (!result.has_value() || *result != *block.branch_cond) {</span></span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">         509 :     const std::optional&lt;Reg&gt; result =</span></span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">         509 :         GetTargetRegister(block.instructions.back());</span></span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">         509 :     if (!result.has_value() || *result != *block.branch_cond) {</span></span>
 <span id="L227"><span class="lineNum">     227</span> <span class="tlaUNC">           0 :       return std::nullopt;</span></span>
 <span id="L228"><span class="lineNum">     228</span> <span class="tlaUNC">           0 :     }</span></span>
 <span id="L229"><span class="lineNum">     229</span>              : </span>
@@ -293,10 +293,10 @@
 <span id="L231"><span class="lineNum">     231</span>              :     // registers were given their colours, where one register still meant one</span>
 <span id="L232"><span class="lineNum">     232</span>              :     // value. What is left to check is that spilling has not put anything</span>
 <span id="L233"><span class="lineNum">     233</span>              :     // after the comparison since.</span>
-<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">         508 :     if (!block.only_branch_reads_cond) return std::nullopt;</span></span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">         509 :     if (!block.only_branch_reads_cond) return std::nullopt;</span></span>
 <span id="L235"><span class="lineNum">     235</span>              : </span>
-<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">         506 :     return comparison;</span></span>
-<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">         508 :   }</span></span>
+<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">         507 :     return comparison;</span></span>
+<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">         509 :   }</span></span>
 <span id="L238"><span class="lineNum">     238</span>              : </span>
 <span id="L239"><span class="lineNum">     239</span>              :   using BlockRef = AbstractMachineControlFlowGraph::BlockRef;</span>
 <span id="L240"><span class="lineNum">     240</span>              : </span>
@@ -311,21 +311,21 @@
 <span id="L249"><span class="lineNum">     249</span>              :   // it holds no instructions, no phi functions and no branch. The first block</span>
 <span id="L250"><span class="lineNum">     250</span>              :   // is where the function starts, and is never one.</span>
 <span id="L251"><span class="lineNum">     251</span>              :   bool PassesThrough(</span>
-<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">        3789 :       const AbstractMachineControlFlowGraph::Block&amp; block) const {</span></span>
-<span id="L253"><span class="lineNum">     253</span> <span class="tlaGNC">        3789 :     return block.ref != am_cfg_.first &amp;&amp; block.instructions.empty() &amp;&amp;</span></span>
-<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">        3789 :            block.phis.empty() &amp;&amp; !block.branch_cond.has_value() &amp;&amp;</span></span>
-<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">        3789 :            block.succs.size() == 1;</span></span>
-<span id="L256"><span class="lineNum">     256</span> <span class="tlaGNC">        3789 :   }</span></span>
+<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">        3797 :       const AbstractMachineControlFlowGraph::Block&amp; block) const {</span></span>
+<span id="L253"><span class="lineNum">     253</span> <span class="tlaGNC">        3797 :     return block.ref != am_cfg_.first &amp;&amp; block.instructions.empty() &amp;&amp;</span></span>
+<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">        3797 :            block.phis.empty() &amp;&amp; !block.branch_cond.has_value() &amp;&amp;</span></span>
+<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">        3797 :            block.succs.size() == 1;</span></span>
+<span id="L256"><span class="lineNum">     256</span> <span class="tlaGNC">        3797 :   }</span></span>
 <span id="L257"><span class="lineNum">     257</span>              : </span>
 <span id="L258"><span class="lineNum">     258</span>              :   // Works out, for each block that only passes control on, where an edge</span>
 <span id="L259"><span class="lineNum">     259</span>              :   // into it lands once every such block after it is gone through too.</span>
 <span id="L260"><span class="lineNum">     260</span>              :   //</span>
 <span id="L261"><span class="lineNum">     261</span>              :   // A cycle of them is a loop that does nothing, forever. It has nowhere to</span>
 <span id="L262"><span class="lineNum">     262</span>              :   // land, so its blocks are kept and jump to one another as they are.</span>
-<span id="L263"><span class="lineNum">     263</span> <span class="tlaGNC">         641 :   void FindPassThroughs(const std::vector&lt;BlockRef&gt;&amp; block_refs) {</span></span>
-<span id="L264"><span class="lineNum">     264</span> <span class="tlaGNC">         641 :     pass_throughs_.assign(block_labels_.size(), std::nullopt);</span></span>
-<span id="L265"><span class="lineNum">     265</span> <span class="tlaGNC">        2959 :     for (const BlockRef ref : block_refs) {</span></span>
-<span id="L266"><span class="lineNum">     266</span> <span class="tlaGNC">        2959 :       if (!PassesThrough(am_cfg_.GetBlock(ref))) continue;</span></span>
+<span id="L263"><span class="lineNum">     263</span> <span class="tlaGNC">         642 :   void FindPassThroughs(const std::vector&lt;BlockRef&gt;&amp; block_refs) {</span></span>
+<span id="L264"><span class="lineNum">     264</span> <span class="tlaGNC">         642 :     pass_throughs_.assign(block_labels_.size(), std::nullopt);</span></span>
+<span id="L265"><span class="lineNum">     265</span> <span class="tlaGNC">        2967 :     for (const BlockRef ref : block_refs) {</span></span>
+<span id="L266"><span class="lineNum">     266</span> <span class="tlaGNC">        2967 :       if (!PassesThrough(am_cfg_.GetBlock(ref))) continue;</span></span>
 <span id="L267"><span class="lineNum">     267</span>              : </span>
 <span id="L268"><span class="lineNum">     268</span> <span class="tlaGNC">         376 :       BlockRef from = ref;</span></span>
 <span id="L269"><span class="lineNum">     269</span> <span class="tlaGNC">         376 :       BlockRef to = am_cfg_.GetBlock(ref).succs[0];</span></span>
@@ -339,131 +339,131 @@
 <span id="L277"><span class="lineNum">     277</span>              : </span>
 <span id="L278"><span class="lineNum">     278</span> <span class="tlaGNC">         375 :       pass_throughs_[ref.id()] = Landing{.block = to, .pred = from};</span></span>
 <span id="L279"><span class="lineNum">     279</span> <span class="tlaGNC">         375 :     }</span></span>
-<span id="L280"><span class="lineNum">     280</span> <span class="tlaGNC">         641 :   }</span></span>
+<span id="L280"><span class="lineNum">     280</span> <span class="tlaGNC">         642 :   }</span></span>
 <span id="L281"><span class="lineNum">     281</span>              : </span>
 <span id="L282"><span class="lineNum">     282</span>              :   // Returns where the edge from `from` into `to` lands.</span>
-<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">        4227 :   Landing LandingOf(BlockRef to, BlockRef from) const {</span></span>
-<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">        4227 :     if (const auto&amp; landing = pass_throughs_[to.id()]; landing.has_value()) {</span></span>
+<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">        4244 :   Landing LandingOf(BlockRef to, BlockRef from) const {</span></span>
+<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">        4244 :     if (const auto&amp; landing = pass_throughs_[to.id()]; landing.has_value()) {</span></span>
 <span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">        1024 :       return *landing;</span></span>
 <span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">        1024 :     }</span></span>
-<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">        3203 :     return Landing{.block = to, .pred = from};</span></span>
-<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">        4227 :   }</span></span>
+<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">        3220 :     return Landing{.block = to, .pred = from};</span></span>
+<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">        4244 :   }</span></span>
 <span id="L289"><span class="lineNum">     289</span>              : </span>
 <span id="L290"><span class="lineNum">     290</span>              :   // Returns whether the edge from `from` into `to` has anything to copy for</span>
 <span id="L291"><span class="lineNum">     291</span>              :   // the phi functions where it lands.</span>
-<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">         720 :   bool CopiesAlong(BlockRef to, BlockRef from) const {</span></span>
-<span id="L293"><span class="lineNum">     293</span> <span class="tlaGNC">         720 :     const Landing landing = LandingOf(to, from);</span></span>
-<span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">         720 :     const auto&amp; block = am_cfg_.GetBlock(landing.block);</span></span>
-<span id="L295"><span class="lineNum">     295</span> <span class="tlaGNC">         720 :     const auto pred = std::ranges::find(block.preds, landing.pred);</span></span>
-<span id="L296"><span class="lineNum">     296</span> <span class="tlaGNC">         720 :     const auto pred_idx = pred - block.preds.begin();</span></span>
-<span id="L297"><span class="lineNum">     297</span> <span class="tlaGNC">         720 :     return std::ranges::any_of(block.phis, [&amp;](const auto&amp; phi) {</span></span>
-<span id="L298"><span class="lineNum">     298</span> <span class="tlaGNC">         445 :       return phi.srcs[pred_idx] != phi.dst;</span></span>
-<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">         445 :     });</span></span>
-<span id="L300"><span class="lineNum">     300</span> <span class="tlaGNC">         720 :   }</span></span>
+<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">         723 :   bool CopiesAlong(BlockRef to, BlockRef from) const {</span></span>
+<span id="L293"><span class="lineNum">     293</span> <span class="tlaGNC">         723 :     const Landing landing = LandingOf(to, from);</span></span>
+<span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">         723 :     const auto&amp; block = am_cfg_.GetBlock(landing.block);</span></span>
+<span id="L295"><span class="lineNum">     295</span> <span class="tlaGNC">         723 :     const auto pred = std::ranges::find(block.preds, landing.pred);</span></span>
+<span id="L296"><span class="lineNum">     296</span> <span class="tlaGNC">         723 :     const auto pred_idx = pred - block.preds.begin();</span></span>
+<span id="L297"><span class="lineNum">     297</span> <span class="tlaGNC">         723 :     return std::ranges::any_of(block.phis, [&amp;](const auto&amp; phi) {</span></span>
+<span id="L298"><span class="lineNum">     298</span> <span class="tlaGNC">         446 :       return phi.srcs[pred_idx] != phi.dst;</span></span>
+<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">         446 :     });</span></span>
+<span id="L300"><span class="lineNum">     300</span> <span class="tlaGNC">         723 :   }</span></span>
 <span id="L301"><span class="lineNum">     301</span>              : </span>
 <span id="L302"><span class="lineNum">     302</span>              :   // Takes the edge from `from` into `to`: makes the copies the phi functions</span>
 <span id="L303"><span class="lineNum">     303</span>              :   // where it lands take along it, and jumps there, unless that is `next`,</span>
 <span id="L304"><span class="lineNum">     304</span>              :   // the block written right after this, which control falls into anyway.</span>
-<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">        2067 :   void ProcessEdge(BlockRef to, BlockRef from, std::optional&lt;BlockRef&gt; next) {</span></span>
-<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">        2067 :     const Landing landing = LandingOf(to, from);</span></span>
-<span id="L307"><span class="lineNum">     307</span> <span class="tlaGNC">        2067 :     ProcessPhiFunctions(am_cfg_.GetBlock(landing.block), landing.pred);</span></span>
-<span id="L308"><span class="lineNum">     308</span> <span class="tlaGNC">        2067 :     if (landing.block != next) {</span></span>
-<span id="L309"><span class="lineNum">     309</span> <span class="tlaGNC">         354 :       assembler_.B(block_labels_[landing.block.id()]);</span></span>
-<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">         354 :     }</span></span>
-<span id="L311"><span class="lineNum">     311</span> <span class="tlaGNC">        2067 :   }</span></span>
+<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">        2075 :   void ProcessEdge(BlockRef to, BlockRef from, std::optional&lt;BlockRef&gt; next) {</span></span>
+<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">        2075 :     const Landing landing = LandingOf(to, from);</span></span>
+<span id="L307"><span class="lineNum">     307</span> <span class="tlaGNC">        2075 :     ProcessPhiFunctions(am_cfg_.GetBlock(landing.block), landing.pred);</span></span>
+<span id="L308"><span class="lineNum">     308</span> <span class="tlaGNC">        2075 :     if (landing.block != next) {</span></span>
+<span id="L309"><span class="lineNum">     309</span> <span class="tlaGNC">         357 :       assembler_.B(block_labels_[landing.block.id()]);</span></span>
+<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">         357 :     }</span></span>
+<span id="L311"><span class="lineNum">     311</span> <span class="tlaGNC">        2075 :   }</span></span>
 <span id="L312"><span class="lineNum">     312</span>              : </span>
 <span id="L313"><span class="lineNum">     313</span>              :   // `next` is the block written right after this one, if there is one.</span>
 <span id="L314"><span class="lineNum">     314</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L315"><span class="lineNum">     315</span> <span class="tlaGNC">        2584 :                std::optional&lt;BlockRef&gt; next) {</span></span>
-<span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">        2584 :     assembler_.Bind(block_labels_[block.ref.id()]);</span></span>
+<span id="L315"><span class="lineNum">     315</span> <span class="tlaGNC">        2592 :                std::optional&lt;BlockRef&gt; next) {</span></span>
+<span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">        2592 :     assembler_.Bind(block_labels_[block.ref.id()]);</span></span>
 <span id="L317"><span class="lineNum">     317</span>              : </span>
-<span id="L318"><span class="lineNum">     318</span> <span class="tlaGNC">        2584 :     const std::optional&lt;BranchComparison&gt; fused = FusableComparison(block);</span></span>
+<span id="L318"><span class="lineNum">     318</span> <span class="tlaGNC">        2592 :     const std::optional&lt;BranchComparison&gt; fused = FusableComparison(block);</span></span>
 <span id="L319"><span class="lineNum">     319</span>              :     // A fused comparison is emitted by the branch below rather than here.</span>
-<span id="L320"><span class="lineNum">     320</span> <span class="tlaGNC">        2584 :     auto instructions_end = block.instructions.end();</span></span>
-<span id="L321"><span class="lineNum">     321</span> <span class="tlaGNC">        2584 :     if (fused.has_value()) --instructions_end;</span></span>
-<span id="L322"><span class="lineNum">     322</span> <span class="tlaGNC">       29432 :     for (auto it = block.instructions.begin(); it != instructions_end; ++it) {</span></span>
-<span id="L323"><span class="lineNum">     323</span> <span class="tlaGNC">       26848 :       Process(block, *it);</span></span>
-<span id="L324"><span class="lineNum">     324</span> <span class="tlaGNC">       26848 :     }</span></span>
+<span id="L320"><span class="lineNum">     320</span> <span class="tlaGNC">        2592 :     auto instructions_end = block.instructions.end();</span></span>
+<span id="L321"><span class="lineNum">     321</span> <span class="tlaGNC">        2592 :     if (fused.has_value()) --instructions_end;</span></span>
+<span id="L322"><span class="lineNum">     322</span> <span class="tlaGNC">       29453 :     for (auto it = block.instructions.begin(); it != instructions_end; ++it) {</span></span>
+<span id="L323"><span class="lineNum">     323</span> <span class="tlaGNC">       26861 :       Process(block, *it);</span></span>
+<span id="L324"><span class="lineNum">     324</span> <span class="tlaGNC">       26861 :     }</span></span>
 <span id="L325"><span class="lineNum">     325</span>              : </span>
-<span id="L326"><span class="lineNum">     326</span> <span class="tlaGNC">        2584 :     if (block.branch_cond.has_value()) {</span></span>
+<span id="L326"><span class="lineNum">     326</span> <span class="tlaGNC">        2592 :     if (block.branch_cond.has_value()) {</span></span>
 <span id="L327"><span class="lineNum">     327</span>              :       // The condition holds for the first successor. Control falls through</span>
 <span id="L328"><span class="lineNum">     328</span>              :       // to the second, unless the first is the block written next, in which</span>
 <span id="L329"><span class="lineNum">     329</span>              :       // case it falls through to that and the branch asks the opposite.</span>
-<span id="L330"><span class="lineNum">     330</span> <span class="tlaGNC">         720 :       Cond cond = Cond::Ne;</span></span>
-<span id="L331"><span class="lineNum">     331</span> <span class="tlaGNC">         720 :       if (fused.has_value()) {</span></span>
-<span id="L332"><span class="lineNum">     332</span> <span class="tlaGNC">         506 :         Compare(fused-&gt;lhs, fused-&gt;rhs);</span></span>
-<span id="L333"><span class="lineNum">     333</span> <span class="tlaGNC">         506 :         cond = fused-&gt;cond;</span></span>
-<span id="L334"><span class="lineNum">     334</span> <span class="tlaGNC">         506 :       } else {</span></span>
-<span id="L335"><span class="lineNum">     335</span> <span class="tlaGNC">         214 :         assembler_.Cmp(W(block.branch_cond-&gt;id), Imm(0));</span></span>
-<span id="L336"><span class="lineNum">     336</span> <span class="tlaGNC">         214 :       }</span></span>
+<span id="L330"><span class="lineNum">     330</span> <span class="tlaGNC">         723 :       Cond cond = Cond::Ne;</span></span>
+<span id="L331"><span class="lineNum">     331</span> <span class="tlaGNC">         723 :       if (fused.has_value()) {</span></span>
+<span id="L332"><span class="lineNum">     332</span> <span class="tlaGNC">         507 :         Compare(fused-&gt;lhs, fused-&gt;rhs);</span></span>
+<span id="L333"><span class="lineNum">     333</span> <span class="tlaGNC">         507 :         cond = fused-&gt;cond;</span></span>
+<span id="L334"><span class="lineNum">     334</span> <span class="tlaGNC">         507 :       } else {</span></span>
+<span id="L335"><span class="lineNum">     335</span> <span class="tlaGNC">         216 :         assembler_.Cmp(W(block.branch_cond-&gt;id), Imm(0));</span></span>
+<span id="L336"><span class="lineNum">     336</span> <span class="tlaGNC">         216 :       }</span></span>
 <span id="L337"><span class="lineNum">     337</span>              : </span>
-<span id="L338"><span class="lineNum">     338</span> <span class="tlaGNC">         720 :       BlockRef taken = block.succs[0];</span></span>
-<span id="L339"><span class="lineNum">     339</span> <span class="tlaGNC">         720 :       BlockRef not_taken = block.succs[1];</span></span>
-<span id="L340"><span class="lineNum">     340</span> <span class="tlaGNC">         720 :       if (LandingOf(taken, block.ref).block == next) {</span></span>
+<span id="L338"><span class="lineNum">     338</span> <span class="tlaGNC">         723 :       BlockRef taken = block.succs[0];</span></span>
+<span id="L339"><span class="lineNum">     339</span> <span class="tlaGNC">         723 :       BlockRef not_taken = block.succs[1];</span></span>
+<span id="L340"><span class="lineNum">     340</span> <span class="tlaGNC">         723 :       if (LandingOf(taken, block.ref).block == next) {</span></span>
 <span id="L341"><span class="lineNum">     341</span> <span class="tlaGNC">         247 :         std::swap(taken, not_taken);</span></span>
 <span id="L342"><span class="lineNum">     342</span> <span class="tlaGNC">         247 :         cond = Inverse(cond);</span></span>
 <span id="L343"><span class="lineNum">     343</span> <span class="tlaGNC">         247 :       }</span></span>
 <span id="L344"><span class="lineNum">     344</span>              : </span>
 <span id="L345"><span class="lineNum">     345</span>              :       // A branch goes straight to where it lands, unless the edge has</span>
 <span id="L346"><span class="lineNum">     346</span>              :       // copies to make on the way.</span>
-<span id="L347"><span class="lineNum">     347</span> <span class="tlaGNC">         720 :       Label target = block_labels_[LandingOf(taken, block.ref).block.id()];</span></span>
-<span id="L348"><span class="lineNum">     348</span> <span class="tlaGNC">         720 :       if (CopiesAlong(taken, block.ref)) {</span></span>
-<span id="L349"><span class="lineNum">     349</span> <span class="tlaGNC">         122 :         target = assembler_.NewLabel();</span></span>
-<span id="L350"><span class="lineNum">     350</span> <span class="tlaGNC">         122 :         copying_edges_.push_back({target, taken, block.ref});</span></span>
-<span id="L351"><span class="lineNum">     351</span> <span class="tlaGNC">         122 :       }</span></span>
-<span id="L352"><span class="lineNum">     352</span> <span class="tlaGNC">         720 :       assembler_.B(cond, target);</span></span>
+<span id="L347"><span class="lineNum">     347</span> <span class="tlaGNC">         723 :       Label target = block_labels_[LandingOf(taken, block.ref).block.id()];</span></span>
+<span id="L348"><span class="lineNum">     348</span> <span class="tlaGNC">         723 :       if (CopiesAlong(taken, block.ref)) {</span></span>
+<span id="L349"><span class="lineNum">     349</span> <span class="tlaGNC">         123 :         target = assembler_.NewLabel();</span></span>
+<span id="L350"><span class="lineNum">     350</span> <span class="tlaGNC">         123 :         copying_edges_.push_back({target, taken, block.ref});</span></span>
+<span id="L351"><span class="lineNum">     351</span> <span class="tlaGNC">         123 :       }</span></span>
+<span id="L352"><span class="lineNum">     352</span> <span class="tlaGNC">         723 :       assembler_.B(cond, target);</span></span>
 <span id="L353"><span class="lineNum">     353</span>              : </span>
-<span id="L354"><span class="lineNum">     354</span> <span class="tlaGNC">         720 :       ProcessEdge(not_taken, block.ref, next);</span></span>
-<span id="L355"><span class="lineNum">     355</span> <span class="tlaGNC">        1864 :     } else if (block.succs.size() == 1) {</span></span>
-<span id="L356"><span class="lineNum">     356</span> <span class="tlaGNC">        1225 :       ProcessEdge(block.succs[0], block.ref, next);</span></span>
-<span id="L357"><span class="lineNum">     357</span> <span class="tlaGNC">        1225 :     }</span></span>
-<span id="L358"><span class="lineNum">     358</span> <span class="tlaGNC">        2584 :   }</span></span>
+<span id="L354"><span class="lineNum">     354</span> <span class="tlaGNC">         723 :       ProcessEdge(not_taken, block.ref, next);</span></span>
+<span id="L355"><span class="lineNum">     355</span> <span class="tlaGNC">        1869 :     } else if (block.succs.size() == 1) {</span></span>
+<span id="L356"><span class="lineNum">     356</span> <span class="tlaGNC">        1229 :       ProcessEdge(block.succs[0], block.ref, next);</span></span>
+<span id="L357"><span class="lineNum">     357</span> <span class="tlaGNC">        1229 :     }</span></span>
+<span id="L358"><span class="lineNum">     358</span> <span class="tlaGNC">        2592 :   }</span></span>
 <span id="L359"><span class="lineNum">     359</span>              : </span>
 <span id="L360"><span class="lineNum">     360</span>              :   // Compares `lhs` against `rhs`, in the width they are held in.</span>
-<span id="L361"><span class="lineNum">     361</span> <span class="tlaGNC">         506 :   void Compare(Reg lhs, Reg rhs) {</span></span>
-<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">         506 :     switch (lhs.size) {</span></span>
+<span id="L361"><span class="lineNum">     361</span> <span class="tlaGNC">         507 :   void Compare(Reg lhs, Reg rhs) {</span></span>
+<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">         507 :     switch (lhs.size) {</span></span>
 <span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">         485 :       case RegSize32:</span></span>
 <span id="L364"><span class="lineNum">     364</span> <span class="tlaGNC">         485 :         assembler_.Cmp(W(lhs.id), W(rhs.id));</span></span>
 <span id="L365"><span class="lineNum">     365</span> <span class="tlaGNC">         485 :         break;</span></span>
-<span id="L366"><span class="lineNum">     366</span> <span class="tlaGNC">          21 :       case RegSize64:</span></span>
-<span id="L367"><span class="lineNum">     367</span> <span class="tlaGNC">          21 :         assembler_.Cmp(X(lhs.id), X(rhs.id));</span></span>
-<span id="L368"><span class="lineNum">     368</span> <span class="tlaGNC">          21 :         break;</span></span>
-<span id="L369"><span class="lineNum">     369</span> <span class="tlaGNC">         506 :     }</span></span>
-<span id="L370"><span class="lineNum">     370</span> <span class="tlaGNC">         506 :   }</span></span>
+<span id="L366"><span class="lineNum">     366</span> <span class="tlaGNC">          22 :       case RegSize64:</span></span>
+<span id="L367"><span class="lineNum">     367</span> <span class="tlaGNC">          22 :         assembler_.Cmp(X(lhs.id), X(rhs.id));</span></span>
+<span id="L368"><span class="lineNum">     368</span> <span class="tlaGNC">          22 :         break;</span></span>
+<span id="L369"><span class="lineNum">     369</span> <span class="tlaGNC">         507 :     }</span></span>
+<span id="L370"><span class="lineNum">     370</span> <span class="tlaGNC">         507 :   }</span></span>
 <span id="L371"><span class="lineNum">     371</span>              : </span>
 <span id="L372"><span class="lineNum">     372</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">       26848 :                const Instruction&amp; inst) {</span></span>
-<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">       26848 :     std::visit([&amp;](auto&amp;&amp; inst) { Process(block, inst); }, inst);</span></span>
-<span id="L375"><span class="lineNum">     375</span> <span class="tlaGNC">       26848 :   }</span></span>
+<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">       26861 :                const Instruction&amp; inst) {</span></span>
+<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">       26861 :     std::visit([&amp;](auto&amp;&amp; inst) { Process(block, inst); }, inst);</span></span>
+<span id="L375"><span class="lineNum">     375</span> <span class="tlaGNC">       26861 :   }</span></span>
 <span id="L376"><span class="lineNum">     376</span>              : </span>
 <span id="L377"><span class="lineNum">     377</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
 <span id="L378"><span class="lineNum">     378</span> <span class="tlaUNC">           0 :                const Nop&amp;) {}</span></span>
 <span id="L379"><span class="lineNum">     379</span>              : </span>
 <span id="L380"><span class="lineNum">     380</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L381"><span class="lineNum">     381</span> <span class="tlaGNC">         258 :                const MoveReg&amp; inst) {</span></span>
-<span id="L382"><span class="lineNum">     382</span> <span class="tlaGNC">         258 :     switch (inst.dst_reg.size) {</span></span>
-<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">         196 :       case RegSize32:</span></span>
-<span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">         196 :         assembler_.Mov(W(inst.dst_reg.id), W(inst.src_reg.id));</span></span>
-<span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">         196 :         break;</span></span>
+<span id="L381"><span class="lineNum">     381</span> <span class="tlaGNC">         259 :                const MoveReg&amp; inst) {</span></span>
+<span id="L382"><span class="lineNum">     382</span> <span class="tlaGNC">         259 :     switch (inst.dst_reg.size) {</span></span>
+<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">         197 :       case RegSize32:</span></span>
+<span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">         197 :         assembler_.Mov(W(inst.dst_reg.id), W(inst.src_reg.id));</span></span>
+<span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">         197 :         break;</span></span>
 <span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">          62 :       case RegSize64:</span></span>
 <span id="L387"><span class="lineNum">     387</span> <span class="tlaGNC">          62 :         assembler_.Mov(X(inst.dst_reg.id), X(inst.src_reg.id));</span></span>
 <span id="L388"><span class="lineNum">     388</span> <span class="tlaGNC">          62 :         break;</span></span>
-<span id="L389"><span class="lineNum">     389</span> <span class="tlaGNC">         258 :     }</span></span>
-<span id="L390"><span class="lineNum">     390</span> <span class="tlaGNC">         258 :   }</span></span>
+<span id="L389"><span class="lineNum">     389</span> <span class="tlaGNC">         259 :     }</span></span>
+<span id="L390"><span class="lineNum">     390</span> <span class="tlaGNC">         259 :   }</span></span>
 <span id="L391"><span class="lineNum">     391</span>              : </span>
 <span id="L392"><span class="lineNum">     392</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">       10622 :                const SetReg&amp; inst) {</span></span>
-<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">       10622 :     switch (inst.dst_reg.size) {</span></span>
-<span id="L395"><span class="lineNum">     395</span> <span class="tlaGNC">       10570 :       case RegSize32:</span></span>
-<span id="L396"><span class="lineNum">     396</span> <span class="tlaGNC">       10570 :         assembler_.Mov(W(inst.dst_reg.id),</span></span>
-<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">       10570 :                        Imm(SafeCast&lt;std::int16_t&gt;(inst.src_val)));</span></span>
-<span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC">       10570 :         break;</span></span>
+<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">       10625 :                const SetReg&amp; inst) {</span></span>
+<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">       10625 :     switch (inst.dst_reg.size) {</span></span>
+<span id="L395"><span class="lineNum">     395</span> <span class="tlaGNC">       10573 :       case RegSize32:</span></span>
+<span id="L396"><span class="lineNum">     396</span> <span class="tlaGNC">       10573 :         assembler_.Mov(W(inst.dst_reg.id),</span></span>
+<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">       10573 :                        Imm(SafeCast&lt;std::int16_t&gt;(inst.src_val)));</span></span>
+<span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC">       10573 :         break;</span></span>
 <span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">          52 :       case RegSize64:</span></span>
 <span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">          52 :         assembler_.Mov(X(inst.dst_reg.id),</span></span>
 <span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">          52 :                        Imm(SafeCast&lt;std::int16_t&gt;(inst.src_val)));</span></span>
 <span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">          52 :         break;</span></span>
-<span id="L403"><span class="lineNum">     403</span> <span class="tlaGNC">       10622 :     }</span></span>
-<span id="L404"><span class="lineNum">     404</span> <span class="tlaGNC">       10622 :   }</span></span>
+<span id="L403"><span class="lineNum">     403</span> <span class="tlaGNC">       10625 :     }</span></span>
+<span id="L404"><span class="lineNum">     404</span> <span class="tlaGNC">       10625 :   }</span></span>
 <span id="L405"><span class="lineNum">     405</span>              : </span>
 <span id="L406"><span class="lineNum">     406</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
 <span id="L407"><span class="lineNum">     407</span> <span class="tlaGNC">         263 :                const SetInt&amp; inst) {</span></span>
@@ -479,83 +479,83 @@
 <span id="L417"><span class="lineNum">     417</span> <span class="tlaGNC">         263 :   }</span></span>
 <span id="L418"><span class="lineNum">     418</span>              : </span>
 <span id="L419"><span class="lineNum">     419</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L420"><span class="lineNum">     420</span> <span class="tlaGNC">         376 :                const SetStr&amp; inst) {</span></span>
-<span id="L421"><span class="lineNum">     421</span> <span class="tlaGNC">         376 :     const Label label = assembler_.Named(StringLabel(inst.src_val));</span></span>
-<span id="L422"><span class="lineNum">     422</span> <span class="tlaGNC">         376 :     assembler_.Adr(X(inst.dst_reg.id), label);</span></span>
-<span id="L423"><span class="lineNum">     423</span> <span class="tlaGNC">         376 :   }</span></span>
+<span id="L420"><span class="lineNum">     420</span> <span class="tlaGNC">         382 :                const SetStr&amp; inst) {</span></span>
+<span id="L421"><span class="lineNum">     421</span> <span class="tlaGNC">         382 :     const Label label = assembler_.Named(StringLabel(inst.src_val));</span></span>
+<span id="L422"><span class="lineNum">     422</span> <span class="tlaGNC">         382 :     assembler_.Adr(X(inst.dst_reg.id), label);</span></span>
+<span id="L423"><span class="lineNum">     423</span> <span class="tlaGNC">         382 :   }</span></span>
 <span id="L424"><span class="lineNum">     424</span>              : </span>
 <span id="L425"><span class="lineNum">     425</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L426"><span class="lineNum">     426</span> <span class="tlaGNC">         639 :                const Return&amp; inst) {</span></span>
+<span id="L426"><span class="lineNum">     426</span> <span class="tlaGNC">         640 :                const Return&amp; inst) {</span></span>
 <span id="L427"><span class="lineNum">     427</span>              :     // Handed back in the width it is held in. A string is an address, which</span>
 <span id="L428"><span class="lineNum">     428</span>              :     // is twice the width a number is, and half of an address is not one.</span>
-<span id="L429"><span class="lineNum">     429</span> <span class="tlaGNC">         639 :     switch (inst.res_reg.size) {</span></span>
-<span id="L430"><span class="lineNum">     430</span> <span class="tlaGNC">         561 :       case RegSize32:</span></span>
-<span id="L431"><span class="lineNum">     431</span> <span class="tlaGNC">         561 :         assembler_.Mov(W(0), W(inst.res_reg.id));</span></span>
-<span id="L432"><span class="lineNum">     432</span> <span class="tlaGNC">         561 :         break;</span></span>
+<span id="L429"><span class="lineNum">     429</span> <span class="tlaGNC">         640 :     switch (inst.res_reg.size) {</span></span>
+<span id="L430"><span class="lineNum">     430</span> <span class="tlaGNC">         562 :       case RegSize32:</span></span>
+<span id="L431"><span class="lineNum">     431</span> <span class="tlaGNC">         562 :         assembler_.Mov(W(0), W(inst.res_reg.id));</span></span>
+<span id="L432"><span class="lineNum">     432</span> <span class="tlaGNC">         562 :         break;</span></span>
 <span id="L433"><span class="lineNum">     433</span> <span class="tlaGNC">          78 :       case RegSize64:</span></span>
 <span id="L434"><span class="lineNum">     434</span> <span class="tlaGNC">          78 :         assembler_.Mov(X(0), X(inst.res_reg.id));</span></span>
 <span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">          78 :         break;</span></span>
-<span id="L436"><span class="lineNum">     436</span> <span class="tlaGNC">         639 :     }</span></span>
+<span id="L436"><span class="lineNum">     436</span> <span class="tlaGNC">         640 :     }</span></span>
 <span id="L437"><span class="lineNum">     437</span>              : </span>
-<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">        3071 :     for (int i = static_cast&lt;int&gt;(persisted_.size()) - 1; i &gt;= 0; --i) {</span></span>
-<span id="L439"><span class="lineNum">     439</span> <span class="tlaGNC">        2432 :       assembler_.LdrUnsignedOffset(X(persisted_[i]), SP,</span></span>
-<span id="L440"><span class="lineNum">     440</span> <span class="tlaGNC">        2432 :                                    Imm(stack_offsets_[i]));</span></span>
-<span id="L441"><span class="lineNum">     441</span> <span class="tlaGNC">        2432 :     }</span></span>
+<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">        3075 :     for (int i = static_cast&lt;int&gt;(persisted_.size()) - 1; i &gt;= 0; --i) {</span></span>
+<span id="L439"><span class="lineNum">     439</span> <span class="tlaGNC">        2435 :       assembler_.LdrUnsignedOffset(X(persisted_[i]), SP,</span></span>
+<span id="L440"><span class="lineNum">     440</span> <span class="tlaGNC">        2435 :                                    Imm(stack_offsets_[i]));</span></span>
+<span id="L441"><span class="lineNum">     441</span> <span class="tlaGNC">        2435 :     }</span></span>
 <span id="L442"><span class="lineNum">     442</span>              : </span>
-<span id="L443"><span class="lineNum">     443</span> <span class="tlaGNC">         639 :     InCarriableSteps(stack_size_,</span></span>
-<span id="L444"><span class="lineNum">     444</span> <span class="tlaGNC">         642 :                      [&amp;](Imm imm) { assembler_.Add(SP, SP, imm); });</span></span>
+<span id="L443"><span class="lineNum">     443</span> <span class="tlaGNC">         640 :     InCarriableSteps(stack_size_,</span></span>
+<span id="L444"><span class="lineNum">     444</span> <span class="tlaGNC">         643 :                      [&amp;](Imm imm) { assembler_.Add(SP, SP, imm); });</span></span>
 <span id="L445"><span class="lineNum">     445</span>              : </span>
-<span id="L446"><span class="lineNum">     446</span> <span class="tlaGNC">         639 :     assembler_.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
-<span id="L447"><span class="lineNum">     447</span> <span class="tlaGNC">         639 :     assembler_.Ret();</span></span>
-<span id="L448"><span class="lineNum">     448</span> <span class="tlaGNC">         639 :   }</span></span>
+<span id="L446"><span class="lineNum">     446</span> <span class="tlaGNC">         640 :     assembler_.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
+<span id="L447"><span class="lineNum">     447</span> <span class="tlaGNC">         640 :     assembler_.Ret();</span></span>
+<span id="L448"><span class="lineNum">     448</span> <span class="tlaGNC">         640 :   }</span></span>
 <span id="L449"><span class="lineNum">     449</span>              : </span>
 <span id="L450"><span class="lineNum">     450</span>              :   void ProcessPhiFunctions(</span>
 <span id="L451"><span class="lineNum">     451</span>              :       const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L452"><span class="lineNum">     452</span> <span class="tlaGNC">        2067 :       AbstractMachineControlFlowGraph::BlockRef pred_block_ref) {</span></span>
-<span id="L453"><span class="lineNum">     453</span> <span class="tlaGNC">        2067 :     int pred_block_idx;</span></span>
-<span id="L454"><span class="lineNum">     454</span> <span class="tlaGNC">        2625 :     for (int i = 0; i &lt; block.preds.size(); ++i) {</span></span>
-<span id="L455"><span class="lineNum">     455</span> <span class="tlaGNC">        2625 :       if (block.preds[i] == pred_block_ref) {</span></span>
-<span id="L456"><span class="lineNum">     456</span> <span class="tlaGNC">        2067 :         pred_block_idx = i;</span></span>
-<span id="L457"><span class="lineNum">     457</span> <span class="tlaGNC">        2067 :         break;</span></span>
-<span id="L458"><span class="lineNum">     458</span> <span class="tlaGNC">        2067 :       }</span></span>
-<span id="L459"><span class="lineNum">     459</span> <span class="tlaGNC">        2625 :     }</span></span>
+<span id="L452"><span class="lineNum">     452</span> <span class="tlaGNC">        2075 :       AbstractMachineControlFlowGraph::BlockRef pred_block_ref) {</span></span>
+<span id="L453"><span class="lineNum">     453</span> <span class="tlaGNC">        2075 :     int pred_block_idx;</span></span>
+<span id="L454"><span class="lineNum">     454</span> <span class="tlaGNC">        2637 :     for (int i = 0; i &lt; block.preds.size(); ++i) {</span></span>
+<span id="L455"><span class="lineNum">     455</span> <span class="tlaGNC">        2637 :       if (block.preds[i] == pred_block_ref) {</span></span>
+<span id="L456"><span class="lineNum">     456</span> <span class="tlaGNC">        2075 :         pred_block_idx = i;</span></span>
+<span id="L457"><span class="lineNum">     457</span> <span class="tlaGNC">        2075 :         break;</span></span>
+<span id="L458"><span class="lineNum">     458</span> <span class="tlaGNC">        2075 :       }</span></span>
+<span id="L459"><span class="lineNum">     459</span> <span class="tlaGNC">        2637 :     }</span></span>
 <span id="L460"><span class="lineNum">     460</span>              : </span>
 <span id="L461"><span class="lineNum">     461</span>              :     // The moves still to be made, and how many of them read each register.</span>
 <span id="L462"><span class="lineNum">     462</span>              :     // A register is counted by its ID alone: `w19` and `x19` are one</span>
 <span id="L463"><span class="lineNum">     463</span>              :     // register, so a move that writes either overwrites what a read of the</span>
 <span id="L464"><span class="lineNum">     464</span>              :     // other would find. Two moves can read the same register, and it is</span>
 <span id="L465"><span class="lineNum">     465</span>              :     // still read until both of them are made.</span>
-<span id="L466"><span class="lineNum">     466</span> <span class="tlaGNC">        2067 :     HashMap&lt;Reg, Reg&gt; dst_to_srcs;</span></span>
-<span id="L467"><span class="lineNum">     467</span> <span class="tlaGNC">        2067 :     HashMap&lt;std::int32_t, int&gt; reads;</span></span>
-<span id="L468"><span class="lineNum">     468</span> <span class="tlaGNC">        2067 :     for (const auto&amp; phi : block.phis) {</span></span>
+<span id="L466"><span class="lineNum">     466</span> <span class="tlaGNC">        2075 :     HashMap&lt;Reg, Reg&gt; dst_to_srcs;</span></span>
+<span id="L467"><span class="lineNum">     467</span> <span class="tlaGNC">        2075 :     HashMap&lt;std::int32_t, int&gt; reads;</span></span>
+<span id="L468"><span class="lineNum">     468</span> <span class="tlaGNC">        2075 :     for (const auto&amp; phi : block.phis) {</span></span>
 <span id="L469"><span class="lineNum">     469</span>              :       // An argument already in the register the phi function settles on is</span>
 <span id="L470"><span class="lineNum">     470</span>              :       // where it needs to be. Left in, it would read as a copy waiting on</span>
 <span id="L471"><span class="lineNum">     471</span>              :       // itself, and go round through the scratch register to stay put.</span>
-<span id="L472"><span class="lineNum">     472</span> <span class="tlaGNC">        1590 :       if (phi.srcs[pred_block_idx] == phi.dst) continue;</span></span>
+<span id="L472"><span class="lineNum">     472</span> <span class="tlaGNC">        1595 :       if (phi.srcs[pred_block_idx] == phi.dst) continue;</span></span>
 <span id="L473"><span class="lineNum">     473</span>              : </span>
-<span id="L474"><span class="lineNum">     474</span> <span class="tlaGNC">         356 :       dst_to_srcs.Insert(phi.dst, phi.srcs[pred_block_idx]);</span></span>
-<span id="L475"><span class="lineNum">     475</span> <span class="tlaGNC">         356 :       ++reads.Emplace(phi.srcs[pred_block_idx].id);</span></span>
-<span id="L476"><span class="lineNum">     476</span> <span class="tlaGNC">         356 :     }</span></span>
-<span id="L477"><span class="lineNum">     477</span> <span class="tlaGNC">        2490 :     while (!dst_to_srcs.empty()) {</span></span>
-<span id="L478"><span class="lineNum">     478</span> <span class="tlaGNC">         423 :       bool removed = false;</span></span>
-<span id="L479"><span class="lineNum">     479</span> <span class="tlaGNC">         675 :       for (const auto [target, source] : dst_to_srcs) {</span></span>
-<span id="L480"><span class="lineNum">     480</span> <span class="tlaGNC">         675 :         if (reads.Get(target.id).has_value()) continue;</span></span>
+<span id="L474"><span class="lineNum">     474</span> <span class="tlaGNC">         357 :       dst_to_srcs.Insert(phi.dst, phi.srcs[pred_block_idx]);</span></span>
+<span id="L475"><span class="lineNum">     475</span> <span class="tlaGNC">         357 :       ++reads.Emplace(phi.srcs[pred_block_idx].id);</span></span>
+<span id="L476"><span class="lineNum">     476</span> <span class="tlaGNC">         357 :     }</span></span>
+<span id="L477"><span class="lineNum">     477</span> <span class="tlaGNC">        2499 :     while (!dst_to_srcs.empty()) {</span></span>
+<span id="L478"><span class="lineNum">     478</span> <span class="tlaGNC">         424 :       bool removed = false;</span></span>
+<span id="L479"><span class="lineNum">     479</span> <span class="tlaGNC">         676 :       for (const auto [target, source] : dst_to_srcs) {</span></span>
+<span id="L480"><span class="lineNum">     480</span> <span class="tlaGNC">         676 :         if (reads.Get(target.id).has_value()) continue;</span></span>
 <span id="L481"><span class="lineNum">     481</span>              : </span>
-<span id="L482"><span class="lineNum">     482</span> <span class="tlaGNC">         356 :         dst_to_srcs.Remove(target);</span></span>
-<span id="L483"><span class="lineNum">     483</span> <span class="tlaGNC">         356 :         if (--reads.Get(source.id).value() == 0) reads.Remove(source.id);</span></span>
+<span id="L482"><span class="lineNum">     482</span> <span class="tlaGNC">         357 :         dst_to_srcs.Remove(target);</span></span>
+<span id="L483"><span class="lineNum">     483</span> <span class="tlaGNC">         357 :         if (--reads.Get(source.id).value() == 0) reads.Remove(source.id);</span></span>
 <span id="L484"><span class="lineNum">     484</span>              : </span>
-<span id="L485"><span class="lineNum">     485</span> <span class="tlaGNC">         356 :         switch (target.size) {</span></span>
-<span id="L486"><span class="lineNum">     486</span> <span class="tlaGNC">         348 :           case RegSize32:</span></span>
-<span id="L487"><span class="lineNum">     487</span> <span class="tlaGNC">         348 :             assembler_.Mov(W(target.id), W(source.id));</span></span>
-<span id="L488"><span class="lineNum">     488</span> <span class="tlaGNC">         348 :             break;</span></span>
+<span id="L485"><span class="lineNum">     485</span> <span class="tlaGNC">         357 :         switch (target.size) {</span></span>
+<span id="L486"><span class="lineNum">     486</span> <span class="tlaGNC">         349 :           case RegSize32:</span></span>
+<span id="L487"><span class="lineNum">     487</span> <span class="tlaGNC">         349 :             assembler_.Mov(W(target.id), W(source.id));</span></span>
+<span id="L488"><span class="lineNum">     488</span> <span class="tlaGNC">         349 :             break;</span></span>
 <span id="L489"><span class="lineNum">     489</span> <span class="tlaGNC">           8 :           case RegSize64:</span></span>
 <span id="L490"><span class="lineNum">     490</span> <span class="tlaGNC">           8 :             assembler_.Mov(X(target.id), X(source.id));</span></span>
 <span id="L491"><span class="lineNum">     491</span> <span class="tlaGNC">           8 :             break;</span></span>
-<span id="L492"><span class="lineNum">     492</span> <span class="tlaGNC">         356 :         }</span></span>
-<span id="L493"><span class="lineNum">     493</span> <span class="tlaGNC">         356 :         removed = true;</span></span>
-<span id="L494"><span class="lineNum">     494</span> <span class="tlaGNC">         356 :         break;</span></span>
-<span id="L495"><span class="lineNum">     495</span> <span class="tlaGNC">         356 :       }</span></span>
-<span id="L496"><span class="lineNum">     496</span> <span class="tlaGNC">         423 :       if (!removed) {</span></span>
+<span id="L492"><span class="lineNum">     492</span> <span class="tlaGNC">         357 :         }</span></span>
+<span id="L493"><span class="lineNum">     493</span> <span class="tlaGNC">         357 :         removed = true;</span></span>
+<span id="L494"><span class="lineNum">     494</span> <span class="tlaGNC">         357 :         break;</span></span>
+<span id="L495"><span class="lineNum">     495</span> <span class="tlaGNC">         357 :       }</span></span>
+<span id="L496"><span class="lineNum">     496</span> <span class="tlaGNC">         424 :       if (!removed) {</span></span>
 <span id="L497"><span class="lineNum">     497</span>              :         // Every register still to be written is still to be read, so the</span>
 <span id="L498"><span class="lineNum">     498</span>              :         // moves wait on each other in a cycle. What one of them holds is set</span>
 <span id="L499"><span class="lineNum">     499</span>              :         // aside in the scratch register, whole, since a read of it can be</span>
@@ -573,8 +573,8 @@
 <span id="L511"><span class="lineNum">     511</span> <span class="tlaGNC">          67 :         reads.Remove(target.id);</span></span>
 <span id="L512"><span class="lineNum">     512</span> <span class="tlaGNC">          67 :         reads.Emplace(15) += moved_reads;</span></span>
 <span id="L513"><span class="lineNum">     513</span> <span class="tlaGNC">          67 :       }</span></span>
-<span id="L514"><span class="lineNum">     514</span> <span class="tlaGNC">         423 :     }</span></span>
-<span id="L515"><span class="lineNum">     515</span> <span class="tlaGNC">        2067 :   }</span></span>
+<span id="L514"><span class="lineNum">     514</span> <span class="tlaGNC">         424 :     }</span></span>
+<span id="L515"><span class="lineNum">     515</span> <span class="tlaGNC">        2075 :   }</span></span>
 <span id="L516"><span class="lineNum">     516</span>              : </span>
 <span id="L517"><span class="lineNum">     517</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
 <span id="L518"><span class="lineNum">     518</span> <span class="tlaGNC">        1936 :                const AddReg&amp; inst) {</span></span>
@@ -728,32 +728,32 @@
 <span id="L666"><span class="lineNum">     666</span> <span class="tlaGNC">          43 :   }</span></span>
 <span id="L667"><span class="lineNum">     667</span>              : </span>
 <span id="L668"><span class="lineNum">     668</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L669"><span class="lineNum">     669</span> <span class="tlaGNC">          47 :                const EqReg&amp; inst) {</span></span>
-<span id="L670"><span class="lineNum">     670</span> <span class="tlaGNC">          47 :     switch (inst.lhs_reg.size) {</span></span>
+<span id="L669"><span class="lineNum">     669</span> <span class="tlaGNC">          48 :                const EqReg&amp; inst) {</span></span>
+<span id="L670"><span class="lineNum">     670</span> <span class="tlaGNC">          48 :     switch (inst.lhs_reg.size) {</span></span>
 <span id="L671"><span class="lineNum">     671</span> <span class="tlaGNC">          45 :       case RegSize32:</span></span>
 <span id="L672"><span class="lineNum">     672</span> <span class="tlaGNC">          45 :         assembler_.Cmp(W(inst.lhs_reg.id), W(inst.rhs_reg.id));</span></span>
 <span id="L673"><span class="lineNum">     673</span> <span class="tlaGNC">          45 :         assembler_.Cset(W(inst.res_reg.id), InvCond::Eq);</span></span>
 <span id="L674"><span class="lineNum">     674</span> <span class="tlaGNC">          45 :         break;</span></span>
-<span id="L675"><span class="lineNum">     675</span> <span class="tlaGNC">           2 :       case RegSize64:</span></span>
-<span id="L676"><span class="lineNum">     676</span> <span class="tlaGNC">           2 :         assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));</span></span>
-<span id="L677"><span class="lineNum">     677</span> <span class="tlaGNC">           2 :         assembler_.Cset(X(inst.res_reg.id), InvCond::Eq);</span></span>
-<span id="L678"><span class="lineNum">     678</span> <span class="tlaGNC">           2 :         break;</span></span>
-<span id="L679"><span class="lineNum">     679</span> <span class="tlaGNC">          47 :     }</span></span>
-<span id="L680"><span class="lineNum">     680</span> <span class="tlaGNC">          47 :   }</span></span>
+<span id="L675"><span class="lineNum">     675</span> <span class="tlaGNC">           3 :       case RegSize64:</span></span>
+<span id="L676"><span class="lineNum">     676</span> <span class="tlaGNC">           3 :         assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));</span></span>
+<span id="L677"><span class="lineNum">     677</span> <span class="tlaGNC">           3 :         assembler_.Cset(X(inst.res_reg.id), InvCond::Eq);</span></span>
+<span id="L678"><span class="lineNum">     678</span> <span class="tlaGNC">           3 :         break;</span></span>
+<span id="L679"><span class="lineNum">     679</span> <span class="tlaGNC">          48 :     }</span></span>
+<span id="L680"><span class="lineNum">     680</span> <span class="tlaGNC">          48 :   }</span></span>
 <span id="L681"><span class="lineNum">     681</span>              : </span>
 <span id="L682"><span class="lineNum">     682</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
-<span id="L683"><span class="lineNum">     683</span> <span class="tlaGNC">          36 :                const NotEqReg&amp; inst) {</span></span>
-<span id="L684"><span class="lineNum">     684</span> <span class="tlaGNC">          36 :     switch (inst.lhs_reg.size) {</span></span>
+<span id="L683"><span class="lineNum">     683</span> <span class="tlaGNC">          37 :                const NotEqReg&amp; inst) {</span></span>
+<span id="L684"><span class="lineNum">     684</span> <span class="tlaGNC">          37 :     switch (inst.lhs_reg.size) {</span></span>
 <span id="L685"><span class="lineNum">     685</span> <span class="tlaGNC">          34 :       case RegSize32:</span></span>
 <span id="L686"><span class="lineNum">     686</span> <span class="tlaGNC">          34 :         assembler_.Cmp(W(inst.lhs_reg.id), W(inst.rhs_reg.id));</span></span>
 <span id="L687"><span class="lineNum">     687</span> <span class="tlaGNC">          34 :         assembler_.Cset(W(inst.res_reg.id), InvCond::Ne);</span></span>
 <span id="L688"><span class="lineNum">     688</span> <span class="tlaGNC">          34 :         break;</span></span>
-<span id="L689"><span class="lineNum">     689</span> <span class="tlaGNC">           2 :       case RegSize64:</span></span>
-<span id="L690"><span class="lineNum">     690</span> <span class="tlaGNC">           2 :         assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));</span></span>
-<span id="L691"><span class="lineNum">     691</span> <span class="tlaGNC">           2 :         assembler_.Cset(X(inst.res_reg.id), InvCond::Ne);</span></span>
-<span id="L692"><span class="lineNum">     692</span> <span class="tlaGNC">           2 :         break;</span></span>
-<span id="L693"><span class="lineNum">     693</span> <span class="tlaGNC">          36 :     }</span></span>
-<span id="L694"><span class="lineNum">     694</span> <span class="tlaGNC">          36 :   }</span></span>
+<span id="L689"><span class="lineNum">     689</span> <span class="tlaGNC">           3 :       case RegSize64:</span></span>
+<span id="L690"><span class="lineNum">     690</span> <span class="tlaGNC">           3 :         assembler_.Cmp(X(inst.lhs_reg.id), X(inst.rhs_reg.id));</span></span>
+<span id="L691"><span class="lineNum">     691</span> <span class="tlaGNC">           3 :         assembler_.Cset(X(inst.res_reg.id), InvCond::Ne);</span></span>
+<span id="L692"><span class="lineNum">     692</span> <span class="tlaGNC">           3 :         break;</span></span>
+<span id="L693"><span class="lineNum">     693</span> <span class="tlaGNC">          37 :     }</span></span>
+<span id="L694"><span class="lineNum">     694</span> <span class="tlaGNC">          37 :   }</span></span>
 <span id="L695"><span class="lineNum">     695</span>              : </span>
 <span id="L696"><span class="lineNum">     696</span>              :   void Process(const AbstractMachineControlFlowGraph::Block&amp; block,</span>
 <span id="L697"><span class="lineNum">     697</span> <span class="tlaGNC">         747 :                const StoreStack&amp; inst) {</span></span>
@@ -899,17 +899,17 @@
 <span id="L837"><span class="lineNum">     837</span>              :   // How much room the foot of the frame takes, kept to what the stack pointer</span>
 <span id="L838"><span class="lineNum">     838</span>              :   // has to be a multiple of: the arguments the widest call leaves there, or</span>
 <span id="L839"><span class="lineNum">     839</span>              :   // the result a call leaves past its own arguments, if that reaches further.</span>
-<span id="L840"><span class="lineNum">     840</span> <span class="tlaGNC">         641 :   int OutgoingSize() const {</span></span>
-<span id="L841"><span class="lineNum">     841</span> <span class="tlaGNC">         641 :     std::size_t size =</span></span>
-<span id="L842"><span class="lineNum">     842</span> <span class="tlaGNC">         641 :         static_cast&lt;std::size_t&gt;(layout_.outgoing_args.count) * kArgSize;</span></span>
-<span id="L843"><span class="lineNum">     843</span> <span class="tlaGNC">         641 :     for (const OutgoingResult&amp; result : layout_.outgoing_results) {</span></span>
+<span id="L840"><span class="lineNum">     840</span> <span class="tlaGNC">         642 :   int OutgoingSize() const {</span></span>
+<span id="L841"><span class="lineNum">     841</span> <span class="tlaGNC">         642 :     std::size_t size =</span></span>
+<span id="L842"><span class="lineNum">     842</span> <span class="tlaGNC">         642 :         static_cast&lt;std::size_t&gt;(layout_.outgoing_args.count) * kArgSize;</span></span>
+<span id="L843"><span class="lineNum">     843</span> <span class="tlaGNC">         642 :     for (const OutgoingResult&amp; result : layout_.outgoing_results) {</span></span>
 <span id="L844"><span class="lineNum">     844</span> <span class="tlaGNC">          28 :       size = std::max&lt;std::size_t&gt;(</span></span>
 <span id="L845"><span class="lineNum">     845</span> <span class="tlaGNC">          28 :           size,</span></span>
 <span id="L846"><span class="lineNum">     846</span> <span class="tlaGNC">          28 :           result.at + BytesBefore(result.slots.first,</span></span>
 <span id="L847"><span class="lineNum">     847</span> <span class="tlaGNC">          28 :                                   result.slots.first + result.slots.count));</span></span>
 <span id="L848"><span class="lineNum">     848</span> <span class="tlaGNC">          28 :     }</span></span>
-<span id="L849"><span class="lineNum">     849</span> <span class="tlaGNC">         641 :     return RoundUpTo(SafeCast&lt;int&gt;(size), 16);</span></span>
-<span id="L850"><span class="lineNum">     850</span> <span class="tlaGNC">         641 :   }</span></span>
+<span id="L849"><span class="lineNum">     849</span> <span class="tlaGNC">         642 :     return RoundUpTo(SafeCast&lt;int&gt;(size), 16);</span></span>
+<span id="L850"><span class="lineNum">     850</span> <span class="tlaGNC">         642 :   }</span></span>
 <span id="L851"><span class="lineNum">     851</span>              : </span>
 <span id="L852"><span class="lineNum">     852</span>              :   // Where a slot is, as a load or a store reaches it: a register to count</span>
 <span id="L853"><span class="lineNum">     853</span>              :   // from, and how far along it stands.</span>
@@ -988,18 +988,18 @@
 <span id="L926"><span class="lineNum">     926</span>              :   // 4096s, and nothing between the two, so anything else takes two of them:</span>
 <span id="L927"><span class="lineNum">     927</span>              :   // the whole 4096s, and then what is left over.</span>
 <span id="L928"><span class="lineNum">     928</span>              :   template &lt;typename EmitT&gt;</span>
-<span id="L929"><span class="lineNum">     929</span> <span class="tlaGNC">       10448 :   static void InCarriableSteps(int value, EmitT emit) {</span></span>
-<span id="L930"><span class="lineNum">     930</span> <span class="tlaGNC">       10448 :     assert(value &gt;= 0);</span></span>
+<span id="L929"><span class="lineNum">     929</span> <span class="tlaGNC">       10450 :   static void InCarriableSteps(int value, EmitT emit) {</span></span>
+<span id="L930"><span class="lineNum">     930</span> <span class="tlaGNC">       10450 :     assert(value &gt;= 0);</span></span>
 <span id="L931"><span class="lineNum">     931</span>              : </span>
-<span id="L932"><span class="lineNum">     932</span> <span class="tlaGNC">       10448 :     if (const int pages = value - value % 4096; pages &gt; 0) emit(Imm(pages));</span></span>
-<span id="L933"><span class="lineNum">     933</span> <span class="tlaGNC">       10448 :     if (const int rest = value % 4096; rest &gt; 0) emit(Imm(rest));</span></span>
-<span id="L934"><span class="lineNum">     934</span> <span class="tlaGNC">       10448 :   }</span></span>
+<span id="L932"><span class="lineNum">     932</span> <span class="tlaGNC">       10450 :     if (const int pages = value - value % 4096; pages &gt; 0) emit(Imm(pages));</span></span>
+<span id="L933"><span class="lineNum">     933</span> <span class="tlaGNC">       10450 :     if (const int rest = value % 4096; rest &gt; 0) emit(Imm(rest));</span></span>
+<span id="L934"><span class="lineNum">     934</span> <span class="tlaGNC">       10450 :   }</span></span>
 <span id="L935"><span class="lineNum">     935</span>              : </span>
 <span id="L936"><span class="lineNum">     936</span>              :   // Returns `value` carried up to a multiple of `to`.</span>
-<span id="L937"><span class="lineNum">     937</span> <span class="tlaGNC">       11979 :   static int RoundUpTo(int value, int to) {</span></span>
-<span id="L938"><span class="lineNum">     938</span> <span class="tlaGNC">       11979 :     const int over = value % to;</span></span>
-<span id="L939"><span class="lineNum">     939</span> <span class="tlaGNC">       11979 :     return over == 0 ? value : value + to - over;</span></span>
-<span id="L940"><span class="lineNum">     940</span> <span class="tlaGNC">       11979 :   }</span></span>
+<span id="L937"><span class="lineNum">     937</span> <span class="tlaGNC">       11981 :   static int RoundUpTo(int value, int to) {</span></span>
+<span id="L938"><span class="lineNum">     938</span> <span class="tlaGNC">       11981 :     const int over = value % to;</span></span>
+<span id="L939"><span class="lineNum">     939</span> <span class="tlaGNC">       11981 :     return over == 0 ? value : value + to - over;</span></span>
+<span id="L940"><span class="lineNum">     940</span> <span class="tlaGNC">       11981 :   }</span></span>
 <span id="L941"><span class="lineNum">     941</span>              : </span>
 <span id="L942"><span class="lineNum">     942</span>              :   static constexpr int kArgSize = kArm64CallingConvention.stack_arg_size;</span>
 <span id="L943"><span class="lineNum">     943</span>              : </span>
@@ -1024,26 +1024,26 @@
 <span id="L962"><span class="lineNum">     962</span>              :   // One it never writes holds what the caller left in it all along, so it</span>
 <span id="L963"><span class="lineNum">     963</span>              :   // needs no saving: a parameter is written as it is moved in, a phi function</span>
 <span id="L964"><span class="lineNum">     964</span>              :   // as its arguments are, and anything else by the instruction that sets it.</span>
-<span id="L965"><span class="lineNum">     965</span> <span class="tlaGNC">         641 :   std::vector&lt;std::uint8_t&gt; RegistersToPersist() const {</span></span>
-<span id="L966"><span class="lineNum">     966</span> <span class="tlaGNC">         641 :     std::array&lt;bool, 32&gt; written = {};</span></span>
-<span id="L967"><span class="lineNum">     967</span> <span class="tlaGNC">       22390 :     const auto write = [&amp;](Reg reg) {</span></span>
-<span id="L968"><span class="lineNum">     968</span> <span class="tlaGNC">       22390 :       if (reg.id &gt;= 0 &amp;&amp; reg.id &lt; written.size()) written[reg.id] = true;</span></span>
-<span id="L969"><span class="lineNum">     969</span> <span class="tlaGNC">       22390 :     };</span></span>
-<span id="L970"><span class="lineNum">     970</span> <span class="tlaGNC">        1010 :     for (const Reg param : am_cfg_.params) write(param);</span></span>
-<span id="L971"><span class="lineNum">     971</span> <span class="tlaGNC">        2959 :     for (const auto&amp; ref : Vertices(am_cfg_)) {</span></span>
-<span id="L972"><span class="lineNum">     972</span> <span class="tlaGNC">        2959 :       const auto&amp; block = am_cfg_.GetBlock(ref);</span></span>
-<span id="L973"><span class="lineNum">     973</span> <span class="tlaGNC">        2959 :       for (const auto&amp; phi : block.phis) write(phi.dst);</span></span>
-<span id="L974"><span class="lineNum">     974</span> <span class="tlaGNC">       27358 :       for (const auto&amp; inst : block.instructions) {</span></span>
-<span id="L975"><span class="lineNum">     975</span> <span class="tlaGNC">       27354 :         if (const Reg* reg = TargetRegister(inst)) write(*reg);</span></span>
-<span id="L976"><span class="lineNum">     976</span> <span class="tlaGNC">       27354 :       }</span></span>
-<span id="L977"><span class="lineNum">     977</span> <span class="tlaGNC">        2959 :     }</span></span>
+<span id="L965"><span class="lineNum">     965</span> <span class="tlaGNC">         642 :   std::vector&lt;std::uint8_t&gt; RegistersToPersist() const {</span></span>
+<span id="L966"><span class="lineNum">     966</span> <span class="tlaGNC">         642 :     std::array&lt;bool, 32&gt; written = {};</span></span>
+<span id="L967"><span class="lineNum">     967</span> <span class="tlaGNC">       22405 :     const auto write = [&amp;](Reg reg) {</span></span>
+<span id="L968"><span class="lineNum">     968</span> <span class="tlaGNC">       22405 :       if (reg.id &gt;= 0 &amp;&amp; reg.id &lt; written.size()) written[reg.id] = true;</span></span>
+<span id="L969"><span class="lineNum">     969</span> <span class="tlaGNC">       22405 :     };</span></span>
+<span id="L970"><span class="lineNum">     970</span> <span class="tlaGNC">        1011 :     for (const Reg param : am_cfg_.params) write(param);</span></span>
+<span id="L971"><span class="lineNum">     971</span> <span class="tlaGNC">        2967 :     for (const auto&amp; ref : Vertices(am_cfg_)) {</span></span>
+<span id="L972"><span class="lineNum">     972</span> <span class="tlaGNC">        2967 :       const auto&amp; block = am_cfg_.GetBlock(ref);</span></span>
+<span id="L973"><span class="lineNum">     973</span> <span class="tlaGNC">        2967 :       for (const auto&amp; phi : block.phis) write(phi.dst);</span></span>
+<span id="L974"><span class="lineNum">     974</span> <span class="tlaGNC">       27372 :       for (const auto&amp; inst : block.instructions) {</span></span>
+<span id="L975"><span class="lineNum">     975</span> <span class="tlaGNC">       27368 :         if (const Reg* reg = TargetRegister(inst)) write(*reg);</span></span>
+<span id="L976"><span class="lineNum">     976</span> <span class="tlaGNC">       27368 :       }</span></span>
+<span id="L977"><span class="lineNum">     977</span> <span class="tlaGNC">        2967 :     }</span></span>
 <span id="L978"><span class="lineNum">     978</span>              : </span>
-<span id="L979"><span class="lineNum">     979</span> <span class="tlaGNC">         641 :     std::vector&lt;std::uint8_t&gt; persisted;</span></span>
-<span id="L980"><span class="lineNum">     980</span> <span class="tlaGNC">        6410 :     for (const std::uint8_t id : kRegistersToPersist) {</span></span>
-<span id="L981"><span class="lineNum">     981</span> <span class="tlaGNC">        6410 :       if (written[id]) persisted.push_back(id);</span></span>
-<span id="L982"><span class="lineNum">     982</span> <span class="tlaGNC">        6410 :     }</span></span>
-<span id="L983"><span class="lineNum">     983</span> <span class="tlaGNC">         641 :     return persisted;</span></span>
-<span id="L984"><span class="lineNum">     984</span> <span class="tlaGNC">         641 :   }</span></span>
+<span id="L979"><span class="lineNum">     979</span> <span class="tlaGNC">         642 :     std::vector&lt;std::uint8_t&gt; persisted;</span></span>
+<span id="L980"><span class="lineNum">     980</span> <span class="tlaGNC">        6420 :     for (const std::uint8_t id : kRegistersToPersist) {</span></span>
+<span id="L981"><span class="lineNum">     981</span> <span class="tlaGNC">        6420 :       if (written[id]) persisted.push_back(id);</span></span>
+<span id="L982"><span class="lineNum">     982</span> <span class="tlaGNC">        6420 :     }</span></span>
+<span id="L983"><span class="lineNum">     983</span> <span class="tlaGNC">         642 :     return persisted;</span></span>
+<span id="L984"><span class="lineNum">     984</span> <span class="tlaGNC">         642 :   }</span></span>
 <span id="L985"><span class="lineNum">     985</span>              : </span>
 <span id="L986"><span class="lineNum">     986</span>              :   std::string_view func_name_;</span>
 <span id="L987"><span class="lineNum">     987</span>              :   const std::vector&lt;int&gt;&amp; stack_slots_;</span>
@@ -1076,19 +1076,19 @@
 <span id="L1014"><span class="lineNum">    1014</span>              : </span>
 <span id="L1015"><span class="lineNum">    1015</span>              : }  // namespace</span>
 <span id="L1016"><span class="lineNum">    1016</span>              : </span>
-<span id="L1017"><span class="lineNum">    1017</span> <span class="tlaGNC">         247 : void GenerateArmStartBinary(Assembler&amp; assembler) {</span></span>
-<span id="L1018"><span class="lineNum">    1018</span> <span class="tlaGNC">         247 :   assembler.Global(&quot;_start&quot;);</span></span>
-<span id="L1019"><span class="lineNum">    1019</span> <span class="tlaGNC">         247 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
-<span id="L1020"><span class="lineNum">    1020</span> <span class="tlaGNC">         247 :   assembler.Bl(assembler.Named(&quot;main&quot;));</span></span>
-<span id="L1021"><span class="lineNum">    1021</span> <span class="tlaGNC">         247 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
-<span id="L1022"><span class="lineNum">    1022</span> <span class="tlaGNC">         247 :   assembler.Ret();</span></span>
+<span id="L1017"><span class="lineNum">    1017</span> <span class="tlaGNC">         264 : void GenerateArmStartBinary(Assembler&amp; assembler) {</span></span>
+<span id="L1018"><span class="lineNum">    1018</span> <span class="tlaGNC">         264 :   assembler.Global(&quot;_start&quot;);</span></span>
+<span id="L1019"><span class="lineNum">    1019</span> <span class="tlaGNC">         264 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
+<span id="L1020"><span class="lineNum">    1020</span> <span class="tlaGNC">         264 :   assembler.Bl(assembler.Named(&quot;main&quot;));</span></span>
+<span id="L1021"><span class="lineNum">    1021</span> <span class="tlaGNC">         264 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
+<span id="L1022"><span class="lineNum">    1022</span> <span class="tlaGNC">         264 :   assembler.Ret();</span></span>
 <span id="L1023"><span class="lineNum">    1023</span>              : </span>
-<span id="L1024"><span class="lineNum">    1024</span> <span class="tlaGNC">         247 :   assembler.Bind(assembler.Named(&quot;_print_string&quot;));</span></span>
-<span id="L1025"><span class="lineNum">    1025</span> <span class="tlaGNC">         247 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
-<span id="L1026"><span class="lineNum">    1026</span> <span class="tlaGNC">         247 :   assembler.Mov(X(0), X(1));</span></span>
-<span id="L1027"><span class="lineNum">    1027</span> <span class="tlaGNC">         247 :   assembler.Bl(assembler.External(&quot;_printf&quot;));</span></span>
-<span id="L1028"><span class="lineNum">    1028</span> <span class="tlaGNC">         247 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
-<span id="L1029"><span class="lineNum">    1029</span> <span class="tlaGNC">         247 :   assembler.Ret();</span></span>
+<span id="L1024"><span class="lineNum">    1024</span> <span class="tlaGNC">         264 :   assembler.Bind(assembler.Named(&quot;_print_string&quot;));</span></span>
+<span id="L1025"><span class="lineNum">    1025</span> <span class="tlaGNC">         264 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
+<span id="L1026"><span class="lineNum">    1026</span> <span class="tlaGNC">         264 :   assembler.Mov(X(0), X(1));</span></span>
+<span id="L1027"><span class="lineNum">    1027</span> <span class="tlaGNC">         264 :   assembler.Bl(assembler.External(&quot;_printf&quot;));</span></span>
+<span id="L1028"><span class="lineNum">    1028</span> <span class="tlaGNC">         264 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
+<span id="L1029"><span class="lineNum">    1029</span> <span class="tlaGNC">         264 :   assembler.Ret();</span></span>
 <span id="L1030"><span class="lineNum">    1030</span>              : </span>
 <span id="L1031"><span class="lineNum">    1031</span>              :   // Where a division by nothing stops the program. What it printed before is</span>
 <span id="L1032"><span class="lineNum">    1032</span>              :   // flushed first, so that it comes out ahead of the message rather than</span>
@@ -1096,55 +1096,55 @@
 <span id="L1034"><span class="lineNum">    1034</span>              :   //</span>
 <span id="L1035"><span class="lineNum">    1035</span>              :   // It is reached by a branch from the middle of a function rather than by a</span>
 <span id="L1036"><span class="lineNum">    1036</span>              :   // call, which is why nothing is saved: nothing comes back here.</span>
-<span id="L1037"><span class="lineNum">    1037</span> <span class="tlaGNC">         247 :   assembler.Bind(assembler.Named(kDivideByZero));</span></span>
-<span id="L1038"><span class="lineNum">    1038</span> <span class="tlaGNC">         247 :   assembler.Mov(X(0), Imm(0));</span></span>
-<span id="L1039"><span class="lineNum">    1039</span> <span class="tlaGNC">         247 :   assembler.Bl(assembler.External(&quot;_fflush&quot;));</span></span>
-<span id="L1040"><span class="lineNum">    1040</span> <span class="tlaGNC">         247 :   assembler.Mov(X(0), Imm(2));</span></span>
-<span id="L1041"><span class="lineNum">    1041</span> <span class="tlaGNC">         247 :   assembler.Adr(X(1), assembler.Named(kDivideByZeroMessage));</span></span>
-<span id="L1042"><span class="lineNum">    1042</span> <span class="tlaGNC">         247 :   assembler.Mov(X(2), Imm(kDivideByZeroTextBytes));</span></span>
-<span id="L1043"><span class="lineNum">    1043</span> <span class="tlaGNC">         247 :   assembler.Bl(assembler.External(&quot;_write&quot;));</span></span>
-<span id="L1044"><span class="lineNum">    1044</span> <span class="tlaGNC">         247 :   assembler.Mov(X(0), Imm(kDivideByZeroStatus));</span></span>
-<span id="L1045"><span class="lineNum">    1045</span> <span class="tlaGNC">         247 :   assembler.Bl(assembler.External(&quot;_exit&quot;));</span></span>
+<span id="L1037"><span class="lineNum">    1037</span> <span class="tlaGNC">         264 :   assembler.Bind(assembler.Named(kDivideByZero));</span></span>
+<span id="L1038"><span class="lineNum">    1038</span> <span class="tlaGNC">         264 :   assembler.Mov(X(0), Imm(0));</span></span>
+<span id="L1039"><span class="lineNum">    1039</span> <span class="tlaGNC">         264 :   assembler.Bl(assembler.External(&quot;_fflush&quot;));</span></span>
+<span id="L1040"><span class="lineNum">    1040</span> <span class="tlaGNC">         264 :   assembler.Mov(X(0), Imm(2));</span></span>
+<span id="L1041"><span class="lineNum">    1041</span> <span class="tlaGNC">         264 :   assembler.Adr(X(1), assembler.Named(kDivideByZeroMessage));</span></span>
+<span id="L1042"><span class="lineNum">    1042</span> <span class="tlaGNC">         264 :   assembler.Mov(X(2), Imm(kDivideByZeroTextBytes));</span></span>
+<span id="L1043"><span class="lineNum">    1043</span> <span class="tlaGNC">         264 :   assembler.Bl(assembler.External(&quot;_write&quot;));</span></span>
+<span id="L1044"><span class="lineNum">    1044</span> <span class="tlaGNC">         264 :   assembler.Mov(X(0), Imm(kDivideByZeroStatus));</span></span>
+<span id="L1045"><span class="lineNum">    1045</span> <span class="tlaGNC">         264 :   assembler.Bl(assembler.External(&quot;_exit&quot;));</span></span>
 <span id="L1046"><span class="lineNum">    1046</span>              : </span>
 <span id="L1047"><span class="lineNum">    1047</span>              :   // The message stands right after the code that writes it. Nothing runs</span>
 <span id="L1048"><span class="lineNum">    1048</span>              :   // into it, because the code before it leaves the program.</span>
-<span id="L1049"><span class="lineNum">    1049</span> <span class="tlaGNC">         247 :   assembler.Bind(assembler.Named(kDivideByZeroMessage));</span></span>
-<span id="L1050"><span class="lineNum">    1050</span> <span class="tlaGNC">         247 :   assembler.Asciz(kDivideByZeroText);</span></span>
+<span id="L1049"><span class="lineNum">    1049</span> <span class="tlaGNC">         264 :   assembler.Bind(assembler.Named(kDivideByZeroMessage));</span></span>
+<span id="L1050"><span class="lineNum">    1050</span> <span class="tlaGNC">         264 :   assembler.Asciz(kDivideByZeroText);</span></span>
 <span id="L1051"><span class="lineNum">    1051</span>              : </span>
-<span id="L1052"><span class="lineNum">    1052</span> <span class="tlaGNC">         247 :   assembler.Bind(assembler.Named(&quot;_sleep&quot;));</span></span>
-<span id="L1053"><span class="lineNum">    1053</span> <span class="tlaGNC">         247 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
-<span id="L1054"><span class="lineNum">    1054</span> <span class="tlaGNC">         247 :   assembler.Mov(X(2), X(1));</span></span>
-<span id="L1055"><span class="lineNum">    1055</span> <span class="tlaGNC">         247 :   assembler.Mov(X(3), Imm(0));</span></span>
-<span id="L1056"><span class="lineNum">    1056</span> <span class="tlaGNC">         247 :   assembler.StpPreIndex(X(2), X(3), SP, Imm(-16));</span></span>
-<span id="L1057"><span class="lineNum">    1057</span> <span class="tlaGNC">         247 :   assembler.Mov(X(0), SP);</span></span>
-<span id="L1058"><span class="lineNum">    1058</span> <span class="tlaGNC">         247 :   assembler.Mov(X(1), Imm(0));</span></span>
-<span id="L1059"><span class="lineNum">    1059</span> <span class="tlaGNC">         247 :   assembler.Bl(assembler.External(&quot;_nanosleep&quot;));</span></span>
-<span id="L1060"><span class="lineNum">    1060</span> <span class="tlaGNC">         247 :   assembler.Add(SP, SP, Imm(16));</span></span>
-<span id="L1061"><span class="lineNum">    1061</span> <span class="tlaGNC">         247 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
-<span id="L1062"><span class="lineNum">    1062</span> <span class="tlaGNC">         247 :   assembler.Ret();</span></span>
-<span id="L1063"><span class="lineNum">    1063</span> <span class="tlaGNC">         247 : }</span></span>
+<span id="L1052"><span class="lineNum">    1052</span> <span class="tlaGNC">         264 :   assembler.Bind(assembler.Named(&quot;_sleep&quot;));</span></span>
+<span id="L1053"><span class="lineNum">    1053</span> <span class="tlaGNC">         264 :   assembler.StpPreIndex(X(29), X(30), SP, Imm(-16));</span></span>
+<span id="L1054"><span class="lineNum">    1054</span> <span class="tlaGNC">         264 :   assembler.Mov(X(2), X(1));</span></span>
+<span id="L1055"><span class="lineNum">    1055</span> <span class="tlaGNC">         264 :   assembler.Mov(X(3), Imm(0));</span></span>
+<span id="L1056"><span class="lineNum">    1056</span> <span class="tlaGNC">         264 :   assembler.StpPreIndex(X(2), X(3), SP, Imm(-16));</span></span>
+<span id="L1057"><span class="lineNum">    1057</span> <span class="tlaGNC">         264 :   assembler.Mov(X(0), SP);</span></span>
+<span id="L1058"><span class="lineNum">    1058</span> <span class="tlaGNC">         264 :   assembler.Mov(X(1), Imm(0));</span></span>
+<span id="L1059"><span class="lineNum">    1059</span> <span class="tlaGNC">         264 :   assembler.Bl(assembler.External(&quot;_nanosleep&quot;));</span></span>
+<span id="L1060"><span class="lineNum">    1060</span> <span class="tlaGNC">         264 :   assembler.Add(SP, SP, Imm(16));</span></span>
+<span id="L1061"><span class="lineNum">    1061</span> <span class="tlaGNC">         264 :   assembler.LdpPostIndex(X(29), X(30), SP, Imm(16));</span></span>
+<span id="L1062"><span class="lineNum">    1062</span> <span class="tlaGNC">         264 :   assembler.Ret();</span></span>
+<span id="L1063"><span class="lineNum">    1063</span> <span class="tlaGNC">         264 : }</span></span>
 <span id="L1064"><span class="lineNum">    1064</span>              : </span>
 <span id="L1065"><span class="lineNum">    1065</span>              : void GenerateArmEndBinary(const SyntaxContext&amp; syn_ctx,</span>
 <span id="L1066"><span class="lineNum">    1066</span>              :                           const AbstractMachineState&amp; am_state,</span>
-<span id="L1067"><span class="lineNum">    1067</span> <span class="tlaGNC">         211 :                           Assembler&amp; assmebler) {</span></span>
-<span id="L1068"><span class="lineNum">    1068</span> <span class="tlaGNC">         586 :   for (std::size_t i = 0; i &lt; am_state.strings.size(); ++i) {</span></span>
-<span id="L1069"><span class="lineNum">    1069</span> <span class="tlaGNC">         375 :     assmebler.Bind(assmebler.Named(StringLabel(i)));</span></span>
-<span id="L1070"><span class="lineNum">    1070</span> <span class="tlaGNC">         375 :     assmebler.Asciz(syn_ctx.DerefIdent(am_state.strings[i]));</span></span>
-<span id="L1071"><span class="lineNum">    1071</span> <span class="tlaGNC">         375 :   }</span></span>
-<span id="L1072"><span class="lineNum">    1072</span> <span class="tlaGNC">         300 :   for (const auto&amp; v : am_state.ints) {</span></span>
+<span id="L1067"><span class="lineNum">    1067</span> <span class="tlaGNC">         212 :                           Assembler&amp; assmebler) {</span></span>
+<span id="L1068"><span class="lineNum">    1068</span> <span class="tlaGNC">         589 :   for (std::size_t i = 0; i &lt; am_state.strings.size(); ++i) {</span></span>
+<span id="L1069"><span class="lineNum">    1069</span> <span class="tlaGNC">         377 :     assmebler.Bind(assmebler.Named(StringLabel(i)));</span></span>
+<span id="L1070"><span class="lineNum">    1070</span> <span class="tlaGNC">         377 :     assmebler.Asciz(syn_ctx.DerefIdent(am_state.strings[i]));</span></span>
+<span id="L1071"><span class="lineNum">    1071</span> <span class="tlaGNC">         377 :   }</span></span>
+<span id="L1072"><span class="lineNum">    1072</span> <span class="tlaGNC">         301 :   for (const auto&amp; v : am_state.ints) {</span></span>
 <span id="L1073"><span class="lineNum">    1073</span> <span class="tlaGNC">         174 :     assmebler.Bind(assmebler.Named(IntLabel(v)));</span></span>
 <span id="L1074"><span class="lineNum">    1074</span> <span class="tlaGNC">         174 :     assmebler.Long(v);</span></span>
 <span id="L1075"><span class="lineNum">    1075</span> <span class="tlaGNC">         174 :   }</span></span>
-<span id="L1076"><span class="lineNum">    1076</span> <span class="tlaGNC">         211 : }</span></span>
+<span id="L1076"><span class="lineNum">    1076</span> <span class="tlaGNC">         212 : }</span></span>
 <span id="L1077"><span class="lineNum">    1077</span>              : </span>
 <span id="L1078"><span class="lineNum">    1078</span>              : void GenerateArmAssemblyBinary(std::string_view func_name,</span>
 <span id="L1079"><span class="lineNum">    1079</span>              :                                const std::vector&lt;int&gt;&amp; stack_slots,</span>
 <span id="L1080"><span class="lineNum">    1080</span>              :                                const FrameLayout&amp; layout,</span>
 <span id="L1081"><span class="lineNum">    1081</span>              :                                const AbstractMachineControlFlowGraph&amp; am_cfg,</span>
-<span id="L1082"><span class="lineNum">    1082</span> <span class="tlaGNC">         641 :                                Assembler&amp; assmebler) {</span></span>
-<span id="L1083"><span class="lineNum">    1083</span> <span class="tlaGNC">         641 :   Arm64BinaryGenerator(func_name, stack_slots, layout, am_cfg, assmebler)</span></span>
-<span id="L1084"><span class="lineNum">    1084</span> <span class="tlaGNC">         641 :       .Generate();</span></span>
-<span id="L1085"><span class="lineNum">    1085</span> <span class="tlaGNC">         641 : }</span></span>
+<span id="L1082"><span class="lineNum">    1082</span> <span class="tlaGNC">         642 :                                Assembler&amp; assmebler) {</span></span>
+<span id="L1083"><span class="lineNum">    1083</span> <span class="tlaGNC">         642 :   Arm64BinaryGenerator(func_name, stack_slots, layout, am_cfg, assmebler)</span></span>
+<span id="L1084"><span class="lineNum">    1084</span> <span class="tlaGNC">         642 :       .Generate();</span></span>
+<span id="L1085"><span class="lineNum">    1085</span> <span class="tlaGNC">         642 : }</span></span>
 <span id="L1086"><span class="lineNum">    1086</span>              : </span>
 <span id="L1087"><span class="lineNum">    1087</span>              : }  // namespace lucid</span>
         </pre>
