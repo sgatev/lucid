@@ -1,0 +1,90 @@
+fun printString(s: String): Int32 {
+  return 0
+}
+
+fun printInt32(i: Int32): Int32 {
+  if i > 9 { do printInt32(i / 10) }
+
+  val j: Int32 = i % 10
+  if      j == 0 { do printString("0") }
+  else if j == 1 { do printString("1") }
+  else if j == 2 { do printString("2") }
+  else if j == 3 { do printString("3") }
+  else if j == 4 { do printString("4") }
+  else if j == 5 { do printString("5") }
+  else if j == 6 { do printString("6") }
+  else if j == 7 { do printString("7") }
+  else if j == 8 { do printString("8") }
+  else if j == 9 { do printString("9") }
+  return 0
+}
+
+fun printArray(a: Int32[16]): Int32 {
+  mut val i: Int32 = 0
+  loop {
+    if i == 16 {
+      break
+    }
+    if i > 0 {
+      do printString(" ")
+    }
+    do printInt32(a[i])
+    mut i = i + 1
+  }
+  do printString("\n")
+  return 0
+}
+
+# Arrays are passed and returned by copy, so each call sorts its own copy of
+# a[lo..hi] and hands it back.
+fun quicksort(mut a: Int32[16], lo: Int32, hi: Int32): Int32[16] {
+  if lo >= hi {
+    return a
+  }
+
+  val pivot: Int32 = a[lo + (hi - lo) / 2]
+  mut val i: Int32 = lo - 1
+  mut val j: Int32 = hi + 1
+  loop {
+    loop {
+      mut i = i + 1
+      if a[i] >= pivot {
+        break
+      }
+    }
+    loop {
+      mut j = j - 1
+      if a[j] <= pivot {
+        break
+      }
+    }
+    if i >= j {
+      break
+    }
+    val tmp: Int32 = a[i]
+    mut a[i] = a[j]
+    mut a[j] = tmp
+  }
+
+  mut a = quicksort(a, lo, j)
+  return quicksort(a, j + 1, hi)
+}
+
+fun main(): Int32 {
+  mut val a: Int32[16]
+
+  mut val seed: Int32 = 42
+  mut val k: Int32 = 0
+  loop {
+    if k == 16 {
+      break
+    }
+    mut seed = (seed * 1103 + 12345) % 32768
+    mut a[k] = seed % 100
+    mut k = k + 1
+  }
+
+  do printArray(a)
+  do printArray(quicksort(a, 0, 15))
+  return 0
+}
