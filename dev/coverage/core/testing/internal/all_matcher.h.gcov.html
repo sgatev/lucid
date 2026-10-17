@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-11 15:23:45</td>
+            <td class="headerValue">2026-10-17 10:01:20</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryLo">39.7&nbsp;%</td>
@@ -80,7 +80,7 @@
 <span id="L18"><span class="lineNum">      18</span>              : class AllMatcher {</span>
 <span id="L19"><span class="lineNum">      19</span>              :  public:</span>
 <span id="L20"><span class="lineNum">      20</span>              :   explicit AllMatcher(Ms... matchers)</span>
-<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">          68 :       : matchers_(std::make_tuple(std::move(matchers)...)) {}</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaGNC">          69 :       : matchers_(std::make_tuple(std::move(matchers)...)) {}</span></span>
 <span id="L22"><span class="lineNum">      22</span>              : </span>
 <span id="L23"><span class="lineNum">      23</span> <span class="tlaUNC">           0 :   std::string DescribeExpected() {</span></span>
 <span id="L24"><span class="lineNum">      24</span> <span class="tlaUNC">           0 :     std::string description;</span></span>
@@ -111,13 +111,13 @@
 <span id="L49"><span class="lineNum">      49</span> <span class="tlaUNC">           0 :   }</span></span>
 <span id="L50"><span class="lineNum">      50</span>              : </span>
 <span id="L51"><span class="lineNum">      51</span>              :   template &lt;MatchableByAll&lt;Ms...&gt; A&gt;</span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">          68 :   bool Matches(const A&amp; actual_value) const {</span></span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          68 :     bool equal = true;</span></span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         138 :     StaticFor&lt;0, sizeof...(Ms)&gt;([&amp;]&lt;int I&gt;() {</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">         138 :       equal = equal &amp;&amp; std::get&lt;I&gt;(matchers_).Matches(actual_value);</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">         138 :     });</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">          68 :     return equal;</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">          68 :   }</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">          69 :   bool Matches(const A&amp; actual_value) const {</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          69 :     bool equal = true;</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">         140 :     StaticFor&lt;0, sizeof...(Ms)&gt;([&amp;]&lt;int I&gt;() {</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">         140 :       equal = equal &amp;&amp; std::get&lt;I&gt;(matchers_).Matches(actual_value);</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">         140 :     });</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">          69 :     return equal;</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">          69 :   }</span></span>
 <span id="L59"><span class="lineNum">      59</span>              : </span>
 <span id="L60"><span class="lineNum">      60</span>              :  private:</span>
 <span id="L61"><span class="lineNum">      61</span>              :   std::tuple&lt;Ms...&gt; matchers_;</span>

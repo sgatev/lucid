@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2026-10-11 15:23:45</td>
+            <td class="headerValue">2026-10-17 10:01:20</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">92.3&nbsp;%</td>
@@ -132,22 +132,22 @@
 <span id="L70"><span class="lineNum">      70</span>              :   };</span>
 <span id="L71"><span class="lineNum">      71</span>              : </span>
 <span id="L72"><span class="lineNum">      72</span>              :   // Adds a new block to the control flow graph.</span>
-<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">        3732 :   Block&amp; AddBlock() {</span></span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">        3732 :     auto ref = blocks_.Add(Block());</span></span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">        3732 :     Block&amp; block = blocks_.Get(ref);</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">        3732 :     block.ref = ref;</span></span>
-<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">        3732 :     return block;</span></span>
-<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">        3732 :   }</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">        3776 :   Block&amp; AddBlock() {</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">        3776 :     auto ref = blocks_.Add(Block());</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">        3776 :     Block&amp; block = blocks_.Get(ref);</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">        3776 :     block.ref = ref;</span></span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">        3776 :     return block;</span></span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaGNC">        3776 :   }</span></span>
 <span id="L79"><span class="lineNum">      79</span>              : </span>
 <span id="L80"><span class="lineNum">      80</span>              :   // Returns the block in the control flow graph refererenced by `ref`.</span>
 <span id="L81"><span class="lineNum">      81</span>              :   //</span>
 <span id="L82"><span class="lineNum">      82</span>              :   // `ref` must not be `kNullBlockRef`.</span>
-<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">    20147460 :   auto&amp; GetBlock(this auto&amp;&amp; self, BlockRef ref) {</span></span>
-<span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">    20147460 :     return self.blocks_.Get(ref);</span></span>
-<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">    20147460 :   }</span></span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">    20147900 :   auto&amp; GetBlock(this auto&amp;&amp; self, BlockRef ref) {</span></span>
+<span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">    20147900 :     return self.blocks_.Get(ref);</span></span>
+<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">    20147900 :   }</span></span>
 <span id="L86"><span class="lineNum">      86</span>              : </span>
 <span id="L87"><span class="lineNum">      87</span>              :   // Returns an arena with all blocks that were added to the graph.</span>
-<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">       14961 :   auto&amp; Blocks(this auto&amp;&amp; self) { return self.blocks_; }</span></span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">       15114 :   auto&amp; Blocks(this auto&amp;&amp; self) { return self.blocks_; }</span></span>
 <span id="L89"><span class="lineNum">      89</span>              : </span>
 <span id="L90"><span class="lineNum">      90</span>              :   // Adds an edge to the control flow graph.</span>
 <span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">          79 :   void AddEdge(BlockRef from, BlockRef to) {</span></span>
@@ -169,57 +169,64 @@
 <span id="L107"><span class="lineNum">     107</span>              :   // Abstract machine stack slots.</span>
 <span id="L108"><span class="lineNum">     108</span>              :   std::vector&lt;int&gt; stack_slots;</span>
 <span id="L109"><span class="lineNum">     109</span>              : </span>
-<span id="L110"><span class="lineNum">     110</span>              :   // Next free register ID.</span>
-<span id="L111"><span class="lineNum">     111</span>              :   //</span>
-<span id="L112"><span class="lineNum">     112</span>              :   // Every register the graph holds has an ID below this one, which is what</span>
-<span id="L113"><span class="lineNum">     113</span>              :   // lets an ID be used as an index. Whoever puts a register in the graph</span>
-<span id="L114"><span class="lineNum">     114</span>              :   // moves this past it.</span>
-<span id="L115"><span class="lineNum">     115</span>              :   std::int32_t next_free_reg_id = 1;</span>
+<span id="L110"><span class="lineNum">     110</span>              :   // Where the function leaves a result that lies in the frame rather than in</span>
+<span id="L111"><span class="lineNum">     111</span>              :   // a register, such as an array. The first of the stack slots holding it,</span>
+<span id="L112"><span class="lineNum">     112</span>              :   // and how many there are. A function whose result is in a register has</span>
+<span id="L113"><span class="lineNum">     113</span>              :   // none.</span>
+<span id="L114"><span class="lineNum">     114</span>              :   std::size_t result_slot = 0;</span>
+<span id="L115"><span class="lineNum">     115</span>              :   std::size_t result_slot_count = 0;</span>
 <span id="L116"><span class="lineNum">     116</span>              : </span>
-<span id="L117"><span class="lineNum">     117</span>              :  private:</span>
-<span id="L118"><span class="lineNum">     118</span>              :   Arena&lt;Block&gt; blocks_;</span>
-<span id="L119"><span class="lineNum">     119</span>              : };</span>
-<span id="L120"><span class="lineNum">     120</span>              : </span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">        5763 : inline std::size_t VertexCount(const AbstractMachineControlFlowGraph&amp; amcfg) {</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">        5763 :   return amcfg.Blocks().Size();</span></span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">        5763 : }</span></span>
-<span id="L124"><span class="lineNum">     124</span>              : </span>
-<span id="L125"><span class="lineNum">     125</span>              : inline std::vector&lt;AbstractMachineControlFlowGraph::BlockRef&gt; Vertices(</span>
-<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">        2566 :     const AbstractMachineControlFlowGraph&amp; amcfg) {</span></span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">        2566 :   std::vector&lt;AbstractMachineControlFlowGraph::BlockRef&gt; block_refs;</span></span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">       14465 :   for (const auto&amp; block : amcfg.Blocks()) block_refs.push_back(block.ref);</span></span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">        2566 :   return block_refs;</span></span>
-<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">        2566 : }</span></span>
+<span id="L117"><span class="lineNum">     117</span>              :   // Next free register ID.</span>
+<span id="L118"><span class="lineNum">     118</span>              :   //</span>
+<span id="L119"><span class="lineNum">     119</span>              :   // Every register the graph holds has an ID below this one, which is what</span>
+<span id="L120"><span class="lineNum">     120</span>              :   // lets an ID be used as an index. Whoever puts a register in the graph</span>
+<span id="L121"><span class="lineNum">     121</span>              :   // moves this past it.</span>
+<span id="L122"><span class="lineNum">     122</span>              :   std::int32_t next_free_reg_id = 1;</span>
+<span id="L123"><span class="lineNum">     123</span>              : </span>
+<span id="L124"><span class="lineNum">     124</span>              :  private:</span>
+<span id="L125"><span class="lineNum">     125</span>              :   Arena&lt;Block&gt; blocks_;</span>
+<span id="L126"><span class="lineNum">     126</span>              : };</span>
+<span id="L127"><span class="lineNum">     127</span>              : </span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">        5817 : inline std::size_t VertexCount(const AbstractMachineControlFlowGraph&amp; amcfg) {</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">        5817 :   return amcfg.Blocks().Size();</span></span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">        5817 : }</span></span>
 <span id="L131"><span class="lineNum">     131</span>              : </span>
-<span id="L132"><span class="lineNum">     132</span>              : inline AbstractMachineControlFlowGraph::BlockRef SourceVertex(</span>
-<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">        3187 :     const AbstractMachineControlFlowGraph&amp; amcfg) {</span></span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">        3187 :   return amcfg.first;</span></span>
-<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">        3187 : }</span></span>
-<span id="L136"><span class="lineNum">     136</span>              : </span>
-<span id="L137"><span class="lineNum">     137</span>              : inline AbstractMachineControlFlowGraph::BlockRef SinkVertex(</span>
-<span id="L138"><span class="lineNum">     138</span> <span class="tlaUNC">           0 :     const AbstractMachineControlFlowGraph&amp; amcfg) {</span></span>
-<span id="L139"><span class="lineNum">     139</span> <span class="tlaUNC">           0 :   return amcfg.last;</span></span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaUNC">           0 : }</span></span>
-<span id="L141"><span class="lineNum">     141</span>              : </span>
-<span id="L142"><span class="lineNum">     142</span>              : inline std::span&lt;const AbstractMachineControlFlowGraph::BlockRef&gt; NextVertices(</span>
-<span id="L143"><span class="lineNum">     143</span>              :     const AbstractMachineControlFlowGraph&amp; amcfg,</span>
-<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">       31479 :     AbstractMachineControlFlowGraph::BlockRef block_ref) {</span></span>
-<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">       31479 :   return amcfg.GetBlock(block_ref.id()).succs;</span></span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">       31479 : }</span></span>
-<span id="L147"><span class="lineNum">     147</span>              : </span>
-<span id="L148"><span class="lineNum">     148</span>              : inline std::span&lt;const AbstractMachineControlFlowGraph::BlockRef&gt; PrevVertices(</span>
-<span id="L149"><span class="lineNum">     149</span>              :     const AbstractMachineControlFlowGraph&amp; amcfg,</span>
-<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">        9423 :     AbstractMachineControlFlowGraph::BlockRef block_ref) {</span></span>
-<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">        9423 :   return amcfg.GetBlock(block_ref.id()).preds;</span></span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">        9423 : }</span></span>
-<span id="L153"><span class="lineNum">     153</span>              : </span>
-<span id="L154"><span class="lineNum">     154</span>              : inline std::uint32_t VertexId(</span>
-<span id="L155"><span class="lineNum">     155</span>              :     const AbstractMachineControlFlowGraph&amp;,</span>
-<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">      180008 :     AbstractMachineControlFlowGraph::BlockRef block_ref) {</span></span>
-<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">      180008 :   return block_ref.id();</span></span>
-<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">      180008 : }</span></span>
-<span id="L159"><span class="lineNum">     159</span>              : </span>
-<span id="L160"><span class="lineNum">     160</span>              : }  // namespace lucid</span>
+<span id="L132"><span class="lineNum">     132</span>              : inline std::vector&lt;AbstractMachineControlFlowGraph::BlockRef&gt; Vertices(</span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">        2590 :     const AbstractMachineControlFlowGraph&amp; amcfg) {</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">        2590 :   std::vector&lt;AbstractMachineControlFlowGraph::BlockRef&gt; block_refs;</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">       14521 :   for (const auto&amp; block : amcfg.Blocks()) block_refs.push_back(block.ref);</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">        2590 :   return block_refs;</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">        2590 : }</span></span>
+<span id="L138"><span class="lineNum">     138</span>              : </span>
+<span id="L139"><span class="lineNum">     139</span>              : inline AbstractMachineControlFlowGraph::BlockRef SourceVertex(</span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">        3217 :     const AbstractMachineControlFlowGraph&amp; amcfg) {</span></span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">        3217 :   return amcfg.first;</span></span>
+<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">        3217 : }</span></span>
+<span id="L143"><span class="lineNum">     143</span>              : </span>
+<span id="L144"><span class="lineNum">     144</span>              : inline AbstractMachineControlFlowGraph::BlockRef SinkVertex(</span>
+<span id="L145"><span class="lineNum">     145</span> <span class="tlaUNC">           0 :     const AbstractMachineControlFlowGraph&amp; amcfg) {</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaUNC">           0 :   return amcfg.last;</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaUNC">           0 : }</span></span>
+<span id="L148"><span class="lineNum">     148</span>              : </span>
+<span id="L149"><span class="lineNum">     149</span>              : inline std::span&lt;const AbstractMachineControlFlowGraph::BlockRef&gt; NextVertices(</span>
+<span id="L150"><span class="lineNum">     150</span>              :     const AbstractMachineControlFlowGraph&amp; amcfg,</span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">       31581 :     AbstractMachineControlFlowGraph::BlockRef block_ref) {</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">       31581 :   return amcfg.GetBlock(block_ref.id()).succs;</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">       31581 : }</span></span>
+<span id="L154"><span class="lineNum">     154</span>              : </span>
+<span id="L155"><span class="lineNum">     155</span>              : inline std::span&lt;const AbstractMachineControlFlowGraph::BlockRef&gt; PrevVertices(</span>
+<span id="L156"><span class="lineNum">     156</span>              :     const AbstractMachineControlFlowGraph&amp; amcfg,</span>
+<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">        9453 :     AbstractMachineControlFlowGraph::BlockRef block_ref) {</span></span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">        9453 :   return amcfg.GetBlock(block_ref.id()).preds;</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">        9453 : }</span></span>
+<span id="L160"><span class="lineNum">     160</span>              : </span>
+<span id="L161"><span class="lineNum">     161</span>              : inline std::uint32_t VertexId(</span>
+<span id="L162"><span class="lineNum">     162</span>              :     const AbstractMachineControlFlowGraph&amp;,</span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">      180352 :     AbstractMachineControlFlowGraph::BlockRef block_ref) {</span></span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">      180352 :   return block_ref.id();</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">      180352 : }</span></span>
+<span id="L166"><span class="lineNum">     166</span>              : </span>
+<span id="L167"><span class="lineNum">     167</span>              : }  // namespace lucid</span>
         </pre>
               </td>
             </tr>
